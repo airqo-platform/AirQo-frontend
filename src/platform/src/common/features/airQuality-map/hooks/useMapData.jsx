@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import Supercluster from 'supercluster';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
-import logger from '@/lib/logger';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import {
   setOpenLocationDetails,
@@ -37,7 +36,7 @@ const CONSTANTS = {
     DEFAULT: 58,
   },
   MAP_READINGS: {
-    TIMEOUT: 30000, // Increased to 30 seconds for heavy map readings endpoint
+    TIMEOUT: 8000,
     RETRY_ATTEMPTS: 2,
   },
   WAQ_API: {
@@ -651,31 +650,19 @@ const useMapData = (params = {}) => {
 
         return features;
       } catch (error) {
-        // Handle abort errors gracefully
         if (error.name === 'AbortError') {
           return [];
         }
 
-        // Handle specific error types and decide on retry
-        const shouldRetry =
-          retryCount < maxRetries &&
-          (error.code === 'ECONNABORTED' ||
-            error.code === 'ECONNRESET' ||
-            error.code === 'ENETUNREACH' ||
-            error.message?.includes('timeout') ||
-            error.message?.includes('Network Error') ||
-            error.response?.status >= 500);
-
-        if (shouldRetry) {
+        if (retryCount < maxRetries) {
           retryCount++;
-          const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 5000); // Exponential backoff with max 5s
-          if (process.env.NODE_ENV === 'development') {
-            logger.warn(
-              `Map readings fetch failed, retrying (${retryCount}/${maxRetries}) in ${delay}ms:`,
-              error.message,
-            );
-          }
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          console.warn(
+            `Map readings fetch failed, retrying (${retryCount}/${maxRetries}):`,
+            error.message,
+          );
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * retryCount),
+          );
           return attemptFetch();
         }
 
@@ -684,9 +671,6 @@ const useMapData = (params = {}) => {
         // Try to use cached data as fallback
         const cachedData = cacheRef.current[cacheKey].data;
         if (cachedData?.length) {
-          if (process.env.NODE_ENV === 'development') {
-            logger.info('Using cached map readings data as fallback');
-          }
           return cachedData;
         }
 
@@ -884,10 +868,6 @@ const useMapData = (params = {}) => {
     const map = mapRef.current;
     if (!map) return;
 
-    // Copy refs to avoid React warning in cleanup
-    const cleanupFunctions = cleanupFunctionsRef.current;
-    const abortControllers = abortControllersRef.current;
-
     initSupercluster();
 
     // Load existing data if available
@@ -909,12 +889,12 @@ const useMapData = (params = {}) => {
 
       clearMarkers();
 
-      cleanupFunctions.forEach((cleanup) => {
+      cleanupFunctionsRef.current.forEach((cleanup) => {
         cleanup();
       });
-      cleanupFunctions.clear();
+      cleanupFunctionsRef.current.clear();
 
-      Object.values(abortControllers).forEach((controller) => {
+      Object.values(abortControllersRef.current).forEach((controller) => {
         if (controller) {
           controller.abort();
         }
