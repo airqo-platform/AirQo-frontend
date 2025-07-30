@@ -44,24 +44,26 @@ export async function POST(request: NextRequest) {
     const SLACK_WEBHOOK_URL = process.env.SLACK_WEBHOOK_URL;
     
     if (!SLACK_WEBHOOK_URL) {
-      console.warn('Slack webhook URL not configured');
+      console.warn('Slack webhook URL not configured - check your .env file');
+      console.warn('Expected environment variable: SLACK_WEBHOOK_URL');
       return NextResponse.json(
         { success: false, error: 'Slack webhook URL not configured' },
         { status: 500 }
       );
     }
     
-    const { level, message, context } = await request.json();
+    const body = await request.json();
+    const { level, message, context } = body;
     
     // Skip ignored errors
     if (shouldIgnoreError(context)) {
-      return NextResponse.json({ success: true, skipped: true });
+      return NextResponse.json({ success: true, skipped: true, reason: 'Ignored status code' });
     }
     
     // Create a fingerprint for deduplication
     const fingerprint = `${level}:${message}:${JSON.stringify(context)}`;
     if (errorCache.has(fingerprint)) {
-      return NextResponse.json({ success: true, skipped: true });
+      return NextResponse.json({ success: true, skipped: true, reason: 'Deduplication' });
     }
     
     // Add to cache
@@ -150,18 +152,37 @@ export async function POST(request: NextRequest) {
       });
     }
     
-    // Send to Slack
-    await axios.post(SLACK_WEBHOOK_URL, slackPayload, {
-      timeout: 5000, // 5 second timeout
+    const response = await axios.post(SLACK_WEBHOOK_URL, slackPayload, {
+      timeout: 10000, // 10 second timeout
+      headers: {
+        'Content-Type': 'application/json',
+      },
     });
+    
+    // Slack webhooks return "ok" as response for successful messages
+    if (response.data !== 'ok') {
+      console.warn('⚠️ [SLACK API] Unexpected response from Slack:', response.data);
+    }
     
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error sending to Slack:', error);
+    console.error('Error sending to Slack:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      status: (error as any)?.response?.status,
+      data: (error as any)?.response?.data,
+      config: {
+        url: (error as any)?.config?.url?.substring(0, 50) + '...',
+        method: (error as any)?.config?.method,
+      },
+    });
     return NextResponse.json(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
+        details: {
+          status: (error as any)?.response?.status,
+          statusText: (error as any)?.response?.statusText,
+        },
       },
       { status: 500 }
     );

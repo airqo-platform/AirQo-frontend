@@ -11,29 +11,53 @@ const shouldLogToSlack = () => {
 };
 
 const logToSlack = (level, message, context = {}) => {
-  if (!shouldLogToSlack()) return;
-
-  axios.post('/api/log-to-slack', {
+  if (!shouldLogToSlack()) {
+    return;
+  }
+  
+  // Add more detailed debugging
+  const payload = {
     level,
     message,
     context,
+  };
+  
+  axios.post('/api/log-to-slack', payload, {
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    timeout: 10000,
+  }).then((response) => {
+    console.log('✅ Slack log sent successfully:', {
+      status: response.status,
+      statusText: response.statusText,
+      data: response.data,
+    });
   }).catch((error) => {
-    // Fail silently to avoid a logging loop
-    log.error('Failed to send log to Slack', error);
+    // Fail silently to avoid a logging loop but provide detailed info
+    console.error('❌ Failed to send log to Slack:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method,
+      requestData: error.config?.data,
+    });
   });
 };
 
 const logger = {
   error: (message, context = {}) => {
-    log.error(message, context);
+    log.error(message);
     logToSlack('error', message, context);
   },
   warn: (message, context = {}) => {
-    log.warn(message, context);
+    log.warn(message);
     logToSlack('warn', message, context);
   },
-  info: (message, context = {}) => {
-    log.info(message, context);
+  info: (message) => {
+    log.info(message);
   },
   debug: (message, context = {}) => {
     log.debug(message, context);
