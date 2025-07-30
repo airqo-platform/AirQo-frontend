@@ -237,6 +237,62 @@ export const useDeviceDetails = (deviceId: string) => {
   });
 };
 
+export const useUpdateDeviceLocal = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ deviceId, deviceData }: {
+      deviceId: string;
+      deviceData: Record<string, any>;
+    }) => devices.updateDeviceLocal(deviceId, deviceData),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Device Updated Successfully!",
+        description: "Device information has been updated locally.",
+      });
+      // Invalidate and refetch device details
+      queryClient.invalidateQueries({ queryKey: ["device-details", variables.deviceId] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast({
+        title: "Update Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+export const useUpdateDeviceGlobal = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ deviceId, deviceData }: {
+      deviceId: string;
+      deviceData: Record<string, any>;
+    }) => devices.updateDeviceGlobal(deviceId, deviceData),
+    onSuccess: (data, variables) => {
+      toast({
+        title: "Device Synced Successfully!",
+        description: "Device information has been updated globally.",
+      });
+      // Invalidate and refetch device details
+      queryClient.invalidateQueries({ queryKey: ["device-details", variables.deviceId] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast({
+        title: "Sync Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
 export const useDeviceStatusFeed = (deviceNumber?: number) => {
   return useQuery({
     queryKey: ["deviceStatusFeed", deviceNumber],

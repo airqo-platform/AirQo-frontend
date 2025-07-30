@@ -343,5 +343,39 @@ export const devices = {
         axiosError.response?.data?.message || "Failed to import device"
       );
     }
+  },
+
+  updateDeviceLocal: async (deviceId: string, deviceData: Record<string, any>) => {
+    try {
+      // Remove network field if present
+      const { network, ...updateData } = deviceData;
+      const response = await axiosInstance.put(
+        `${DEVICES_MGT_URL}?id=${deviceId}`,
+        updateData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to update device locally"
+      );
+    }
+  },
+
+  updateDeviceGlobal: async (deviceId: string, deviceData: Record<string, any>) => {
+    try {
+      // Remove network field if present
+      const { network, ...updateData } = deviceData;
+      const response = await axiosInstance.put(
+        `${DEVICES_MGT_URL}/soft?id=${deviceId}`,
+        updateData
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to update device globally"
+      );
+    }
   }
 };
