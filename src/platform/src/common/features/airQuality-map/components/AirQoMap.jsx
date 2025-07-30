@@ -40,13 +40,12 @@ const AirQoMap = forwardRef(
       mapboxApiAccessToken,
       pollutant,
       onToastMessage,
-      onLoadingChange,
-      onLoadingOthersChange,
+      onMainLoadingChange,
+      onOthersLoadingChange,
     },
     ref,
   ) => {
     const dispatch = useDispatch();
-
     // Refs for performance and cleanup
     const mapContainerRef = useRef(null);
     const timeoutRef = useRef(null);
@@ -67,7 +66,6 @@ const AirQoMap = forwardRef(
         prev.waqData === next.waqData &&
         prev.selectedNode === next.selectedNode,
     );
-
     // Separate viewport selector for better performance
     const viewportData = useSelector(
       (state) => ({
@@ -79,49 +77,43 @@ const AirQoMap = forwardRef(
         prev.reduxCenter?.longitude === next.reduxCenter?.longitude &&
         prev.reduxZoom === next.reduxZoom,
     );
-
     // Local state
     const [layerModalOpen, setLayerModalOpen] = useState(false);
     const [nodeType, setNodeType] = useState(CONSTANTS.DEFAULT_NODE_TYPE);
-
     // Custom hooks with memoization
     const { styleUrl, setStyleUrl, isDarkMode } = useMapStyles(mapStyles);
     const { initialCenter, initialZoom } = useMapViewport();
-
     // Memoized loading callbacks to prevent unnecessary re-renders
     const handleMainLoading = useCallback(
       (loading) => {
         if (!isUnmountingRef.current) {
-          onLoadingChange?.(loading);
+          onMainLoadingChange?.(loading);
         }
       },
-      [onLoadingChange],
+      [onMainLoadingChange],
     );
-
     const handleOthersLoading = useCallback(
       (loading) => {
         if (!isUnmountingRef.current) {
-          onLoadingOthersChange?.(loading);
+          onOthersLoadingChange?.(loading);
         }
       },
-      [onLoadingOthersChange],
+      [onOthersLoadingChange],
     );
-
-    // Data management hook
+    // Data management hook - Pass the new loading setters
     const {
       mapRef,
       fetchAndProcessData,
       clusterUpdate,
       updateMapData,
-      isWaqLoading,
+      cleanup: cleanupMapDataHook,
     } = useMapData({
       NodeType: nodeType,
       pollutant,
-      setLoading: handleMainLoading,
-      setLoadingOthers: handleOthersLoading,
+      onMainLoadingChange: handleMainLoading,
+      onOthersLoadingChange: handleOthersLoading,
       isDarkMode,
     });
-
     // Controls management
     const {
       addControls,
@@ -129,7 +121,6 @@ const AirQoMap = forwardRef(
       resetControlsState,
       controlsAddedRef,
     } = useMapControls(mapRef, onToastMessage);
-
     // Map initialization
     const {
       initializeMap,
@@ -152,12 +143,10 @@ const AirQoMap = forwardRef(
       handleMainLoading,
       onToastMessage,
     });
-
     // Memoized combined map data to prevent unnecessary recalculations
     const combinedMapData = useMemo(() => {
       return [...(mapData.mapReadingsData || []), ...(mapData.waqData || [])];
     }, [mapData.mapReadingsData, mapData.waqData]);
-
     // Imperative methods with stable references
     const refreshMap = useRefreshMap(
       onToastMessage,
@@ -165,14 +154,11 @@ const AirQoMap = forwardRef(
       dispatch,
       mapData.selectedNode,
     );
-
     const shareLocation = useShareLocation(onToastMessage, mapRef);
     const captureScreenshot = useMapScreenshot(mapRef, onToastMessage);
-
     // Modal handlers with useCallback to prevent re-renders
     const openLayerModal = useCallback(() => setLayerModalOpen(true), []);
     const closeLayerModal = useCallback(() => setLayerModalOpen(false), []);
-
     // Imperative handle with stable references
     useImperativeHandle(
       ref,
@@ -191,7 +177,6 @@ const AirQoMap = forwardRef(
         closeLayerModal,
       ],
     );
-
     // Optimized style change handler
     const onStyleChange = useCallback(
       ({ url }) => {
@@ -201,51 +186,40 @@ const AirQoMap = forwardRef(
           isUnmountingRef.current
         )
           return;
-
         const map = mapRef.current;
         if (!map) {
           setStyleUrl(url);
           return;
         }
-
         // Store current map state
         const center = map.getCenter();
         const zoom = map.getZoom();
-
         isReloadingRef.current = true;
         resetControlsState();
         handleMainLoading(true);
-
         setStyleUrl(url);
         map.setStyle(url);
-
         // Handle style load with error handling
         const handleStyleLoad = () => {
           if (isUnmountingRef.current) return;
-
           try {
             // Restore map state
             map.setCenter(center);
             map.setZoom(zoom);
-
             // Add controls
             addControls();
-
             // Update map data if available
             if (combinedMapData.length > 0) {
               updateMapData(combinedMapData);
             }
-
             // Fallback control addition with cleanup
             const fallbackTimeout = setTimeout(() => {
               if (!controlsAddedRef.current && !isUnmountingRef.current) {
                 addControls();
               }
             }, CONSTANTS.STYLE_LOAD_FALLBACK_TIMEOUT);
-
             // Store timeout for cleanup
             timeoutRef.current = fallbackTimeout;
-
             handleMainLoading(false);
             isReloadingRef.current = false;
             prevStyleUrlRef.current = url;
@@ -255,10 +229,8 @@ const AirQoMap = forwardRef(
             isReloadingRef.current = false;
           }
         };
-
         // Add event listeners with error handling
         map.once('style.load', handleStyleLoad);
-
         map.once('error', () => {
           console.error('Error loading map style');
           handleMainLoading(false);
@@ -275,7 +247,6 @@ const AirQoMap = forwardRef(
         controlsAddedRef,
       ],
     );
-
     // Optimized detail change handler
     const onMapDetail = useCallback(
       (detail) => {
@@ -289,12 +260,10 @@ const AirQoMap = forwardRef(
       },
       [nodeType],
     );
-
     // Optimized viewport change handler
     const handleViewportChange = useCallback(() => {
       const map = mapRef.current;
       const { reduxCenter, reduxZoom } = viewportData;
-
       if (
         !map?.loaded() ||
         !mapInitializedRef.current ||
@@ -304,9 +273,7 @@ const AirQoMap = forwardRef(
       ) {
         return;
       }
-
       const lastUpdate = lastViewportUpdateRef.current;
-
       // Check if the change is significant enough to warrant an update
       const centerChanged =
         !lastUpdate.center ||
@@ -314,11 +281,9 @@ const AirQoMap = forwardRef(
           CONSTANTS.MIN_CENTER_CHANGE ||
         Math.abs(lastUpdate.center.longitude - reduxCenter.longitude) >
           CONSTANTS.MIN_CENTER_CHANGE;
-
       const zoomChanged =
         !lastUpdate.zoom ||
         Math.abs(lastUpdate.zoom - reduxZoom) > CONSTANTS.MIN_ZOOM_CHANGE;
-
       if (centerChanged || zoomChanged) {
         map.flyTo({
           center: [reduxCenter.longitude, reduxCenter.latitude],
@@ -327,7 +292,6 @@ const AirQoMap = forwardRef(
           speed: 0.8,
           curve: 1.2,
         });
-
         // Update last viewport reference
         lastViewportUpdateRef.current = {
           center: { ...reduxCenter },
@@ -335,7 +299,6 @@ const AirQoMap = forwardRef(
         };
       }
     }, [viewportData, mapInitializedRef]);
-
     // Optimized controls checker
     const checkControls = useCallback(() => {
       if (
@@ -345,31 +308,27 @@ const AirQoMap = forwardRef(
         isUnmountingRef.current
       )
         return;
-
       if (mapRef.current.loaded()) {
         addControls();
       }
     }, [addControls, mapInitializedRef, controlsAddedRef]);
-
     // Cleanup effect - runs on unmount
     useEffect(() => {
       return () => {
         isUnmountingRef.current = true;
-
         // Clear all timeouts and intervals
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
           timeoutRef.current = null;
         }
-
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
           intervalRef.current = null;
         }
-
         // Clean up Redux state
         dispatch(clearData());
-
+        // Clean up map data hook (abort controllers, timeouts)
+        cleanupMapDataHook();
         // Clean up map instance
         if (mapRef.current) {
           try {
@@ -379,23 +338,20 @@ const AirQoMap = forwardRef(
             console.warn('Error removing map:', error);
           }
         }
-
         // Reset state
         resetControlsState();
         mapInitializedRef.current = false;
         isReloadingRef.current = false;
       };
-    }, [dispatch, resetControlsState]);
+    }, [dispatch, resetControlsState, cleanupMapDataHook]);
 
     // Map initialization effect with dependency optimization
     useEffect(() => {
       if (!styleUrl || isUnmountingRef.current) return;
-
       const needsReload =
         (!mapInitializedRef.current && !isReloadingRef.current) ||
         (prevStyleUrlRef.current !== styleUrl &&
           prevStyleUrlRef.current !== null);
-
       if (needsReload) {
         initializeMap();
       }
@@ -410,19 +366,16 @@ const AirQoMap = forwardRef(
         isUnmountingRef.current
       )
         return;
-
       if (
         prevNodeTypeRef.current !== nodeType &&
         prevNodeTypeRef.current !== null
       ) {
         mapRef.current.nodeType = nodeType;
         prevNodeTypeRef.current = nodeType;
-
         // Debounce cluster update to prevent excessive calls
         if (timeoutRef.current) {
           clearTimeout(timeoutRef.current);
         }
-
         timeoutRef.current = setTimeout(() => {
           if (!isUnmountingRef.current) {
             clusterUpdate();
@@ -439,16 +392,13 @@ const AirQoMap = forwardRef(
         isUnmountingRef.current
       )
         return;
-
       // Initial check
       checkControls();
-
       // Set up periodic checks
       intervalRef.current = setInterval(
         checkControls,
         CONSTANTS.CONTROL_CHECK_INTERVAL,
       );
-
       return () => {
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
@@ -461,17 +411,6 @@ const AirQoMap = forwardRef(
     useEffect(() => {
       handleViewportChange();
     }, [handleViewportChange]);
-
-    // Loading state effect for debugging
-    useEffect(() => {
-      if (process.env.NODE_ENV === 'development') {
-        console.debug('AirQoMap Loading States:', {
-          main: handleMainLoading,
-          others: handleOthersLoading,
-          waq: isWaqLoading,
-        });
-      }
-    }, [handleMainLoading, handleOthersLoading, isWaqLoading]);
 
     return (
       <ErrorBoundary name="AirQoMap" feature="AirQuality Map">
@@ -495,15 +434,13 @@ const AirQoMap = forwardRef(
 );
 
 AirQoMap.displayName = 'AirQoMap';
-
 AirQoMap.propTypes = {
   customStyle: PropTypes.string,
   mapboxApiAccessToken: PropTypes.string.isRequired,
   pollutant: PropTypes.string.isRequired,
   onToastMessage: PropTypes.func,
-  onLoadingChange: PropTypes.func,
-  onLoadingOthersChange: PropTypes.func,
+  onMainLoadingChange: PropTypes.func,
+  onOthersLoadingChange: PropTypes.func,
 };
 
-// Memoize the component to prevent unnecessary re-renders
 export default React.memo(AirQoMap);

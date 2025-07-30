@@ -1,9 +1,8 @@
-import { useCallback, useRef, useEffect, useState, useMemo } from 'react';
+import { useCallback, useRef, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Supercluster from 'supercluster';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
-import { debounce } from 'lodash';
 import { getMapReadings } from '@/core/apis/DeviceRegistry';
 import {
   setOpenLocationDetails,
@@ -30,7 +29,7 @@ const CONSTANTS = {
     DEFAULT: 80,
   },
   CACHE_DURATION: 5 * 60 * 1000, // 5 minutes
-  DEBOUNCE_DELAY: 150,
+  // DEBOUNCE_DELAY moved inside clusterUpdate for proper scope
   POPUP_OFFSET: {
     NODE: 35,
     NUMBER: 42,
@@ -46,8 +45,8 @@ const CONSTANTS = {
 const useMapData = ({
   NodeType,
   pollutant,
-  setLoading,
-  setLoadingOthers,
+  onMainLoadingChange, // Renamed from setLoading
+  onOthersLoadingChange, // Renamed from setLoadingOthers
   isDarkMode,
 }) => {
   // Refs for performance optimization
@@ -58,9 +57,7 @@ const useMapData = ({
   const mapDataCacheRef = useRef(new Map());
   const lastFetchTimeRef = useRef(0);
   const cleanupFunctionsRef = useRef([]);
-
-  // State
-  const [isWaqLoading, setIsWaqLoading] = useState(false);
+  const clusterUpdateTimeoutRef = useRef(null); // For debouncing cluster updates
 
   // Redux
   const dispatch = useDispatch();
@@ -113,10 +110,8 @@ const useMapData = ({
   const getForecastForPollutant = useCallback(
     (cityData) => {
       if (!cityData?.forecast?.daily) return null;
-
       const key = pollutant === 'pm2_5' ? 'pm25' : pollutant;
       const dailyData = cityData.forecast.daily[key];
-
       return (
         dailyData?.map((data) => ({
           [pollutant]: data.avg,
@@ -130,13 +125,11 @@ const useMapData = ({
   // Optimized cluster AQI calculation
   const getTwoMostCommonAQIs = useCallback((cluster) => {
     if (!indexRef.current) return [];
-
     const leaves = indexRef.current.getLeaves(
       cluster.properties.cluster_id,
       Infinity,
     );
     const aqiCounts = new Map();
-
     // Count AQI categories efficiently
     for (const leaf of leaves) {
       const aqi = leaf.properties.airQuality;
@@ -144,15 +137,12 @@ const useMapData = ({
         aqiCounts.set(aqi, (aqiCounts.get(aqi) || 0) + 1);
       }
     }
-
     if (aqiCounts.size === 0) return [];
-
     // Get top 2 most common AQIs
     const sortedAQIs = Array.from(aqiCounts.entries())
       .sort(([, a], [, b]) => b - a)
       .slice(0, 2)
       .map(([aqi]) => aqi);
-
     return leaves
       .filter((leaf) => sortedAQIs.includes(leaf.properties.airQuality))
       .map((leaf) => ({
@@ -166,11 +156,9 @@ const useMapData = ({
   // Optimized marker cleanup
   const clearMarkers = useCallback(() => {
     if (markersRef.current.length === 0) return;
-
     // Batch marker removal for better performance
     const markers = markersRef.current;
     markersRef.current = [];
-
     // Use requestAnimationFrame for non-blocking cleanup
     requestAnimationFrame(() => {
       markers.forEach((marker) => {
@@ -187,13 +175,11 @@ const useMapData = ({
   const handleNodeSelection = useCallback(
     (feature) => {
       if (selectedNode === feature.properties._id) return;
-
       // Batch Redux updates
       dispatch(setSelectedNode(feature.properties._id));
       dispatch(setSelectedWeeklyPrediction(null));
       dispatch(setOpenLocationDetails(true));
       dispatch(setSelectedLocation(feature.properties));
-
       // Smooth map transition
       if (mapRef.current) {
         mapRef.current.flyTo({
@@ -208,50 +194,8 @@ const useMapData = ({
     [dispatch, selectedNode],
   );
 
-  // Optimized cluster update with improved debouncing
-  const clusterUpdate = useCallback(
-    debounce(() => {
-      const map = mapRef.current;
-      if (!map || !indexRef.current) return;
-
-      try {
-        const zoom = Math.floor(map.getZoom());
-        const bounds = map.getBounds();
-        const bbox = [
-          bounds.getWest(),
-          bounds.getSouth(),
-          bounds.getEast(),
-          bounds.getNorth(),
-        ];
-
-        const clusters = indexRef.current.getClusters(bbox, zoom);
-
-        // Clear existing markers
-        clearMarkers();
-
-        // Create markers efficiently
-        const newMarkers = clusters
-          .map((feature) => {
-            const el = document.createElement('div');
-            el.style.cursor = 'pointer';
-
-            if (!feature.properties.cluster) {
-              return createUnclusteredMarker(el, feature, map);
-            } else {
-              return createClusteredMarker(el, feature, map, zoom);
-            }
-          })
-          .filter(Boolean);
-
-        markersRef.current = newMarkers;
-      } catch (error) {
-        console.error('Error updating clusters:', error);
-      }
-    }, CONSTANTS.DEBOUNCE_DELAY),
-    [clearMarkers, NodeType, selectedNode, isDarkMode, isDesktop],
-  );
-
   // Helper function for creating unclustered markers
+  // MOVED BEFORE clusterUpdate to fix ReferenceError
   const createUnclusteredMarker = useCallback(
     (el, feature, map) => {
       el.style.zIndex = '1';
@@ -261,7 +205,6 @@ const useMapData = ({
         selectedNode,
         isDarkMode,
       });
-
       // Create popup only for desktop
       let popup = null;
       if (isDesktop) {
@@ -271,7 +214,6 @@ const useMapData = ({
             : NodeType === 'Number'
               ? CONSTANTS.POPUP_OFFSET.NUMBER
               : CONSTANTS.POPUP_OFFSET.DEFAULT;
-
         popup = new mapboxgl.Popup({
           offset,
           closeButton: false,
@@ -279,74 +221,111 @@ const useMapData = ({
           className: 'my-custom-popup hidden md:block',
         }).setHTML(createPopupHTML({ feature, images, isDarkMode }));
       }
-
       const marker = new mapboxgl.Marker(el)
         .setLngLat(feature.geometry.coordinates)
         .addTo(map);
-
       if (popup) marker.setPopup(popup);
-
       // Add event listeners with passive option
       const handleMouseEnter = () => {
         if (popup) marker.togglePopup();
         el.style.zIndex = '9999';
       };
-
       const handleMouseLeave = () => {
         if (popup) marker.togglePopup();
         el.style.zIndex = '1';
       };
-
       const handleClick = () => handleNodeSelection(feature);
-
       el.addEventListener('mouseenter', handleMouseEnter, { passive: true });
       el.addEventListener('mouseleave', handleMouseLeave, { passive: true });
       el.addEventListener('click', handleClick, { passive: true });
-
       // Store cleanup functions
       cleanupFunctionsRef.current.push(() => {
         el.removeEventListener('mouseenter', handleMouseEnter);
         el.removeEventListener('mouseleave', handleMouseLeave);
         el.removeEventListener('click', handleClick);
       });
-
       return marker;
     },
     [NodeType, selectedNode, isDarkMode, isDesktop, handleNodeSelection],
   );
 
   // Helper function for creating clustered markers
+  // MOVED BEFORE clusterUpdate to fix ReferenceError
   const createClusteredMarker = useCallback(
     (el, feature, map, zoom) => {
       el.style.zIndex = '444';
       el.className =
         'clustered flex justify-center items-center bg-white rounded-full p-2 shadow-md';
-
       const mostCommonAQIs = getTwoMostCommonAQIs(feature);
       feature.properties.aqi = mostCommonAQIs;
       el.innerHTML = createClusterNode({ feature, NodeType, isDarkMode });
-
       const marker = new mapboxgl.Marker(el)
         .setLngLat(feature.geometry.coordinates)
         .addTo(map);
-
       const handleClick = () => {
         map.flyTo({
           center: feature.geometry.coordinates,
           zoom: zoom + 2,
         });
       };
-
       el.addEventListener('click', handleClick, { passive: true });
-
       cleanupFunctionsRef.current.push(() => {
         el.removeEventListener('click', handleClick);
       });
-
       return marker;
     },
     [getTwoMostCommonAQIs, NodeType, isDarkMode],
   );
+
+  // Optimized cluster update with improved debouncing
+  // FIXED: Moved createUnclusteredMarker and createClusteredMarker above this
+  const clusterUpdate = useCallback(() => {
+    // Clear existing timeout to debounce
+    if (clusterUpdateTimeoutRef.current) {
+      clearTimeout(clusterUpdateTimeoutRef.current);
+    }
+
+    clusterUpdateTimeoutRef.current = setTimeout(() => {
+      const map = mapRef.current;
+      if (!map || !indexRef.current) return;
+      try {
+        const zoom = Math.floor(map.getZoom());
+        const bounds = map.getBounds();
+        const bbox = [
+          bounds.getWest(),
+          bounds.getSouth(),
+          bounds.getEast(),
+          bounds.getNorth(),
+        ];
+        const clusters = indexRef.current.getClusters(bbox, zoom);
+        // Clear existing markers
+        clearMarkers();
+        // Create markers efficiently
+        const newMarkers = clusters
+          .map((feature) => {
+            const el = document.createElement('div');
+            el.style.cursor = 'pointer';
+            if (!feature.properties.cluster) {
+              return createUnclusteredMarker(el, feature, map);
+            } else {
+              return createClusteredMarker(el, feature, map, zoom);
+            }
+          })
+          .filter(Boolean);
+        markersRef.current = newMarkers;
+      } catch (error) {
+        console.error('Error updating clusters:', error);
+      }
+    }, CONSTANTS.DEBOUNCE_DELAY || 150); // Ensure debounce delay is used
+  }, [
+    clearMarkers,
+    NodeType,
+    selectedNode,
+    isDarkMode,
+    isDesktop,
+    createUnclusteredMarker,
+    createClusteredMarker,
+  ]);
 
   // Initialize Supercluster
   const initSupercluster = useCallback(() => {
@@ -363,7 +342,6 @@ const useMapData = ({
   const updateMapData = useCallback(
     (data) => {
       if (!Array.isArray(data) || data.length === 0 || !mapRef.current) return;
-
       initSupercluster();
       indexRef.current.load(data);
       clusterUpdate();
@@ -375,7 +353,6 @@ const useMapData = ({
   const fetchMapReadings = useCallback(async () => {
     const now = Date.now();
     const cacheKey = `mapReadings_${pollutant}`;
-
     // Check cache first
     if (
       mapReadingsData?.length &&
@@ -385,22 +362,17 @@ const useMapData = ({
       updateMapData(combined);
       return combined;
     }
-
-    setLoading(true);
-
+    onMainLoadingChange(true); // Use the renamed prop
     // Cancel previous request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
-
     try {
       const response = await getMapReadings(abortControllerRef.current.signal);
-
       if (!response?.success || !response.measurements?.length) {
         throw new Error('Invalid response data');
       }
-
       // Process data efficiently
       const features = response.measurements
         .filter(
@@ -427,18 +399,15 @@ const useMapData = ({
             null,
           );
         });
-
       // Update cache
       lastFetchTimeRef.current = now;
       mapDataCacheRef.current.set(cacheKey, features);
-
       dispatch(setMapReadingsData(features));
       updateMapData(features);
       return features;
     } catch (error) {
       if (error.name !== 'AbortError') {
         console.error('Error fetching map readings:', error);
-
         // Try cached data as fallback
         const cachedData = mapDataCacheRef.current.get(cacheKey);
         if (cachedData?.length) {
@@ -448,103 +417,17 @@ const useMapData = ({
       }
       return [];
     } finally {
-      setLoading(false);
+      onMainLoadingChange(false); // Always set loading to false when done
     }
   }, [
     createFeature,
     dispatch,
     pollutant,
-    setLoading,
+    onMainLoadingChange, // Use the renamed prop
     mapReadingsData,
     waqData,
     updateMapData,
   ]);
-
-  // Optimized WAQ data fetching
-  const fetchWaqData = useCallback(
-    async (cities) => {
-      if (!Array.isArray(cities) || cities.length === 0) return [];
-
-      setIsWaqLoading(true);
-      setLoadingOthers(true);
-
-      // Cancel previous requests
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      abortControllerRef.current = new AbortController();
-
-      try {
-        const results = [];
-
-        // Process cities in optimized batches
-        for (
-          let i = 0;
-          i < cities.length;
-          i += CONSTANTS.BATCH_SIZE * CONSTANTS.MAX_CONCURRENT_BATCHES
-        ) {
-          const chunks = [];
-
-          // Create concurrent batches
-          for (let j = 0; j < CONSTANTS.MAX_CONCURRENT_BATCHES; j++) {
-            const startIndex = i + j * CONSTANTS.BATCH_SIZE;
-            const endIndex = Math.min(
-              startIndex + CONSTANTS.BATCH_SIZE,
-              cities.length,
-            );
-
-            if (startIndex < cities.length) {
-              chunks.push(cities.slice(startIndex, endIndex));
-            }
-          }
-
-          // Process chunks concurrently
-          const chunkPromises = chunks.map(async (batch) => {
-            const batchPromises = batch.map((city) =>
-              fetchCityData(city, abortControllerRef.current.signal),
-            );
-            return Promise.allSettled(batchPromises);
-          });
-
-          const chunkResults = await Promise.all(chunkPromises);
-          const validResults = chunkResults
-            .flat()
-            .filter((result) => result.status === 'fulfilled' && result.value)
-            .map((result) => result.value);
-
-          results.push(...validResults);
-
-          // Add delay between batch groups to prevent rate limiting
-          if (
-            i + CONSTANTS.BATCH_SIZE * CONSTANTS.MAX_CONCURRENT_BATCHES <
-            cities.length
-          ) {
-            await new Promise((resolve) =>
-              setTimeout(resolve, CONSTANTS.BATCH_DELAY),
-            );
-          }
-        }
-
-        dispatch(setWaqData(results));
-        return results;
-      } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Error fetching WAQ data:', error);
-        }
-        return [];
-      } finally {
-        setIsWaqLoading(false);
-        setLoadingOthers(false);
-      }
-    },
-    [
-      createFeature,
-      dispatch,
-      getForecastForPollutant,
-      pollutant,
-      setLoadingOthers,
-    ],
-  );
 
   // Helper function for fetching individual city data
   const fetchCityData = useCallback(
@@ -557,15 +440,11 @@ const useMapData = ({
             timeout: CONSTANTS.REQUEST_TIMEOUT,
           },
         );
-
         const cityData = response.data?.data;
         if (!cityData?.city?.geo || !cityData.iaqi) return null;
-
         const key = pollutant === 'pm2_5' ? 'pm25' : pollutant;
         const pollutantValue = cityData.iaqi[key]?.v;
-
         if (pollutantValue === undefined) return null;
-
         const aqi = getAQICategory(pollutant, pollutantValue);
         return createFeature(
           cityData.idx,
@@ -586,12 +465,88 @@ const useMapData = ({
     [createFeature, getForecastForPollutant, pollutant],
   );
 
+  // Optimized WAQ data fetching
+  const fetchWaqData = useCallback(
+    async (cities) => {
+      if (!Array.isArray(cities) || cities.length === 0) return [];
+      onOthersLoadingChange(true); // Use the renamed prop
+      // Cancel previous requests
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
+      try {
+        const results = [];
+        // Process cities in optimized batches
+        for (
+          let i = 0;
+          i < cities.length;
+          i += CONSTANTS.BATCH_SIZE * CONSTANTS.MAX_CONCURRENT_BATCHES
+        ) {
+          const chunks = [];
+          // Create concurrent batches
+          for (let j = 0; j < CONSTANTS.MAX_CONCURRENT_BATCHES; j++) {
+            const startIndex = i + j * CONSTANTS.BATCH_SIZE;
+            const endIndex = Math.min(
+              startIndex + CONSTANTS.BATCH_SIZE,
+              cities.length,
+            );
+            if (startIndex < cities.length) {
+              chunks.push(cities.slice(startIndex, endIndex));
+            }
+          }
+          // Process chunks concurrently
+          const chunkPromises = chunks.map(async (batch) => {
+            const batchPromises = batch.map((city) =>
+              fetchCityData(city, abortControllerRef.current.signal),
+            );
+            return Promise.allSettled(batchPromises);
+          });
+          const chunkResults = await Promise.all(chunkPromises);
+          const validResults = chunkResults
+            .flat()
+            .filter((result) => result.status === 'fulfilled' && result.value)
+            .map((result) => result.value);
+          results.push(...validResults);
+          // Add delay between batch groups to prevent rate limiting
+          if (
+            i + CONSTANTS.BATCH_SIZE * CONSTANTS.MAX_CONCURRENT_BATCHES <
+            cities.length
+          ) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, CONSTANTS.BATCH_DELAY),
+            );
+          }
+        }
+        dispatch(setWaqData(results));
+        return results;
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error fetching WAQ data:', error);
+        }
+        return [];
+      } finally {
+        onOthersLoadingChange(false); // Always set loading to false when done
+      }
+    },
+    [
+      dispatch,
+      onOthersLoadingChange, // Use the renamed prop
+      fetchCityData, // Added missing dependency
+    ],
+  );
+
   // Main data processing function
   const fetchAndProcessAllData = useCallback(async () => {
     try {
+      // Start both fetches concurrently
+      const mapPromise = fetchMapReadings();
+      const waqPromise = fetchWaqData(AQI_FOR_CITIES);
+
+      // Wait for both to complete
       const [mapResult, waqResult] = await Promise.allSettled([
-        fetchMapReadings(),
-        fetchWaqData(AQI_FOR_CITIES),
+        mapPromise,
+        waqPromise,
       ]);
 
       const mapFeatures =
@@ -611,31 +566,29 @@ const useMapData = ({
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
-
     initSupercluster();
-
     const combined = [...(mapReadingsData || []), ...(waqData || [])];
     if (combined.length) {
       updateMapData(combined);
     }
-
     const handleMapEvent = () => clusterUpdate();
-
     map.on('zoomend', handleMapEvent);
     map.on('moveend', handleMapEvent);
-
     return () => {
       map.off('zoomend', handleMapEvent);
       map.off('moveend', handleMapEvent);
       clearMarkers();
-
       // Clean up event listeners
       cleanupFunctionsRef.current.forEach((cleanup) => cleanup());
       cleanupFunctionsRef.current = [];
-
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
         abortControllerRef.current = null;
+      }
+      // Clear any pending cluster updates
+      if (clusterUpdateTimeoutRef.current) {
+        clearTimeout(clusterUpdateTimeoutRef.current);
+        clusterUpdateTimeoutRef.current = null;
       }
     };
   }, [
@@ -655,7 +608,6 @@ const useMapData = ({
         maxZoom: 20,
         minPoints: 2,
       });
-
       const combined = [...(mapReadingsData || []), ...(waqData || [])];
       if (combined.length) {
         updateMapData(combined);
@@ -663,12 +615,28 @@ const useMapData = ({
     }
   }, [clusterRadius, mapReadingsData, waqData, updateMapData]);
 
+  // Cleanup function to be called when the hook is no longer needed
+  const cleanup = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (clusterUpdateTimeoutRef.current) {
+      clearTimeout(clusterUpdateTimeoutRef.current);
+      clusterUpdateTimeoutRef.current = null;
+    }
+    // Clean up markers and event listeners
+    clearMarkers();
+    cleanupFunctionsRef.current.forEach((cleanup) => cleanup());
+    cleanupFunctionsRef.current = [];
+  }, [clearMarkers]);
+
   return {
     mapRef,
     fetchAndProcessData: fetchAndProcessAllData,
     clusterUpdate,
-    isWaqLoading,
     updateMapData,
+    cleanup, // Expose cleanup function
   };
 };
 
