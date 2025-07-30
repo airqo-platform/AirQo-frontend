@@ -31,6 +31,7 @@ import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import AppsIcon from '@material-ui/icons/Apps';
 import DeviceHubIcon from '@material-ui/icons/DeviceHub';
 import { PERMISSIONS } from '../../../../constants/permissions';
+import { hasPermission } from '../../../../utils/permissions';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -61,11 +62,10 @@ const excludePages = (allPages, unwantedPages) => {
 
 const checkAccess = (pages, rolePermissions) => {
   const accessDenied = [];
-  const permissions = rolePermissions.map((permission) => permission.permission);
   pages.forEach((page) => {
     if (page.permission) {
       const requiredPermission = page.permission;
-      if (!permissions.includes(requiredPermission)) {
+      if (!hasPermission(rolePermissions, requiredPermission)) {
         accessDenied.push(page.title);
       }
     }
