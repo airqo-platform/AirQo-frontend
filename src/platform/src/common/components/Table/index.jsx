@@ -1,10 +1,5 @@
-// Export the refactored ReusableTable as the default
 export { default } from './ReusableTableRefactored';
-
-// Export original ReusableTable for backward compatibility (temporarily)
 export { default as ReusableTableLegacy } from './ReusableTable';
-
-// Export individual components
 export { default as CustomFilter } from './components/CustomFilter';
 export { default as PageSizeSelector } from './components/PageSizeSelector';
 export { default as MultiSelectActionBar } from './components/MultiSelectActionBar';
@@ -21,5 +16,4 @@ export { useTableMultiSelect } from './hooks/useTableMultiSelect';
 // Export utilities
 export * from './utils/tableUtils';
 
-// Legacy CustomTable export (for backward compatibility)
 export { default as CustomTable } from './LegacyCustomTable';
