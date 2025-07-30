@@ -1,9 +1,9 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useDeviceDetails, useDeviceStatusFeed } from "@/core/hooks/useDevices";
+import { useDeviceDetails } from "@/core/hooks/useDevices";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, XCircle, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Loader2, XCircle, ArrowLeft } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
@@ -32,22 +32,6 @@ export default function DeviceDetailsPage() {
 
     // Determine deployment status
     const deploymentStatus = device?.status || "unknown";
-    let statusIcon = <AlertTriangle className="text-yellow-500" />;
-    let statusText = "Unknown";
-    let statusColor = "bg-yellow-100 text-yellow-800";
-    if (deploymentStatus === "deployed") {
-        statusIcon = <CheckCircle className="text-green-600" />;
-        statusText = "Deployed";
-        statusColor = "bg-green-100 text-green-800";
-    } else if (deploymentStatus === "recalled") {
-        statusIcon = <AlertTriangle className="text-orange-600" />;
-        statusText = "Recalled";
-        statusColor = "bg-orange-100 text-orange-800";
-    } else if (deploymentStatus === "not deployed") {
-        statusIcon = <XCircle className="text-red-600" />;
-        statusText = "Not Deployed";
-        statusColor = "bg-red-100 text-red-800";
-    }
     
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRecallDialog, setShowRecallDialog] = useState(false);

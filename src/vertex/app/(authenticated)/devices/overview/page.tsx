@@ -38,7 +38,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useRouter } from "next/navigation";
@@ -56,7 +55,6 @@ export default function DevicesPage() {
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const { devices, isLoading, error } = useDevices();
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const { isAirQoInternal } = useUserContext();
   const router = useRouter();
   const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);

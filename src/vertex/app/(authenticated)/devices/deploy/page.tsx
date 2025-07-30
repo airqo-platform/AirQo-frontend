@@ -26,6 +26,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
+import { Device } from "@/app/types/devices";
 import { ComboBox } from "@/components/ui/combobox";
 import { MiniMap } from "@/components/features/mini-map/mini-map";
 import { useAppSelector } from "@/core/redux/hooks";
@@ -58,7 +59,7 @@ interface DeviceDetailsStepProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectChange: (name: string) => (value: string) => void;
   onCheckboxChange: (checked: boolean) => void;
-  availableDevices: any[];
+  availableDevices: Device[];
   onDeviceSelect: (deviceName: string) => void;
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
@@ -72,9 +73,6 @@ interface LocationStepProps {
   onToggleInputMode: () => void;
 }
 
-interface PreviewStepProps {
-  deviceData: DeviceData;
-}
 
 const mountTypeOptions: MountTypeOption[] = [
   { value: "faceboard", label: "Faceboard" },
@@ -378,7 +376,7 @@ const DeployDevicePage = () => {
     if (deviceIdFromUrl && !deviceData.deviceName) {
       setDeviceData((prev) => ({ ...prev, deviceName: deviceIdFromUrl }));
     }
-  }, [deviceIdFromUrl]);
+  }, [deviceIdFromUrl, deviceData.deviceName]);
 
   // When returning from claim page, refresh device list (only for personal context)
   React.useEffect(() => {

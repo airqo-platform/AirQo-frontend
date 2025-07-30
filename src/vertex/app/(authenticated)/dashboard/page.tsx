@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PlusSquare, User, Building2, Loader2, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
@@ -11,7 +10,6 @@ import { DashboardStatsCards } from "@/components/features/dashboard/stats-cards
 import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import { Permission } from "@/core/permissions/constants";
 import { usePermissions } from "@/core/hooks/usePermissions";
 
 const WelcomePage = () => {
@@ -20,15 +18,10 @@ const WelcomePage = () => {
     const router = useRouter();
     const {
         userContext,
-        getSidebarConfig,
-        isPersonalContext,
-        isAirQoInternal,
-        isExternalOrg,
         isLoading,
         hasError,
         error,
     } = useUserContext();
-    const sidebarConfig = getSidebarConfig();
 
     // Define all possible actions upfront
     const allActions = [

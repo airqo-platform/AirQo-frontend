@@ -90,17 +90,19 @@ export function AssignResourcesButton({
     }) || []
 
   const availableDevices =
-    devicesData?.map((device) => {
-      const isAssigned = Array.isArray(assignedDevicesData)
-        ? assignedDevicesData.some((assignedDevice) => assignedDevice._id === device._id)
-        : false
+    devicesData
+      ?.filter((device) => device._id) // Filter out devices without an ID
+      ?.map((device) => {
+        const isAssigned = Array.isArray(assignedDevicesData)
+          ? assignedDevicesData.some((assignedDevice) => assignedDevice._id === device._id)
+          : false
 
-      return {
-        id: device._id,
-        name: device.name,
-        assigned: isAssigned,
-      }
-    }) || []
+        return {
+          id: device._id!, // Non-null assertion since we filtered above
+          name: device.name,
+          assigned: isAssigned,
+        }
+      }) || []
 
   const isDataLoading = isLoadingSites || isLoadingDevices || isLoadingAssignedSites || isLoadingAssignedDevices
 

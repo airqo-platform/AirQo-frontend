@@ -20,7 +20,7 @@ export const ContextGuard: React.FC<ContextGuardProps> = ({
   showError = false,
 }) => {
   const { userContext } = useUserContext();
-  const hasValidContext = allowedContexts.includes(userContext);
+  const hasValidContext = userContext ? allowedContexts.includes(userContext) : false;
 
   if (hasValidContext) {
     return <>{children}</>;
@@ -54,7 +54,7 @@ export const withContext = (
   return <P extends object>(Component: React.ComponentType<P>) => {
     const WrappedComponent = (props: P) => {
       const { userContext } = useUserContext();
-      const hasValidContext = allowedContexts.includes(userContext);
+      const hasValidContext = userContext ? allowedContexts.includes(userContext) : false;
 
       if (!hasValidContext) {
         return fallback ? React.createElement(fallback, { ...(props as Record<string, unknown>) }) : null;
