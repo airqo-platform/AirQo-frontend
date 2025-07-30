@@ -31,11 +31,11 @@ export const transformDataToGeoJson = (
   };
 };
 
-export const getElapsedDurationMapper = (dateTimeStr) => {
+export const getElapsedDurationMapper = (dateTimeStr: string) => {
   let delta = Math.abs(moment.utc(new Date()) - moment.utc(new Date(dateTimeStr))) / 1000;
-  let seconds = delta;
-  let result = {};
-  let structure = {
+  const seconds = delta;
+  const result = {};
+  const structure = {
     year: 31536000,
     month: 2592000,
     week: 604800,

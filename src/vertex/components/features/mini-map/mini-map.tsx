@@ -38,12 +38,18 @@ const reverseGeocode = async (lng: number, lat: number): Promise<string> => {
     
     if (data.features && data.features.length > 0) {
       // Priority order: place > locality > neighborhood > poi > address
+      type MapboxFeature = {
+        place_type?: string[];
+        text?: string;
+        place_name?: string;
+      };
+
       const featuresByType = {
-        place: data.features.find((f: any) => f.place_type?.includes('place')),
-        locality: data.features.find((f: any) => f.place_type?.includes('locality')),
-        neighborhood: data.features.find((f: any) => f.place_type?.includes('neighborhood')),
-        poi: data.features.find((f: any) => f.place_type?.includes('poi')),
-        address: data.features.find((f: any) => f.place_type?.includes('address'))
+        place: data.features.find((f: MapboxFeature) => f.place_type?.includes('place')),
+        locality: data.features.find((f: MapboxFeature) => f.place_type?.includes('locality')),
+        neighborhood: data.features.find((f: MapboxFeature) => f.place_type?.includes('neighborhood')),
+        poi: data.features.find((f: MapboxFeature) => f.place_type?.includes('poi')),
+        address: data.features.find((f: MapboxFeature) => f.place_type?.includes('address'))
       };
       
       // Get the best available feature
@@ -156,7 +162,7 @@ export function MiniMap({
       markerRef.current?.remove();
       map.remove();
     };
-  }, [inputMode]); // Re-initialize when input mode changes
+  }, [inputMode, handleCoordinateUpdate]); // Re-initialize when input mode changes
 
   useEffect(() => {
     if (latitude && longitude) {

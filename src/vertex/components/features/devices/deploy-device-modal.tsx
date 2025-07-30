@@ -4,11 +4,12 @@ import {
 } from "@/components/ui/dialog";
 import React from "react";
 import DeployDeviceComponent from "./deploy-device-component";
+import { Device } from "@/app/types/devices";
 
 interface DeployDeviceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  device: Record<string, any>;
+  device: Device;
 }
 
 const DeployDeviceModal: React.FC<DeployDeviceModalProps> = ({ open, onOpenChange, device }) => {

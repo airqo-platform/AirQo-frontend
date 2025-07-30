@@ -63,7 +63,7 @@ export default function DashboardWelcomeBanner() {
       </button>
       <h2 className="mb-2 text-2xl font-bold">Manage Your Air Quality Network with Vertex</h2>
       <p className="mb-6 text-gray-700 max-w-2xl">
-        Vertex helps your organization manage its air quality monitoring network with ease. From deploying monitors to tracking site performance, you're in control. Here's how to get started:
+        Vertex helps your organization manage its air quality monitoring network with ease. From deploying monitors to tracking site performance, you&#39;re in control. Here&#39;s how to get started:
       </p>
       <div className="space-y-6">
         {actions.map((action, idx) => (

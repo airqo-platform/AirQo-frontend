@@ -246,7 +246,7 @@ export default function DevicesPage() {
                   Device Name{" "}
                   {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
-                <TableHead>Device ID</TableHead>
+                <TableHead>Online Status</TableHead>
                 <TableHead>Site</TableHead>
                 <TableHead
                   className={error ? "" : "cursor-pointer"}
@@ -259,7 +259,7 @@ export default function DevicesPage() {
                   className={error ? "" : "cursor-pointer"}
                   onClick={error ? undefined : () => handleSort("createdAt")}
                 >
-                  Deployment Date{" "}
+                  Created On{" "}
                   {sortField === "createdAt" &&
                     (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
@@ -295,26 +295,17 @@ export default function DevicesPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="uppercase font-mono">
-                        {truncateId(device._id || "N/A")}
-                      </span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-foreground"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (device._id) {
-                            navigator.clipboard.writeText(device._id);
-                          } else {
-                            toast("Device ID is undefined");
-                          }
-                        }}
-                      >
-                        <Copy className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        device.isOnline
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {device.isOnline
+                        ? <>Online <span className="ml-1 w-2 h-2 bg-green-500 rounded-full inline-block" /></>
+                        : "Offline"}
+                    </span>
                   </TableCell>
                   <TableCell>
                     <TooltipProvider>

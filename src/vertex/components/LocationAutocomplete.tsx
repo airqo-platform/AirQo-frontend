@@ -1,3 +1,4 @@
+import logger from '@/lib/logger';
 import { MapPinIcon } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 
@@ -73,6 +74,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setSuggestions(data.features || []);
       setIsOpen(true);
     } catch (err) {
+      logger.error('Error fetching location suggestions:', err);
       setError('Failed to load suggestions');
       setSuggestions([]);
       setIsOpen(false);

@@ -73,7 +73,7 @@ export interface Device {
   previous_sites?: string[];
   grids?: DeviceGrid[];
   site?: DeviceSite;
-  status?: "not deployed" | "deployed" | "recalled";
+  status?: "not deployed" | "deployed" | "recalled" | "online" | "offline";
   maintenance_status?: "good" | "due" | "overdue" | -1;
   powerType?: "solar" | "alternator" | "mains";
   elapsed_time?: number;
@@ -82,6 +82,7 @@ export interface Device {
   assigned_organization_id?: string;
   claim_status?: "claimed" | "unclaimed";
   claimed_at?: string;
+  site_name?: string; // Optional site name for display purposes
 }
 
 export interface DevicesSummaryResponse {

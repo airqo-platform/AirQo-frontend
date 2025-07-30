@@ -89,8 +89,7 @@ const StatCard = ({ title, value, subtitle, icon, isLoading, variant = 'default'
 export const DashboardStatsCards = () => {
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const { stats: deviceStats, isLoading: isLoadingDeviceStatus } = useDeviceStatus();
-  const { devices, isLoading: isLoadingDevices } = useDevices();
-  const { data: myDevicesData, isLoading: isLoadingMyDevices, refetch: refetchMyDevices } = useMyDevices(
+  const { data: myDevicesData, refetch: refetchMyDevices } = useMyDevices(
     userDetails?._id || "",
     activeGroup?._id
   );
@@ -121,7 +120,7 @@ export const DashboardStatsCards = () => {
     deviceStats.online, 
     deviceStats.offline, 
     deviceStats.maintenance?.due, 
-    deviceStats.maintenance?.overdue
+    deviceStats.maintenance?.overdue,
   ]);
 
   // Only show loading on initial load

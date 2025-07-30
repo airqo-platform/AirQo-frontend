@@ -29,6 +29,7 @@ import { ComboBox } from "@/components/ui/combobox";
 import { MiniMap } from "@/components/features/mini-map/mini-map";
 import { useAppSelector } from "@/core/redux/hooks";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { Device } from "@/app/types/devices";
 
 interface MountTypeOption {
   value: string;
@@ -57,7 +58,7 @@ interface DeviceDetailsStepProps {
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectChange: (name: string) => (value: string) => void;
   onCheckboxChange: (checked: boolean) => void;
-  availableDevices: any[];
+  availableDevices: Device[];
   onDeviceSelect: (deviceName: string) => void;
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
@@ -72,7 +73,7 @@ interface LocationStepProps {
 }
 
 interface DeployDeviceComponentProps {
-  prefilledDevice?: Record<string, any>;
+  prefilledDevice?: Device;
   onClose?: () => void;
 }
 

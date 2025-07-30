@@ -5,7 +5,6 @@ import Link from "next/link";
 import {
   Users,
   Radio,
-  MapPin,
   Building2,
   UserCircle,
   MapIcon,
@@ -14,14 +13,10 @@ import {
   Shield,
   LayoutDashboard,
   ChevronDown,
-  Grid,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
-import { usePermission } from "@/core/hooks/usePermissions";
-import { PERMISSIONS } from "@/core/permissions/constants";
-import { useAppSelector } from "@/core/redux/hooks";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useUserContext } from "@/core/hooks/useUserContext";
 

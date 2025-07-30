@@ -16,7 +16,6 @@ import type {
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { Device } from "@/app/types/devices";
 
 interface ErrorResponse {
   message: string;

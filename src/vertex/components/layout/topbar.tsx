@@ -20,7 +20,6 @@ import { useDispatch } from "react-redux"
 import { useRouter } from "next/navigation"
 import OrganizationPicker from "../features/org-picker/organization-picker";
 import Image from "next/image";
-import { useUserContext } from "@/core/hooks/useUserContext";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -32,8 +31,6 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup)
   const dispatch = useDispatch();
   const router = useRouter();
-  const { getSidebarConfig, userContext } = useUserContext();
-  const sidebarConfig = getSidebarConfig();
 
   useEffect(() => {
     if (darkMode) {

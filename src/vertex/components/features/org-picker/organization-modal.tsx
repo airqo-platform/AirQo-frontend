@@ -62,10 +62,6 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     activeGroup?._id
   );
 
-  const hasPersonalDevices = myDevicesData?.devices?.some(
-    device => device.owner_id === userDetails?._id
-  ) || false;
-
   useEffect(() => {
     const storedRecents = localStorage.getItem("recentOrganizations");
     let recentIds: string[] = storedRecents ? JSON.parse(storedRecents) : [];
@@ -100,12 +96,6 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     }
     onOrganizationChange(group);
   }
-
-  // Determine if we should show Private Mode
-  const shouldShowPrivateMode = () => {
-    // Always show Private Mode - it's the default mode for all users
-    return true;
-  };
 
   const filteredGroups = useMemo(() => {
     let groups = userGroups.filter((group) =>
