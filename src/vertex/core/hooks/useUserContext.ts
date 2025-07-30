@@ -130,7 +130,7 @@ export const useUserContext = (): UserContextState => {
       return {
         title: 'Loading...',
         showContextSwitcher: false,
-        showNetworkMap: true,
+        showNetworkMap: false,
         showSites: false,
         showGrids: false,
         showCohorts: false,
@@ -149,7 +149,7 @@ export const useUserContext = (): UserContextState => {
         return {
           title: 'My Monitors',
           showContextSwitcher: false,
-          showNetworkMap: true,
+          showNetworkMap: false,
           showSites: false,
           showGrids: false,
           showCohorts: false,
