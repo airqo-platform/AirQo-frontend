@@ -19,23 +19,18 @@ import {
   GROUP_ROLES_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
+import { openApiMethods } from '../utils/openApiClient';
 
 // Password Management
 export const forgotPasswordApi = (data) =>
-  secureApiProxy
-    .post(FORGOT_PWD_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(FORGOT_PWD_URL, data);
 
 export const resetPasswordApi = (data) =>
-  secureApiProxy
-    .put(RESET_PWD_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.put(RESET_PWD_URL, data);
 
 // Authentication
 export const postUserCreationDetails = (data) =>
-  secureApiProxy
-    .post(AUTH_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(AUTH_URL, data);
 
 export const getGoogleAuthDetails = () =>
   secureApiProxy
@@ -43,9 +38,7 @@ export const getGoogleAuthDetails = () =>
     .then((response) => response.data);
 
 export const postUserLoginDetails = (data) =>
-  secureApiProxy
-    .post(LOGIN_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(LOGIN_URL, data);
 
 // User Management
 export const getUserDetails = (userID) =>
@@ -311,7 +304,6 @@ export const getUserThemeApi = (userId, groupId) => {
  * @returns {Promise} - Promise resolving to updated theme preferences
  */
 export const updateUserThemeApi = (userId, groupId, currentTheme, newTheme) => {
-  console.log('group id:', groupId);
   // Validate user ID and group ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
