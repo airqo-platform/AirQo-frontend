@@ -61,12 +61,20 @@ export const updateCohortDetails = (body, cohortID) =>
     })
     .then((response) => response.data);
 
-export const getMapReadings = () =>
-  secureApiProxy
-    .get(READINGS_URL, {
-      authType: AUTH_TYPES.API_TOKEN,
-    })
+export const getMapReadings = (abortSignal = null) => {
+  const config = {
+    authType: AUTH_TYPES.API_TOKEN,
+  };
+
+  // Add abort signal if provided
+  if (abortSignal) {
+    config.signal = abortSignal;
+  }
+
+  return secureApiProxy
+    .get(READINGS_URL, config)
     .then((response) => response.data);
+};
 
 export const getNearestSite = (params) =>
   secureApiProxy
