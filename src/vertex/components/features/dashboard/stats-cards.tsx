@@ -237,7 +237,6 @@ export const DashboardStatsCards = () => {
             description="The number of devices currently online and actively transmitting data. These devices are connected to the network and reporting sensor measurements."
             icon={<Wifi className="w-4 h-4" />}
             isLoading={isLoading}
-            variant={metrics.activeMonitors > 0 ? 'success' : 'default'}
           />
           <StatCard
             title="Pending Deployments"
@@ -245,7 +244,6 @@ export const DashboardStatsCards = () => {
             description="The number of devices that have been claimed but are not yet deployed in the field. These devices are ready for deployment but haven't been installed at monitoring locations."
             icon={<Clock className="w-4 h-4" />}
             isLoading={isLoading}
-            variant={metrics.pendingDeployments > 0 ? 'warning' : 'default'}
           />
           <StatCard
             title="Recent Alerts"
@@ -253,7 +251,6 @@ export const DashboardStatsCards = () => {
             description="The total number of devices requiring attention. This includes offline devices, devices due for maintenance, and devices that are overdue for maintenance."
             icon={<AlertTriangle className="w-4 h-4" />}
             isLoading={isLoading}
-            variant={metrics.recentAlerts > 0 ? 'destructive' : 'default'}
           />
         </div>
       </div>
