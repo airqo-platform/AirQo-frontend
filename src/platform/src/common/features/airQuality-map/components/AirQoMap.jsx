@@ -1,3 +1,5 @@
+'use client';
+
 import React, {
   useEffect,
   useRef,
@@ -20,8 +22,8 @@ import {
   useMapControls,
   useMapInitialization,
 } from '../hooks';
-import LayerModal from '@/features/airQuality-map/components/LayerModal';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import LayerModal from '@/common/features/airQuality-map/components/LayerModal';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
 import { mapStyles, mapDetails } from '../constants/mapConstants';
 
 // Constants for better maintainability
@@ -59,13 +61,18 @@ const AirQoMap = forwardRef(
         mapReadingsData: state.map.mapReadingsData,
         waqData: state.map.waqData,
         selectedNode: state.map.selectedNode,
+        nodeType: state.map.nodeType || CONSTANTS.DEFAULT_NODE_TYPE,
       }),
       // Shallow comparison optimization
       (prev, next) =>
         prev.mapReadingsData === next.mapReadingsData &&
         prev.waqData === next.waqData &&
-        prev.selectedNode === next.selectedNode,
+        prev.selectedNode === next.selectedNode &&
+        prev.nodeType === next.nodeType,
     );
+
+    // Extract nodeType from Redux state
+    const { nodeType } = mapData;
     // Separate viewport selector for better performance
     const viewportData = useSelector(
       (state) => ({
@@ -79,7 +86,6 @@ const AirQoMap = forwardRef(
     );
     // Local state
     const [layerModalOpen, setLayerModalOpen] = useState(false);
-    const [nodeType, setNodeType] = useState(CONSTANTS.DEFAULT_NODE_TYPE);
     // Custom hooks with memoization
     const { styleUrl, setStyleUrl, isDarkMode } = useMapStyles(mapStyles);
     const { initialCenter, initialZoom } = useMapViewport();
@@ -92,7 +98,6 @@ const AirQoMap = forwardRef(
       updateMapData,
       cleanup: cleanupMapDataHook,
     } = useMapData({
-      NodeType: nodeType,
       pollutant,
       isDarkMode,
       onMapReadingLoadingChange,
@@ -224,19 +229,6 @@ const AirQoMap = forwardRef(
         resetControlsState,
         controlsAddedRef,
       ],
-    );
-    // Optimized detail change handler
-    const onMapDetail = useCallback(
-      (detail) => {
-        if (
-          detail !== nodeType &&
-          !isReloadingRef.current &&
-          !isUnmountingRef.current
-        ) {
-          setNodeType(detail);
-        }
-      },
-      [nodeType],
     );
     // Optimized viewport change handler
     const handleViewportChange = useCallback(() => {
@@ -400,7 +392,6 @@ const AirQoMap = forwardRef(
             mapStyles={mapStyles}
             mapDetails={mapDetails}
             disabled="Heatmap"
-            onMapDetailsSelect={onMapDetail}
             onStyleSelect={onStyleChange}
             currentNodeType={nodeType}
             currentStyleUrl={styleUrl}

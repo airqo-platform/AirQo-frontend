@@ -50,7 +50,6 @@ const CONSTANTS = {
 
 const useMapData = (params = {}) => {
   const {
-    NodeType = 'Node',
     pollutant = 'pm2_5',
     isDarkMode = false,
     onMapReadingLoadingChange,
@@ -100,11 +99,17 @@ const useMapData = (params = {}) => {
 
   // Redux
   const dispatch = useDispatch();
-  const { mapReadingsData, waqData, selectedNode } = useSelector((state) => ({
-    mapReadingsData: state.map.mapReadingsData,
-    waqData: state.map.waqData,
-    selectedNode: state.map.selectedNode,
-  }));
+  const { mapReadingsData, waqData, selectedNode, nodeType } = useSelector(
+    (state) => ({
+      mapReadingsData: state.map.mapReadingsData,
+      waqData: state.map.waqData,
+      selectedNode: state.map.selectedNode,
+      nodeType: state.map.nodeType || 'Emoji', // Default to Emoji
+    }),
+  );
+
+  // Use nodeType from Redux store instead of prop
+  const NodeType = nodeType;
 
   // Memoized computed values with proper validation
   const clusterRadius = useMemo(() => {

@@ -93,11 +93,10 @@ const appReducer = (state, action) => {
   return rootReducer(state, action);
 };
 
-// Configuration for redux-persist
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['login', 'checklists', 'groups', 'organizationTheme'],
+  whitelist: ['login', 'checklists', 'groups', 'organizationTheme', 'map'],
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);
