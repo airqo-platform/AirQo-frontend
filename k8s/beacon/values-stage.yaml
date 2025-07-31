@@ -1,32 +1,32 @@
 replicaCount: 2
 image:
-  repository: eu.gcr.io/airqo-250220/airqo-platform-frontend
-  tag: prod-ebfefb7d-1753965432
+  repository: eu.gcr.io/airqo-250220/airqo-stage-beacon
+  tag: stage-de113c99-1749634665
   pullPolicy: Always
 imagePullSecrets: []
-nameOverride: ''
-fullnameOverride: ''
+nameOverride: ""
+fullnameOverride: ""
 service:
   type: NodePort
-  nodePort: 30101
-  targetPort: 80
-  port: 80
+  nodePort: 31193
+  targetPort: 3000
+  port: 3000
 ingress:
   enabled: false
 nodeSelector:
   role: high-mem
-torelations: {}
+tolerations: {}
 resources:
   requests:
-    cpu: 5m
-    memory: 60Mi
+    cpu: 10m
+    memory: 20Mi
   limits:
-    cpu: 100m
+    cpu: 50m
     memory: 150Mi
 autoscaling:
   minReplicas: 1
-  maxReplicas: 3
-  targetMemoryUtilizationPercentage: 70
+  maxReplicas: 2
+  targetMemoryUtilizationPercentage: 80
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -35,10 +35,10 @@ affinity:
             - key: role
               operator: In
               values:
-                - control-plane
+                - high-mem
         weight: 1
 app:
-  name: airqo-platform-frontend
-  label: airqo-platform
-  namespace: production
-  configmap: env-platform-production
+  name: airqo-stage-beacon
+  label: beacon
+  namespace: staging
+  configmap: env-beacon-staging

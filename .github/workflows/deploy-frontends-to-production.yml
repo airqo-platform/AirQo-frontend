@@ -39,6 +39,10 @@ on:
         description: "Deploy vertex"
         required: false
         type: boolean
+      beacon:
+        description: "Deploy Beacon"
+        required: false
+        type: boolean
 
 env:
   REGISTRY_URL: eu.gcr.io
@@ -700,3 +704,63 @@ jobs:
         run: |
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/vertex/.env env-vertex-production | kubectl replace -f - -n production          
+
+
+  ### build and push beacon image ###
+  beacon:
+    name: build-push-beacon-image
+    needs: [image-tag]
+    if: inputs.beacon == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="prod-env-beacon" > src/beacon/.env
+
+      - name: Login to GCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCR_CONFIG }}
+
+      - name: Build and Push Docker Image
+        run: |
+          cd src/beacon/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-beacon:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-beacon:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-beacon:latest
+
+      - name: Update corresponding helm values file(with retry)
+        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
+        with:
+          action: fjogeleit/yaml-update-action@main # Action to retry
+          with: |
+            valueFile: "k8s/beacon/values-prod.yaml"
+            propertyPath: "image.tag"
+            value: ${{ needs.image-tag.outputs.build_id }}
+            branch: ${{ env.DEPLOY_BRANCH }}
+            token: ${{ secrets.YAML_UPDATER_TOKEN }}
+            message: "Update beacon production image tag to ${{ needs.image-tag.outputs.build_id }}"
+
+      - name: Login to K8S
+        uses: azure/k8s-set-context@v3
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
+
+      - name: Update the corresponding configmap
+        run: |
+          kubectl create configmap --dry-run=client -o yaml \
+          --from-env-file=src/beacon/.env env-beacon-production | kubectl replace -f - -n production          

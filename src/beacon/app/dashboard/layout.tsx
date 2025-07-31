@@ -92,7 +92,7 @@ export default function DashboardLayout({
 
   const handleLogout = () => {
     localStorage.removeItem("access_token")
-    localStorage.removeItem("user") // Clean up any old user data
+    localStorage.removeItem("user") 
     router.push("/login?logout=true")
   }
 

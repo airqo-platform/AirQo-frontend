@@ -664,7 +664,9 @@ class _MapScreenState extends State<MapScreen>
                       children: [
                         SizedBox(),
                         Text(
-                          currentDetails!.siteDetails!.searchName!,
+                          currentDetails!.siteDetails!.searchName ??
+                              currentDetails!.siteDetails!.name ??
+                              "---",
                           style: TextStyle(
                               color: Color(0xff9EA3AA),
                               fontSize: 20,
@@ -722,7 +724,9 @@ class _MapScreenState extends State<MapScreen>
                           children: [
                             SizedBox(),
                             Text(
-                              measurement.siteDetails!.searchName!,
+                              measurement.siteDetails!.searchName ??
+                                  measurement.siteDetails!.name ??
+                                  "---",
                               style: TextStyle(
                                   color: Color(0xff9EA3AA),
                                   fontSize: 20,
@@ -1008,7 +1012,8 @@ class _MapScreenState extends State<MapScreen>
                                             "",
                                     subTitle:
                                         measurement.siteDetails!.searchName ??
-                                            "",
+                                            measurement.siteDetails!.name ??
+                                            "---",
                                   ),
                                 );
                               }),
@@ -1146,7 +1151,8 @@ class _MapScreenState extends State<MapScreen>
                                           "Unknown City",
                                       subTitle:
                                           measurement.siteDetails?.searchName ??
-                                              "Unknown Location",
+                                              measurement.siteDetails?.name ??
+                                              "---",
                                     ),
                                   );
                                 },

@@ -9,7 +9,8 @@ import {
   GENERATE_TOKEN_URI,
   GET_USER_STATS_URI,
   ACTIVATE_USER_CLIENT,
-  ACTIVATION_REQUEST_URI
+  ACTIVATION_REQUEST_URI,
+  GET_GROUPS_SUMMARY_URI
 } from 'config/urls/analytics';
 import createAxiosInstance from './axiosConfig';
 
@@ -103,4 +104,10 @@ export const activationRequestApi = async (ID) => {
 export const getUserStatsApi = async () => {
   const response = await createAxiosInstance().get(GET_USER_STATS_URI);
   return response.data;
+};
+
+export const getGroupsSummaryApi = async () => {
+  return await createAxiosInstance()
+    .get(GET_GROUPS_SUMMARY_URI)
+    .then((response) => response.data);
 };
