@@ -1,7 +1,6 @@
 'use client';
 
-import { useDeviceStatus, useDevices } from '@/core/hooks/useDevices';
-import { useMyDevices } from '@/core/hooks/useDevices';
+import { useDevices, useMyDevices } from '@/core/hooks/useDevices';
 import { useAppSelector } from '@/core/redux/hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMemo, useCallback, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface StatCardProps {
   title: string;
@@ -87,26 +87,74 @@ const StatCard = ({ title, value, subtitle, icon, isLoading, variant = 'default'
 };
 
 export const DashboardStatsCards = () => {
-  const { userDetails, activeGroup } = useAppSelector((state) => state.user);
-  const { stats: deviceStats, isLoading: isLoadingDeviceStatus } = useDeviceStatus();
-  const { data: myDevicesData, refetch: refetchMyDevices } = useMyDevices(
+  const { userDetails, activeGroup, userContext, activeNetwork } = useAppSelector((state) => state.user);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Context-aware hook selection
+  const isPersonalContext = userContext === 'personal';
+  
+  // Use useMyDevices for personal context
+  const myDevicesQuery = useMyDevices(
     userDetails?._id || "",
     activeGroup?._id
   );
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Use useDevices for airqo-internal and external-org contexts
+  const organizationDevicesQuery = useDevices();
+  
+  // Select appropriate data based on context
+  const currentDevicesData = isPersonalContext ? myDevicesQuery.data : null;
+  const currentOrganizationDevices = !isPersonalContext ? organizationDevicesQuery.devices : [];
+  const isLoading = isPersonalContext ? myDevicesQuery.isLoading : organizationDevicesQuery.isLoading;
+
+  // Helper function to calculate device stats from device array
+  const calculateDeviceStats = useCallback((devices: any[]) => {
+    const online = devices.filter(device => device.isOnline || device.status === 'online').length;
+    const offline = devices.filter(device => !device.isOnline || device.status === 'offline').length;
+    
+    return {
+      total: devices.length,
+      online,
+      offline,
+      maintenance: {
+        due: devices.filter(device => device.maintenance_status === 'due').length,
+        overdue: devices.filter(device => device.maintenance_status === 'overdue').length,
+      }
+    };
+  }, []);
 
   // Memoize metrics calculations with stable references
   const metrics = useMemo(() => {
-    const totalMonitors = myDevicesData?.total_devices || 0;
-    const activeMonitors = deviceStats.online || 0;
-    const pendingDeployments = myDevicesData?.devices?.filter(device => 
-      device.claim_status === 'claimed'
-    ).length || 0;
+    let totalMonitors = 0;
+    let activeMonitors = 0;
+    let pendingDeployments = 0;
+    let recentAlerts = 0;
 
-    // Calculate recent alerts (offline devices, low battery, sensor failures)
-    const offlineDevices = deviceStats.offline || 0;
-    const devicesNeedingMaintenance = (deviceStats.maintenance?.due || 0) + (deviceStats.maintenance?.overdue || 0);
-    const recentAlerts = offlineDevices + devicesNeedingMaintenance;
+    if (isPersonalContext && currentDevicesData) {
+      // Personal context: use myDevicesData
+      totalMonitors = currentDevicesData.total_devices || 0;
+      
+      const deviceStats = calculateDeviceStats(currentDevicesData.devices || []);
+      activeMonitors = deviceStats.online;
+      
+      pendingDeployments = currentDevicesData.devices?.filter(device => 
+        device.claim_status === 'claimed' && device.status !== 'deployed'
+      ).length || 0;
+      
+      recentAlerts = deviceStats.offline + deviceStats.maintenance.due + deviceStats.maintenance.overdue;
+    } else if (!isPersonalContext && currentOrganizationDevices.length > 0) {
+      // Organization context: use organization devices
+      const deviceStats = calculateDeviceStats(currentOrganizationDevices);
+      totalMonitors = deviceStats.total;
+      activeMonitors = deviceStats.online;
+      
+      pendingDeployments = currentOrganizationDevices.filter(device => 
+        device.status === 'not deployed' || (device.claim_status === 'claimed' && device.status !== 'deployed')
+      ).length;
+      
+      recentAlerts = deviceStats.offline + deviceStats.maintenance.due + deviceStats.maintenance.overdue;
+    }
 
     return {
       totalMonitors,
@@ -115,28 +163,29 @@ export const DashboardStatsCards = () => {
       recentAlerts
     };
   }, [
-    myDevicesData?.total_devices, 
-    myDevicesData?.devices?.length, // Use length instead of full array
-    deviceStats.online, 
-    deviceStats.offline, 
-    deviceStats.maintenance?.due, 
-    deviceStats.maintenance?.overdue,
+    isPersonalContext,
+    currentDevicesData?.total_devices,
+    currentDevicesData?.devices?.length,
+    currentOrganizationDevices.length,
+    calculateDeviceStats
   ]);
-
-  // Only show loading on initial load
-  const isLoading = useMemo(() => {
-    return isLoadingDeviceStatus && !deviceStats.total && !myDevicesData;
-  }, [isLoadingDeviceStatus, deviceStats.total, myDevicesData]);
 
   // Manual refresh handler
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      await refetchMyDevices();
+      if (isPersonalContext) {
+        await myDevicesQuery.refetch();
+      } else {
+        // For organization context, invalidate the devices query
+        await queryClient.invalidateQueries({ 
+          queryKey: ["devices", activeNetwork?.net_name, activeGroup?.grp_title] 
+        });
+      }
     } finally {
       setIsRefreshing(false);
     }
-  }, [refetchMyDevices]);
+  }, [isPersonalContext, myDevicesQuery, queryClient, activeNetwork?.net_name, activeGroup?.grp_title]);
 
   return (
     <div className="space-y-4">
