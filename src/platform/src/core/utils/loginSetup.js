@@ -524,13 +524,18 @@ export const setupUserSession = async (
       if (routeType === ROUTE_TYPES.AUTH) {
         logger.info('Skipping organization theme fetch for auth route');
       }
-      dispatch(clearOrganizationTheme());
     }
 
     // Step Final: Fetch user theme preferences after successful authentication
-    // Skip theme fetching for auth routes to avoid unnecessary API calls and warnings
+    // Skip theme fetching for auth routes, invalid sessions, or missing user ID
     let userTheme = null;
-    if (routeType !== ROUTE_TYPES.AUTH) {
+    if (
+      routeType !== ROUTE_TYPES.AUTH &&
+      session?.user?.id &&
+      session.user.id !== 'undefined' &&
+      typeof session.user.id === 'string' &&
+      session.user.id.length > 0
+    ) {
       logger.info('Fetching user theme preferences...');
       try {
         const themeRes = await getUserThemeApi(session.user.id);
@@ -541,10 +546,21 @@ export const setupUserSession = async (
           logger.info('No user theme found, will use defaults');
         }
       } catch (error) {
-        logger.warn('Failed to fetch user theme, will use defaults:', error);
+        // Only log as warning for actual errors, not 404s which are expected for new users
+        if (error?.response?.status === 404 || error?.status === 404) {
+          logger.info('No user theme configured yet, will use defaults');
+        } else {
+          logger.warn('Failed to fetch user theme, will use defaults:', error);
+        }
       }
     } else {
-      logger.info('Skipping theme fetch for auth route, will use defaults');
+      if (routeType === ROUTE_TYPES.AUTH) {
+        logger.info('Skipping theme fetch for auth route, will use defaults');
+      } else if (!session?.user?.id) {
+        logger.info(
+          'Skipping theme fetch - no valid user session, will use defaults',
+        );
+      }
     }
 
     // Store theme in global context for immediate access by theme hooks

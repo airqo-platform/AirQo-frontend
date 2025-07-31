@@ -3,6 +3,7 @@ import {
   AqWind01,
   AqClockFastForward,
   AqFileCheck02,
+  AqAlertTriangle,
 } from '@airqo/icons-react';
 
 import CustomFields from './CustomFields';
@@ -116,6 +117,25 @@ const SettingsSidebar = ({
               {durationGuidance}
             </div>
           )}
+
+          {/* Warning Banner for Large Data Downloads */}
+          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3 mt-3">
+            <div className="flex items-start space-x-2">
+              <div className="flex-shrink-0">
+                <AqAlertTriangle
+                  size={16}
+                  className="text-yellow-600 dark:text-yellow-400"
+                />
+              </div>
+              <div className="text-xs text-yellow-800 dark:text-yellow-200">
+                <p className="font-medium mb-1">Download Limit Notice</p>
+                <p>
+                  Annual data downloads must be done in batches. Please select
+                  shorter date ranges for optimal performance.
+                </p>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         <motion.div variants={formItemVariants}>
