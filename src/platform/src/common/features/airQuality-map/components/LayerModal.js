@@ -83,7 +83,7 @@ const LayerModal = ({
   onStyleSelect,
   mapStyles,
   mapDetails,
-  disabled = '',
+  disabled = ['Heatmap', 'Number', 'Node'], // Default disabled options
 }) => {
   const dispatch = useDispatch();
 
@@ -224,7 +224,7 @@ const LayerModal = ({
                 key={detail.name}
                 isSelected={detail.name === selectedMapDetail.name}
                 onSelect={() => handleSelectDetail(detail)}
-                disabled={detail.name === disabled}
+                disabled={disabled.includes(detail.name)}
                 image={detail.image}
               >
                 {detail.name}
@@ -292,7 +292,7 @@ LayerModal.propTypes = {
       image: PropTypes.string.isRequired,
     }),
   ).isRequired,
-  disabled: PropTypes.string,
+  disabled: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default memo(LayerModal);

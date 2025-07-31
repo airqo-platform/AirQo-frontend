@@ -196,10 +196,12 @@ export function UnifiedGroupProvider({ children }) {
         rdxDispatch(setChartSites([]));
         if (!isAirQo) rdxDispatch(resetChartStore());
 
+        // Calculate target route outside of navigate condition
+        const targetRoute = groupRoute(target);
+
         if (navigate) {
           // Force navigation to ensure proper layout loading
           const currentPath = pathname;
-          const targetRoute = groupRoute(target);
 
           // Only navigate if we're actually changing routes
           if (currentPath !== targetRoute) {
@@ -229,7 +231,7 @@ export function UnifiedGroupProvider({ children }) {
           await rdxDispatch(fetchGroupDetails(target._id));
         }
 
-        return { success: true, targetRoute: targetRoute };
+        return { success: true, targetRoute };
       } catch (error) {
         logger.error('switchToGroup error:', error);
         lock.current = false;

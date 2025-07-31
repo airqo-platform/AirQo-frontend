@@ -20,6 +20,7 @@ import {
   getAQICategory,
 } from '../components/MapNodes';
 import { images } from '../constants/mapConstants';
+import logger from '@/lib/logger';
 
 // Enhanced constants for better performance
 const CONSTANTS = {
@@ -58,7 +59,7 @@ const useMapData = (params = {}) => {
 
   // Parameter validation
   if (!params || typeof params !== 'object') {
-    console.warn('useMapData: Invalid parameters provided, using defaults');
+    logger.warn('useMapData: Invalid parameters provided, using defaults');
   }
 
   // Enhanced loading states
@@ -114,7 +115,7 @@ const useMapData = (params = {}) => {
   // Memoized computed values with proper validation
   const clusterRadius = useMemo(() => {
     if (!NodeType || typeof NodeType !== 'string') {
-      console.warn('useMapData: Invalid NodeType, using default');
+      logger.warn('useMapData: Invalid NodeType, using default');
       return CONSTANTS.CLUSTER_RADIUS.DEFAULT;
     }
 
@@ -134,7 +135,13 @@ const useMapData = (params = {}) => {
 
   // Enhanced error handling
   const handleError = useCallback((type, error) => {
-    console.error(`${type} error:`, error);
+    // Don't log or set error state for aborted requests
+    if (error.name === 'AbortError') {
+      logger.debug(`${type} request was cancelled`);
+      return;
+    }
+
+    logger.error(`${type} error:`, error);
     setErrors((prev) => ({ ...prev, [type]: error.message }));
   }, []);
 
@@ -176,7 +183,7 @@ const useMapData = (params = {}) => {
         if (!cityData?.forecast?.daily || !pollutant) return null;
 
         if (typeof pollutant !== 'string') {
-          console.warn('useMapData: Invalid pollutant type');
+          logger.warn('useMapData: Invalid pollutant type');
           return null;
         }
 
@@ -192,7 +199,7 @@ const useMapData = (params = {}) => {
             time: data.day,
           }));
       } catch (error) {
-        console.warn('Error extracting forecast:', error);
+        logger.warn('Error extracting forecast:', error);
         return null;
       }
     },
@@ -241,7 +248,7 @@ const useMapData = (params = {}) => {
       clusterAQICache.current.set(cluster, result);
       return result;
     } catch (error) {
-      console.warn('Error calculating cluster AQI:', error);
+      logger.warn('Error calculating cluster AQI:', error);
       return [];
     }
   }, []);
@@ -261,7 +268,7 @@ const useMapData = (params = {}) => {
             marker.remove();
           }
         } catch (error) {
-          console.warn('Marker cleanup error:', error);
+          logger.warn('Marker cleanup error:', error);
         }
       }
 
@@ -280,7 +287,7 @@ const useMapData = (params = {}) => {
               marker.remove();
             }
           } catch (error) {
-            console.warn('Marker cleanup error:', error);
+            logger.warn('Marker cleanup error:', error);
           }
         });
       });
@@ -318,7 +325,7 @@ const useMapData = (params = {}) => {
     (el, feature, map) => {
       try {
         if (!el || !feature || !map) {
-          console.warn('createUnclusteredMarker: Missing required parameters');
+          logger.warn('createUnclusteredMarker: Missing required parameters');
           return null;
         }
 
@@ -387,7 +394,7 @@ const useMapData = (params = {}) => {
 
         return marker;
       } catch (error) {
-        console.error('Error creating unclustered marker:', error);
+        logger.error('Error creating unclustered marker:', error);
         return null;
       }
     },
@@ -398,7 +405,7 @@ const useMapData = (params = {}) => {
     (el, feature, map, zoom) => {
       try {
         if (!el || !feature || !map) {
-          console.warn('createClusteredMarker: Missing required parameters');
+          logger.warn('createClusteredMarker: Missing required parameters');
           return null;
         }
 
@@ -434,7 +441,7 @@ const useMapData = (params = {}) => {
 
         return marker;
       } catch (error) {
-        console.error('Error creating clustered marker:', error);
+        logger.error('Error creating clustered marker:', error);
         return null;
       }
     },
@@ -492,7 +499,7 @@ const useMapData = (params = {}) => {
 
         createMarkersInBatch();
       } catch (error) {
-        console.error('Error updating clusters:', error);
+        logger.error('Error updating clusters:', error);
       }
     }, CONSTANTS.DEBOUNCE_DELAY);
   }, [createUnclusteredMarker, createClusteredMarker, clearMarkers]);
@@ -508,7 +515,7 @@ const useMapData = (params = {}) => {
         });
       }
     } catch (error) {
-      console.error('Error initializing Supercluster:', error);
+      logger.error('Error initializing Supercluster:', error);
     }
   }, [clusterRadius]);
 
@@ -568,7 +575,7 @@ const useMapData = (params = {}) => {
           clusterUpdate();
         }
       } catch (error) {
-        console.error('Error updating map data:', error);
+        logger.error('Error updating map data:', error);
       }
     },
     [clusterUpdate, initSupercluster],
@@ -659,7 +666,7 @@ const useMapData = (params = {}) => {
         }
 
         if (retryCount < maxRetries) {
-          console.warn(
+          logger.warn(
             `Map readings fetch failed, retrying (${retryCount + 1}/${maxRetries}):`,
             error.message,
           );
@@ -754,7 +761,7 @@ const useMapData = (params = {}) => {
         const allResults = [];
         const { BATCH_SIZE, MAX_CONCURRENT_BATCHES } = CONSTANTS.WAQ_API;
 
-        console.log('Starting WAQ data fetch for', cities.length, 'cities');
+        logger.debug('Starting WAQ data fetch for', cities.length, 'cities');
 
         // Process all cities in batches but collect ALL results before updating map
         for (
@@ -787,7 +794,7 @@ const useMapData = (params = {}) => {
                 )
                 .map((result) => result.value);
             } catch (error) {
-              console.warn('Batch processing error:', error);
+              logger.warn('Batch processing error:', error);
               return [];
             }
           });
@@ -797,7 +804,7 @@ const useMapData = (params = {}) => {
             const validResults = chunkResults.flat();
             allResults.push(...validResults);
 
-            console.log(
+            logger.debug(
               `Processed batch ${i / (BATCH_SIZE * MAX_CONCURRENT_BATCHES) + 1}, got ${validResults.length} results. Total so far: ${allResults.length}`,
             );
 
@@ -806,11 +813,11 @@ const useMapData = (params = {}) => {
               await new Promise((resolve) => setTimeout(resolve, 200));
             }
           } catch (error) {
-            console.warn('Error processing chunks:', error);
+            logger.warn('Error processing chunks:', error);
           }
         }
 
-        console.log(
+        logger.debug(
           'WAQ data fetch completed. Total valid results:',
           allResults.length,
         );
@@ -834,7 +841,7 @@ const useMapData = (params = {}) => {
   // FIXED: Enhanced main data processing - fetch all data first, then combine and update map once
   const fetchAndProcessAllData = useCallback(async () => {
     try {
-      console.log('Starting data fetch process...');
+      logger.debug('Starting data fetch process...');
 
       // Fetch both data sources concurrently but wait for both to complete
       const [mapResult, waqResult] = await Promise.allSettled([
@@ -847,7 +854,7 @@ const useMapData = (params = {}) => {
       const waqFeatures =
         waqResult.status === 'fulfilled' ? waqResult.value : [];
 
-      console.log('Data fetch completed:', {
+      logger.debug('Data fetch completed:', {
         mapFeatures: mapFeatures.length,
         waqFeatures: waqFeatures.length,
       });
@@ -856,13 +863,13 @@ const useMapData = (params = {}) => {
       const allFeatures = [...mapFeatures, ...waqFeatures];
 
       if (allFeatures.length > 0) {
-        console.log('Updating map with', allFeatures.length, 'total features');
+        logger.debug('Updating map with', allFeatures.length, 'total features');
         updateMapData(allFeatures, true); // Use replaceAll=true to ensure clean state
       }
 
       isInitialLoadRef.current = false;
     } catch (error) {
-      console.error('Error processing all data:', error);
+      logger.error('Error processing all data:', error);
     }
   }, [fetchMapReadings, fetchWaqData, updateMapData]);
 
@@ -870,6 +877,11 @@ const useMapData = (params = {}) => {
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+
+    // Copy refs to avoid stale closure issues in cleanup
+    const cleanupFunctions = cleanupFunctionsRef.current;
+    const abortControllers = abortControllersRef.current;
+    const clusterTimeout = clusterUpdateTimeoutRef.current;
 
     initSupercluster();
 
@@ -892,19 +904,19 @@ const useMapData = (params = {}) => {
 
       clearMarkers();
 
-      cleanupFunctionsRef.current.forEach((cleanup) => {
+      cleanupFunctions.forEach((cleanup) => {
         cleanup();
       });
-      cleanupFunctionsRef.current.clear();
+      cleanupFunctions.clear();
 
-      Object.values(abortControllersRef.current).forEach((controller) => {
+      Object.values(abortControllers).forEach((controller) => {
         if (controller) {
           controller.abort();
         }
       });
 
-      if (clusterUpdateTimeoutRef.current) {
-        clearTimeout(clusterUpdateTimeoutRef.current);
+      if (clusterTimeout) {
+        clearTimeout(clusterTimeout);
         clusterUpdateTimeoutRef.current = null;
       }
     };
