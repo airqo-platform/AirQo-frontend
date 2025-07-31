@@ -19,6 +19,8 @@ import {
 import { makeStyles } from '@material-ui/core/styles';
 import { assignDeviceToGroup } from 'redux/DeviceRegistry/operations';
 import { getGroupsSummaryApi } from 'views/apis/analytics';
+import { updateMainAlert } from 'redux/MainAlert/operations';
+import { createAlertBarExtraContentFromObject } from '../../../../utils/objectManipulators';
 
 const useStyles = makeStyles((theme) => ({
   dialogContent: {
@@ -66,6 +68,21 @@ const AssignGroupModal = ({ open, onClose, device }) => {
       const response = await getGroupsSummaryApi();
       setGroups(response.groups || []);
     } catch (err) {
+      const errorResponse = err.response && err.response.data;
+      const errorMessage = errorResponse && errorResponse.errors && errorResponse.errors.message;
+      
+      dispatch(
+        updateMainAlert({
+          message:
+            errorMessage ||
+            (errorResponse && errorResponse.message) ||
+            err.message ||
+            'Failed to load groups',
+          show: true,
+          severity: 'error',
+          extra: createAlertBarExtraContentFromObject((errorResponse && errorResponse.errors) || {})
+        })
+      );
       setError('Failed to load groups');
     }
   };
