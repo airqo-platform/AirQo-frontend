@@ -19,6 +19,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import { createAlertBarExtraContentFromObject } from '../../../../utils/objectManipulators';
 
 const gridItemStyle = {
   padding: '5px'
@@ -140,7 +141,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             err.message ||
             'An error occurred during update',
           show: true,
-          severity: 'error'
+          severity: 'error',
+          extra: createAlertBarExtraContentFromObject((errorResponse && errorResponse.errors) || {})
         })
       );
     }
