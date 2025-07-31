@@ -12,6 +12,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { useMemo, useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -19,12 +20,13 @@ interface StatCardProps {
   title: string;
   value: number | string;
   subtitle?: string;
+  description?: string;
   icon: React.ReactNode;
   isLoading?: boolean;
   variant?: 'default' | 'success' | 'warning' | 'destructive';
 }
 
-const StatCard = ({ title, value, subtitle, icon, isLoading, variant = 'default' }: StatCardProps) => {
+const StatCard = ({ title, value, subtitle, description, icon, isLoading, variant = 'default' }: StatCardProps) => {
   const getVariantStyles = useCallback(() => {
     switch (variant) {
       case 'success':
@@ -68,7 +70,7 @@ const StatCard = ({ title, value, subtitle, icon, isLoading, variant = 'default'
     );
   }
 
-  return (
+  const cardContent = (
     <Card className={getVariantStyles()}>
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
@@ -84,6 +86,24 @@ const StatCard = ({ title, value, subtitle, icon, isLoading, variant = 'default'
       </CardContent>
     </Card>
   );
+
+  if (description) {
+    return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {cardContent}
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs p-3" side="top">
+          <div className="space-y-2">
+            <p className="font-semibold text-sm">{title}</p>
+            <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+          </div>
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+
+  return cardContent;
 };
 
 export const DashboardStatsCards = () => {
@@ -188,50 +208,56 @@ export const DashboardStatsCards = () => {
   }, [isPersonalContext, myDevicesQuery, queryClient, activeNetwork?.net_name, activeGroup?.grp_title]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">Device Statistics</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+    <TooltipProvider>
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Device Statistics</h2>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+          <StatCard
+            title="Total Devices"
+            value={metrics.totalMonitors}
+            description={`The total number of ${isPersonalContext ? 'your personal' : 'organization'} devices. This includes all devices regardless of their current status - online, offline, deployed, or undeployed.`}
+            icon={<Activity className="w-4 h-4" />}
+            isLoading={isLoading}
+          />
+          <StatCard
+            title="Active Devices"
+            value={metrics.activeMonitors}
+            description="The number of devices currently online and actively transmitting data. These devices are connected to the network and reporting sensor measurements."
+            icon={<Wifi className="w-4 h-4" />}
+            isLoading={isLoading}
+            variant={metrics.activeMonitors > 0 ? 'success' : 'default'}
+          />
+          <StatCard
+            title="Pending Deployments"
+            value={metrics.pendingDeployments}
+            description="The number of devices that have been claimed but are not yet deployed in the field. These devices are ready for deployment but haven't been installed at monitoring locations."
+            icon={<Clock className="w-4 h-4" />}
+            isLoading={isLoading}
+            variant={metrics.pendingDeployments > 0 ? 'warning' : 'default'}
+          />
+          <StatCard
+            title="Recent Alerts"
+            value={metrics.recentAlerts}
+            description="The total number of devices requiring attention. This includes offline devices, devices due for maintenance, and devices that are overdue for maintenance."
+            icon={<AlertTriangle className="w-4 h-4" />}
+            isLoading={isLoading}
+            variant={metrics.recentAlerts > 0 ? 'destructive' : 'default'}
+          />
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
-      <StatCard
-        title="Total Devices"
-        value={metrics.totalMonitors}
-        icon={<Activity className="w-4 h-4" />}
-        isLoading={isLoading}
-      />
-      <StatCard
-        title="Active Devices"
-        value={metrics.activeMonitors}
-        icon={<Wifi className="w-4 h-4" />}
-        isLoading={isLoading}
-        variant={metrics.activeMonitors > 0 ? 'success' : 'default'}
-      />
-      <StatCard
-        title="Pending Deployments"
-        value={metrics.pendingDeployments}
-        icon={<Clock className="w-4 h-4" />}
-        isLoading={isLoading}
-        variant={metrics.pendingDeployments > 0 ? 'warning' : 'default'}
-      />
-      <StatCard
-        title="Recent Alerts"
-        value={metrics.recentAlerts}
-        icon={<AlertTriangle className="w-4 h-4" />}
-        isLoading={isLoading}
-        variant={metrics.recentAlerts > 0 ? 'destructive' : 'default'}
-      />
-      </div>
-    </div>
+    </TooltipProvider>
   );
 };
  
