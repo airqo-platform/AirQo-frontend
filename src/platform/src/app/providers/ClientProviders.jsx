@@ -101,6 +101,14 @@ function ClientProvidersInner({ children }) {
 
   useEffect(() => {
     const handleGlobalError = (event) => {
+      // Ignore ResizeObserver loop errors - they're benign
+      if (
+        event.error?.message?.includes('ResizeObserver loop') ||
+        event.message?.includes('ResizeObserver loop')
+      ) {
+        return;
+      }
+
       event.preventDefault();
       logger.error('Uncaught error', event.error || new Error(event.message), {
         source: event.filename,

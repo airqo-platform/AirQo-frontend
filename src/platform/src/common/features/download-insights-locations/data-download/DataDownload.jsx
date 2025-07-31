@@ -519,15 +519,55 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
               if (typeof response === 'string') {
                 // Check if the response is CSV (contains commas and newlines)
                 if (response.includes(',') && response.includes('\n')) {
-                  // Parse CSV to JSON
+                  // Parse CSV to JSON with proper handling of quoted fields
                   const lines = response.trim().split('\n');
-                  const headers = lines[0].split(',');
+
+                  // Parse CSV line properly handling quoted fields
+                  const parseCSVLine = (line) => {
+                    const result = [];
+                    let current = '';
+                    let inQuotes = false;
+                    let i = 0;
+
+                    while (i < line.length) {
+                      const char = line[i];
+                      const nextChar = line[i + 1];
+
+                      if (char === '"') {
+                        if (inQuotes && nextChar === '"') {
+                          // Escaped quote
+                          current += '"';
+                          i++; // Skip next quote
+                        } else {
+                          // Toggle quote state
+                          inQuotes = !inQuotes;
+                        }
+                      } else if (char === ',' && !inQuotes) {
+                        // Field separator
+                        result.push(current.trim());
+                        current = '';
+                      } else {
+                        current += char;
+                      }
+                      i++;
+                    }
+
+                    // Add the last field
+                    result.push(current.trim());
+                    return result;
+                  };
+
+                  const headers = parseCSVLine(lines[0]).map((h) =>
+                    h.replace(/^"|"$/g, '').trim(),
+                  );
                   jsonData = lines.slice(1).map((line) => {
-                    const values = line.split(',');
+                    const values = parseCSVLine(line);
                     return headers.reduce((obj, header, index) => {
                       // Clean up the values and handle empty fields
-                      let value = values[index] ? values[index].trim() : '';
-                      obj[header.trim()] = value || null;
+                      let value = values[index]
+                        ? values[index].replace(/^"|"$/g, '').trim()
+                        : '';
+                      obj[header] = value || null;
                       return obj;
                     }, {});
                   });
