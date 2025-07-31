@@ -111,13 +111,25 @@ export const hasPermission = (userPermissions, requiredPermission) => {
   
   // Check for legacy permission match
   const mappedPermission = mapLegacyPermission(requiredPermission);
-  if (mappedPermission !== requiredPermission && permissionStrings.includes(mappedPermission)) {
-    return true;
+  if (mappedPermission !== requiredPermission) {
+    // Handle case where legacy permission maps to an array of new permissions
+    if (Array.isArray(mappedPermission)) {
+      return mappedPermission.some(perm => permissionStrings.includes(perm));
+    } else if (permissionStrings.includes(mappedPermission)) {
+      return true;
+    }
   }
   
-  // Check if any legacy permissions map to the required permission
+  // Check if any user's legacy permissions map to the required permission
   for (const userPermission of permissionStrings) {
-    if (mapLegacyPermission(userPermission) === requiredPermission) {
+    const userMappedPermission = mapLegacyPermission(userPermission);
+    
+    // Handle case where user's legacy permission maps to an array
+    if (Array.isArray(userMappedPermission)) {
+      if (userMappedPermission.includes(requiredPermission)) {
+        return true;
+      }
+    } else if (userMappedPermission === requiredPermission) {
       return true;
     }
   }
