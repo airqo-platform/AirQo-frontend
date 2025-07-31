@@ -19,6 +19,7 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import AssignGroupModal from './AssignGroupModal';
 import { createAlertBarExtraContentFromObject } from '../../../../utils/objectManipulators';
 
 const gridItemStyle = {
@@ -67,6 +68,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 
   const [open, setConfirmOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [assignGroupModalOpen, setAssignGroupModalOpen] = useState(false);
 
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
@@ -184,6 +186,14 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   useEffect(() => {
     fetchNetworks();
   }, []);
+
+  const handleAssignGroupClick = () => {
+    setAssignGroupModalOpen(true);
+  };
+
+  const handleAssignGroupModalClose = () => {
+    setAssignGroupModalOpen(false);
+  };
 
   return (
     <div>
@@ -473,6 +483,7 @@ export default function DeviceEdit({ deviceData }) {
   const dispatch = useDispatch();
   const siteOptions = useSiteOptionsData();
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+  const [assignGroupModalOpen, setAssignGroupModalOpen] = useState(false);
 
   useEffect(() => {
     if (!activeNetwork) return;
@@ -480,10 +491,38 @@ export default function DeviceEdit({ deviceData }) {
       dispatch(loadSitesData(activeNetwork.net_name));
     }
   }, []);
+
+  const handleAssignGroupModalClose = () => {
+    setAssignGroupModalOpen(false);
+  };
+
+  const handleAssignGroupClick = () => {
+    setAssignGroupModalOpen(true);
+  };
+
   return (
     <div style={{ marginTop: '20px' }}>
+      {/* Assign to Group Button */}
+      <Box mb={2}>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleAssignGroupClick}
+          style={{ marginBottom: '16px' }}
+        >
+          Assign to Group
+        </Button>
+      </Box>
+
       <EditDeviceForm deviceData={deviceData} siteOptions={siteOptions} />
       <DeviceDeployStatus deviceData={deviceData} siteOptions={siteOptions} />
+      
+      {/* Assign Group Modal */}
+      <AssignGroupModal
+        open={assignGroupModalOpen}
+        onClose={handleAssignGroupModalClose}
+        device={deviceData}
+      />
     </div>
   );
 }
