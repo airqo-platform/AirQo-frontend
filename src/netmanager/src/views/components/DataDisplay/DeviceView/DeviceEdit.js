@@ -523,14 +523,14 @@ export default function DeviceEdit({ deviceData }) {
   return (
     <div style={{ marginTop: '20px' }}>
       {/* Assign to Group Button */}
-      <Box mb={2}>
+      <Box mb={2} display="flex" justifyContent="flex-end">
         <Button
           variant="contained"
           color="secondary"
           onClick={handleAssignGroupClick}
           style={{ marginBottom: '16px' }}
         >
-          Assign to Group
+          Assign Device to Group
         </Button>
       </Box>
 
