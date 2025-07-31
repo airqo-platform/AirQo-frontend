@@ -14,13 +14,13 @@ import {
   Box,
   Typography,
   CircularProgress,
-  Alert
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 import { assignDeviceToGroup } from 'redux/DeviceRegistry/operations';
 import { getGroupsSummaryApi } from 'views/apis/analytics';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from '../../../../utils/objectManipulators';
+import { Alert } from '@material-ui/lab';
 
 const useStyles = makeStyles((theme) => ({
   dialogContent: {
