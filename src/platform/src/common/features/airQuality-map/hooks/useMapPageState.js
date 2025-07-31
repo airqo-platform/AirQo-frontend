@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { getGirdsSummaryDetails } from '@/core/apis/DeviceRegistry';
+import { getGridsSummaryDetails } from '@/core/apis/DeviceRegistry';
 import { addSuggestedSites } from '@/lib/store/services/map/MapSlice';
 import { isDesktop } from '../utils/mapHelpers';
 
@@ -36,7 +36,22 @@ export function useMapPageState(width) {
   // Optimized Redux selectors with shallow comparison
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences || [],
-    (prev, next) => JSON.stringify(prev) === JSON.stringify(next),
+    (prev, next) => {
+      // Use proper deep equality check with fallback to JSON comparison
+      if (prev === next) return true;
+      if (!prev || !next) return false;
+      if (prev.length !== next.length) return false;
+
+      // Check array elements for deep equality
+      for (let i = 0; i < prev.length; i++) {
+        if (typeof prev[i] === 'object' && typeof next[i] === 'object') {
+          if (JSON.stringify(prev[i]) !== JSON.stringify(next[i])) return false;
+        } else if (prev[i] !== next[i]) {
+          return false;
+        }
+      }
+      return true;
+    },
   );
   const selectedNode = useSelector((state) => state.map.selectedNode);
 
@@ -84,7 +99,7 @@ export function useMapPageState(width) {
     try {
       setLoading(true);
       const response = await Promise.race([
-        getGirdsSummaryDetails(),
+        getGridsSummaryDetails(),
         new Promise((_, reject) =>
           setTimeout(
             () => reject(new Error('Request timeout')),

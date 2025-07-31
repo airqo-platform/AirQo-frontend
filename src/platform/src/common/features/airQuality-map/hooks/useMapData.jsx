@@ -104,7 +104,7 @@ const useMapData = (params = {}) => {
       mapReadingsData: state.map.mapReadingsData,
       waqData: state.map.waqData,
       selectedNode: state.map.selectedNode,
-      nodeType: state.map.nodeType || 'Emoji', // Default to Emoji
+      nodeType: state.map.nodeType || 'Node', // Default to Node (changed from Emoji)
     }),
   );
 
@@ -597,10 +597,9 @@ const useMapData = (params = {}) => {
     }
     abortControllersRef.current.mapReading = new AbortController();
 
-    let retryCount = 0;
     const maxRetries = CONSTANTS.MAP_READINGS.RETRY_ATTEMPTS;
 
-    const attemptFetch = async () => {
+    const attemptFetch = async (retryCount = 0) => {
       try {
         const response = await Promise.race([
           getMapReadings(abortControllersRef.current.mapReading.signal),
@@ -660,15 +659,14 @@ const useMapData = (params = {}) => {
         }
 
         if (retryCount < maxRetries) {
-          retryCount++;
           console.warn(
-            `Map readings fetch failed, retrying (${retryCount}/${maxRetries}):`,
+            `Map readings fetch failed, retrying (${retryCount + 1}/${maxRetries}):`,
             error.message,
           );
           await new Promise((resolve) =>
-            setTimeout(resolve, 1000 * retryCount),
+            setTimeout(resolve, 1000 * (retryCount + 1)),
           );
-          return attemptFetch();
+          return attemptFetch(retryCount + 1);
         }
 
         handleError('mapReading', error);

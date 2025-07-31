@@ -15,7 +15,16 @@ export const useTableFilters = (data, filters = []) => {
     filters.forEach((filter) => {
       initialFilters[filter.key] = filter.isMulti ? [] : '';
     });
-    setFilterValues(initialFilters);
+    setFilterValues((prev) => {
+      // Only update if filters have actually changed
+      const hasChanged = filters.some(
+        (filter) =>
+          prev[filter.key] === undefined ||
+          (filter.isMulti && !Array.isArray(prev[filter.key])) ||
+          (!filter.isMulti && Array.isArray(prev[filter.key])),
+      );
+      return hasChanged ? initialFilters : prev;
+    });
   }, [filters]);
 
   const filteredData = useMemo(() => {

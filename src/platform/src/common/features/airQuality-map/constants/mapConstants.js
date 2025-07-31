@@ -50,12 +50,13 @@ export const mapDetails = [
     image: Emoji,
   },
   {
-    name: 'Heatmap',
-    image: Heatmap,
-  },
-  {
     name: 'Node',
     image: Node,
+  },
+
+  {
+    name: 'Heatmap',
+    image: Heatmap,
   },
   {
     name: 'Number',

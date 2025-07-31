@@ -132,6 +132,7 @@ CountryList.propTypes = {
   data: PropTypes.array.isRequired,
   selectedCountry: PropTypes.object,
   setSelectedCountry: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default CountryList;

@@ -39,7 +39,7 @@ export const getSiteSummaryDetailsWithToken = () =>
     })
     .then((response) => response.data);
 
-export const getGirdsSummaryDetails = () =>
+export const getGridsSummaryDetails = () =>
   secureApiProxy
     .get(GRIDS_SUMMARY_URL, {
       authType: AUTH_TYPES.JWT,

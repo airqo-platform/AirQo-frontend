@@ -32,7 +32,7 @@ const OptimizedDataTable = memo(
     const [error, setError] = useOptimizedState(null);
 
     // Debounced search to prevent excessive API calls
-    const [searchTerm] = useDebouncedState('', 300);
+    const [searchTerm, setSearchTerm] = useDebouncedState('', 300);
 
     // Setup cleanup for memory leak prevention
     const cleanup = useCleanup();
@@ -141,6 +141,13 @@ const OptimizedDataTable = memo(
       fetchData(searchTerm);
     }, [fetchData, searchTerm]);
 
+    const handleSearch = useCallback(
+      (query) => {
+        setSearchTerm(query);
+      },
+      [setSearchTerm],
+    );
+
     const handleExport = useCallback(() => {
       // Export functionality
       const csvContent = data
@@ -214,6 +221,7 @@ const OptimizedDataTable = memo(
           multiSelect={multiSelect}
           actions={actions}
           onSelectedItemsChange={onSelectedItemsChange}
+          onSearch={handleSearch}
           headerComponent={actionButtons}
           pageSize={20}
           pageSizeOptions={[10, 20, 50, 100]}
