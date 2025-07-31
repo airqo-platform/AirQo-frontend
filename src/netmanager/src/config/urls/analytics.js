@@ -52,6 +52,8 @@ export const ACTIVATION_REQUEST_URI = `${BASE_ANALYTICS_URL_V2}/users/clients/ac
 // Teams
 export const CREATE_TEAM_URI = `${BASE_ANALYTICS_URL_V2}/users/groups`;
 
+export const GET_GROUPS_SUMMARY_URI = `${BASE_ANALYTICS_URL_V2}/users/groups/summary`;
+
 // SIM
 export const GET_SIM_URI = `${BASE_ANALYTICS_URL_V2}/incentives/sims`;
 
