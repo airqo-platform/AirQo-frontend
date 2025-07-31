@@ -134,7 +134,12 @@ const AssignGroupModal = ({ open, onClose, device }) => {
   };
 
   const handleCancel = () => {
-    setSelectedGroups(device && device.groups ? device.groups.map(group => group.grp_title) : []);
+    setSelectedGroups(
+      device?.groups?.map(group => ({
+        value: group.grp_title,
+        label: group.grp_title
+      })) || []
+    );
     setError('');
     onClose();
   };
