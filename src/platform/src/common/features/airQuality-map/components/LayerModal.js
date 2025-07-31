@@ -292,7 +292,7 @@ LayerModal.propTypes = {
       image: PropTypes.string.isRequired,
     }),
   ).isRequired,
-  disabled: PropTypes.string,
+  disabled: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default memo(LayerModal);
