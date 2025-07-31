@@ -169,7 +169,7 @@ body > div#__next {
   height: 16px;
   background: currentColor;
   border-radius: 4px;
-  top: 90%;
+  top: 80%;
   left: 50%;
   z-index: 1;
   transform: translate(-50%, -50%) rotate(45deg);

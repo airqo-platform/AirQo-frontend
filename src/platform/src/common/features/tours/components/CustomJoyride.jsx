@@ -1,15 +1,61 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Joyride from 'react-joyride';
 import CardWrapper from '@/common/components/CardWrapper';
 import Button from '@/common/components/Button';
+
+// --- Mobile Detection Hook ---
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkDevice = () => {
+      // Check screen width (mobile: < 768px, tablet: >= 768px)
+      const screenWidth = window.innerWidth;
+
+      // Also check user agent for mobile devices as backup
+      const userAgent = navigator.userAgent.toLowerCase();
+      const mobileKeywords = [
+        'mobile',
+        'android',
+        'iphone',
+        'ipod',
+        'blackberry',
+        'windows phone',
+      ];
+      const isMobileUserAgent = mobileKeywords.some((keyword) =>
+        userAgent.includes(keyword),
+      );
+
+      // Consider it mobile if screen is < 768px OR if it's a mobile user agent
+      // but exclude tablets (iPad, Android tablets typically have larger screens)
+      const isTablet =
+        userAgent.includes('ipad') ||
+        (userAgent.includes('android') && !userAgent.includes('mobile'));
+
+      setIsMobile((screenWidth < 768 || isMobileUserAgent) && !isTablet);
+    };
+
+    // Check on mount
+    checkDevice();
+
+    // Check on resize
+    window.addEventListener('resize', checkDevice);
+
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+
+  return isMobile;
+};
 
 // --- Internal Custom Components ---
 
 const DefaultHeader = ({ step, index, totalSteps }) => (
   <div className="flex items-center justify-between mb-2 font-semibold text-primary">
-    <span>{step.title || `Step ${index + 1}`}</span>
+    <span className="text-sm md:text-base">
+      {step.title || `Step ${index + 1}`}
+    </span>
     {totalSteps > 0 && (
-      <span className="text-sm opacity-70">
+      <span className="text-xs md:text-sm opacity-70">
         {index + 1}/{totalSteps}
       </span>
     )}
@@ -27,7 +73,7 @@ const DefaultFooter = ({
   <div className="flex justify-between mt-2">
     <Button
       variant="outlined"
-      className="min-w-[60px] text-xs py-1 px-2"
+      className="min-w-[50px] text-[10px] py-1 px-2 md:min-w-[60px] md:text-xs md:py-1 md:px-2"
       onClick={handleSkip}
       type="button"
     >
@@ -37,7 +83,7 @@ const DefaultFooter = ({
       {totalSteps > 1 && index > 0 && (
         <Button
           variant="outlined"
-          className="min-w-[60px] text-xs py-1 px-2"
+          className="min-w-[50px] text-[10px] py-1 px-2 md:min-w-[60px] md:text-xs md:py-1 md:px-2"
           onClick={handlePrev}
           type="button"
         >
@@ -46,7 +92,7 @@ const DefaultFooter = ({
       )}
       <Button
         variant="filled"
-        className="min-w-[60px] text-xs py-1 px-2 bg-primary"
+        className="min-w-[50px] text-[10px] py-1 px-2 bg-primary md:min-w-[60px] md:text-xs md:py-1 md:px-2"
         onClick={handleNext}
         type="button"
       >
@@ -74,14 +120,14 @@ const CustomTooltipInternal = ({
 
   return (
     <CardWrapper
-      className="shadow-lg max-w-md w-full"
+      className="shadow-lg w-full max-w-xs sm:max-w-sm md:max-w-md"
       padding="p-3"
       bordered={false}
       style={tooltipProps?.style}
       {...tooltipProps}
     >
       <DefaultHeader step={step} index={index} totalSteps={totalSteps} />
-      <div className="mb-2 text-gray-700 dark:text-gray-200 text-sm">
+      <div className="mb-2 text-gray-700 dark:text-gray-200 text-xs md:text-sm">
         {step.content}
       </div>
       <DefaultFooter
@@ -128,29 +174,50 @@ const CustomJoyride = ({
   styles = {},
   callback = noopCallback,
   spotlightClicks = false,
-  // Explicitly default disableOverlayClose to true
   disableOverlayClose = true,
   locale = {},
   scrollOffset = 100,
   showSkipButton = true,
   showProgress = true,
   disableBeacon = false,
-  floaterProps = {}, // Accept floaterProps for auto-placement
+  floaterProps = {},
+  disableOnMobile = true, // New prop to control mobile behavior
   ...restProps
 }) => {
+  const isMobile = useIsMobile();
+
   const stepsWithTotal = useMemo(() => {
     return steps.map((step) => ({ ...step, totalSteps: steps.length }));
   }, [steps]);
 
   const mergedStyles = { ...defaultStyles, ...styles };
 
-  // Default floater props for better auto-placement behavior
+  // Enhanced floater props for better responsiveness
   const defaultFloaterProps = {
-    disableAnimation: true, // Often helps with smoother initial appearance
-    // Joyride's floater handles placement='auto' or specific placements
+    disableAnimation: true,
+    styles: {
+      floater: {
+        maxWidth: '90vw', // Prevent overflow on small screens
+      },
+      floaterCentered: {
+        maxWidth: '90vw',
+      },
+    },
   };
 
-  const finalFloaterProps = { ...defaultFloaterProps, ...floaterProps };
+  const finalFloaterProps = {
+    ...defaultFloaterProps,
+    ...floaterProps,
+    styles: {
+      ...defaultFloaterProps.styles,
+      ...floaterProps?.styles,
+    },
+  };
+
+  // Don't render Joyride on mobile devices if disableOnMobile is true
+  if (disableOnMobile && isMobile) {
+    return null;
+  }
 
   return (
     <Joyride
@@ -161,13 +228,12 @@ const CustomJoyride = ({
       showProgress={showProgress}
       disableBeacon={disableBeacon}
       styles={mergedStyles}
-      callback={callback} // Pass the callback directly to Joyride
+      callback={callback}
       spotlightClicks={spotlightClicks}
-      // Pass the disableOverlayClose prop, defaulting to true
       disableOverlayClose={disableOverlayClose}
       locale={locale}
       scrollOffset={scrollOffset}
-      floaterProps={finalFloaterProps} // Pass floater props for auto-placement
+      floaterProps={finalFloaterProps}
       tooltipComponent={CustomTooltipInternal}
       {...restProps}
     />

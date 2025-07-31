@@ -300,21 +300,14 @@ export default function Profile() {
     try {
       await updateUserCreationDetails(fieldsToUpdate, userID);
 
-      // Successfully updated on the backend. Now, update client-side state directly
-      // and refresh session and Redux store with the *newly saved* data.
-      // Do NOT refetch user details unless absolutely necessary, as it can be redundant
-      // and sometimes cause a re-render glitch.
-      // Instead, create the `updatedSessionUser` object from `userData` and `localImagePreview`
-      // and update the session and Redux store.
-
       const updatedProfilePictureFinal =
         localImagePreview || userData.profilePicture;
 
       // Prepare the updated user object for session and Redux
       const updatedUserForClient = {
-        ...session.user, // Keep existing session user properties
-        ...userData, // Apply all current userData (since we've successfully saved them)
-        profilePicture: updatedProfilePictureFinal, // Use the new or existing profile picture
+        ...session.user,
+        ...userData,
+        profilePicture: updatedProfilePictureFinal,
       };
 
       // Update NextAuth session

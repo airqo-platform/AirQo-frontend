@@ -13,6 +13,7 @@ const CountryList = ({
   selectedCountry,
   setSelectedCountry,
   siteDetails = [],
+  isLoading,
 }) => {
   const dispatch = useDispatch();
 
@@ -56,7 +57,7 @@ const CountryList = ({
   );
 
   // Render skeleton placeholders if data is loading or empty
-  if (sortedCountries.length === 0) {
+  if (isLoading) {
     return (
       <div className="flex gap-2 ml-2 mb-2 animate-pulse">
         {Array.from({ length: 4 }).map((_, index) => (
@@ -131,6 +132,7 @@ CountryList.propTypes = {
   data: PropTypes.array.isRequired,
   selectedCountry: PropTypes.object,
   setSelectedCountry: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default CountryList;

@@ -1,5 +1,7 @@
 // --- localStorage Implementation (Current) ---
 
+import logger from '@/lib/logger';
+
 const STORAGE_KEY_PREFIX = 'user_tour_status_';
 
 /**
@@ -10,7 +12,7 @@ const STORAGE_KEY_PREFIX = 'user_tour_status_';
  */
 const getUserTourStorageKey = (tourKey, userId) => {
   if (!userId) {
-    console.warn(
+    logger.warn(
       'tourStorage: User ID is required to generate a user-specific key.',
     );
     return null;
@@ -25,7 +27,7 @@ const getUserTourStorageKey = (tourKey, userId) => {
  */
 export const markTourAsSeen = (tourKey, userId) => {
   if (typeof window === 'undefined' || !window.localStorage) {
-    console.warn('tourStorage: localStorage is not available.');
+    logger.warn('tourStorage: localStorage is not available.');
     return;
   }
 
@@ -38,11 +40,11 @@ export const markTourAsSeen = (tourKey, userId) => {
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem(storageKey, JSON.stringify(statusData));
-    console.log(
+    logger.info(
       `tourStorage (localStorage): Marked tour '${tourKey}' as seen for user '${userId}'.`,
     );
   } catch (e) {
-    console.error(
+    logger.error(
       `tourStorage (localStorage): Failed to save status for tour '${tourKey}' for user '${userId}':`,
       e,
     );
@@ -57,7 +59,7 @@ export const markTourAsSeen = (tourKey, userId) => {
  */
 export const isTourSeen = (tourKey, userId) => {
   if (typeof window === 'undefined' || !window.localStorage) {
-    console.warn('tourStorage: localStorage is not available.');
+    logger.warn('tourStorage: localStorage is not available.');
     return false;
   }
 
@@ -71,7 +73,7 @@ export const isTourSeen = (tourKey, userId) => {
       return data.seen === true;
     }
   } catch (e) {
-    console.error(
+    logger.error(
       `tourStorage (localStorage): Failed to read status for tour '${tourKey}' for user '${userId}':`,
       e,
     );
@@ -91,11 +93,11 @@ export const clearTourStatus = (tourKey, userId) => {
   if (storageKey) {
     try {
       localStorage.removeItem(storageKey);
-      console.log(
+      logger.info(
         `tourStorage (localStorage): Cleared status for tour '${tourKey}' for user '${userId}'.`,
       );
     } catch (e) {
-      console.error(
+      logger.error(
         `tourStorage (localStorage): Failed to clear status for tour '${tourKey}' for user '${userId}':`,
         e,
       );
@@ -118,11 +120,11 @@ export const clearAllUserTourStatuses = (userId) => {
         localStorage.removeItem(key);
       }
     }
-    console.log(
+    logger.info(
       `tourStorage (localStorage): Cleared all tour statuses for user '${userId}'.`,
     );
   } catch (e) {
-    console.error(
+    logger.error(
       `tourStorage (localStorage): Failed to clear all statuses for user '${userId}':`,
       e,
     );

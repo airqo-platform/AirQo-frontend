@@ -1,7 +1,11 @@
+'use client';
+
 import React, { useState, useEffect, useCallback, memo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 import Card from '@/components/CardWrapper';
+import { setNodeType, setMapStyle } from '@/lib/store/services/map/MapSlice';
 
 /**
  * Option component for rendering each selectable option.
@@ -70,7 +74,7 @@ Option.propTypes = {
 
 /**
  * LayerModal component for selecting map style and details
- * with improved selection handling.
+ * with improved selection handling and Redux persistence.
  */
 const LayerModal = ({
   isOpen,
@@ -81,22 +85,54 @@ const LayerModal = ({
   mapDetails,
   disabled = '',
 }) => {
-  // Find the Streets option by default or use the first style
+  const dispatch = useDispatch();
+
+  // Get current selections from Redux
+  const { nodeType: currentNodeType, mapStyle: currentMapStyle } = useSelector(
+    (state) => ({
+      nodeType: state.map.nodeType || 'Emoji',
+      mapStyle: state.map.mapStyle || 'Streets',
+    }),
+  );
+
+  // Find the current selections from Redux or use defaults
   const defaultStyle =
-    mapStyles.find((style) => style.name === 'Streets') || mapStyles[0];
+    mapStyles.find((style) => style.name === currentMapStyle) ||
+    mapStyles.find((style) => style.name === 'Streets') ||
+    mapStyles[0];
+
   const defaultDetail =
-    mapDetails.find((detail) => detail.name === 'Emoji') || mapDetails[0];
+    mapDetails.find((detail) => detail.name === currentNodeType) ||
+    mapDetails.find((detail) => detail.name === 'Emoji') ||
+    mapDetails[0];
 
   const [selectedStyle, setSelectedStyle] = useState(defaultStyle);
   const [selectedMapDetail, setSelectedMapDetail] = useState(defaultDetail);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Reset selections when modal is opened
+  // Reset selections when modal is opened - sync with Redux state
   useEffect(() => {
     if (isOpen) {
+      const currentStyle =
+        mapStyles.find((style) => style.name === currentMapStyle) ||
+        defaultStyle;
+      const currentDetail =
+        mapDetails.find((detail) => detail.name === currentNodeType) ||
+        defaultDetail;
+
+      setSelectedStyle(currentStyle);
+      setSelectedMapDetail(currentDetail);
       setHasChanges(false);
     }
-  }, [isOpen]);
+  }, [
+    isOpen,
+    currentNodeType,
+    currentMapStyle,
+    mapStyles,
+    mapDetails,
+    defaultStyle,
+    defaultDetail,
+  ]);
 
   const handleSelectStyle = useCallback(
     (style) => {
@@ -122,8 +158,15 @@ const LayerModal = ({
     try {
       // Only apply changes if something actually changed
       if (hasChanges) {
+        // Update Redux store for persistence
+        dispatch(setMapStyle(selectedStyle.name));
+        dispatch(setNodeType(selectedMapDetail.name));
+
+        // Notify parent components
         onStyleSelect(selectedStyle);
-        onMapDetailsSelect(selectedMapDetail.name);
+        if (onMapDetailsSelect) {
+          onMapDetailsSelect(selectedMapDetail.name);
+        }
       }
       onClose();
     } catch (error) {
@@ -136,6 +179,7 @@ const LayerModal = ({
     onStyleSelect,
     onMapDetailsSelect,
     onClose,
+    dispatch,
   ]);
 
   // Handle Escape key to close modal
@@ -233,7 +277,7 @@ LayerModal.displayName = 'LayerModal';
 LayerModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onMapDetailsSelect: PropTypes.func.isRequired,
+  onMapDetailsSelect: PropTypes.func,
   onStyleSelect: PropTypes.func.isRequired,
   mapStyles: PropTypes.arrayOf(
     PropTypes.shape({
