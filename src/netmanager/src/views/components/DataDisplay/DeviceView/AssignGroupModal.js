@@ -23,7 +23,8 @@ import Select from 'react-select';
 const useStyles = makeStyles((theme) => ({
   dialogContent: {
     minWidth: 400,
-    padding: theme.spacing(2)
+    padding: theme.spacing(2),
+    height: '70vh',
   },
   formControl: {
     marginTop: theme.spacing(2),
