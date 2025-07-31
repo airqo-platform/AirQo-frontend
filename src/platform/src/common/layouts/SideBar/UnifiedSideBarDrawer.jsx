@@ -7,11 +7,13 @@ import { AqXClose, AqLogOut01 } from '@airqo/icons-react';
 import LogoutUser from '@/core/HOC/LogoutUser';
 import Card from '@/components/CardWrapper';
 import UnifiedSidebarContent from './UnifiedSidebarContent';
+import { useWindowSize } from '@/core/hooks/useWindowSize';
 import {
   getUserTypeFromPath,
   getMobileNavigationItems,
   getOrgSlugFromPath,
 } from './sidebarConfig';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Unified drawer component that works for all user types
@@ -22,19 +24,48 @@ const UnifiedSideBarDrawer = ({ userType, isDarkMode = false }) => {
   const togglingDrawer = useSelector((state) => state.sidebar.toggleDrawer);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const { width } = useWindowSize();
 
   // Determine user type from current route if not provided
-
   const pathname =
     typeof window !== 'undefined' ? window.location.pathname : '';
   const resolvedUserType = userType || getUserTypeFromPath(pathname);
-  let navigationItems;
-  if (resolvedUserType === 'organization') {
-    const orgSlug = getOrgSlugFromPath(pathname);
-    navigationItems = getMobileNavigationItems(resolvedUserType, { orgSlug });
-  } else {
-    navigationItems = getMobileNavigationItems(resolvedUserType);
+
+  // Get organization data for logo display when in organization context
+  const isOrganizationContext = pathname.startsWith('/org/');
+
+  // Always call useOrganization, but only use result when in org context
+  let organization = null;
+  try {
+    const orgResult = useOrganization();
+    organization = isOrganizationContext ? orgResult.organization : null;
+  } catch {
+    // not an org route or error occurred, use null
+    organization = null;
   }
+
+  // On tablet/desktop (md+), show all items since bottom nav is hidden
+  // On mobile, exclude bottom nav items
+  const isMobile = width < 768;
+
+  const navigationItems = useMemo(() => {
+    const excludeBottomNavItems = isMobile; // Only exclude on mobile
+
+    if (resolvedUserType === 'organization') {
+      const orgSlug = getOrgSlugFromPath(pathname);
+      return getMobileNavigationItems(
+        resolvedUserType,
+        { orgSlug },
+        excludeBottomNavItems,
+      );
+    } else {
+      return getMobileNavigationItems(
+        resolvedUserType,
+        {},
+        excludeBottomNavItems,
+      );
+    }
+  }, [resolvedUserType, pathname, isMobile]);
 
   // Compute the drawer width based on the toggle state
   const drawerWidth = useMemo(
@@ -91,7 +122,19 @@ const UnifiedSideBarDrawer = ({ userType, isDarkMode = false }) => {
       >
         {/* Header */}
         <div className="pb-2 lg:pb-4 flex justify-between items-center">
-          <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
+          {/* Show organization logo if in org context, otherwise default AirQo logo */}
+          {isOrganizationContext && organization?.logo ? (
+            <img
+              src={organization.logo}
+              alt={`${organization.name} Logo`}
+              className="w-[46.56px] h-8 object-contain"
+              onError={(e) => {
+                e.target.src = '/icons/airqo_logo.svg';
+              }}
+            />
+          ) : (
+            <AirqoLogo className="w-[46.56px] h-8 flex flex-col flex-1" />
+          )}
           <button
             type="button"
             className="relative w-auto focus:outline-none p-1 lg:p-2"

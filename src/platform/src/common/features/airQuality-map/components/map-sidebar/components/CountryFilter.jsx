@@ -10,6 +10,7 @@ const CountryFilter = ({
   selectedCountry,
   setSelectedCountry,
   siteDetails = [],
+  isLoading,
 }) => {
   const dispatch = useDispatch();
 
@@ -30,6 +31,7 @@ const CountryFilter = ({
 
         <CountryList
           data={countryData}
+          isLoading={isLoading}
           selectedCountry={selectedCountry}
           setSelectedCountry={setSelectedCountry}
           siteDetails={siteDetails}

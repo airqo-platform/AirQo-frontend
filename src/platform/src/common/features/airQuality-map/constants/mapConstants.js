@@ -8,8 +8,6 @@ import LightMode from '@/images/map/light.webp';
 import SatelliteMode from '@/images/map/satellite.webp';
 import StreetsMode from '@/images/map/street.webp';
 
-import { renderToString } from 'react-dom/server';
-
 // Import icon components
 import {
   AqGood,
@@ -52,12 +50,13 @@ export const mapDetails = [
     image: Emoji,
   },
   {
-    name: 'Heatmap',
-    image: Heatmap,
-  },
-  {
     name: 'Node',
     image: Node,
+  },
+
+  {
+    name: 'Heatmap',
+    image: Heatmap,
   },
   {
     name: 'Number',
@@ -103,17 +102,128 @@ export const LAYOUT_CONFIG = {
 };
 
 // -------------------------------------------------------------------
-// Icon Images: Encoded SVG images for use in markers/popups
+// Icon Images: Create data URLs using dynamic import approach
 // -------------------------------------------------------------------
-export const images = {
-  GoodAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqGood />))}`,
-  ModerateAir: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqModerate />))}`,
-  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqUnhealthyForSensitiveGroups />))}`,
-  Unhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqUnhealthy />))}`,
-  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqVeryUnhealthy />))}`,
-  Hazardous: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqHazardous />))}`,
-  Invalid: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqNoValue />))}`,
-  undefined: `data:image/svg+xml,${encodeURIComponent(renderToString(<AqNoValue />))}`,
+
+// Utility function to create SVG data URL from React component
+const createSVGDataURL = async (IconComponent) => {
+  if (typeof window === 'undefined') {
+    // Server-side: return a placeholder
+    return `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"></svg>')}`;
+  }
+
+  try {
+    // Dynamic import for client-side only
+    const { renderToString } = await import('react-dom/server');
+    return `data:image/svg+xml,${encodeURIComponent(renderToString(<IconComponent />))}`;
+  } catch (error) {
+    console.warn('Error creating SVG data URL:', error);
+    return `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"></svg>')}`;
+  }
+};
+
+// Cache for generated images
+let _imagesCache = null;
+let _imagesPromise = null;
+
+// Function to initialize images asynchronously
+const initializeImages = async () => {
+  if (_imagesCache) return _imagesCache;
+
+  if (_imagesPromise) return _imagesPromise;
+
+  _imagesPromise = (async () => {
+    const imagePromises = {
+      GoodAir: createSVGDataURL(AqGood),
+      ModerateAir: createSVGDataURL(AqModerate),
+      UnhealthyForSensitiveGroups: createSVGDataURL(
+        AqUnhealthyForSensitiveGroups,
+      ),
+      Unhealthy: createSVGDataURL(AqUnhealthy),
+      VeryUnhealthy: createSVGDataURL(AqVeryUnhealthy),
+      Hazardous: createSVGDataURL(AqHazardous),
+      Invalid: createSVGDataURL(AqNoValue),
+      undefined: createSVGDataURL(AqNoValue),
+    };
+
+    const resolvedImages = {};
+    for (const [key, promise] of Object.entries(imagePromises)) {
+      resolvedImages[key] = await promise;
+    }
+
+    _imagesCache = resolvedImages;
+    return _imagesCache;
+  })();
+
+  return _imagesPromise;
+};
+
+// Synchronous fallback images for immediate use
+const fallbackImages = {
+  GoodAir: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#34C759"/></svg>')}`,
+  ModerateAir: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#FFD633"/></svg>')}`,
+  UnhealthyForSensitiveGroups: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#FF851F"/></svg>')}`,
+  Unhealthy: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#F7453C"/></svg>')}`,
+  VeryUnhealthy: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#AC5CD9"/></svg>')}`,
+  Hazardous: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#D95BA3"/></svg>')}`,
+  Invalid: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#C6D1DB"/></svg>')}`,
+  undefined: `data:image/svg+xml,${encodeURIComponent('<svg width="24" height="24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" fill="#C6D1DB"/></svg>')}`,
+};
+
+// Export async function to get proper images
+export const getImages = async () => {
+  try {
+    return await initializeImages();
+  } catch (error) {
+    console.warn('Failed to load proper images, using fallbacks:', error);
+    return fallbackImages;
+  }
+};
+
+// Export synchronous images object for immediate use (with fallbacks)
+export const images = new Proxy(fallbackImages, {
+  get(target, prop) {
+    // Try to initialize proper images in background
+    if (typeof window !== 'undefined') {
+      initializeImages()
+        .then((properImages) => {
+          // Update the proxy target with proper images when ready
+          Object.assign(target, properImages);
+        })
+        .catch(() => {
+          // Fallback images are already in target
+        });
+    }
+    return target[prop];
+  },
+});
+
+// Function to get specific icon component
+export const getAirQualityIcon = (category) => {
+  const iconMap = {
+    GoodAir: AqGood,
+    ModerateAir: AqModerate,
+    UnhealthyForSensitiveGroups: AqUnhealthyForSensitiveGroups,
+    Unhealthy: AqUnhealthy,
+    VeryUnhealthy: AqVeryUnhealthy,
+    Hazardous: AqHazardous,
+    Invalid: AqNoValue,
+    undefined: AqNoValue,
+  };
+
+  return iconMap[category] || iconMap.Invalid;
+};
+
+// Direct access to icon components
+export const airQualityIcons = {
+  GoodAir: AqGood,
+  ModerateAir: AqModerate,
+  UnhealthyForSensitiveGroups: AqUnhealthyForSensitiveGroups,
+  Unhealthy: AqUnhealthy,
+  VeryUnhealthy: AqVeryUnhealthy,
+  Hazardous: AqHazardous,
+  Invalid: AqNoValue,
+  undefined: AqNoValue,
 };
 
 // -------------------------------------------------------------------

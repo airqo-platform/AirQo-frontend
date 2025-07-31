@@ -121,7 +121,7 @@ const createSecureApiClient = () => {
   const instance = axios.create({
     baseURL: '/api',
     withCredentials: true,
-    timeout: 25000, // Reduced from 40s for faster failures
+    timeout: 45000, // Increased timeout for heavy endpoints like map readings
     // Performance optimizations
     maxRedirects: 2,
     validateStatus: (status) => status < 500, // Accept 4xx as valid responses
@@ -155,8 +155,13 @@ const createSecureApiClient = () => {
         options = args[1] || {};
       }
 
-      const { authType, ...restOptions } = options;
+      const { authType, signal, ...restOptions } = options;
       const finalOptions = addAuthHeader(restOptions, authType);
+
+      // Add abort signal support
+      if (signal) {
+        finalOptions.signal = signal;
+      }
 
       return data !== null
         ? originalMethod.call(this, url, data, finalOptions)
@@ -223,6 +228,35 @@ const createSecureApiClient = () => {
     (error) => {
       const status = error.response?.status;
 
+      // Handle abort errors gracefully
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        if (process.env.NODE_ENV === 'development') {
+          logger.warn('Request cancelled or timed out:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            code: error.code,
+          });
+        }
+        return Promise.reject(error);
+      }
+
+      // Handle connection errors
+      if (
+        error.code === 'ECONNRESET' ||
+        error.code === 'ENOTFOUND' ||
+        error.code === 'ENETUNREACH'
+      ) {
+        if (process.env.NODE_ENV === 'development') {
+          logger.error('Connection error:', {
+            url: error.config?.url,
+            method: error.config?.method,
+            code: error.code,
+            message: error.message,
+          });
+        }
+        return Promise.reject(error);
+      }
+
       if (status === 401) {
         tokenCache.clear();
 
@@ -260,6 +294,7 @@ const createSecureApiClient = () => {
           method: error.config?.method,
           status,
           message: error.message,
+          code: error.code,
         });
       }
 

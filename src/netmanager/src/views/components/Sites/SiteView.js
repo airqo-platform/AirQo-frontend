@@ -24,6 +24,7 @@ import 'assets/css/location-registry.css';
 import { withPermission } from '../../containers/PageAccess';
 
 import { setLoading as loadStatus } from 'redux/HorizontalLoader/index';
+import { createAlertBarExtraContentFromObject } from '../../../utils/objectManipulators';
 
 const gridItemStyle = {
   padding: '5px',
@@ -97,7 +98,8 @@ const SiteForm = ({ site }) => {
           updateMainAlert({
             severity: 'error',
             message: err.response && err.response.data.message,
-            show: true
+            show: true,
+            extra: createAlertBarExtraContentFromObject((errors && errors) || {})
           })
         );
       });

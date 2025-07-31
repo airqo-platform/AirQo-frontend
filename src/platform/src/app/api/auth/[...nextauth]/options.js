@@ -1,11 +1,8 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import jwtDecode from 'jwt-decode';
 import logger from '@/lib/logger';
-import {
-  getApiBaseUrl,
-  getApiToken,
-  getNextAuthSecret,
-} from '@/lib/envConstants';
+import { getNextAuthSecret } from '@/lib/envConstants';
+import { postUserLoginDetails } from '@/core/apis/Account';
 
 // Centralized login redirect logic
 export const getLoginRedirectPath = (pathname, orgSlug = null) => {
@@ -18,29 +15,6 @@ export const getLoginRedirectPath = (pathname, orgSlug = null) => {
       : `/org/${extractedSlug}/login`;
   }
   return '/user/login';
-};
-
-// Centralized error handling for API calls
-const handleApiError = async (response) => {
-  let errorMessage = 'Authentication failed';
-
-  try {
-    const errorBody = await response.text();
-    logger.info('[NextAuth] Error response body:', errorBody);
-
-    try {
-      const errorData = JSON.parse(errorBody);
-      errorMessage =
-        errorData?.message || `HTTP ${response.status}: ${errorBody}`;
-    } catch {
-      errorMessage = `HTTP ${response.status}: ${errorBody}`;
-    }
-  } catch {
-    errorMessage = `HTTP ${response.status}: Failed to read error response`;
-  }
-
-  logger.error('[NextAuth] API Error:', errorMessage);
-  return errorMessage;
 };
 
 // Centralized user object creation
@@ -66,9 +40,10 @@ const createUserObject = (data, decodedToken, credentials) => ({
   isOrgLogin: !!credentials.orgSlug,
 });
 
-// Centralized token transfer logic
-const transferTokenDataToSession = (target, token) => {
-  const tokenFields = [
+// Centralized token transfer logic - optimized to prevent duplications
+const transferTokenDataToSession = (target, source) => {
+  // Core user fields that should only be in session.user
+  const userFields = [
     'id',
     'userName',
     'email',
@@ -85,22 +60,32 @@ const transferTokenDataToSession = (target, token) => {
     'rateLimit',
     'lastLogin',
     'iat',
-    'requestedOrgSlug',
-    'isOrgLogin',
   ];
 
-  tokenFields.forEach((field) => {
-    if (token[field] !== undefined) {
-      target[field] = token[field];
-    }
-  });
+  // Session-level fields that should be at the root
+  const sessionFields = ['requestedOrgSlug', 'isOrgLogin', 'accessToken'];
 
-  // Handle special fields for session
-  if (target !== token) {
-    target.accessToken = token.accessToken;
-    if (target.user) {
-      target.orgSlug = token.requestedOrgSlug;
-      target.isOrgLogin = token.isOrgLogin;
+  // If target is a user object, only add user fields
+  if (target && typeof target === 'object') {
+    if (target.hasOwnProperty('name') || target.hasOwnProperty('email')) {
+      // This is likely a user object
+      userFields.forEach((field) => {
+        if (source[field] !== undefined) {
+          target[field] = source[field];
+        }
+      });
+    } else {
+      // This is likely a session object, add session fields
+      sessionFields.forEach((field) => {
+        if (source[field] !== undefined) {
+          target[field] = source[field];
+        }
+      });
+
+      // Also set orgSlug for compatibility
+      if (source.requestedOrgSlug !== undefined) {
+        target.orgSlug = source.requestedOrgSlug;
+      }
     }
   }
 
@@ -124,59 +109,20 @@ export const options = {
         }
 
         try {
-          const baseUrl = getApiBaseUrl();
-          if (!baseUrl) {
-            logger.error(
-              '[NextAuth] Environment Error: API base URL not configured',
-            );
-            throw new Error(
-              'Authentication service is temporarily unavailable. Please try again later.',
-            );
-          }
+          logger.info('[NextAuth] Using optimized API client for login');
 
-          let url;
-          try {
-            url = new URL(`${baseUrl}/users/loginUser`);
-          } catch (urlError) {
-            logger.error(
-              '[NextAuth] URL Error:',
-              `Invalid API_BASE_URL format: ${baseUrl}. Error: ${urlError.message}`,
-            );
-            throw new Error(
-              'Authentication service configuration error. Please try again later.',
-            );
-          }
+          const loginData = {
+            userName: credentials.userName,
+            password: credentials.password,
+          };
 
-          const apiToken = getApiToken();
-          if (apiToken) {
-            url.searchParams.append('token', apiToken);
-          }
-
-          const headers = { 'Content-Type': 'application/json' };
-
-          logger.info('[NextAuth] Making API request to:', url.toString());
           logger.info('[NextAuth] Request payload:', {
             userName: credentials.userName,
             password: '***HIDDEN***',
           });
 
-          const response = await fetch(url.toString(), {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({
-              userName: credentials.userName,
-              password: credentials.password,
-            }),
-          });
+          const data = await postUserLoginDetails(loginData);
 
-          logger.info('[NextAuth] API Response status:', response.status);
-
-          if (!response.ok) {
-            const errorMessage = await handleApiError(response);
-            throw new Error(errorMessage);
-          }
-
-          const data = await response.json();
           logger.info('[NextAuth] API Response data:', {
             hasToken: !!data.token,
             userId: data._id,
@@ -199,6 +145,7 @@ export const options = {
 
           return createUserObject(data, decodedToken, credentials);
         } catch (error) {
+          logger.error('[NextAuth] Authentication error:', error.message);
           throw new Error(error.message || 'Authentication failed');
         }
       },
@@ -214,7 +161,8 @@ export const options = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        transferTokenDataToSession(token, user);
+        // Store all user data in the token for persistence
+        Object.assign(token, user);
         token.accessToken = user.token;
       }
       return token;
@@ -222,7 +170,10 @@ export const options = {
 
     async session({ session, token }) {
       if (token) {
+        // Only populate user-specific fields in session.user
         transferTokenDataToSession(session.user, token);
+
+        // Only populate session-level fields at session root
         transferTokenDataToSession(session, token);
       }
       return session;

@@ -19,11 +19,11 @@ import {
 import Card from '@/components/CardWrapper';
 
 const AirQualityLegend = ({ pollutant }) => {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false); // Collapsed by default
   const { width } = useWindowSize();
-  const size = width < 1024 ? 30 : 40;
+  const size = width < 768 ? 20 : 28;
   const contentRef = useRef(null);
-  const [contentHeight, setContentHeight] = useState('auto');
+  const [contentHeight, setContentHeight] = useState('0px'); // Start collapsed
 
   // Listen to window resize and conditionally show the legend
   useEffect(() => {
@@ -31,6 +31,7 @@ const AirQualityLegend = ({ pollutant }) => {
       setShow(window.innerWidth > 768);
     };
 
+    handleResize(); // Check initial size
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -47,34 +48,40 @@ const AirQualityLegend = ({ pollutant }) => {
     () => ({
       pm2_5: [
         {
-          range: '0.0μg/m3 - 9.0μg/m3',
-          label: 'Air Quality is Good',
+          range: '0.0 - 9.0μg/m³',
+          label: 'Good',
           icon: <AqGood size={size} />,
+          description: 'Air quality is satisfactory',
         },
         {
-          range: '9.1μg/m3 - 35.4μg/m3',
-          label: 'Air Quality is Moderate',
+          range: '9.1 - 35.4μg/m³',
+          label: 'Moderate',
           icon: <AqModerate size={size} />,
+          description: 'Acceptable quality',
         },
         {
-          range: '35.5μg/m3 - 55.4μg/m3',
-          label: 'Air Quality is Unhealthy for Sensitive Groups',
+          range: '35.5 - 55.4μg/m³',
+          label: 'Unhealthy for Sensitive Groups',
           icon: <AqUnhealthyForSensitiveGroups size={size} />,
+          description: 'Health effects for sensitive people',
         },
         {
-          range: '55.5μg/m3 - 125.4μg/m3',
-          label: 'Air Quality is Unhealthy',
+          range: '55.5 - 125.4μg/m³',
+          label: 'Unhealthy',
           icon: <AqUnhealthy size={size} />,
+          description: 'Health effects for everyone',
         },
         {
-          range: '125.5μg/m3 - 225.4μg/m3',
-          label: 'Air Quality is Very Unhealthy',
+          range: '125.5 - 225.4μg/m³',
+          label: 'Very Unhealthy',
           icon: <AqVeryUnhealthy size={size} />,
+          description: 'Emergency conditions',
         },
         {
-          range: '225.5μg/m3 +',
-          label: 'Air Quality is Hazardous',
+          range: '225.5μg/m³ +',
+          label: 'Hazardous',
           icon: <AqHazardous size={size} />,
+          description: 'Health alert',
         },
       ],
       // Additional pollutant levels can go here
@@ -83,11 +90,11 @@ const AirQualityLegend = ({ pollutant }) => {
   );
 
   const levels = pollutantLevels[pollutant] || [];
+
   return (
     <Card
-      className="flex flex-col items-center z-50"
-      padding="p-0 md:p-2"
-      shadow="shadow"
+      className="flex flex-col items-center justify-center z-50 shadow-lg"
+      padding="p-1"
       rounded
       background="bg-white dark:bg-[#1d1f20]"
       radius="rounded-full"
@@ -96,26 +103,27 @@ const AirQualityLegend = ({ pollutant }) => {
     >
       <button
         onClick={() => setShow((prev) => !prev)}
-        className="rounded-full p-2 transition-transform duration-300"
+        className="w-full flex items-center justify-center py-2"
         aria-label="Toggle Air Quality Legend"
       >
-        {show ? <AqChevronDown /> : <AqChevronUp />}
+        {show ? <AqChevronDown size={16} /> : <AqChevronUp size={16} />}
       </button>
 
       <div
         ref={contentRef}
-        className="overflow-hidden transition-all duration-300 ease-in-out flex flex-col items-center md:gap-2"
+        className="overflow-hidden transition-all duration-300 ease-in-out flex flex-col items-center gap-1"
         style={{ maxHeight: contentHeight }}
       >
         {levels.map((level, idx) => (
           <Tooltip
             key={idx}
             content={
-              <div className="text-center w-[250px] whitespace-normal">
-                <p className="font-medium text-sm md:text-base">
-                  {level.label}
+              <div className="text-center w-[240px] whitespace-normal">
+                <p className="font-bold text-sm">{level.label}</p>
+                <p className="text-xs mt-1">{level.range}</p>
+                <p className="text-xs mt-2 text-gray-600 dark:text-gray-300">
+                  {level.description}
                 </p>
-                <p className="text-xs md:text-sm">{level.range}</p>
               </div>
             }
             placement="right"
@@ -125,7 +133,7 @@ const AirQualityLegend = ({ pollutant }) => {
             className="w-auto"
           >
             <button
-              className="bg-transparent rounded-full"
+              className="bg-transparent rounded-full p-1 hover:scale-105 transition-transform duration-200"
               aria-label={level.label}
             >
               {level.icon}

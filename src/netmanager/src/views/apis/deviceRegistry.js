@@ -13,6 +13,7 @@ import {
   QRCODE,
   REFRESH_AIRQLOUD,
   SOFT_EDIT_DEVICE_URI,
+  BULK_UPDATE_DEVICE_URI,
   DASHBOARD_AIRQLOUDS,
   ALL_DEVICE_HOSTS,
   CREATE_DEVICE_HOST,
@@ -105,6 +106,15 @@ export const updateDeviceDetails = async (id, updateData) => {
 export const softUpdateDeviceDetails = async (deviceId, updateData) => {
   return await createAxiosInstance()
     .put(SOFT_EDIT_DEVICE_URI, updateData, { params: { id: deviceId } })
+    .then((response) => response.data);
+};
+
+export const bulkUpdateDevicesApi = async (deviceIds, updateData) => {
+  return await createAxiosInstance()
+    .put(BULK_UPDATE_DEVICE_URI, {
+      deviceIds,
+      updateData
+    })
     .then((response) => response.data);
 };
 

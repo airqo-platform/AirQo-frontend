@@ -17,7 +17,7 @@ const SkeletonCard = () => (
 
 const ChecklistSkeleton = () => (
   <div>
-    <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+    <div className="flex flex-row justify-between items-center md:items-center mb-6">
       {' '}
       <div className="w-full md:w-1/2 space-y-2">
         <Skeleton className="w-64 h-7" />
@@ -30,7 +30,7 @@ const ChecklistSkeleton = () => (
         />
       </div>
     </div>
-    <div className="grid gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+    <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
       {Array(4)
         .fill()
         .map((_, i) => (

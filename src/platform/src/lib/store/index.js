@@ -2,7 +2,14 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { persistReducer, persistStore } from 'redux-persist';
 import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
-import thunk from 'redux-thunk';
+import {
+  actionDebouncingMiddleware,
+  performanceMiddleware,
+  memoryOptimizationMiddleware,
+  batchingMiddleware,
+  errorHandlingMiddleware,
+  cleanupMiddleware,
+} from './middleware/performanceMiddleware';
 
 // Create noop storage for SSR
 const createNoopStorage = () => {
@@ -81,16 +88,15 @@ const rootReducer = combineReducers({
 const appReducer = (state, action) => {
   if (action.type === 'RESET_APP' || action.type === 'LOGOUT_USER') {
     // Clear all state on logout or reset
-    state = undefined; // This will clear the persisted state
+    state = undefined;
   }
   return rootReducer(state, action);
 };
 
-// Configuration for redux-persist
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['login', 'checklists', 'groups', 'organizationTheme'], // DO NOT persist moreInsights
+  whitelist: ['login', 'checklists', 'groups', 'organizationTheme', 'map'],
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);
@@ -109,7 +115,13 @@ const makeStore = () => {
             'persist/REGISTER',
           ],
         },
-      }).concat(thunk),
+      })
+        .concat(actionDebouncingMiddleware)
+        .concat(performanceMiddleware)
+        .concat(memoryOptimizationMiddleware)
+        .concat(batchingMiddleware)
+        .concat(errorHandlingMiddleware)
+        .concat(cleanupMiddleware),
   });
 
   store.__persistor = persistStore(store);

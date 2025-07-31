@@ -179,7 +179,7 @@ export default function IndividualAccountInterest() {
     try {
       // Prepare payload for PATCH request
       const payload = {
-        selected_sites: selectedSites.map((site) => site._id), // Send only IDs
+        selected_sites: selectedSites,
         user_id: userId,
       };
 

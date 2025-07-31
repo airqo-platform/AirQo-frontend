@@ -3,14 +3,16 @@ import { motion } from 'framer-motion';
 import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
+import ReusableDropdown from '@/components/Button/DownloadDropdown';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
-import Button from '@/components/Button';
 import { Tooltip } from 'flowbite-react';
 import {
-  AqDownload02,
   AqRefreshCcw02,
   AqLineChartUp01,
   AqClockFastForward,
+  AqDatabase01,
+  AqZap,
+  AqDownload02,
 } from '@airqo/icons-react';
 import { TIME_OPTIONS, CHART_TYPE } from '../constants/options';
 
@@ -18,6 +20,20 @@ const variants = {
   hidden: { opacity: 0, y: -10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
+const DATA_TYPE_OPTIONS = [
+  {
+    label: 'Calibrated Data',
+    value: 'calibrated',
+    description: 'Processed and validated data',
+    icon: AqDatabase01,
+  },
+  {
+    label: 'Raw Data',
+    value: 'raw',
+    description: 'Unprocessed sensor readings',
+    icon: AqZap,
+  },
+];
 
 function ControlsBar({
   frequency,
@@ -115,23 +131,33 @@ function ControlsBar({
       </div>
 
       <div>
-        <Tooltip
-          content={
-            !visibleSites.length
-              ? 'Select at least one site'
-              : `Download (${visibleSites.length})`
+        {/* <DownloadDropdown
+          onDownload={download}
+          downloadLoading={downloadLoading}
+          visibleSites={visibleSites}
+          disabled={!visibleSites.length}
+        /> */}
+
+        <ReusableDropdown
+          options={DATA_TYPE_OPTIONS}
+          onSelect={download}
+          loading={downloadLoading}
+          disabled={!visibleSites.length}
+          buttonText={downloadLoading ? 'Downloading...' : 'Download Data'}
+          loadingText="Downloading..."
+          showCount={true}
+          countValue={visibleSites.length}
+          tooltip={
+            visibleSites.length > 0
+              ? 'Download data for selected sites'
+              : 'No sites selected for download'
           }
-        >
-          <Button
-            onClick={download}
-            disabled={downloadLoading}
-            Icon={AqDownload02}
-          >
-            {downloadLoading
-              ? 'Downloading...'
-              : `Download ${visibleSites.length ? `(${visibleSites.length})` : 'Data'}`}
-          </Button>
-        </Tooltip>
+          showTooltipOnDisabled={true}
+          icon={AqDownload02}
+          buttonVariant="primary"
+          size="md"
+          closeOnSelect={true}
+        />
       </div>
     </motion.div>
   );

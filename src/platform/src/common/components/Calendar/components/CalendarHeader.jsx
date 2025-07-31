@@ -116,14 +116,14 @@ const CalendarHeader = ({
             <div className="flex items-center gap-2">
               <Button
                 onClick={onPrev}
-                Icon={ShortLeftArrow} // Assuming Button component handles Icon prop
+                Icon={AqChevronLeft}
                 variant="outlined"
-                paddingStyles="p-2" // Note: Prop name mismatch in original, using standard one
+                paddingStyles="p-2"
                 aria-label="Previous Month"
               />
               <Button
                 onClick={onNext}
-                Icon={ShortRightArrow}
+                Icon={AqChevronRight}
                 variant="outlined"
                 paddingStyles="p-2"
                 aria-label="Next Month"

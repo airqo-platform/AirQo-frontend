@@ -3,6 +3,7 @@ import {
   LOAD_ALL_DEVICES_SUCCESS,
   RESET_DEVICE_SUCCESS,
   UPDATE_SINGLE_DEVICE_SUCCESS,
+  ASSIGN_DEVICE_TO_GROUP_SUCCESS,
 } from "../actions";
 
 import { LOGOUT_USER_SUCCESS } from "redux/Join/types";
@@ -31,6 +32,9 @@ export default function (state = initialState, action) {
         ...state,
         [action.payload.deviceName]: action.payload,
       };
+
+    case ASSIGN_DEVICE_TO_GROUP_SUCCESS:
+      return action.payload;
 
     case LOGOUT_USER_SUCCESS:
       return initialState;

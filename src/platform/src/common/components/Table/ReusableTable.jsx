@@ -1,11 +1,5 @@
 'use client';
-import React, {
-  useState,
-  useMemo,
-  useRef,
-  useEffect,
-  useCallback,
-} from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import Fuse from 'fuse.js';
 import CardWrapper from '@/components/CardWrapper';
 import { FaSort, FaTimes } from 'react-icons/fa';
@@ -16,7 +10,7 @@ import {
   AqChevronLeft,
   AqChevronRight,
 } from '@airqo/icons-react';
-import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
+import Spinner from '@/components/Spinner';
 
 // --- CustomFilter Component ---
 const CustomFilter = ({
@@ -196,7 +190,6 @@ const ReusableTable = ({
   const [currentPageSize, setCurrentPageSize] = useState(pageSize);
   const [selectedItems, setSelectedItems] = useState([]); // State for selected item IDs
   const [selectedAction, setSelectedAction] = useState('');
-  const { primaryColor } = useThemeSafe();
 
   // --- Initialize filter values ---
   useEffect(() => {
@@ -279,12 +272,9 @@ const ReusableTable = ({
               // Fallback to raw value if complex JSX
               return value === null || value === undefined ? '' : String(value);
             }
-          } catch (e) {
+          } catch {
             // If render throws or is complex, fallback to raw value stringification
-            console.warn(
-              `Error rendering column ${key} for search indexing:`,
-              e,
-            );
+            // Silently handle render errors in search indexing
           }
         }
         // Default stringification for non-rendered or failed render cases
@@ -361,7 +351,7 @@ const ReusableTable = ({
 
   const totalPages = Math.ceil(sortedData.length / currentPageSize);
 
-  // --- Reset to first page when search or filters change ---
+  // --- Reset to first page when search or filters change (but not on data manipulation) ---
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterValues]);
@@ -500,6 +490,14 @@ const ReusableTable = ({
     [paginatedData, selectedItems],
   );
 
+  const isIndeterminate = useMemo(
+    () =>
+      paginatedData.length > 0 &&
+      paginatedData.some((item) => selectedItems.includes(item.id)) &&
+      !isAllSelectedOnPage,
+    [paginatedData, selectedItems, isAllSelectedOnPage],
+  );
+
   const isAnySelected = selectedItems.length > 0;
 
   const handleActionChange = useCallback((e) => {
@@ -531,6 +529,9 @@ const ReusableTable = ({
           <input
             type="checkbox"
             checked={isAllSelectedOnPage}
+            ref={(input) => {
+              if (input) input.indeterminate = isIndeterminate;
+            }}
             onChange={(e) => handleSelectAll(e.target.checked)}
             className="rounded text-primary focus:ring-primary"
           />
@@ -551,6 +552,7 @@ const ReusableTable = ({
     columns,
     multiSelect,
     isAllSelectedOnPage,
+    isIndeterminate,
     selectedItems,
     handleSelectAll,
     handleSelectItem,
@@ -653,11 +655,7 @@ const ReusableTable = ({
             loadingComponent
           ) : (
             <div className="w-full py-12 flex justify-center items-center">
-              <div
-                className="SecondaryMainloader"
-                aria-label="Loading"
-                style={{ '--color-primary': primaryColor }}
-              ></div>
+              <Spinner size={30} />
             </div>
           )
         ) : (
