@@ -87,7 +87,12 @@ const AssignGroupModal = ({ open, onClose, device }) => {
 
   useEffect(() => {
     if (device && device.groups) {
-      setSelectedGroups(device.groups.map(group => group.grp_title));
+      setSelectedGroups(
+        (device.groups || []).map(group => ({
+          value: group.grp_title,
+          label: group.grp_title
+        }))
+      );
     } else {
       setSelectedGroups([]);
     }
@@ -95,7 +100,7 @@ const AssignGroupModal = ({ open, onClose, device }) => {
   }, [device]);
 
   const handleRemoveGroup = (groupToRemove) => {
-    setSelectedGroups(selectedGroups.filter(group => group !== groupToRemove));
+    setSelectedGroups(selectedGroups.filter(g => g.value !== groupToRemove.value));
   };
 
   const handleSubmit = async () => {
@@ -104,11 +109,16 @@ const AssignGroupModal = ({ open, onClose, device }) => {
       return;
     }
 
+    if (selectedGroups.length === 0) {
+      setError("Please select at least one group.");
+      return;
+    }
+
     setLoading(true);
     setError('');
 
     try {
-      const result = await dispatch(assignDeviceToGroup(device._id, selectedGroups));
+      const result = await dispatch(assignDeviceToGroup(device._id, selectedGroups.map(group => group.value)));
 
       if (result.success) {
         onClose();
@@ -162,7 +172,7 @@ const AssignGroupModal = ({ open, onClose, device }) => {
                   value: group.grp_title,
                   label: group.grp_title
                 }))}
-                onChange={(options) => setSelectedGroups(options.map(option => option.value))}
+                onChange={(options) => setSelectedGroups(options || [])}
                 isMulti
                 variant="outlined"
                 margin="dense"
@@ -178,8 +188,8 @@ const AssignGroupModal = ({ open, onClose, device }) => {
                 <div className={classes.selectedGroups}>
                   {selectedGroups.map((group) => (
                     <Chip
-                      key={group}
-                      label={group}
+                      key={group.value}
+                      label={group.label}
                       onDelete={() => handleRemoveGroup(group)}
                       color="primary"
                       size="small"
