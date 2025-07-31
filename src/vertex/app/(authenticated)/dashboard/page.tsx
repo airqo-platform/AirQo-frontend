@@ -41,22 +41,22 @@ const WelcomePage = () => {
             showInAirQoInternal: true,
             showInExternalOrg: false,
         },
-        {
-            href: "/sites",
-            label: "Create a Site",
-            permission: PERMISSIONS.SITE.CREATE,
-            showInPersonal: false,
-            showInAirQoInternal: true,
-            showInExternalOrg: true,
-        },
-        {
-            href: "/sites",
-            label: "Manage Sites",
-            permission: PERMISSIONS.SITE.VIEW,
-            showInPersonal: false,
-            showInAirQoInternal: true,
-            showInExternalOrg: true,
-        }
+        // {
+        //     href: "/sites",
+        //     label: "Create a Site",
+        //     permission: PERMISSIONS.SITE.CREATE,
+        //     showInPersonal: false,
+        //     showInAirQoInternal: true,
+        //     showInExternalOrg: true,
+        // },
+        // {
+        //     href: "/sites",
+        //     label: "Manage Sites",
+        //     permission: PERMISSIONS.SITE.VIEW,
+        //     showInPersonal: false,
+        //     showInAirQoInternal: true,
+        //     showInExternalOrg: true,
+        // }
     ];
 
     // Get all permissions at once - THIS HOOK MUST BE CALLED BEFORE CONDITIONAL RETURNS
