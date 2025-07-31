@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
   Dialog,
   DialogTitle,
@@ -7,9 +7,6 @@ import {
   DialogActions,
   Button,
   FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Chip,
   Box,
   Typography,
@@ -21,6 +18,7 @@ import { getGroupsSummaryApi } from 'views/apis/analytics';
 import { updateMainAlert } from 'redux/MainAlert/operations';
 import { createAlertBarExtraContentFromObject } from '../../../../utils/objectManipulators';
 import { Alert } from '@material-ui/lab';
+import Select from 'react-select';
 
 const useStyles = makeStyles((theme) => ({
   dialogContent: {
@@ -96,11 +94,6 @@ const AssignGroupModal = ({ open, onClose, device }) => {
     setError('');
   }, [device]);
 
-  const handleGroupChange = (event) => {
-    const value = event.target.value;
-    setSelectedGroups(typeof value === 'string' ? value.split(',') : value);
-  };
-
   const handleRemoveGroup = (groupToRemove) => {
     setSelectedGroups(selectedGroups.filter(group => group !== groupToRemove));
   };
@@ -158,34 +151,23 @@ const AssignGroupModal = ({ open, onClose, device }) => {
         ) : (
           <>
             <FormControl className={classes.formControl}>
-              <InputLabel id="group-select-label">Select Groups</InputLabel>
               <Select
-                labelId="group-select-label"
-                multiple
+                fullWidth
+                label="Select Group(s)"
+                className="reactSelect"
+                name="group"
+                placeholder="Group(s)"
                 value={selectedGroups}
-                onChange={handleGroupChange}
-                renderValue={(selected) => (
-                  <div className={classes.selectedGroups}>
-                    {selected.map(value => (
-                      <Chip
-                        key={value}
-                        label={value}
-                        className={classes.chip}
-                        onDelete={() => handleRemoveGroup(value)}
-                        color="primary"
-                        variant="outlined"
-                        size="small"
-                      />
-                    ))}
-                  </div>
-                )}
-              >
-                {groups.map((group) => (
-                  <MenuItem key={group._id} value={group.grp_title}>
-                    {group.grp_title}
-                  </MenuItem>
-                ))}
-              </Select>
+                options={groups.map(group => ({
+                  value: group.grp_title,
+                  label: group.grp_title
+                }))}
+                onChange={(options) => setSelectedGroups(options)}
+                isMulti
+                variant="outlined"
+                margin="dense"
+                required
+              />
             </FormControl>
 
             {selectedGroups.length > 0 && (

@@ -107,19 +107,47 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     setSaveModalOpen(false);
   };
 
+  const getModifiedFields = (original, updated) => {
+    const modified = {};
+    for (const key in updated) {
+      if (updated[key] !== original[key]) {
+        modified[key] = updated[key];
+      }
+    }
+    return modified;
+  };
+
+
   const handleSave = async (isSoftUpdate) => {
     setSaveModalOpen(false);
     setEditLoading(true);
     dispatch(setLoading(true));
 
-    if (editData.deployment_date)
-      editData.deployment_date = new Date(editData.deployment_date).toISOString();
+    let modifiedData = getModifiedFields(deviceData, editData);
+
+    // Special case formatting (if field was changed)
+    if (modifiedData.deployment_date) {
+      modifiedData.deployment_date = new Date(modifiedData.deployment_date).toISOString();
+    }
+
+    if (isEmpty(modifiedData)) {
+      dispatch(
+        updateMainAlert({
+          message: 'No changes to save.',
+          show: true,
+          severity: 'info'
+        })
+      );
+      setEditLoading(false);
+      dispatch(setLoading(false));
+      return;
+    }
 
     const updateFunction = isSoftUpdate ? softUpdateDeviceDetails : updateDeviceDetails;
     const updateTarget = isSoftUpdate ? 'Platform' : 'ThingSpeak';
 
     try {
-      const responseData = await updateFunction(deviceData._id, editData);
+      const responseData = await updateFunction(deviceData._id, modifiedData);
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
       }
@@ -186,14 +214,6 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
   useEffect(() => {
     fetchNetworks();
   }, []);
-
-  const handleAssignGroupClick = () => {
-    setAssignGroupModalOpen(true);
-  };
-
-  const handleAssignGroupModalClose = () => {
-    setAssignGroupModalOpen(false);
-  };
 
   return (
     <div>
