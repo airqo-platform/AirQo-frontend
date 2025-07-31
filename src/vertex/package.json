@@ -47,6 +47,7 @@
     "jspdf": "^3.0.1",
     "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
+    "next-auth": "^4.24.5",
     "loglevel": "^1.9.2",
     "lucide-react": "^0.469.0",
     "mapbox-gl": "^3.11.0",

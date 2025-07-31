@@ -1,14 +1,15 @@
-import createAxiosInstance from "./axiosConfig";
-import {  USERS_MGT_URL } from "@/core/urls";
-
-const axiosInstance = createAxiosInstance();
+import createSecureApiClient from "../utils/secureApiProxyClient";
 
 export const getClientsApi = async () => {
-  return axiosInstance.get(`${USERS_MGT_URL}/clients`).then((response) => response.data);
+  return createSecureApiClient().get(`/users/clients`, {
+    headers: { 'X-Auth-Type': 'JWT' }
+  }).then((response) => response.data);
 };
 
 export const activateUserClientApi = async (data: { _id: string; isActive: boolean }) => {
-  return axiosInstance
-    .put(`${USERS_MGT_URL}/clients/activate`, data)
+  return createSecureApiClient()
+    .put(`/users/clients/activate`, data, {
+      headers: { 'X-Auth-Type': 'JWT' }
+    })
     .then((response) => response.data);
 };

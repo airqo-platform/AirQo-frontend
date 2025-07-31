@@ -1,5 +1,4 @@
-import createAxiosInstance from "./axiosConfig";
-import { DEVICES_MGT_URL } from "../urls";
+import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosError } from "axios";
 import type { 
   DevicesSummaryResponse,
@@ -13,8 +12,9 @@ import type {
   DeviceCreationResponse
 } from "@/app/types/devices";
 
-const axiosInstance = createAxiosInstance();
-const axiosInstanceWithTokenAccess = createAxiosInstance(false);
+// Create secure API clients that use the proxy
+const jwtApiClient = createSecureApiClient();
+const tokenApiClient = createSecureApiClient();
 
 interface ErrorResponse {
   message: string;
@@ -83,8 +83,9 @@ export interface DeviceDetailsResponse {
 export const devices = {
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
-      const response = await axiosInstance.get<DevicesSummaryResponse>(
-        `${DEVICES_MGT_URL}/summary?network=${networkId}&group=${groupName}`
+      const response = await jwtApiClient.get<DevicesSummaryResponse>(
+        `/devices/summary?network=${networkId}&group=${groupName}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -96,10 +97,10 @@ export const devices = {
   },
   getMapReadingsApi: async () => {
     try {
-      const response =
-        await axiosInstanceWithTokenAccess.get<DevicesSummaryResponse>(
-          `${DEVICES_MGT_URL}/readings/map`
-        );
+      const response = await tokenApiClient.get<DevicesSummaryResponse>(
+        `/devices/readings/map`,
+        { headers: { 'X-Auth-Type': 'API_TOKEN' } }
+      );
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -111,8 +112,9 @@ export const devices = {
 
   getDevicesApi: async (networkId: string,) => {
     try {
-      const response = await axiosInstance.get<DevicesSummaryResponse>(
-        `${DEVICES_MGT_URL}/summary?network=${networkId}`
+      const response = await jwtApiClient.get<DevicesSummaryResponse>(
+        `/devices/summary?network=${networkId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -129,8 +131,9 @@ export const devices = {
     const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const limit = 1;
 
-    const response = await axiosInstance.get(
-      `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`
+    const response = await jwtApiClient.get(
+      `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
+      { headers: { 'X-Auth-Type': 'JWT' } }
     );
     return response.data;
   },
@@ -138,8 +141,9 @@ export const devices = {
   // New API methods for device claiming and management
   checkDeviceAvailability: async (deviceName: string): Promise<DeviceAvailabilityResponse> => {
     try {
-      const response = await axiosInstance.get<DeviceAvailabilityResponse>(
-        `${DEVICES_MGT_URL}/check-availability/${deviceName}`
+      const response = await jwtApiClient.get<DeviceAvailabilityResponse>(
+        `/devices/check-availability/${deviceName}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -152,9 +156,10 @@ export const devices = {
 
   claimDevice: async (claimData: DeviceClaimRequest): Promise<DeviceClaimResponse> => {
     try {
-      const response = await axiosInstance.post<DeviceClaimResponse>(
-        `${DEVICES_MGT_URL}/claim`,
-        claimData
+      const response = await jwtApiClient.post<DeviceClaimResponse>(
+        `/devices/claim`,
+        claimData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -172,8 +177,9 @@ export const devices = {
         params.append('organization_id', organizationId);
       }
       
-      const response = await axiosInstance.get<MyDevicesResponse>(
-        `${DEVICES_MGT_URL}/my-devices?${params.toString()}`
+      const response = await jwtApiClient.get<MyDevicesResponse>(
+        `/devices/my-devices?${params.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -186,9 +192,10 @@ export const devices = {
 
   assignDeviceToOrganization: async (assignmentData: DeviceAssignmentRequest): Promise<DeviceAssignmentResponse> => {
     try {
-      const response = await axiosInstance.post<DeviceAssignmentResponse>(
-        `${DEVICES_MGT_URL}/assign-organization`,
-        assignmentData
+      const response = await jwtApiClient.post<DeviceAssignmentResponse>(
+        `/devices/assign-organization`,
+        assignmentData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -201,9 +208,10 @@ export const devices = {
 
   unassignDeviceFromOrganization: async (deviceName: string, userId: string): Promise<DeviceAssignmentResponse> => {
     try {
-      const response = await axiosInstance.post<DeviceAssignmentResponse>(
-        `${DEVICES_MGT_URL}/unassign-organization`,
-        { device_name: deviceName, user_id: userId }
+      const response = await jwtApiClient.post<DeviceAssignmentResponse>(
+        `/devices/unassign-organization`,
+        { device_name: deviceName, user_id: userId },
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -216,8 +224,9 @@ export const devices = {
 
   getDeviceDetails: async (deviceId: string): Promise<DeviceDetailsResponse> => {
     try {
-      const response = await axiosInstance.get<DeviceDetailsResponse>(
-        `${DEVICES_MGT_URL}/${deviceId}`
+      const response = await jwtApiClient.get<DeviceDetailsResponse>(
+        `/devices/${deviceId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -230,8 +239,9 @@ export const devices = {
 
   getDeviceStatusFeed: async (deviceNumber: number) => {
     try {
-      const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/feeds/transform/recent?channel=${deviceNumber}`
+      const response = await jwtApiClient.get(
+        `/devices/feeds/transform/recent?channel=${deviceNumber}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -270,9 +280,10 @@ export const devices = {
         user_id: deviceData.user_id
       }];
 
-      const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}/activities/deploy/batch`,
-        deploymentPayload
+      const response = await jwtApiClient.post(
+        `/devices/activities/deploy/batch`,
+        deploymentPayload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -289,9 +300,10 @@ export const devices = {
     date: string;
   }) => {
     try {
-      const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}/activities/recall?deviceName=${deviceName}`,
-        recallData
+      const response = await jwtApiClient.post(
+        `/devices/activities/recall?deviceName=${deviceName}`,
+        recallData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -309,9 +321,10 @@ export const devices = {
     network: string;
   }): Promise<DeviceCreationResponse> => {
     try {
-      const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}`,
-        deviceData
+      const response = await jwtApiClient.post(
+        `/devices`,
+        deviceData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -333,9 +346,10 @@ export const devices = {
     serial_number: string;
   }): Promise<DeviceCreationResponse> => {
     try {
-      const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}/soft`,
-        deviceData
+      const response = await jwtApiClient.post(
+        `/devices/soft`,
+        deviceData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -350,9 +364,10 @@ export const devices = {
     try {
       // Remove network field if present
       const { network, ...updateData } = deviceData;
-      const response = await axiosInstance.put(
-        `${DEVICES_MGT_URL}?id=${deviceId}`,
-        updateData
+      const response = await jwtApiClient.put(
+        `/devices?id=${deviceId}`,
+        updateData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -367,9 +382,10 @@ export const devices = {
     try {
       // Remove network field if present
       const { network, ...updateData } = deviceData;
-      const response = await axiosInstance.put(
-        `${DEVICES_MGT_URL}/soft?id=${deviceId}`,
-        updateData
+      const response = await jwtApiClient.put(
+        `/devices/soft?id=${deviceId}`,
+        updateData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -382,9 +398,10 @@ export const devices = {
 
   addMaintenanceLog: async (deviceName: string, logData: any) => {
     try {
-      const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}/activities/maintain?deviceName=${deviceName}`,
-        logData
+      const response = await jwtApiClient.post(
+        `/devices/activities/maintain?deviceName=${deviceName}`,
+        logData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -406,9 +423,10 @@ export const devices = {
           groups: [groupName],
         },
       };
-      const response = await axiosInstance.put(
-        `${DEVICES_MGT_URL}/bulk`,
-        requestBody
+      const response = await jwtApiClient.put(
+        `/devices/bulk`,
+        requestBody,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {

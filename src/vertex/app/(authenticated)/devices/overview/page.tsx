@@ -55,7 +55,7 @@ export default function DevicesPage() {
   const [sortField, setSortField] = useState<SortField>("createdAt");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
   const { devices, isLoading, error } = useDevices();
-  const { isAirQoInternal } = useUserContext();
+  const { isAirQoInternal, isExternalOrg } = useUserContext();
   const router = useRouter();
   const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
@@ -175,15 +175,23 @@ export default function DevicesPage() {
           <div className="flex gap-2">
             {isAirQoInternal && (
               <>
-                <Button variant="outline" disabled={isLoading || !!error} onClick={() => setImportDeviceOpen(true)}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Import Device
-                </Button>
                 <Button disabled={isLoading || !!error} onClick={() => setCreateDeviceOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Device
+                  Add AirQo Device
+                </Button>
+                <Button variant="outline" disabled={isLoading || !!error} onClick={() => setImportDeviceOpen(true)}>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Import Existing Device
                 </Button>
               </>
+            )}
+            {isExternalOrg && (
+              <Button
+                disabled={isLoading || !!error}
+                onClick={() => toast.error("This feature is not available yet for external organizations.")}
+              >
+                Claim Device
+              </Button>
             )}
           </div>
         </div>
