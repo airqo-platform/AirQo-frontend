@@ -162,7 +162,7 @@ const AssignGroupModal = ({ open, onClose, device }) => {
                   value: group.grp_title,
                   label: group.grp_title
                 }))}
-                onChange={(options) => setSelectedGroups(options)}
+                onChange={(options) => setSelectedGroups(options.map(option => option.value))}
                 isMulti
                 variant="outlined"
                 margin="dense"
