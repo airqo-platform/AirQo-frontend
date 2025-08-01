@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Selection Guidance**: Improved selection messages and guidance for all filter types, with context-aware info and warnings.
 - **Accessibility & Visual Feedback**: Improved visual feedback for filter actions and added ARIA labels for better accessibility.
 
+### ✨ Air Quality Card enhancements
+
+- **Display fix**: Instead of returning "Unknown Location" replaced the display with "--" instead.
+
 ### 🐛 Bug Fixes & Code Quality
 
 - Fixed all string literal and syntax errors in DataDownload and DataTable components.
