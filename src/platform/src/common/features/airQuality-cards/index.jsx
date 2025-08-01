@@ -130,7 +130,7 @@ const AQNumberCard = () => {
               // Fallback to abbreviated site_id
               return measurement.site_id?.substring(0, 8)
                 ? `Site ${measurement.site_id.substring(0, 8)}...`
-                : 'Unknown Location';
+                : '--';
             };
             // Extract country information
             const extractCountry = (measurement) => {
@@ -141,7 +141,7 @@ const AQNumberCard = () => {
                 return measurement.siteDetails.city;
               if (measurement.siteDetails?.region)
                 return measurement.siteDetails.region;
-              return 'Unknown Location';
+              return '--';
             };
             return {
               _id: siteId,

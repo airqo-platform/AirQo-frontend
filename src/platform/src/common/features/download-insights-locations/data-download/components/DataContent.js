@@ -123,6 +123,10 @@ const DataContent = ({
           showViewDataButton={showViewDataButton}
           onViewDataClick={onViewDataClick}
           onRetry={() => handleRetryLoad(activeFilterKey)}
+          enableSorting={true}
+          enableColumnFilters={true}
+          defaultSortColumn="name"
+          defaultSortDirection="asc"
         />
       </motion.div>
     </motion.div>

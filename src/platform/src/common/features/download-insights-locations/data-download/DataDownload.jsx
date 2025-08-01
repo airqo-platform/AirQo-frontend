@@ -851,6 +851,8 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         {
           key: 'status',
           label: 'Status',
+          // filterable: false,
+          // sortable: false,
           render: (item) => (
             <span
               className={`px-2 py-1 rounded-full text-xs ${
