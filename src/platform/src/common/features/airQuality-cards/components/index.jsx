@@ -77,8 +77,8 @@ const SiteCard = memo(
     useResizeObserver(countryRef, checkTruncation);
 
     // AQI data
-    const aqiCategory = measurement?.aqi_category ?? 'Unknown';
-    const statusKey = AQI_CATEGORY_MAP[aqiCategory] ?? 'unknown';
+    const aqiCategory = measurement?.aqi_category ?? '--';
+    const statusKey = AQI_CATEGORY_MAP[aqiCategory] ?? '--';
     const AirQualityIcon = IconMap[statusKey] ?? IconMap.unknown;
     const pctDiff = measurement?.averages?.percentageDifference;
     const trendData =
@@ -98,7 +98,7 @@ const SiteCard = memo(
 
     // Enhanced site name formatting to handle IDs gracefully
     const formatSiteName = (name) => {
-      if (!name || name === '---') return 'Unknown Site';
+      if (!name || name === '---') return '--';
 
       // If the name looks like an ObjectId (24 hex characters), format it nicely
       if (/^[0-9a-fA-F]{24}$/.test(name)) {
@@ -114,8 +114,7 @@ const SiteCard = memo(
     };
 
     const siteName = formatSiteName(site.name);
-    const siteCountry =
-      site.country || site.city || site.region || 'Unknown Location';
+    const siteCountry = site.country || site.city || site.region || '--';
 
     const handleClick = useCallback(() => {
       onOpenModal('inSights', [], site);
