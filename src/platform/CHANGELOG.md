@@ -5,6 +5,26 @@ All notable changes to the AirQo Platform will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.1] - 2025-08-01
+
+### ✨ Data Download Table & UX Enhancements
+
+- **Column Filtering & Sorting**: Enhanced the DataTable component with professional-grade column-based filtering, multi-select filter dropdowns, and click-to-sort headers. Added sticky headers and filter indicators for a modern UX.
+- **Country/City Download Banner**: Added a prominent info banner above the table when filtering by country or city, clearly informing users that only one can be selected and that all sites for the selected country/city will be included in the download. Includes an info icon for clarity.
+- **Selection Guidance**: Improved selection messages and guidance for all filter types, with context-aware info and warnings.
+- **Accessibility & Visual Feedback**: Improved visual feedback for filter actions and added ARIA labels for better accessibility.
+
+### 🐛 Bug Fixes & Code Quality
+
+- Fixed all string literal and syntax errors in DataDownload and DataTable components.
+- Refactored DataTable filter logic to avoid unused expression warnings and improve maintainability.
+- Improved error handling and user feedback for download and filtering actions.
+
+### 🔧 Developer Experience
+
+- Updated and clarified code comments and prop usage for DataTable and DataContent components.
+- All changes are backward compatible and follow the existing code style and conventions.
+
 ## [4.0.0] - 2025-07-31
 
 ### 🚀 Major Features Added
