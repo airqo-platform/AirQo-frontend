@@ -273,6 +273,12 @@ const AboutPage: React.FC = () => {
                 continent in African Cities.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
+                We leverage advanced technologies and AI-powered models to
+                provide accurate, hyperlocal and real-time air quality data,
+                providing evidence of the magnitude and scale of air pollution
+                in African Cities.
+              </p>
+              <p className="text-lg text-gray-700 leading-relaxed">
                 By empowering citizens with air quality information, we hope to
                 inspire change and action among African citizens to take
                 effective action to reduce air pollution.
