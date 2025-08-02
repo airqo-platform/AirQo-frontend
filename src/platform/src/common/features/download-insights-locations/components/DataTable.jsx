@@ -3,6 +3,13 @@ import {
   MdIndeterminateCheckBox,
   MdErrorOutline,
   MdRefresh,
+  MdSort,
+  MdArrowUpward,
+  MdArrowDownward,
+  MdFilterList,
+  MdClear,
+  MdCheck,
+  MdSearch,
 } from 'react-icons/md';
 import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
@@ -10,6 +17,268 @@ import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import Button from '@/components/Button';
+
+const ColumnFilter = ({ column, data, onFilter, isActive, darkMode }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedValues, setSelectedValues] = useState(new Set());
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const [searchTerm, setSearchTerm] = useState('');
+  const buttonRef = useRef(null);
+  const dropdownRef = useRef(null);
+
+  const uniqueValues = useMemo(() => {
+    if (!data || !column.key) return [];
+    return [
+      ...new Set(
+        data.map((item) =>
+          item[column.key] != null ? String(item[column.key]) : 'N/A',
+        ),
+      ),
+    ].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
+  }, [data, column.key]);
+
+  const filteredValues = useMemo(() => {
+    if (!searchTerm) return uniqueValues;
+    const term = searchTerm.toLowerCase();
+    return uniqueValues.filter((value) => value.toLowerCase().includes(term));
+  }, [uniqueValues, searchTerm]);
+
+  const calculatePosition = useCallback(() => {
+    if (!buttonRef.current) return;
+    const buttonRect = buttonRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const dropdownWidth = 300;
+    const dropdownHeight = Math.min(400, filteredValues.length * 40 + 250);
+    let top = buttonRect.bottom + 8;
+    let left = buttonRect.right - dropdownWidth;
+
+    if (left < 20)
+      left = Math.min(buttonRect.left, viewportWidth - dropdownWidth - 20);
+    if (left + dropdownWidth > viewportWidth - 20)
+      left = Math.max(20, viewportWidth - dropdownWidth - 20);
+    if (top + dropdownHeight > viewportHeight - 20)
+      top = Math.max(20, buttonRect.top - dropdownHeight - 8);
+
+    setDropdownPosition({ top, left });
+  }, [filteredValues.length]);
+
+  const handleValueToggle = useCallback((value) => {
+    setSelectedValues((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(value)) {
+        newSet.delete(value);
+      } else {
+        newSet.add(value);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleApplyFilter = useCallback(() => {
+    onFilter(selectedValues.size === 0 ? null : Array.from(selectedValues));
+    setIsOpen(false);
+  }, [selectedValues, onFilter]);
+
+  const handleClearFilter = useCallback(() => {
+    setSelectedValues(new Set());
+    onFilter(null);
+    setIsOpen(false);
+  }, [onFilter]);
+
+  const handleSelectAll = useCallback(() => {
+    setSelectedValues((prev) =>
+      prev.size === filteredValues.length ? new Set() : new Set(filteredValues),
+    );
+  }, [filteredValues]);
+
+  const handleToggleOpen = useCallback(() => {
+    if (!isOpen) calculatePosition();
+    setIsOpen((prev) => !prev);
+  }, [isOpen, calculatePosition]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        buttonRef.current &&
+        !buttonRef.current.contains(event.target)
+      ) {
+        setIsOpen(false);
+      }
+    };
+    const handleEscape = (event) => event.key === 'Escape' && setIsOpen(false);
+    const handleScroll = () => isOpen && calculatePosition();
+    const handleResize = () => isOpen && calculatePosition();
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleEscape);
+      window.addEventListener('scroll', handleScroll, true);
+      window.addEventListener('resize', handleResize);
+      setTimeout(calculatePosition, 0);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleEscape);
+      window.removeEventListener('scroll', handleScroll, true);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isOpen, calculatePosition]);
+
+  const formatFilterValue = (value) => {
+    if (value === 'N/A') return value;
+    return value
+      .split(/[-_]/)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
+
+  return (
+    <div className="relative inline-block">
+      <button
+        ref={buttonRef}
+        onClick={handleToggleOpen}
+        className={`p-1 rounded transition-colors ${
+          isActive
+            ? 'text-primary bg-primary/10'
+            : 'text-gray-400 hover:text-gray-600'
+        } ${darkMode ? (isActive ? 'bg-primary/20 text-primary' : 'hover:bg-gray-700 hover:text-gray-300') : 'hover:bg-gray-100'}`}
+        aria-label={`Filter ${column.label}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+      >
+        <MdFilterList size={16} />
+      </button>
+
+      {isOpen && (
+        <div
+          ref={dropdownRef}
+          style={{
+            position: 'fixed',
+            top: `${dropdownPosition.top}px`,
+            left: `${dropdownPosition.left}px`,
+            zIndex: 9999,
+            width: '300px',
+            maxHeight: '400px',
+          }}
+          className={`shadow-2xl rounded-lg border backdrop-blur-sm ${
+            darkMode
+              ? 'bg-gray-800/95 border-gray-600 text-white shadow-gray-900/50'
+              : 'bg-white/95 border-gray-200 text-gray-900 shadow-gray-500/20'
+          }`}
+        >
+          <div className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium text-sm">Filter {column.label}</h4>
+              <button
+                onClick={() => setIsOpen(false)}
+                className={`text-gray-400 hover:text-gray-600 p-1 rounded transition-colors ${
+                  darkMode
+                    ? 'hover:text-gray-300 hover:bg-gray-700'
+                    : 'hover:bg-gray-100'
+                }`}
+                aria-label="Close filter"
+              >
+                <MdClear size={16} />
+              </button>
+            </div>
+
+            {uniqueValues.length > 10 && (
+              <div
+                className={`relative mb-3 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-md`}
+              >
+                <MdSearch
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  size={16}
+                />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search values..."
+                  className={`w-full pl-10 pr-3 py-2 text-sm rounded-md focus:outline-none focus:ring-2 focus:ring-primary ${
+                    darkMode
+                      ? 'bg-gray-700 text-white'
+                      : 'bg-gray-100 text-gray-900'
+                  }`}
+                />
+              </div>
+            )}
+
+            <div className="flex gap-2 mb-3">
+              <button
+                onClick={handleSelectAll}
+                className={`text-xs px-3 py-1.5 rounded transition-colors ${
+                  darkMode
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                {selectedValues.size === filteredValues.length
+                  ? 'Deselect All'
+                  : 'Select All'}
+              </button>
+              <button
+                onClick={handleClearFilter}
+                className={`text-xs px-3 py-1.5 rounded transition-colors ${
+                  darkMode
+                    ? 'bg-gray-700 hover:bg-gray-600 text-gray-200'
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
+              >
+                Clear
+              </button>
+            </div>
+
+            <div className="max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {filteredValues.map((value) => (
+                <label
+                  key={value}
+                  className={`flex items-center space-x-3 p-2 rounded cursor-pointer transition-colors ${
+                    darkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedValues.has(value)}
+                    onChange={() => handleValueToggle(value)}
+                    className="w-4 h-4 text-primary rounded focus:ring-primary focus:ring-2"
+                  />
+                  <span
+                    className="text-sm truncate flex-1 select-none"
+                    title={value}
+                  >
+                    {formatFilterValue(value)}
+                  </span>
+                  {selectedValues.has(value) && (
+                    <MdCheck size={14} className="text-primary flex-shrink-0" />
+                  )}
+                </label>
+              ))}
+              {filteredValues.length === 0 && (
+                <div className="p-3 text-center text-gray-500 text-sm">
+                  {searchTerm ? 'No matching values' : 'No values available'}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
+              <Button
+                variant="filled"
+                onClick={handleApplyFilter}
+                className="flex-1 text-xs py-2 bg-primary hover:bg-primary/90"
+              >
+                Apply ({selectedValues.size})
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const DataTable = ({
   data = [],
@@ -26,9 +295,13 @@ const DataTable = ({
   setSelectedRows = () => {},
   clearSelectionTrigger,
   onToggleRow,
-  searchKeys = [], // Now correctly handled by TopBarSearch
+  searchKeys = [],
   showViewDataButton = false,
   onViewDataClick = () => {},
+  enableSorting = true,
+  enableColumnFilters = true,
+  defaultSortColumn = null,
+  defaultSortDirection = 'asc',
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
@@ -37,39 +310,58 @@ const DataTable = ({
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [filterErrors, setFilterErrors] = useState({});
-  const [currentSearchTerm, setCurrentSearchTerm] = useState(''); // Track term for messages
+  const [currentSearchTerm, setCurrentSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState({
+    key: defaultSortColumn,
+    direction: defaultSortDirection,
+  });
+  const [columnFilters, setColumnFilters] = useState({});
   const mountedRef = useRef(true);
   const { theme, systemTheme } = useTheme();
-
   const darkMode = useMemo(
     () => theme === 'dark' || (theme === 'system' && systemTheme === 'dark'),
     [theme, systemTheme],
   );
 
-  useEffect(() => {
-    return () => {
+  useEffect(
+    () => () => {
       mountedRef.current = false;
-    };
-  }, []);
+    },
+    [],
+  );
 
   const uniqueData = useMemo(() => {
     if (!Array.isArray(data)) return [];
     const seen = new Set();
-    return data.filter((item) => {
-      if (!item?._id || seen.has(item._id)) return false;
-      seen.add(item._id);
-      return true;
-    });
+    return data.filter(
+      (item) => item?._id && !seen.has(item._id) && seen.add(item._id),
+    );
   }, [data]);
 
   useEffect(() => {
-    if (!mountedRef.current) return;
-    setSelectedRows([]);
-    setSelectAll(false);
-    setIndeterminate(false);
+    if (mountedRef.current) {
+      setSelectedRows([]);
+      setSelectAll(false);
+      setIndeterminate(false);
+    }
   }, [clearSelectionTrigger, setSelectedRows]);
 
-  const filteredData = useMemo(() => {
+  const processedColumns = useMemo(() => {
+    const cols = columnsByFilter?.[activeFilter?.key] || columns || [];
+    return cols.map((col) => ({
+      ...col,
+      sortable: col.sortable !== false && enableSorting,
+      filterable: col.filterable !== false && enableColumnFilters,
+    }));
+  }, [
+    columnsByFilter,
+    activeFilter,
+    columns,
+    enableSorting,
+    enableColumnFilters,
+  ]);
+
+  const baseFilteredData = useMemo(() => {
     let result = [...uniqueData];
 
     if (onFilter && activeFilter && !isSearchActive) {
@@ -85,29 +377,74 @@ const DataTable = ({
       }
     }
 
-    // --- FIX: Only use search results if search is active AND has results ---
-    // isSearchActive correctly reflects if a search term was submitted
     if (isSearchActive) {
       result = searchResults.map((r) => r.item || r);
     }
-    // --- END FIX ---
 
     return result;
   }, [uniqueData, onFilter, activeFilter, searchResults, isSearchActive]);
 
-  const effectiveColumns = useMemo(() => {
-    if (columnsByFilter?.[activeFilter?.key]) {
-      return columnsByFilter[activeFilter.key] || [];
+  const processedData = useMemo(() => {
+    let result = [...baseFilteredData];
+
+    if (enableColumnFilters) {
+      Object.entries(columnFilters).forEach(([columnKey, filterValues]) => {
+        if (filterValues?.length > 0) {
+          result = result.filter((item) => {
+            const value = item[columnKey];
+            const stringValue = value != null ? String(value) : 'N/A';
+            return filterValues.includes(stringValue);
+          });
+        }
+      });
     }
-    return columns || [];
-  }, [columnsByFilter, activeFilter, columns]);
+
+    if (enableSorting && sortConfig.key) {
+      result.sort((a, b) => {
+        const aValue = a[sortConfig.key];
+        const bValue = b[sortConfig.key];
+
+        if (aValue == null && bValue == null) return 0;
+        if (aValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
+        if (bValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+        const aStr = String(aValue);
+        const bStr = String(bValue);
+
+        const aNum = parseFloat(aStr);
+        const bNum = parseFloat(bStr);
+
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+
+        return sortConfig.direction === 'asc'
+          ? aStr.localeCompare(bStr, undefined, {
+              numeric: true,
+              sensitivity: 'base',
+            })
+          : bStr.localeCompare(aStr, undefined, {
+              numeric: true,
+              sensitivity: 'base',
+            });
+      });
+    }
+
+    return result;
+  }, [
+    baseFilteredData,
+    columnFilters,
+    sortConfig,
+    enableColumnFilters,
+    enableSorting,
+  ]);
 
   const { totalPages, currentPageData } = useMemo(() => {
-    const total = Math.max(1, Math.ceil(filteredData.length / itemsPerPage));
+    const total = Math.max(1, Math.ceil(processedData.length / itemsPerPage));
     const start = (currentPage - 1) * itemsPerPage;
-    const pageData = filteredData.slice(start, start + itemsPerPage);
+    const pageData = processedData.slice(start, start + itemsPerPage);
     return { totalPages: total, currentPageData: pageData };
-  }, [filteredData, currentPage, itemsPerPage]);
+  }, [processedData, currentPage, itemsPerPage]);
 
   const handlePageChange = useCallback(
     (page) => {
@@ -117,6 +454,24 @@ const DataTable = ({
     },
     [totalPages, currentPage],
   );
+
+  const handleSort = useCallback(
+    (columnKey) => {
+      if (!enableSorting) return;
+      setSortConfig((prev) => ({
+        key: columnKey,
+        direction:
+          prev.key === columnKey && prev.direction === 'asc' ? 'desc' : 'asc',
+      }));
+      setCurrentPage(1);
+    },
+    [enableSorting],
+  );
+
+  const handleColumnFilter = useCallback((columnKey, filterValues) => {
+    setColumnFilters((prev) => ({ ...prev, [columnKey]: filterValues }));
+    setCurrentPage(1);
+  }, []);
 
   const handleRowToggle = useCallback(
     (item) => {
@@ -147,51 +502,33 @@ const DataTable = ({
     }
   }, [selectAll, indeterminate, setSelectedRows, currentPageData]);
 
-  // --- FIX: Updated handleSearch to correctly manage state ---
   const handleSearch = useCallback(({ results, term }) => {
     if (!mountedRef.current) return;
-
-    // Update the search term for messages
     setCurrentSearchTerm(term);
-
-    // Check if the search term is effectively empty
-    const isTermEmpty = !term || term.trim() === '';
-
-    // If the term is empty, it means search is effectively cleared
-    if (isTermEmpty) {
-      // Reset search state
-      setSearchResults([]);
-      setIsSearchActive(false); // Crucial: Indicate search is not active
-    } else {
-      // Term is not empty, update results and indicate search is active
-      setSearchResults(results);
-      setIsSearchActive(true); // Crucial: Indicate search is active
-    }
-
-    // Always reset to the first page when search changes
+    setIsSearchActive(!(!term || term.trim() === ''));
+    setSearchResults(results);
     setCurrentPage(1);
   }, []);
-  // --- END FIX ---
 
   const handleClearSearch = useCallback(() => {
+    if (mountedRef.current) setCurrentPage(1);
+  }, []);
+
+  const handleFilterChange = useCallback((filterDef) => {
     if (!mountedRef.current) return;
-    // These are handled by TopBarSearch calling onSearch({results: [], term: ''})
-    // But this callback is still useful for parent components if needed
-    // setSearchResults([]);
-    // setIsSearchActive(false);
-    // setCurrentSearchTerm('');
+    setActiveFilter(filterDef);
+    setCurrentPage(1);
+    setColumnFilters({});
+  }, []);
+
+  const handleClearAllFilters = useCallback(() => {
+    setColumnFilters({});
     setCurrentPage(1);
   }, []);
 
-  const handleFilterChange = useCallback(
-    (filterDef) => {
-      if (!mountedRef.current) return;
-      setActiveFilter(filterDef);
-      setCurrentPage(1);
-      // Clear search when changing filters is handled by TopBarSearch now
-      // because handleSearch will be called with an empty term
-    },
-    [], // Removed dependencies as clearing is handled by onSearch callback
+  const hasActiveColumnFilters = useMemo(
+    () => Object.values(columnFilters).some((filters) => filters?.length > 0),
+    [columnFilters],
   );
 
   useEffect(() => {
@@ -200,21 +537,14 @@ const DataTable = ({
       setIndeterminate(false);
       return;
     }
-
     const selectedCount = currentPageData.filter((item) =>
       selectedRows.some((row) => row._id === item._id),
     ).length;
 
-    if (selectedCount === currentPageData.length) {
-      setSelectAll(true);
-      setIndeterminate(false);
-    } else if (selectedCount > 0) {
-      setSelectAll(false);
-      setIndeterminate(true);
-    } else {
-      setSelectAll(false);
-      setIndeterminate(false);
-    }
+    setSelectAll(selectedCount === currentPageData.length);
+    setIndeterminate(
+      selectedCount > 0 && selectedCount < currentPageData.length,
+    );
   }, [selectedRows, currentPageData]);
 
   const renderCellContent = useCallback((col, item, index) => {
@@ -229,10 +559,29 @@ const DataTable = ({
     return value != null ? String(value) : 'N/A';
   }, []);
 
+  const renderSortIcon = useCallback(
+    (columnKey) => {
+      if (!enableSorting) return null;
+      if (sortConfig.key !== columnKey) {
+        return (
+          <MdSort
+            size={16}
+            className="text-gray-400 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          />
+        );
+      }
+      return sortConfig.direction === 'asc' ? (
+        <MdArrowUpward size={16} className="text-primary ml-1" />
+      ) : (
+        <MdArrowDownward size={16} className="text-primary ml-1" />
+      );
+    },
+    [sortConfig, enableSorting],
+  );
+
   const renderFilterError = () => {
     const errorText = filterErrors[activeFilter?.key];
     if (!errorText) return null;
-
     return (
       <div className="flex items-start p-4 mb-4 space-x-2 bg-red-50 border-l-4 border-red-500 rounded-md">
         <MdErrorOutline className="text-red-500 text-xl flex-shrink-0 mt-0.5" />
@@ -310,11 +659,7 @@ const DataTable = ({
       {renderFilterError()}
 
       <div
-        className={`relative overflow-x-auto border rounded-lg ${
-          darkMode
-            ? 'border-gray-700 bg-transparent'
-            : 'border-gray-200 bg-white'
-        }`}
+        className={`relative border rounded-lg ${darkMode ? 'border-gray-700 bg-transparent' : 'border-gray-200 bg-white'}`}
       >
         {loading && activeFilter ? (
           <TableLoadingSkeleton />
@@ -322,91 +667,126 @@ const DataTable = ({
           <InfoMessage
             title="No data available"
             description={
-              isSearchActive // Use isSearchActive flag for message
+              isSearchActive
                 ? `No results found for "${currentSearchTerm}". Try different search terms.`
                 : 'Try adjusting your filters.'
             }
             variant="info"
           />
         ) : (
-          <table
-            className={`w-full text-sm text-left ${
-              darkMode ? 'text-white' : 'text-gray-900'
-            }`}
-          >
-            <thead
-              className={`border-b ${
-                darkMode
-                  ? 'bg-transparent border-gray-700'
-                  : 'bg-gray-50 border-gray-200'
-              }`}
+          <div className="overflow-x-auto">
+            <table
+              className={`w-full text-sm text-left ${darkMode ? 'text-white' : 'text-gray-900'}`}
             >
-              <tr className={darkMode ? 'text-gray-300' : 'text-gray-500'}>
-                <th scope="col" className="w-4 p-4">
-                  <div className="flex items-center">
-                    {indeterminate ? (
-                      <button
-                        type="button"
-                        className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded cursor-pointer flex items-center justify-center"
-                        onClick={handleSelectAllChange}
-                        aria-label="Toggle selection"
-                      >
-                        <MdIndeterminateCheckBox size={16} />
-                      </button>
-                    ) : (
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
-                        checked={selectAll}
-                        onChange={handleSelectAllChange}
-                        aria-label="Select all"
-                      />
-                    )}
-                  </div>
-                </th>
-                {effectiveColumns.map((col) => (
-                  <th
-                    key={col.key}
-                    scope="col"
-                    className="py-3 px-3 font-normal"
-                  >
-                    {col.label}
+              <thead
+                className={`border-b sticky top-0 ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}
+              >
+                <tr className={darkMode ? 'text-gray-300' : 'text-gray-500'}>
+                  <th scope="col" className="w-4 p-4">
+                    <div className="flex items-center">
+                      {indeterminate ? (
+                        <button
+                          type="button"
+                          className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded cursor-pointer flex items-center justify-center"
+                          onClick={handleSelectAllChange}
+                          aria-label="Toggle selection"
+                        >
+                          <MdIndeterminateCheckBox size={16} />
+                        </button>
+                      ) : (
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
+                          checked={selectAll}
+                          onChange={handleSelectAllChange}
+                          aria-label="Select all"
+                        />
+                      )}
+                    </div>
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {currentPageData.map((item, idx) => {
-                const isSelected = selectedRows.some(
-                  (row) => row._id === item._id,
-                );
-                return (
-                  <tr
-                    key={item._id || idx}
-                    className={`border-b transition-colors ${
-                      darkMode
-                        ? 'border-gray-700 hover:bg-primary/10'
-                        : 'border-gray-100 hover:bg-primary/5'
-                    }`}
-                  >
-                    <td className="w-4 p-4">
-                      <input
-                        type="checkbox"
-                        className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
-                        checked={isSelected}
-                        onChange={() => handleRowToggle(item)}
-                      />
-                    </td>
-                    {effectiveColumns.map((col) => (
-                      <td key={col.key} className="py-2 px-3">
-                        {renderCellContent(col, item, idx)}
+                  {processedColumns.map((col) => (
+                    <th
+                      key={col.key}
+                      scope="col"
+                      className="py-3 px-3 font-normal relative"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center min-w-0 group">
+                          {col.sortable ? (
+                            <button
+                              onClick={() => handleSort(col.key)}
+                              className="flex items-center hover:text-primary transition-colors min-w-0"
+                            >
+                              <span className="truncate">{col.label}</span>
+                              {renderSortIcon(col.key)}
+                            </button>
+                          ) : (
+                            <span className="truncate">{col.label}</span>
+                          )}
+                        </div>
+                        {col.filterable && (
+                          <div className="flex-shrink-0">
+                            <ColumnFilter
+                              column={col}
+                              data={baseFilteredData}
+                              onFilter={(values) =>
+                                handleColumnFilter(col.key, values)
+                              }
+                              isActive={!!columnFilters[col.key]?.length}
+                              darkMode={darkMode}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </th>
+                  ))}
+                  {hasActiveColumnFilters && (
+                    <th scope="col" className="w-4 p-4 text-right">
+                      <button
+                        onClick={handleClearAllFilters}
+                        className="text-xs px-2 py-1 rounded border transition-colors flex items-center gap-1 ml-auto bg-primary/10 border-primary/30 text-primary hover:bg-primary/20"
+                        aria-label="Clear all filters"
+                      >
+                        <MdClear size={14} />
+                        Clear
+                      </button>
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {currentPageData.map((item, idx) => {
+                  const isSelected = selectedRows.some(
+                    (row) => row._id === item._id,
+                  );
+                  return (
+                    <tr
+                      key={item._id || idx}
+                      className={`border-b transition-colors ${
+                        darkMode
+                          ? 'border-gray-700 hover:bg-primary/10'
+                          : 'border-gray-100 hover:bg-primary/5'
+                      }`}
+                    >
+                      <td className="w-4 p-4">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
+                          checked={isSelected}
+                          onChange={() => handleRowToggle(item)}
+                        />
                       </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      {processedColumns.map((col) => (
+                        <td key={col.key} className="py-2 px-3">
+                          {renderCellContent(col, item, idx)}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 

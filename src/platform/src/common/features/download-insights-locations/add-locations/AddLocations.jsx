@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { motion } from 'framer-motion';
 import { IoIosMenu } from 'react-icons/io';

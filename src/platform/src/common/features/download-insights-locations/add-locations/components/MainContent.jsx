@@ -1,4 +1,3 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import DataTable from '../../components/DataTable';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -112,6 +111,9 @@ export const MainContent = ({
           'owner',
           'organization',
         ]}
+        enableColumnFilters={true}
+        defaultSortColumn="name"
+        defaultSortDirection="asc"
       />
     </motion.div>
   );
