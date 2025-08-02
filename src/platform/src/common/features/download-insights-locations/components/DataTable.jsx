@@ -361,7 +361,7 @@ const DataTable = ({
     enableColumnFilters,
   ]);
 
-  const processedData = useMemo(() => {
+  const baseFilteredData = useMemo(() => {
     let result = [...uniqueData];
 
     if (onFilter && activeFilter && !isSearchActive) {
@@ -381,6 +381,12 @@ const DataTable = ({
       result = searchResults.map((r) => r.item || r);
     }
 
+    return result;
+  }, [uniqueData, onFilter, activeFilter, searchResults, isSearchActive]);
+
+  const processedData = useMemo(() => {
+    let result = [...baseFilteredData];
+
     if (enableColumnFilters) {
       Object.entries(columnFilters).forEach(([columnKey, filterValues]) => {
         if (filterValues?.length > 0) {
@@ -397,15 +403,27 @@ const DataTable = ({
       result.sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
+
         if (aValue == null && bValue == null) return 0;
         if (aValue == null) return sortConfig.direction === 'asc' ? 1 : -1;
         if (bValue == null) return sortConfig.direction === 'asc' ? -1 : 1;
+
+        const aStr = String(aValue);
+        const bStr = String(bValue);
+
+        const aNum = parseFloat(aStr);
+        const bNum = parseFloat(bStr);
+
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return sortConfig.direction === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+
         return sortConfig.direction === 'asc'
-          ? String(aValue).localeCompare(String(bValue), undefined, {
+          ? aStr.localeCompare(bStr, undefined, {
               numeric: true,
               sensitivity: 'base',
             })
-          : String(bValue).localeCompare(String(aValue), undefined, {
+          : bStr.localeCompare(aStr, undefined, {
               numeric: true,
               sensitivity: 'base',
             });
@@ -414,11 +432,7 @@ const DataTable = ({
 
     return result;
   }, [
-    uniqueData,
-    onFilter,
-    activeFilter,
-    searchResults,
-    isSearchActive,
+    baseFilteredData,
     columnFilters,
     sortConfig,
     enableColumnFilters,
@@ -714,7 +728,7 @@ const DataTable = ({
                           <div className="flex-shrink-0">
                             <ColumnFilter
                               column={col}
-                              data={processedData}
+                              data={baseFilteredData}
                               onFilter={(values) =>
                                 handleColumnFilter(col.key, values)
                               }
