@@ -15,9 +15,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUpdateSiteDetails } from "@/core/hooks/useSites";
 import { useParams } from "next/navigation";
-import { useToast } from "@/components/ui/use-toast";
 import { DialogClose } from "@/components/ui/dialog";
 import { useRef } from "react";
+import { toast } from "sonner";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
@@ -52,7 +52,6 @@ interface SiteFormProps {
 export function SiteForm({ initialData }: SiteFormProps) {
   const params = useParams();
   const siteId = params.id as string;
-  const { toast } = useToast();
   const { mutate: updateSite, isPending } = useUpdateSiteDetails();
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -92,10 +91,7 @@ export function SiteForm({ initialData }: SiteFormProps) {
     }, {} as Record<string, string | undefined>);
 
     if (Object.keys(transformedData).length === 0) {
-      toast({
-        title: "No Changes",
-        description: "No fields have been modified",
-      });
+      toast.error("No fields have been modified");
       return;
     }
 
@@ -104,17 +100,10 @@ export function SiteForm({ initialData }: SiteFormProps) {
       {
         onSuccess: () => {
           cancelButtonRef.current?.click();
-          toast({
-            title: "Success",
-            description: "Site details updated successfully",
-          });
+          toast.success("Site details updated successfully");
         },
         onError: (error) => {
-          toast({
-            title: "Error",
-            description: error.message || "Failed to update site details",
-            variant: "destructive",
-          });
+          toast.error(error.message || "Failed to update site details");
         },
       }
     );

@@ -166,7 +166,11 @@ const steps = [
   { id: "Step 2", name: "Map Preview" },
 ];
 
-export function CreateSiteForm() {
+interface CreateSiteFormProps {
+  disabled?: boolean;
+}
+
+export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
@@ -212,7 +216,7 @@ export function CreateSiteForm() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="default">Add Site</Button>
+        <Button variant="default" disabled={disabled}>Add Site</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader className="bg-background pb-4">
