@@ -807,7 +807,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           key: 'network',
           label: 'Network',
           render: (item) => (
-            <span className="capitalize">{item.network || 'N/A'}</span>
+            <span className="uppercase">{item.network || 'N/A'}</span>
           ),
         },
         {
@@ -869,7 +869,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           key: 'network',
           label: 'Network',
           render: (item) => (
-            <span className="capitalize">{item.network || 'N/A'}</span>
+            <span className="uppercase">{item.network || 'N/A'}</span>
           ),
         },
         {
