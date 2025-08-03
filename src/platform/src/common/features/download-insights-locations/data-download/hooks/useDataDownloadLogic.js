@@ -67,7 +67,7 @@ const parseCSVLine = (line) => {
 // Utility function to convert data to properly formatted CSV
 const convertToCSV = (data) => {
   if (!data || data.length === 0) {
-    return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+    return '';
   }
 
   // Get headers from the first object
