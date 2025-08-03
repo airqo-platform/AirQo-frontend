@@ -60,8 +60,8 @@ const EnhancedSiteCard = ({
 }) => {
   const cardData = useMemo(() => {
     // AQI and status data
-    const aqiCategory = measurement?.aqi_category ?? 'Unknown';
-    const statusKey = AQI_CATEGORY_MAP[aqiCategory] ?? 'unknown';
+    const aqiCategory = measurement?.aqi_category ?? '--';
+    const statusKey = AQI_CATEGORY_MAP[aqiCategory] ?? '--';
     const AirQualityIcon = IconMap[statusKey] ?? IconMap.unknown;
 
     // Measurement values
