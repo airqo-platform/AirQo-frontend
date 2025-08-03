@@ -16,6 +16,74 @@ export const MESSAGE_TYPES = {
   INFO: 'info',
 };
 
+// Utility function to properly escape CSV values
+const escapeCSVValue = (value) => {
+  if (value === null || value === undefined) return '';
+
+  const stringValue = String(value);
+
+  // If the value contains comma, newline, or quote, wrap it in quotes and escape internal quotes
+  if (
+    stringValue.includes(',') ||
+    stringValue.includes('\n') ||
+    stringValue.includes('"')
+  ) {
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  }
+
+  return stringValue;
+};
+
+// Utility function to parse CSV line properly handling quoted fields
+const parseCSVLine = (line) => {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  let i = 0;
+
+  while (i < line.length) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i++; // Skip the escaped quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+    i++;
+  }
+  result.push(current.trim());
+  return result;
+};
+
+// Utility function to convert data to properly formatted CSV
+const convertToCSV = (data) => {
+  if (!data || data.length === 0) {
+    return 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+  }
+
+  // Get headers from the first object
+  const headers = Object.keys(data[0]);
+
+  // Create header row with proper escaping
+  const headerRow = headers.map(escapeCSVValue).join(',');
+
+  // Create data rows with proper escaping
+  const dataRows = data.map((row) =>
+    headers.map((header) => escapeCSVValue(row[header])).join(','),
+  );
+
+  return [headerRow, ...dataRows].join('\n');
+};
+
 /**
  * Custom hook for managing data download functionality
  */
@@ -26,7 +94,6 @@ export const useDataDownloadLogic = () => {
   // Consolidate refs for better cleanup management
   const refs = useRef({
     abortController: null,
-    previousFilter: null,
     errorTimeout: null,
   });
 
@@ -91,12 +158,10 @@ export const useDataDownloadLogic = () => {
         const isSelected = selectedItems.some((s) => s._id === item._id);
 
         if (isSelected) {
-          // Deselect
           setSelectedItems([]);
           setSelectedGridId(null);
           setStatusMessage('');
         } else {
-          // Select new item
           setSelectedItems([item]);
           setSelectedGridId(item._id);
         }
@@ -152,56 +217,32 @@ export const useDataDownloadLogic = () => {
       const lines = csvData.trim().split('\n');
       if (lines.length < 2) return csvData;
 
-      // Parse CSV line properly handling quoted fields
-      const parseCSVLine = (line) => {
-        const result = [];
-        let current = '';
-        let inQuotes = false;
-        let i = 0;
-
-        while (i < line.length) {
-          const char = line[i];
-          const nextChar = line[i + 1];
-
-          if (char === '"') {
-            if (inQuotes && nextChar === '"') {
-              current += '"';
-              i++;
-            } else {
-              inQuotes = !inQuotes;
-            }
-          } else if (char === ',' && !inQuotes) {
-            result.push(current.trim());
-            current = '';
-          } else {
-            current += char;
-          }
-          i++;
-        }
-        result.push(current.trim());
-        return result;
-      };
-
       // Get headers and find selected column indices
       const headers = parseCSVLine(lines[0]).map((h) =>
         h.replace(/^"|"$/g, '').trim(),
       );
+
       const selectedColumnKeys = Object.keys(selectedColumns).filter(
         (key) => selectedColumns[key],
       );
+
       const selectedIndices = selectedColumnKeys
         .map((key) => headers.indexOf(key))
         .filter((index) => index !== -1);
 
       if (selectedIndices.length === 0) return csvData;
 
-      // Filter headers
-      const filteredHeaders = selectedIndices.map((index) => headers[index]);
+      // Filter headers and escape them properly
+      const filteredHeaders = selectedIndices.map((index) =>
+        escapeCSVValue(headers[index]),
+      );
 
-      // Filter data rows
+      // Filter data rows and escape values properly
       const filteredRows = lines.slice(1).map((line) => {
         const values = parseCSVLine(line);
-        return selectedIndices.map((index) => values[index] || '').join(',');
+        return selectedIndices
+          .map((index) => escapeCSVValue(values[index] || ''))
+          .join(',');
       });
 
       // Return filtered CSV
@@ -212,7 +253,7 @@ export const useDataDownloadLogic = () => {
     }
   }, []);
 
-  // Process different file types with optional column filtering
+  // Process different file types with improved CSV handling
   const processDownloadResponse = useCallback(
     async (response, formData, selectedColumns = null) => {
       const fileExtension = formData.fileType.name.toLowerCase();
@@ -220,17 +261,51 @@ export const useDataDownloadLogic = () => {
       const fileName = `${formData.title.name || 'Air_Quality_Data'}.${fileExtension}`;
 
       if (fileExtension === 'csv') {
-        // Process CSV data
-        let csvData =
-          typeof response === 'string'
-            ? response.startsWith('resp')
-              ? response.substring(4)
-              : response
-            : typeof response === 'object' && response !== null && response.data
-              ? typeof response.data === 'string'
-                ? response.data
-                : JSON.stringify(response.data)
-              : 'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+        let csvData;
+
+        // Handle different response types
+        if (typeof response === 'string') {
+          // If response starts with 'resp', remove it
+          csvData = response.startsWith('resp')
+            ? response.substring(4)
+            : response;
+
+          // If the string looks like JSON, try to parse it
+          if (
+            csvData.trim().startsWith('{') ||
+            csvData.trim().startsWith('[')
+          ) {
+            try {
+              const jsonData = JSON.parse(csvData);
+              csvData = convertToCSV(
+                Array.isArray(jsonData) ? jsonData : jsonData.data || [],
+              );
+            } catch {
+              // If JSON parsing fails, treat as CSV and fix escaping
+              const lines = csvData.trim().split('\n');
+              if (lines.length >= 2) {
+                const headers = parseCSVLine(lines[0]);
+                const dataRows = lines.slice(1).map((line) => {
+                  const values = parseCSVLine(line);
+                  return values.map(escapeCSVValue).join(',');
+                });
+                csvData = [
+                  headers.map(escapeCSVValue).join(','),
+                  ...dataRows,
+                ].join('\n');
+              }
+            }
+          }
+        } else if (typeof response === 'object' && response !== null) {
+          // Convert object/array response to CSV
+          const dataArray =
+            response.data || (Array.isArray(response) ? response : [response]);
+          csvData = convertToCSV(dataArray);
+        } else {
+          // Fallback CSV structure
+          csvData =
+            'datetime,device_name,frequency,network,pm2_5_calibrated_value,site_name\n';
+        }
 
         // Filter columns if selectedColumns is provided
         if (selectedColumns) {
@@ -246,57 +321,19 @@ export const useDataDownloadLogic = () => {
         }
         return csvData;
       } else if (fileExtension === 'json') {
-        // Process JSON data
+        // Process JSON data (existing logic)
         let jsonData;
         try {
           if (typeof response === 'string') {
-            // Check if the response is CSV (contains commas and newlines)
             if (response.includes(',') && response.includes('\n')) {
-              // Parse CSV to JSON with proper handling of quoted fields
+              // Parse CSV to JSON
               const lines = response.trim().split('\n');
-
-              // Parse CSV line properly handling quoted fields
-              const parseCSVLine = (line) => {
-                const result = [];
-                let current = '';
-                let inQuotes = false;
-                let i = 0;
-
-                while (i < line.length) {
-                  const char = line[i];
-                  const nextChar = line[i + 1];
-
-                  if (char === '"') {
-                    if (inQuotes && nextChar === '"') {
-                      // Escaped quote
-                      current += '"';
-                      i++; // Skip next quote
-                    } else {
-                      // Toggle quote state
-                      inQuotes = !inQuotes;
-                    }
-                  } else if (char === ',' && !inQuotes) {
-                    // Field separator
-                    result.push(current.trim());
-                    current = '';
-                  } else {
-                    current += char;
-                  }
-                  i++;
-                }
-
-                // Add the last field
-                result.push(current.trim());
-                return result;
-              };
-
               const headers = parseCSVLine(lines[0]).map((h) =>
                 h.replace(/^"|"$/g, '').trim(),
               );
               jsonData = lines.slice(1).map((line) => {
                 const values = parseCSVLine(line);
                 return headers.reduce((obj, header, index) => {
-                  // Clean up the values and handle empty fields
                   let value = values[index]
                     ? values[index].replace(/^"|"$/g, '').trim()
                     : '';
@@ -305,7 +342,6 @@ export const useDataDownloadLogic = () => {
                 }, {});
               });
             } else {
-              // Try parsing as JSON if it's not CSV
               jsonData = JSON.parse(response);
             }
           } else if (typeof response === 'object' && response !== null) {
@@ -318,22 +354,19 @@ export const useDataDownloadLogic = () => {
             throw new Error('No data available for the selected criteria');
           }
         } catch (error) {
-          if (
-            error.message === 'No data available' ||
-            error.message === 'No data available for the selected criteria'
-          ) {
+          if (error.message.includes('No data available')) {
             throw error;
           }
           throw new Error(
             'Error processing the data. Please try again or contact support.',
           );
         }
-        // Save as JSON
+
         const jsonString = JSON.stringify(jsonData, null, 2);
         saveAs(new Blob([jsonString], { type: mimeType }), fileName);
         return jsonData;
       } else if (fileExtension === 'pdf') {
-        // Process PDF data
+        // Process PDF data (existing logic)
         const doc = new jsPDF();
         let pdfData = [];
 
@@ -341,17 +374,16 @@ export const useDataDownloadLogic = () => {
           try {
             pdfData = JSON.parse(response).data || [];
           } catch {
-            // Try to parse as CSV if JSON fails
             const lines = response.split('\n');
             if (lines.length > 1) {
-              const headers = lines[0].split(',');
+              const headers = parseCSVLine(lines[0]);
               pdfData = lines
                 .slice(1)
                 .filter(Boolean)
                 .map((line) => {
-                  const values = line.split(',');
+                  const values = parseCSVLine(line);
                   return headers.reduce((obj, header, i) => {
-                    obj[header] = values[i];
+                    obj[header] = values[i] || '';
                     return obj;
                   }, {});
                 });
@@ -361,7 +393,6 @@ export const useDataDownloadLogic = () => {
           pdfData = response.data || [];
         }
 
-        // Create PDF
         if (!pdfData || pdfData.length === 0) {
           doc.text('No data available to display', 10, 10);
         } else {
@@ -393,7 +424,7 @@ export const useDataDownloadLogic = () => {
     [filterCSVColumns],
   );
 
-  // Handle download submission with improved error handling
+  // Handle download submission (existing logic with timeout optimization)
   const handleDownload = useCallback(
     async (
       formData,
@@ -441,7 +472,7 @@ export const useDataDownloadLogic = () => {
           );
         }
 
-        // API request data with proper organization naming
+        // API request data
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -460,7 +491,7 @@ export const useDataDownloadLogic = () => {
           minimum: true,
         };
 
-        // Add the appropriate selection parameters based on filter type
+        // Add the appropriate selection parameters
         if (activeFilterKey === 'devices') {
           apiData.device_names = deviceNames;
         } else {
@@ -478,14 +509,11 @@ export const useDataDownloadLogic = () => {
         }, 60000);
 
         try {
-          // Make API call
           const response = await fetchData(apiData);
           clearTimeout(timeoutId);
 
-          // Process response based on file type
           await processDownloadResponse(response, formData, selectedColumns);
 
-          // Success handling
           CustomToast({
             message: 'Data downloaded successfully!',
             type: 'success',
