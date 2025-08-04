@@ -79,7 +79,7 @@ const EnhancedSiteCard = ({
     const trendData = showMiniChart ? generateMockTrendData(currentValue) : [];
 
     return {
-      siteName: site.name || '---',
+      siteName: site.search_name || '---',
       siteCountry: site.country || '---',
       aqiCategory,
       statusKey,
@@ -231,6 +231,7 @@ EnhancedSiteCard.propTypes = {
   site: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     name: PropTypes.string,
+    search_name: PropTypes.string,
     country: PropTypes.string,
   }).isRequired,
   measurement: PropTypes.shape({

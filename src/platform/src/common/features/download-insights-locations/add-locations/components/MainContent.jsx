@@ -7,7 +7,7 @@ import { AqMarkerPin01 } from '@airqo/icons-react';
 
 const columns = [
   {
-    key: 'name',
+    key: 'search_name',
     label: 'Location',
     render: (item) => (
       <div className="flex items-center">
@@ -15,10 +15,7 @@ const columns = [
           <AqMarkerPin01 size={16} />
         </span>
         <span className="ml-2">
-          {item.name ||
-            item.location_name ||
-            item.search_name ||
-            'Unknown Location'}
+          {item.search_name || item.location_name || item.name || '--'}
         </span>
       </div>
     ),
