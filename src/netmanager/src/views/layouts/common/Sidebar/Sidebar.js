@@ -78,26 +78,22 @@ const allMainPages = [
     title: 'Overview',
     href: '/overview',
     icon: <AspectRatioIcon />,
-    permission: PERMISSIONS.ANALYTICS.DASHBOARD_VIEW
   },
   {
     title: 'Analytics',
     href: '/analytics',
     icon: <TimelineIcon />,
-    permission: PERMISSIONS.ANALYTICS.ANALYTICS_VIEW,
     isNew: true
   },
   {
     title: 'Map',
     href: '/map',
     icon: <MapIcon />,
-    permission: PERMISSIONS.ANALYTICS.DASHBOARD_VIEW
   },
   {
     title: 'Export data',
     href: '/export-data/options',
     icon: <CloudDownloadIcon />,
-    permission: PERMISSIONS.ANALYTICS.DATA_EXPORT
   },
   {
     title: 'Deploy Device',
@@ -157,14 +153,14 @@ const allMainPages = [
     title: 'Cohorts Registry',
     href: '/cohorts',
     icon: <GroupWorkIcon />,
-    permission: PERMISSIONS.GROUP.VIEW,
+    permission: PERMISSIONS.SITE.VIEW,
     isNew: true
   },
   {
     title: 'Grids Registry',
     href: '/grids',
     icon: <GrainIcon />,
-    permission: PERMISSIONS.GROUP.VIEW,
+    permission: PERMISSIONS.SITE.VIEW,
     isNew: true
   }
 ];
@@ -174,27 +170,27 @@ const allUserManagementPages = [
     title: 'Logs',
     href: '/logs',
     icon: <DataUsageIcon />,
-    permission: PERMISSIONS.USER.VIEW
+    permission: PERMISSIONS.DEVICE.VIEW
   },
   {
     title: 'Networks',
     href: '/networks',
     icon: <TapAndPlayIcon />,
-    permission: PERMISSIONS.ORGANIZATION.VIEW,
+    permission: PERMISSIONS.ROLE.VIEW,
     disabled: true
   },
   {
     title: 'Teams',
     href: '/teams',
     icon: <GroupAddIcon />,
-    permission: PERMISSIONS.GROUP.VIEW,
+    permission: PERMISSIONS.ROLE.VIEW,
     isNew: true
   },
   {
     title: 'Users',
     href: '/admin/users',
     icon: <PeopleIcon />,
-    permission: PERMISSIONS.USER.VIEW,
+    permission: PERMISSIONS.ROLE.VIEW,
     collapse: true,
     nested: true,
     nestItems: [
@@ -214,7 +210,7 @@ const allUserManagementPages = [
     title: 'Clients',
     href: '/clients-activation',
     icon: <AppsIcon />,
-    permission: PERMISSIONS.USER.VIEW
+    permission: PERMISSIONS.ROLE.VIEW
   },
   {
     title: 'Account',
@@ -225,7 +221,6 @@ const allUserManagementPages = [
     title: 'Settings',
     href: '/settings',
     icon: <SettingsIcon />,
-    permission: PERMISSIONS.SETTINGS.VIEW
   }
 ];
 
