@@ -9,6 +9,7 @@ import {
   AqFile02,
   AqBuilding05,
   AqHome01,
+  AqDownload01,
 } from '@airqo/icons-react';
 // import { checkAccess } from '@/core/HOC/authUtils';
 
@@ -88,6 +89,13 @@ export const getUserNavigationItems = () => {
     label: 'Map',
     icon: AqGlobe05,
     path: '/user/map',
+  });
+
+  items.push({
+    type: 'item',
+    label: 'Data Export',
+    icon: AqDownload01,
+    path: '/user/data-export',
   });
 
   // divider for Account section
@@ -184,6 +192,12 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
       label: 'Data Insights',
       icon: AqBarChartSquare02,
       path: `/org/${orgSlug}/insights`,
+    },
+    {
+      type: 'item',
+      label: 'Data Export',
+      icon: AqDownload01,
+      path: `/org/${orgSlug}/data-export`,
     },
 
     {
