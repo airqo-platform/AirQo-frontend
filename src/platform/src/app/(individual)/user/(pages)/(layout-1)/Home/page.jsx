@@ -213,7 +213,7 @@ const Home = () => {
               Icon={AqBarChart01}
               onClick={() => router.push('/user/analytics')}
             >
-              Data Analytics
+              Data Analysis
             </Button>
             <Button
               variant="outlined"
