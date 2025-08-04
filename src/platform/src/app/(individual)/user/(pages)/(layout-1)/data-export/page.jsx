@@ -2,8 +2,8 @@
 
 import DataExportPage from '@/common/features/download-insights-locations/data-export';
 
-const page = () => {
+const Page = () => {
   return <DataExportPage />;
 };
 
-export default page;
+export default Page;
