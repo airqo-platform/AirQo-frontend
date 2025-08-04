@@ -113,7 +113,7 @@ const SiteCard = memo(
       return name;
     };
 
-    const siteName = formatSiteName(site.name);
+    const siteName = formatSiteName(site.search_name || site.name || '--');
     const siteCountry = site.country || site.city || site.region || '--';
 
     const handleClick = useCallback(() => {

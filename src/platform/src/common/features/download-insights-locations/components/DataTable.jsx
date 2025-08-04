@@ -31,7 +31,7 @@ const ColumnFilter = ({ column, data, onFilter, isActive, darkMode }) => {
     return [
       ...new Set(
         data.map((item) =>
-          item[column.key] != null ? String(item[column.key]) : 'N/A',
+          item[column.key] != null ? String(item[column.key]) : '--',
         ),
       ),
     ].sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()));
@@ -128,7 +128,7 @@ const ColumnFilter = ({ column, data, onFilter, isActive, darkMode }) => {
   }, [isOpen, calculatePosition]);
 
   const formatFilterValue = (value) => {
-    if (value === 'N/A') return value;
+    if (value === '--') return value;
     return value
       .split(/[-_]/)
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -392,7 +392,7 @@ const DataTable = ({
         if (filterValues?.length > 0) {
           result = result.filter((item) => {
             const value = item[columnKey];
-            const stringValue = value != null ? String(value) : 'N/A';
+            const stringValue = value != null ? String(value) : '--';
             return filterValues.includes(stringValue);
           });
         }
@@ -556,7 +556,7 @@ const DataTable = ({
       }
     }
     const value = item[col.key];
-    return value != null ? String(value) : 'N/A';
+    return value != null ? String(value) : '--';
   }, []);
 
   const renderSortIcon = useCallback(

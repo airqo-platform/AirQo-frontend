@@ -441,7 +441,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
                 <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
                   <AqGlobe05 size={16} />
                 </span>
-                <span>{formattedName || 'N/A'}</span>
+                <span>{formattedName || '--'}</span>
               </div>
             );
           },
@@ -469,7 +469,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
                       word.charAt(0).toUpperCase() +
                       word.slice(1).toLowerCase(),
                   )
-                  .join(' ') || 'N/A'}
+                  .join(' ') || '--'}
               </span>
             </div>
           ),
@@ -478,7 +478,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           key: 'network',
           label: 'Network',
           render: (item) => (
-            <span className="uppercase">{item.network || 'N/A'}</span>
+            <span className="uppercase">{item.network || '--'}</span>
           ),
         },
         {
@@ -489,7 +489,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
       ],
       sites: [
         {
-          key: 'name',
+          key: 'search_name',
           label: 'Location',
           render: (item) => (
             <div className="flex items-center">
@@ -497,7 +497,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
                 <AqMarkerPin01 size={16} />
               </span>
               <span>
-                {item.name || item.search_name || item.location_name || 'N/A'}
+                {item.search_name || item.name || item.location_name || '--'}
               </span>
             </div>
           ),
@@ -515,7 +515,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
               <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
                 <AqMonitor03 size={16} />
               </span>
-              <span>{item.name || item.long_name || 'N/A'}</span>
+              <span>{item.name || item.long_name || '--'}</span>
             </div>
           ),
         },
@@ -538,14 +538,14 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
           key: 'network',
           label: 'Network',
           render: (item) => (
-            <span className="uppercase">{item.network || 'N/A'}</span>
+            <span className="uppercase">{item.network || '--'}</span>
           ),
         },
         {
           key: 'category',
           label: 'Category',
           render: (item) => (
-            <span className="capitalize">{item.category || 'N/A'}</span>
+            <span className="capitalize">{item.category || '--'}</span>
           ),
         },
       ],
