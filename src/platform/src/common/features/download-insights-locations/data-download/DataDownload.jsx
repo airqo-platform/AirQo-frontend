@@ -54,7 +54,11 @@ import {
  * @param {Function} props.onClose - Function to close the modal
  * @param {string} props.sidebarBg - Background color for sidebar
  */
-const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
+const DataDownload = ({
+  onClose,
+  sidebarBg = '#f6f6f7',
+  resetOnClose = false,
+}) => {
   const dispatch = useDispatch();
 
   // Theme
@@ -110,6 +114,17 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
 
   // Form state with defaults
   const [formData, setFormData] = useState(getDefaultFormData());
+
+  // Enhanced close handler for resetOnClose
+  const handleClose = useCallback(() => {
+    if (resetOnClose) {
+      setFormData(getDefaultFormData());
+      clearSelections();
+    }
+    if (typeof onClose === 'function') {
+      onClose();
+    }
+  }, [resetOnClose, setFormData, clearSelections, onClose]);
 
   // All data type options are available for all filter types
   const filteredDataTypeOptions = useMemo(() => {
@@ -597,7 +612,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
         setEdit={setEdit}
         filteredDataTypeOptions={filteredDataTypeOptions}
         durationGuidance={durationGuidance}
-        handleSubmit={handlePreview} // Use preview instead of direct download
+        handleSubmit={handlePreview}
         sidebarBg={darkMode ? '' : sidebarBg}
         isMobile={isMobileSidebarVisible}
       />
@@ -765,7 +780,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
               selectedItems.length > 0 ? handleClearSelection : undefined
             }
             handleSubmit={handlePreview} // Changed to preview instead of direct download
-            onClose={onClose}
+            onClose={handleClose}
             btnText={downloadLoading ? 'Downloading...' : 'Preview & Download'}
             loading={previewLoading || downloadLoading}
             disabled={isDownloadDisabled}
@@ -796,6 +811,7 @@ const DataDownload = ({ onClose, sidebarBg = '#f6f6f7' }) => {
 DataDownload.propTypes = {
   onClose: PropTypes.func.isRequired,
   sidebarBg: PropTypes.string,
+  resetOnClose: PropTypes.bool,
 };
 
 // Export the header component for use in other places

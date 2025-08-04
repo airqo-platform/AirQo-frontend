@@ -16,7 +16,7 @@ import {
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
 import { useRouter } from 'next/navigation';
-import { AqDownload01, AqBuilding07 } from '@airqo/icons-react';
+import { AqDownload01, AqBuilding07, AqBarChart01 } from '@airqo/icons-react';
 
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';
@@ -203,11 +203,18 @@ const Home = () => {
               variant="outlined"
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
               Icon={AqDownload01}
-              onClick={() => router.push('/user/analytics')}
+              onClick={() => router.push('/user/data-export')}
             >
               Download Data
             </Button>
-
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={AqBarChart01}
+              onClick={() => router.push('/user/analytics')}
+            >
+              Data Analytics
+            </Button>
             <Button
               variant="outlined"
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"

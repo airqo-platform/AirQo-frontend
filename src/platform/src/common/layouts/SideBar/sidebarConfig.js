@@ -32,6 +32,7 @@ export const USER_TYPES = {
  * @typedef {Object} NavigationItem
  * @property {string} type - Type of item: 'item', 'divider', 'dropdown'
  * @property {string} label - Display label
+ * @property {string} shortLabel - Short label for mobile/compact views
  * @property {React.Component} icon - Icon component
  * @property {string} path - Navigation path (for items)
  * @property {boolean} dropdown - Whether item has dropdown (for dropdown type)
@@ -48,12 +49,14 @@ export const getUserNavigationItems = () => {
     {
       type: 'item',
       label: 'Home',
+      shortLabel: 'Home',
       icon: AqHomeSmile,
       path: '/user/Home',
     },
     {
       type: 'item',
       label: 'Analytics',
+      shortLabel: 'Analytics',
       icon: AqBarChartSquare02,
       path: '/user/analytics',
     },
@@ -68,6 +71,7 @@ export const getUserNavigationItems = () => {
   //   items.push({
   //     type: 'dropdown',
   //     label: 'Collocation',
+  //     shortLabel: 'Collocate',
   //     icon: CollocateIcon,
   //     dropdown: true,
   //     children: [
@@ -87,13 +91,15 @@ export const getUserNavigationItems = () => {
   items.push({
     type: 'item',
     label: 'Map',
+    shortLabel: 'Map', // Same as label since it's already short
     icon: AqGlobe05,
     path: '/user/map',
   });
 
   items.push({
     type: 'item',
-    label: 'Data Export',
+    label: 'Data Download',
+    shortLabel: 'Download',
     icon: AqDownload01,
     path: '/user/data-export',
   });
@@ -106,6 +112,7 @@ export const getUserNavigationItems = () => {
   items.push({
     type: 'item',
     label: 'Profile',
+    shortLabel: 'Profile',
     icon: AqUser03,
     path: '/user/profile',
   });
@@ -121,6 +128,7 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Dashboard',
+      shortLabel: 'Home',
       icon: AqHome01,
       path: '/admin',
     },
@@ -131,12 +139,14 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Organizations',
+      shortLabel: 'Orgs',
       icon: AqBuilding05,
       path: '/admin/organizations/requests',
     },
     {
       type: 'item',
       label: 'Users',
+      shortLabel: 'Users',
       icon: AqUser03,
       path: '/admin/users',
     },
@@ -153,6 +163,7 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Activity Logs',
+      shortLabel: 'Logs',
       icon: AqFile02,
       path: '/admin/activity-logs',
     },
@@ -163,12 +174,14 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Roles & Permissions',
+      shortLabel: 'Roles',
       icon: AqShieldTick,
       path: '/admin/roles',
     },
     {
       type: 'item',
       label: 'Settings',
+      shortLabel: 'Settings',
       icon: AqSettings02,
       path: '/admin/settings',
     },
@@ -184,18 +197,21 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Dashboard',
+      shortLabel: 'Home',
       icon: AqHomeSmile,
       path: `/org/${orgSlug}/dashboard`,
     },
     {
       type: 'item',
       label: 'Data Insights',
+      shortLabel: 'Insights',
       icon: AqBarChartSquare02,
       path: `/org/${orgSlug}/insights`,
     },
     {
       type: 'item',
-      label: 'Data Export',
+      label: 'Data Download',
+      shortLabel: 'Download',
       icon: AqDownload01,
       path: `/org/${orgSlug}/data-export`,
     },
@@ -207,12 +223,14 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Members',
+      shortLabel: 'Members',
       icon: AqUsers01,
       path: `/org/${orgSlug}/members`,
     },
     {
       type: 'item',
       label: 'Roles & Permissions',
+      shortLabel: 'Roles',
       icon: AqShieldTick,
       path: `/org/${orgSlug}/roles-permissions`,
       matcher: {
@@ -225,6 +243,7 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Settings',
+      shortLabel: 'Settings',
       icon: AqSettings02,
       path: `/org/${orgSlug}/settings`,
     },
@@ -236,6 +255,7 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Profile',
+      shortLabel: 'Profile',
       icon: AqUser03,
       path: `/org/${orgSlug}/profile`,
     },
@@ -380,3 +400,46 @@ export const getSidebarStyles = (isDarkMode = false) => ({
   iconFill: isDarkMode ? 'ffffff' : undefined,
   stroke: isDarkMode ? 'white' : '#1f2937',
 });
+
+/**
+ * Utility function to get appropriate label based on context
+ * @param {Object} item - Navigation item with label and shortLabel
+ * @param {boolean} useShortLabel - Whether to prefer short label
+ * @param {boolean} iconOnly - Whether in icon-only mode
+ */
+export const getDisplayLabel = (
+  item,
+  useShortLabel = false,
+  iconOnly = false,
+) => {
+  if (iconOnly) return ''; // No label in icon-only mode
+
+  if (useShortLabel && item.shortLabel) {
+    return item.shortLabel;
+  }
+
+  return item.label;
+};
+
+/**
+ * Hook to determine if short labels should be used based on screen size
+ * Can be used in components that render navigation items
+ */
+export const useShortLabels = () => {
+  const [useShortLabels, setUseShortLabels] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      // Use short labels on screens smaller than 640px (Tailwind 'sm' breakpoint)
+      // or when the available space is limited
+      setUseShortLabels(window.innerWidth < 640);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  return useShortLabels;
+};

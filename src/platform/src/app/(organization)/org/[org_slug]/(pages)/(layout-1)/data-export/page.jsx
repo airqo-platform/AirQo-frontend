@@ -1,7 +1,9 @@
-import React from 'react';
+'use client';
+
+import DataExportPage from '@/common/features/download-insights-locations/data-export';
 
 const page = () => {
-  return <div>page</div>;
+  return <DataExportPage />;
 };
 
 export default page;
