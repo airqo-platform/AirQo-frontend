@@ -268,11 +268,6 @@ const AboutPage: React.FC = () => {
                 challenges.
               </p>
               <p className="text-lg text-gray-700 leading-relaxed">
-                We provide accurate, hyperlocal, and timely data providing
-                evidence of the magnitude and scale of air pollution across the
-                continent in African Cities.
-              </p>
-              <p className="text-lg text-gray-700 leading-relaxed">
                 We leverage advanced technologies and AI-powered models to
                 provide accurate, hyperlocal and real-time air quality data,
                 providing evidence of the magnitude and scale of air pollution
