@@ -113,7 +113,7 @@ const SiteCard = memo(
       return name;
     };
 
-    const siteName = formatSiteName(site.name);
+    const siteName = formatSiteName(site.search_name || site.name || '--');
     const siteCountry = site.country || site.city || site.region || '--';
 
     const handleClick = useCallback(() => {
@@ -181,6 +181,7 @@ SiteCard.propTypes = {
   site: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     name: PropTypes.string,
+    search_name: PropTypes.string,
     country: PropTypes.string,
   }).isRequired,
   measurement: PropTypes.shape({
