@@ -231,6 +231,7 @@ EnhancedSiteCard.propTypes = {
   site: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     name: PropTypes.string,
+    search_name: PropTypes.string,
     country: PropTypes.string,
   }).isRequired,
   measurement: PropTypes.shape({
