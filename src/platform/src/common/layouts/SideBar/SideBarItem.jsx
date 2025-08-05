@@ -148,14 +148,30 @@ const createRouteMatcher = () => {
         return true;
       }
 
+      // Only exact match for /admin dashboard
+      if (resolvedNavPath === '/admin') {
+        return currentRoute === '/admin';
+      }
+
       if (currentRoute === resolvedNavPath || currentRoute === resolvedPattern)
         return true;
 
       if (!config.exact) {
-        if (currentRoute.startsWith(resolvedNavPath)) return true;
-
-        if (resolvedPattern && currentRoute.startsWith(resolvedPattern))
+        // For other routes, match only if not /admin parent
+        if (
+          resolvedNavPath !== '/admin' &&
+          currentRoute.startsWith(resolvedNavPath)
+        ) {
           return true;
+        }
+
+        if (
+          resolvedPattern &&
+          resolvedPattern !== '/admin' &&
+          currentRoute.startsWith(resolvedPattern)
+        ) {
+          return true;
+        }
 
         if (config.includeSubroutes && subroutes.length > 0) {
           return subroutes.some((subroute) => {
@@ -172,7 +188,11 @@ const createRouteMatcher = () => {
         }
       }
 
-      if (hasChildren && currentRoute.startsWith(resolvedNavPath)) {
+      if (
+        hasChildren &&
+        resolvedNavPath !== '/admin' &&
+        currentRoute.startsWith(resolvedNavPath)
+      ) {
         return true;
       }
 
