@@ -14,6 +14,8 @@ import {
   getNavigationItems,
   USER_TYPES,
 } from '../../layouts/SideBar/sidebarConfig';
+import { usePermissions } from '@/core/HOC/authUtils';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * GlobalSideBarDrawer - Enhanced with stable subroute hover functionality
@@ -30,7 +32,23 @@ import {
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
-  const params = useParams(); // Use the new separate global sidebar states
+  const { hasAnyPermission, isLoading } = usePermissions();
+  const { id: activeGroupID } = useGetActiveGroup();
+  const canViewAdminPanel = hasAnyPermission(
+    [
+      'SUPER_ADMIN',
+      'SYSTEM_ADMIN',
+      'GROUP_MANAGEMENT',
+      'USER_MANAGEMENT',
+      'ROLE_VIEW',
+      'USER_MANAGEMENT',
+    ],
+    activeGroupID,
+    'AIRQO_ADMIN',
+    true,
+  );
+  console.log('canViewAdminPanel:', canViewAdminPanel);
+  const params = useParams();
   const isGlobalSidebarOpen = useSelector((state) => {
     try {
       return state?.sidebar?.isGlobalSidebarOpen || false;
@@ -227,16 +245,18 @@ const GlobalSideBarDrawer = () => {
         {/* Enhanced navigation section with better dark mode */}
         <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
-            {/* Enhanced Admin Panel with improved subroute functionality */}
-            <SideBarItem
-              label="Admin Panel"
-              Icon={MdAdminPanelSettings}
-              navPath="/admin"
-              onClick={closeDrawer}
-              subroutes={adminSubroutes}
-              onSubrouteClick={handleSubrouteClick}
-              key="admin-panel-enhanced"
-            />
+            {/* Enhanced Admin Panel with improved subroute functionality, now access-controlled */}
+            {!isLoading && canViewAdminPanel && (
+              <SideBarItem
+                label="Admin Panel"
+                Icon={MdAdminPanelSettings}
+                navPath="/admin"
+                onClick={closeDrawer}
+                subroutes={adminSubroutes}
+                onSubrouteClick={handleSubrouteClick}
+                key="admin-panel-enhanced"
+              />
+            )}
 
             {/* Data Analytics */}
             <SideBarItem

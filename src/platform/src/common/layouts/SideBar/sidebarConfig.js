@@ -74,7 +74,7 @@ export const getUserNavigationItems = () => {
   //     type: 'dropdown',
   //     label: 'Collocation',
   //     shortLabel: 'Collocate',
-  //     icon: CollocateIcon,
+  //     icon: AqGlobe05,
   //     dropdown: true,
   //     children: [
   //       {

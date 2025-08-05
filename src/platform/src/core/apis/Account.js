@@ -557,3 +557,15 @@ export const assignRoleToUserApi = (roleId, body) => {
       throw new Error(errorMessage);
     });
 };
+
+// Get user's permissions for different groups
+export const getUserGroupPermissionsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/roles/me/roles-simplified`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        'Failed to fetch user group permissions';
+      throw new Error(errorMessage);
+    });
