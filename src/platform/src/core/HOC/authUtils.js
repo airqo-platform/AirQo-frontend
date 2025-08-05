@@ -3,12 +3,14 @@ import { useSession } from 'next-auth/react';
 import logger from '@/lib/logger';
 import { getUserGroupPermissionsApi } from '@/core/apis/Account';
 
-// Constants for better maintainability
+// Constants
 const EMPTY_ARRAY = [];
-const EMPTY_OBJECT = {};
+const AIRQO_EMAIL_DOMAIN = '@airqo.net';
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_DELAY = 1000;
 
 /**
- * Utility function to normalize permissions to array format
+ * Normalize permissions to array format
  */
 const normalizePermissions = (permissions) => {
   if (!permissions) return EMPTY_ARRAY;
@@ -16,13 +18,72 @@ const normalizePermissions = (permissions) => {
 };
 
 /**
- * Check if user has required permissions
- * @param {string|string[]} requiredPermissions - Required permissions
- * @param {string|null} groupID - Optional group ID for group-specific permissions
- * @param {object|null} session - Session object (optional for backward compatibility)
- * @param {string|null} requiredRoleName - Optional role name to check against
- * @param {boolean} checkAirqoEmail - Whether to check if user has @airqo.net email domain
- * @returns {Promise<boolean>} Whether user has required permissions
+ * Validate email domain
+ */
+const isValidAirqoEmail = (email) => {
+  return (
+    email && typeof email === 'string' && email.endsWith(AIRQO_EMAIL_DOMAIN)
+  );
+};
+
+/**
+ * Find user's role data for a specific group/network
+ */
+const findRoleData = (apiData, groupID, requiredRoleName = null) => {
+  if (!apiData?.user_roles || !groupID) return null;
+
+  const { groups = [], networks = [] } = apiData.user_roles;
+
+  // Find all matches in groups and networks
+  const allMatches = [
+    ...groups.filter((g) => g.group_id === groupID),
+    ...networks.filter((n) => n.network_id === groupID),
+  ];
+
+  if (allMatches.length === 0) return null;
+
+  // If specific role required, find exact match
+  if (requiredRoleName) {
+    return (
+      allMatches.find((item) => item.role_name === requiredRoleName) || null
+    );
+  }
+
+  // Return role with most permissions
+  return allMatches.sort(
+    (a, b) =>
+      normalizePermissions(b.permissions).length -
+      normalizePermissions(a.permissions).length,
+  )[0];
+};
+
+/**
+ * Validate user context for permission check
+ */
+const validateContext = (
+  session,
+  checkAirqoEmail,
+  roleData,
+  requiredRoleName,
+) => {
+  // Session required
+  if (!session?.user) return false;
+
+  // Email validation
+  if (checkAirqoEmail && !isValidAirqoEmail(session.user.email)) {
+    return false;
+  }
+
+  // Role validation for group-based checks
+  if (roleData && requiredRoleName && roleData.role_name !== requiredRoleName) {
+    return false;
+  }
+
+  return true;
+};
+
+/**
+ * Check permissions with enhanced security
  */
 export const checkAccess = async (
   requiredPermissions,
@@ -31,334 +92,262 @@ export const checkAccess = async (
   requiredRoleName = null,
   checkAirqoEmail = false,
 ) => {
-  // Early validation
-  if (!requiredPermissions) {
-    if (process.env.NODE_ENV === 'development') {
-      logger.warn('checkAccess called without requiredPermissions');
-    }
-    return false;
-  }
+  if (!requiredPermissions || !session?.user) return false;
 
   const required = normalizePermissions(requiredPermissions);
 
-  // Group-based permission check
-  if (groupID) {
-    try {
-      const data = await getUserGroupPermissionsApi();
-      const groups = data?.user_roles?.groups || EMPTY_ARRAY;
-      const group = groups.find((g) => g.group_id === groupID);
+  try {
+    if (groupID) {
+      // Group-based check
+      const apiData = await getUserGroupPermissionsApi();
+      const roleData = findRoleData(apiData, groupID, requiredRoleName);
 
-      if (!group) {
-        if (process.env.NODE_ENV === 'development') {
-          logger.debug(`Group not found: ${groupID}`);
-        }
+      if (
+        !roleData ||
+        !validateContext(session, checkAirqoEmail, roleData, requiredRoleName)
+      ) {
         return false;
       }
 
-      // For group-based checks, we still need session for role and email validation
-      if (!session?.user) {
-        if (process.env.NODE_ENV === 'development') {
-          logger.warn(
-            'Group-based check requires valid session for role/email validation',
-          );
-        }
+      const permissions = normalizePermissions(roleData.permissions);
+      return required.some((perm) => permissions.includes(perm));
+    } else {
+      // Session-based check
+      if (!validateContext(session, checkAirqoEmail, null, null)) return false;
+
+      if (
+        requiredRoleName &&
+        session.user.role?.role_name !== requiredRoleName
+      ) {
         return false;
       }
 
-      // Check role name if required
-      if (requiredRoleName) {
-        const userRoleName = session.user.role?.role_name;
-        if (userRoleName !== requiredRoleName) {
-          if (process.env.NODE_ENV === 'development') {
-            logger.debug(
-              `Role name check failed in group context. Required: ${requiredRoleName}, User has: ${userRoleName}`,
-              {
-                userId: session.user.id,
-                groupID,
-                requiredRoleName,
-                userRoleName,
-              },
-            );
-          }
-          return false;
-        }
-      }
-
-      // Check email domain if required
-      if (checkAirqoEmail) {
-        const userEmail = session.user.email;
-        if (!userEmail || !userEmail.endsWith('@airqo.net')) {
-          if (process.env.NODE_ENV === 'development') {
-            logger.debug(
-              'Email domain check failed in group context. User does not have @airqo.net email',
-              {
-                userId: session.user.id,
-                groupID,
-                userEmail: userEmail
-                  ? userEmail.replace(/(.{2}).*(@.*)/, '$1***$2')
-                  : 'none',
-              },
-            );
-          }
-          return false;
-        }
-      }
-
-      const permissions = normalizePermissions(group.permissions);
-      const hasPermission = required.some((perm) => permissions.includes(perm));
-
-      if (!hasPermission && process.env.NODE_ENV === 'development') {
-        logger.debug(
-          `Group permission check failed for: ${required.join(', ')}`,
-          {
-            groupID,
-            groupPermissions: permissions,
-            requiredPermissions: required,
-          },
-        );
-      }
-
-      return hasPermission;
-    } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        logger.error('Error fetching group permissions:', error);
-      }
-      return false;
+      const permissions =
+        session.user.role?.role_permissions?.map((item) => item.permission) ||
+        EMPTY_ARRAY;
+      return required.some((perm) => permissions.includes(perm));
     }
-  }
-
-  // Session-based permission check (backward compatibility)
-  if (!session?.user) {
+  } catch (error) {
     if (process.env.NODE_ENV === 'development') {
-      logger.warn('checkAccess called without valid session');
+      logger.error('Permission check failed:', error);
     }
     return false;
   }
-
-  const permissions =
-    session.user.role?.role_permissions?.map((item) => item.permission) ||
-    EMPTY_ARRAY;
-
-  const hasPermission = required.some((perm) => permissions.includes(perm));
-
-  if (!hasPermission && process.env.NODE_ENV === 'development') {
-    logger.debug(
-      `Session permission check failed for: ${required.join(', ')}`,
-      {
-        userId: session.user.id,
-        userPermissions: permissions,
-        requiredPermissions: required,
-      },
-    );
-  }
-
-  return hasPermission;
 };
 
 /**
- * Custom hook for managing user permissions
- * @returns {object} Permission utilities and state
+ * Enhanced permissions hook
  */
 export const usePermissions = () => {
   const { data: session, status } = useSession();
-  const [groupPermissions, setGroupPermissions] = useState(EMPTY_OBJECT);
-  const [groupPermissionsLoading, setGroupPermissionsLoading] = useState(false);
-  const [groupPermissionsError, setGroupPermissionsError] = useState(null);
+  const [permissionsData, setPermissionsData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  // Use ref to track mount status and prevent memory leaks
   const isMountedRef = useRef(true);
   const abortControllerRef = useRef(null);
 
-  // Cleanup on unmount
+  // Cleanup
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      abortControllerRef.current?.abort();
     };
   }, []);
 
-  // Fetch group permissions with proper cleanup
-  useEffect(() => {
-    // Reset error state
-    setGroupPermissionsError(null);
-    setGroupPermissionsLoading(true);
+  // Fetch permissions
+  const fetchPermissions = useCallback(async (attempt = 0) => {
+    if (!isMountedRef.current) return;
 
-    // Create new abort controller for this request
+    setError(null);
+    setLoading(true);
+
+    abortControllerRef.current?.abort();
     abortControllerRef.current = new AbortController();
-    const { signal } = abortControllerRef.current;
 
-    const fetchGroupPermissions = async () => {
-      try {
-        const data = await getUserGroupPermissionsApi();
+    try {
+      const data = await getUserGroupPermissionsApi();
+      if (!isMountedRef.current) return;
 
-        // Check if component is still mounted and request wasn't aborted
-        if (!isMountedRef.current || signal.aborted) return;
+      setPermissionsData(data);
+      setLoading(false);
+      setRetryCount(0);
+    } catch (err) {
+      if (!isMountedRef.current) return;
 
-        const groups = data?.user_roles?.groups || EMPTY_ARRAY;
+      const isNetworkError =
+        err.name === 'NetworkError' || err.code === 'NETWORK_ERROR';
+      const shouldRetry = isNetworkError && attempt < MAX_RETRY_ATTEMPTS;
 
-        // Transform groups to permissions map
-        const permissionsMap = groups.reduce((acc, group) => {
-          if (group.group_id) {
-            acc[group.group_id] = normalizePermissions(group.permissions);
-          }
-          return acc;
-        }, {});
-
-        setGroupPermissions(permissionsMap);
-        setGroupPermissionsLoading(false);
-      } catch (error) {
-        if (!isMountedRef.current || signal.aborted) return;
-
-        setGroupPermissionsError(error);
-        setGroupPermissionsLoading(false);
-
-        if (process.env.NODE_ENV === 'development') {
-          logger.error('Error fetching group permissions:', error);
-        }
+      if (shouldRetry) {
+        setTimeout(
+          () => {
+            if (isMountedRef.current) {
+              setRetryCount(attempt + 1);
+              fetchPermissions(attempt + 1);
+            }
+          },
+          RETRY_DELAY * Math.pow(2, attempt),
+        );
+      } else {
+        setError(err);
+        setLoading(false);
+        setRetryCount(attempt);
       }
-    };
-
-    fetchGroupPermissions();
-
-    // Cleanup function
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
+    }
   }, []);
 
-  // Memoize user permissions to prevent unnecessary recalculations
-  const userPermissions = useMemo(() => {
-    if (!session?.user?.role?.role_permissions) return EMPTY_ARRAY;
+  useEffect(() => {
+    fetchPermissions();
+  }, [fetchPermissions]);
 
-    return session.user.role.role_permissions.map((item) => item.permission);
+  // Memoized values
+  const userPermissions = useMemo(() => {
+    return (
+      session?.user?.role?.role_permissions?.map((item) => item.permission) ||
+      EMPTY_ARRAY
+    );
   }, [session?.user?.role?.role_permissions]);
 
-  // Memoize computed values
-  const computedValues = useMemo(
-    () => ({
-      isLoading: status === 'loading' || groupPermissionsLoading,
-      isAuthenticated: status === 'authenticated' && !!session,
-      user: session?.user || null,
-      userRole: session?.user?.role || null,
-    }),
-    [status, groupPermissionsLoading, session],
-  );
+  const isAuthenticated = status === 'authenticated' && !!session;
+  const isLoading = status === 'loading' || loading;
 
-  // Check single permission
-  const hasPermission = useCallback(
-    (permission, groupID = null) => {
-      if (!permission) return false;
-
-      const required = normalizePermissions(permission);
-
-      // Group-based check
-      if (groupID && groupPermissions[groupID]) {
-        return required.some((perm) =>
-          groupPermissions[groupID].includes(perm),
-        );
-      }
-
-      // Session-based check
-      if (!session?.user) return false;
-      return required.some((perm) => userPermissions.includes(perm));
-    },
-    [groupPermissions, session?.user, userPermissions],
-  );
-
-  // Check if user has any of the provided permissions
-  const hasAnyPermission = useCallback(
-    (permissions, groupID = null) => {
-      if (!Array.isArray(permissions) || permissions.length === 0) return false;
-
-      // Group-based check
-      if (groupID && groupPermissions[groupID]) {
-        return permissions.some((perm) =>
-          groupPermissions[groupID].includes(perm),
-        );
-      }
-
-      // Session-based check
-      if (!session?.user) return false;
-      return permissions.some((perm) => userPermissions.includes(perm));
-    },
-    [groupPermissions, session?.user, userPermissions],
-  );
-
-  // Check if user has all provided permissions
-  const hasAllPermissions = useCallback(
-    (permissions, groupID = null) => {
-      if (!Array.isArray(permissions) || permissions.length === 0) return false;
-
-      // Group-based check
-      if (groupID && groupPermissions[groupID]) {
-        return permissions.every((perm) =>
-          groupPermissions[groupID].includes(perm),
-        );
-      }
-
-      // Session-based check
-      if (!session?.user) return false;
-      return permissions.every((perm) => userPermissions.includes(perm));
-    },
-    [groupPermissions, session?.user, userPermissions],
-  );
-
-  // Legacy compatibility function
-  const checkUserAccess = useCallback(
-    async (
-      permission,
+  // Core permission check function
+  const checkPermission = useCallback(
+    (
+      permissions,
       groupID = null,
       requiredRoleName = null,
       checkAirqoEmail = false,
+      mode = 'any', // 'any', 'all', 'single'
     ) => {
-      // For legacy compatibility, we need to use the checkAccess function
-      // which supports all these parameters
-      return checkAccess(
+      if (!session?.user) return false;
+
+      // Email validation
+      if (checkAirqoEmail && !isValidAirqoEmail(session.user.email)) {
+        return false;
+      }
+
+      const required = normalizePermissions(permissions);
+      if (required.length === 0) return false;
+
+      if (groupID && permissionsData) {
+        // Group-based check
+        const roleData = findRoleData(
+          permissionsData,
+          groupID,
+          requiredRoleName,
+        );
+        if (!roleData) return false;
+
+        const rolePermissions = normalizePermissions(roleData.permissions);
+
+        switch (mode) {
+          case 'all':
+            return required.every((perm) => rolePermissions.includes(perm));
+          case 'single':
+          case 'any':
+          default:
+            return required.some((perm) => rolePermissions.includes(perm));
+        }
+      } else {
+        // Session-based check
+        if (
+          requiredRoleName &&
+          session.user.role?.role_name !== requiredRoleName
+        ) {
+          return false;
+        }
+
+        switch (mode) {
+          case 'all':
+            return required.every((perm) => userPermissions.includes(perm));
+          case 'single':
+          case 'any':
+          default:
+            return required.some((perm) => userPermissions.includes(perm));
+        }
+      }
+    },
+    [session, permissionsData, userPermissions],
+  );
+
+  // Permission check methods
+  const hasPermission = useCallback(
+    (permission, groupID, requiredRoleName, checkAirqoEmail) =>
+      checkPermission(
+        permission,
+        groupID,
+        requiredRoleName,
+        checkAirqoEmail,
+        'single',
+      ),
+    [checkPermission],
+  );
+
+  const hasAnyPermission = useCallback(
+    (permissions, groupID, requiredRoleName, checkAirqoEmail) =>
+      checkPermission(
+        permissions,
+        groupID,
+        requiredRoleName,
+        checkAirqoEmail,
+        'any',
+      ),
+    [checkPermission],
+  );
+
+  const hasAllPermissions = useCallback(
+    (permissions, groupID, requiredRoleName, checkAirqoEmail) =>
+      checkPermission(
+        permissions,
+        groupID,
+        requiredRoleName,
+        checkAirqoEmail,
+        'all',
+      ),
+    [checkPermission],
+  );
+
+  const checkUserAccess = useCallback(
+    async (permission, groupID, requiredRoleName, checkAirqoEmail) =>
+      checkAccess(
         permission,
         groupID,
         session,
         requiredRoleName,
         checkAirqoEmail,
-      );
-    },
+      ),
     [session],
   );
 
-  // Retry function for failed group permissions fetch
-  const retryGroupPermissions = useCallback(() => {
-    if (!groupPermissionsLoading) {
-      setGroupPermissionsError(null);
-      setGroupPermissionsLoading(true);
-
-      // Trigger re-fetch by updating a dependency
-      // This will cause the useEffect to run again
-      setGroupPermissions(EMPTY_OBJECT);
+  const retryPermissions = useCallback(() => {
+    if (!loading && isMountedRef.current) {
+      fetchPermissions(0);
     }
-  }, [groupPermissionsLoading]);
+  }, [loading, fetchPermissions]);
 
   return {
-    // Session data
+    // State
     session,
     status,
-    ...computedValues,
-
-    // Permission data
+    isLoading,
+    isAuthenticated,
+    user: session?.user || null,
+    userRole: session?.user?.role || null,
     userPermissions,
-    groupPermissions,
-    groupPermissionsLoading,
-    groupPermissionsError,
+    error,
+    retryCount,
 
-    // Permission check functions
+    // Methods
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
     checkUserAccess,
+    retryPermissions,
 
-    // Utility functions
-    retryGroupPermissions,
+    // Utils
+    isValidAirqoEmail,
   };
 };
