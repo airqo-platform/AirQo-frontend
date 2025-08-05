@@ -89,16 +89,10 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
       description: "Advanced Analytics Platform",
       icon: <BarChart2 className="w-7 h-7 text-purple-600" />,
     },
-    {
-      name: "Dashboard",
-      url: "/dashboard",
-      description: "Main Dashboard",
-      icon: <LayoutDashboard className="w-7 h-7 text-yellow-600" />,
-    },
   ];
 
   const handleLogoClick = useCallback(() => {
-    router.push("/dashboard");
+    router.push("/home");
   }, [router]);
 
   const LogoComponent = useCallback(

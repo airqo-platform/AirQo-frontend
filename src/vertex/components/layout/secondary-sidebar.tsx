@@ -192,7 +192,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
 {activeModule === 'network' && (
           <>
             <NavItem
-              href="/dashboard"
+              href="/home"
               icon={AqHomeSmile}
               label="Home"
               isCollapsed={isCollapsed}

@@ -44,7 +44,7 @@ export default function Layout({ children }: LayoutProps) {
     if (module === "admin") {
       router.push("/user-management");
     } else {
-      router.push("/dashboard");
+      router.push("/home");
     }
   };
 

@@ -42,7 +42,7 @@ export const useContextAwareRouting = () => {
     // Check if current route is accessible in new context
     const isRouteAccessible = (route: string): boolean => {
       // Dashboard is always accessible
-      if (route === '/dashboard') return true;
+      if (route === '/home') return true;
       
       // Check if route maps to a sidebar config property
       const configKey = routeToSidebarConfig[route];
@@ -65,7 +65,7 @@ export const useContextAwareRouting = () => {
     // If current route is not accessible, redirect to dashboard
     if (!isRouteAccessible(pathname)) {
       console.log(`Route ${pathname} not accessible in ${userContext} context, redirecting to dashboard`);
-      router.push('/dashboard');
+      router.push('/home');
     }
   }, [userContext, pathname, isLoading, getSidebarConfig, router]);
 }; 

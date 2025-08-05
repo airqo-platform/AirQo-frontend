@@ -13,7 +13,7 @@ export default function Page() {
     if (!isAuthenticated) {
       router.push("/login");
     } else {
-      router.push("/dashboard"); // or whatever your main authenticated route is
+      router.push("/home"); // or whatever your main authenticated route is
     }
   }, [isAuthenticated, router]);
 
