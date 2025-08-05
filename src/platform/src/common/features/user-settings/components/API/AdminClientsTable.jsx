@@ -58,6 +58,7 @@ const AdminClientsTable = () => {
     } finally {
       setIsLoadingActivation(false);
       setConfirmActivation(false);
+      setSelectedClient(null);
     }
   };
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { usePathname, useParams } from 'next/navigation';
+import { usePathname, useParams, useRouter } from 'next/navigation';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
 import { AqBarChart07, AqXClose } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -32,6 +32,7 @@ import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
+  const router = useRouter();
   const { hasAnyPermission, isLoading } = usePermissions();
   const { id: activeGroupID } = useGetActiveGroup();
   const canViewAdminPanel = hasAnyPermission(
@@ -108,14 +109,10 @@ const GlobalSideBarDrawer = () => {
         if (subroute.path.startsWith('http')) {
           // External links
           window.open(subroute.path, '_blank', 'noopener,noreferrer');
-        } else if (subroute.path.includes('/admin')) {
-          // Admin routes - use direct navigation for better performance
-          window.location.href = subroute.path;
         } else {
-          // Internal routes
-          window.location.href = subroute.path;
+          // Internal routes - use Next.js router for SPA navigation
+          router.push(subroute.path);
         }
-
         // Close drawer immediately after starting navigation
         closeDrawer();
       } catch {

@@ -228,7 +228,7 @@ export const usePermissions = () => {
         abortControllerRef.current.abort();
       }
     };
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
   // Memoize user permissions to prevent unnecessary recalculations
   const userPermissions = useMemo(() => {
@@ -309,13 +309,23 @@ export const usePermissions = () => {
 
   // Legacy compatibility function
   const checkUserAccess = useCallback(
-    (
+    async (
       permission,
       groupID = null,
       requiredRoleName = null,
       checkAirqoEmail = false,
-    ) => hasPermission(permission, groupID, requiredRoleName, checkAirqoEmail),
-    [hasPermission],
+    ) => {
+      // For legacy compatibility, we need to use the checkAccess function
+      // which supports all these parameters
+      return checkAccess(
+        permission,
+        groupID,
+        session,
+        requiredRoleName,
+        checkAirqoEmail,
+      );
+    },
+    [session],
   );
 
   // Retry function for failed group permissions fetch
@@ -346,7 +356,7 @@ export const usePermissions = () => {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
-    checkUserAccess, // Legacy compatibility
+    checkUserAccess,
 
     // Utility functions
     retryGroupPermissions,
