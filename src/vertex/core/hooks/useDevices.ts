@@ -152,10 +152,8 @@ export const useClaimDevice = () => {
 
   return useMutation<DeviceClaimResponse, AxiosError<ErrorResponse>, DeviceClaimRequest>({
     mutationFn: devices.claimDevice,
-    onSuccess: (data) => {
-      toast("Device Claimed Successfully!", {
-        description: `${data.device.long_name} is now yours.`,
-      });
+    onSuccess: () => {
+      toast("Device Claimed Successfully!");
       // Invalidate and refetch user devices
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
@@ -173,7 +171,7 @@ export const useMyDevices = (userId: string, organizationId?: string) => {
   
   return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
     queryKey: ["myDevices", userId, organizationId || activeGroup?._id],
-    queryFn: () => devices.getMyDevices(userId, organizationId),
+    queryFn: () => devices.getMyDevices(userId),
     enabled: !!userId,
     staleTime: 60000, // 1 minute
   });

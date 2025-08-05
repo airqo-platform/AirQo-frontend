@@ -170,12 +170,9 @@ export const devices = {
     }
   },
 
-  getMyDevices: async (userId: string, organizationId?: string): Promise<MyDevicesResponse> => {
+  getMyDevices: async (userId: string): Promise<MyDevicesResponse> => {
     try {
       const params = new URLSearchParams({ user_id: userId });
-      if (organizationId) {
-        params.append('organization_id', organizationId);
-      }
       
       const response = await jwtApiClient.get<MyDevicesResponse>(
         `/devices/my-devices?${params.toString()}`,
