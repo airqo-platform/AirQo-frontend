@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ReusableTable from '@/common/components/Table/ReusableTable';
-import CloseIcon from '@/icons/close_icon';
-import CheckIcon from '@/icons/tickIcon';
-import Toast from '@/components/Toast';
-import DialogWrapper from '@/components/Modal/DialogWrapper';
+import { AqXClose, AqCheckDone01 } from '@airqo/icons-react';
+import CustomToast from '@/common/components/Toast/CustomToast';
+import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import {
   getAllUserClientsApi,
   activateUserClientApi,
@@ -13,11 +12,6 @@ import { performRefresh } from '@/lib/store/services/apiClient';
 
 const AdminClientsTable = () => {
   const dispatch = useDispatch();
-  const [errorState, setErrorState] = useState({
-    isError: false,
-    message: '',
-    type: '',
-  });
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingActivation, setIsLoadingActivation] = useState(false);
   const [isLoadingDeactivation, setIsLoadingDeactivation] = useState(false);
@@ -45,8 +39,9 @@ const AdminClientsTable = () => {
     fetchData();
   }, [refresh, my_clients]);
 
-  const setError = (message, type) =>
-    setErrorState({ isError: true, message, type });
+  const setError = (message, type) => {
+    CustomToast({ type, message });
+  };
 
   const handleActivate = async () => {
     setIsLoadingActivation(true);
@@ -148,7 +143,7 @@ const AdminClientsTable = () => {
                 : 'Activate client'
             }
           >
-            <CheckIcon />
+            <AqCheckDone01 />
           </div>
           <div
             className={`w-9 h-9 p-2.5 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 flex justify-center items-center ${
@@ -166,7 +161,7 @@ const AdminClientsTable = () => {
                 : 'Deactivate client'
             }
           >
-            <CloseIcon />
+            <AqXClose />
           </div>
         </div>
       ),
@@ -190,9 +185,7 @@ const AdminClientsTable = () => {
 
   return (
     <div className="mb-2">
-      {errorState.isError && (
-        <Toast type={errorState.type} message={errorState.message} />
-      )}
+      {/* Notification handled by showCustomToast, no need to render CustomToast here */}
       <ReusableTable
         title="API Clients"
         data={clients}
@@ -219,30 +212,46 @@ const AdminClientsTable = () => {
           </div>
         }
       />
-      <DialogWrapper
-        open={confirmActivation}
+      <ReusableDialog
+        isOpen={confirmActivation}
         onClose={() => setConfirmActivation(false)}
-        handleClick={handleActivate}
-        primaryButtonText="Activate"
-        loading={isLoadingActivation}
+        title="Activate client"
+        showFooter={true}
+        primaryAction={{
+          label: isLoadingActivation ? 'Activating...' : 'Activate',
+          onClick: handleActivate,
+          disabled: isLoadingActivation,
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onClick: () => setConfirmActivation(false),
+          disabled: isLoadingActivation,
+          variant: 'outlined',
+        }}
+        size="md"
       >
-        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
-          Activate client
-        </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">{`Are you sure you want to activate ${selectedClient?.name} client?`}</p>
-      </DialogWrapper>
-      <DialogWrapper
-        open={confirmDeactivation}
+      </ReusableDialog>
+      <ReusableDialog
+        isOpen={confirmDeactivation}
         onClose={() => setConfirmDeactivation(false)}
-        handleClick={handleDeactivate}
-        primaryButtonText="Deactivate"
-        loading={isLoadingDeactivation}
+        title="Deactivate client"
+        showFooter={true}
+        primaryAction={{
+          label: isLoadingDeactivation ? 'Deactivating...' : 'Deactivate',
+          onClick: handleDeactivate,
+          disabled: isLoadingDeactivation,
+        }}
+        secondaryAction={{
+          label: 'Cancel',
+          onClick: () => setConfirmDeactivation(false),
+          disabled: isLoadingDeactivation,
+          variant: 'outlined',
+        }}
+        size="md"
       >
-        <h3 className="text-lg font-medium text-gray-700 dark:text-gray-300">
-          Deactivate client
-        </h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">{`Are you sure you want to deactivate ${selectedClient?.name} client?`}</p>
-      </DialogWrapper>
+      </ReusableDialog>
     </div>
   );
 };
