@@ -47,7 +47,6 @@ const GlobalSideBarDrawer = () => {
     'AIRQO_ADMIN',
     true,
   );
-  console.log('canViewAdminPanel:', canViewAdminPanel);
   const params = useParams();
   const isGlobalSidebarOpen = useSelector((state) => {
     try {
