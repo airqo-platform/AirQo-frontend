@@ -2,19 +2,17 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Building2, User } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
 import { setActiveGroup, setUserContext } from "@/core/redux/slices/userSlice";
 import type { Group } from "@/app/types/users";
 import OrganizationModal from "./organization-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
+import { AqGrid01 } from "@airqo/icons-react";
 
 const formatTitle = (title: string) => {
   if (!title) return "";
-  return title
-    .replace(/[_-]/g, " ")
-    .toUpperCase();
+  return title.replace(/[_-]/g, " ").toUpperCase();
 };
 
 const OrganizationPicker: React.FC = () => {
@@ -26,45 +24,52 @@ const OrganizationPicker: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isPersonalContext } = useUserContext();
 
-  const handleOrganizationChange = (group: Group | 'private') => {
+  const handleOrganizationChange = (group: Group | "private") => {
     // Validate context change before allowing it
     let newContext: UserContext;
-    if (group === 'private') {
-      newContext = 'personal';
+    if (group === "private") {
+      newContext = "personal";
     } else {
-      newContext = group.grp_title.toLowerCase() === 'airqo' ? 'airqo-internal' : 'external-org';
+      newContext =
+        group.grp_title.toLowerCase() === "airqo"
+          ? "airqo-internal"
+          : "external-org";
     }
-    
+
     // Validate context change
-    if (newContext === 'airqo-internal' && !isAirQoStaff) {
+    if (newContext === "airqo-internal" && !isAirQoStaff) {
       // Non-staff users cannot access AirQo internal context
-      console.error('Unauthorized context change attempt: non-staff user trying to access airqo-internal');
+      console.error(
+        "Unauthorized context change attempt: non-staff user trying to access airqo-internal"
+      );
       return;
     }
-    
-    if (group === 'private') {
+
+    if (group === "private") {
       // Set to private mode - keep AirQo as active group but set context to personal
-      const airqoGroup = userGroups.find(g => g.grp_title.toLowerCase() === 'airqo');
+      const airqoGroup = userGroups.find(
+        (g) => g.grp_title.toLowerCase() === "airqo"
+      );
       if (airqoGroup) {
         dispatch(setActiveGroup(airqoGroup));
-        dispatch(setUserContext('personal'));
+        dispatch(setUserContext("personal"));
         localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
-        localStorage.setItem("userContext", 'personal');
+        localStorage.setItem("userContext", "personal");
       } else {
         // If no AirQo group found, still set context to personal
-        dispatch(setUserContext('personal'));
-        localStorage.setItem("userContext", 'personal');
+        dispatch(setUserContext("personal"));
+        localStorage.setItem("userContext", "personal");
       }
     } else {
       // Set to organization mode
       dispatch(setActiveGroup(group));
       // Determine context based on organization
-      if (group.grp_title.toLowerCase() === 'airqo') {
-        dispatch(setUserContext('airqo-internal'));
-        localStorage.setItem("userContext", 'airqo-internal');
+      if (group.grp_title.toLowerCase() === "airqo") {
+        dispatch(setUserContext("airqo-internal"));
+        localStorage.setItem("userContext", "airqo-internal");
       } else {
-        dispatch(setUserContext('external-org'));
-        localStorage.setItem("userContext", 'external-org');
+        dispatch(setUserContext("external-org"));
+        localStorage.setItem("userContext", "external-org");
       }
       localStorage.setItem("activeGroup", JSON.stringify(group));
     }
@@ -73,29 +78,23 @@ const OrganizationPicker: React.FC = () => {
 
   const getDisplayTitle = () => {
     if (isPersonalContext) {
-      return "Private Mode";
+      return "PRIVATE MODE";
     }
     return formatTitle(activeGroup?.grp_title || "") || "Select Organization";
-  };
-
-  const getDisplayIcon = () => {
-    if (isPersonalContext) {
-      return <User size={16} className="text-blue-600" />;
-    }
-    return <Building2 size={16} className="text-muted-foreground" />;
   };
 
   return (
     <>
       <Button
         variant="outline"
-        className="flex items-center gap-2"
+        className={`flex items-center gap-0.5 space-x-2 rounded-lg border border-primary/20 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-primary/30 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus:ring-primary/70 dark:focus:ring-offset-gray-800 transition-colors duration-200`}
         onClick={() => setIsModalOpen(true)}
       >
-        {getDisplayIcon()}
-        <span className="truncate">
-          {getDisplayTitle()}
-        </span>
+        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary dark:bg-primary/20 dark:text-primary">
+          {getDisplayTitle()?.charAt(0)?.toUpperCase() || "O"}
+        </div>
+        <span className="max-w-32 truncate">{getDisplayTitle()}</span>
+        <AqGrid01 className="h-4 w-4" />
       </Button>
 
       <OrganizationModal
@@ -111,4 +110,4 @@ const OrganizationPicker: React.FC = () => {
   );
 };
 
-export default OrganizationPicker; 
+export default OrganizationPicker;

@@ -11,19 +11,9 @@ import {
 import { CustomDialogContent } from "@/components/ui/custom-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, Check, MoreVertical, User, Building2 } from "lucide-react";
+import { AqPlus, AqSearchMd, AqUser02 } from '@airqo/icons-react';
 import type { Group } from "@/app/types/users";
-import { useRouter } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { UserContext } from "@/core/redux/slices/userSlice";
-import { useMyDevices } from "@/core/hooks/useDevices";
-import { useAppSelector } from "@/core/redux/hooks";
 
 interface OrganizationModalProps {
   isOpen: boolean;
@@ -51,16 +41,8 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   isAirQoStaff,
   onOrganizationChange,
 }) => {
-  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
-  const userDetails = useAppSelector((state) => state.user.userDetails);
-
-  // Check if user has personal devices
-  const { data: myDevicesData } = useMyDevices(
-    userDetails?._id || "",
-    activeGroup?._id
-  );
 
   useEffect(() => {
     const storedRecents = localStorage.getItem("recentOrganizations");
@@ -124,55 +106,41 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   }
 
   const PrivateModeItem = () => {
-    const personalDeviceCount = myDevicesData?.devices?.filter(
-      device => device.owner_id === userDetails?._id
-    ).length || 0;
-
     return (
       <div
         onClick={() => handleSelection('private')}
-        className="flex items-center justify-between p-3 hover:bg-blue-50 rounded-md cursor-pointer border border-blue-200 bg-blue-50/50"
+        className={`flex items-center justify-between p-3 hover:bg-blue-50 rounded-xl cursor-pointer ${userContext === 'personal' && "border border-blue-200 bg-blue-50/50"}`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-            <User size={16} className="text-blue-600" />
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            <AqUser02 size={16} className="text-blue-600" />
           </div>
           <div>
-            <p className="font-medium text-blue-900">Private Mode</p>
-            <p className="text-sm text-blue-700">
-              {personalDeviceCount > 0 
-                ? `${personalDeviceCount} personal device${personalDeviceCount === 1 ? '' : 's'}`
-                : 'Claim devices to get started'
-              }
-            </p>
+            <p className="font-medium uppercase text-sm">Private Mode</p>
           </div>
         </div>
-        {userContext === 'personal' && <Check size={16} className="text-blue-600" />}
+        {userContext === 'personal' && <div className="bg-blue-600 h-2 w-2 rounded-full" />}
       </div>
     );
   };
 
   const OrganizationItem = ({ group }: { group: Group }) => {
-    const isAirQoOrg = group.grp_title.toLowerCase() === 'airqo';
     const isActive = activeGroup?._id === group._id && userContext !== 'personal';
     
     return (
       <div
         onClick={() => handleSelection(group)}
-        className="flex items-center justify-between p-3 hover:bg-accent rounded-md cursor-pointer"
+        className={`flex items-center justify-between p-3 hover:bg-accent rounded-xl cursor-pointer ${isActive && "border border-blue-200 bg-blue-50/50"}`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
-            <Building2 size={16} className="text-muted-foreground" />
+          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center uppercase text-sm">
+            {group.grp_title.charAt(0)}
           </div>
           <div>
-            <p className="font-medium">{formatTitle(group.grp_title)}</p>
-            <p className="text-sm text-muted-foreground">
-              {isAirQoOrg ? 'AirQo Organization' : `ID: ${group._id}`}
-            </p>
+            <p className="font-medium uppercase text-sm">{formatTitle(group.grp_title)}</p>
           </div>
         </div>
-        {isActive && <Check size={16} className="text-primary" />}
+        {isActive && <div className="bg-blue-600 h-2 w-2 rounded-full" />}
       </div>
     );
   };
@@ -207,36 +175,19 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <CustomDialogContent className="max-w-3xl h-[90vh] flex flex-col p-0">
-        <DialogHeader className="p-6 pb-0 flex-shrink-0">
+      <CustomDialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 gap-0">
+        <DialogHeader className="p-6 pb-2 flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
             <span>Organizations</span>
+
             <div className="flex items-center gap-2">
-              <Button onClick={handleCreateNew}>New Organization</Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <MoreVertical className="h-5 w-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => router.push('/organizations')}>
-                    Manage Organizations
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/profile')}>
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/access-control')}>
-                    Roles/Permissions
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button onClick={handleCreateNew} className="text-xs"><AqPlus size={48} /> Request New Organization</Button>
             </div>
           </DialogTitle>
         </DialogHeader>
         <div className="px-6 pb-2 border-b flex-shrink-0">
             <div className="relative w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <AqSearchMd className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                     placeholder="Search organizations by name" 
                     className="pl-10" 
@@ -245,20 +196,9 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
                 />
             </div>
         </div>
-        <Tabs defaultValue="recent" className="flex-grow flex flex-col min-h-0">
-            <TabsList className="mx-6 justify-start flex-shrink-0">
-                <TabsTrigger value="recent">Recent</TabsTrigger>
-                <TabsTrigger value="all">All</TabsTrigger>
-            </TabsList>
-            <div className="flex-grow overflow-hidden">
-                <TabsContent value="recent" className="h-full overflow-y-auto px-6">
-                    {renderOrganizationList(recentGroups)}
-                </TabsContent>
-                <TabsContent value="all" className="h-full overflow-y-auto px-6">
-                    {renderOrganizationList(filteredGroups)}
-                </TabsContent>
-            </div>
-        </Tabs>
+        <div className="flex-grow flex flex-col min-h-0 px-6">
+          {renderOrganizationList(filteredGroups)}
+        </div>
         <DialogFooter className="p-4 border-t flex-shrink-0">
             <DialogClose asChild>
                 <Button variant="outline">Close</Button>

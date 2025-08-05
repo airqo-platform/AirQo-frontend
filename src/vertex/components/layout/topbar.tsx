@@ -3,7 +3,8 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { UserCircle, LogOut, GridIcon, Moon, Sun, Menu, BarChart2, BookOpen, LayoutDashboard, Settings } from "lucide-react"
+import { Moon, Sun, BarChart2, BookOpen, LayoutDashboard, Settings } from "lucide-react"
+import { AqMenu02, AqDotsGrid, AqUser02 } from '@airqo/icons-react';
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -28,7 +29,6 @@ interface TopbarProps {
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false)
   const currentUser = useAppSelector((state) => state.user.userDetails)
-  const activeGroup = useAppSelector((state) => state.user.activeGroup)
   const dispatch = useDispatch();
   const router = useRouter();
 
@@ -101,18 +101,22 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
       <div className="flex w-full items-center justify-between px-4 bg-white rounded-2xl mx-1 mt-1 border border-gray-100">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" onClick={onMenuClick}>
-            <Menu className="h-5 w-5" />
+            <AqMenu02 size={48} color="#0A84FF" />
           </Button>
-          <Image
-            src="/images/airqo_logo.svg"
-            alt="Logo"
-            width={32}
-            height={32}
-          />
-          <span className="font-bold text-lg">Vertex</span>
+          <div className="h-12 w-12 overflow-hidden transition-all duration-300">
+            <Image
+              src="/images/airqo_logo.svg"
+              alt="Logo"
+              width={48}
+              height={48}
+              priority
+              className="object-cover transition-opacity duration-500"
+            />
+          </div>          
+          <span className="font-medium text-lg tracking-tight">Vertex</span>
         </div>
 
-        <div className="flex items-center gap-x-3 ml-auto">
+        <div className="flex items-center gap-x-1 ml-auto">
           <OrganizationPicker />
 
           <DropdownMenu>
@@ -122,10 +126,9 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
-                      className="flex items-center gap-1 text-muted-foreground hover:text-foreground md:gap-2"
+                      className="flex items-center gap-1 hover:text-foreground md:gap-2 p-0 m-0 rounded-full w-10 h-10"
                     >
-                      <GridIcon className="h-5 w-5" />
-                      <span className="hidden text-sm font-medium md:inline">Apps</span>
+                      <AqDotsGrid className="w-8 h-8 text-gray-600" />
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
@@ -152,46 +155,45 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="flex items-center gap-2 px-2 md:pl-2 md:pr-3 cursor-pointer">
-                <Avatar className="h-8 w-8">
+              <Button variant="ghost" className="flex items-center cursor-pointer hover:bg-transparent p-0 m-0">
+                <Avatar className="h-10 w-10">
                   <AvatarImage src={currentUser?.profilePicture || ""} alt={getUserName()} />
                   <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="flex flex-col space-y-1 p-2">
-                <p className="text-sm font-medium leading-none">{getUserName()}</p>
-                <p className="text-xs leading-none text-muted-foreground">{currentUser?.email}</p>
+            <DropdownMenuContent align="end" className="w-56 px-2">
+              <div className="flex items-center">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={currentUser?.profilePicture || ""} alt={getUserName()} />
+                  <AvatarFallback className="bg-primary/10 text-primary">{getInitials()}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col space-y-1 p-2">
+                  <p className="text-sm font-medium leading-none">{getUserName().length > 18 ? getUserName().slice(0, 18) + "..." : getUserName()}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{currentUser?.email}</p>
+                </div>
               </div>
+              
               <DropdownMenuSeparator />
-              {currentUser?.organization && (
-                <>
-                  <div className="p-2">
-                    <p className="text-xs font-medium leading-none text-muted-foreground">ORGANIZATION</p>
-                    <p className="text-sm">
-                      {activeGroup?.grp_title.replace(/-/g, " ").replace(/_/g, " ").toUpperCase()}
-                    </p>
-                  </div>
-                  <DropdownMenuSeparator />
-                </>
-              )}
+
               <DropdownMenuItem asChild>
                 <Link href="/profile" className="flex items-center gap-2">
-                  <UserCircle className="h-4 w-4" />
-                  Profile Settings
+                  <AqUser02 className="h-4 w-4" />
+                  My Profile
                 </Link>
               </DropdownMenuItem>
+
+              <DropdownMenuSeparator />
+
               <DropdownMenuItem onClick={toggleDarkMode} className="flex items-center gap-2">
                 {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
                 {darkMode ? "Light Mode" : "Dark Mode"}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="flex items-center gap-2 text-destructive focus:text-destructive"
+                className="flex items-center"
                 onClick={handleLogout}
               >
-                <LogOut className="h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
