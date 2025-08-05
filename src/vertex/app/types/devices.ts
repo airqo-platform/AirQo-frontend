@@ -83,6 +83,7 @@ export interface Device {
   claim_status?: "claimed" | "unclaimed";
   claimed_at?: string;
   site_name?: string; // Optional site name for display purposes
+  [key: string]: unknown;
 }
 
 export interface DevicesSummaryResponse {

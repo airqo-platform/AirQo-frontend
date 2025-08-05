@@ -15,6 +15,7 @@ import {
   Rocket,
   Share2
 } from "lucide-react";
+import { AqCollocation } from '@airqo/icons-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,37 +146,15 @@ const MyDevicesPage = () => {
             </div>
             <Button onClick={() => router.push("/devices/claim")}>
               <Plus className="mr-2 h-4 w-4" />
-              Add New Device
+              Claim Device
             </Button>
           </div>
-
-          {/* Error Banner */}
-          <Card className="mb-6 border-destructive">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="h-2 w-2 bg-destructive rounded-full"></div>
-                  <div>
-                    <p className="font-medium text-destructive">Error loading devices</p>
-                    <p className="text-sm text-muted-foreground">{error.message}</p>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => window.location.reload()}
-                >
-                  Retry
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Empty State */}
           <Card>
             <CardContent className="pt-12 pb-12">
               <div className="text-center">
-                <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <AqCollocation className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Unable to load devices</h3>
                 <p className="text-muted-foreground mb-4">
                   There was an error loading your devices. Please try again or contact support if the problem persists.
@@ -199,79 +178,20 @@ const MyDevicesPage = () => {
 
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
-      <div className="container mx-auto p-6">
+      <div>
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
             <h1 className="text-2xl font-semibold">My Devices</h1>
             <p className="text-muted-foreground">
               Manage your personal and shared devices
-              {activeGroup && (
-                <span className="ml-2 text-sm">
-                  • Viewing in {activeGroup.grp_title}
-                </span>
-              )}
             </p>
           </div>
           <Button onClick={() => router.push("/devices/claim")}>
             <Plus className="mr-2 h-4 w-4" />
-            Add New Device
+            Claim Device
           </Button>
         </div>
-
-        {/* Stats Cards */}
-        {devicesData && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Total Devices</p>
-                    <p className="text-2xl font-bold">{devicesData.total_devices}</p>
-                  </div>
-                  <Building2 className="h-8 w-8 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Deployed</p>
-                    <p className="text-2xl font-bold">{devicesData.deployed_devices}</p>
-                  </div>
-                  <Rocket className="h-8 w-8 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Online</p>
-                    <p className="text-2xl font-bold">
-                      {filteredDevices.filter(d => d.isOnline).length}
-                    </p>
-                  </div>
-                  <Wifi className="h-8 w-8 text-green-500" />
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">My Devices</p>
-                    <p className="text-2xl font-bold">
-                      {filteredDevices.filter(d => d.owner_id === userDetails?._id).length}
-                    </p>
-                  </div>
-                  <User className="h-8 w-8 text-muted-foreground" />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
         {/* Filters */}
         <Card className="mb-6">
@@ -415,7 +335,7 @@ const MyDevicesPage = () => {
           <Card>
             <CardContent className="pt-12 pb-12">
               <div className="text-center">
-                <Building2 className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <AqCollocation className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No devices found</h3>
                 <p className="text-muted-foreground mb-4">
                   {searchQuery || ownershipFilter !== "all" || statusFilter !== "all"

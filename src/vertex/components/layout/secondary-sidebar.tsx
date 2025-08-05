@@ -15,11 +15,16 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { usePathname } from "next/navigation";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import Card from "../shared/card/CardWrapper";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
   activeModule: string;
   toggleSidebar: () => void;
+}
+
+const styles = {
+  scrollbar: "scrollbar-thumb-gray-300 scrollbar-track-gray-100"
 }
 
 const SidebarSectionHeading = ({ children, isCollapsed }: { children: React.ReactNode; isCollapsed: boolean }) => (
@@ -160,16 +165,16 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
   const contextPermissions = getContextPermissions();
 
   return (
+    <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
     <div
-      className={`relative h-full bg-white rounded-2xl flex flex-col p-4 transition-all duration-300 ease-in-out z-30 mx-1 my-1 border border-gray-100
-                ${isCollapsed ? "w-16" : "w-64"}
-            `}
+      className={`transition-all duration-300 ease-in-out relative z-50 p-1
+          ${isCollapsed ? 'w-[75px]' : 'w-[256px]'} h-[calc(100vh-4rem)]`}
     >
       <Button
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className={`absolute top-4 right-[-18px] h-6 w-6 rounded-full bg-white shadow-sm border z-50`}
+        className={`absolute flex rounded-full top-4 -right-[6px] z-50 shadow-lg justify-center items-center border w-6 h-6 bg-white border-gray-200 text-gray-800 hover:shadow-xl transition-all duration-200`}
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4 text-gray-700" />
@@ -177,9 +182,14 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
           <ChevronLeft className="h-4 w-4 text-gray-700" />
         )}
       </Button>
-
-      <nav className="flex-1 space-y-2">
-        {activeModule === 'network' && (
+      <Card
+          className="h-full relative overflow-hidden"
+          padding={isCollapsed ? 'p-2' : 'p-3'}
+          overflow
+          overflowType="auto"
+          contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
+        >
+{activeModule === 'network' && (
           <>
             <NavItem
               href="/dashboard"
@@ -311,7 +321,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
             )}
           </>
         )}
-      </nav>
+        </Card>
 
       {/* Account Section at the bottom */}
       <div className="mt-auto">
@@ -319,6 +329,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
         <NavItem href="/profile" icon={AqUser03} label="Profile" isCollapsed={isCollapsed} />
       </div>
     </div>
+    </aside>
   );
 };
 
