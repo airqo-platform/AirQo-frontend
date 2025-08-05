@@ -98,13 +98,17 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   }
 
   const filteredGroups = useMemo(() => {
+    if (!userGroups) return [];
+    
     let groups = userGroups.filter((group) =>
-        group.grp_title.toLowerCase().includes(searchTerm.toLowerCase())
+        group.grp_title && 
+        group.grp_title.toLowerCase().includes(searchTerm?.toLowerCase() || '')
     );
 
     // Filter out AirQo organization for non-staff users
     if (!isAirQoStaff) {
       groups = groups.filter(group => 
+        group.grp_title && 
         group.grp_title.toLowerCase() !== 'airqo'
       );
     }

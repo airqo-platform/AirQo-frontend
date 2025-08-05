@@ -4,16 +4,12 @@ import React, { useState } from "react";
 import Link from "next/link";
 import {
   Users,
-  Radio,
-  Building2,
-  UserCircle,
-  MapIcon,
   ChevronRight,
   ChevronLeft,
   Shield,
-  LayoutDashboard,
   ChevronDown,
 } from "lucide-react";
+import { AqHomeSmile, AqMonitor, AqGlobe05, AqUser03, AqMarkerPin01 } from '@airqo/icons-react';
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
@@ -52,7 +48,7 @@ const NavItem = ({ href, icon: Icon, label, isCollapsed, disabled = false, toolt
             style={{ position: 'relative' }}
           >
             {isActive && !isCollapsed && (
-              <span className="absolute left-0 top-2 bottom-2 w-1 rounded-full bg-blue-600" />
+              <span className="absolute -left-2 top-[17px] bottom-2 w-1 rounded-full bg-blue-600 h-3" />
             )}
             <Icon size={20} className="shrink-0" />
             <span className={isCollapsed ? "hidden" : "block"}>{label}</span>
@@ -85,9 +81,9 @@ const SubMenuItem = ({ href, label, disabled = false, tooltip, activeOverride }:
                 ${disabled ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}
             style={{ position: 'relative' }}
           >
-            {isActive && (
-              <span className="absolute left-0 top-1 bottom-1 w-1 rounded-full bg-blue-600" />
-            )}
+            {/* {isActive && (
+              <span className="absolute -left-1 top-[13px] bottom-1 w-1 h-3 rounded-full bg-blue-600" />
+            )} */}
             <span>{label}</span>
           </Link>
         </TooltipTrigger>
@@ -187,8 +183,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
           <>
             <NavItem
               href="/dashboard"
-              icon={LayoutDashboard}
-              label="Dashboard"
+              icon={AqHomeSmile}
+              label="Home"
               isCollapsed={isCollapsed}
               disabled={false}
             />
@@ -197,7 +193,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
             {sidebarConfig.showNetworkMap && (
               <NavItem
                 href="/network-map"
-                icon={MapIcon}
+                icon={AqGlobe05}
                 label="Network Map"
                 isCollapsed={isCollapsed}
                 disabled={false}
@@ -213,7 +209,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
             {contextPermissions.canViewDevices && (
               <SidebarDropdown
                 label="Devices"
-                icon={Radio}
+                icon={AqMonitor}
                 isCollapsed={isCollapsed}
                 defaultOpen={true}
               >
@@ -249,15 +245,15 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
             )}
 
             {/* Sites - only for non-personal contexts */}
-            {/* {sidebarConfig.showSites && contextPermissions.canViewSites && (
+            {sidebarConfig.showSites && contextPermissions.canViewSites && (
               <NavItem
                 href="/sites"
-                icon={MapPin}
+                icon={AqMarkerPin01}
                 label="Sites"
                 isCollapsed={isCollapsed}
                 disabled={false}
               />
-            )} */}
+            )}
 
             {/* {sidebarConfig.showGrids && contextPermissions.canViewSites && (
               <NavItem
@@ -306,7 +302,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
             {sidebarConfig.showOrganizations && (
               <NavItem
                 href="/organizations"
-                icon={Building2}
+                icon={AqHomeSmile}
                 label="Organizations"
                 isCollapsed={isCollapsed}
                 disabled={!contextPermissions.canViewOrganizations}
@@ -320,7 +316,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
       {/* Account Section at the bottom */}
       <div className="mt-auto">
         <SidebarSectionHeading isCollapsed={isCollapsed}>Account</SidebarSectionHeading>
-        <NavItem href="/profile" icon={UserCircle} label="Profile" isCollapsed={isCollapsed} />
+        <NavItem href="/profile" icon={AqUser03} label="Profile" isCollapsed={isCollapsed} />
       </div>
     </div>
   );
