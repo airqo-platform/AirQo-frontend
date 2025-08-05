@@ -220,7 +220,7 @@ const CustomFields = ({
             </button>
             {showCalendarDialog && (
               <div
-                className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-10"
+                className="fixed inset-0 z-[1000] flex items-center justify-center bg-black bg-opacity-10"
                 onClick={(e) => {
                   // Only close if clicking the backdrop, not the calendar
                   if (e.target === e.currentTarget) {

@@ -138,7 +138,7 @@ const MobileBottomNavigation = ({ userType, className = '' }) => {
                     truncate w-full
                   `}
                 >
-                  {item.label}
+                  {item.shortLabel || item.label}
                 </span>
               </button>
             );

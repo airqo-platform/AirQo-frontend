@@ -292,8 +292,14 @@ export const useSiteAndDeviceIds = (grid_id) => {
     },
   );
 
+  // Always return an object with site_ids and device_ids arrays for safety
+  const safeData =
+    data?.sites_and_devices && typeof data.sites_and_devices === 'object'
+      ? data.sites_and_devices
+      : { site_ids: [], device_ids: [] };
+
   return {
-    data: data?.sites_and_devices || [],
+    data: safeData,
     isLoading,
     isError: !!error,
     error,
