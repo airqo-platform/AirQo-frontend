@@ -794,7 +794,7 @@ const DataTable = ({
         <div className="flex items-center justify-between">
           {showViewDataButton && (
             <Button variant="text" onClick={onViewDataClick}>
-              View Data
+              Visualize Data
             </Button>
           )}
           <div className="flex items-center gap-2 ml-auto">
