@@ -11,6 +11,7 @@ import {
   AqBuilding05,
   AqHome01,
   AqDownload01,
+  AqFolderShield,
 } from '@airqo/icons-react';
 // import { checkAccess } from '@/core/HOC/authUtils';
 
@@ -73,7 +74,7 @@ export const getUserNavigationItems = () => {
   //     type: 'dropdown',
   //     label: 'Collocation',
   //     shortLabel: 'Collocate',
-  //     icon: CollocateIcon,
+  //     icon: AqGlobe05,
   //     dropdown: true,
   //     children: [
   //       {
@@ -143,6 +144,13 @@ export const getAdminNavigationItems = () => {
       shortLabel: 'Orgs',
       icon: AqBuilding05,
       path: '/admin/organizations/requests',
+    },
+    {
+      type: 'item',
+      label: 'Client Management',
+      shortLabel: 'Clients',
+      icon: AqFolderShield,
+      path: '/admin/clients-management',
     },
     {
       type: 'item',

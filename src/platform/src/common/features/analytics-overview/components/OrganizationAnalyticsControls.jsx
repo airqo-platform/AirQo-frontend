@@ -1,4 +1,3 @@
-import React from 'react';
 import { useDispatch } from 'react-redux';
 import { useMediaQuery } from 'react-responsive';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
@@ -9,7 +8,7 @@ import Button from '@/components/Button';
 import {
   AqDownload02,
   AqPlus,
-  AqSettings02,
+  AqSettings04,
   AqClockFastForward,
 } from '@airqo/icons-react';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
@@ -113,7 +112,7 @@ const OrganizationAnalyticsControls = ({
           {/* Pollutant Dropdown */}
           <CustomDropdown
             text="Pollutant"
-            icon={<AqSettings02 />}
+            icon={<AqSettings04 size={16} />}
             iconPosition="left"
           >
             <div className="py-1">
