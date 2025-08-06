@@ -608,8 +608,14 @@ const useMapData = (params = {}) => {
 
     const attemptFetch = async (retryCount = 0) => {
       try {
+        // Check if abort controller is still valid before using
+        const currentController = abortControllersRef.current.mapReading;
+        if (!currentController || currentController.signal.aborted) {
+          throw new Error('Request cancelled');
+        }
+
         const response = await Promise.race([
-          getMapReadings(abortControllersRef.current.mapReading.signal),
+          getMapReadings(currentController.signal),
           new Promise((_, reject) =>
             setTimeout(
               () => reject(new Error('Request timeout')),
@@ -699,6 +705,11 @@ const useMapData = (params = {}) => {
   const fetchCityData = useCallback(
     async (city, signal) => {
       try {
+        // Validate signal before use
+        if (!signal || signal.aborted) {
+          throw new Error('Request cancelled');
+        }
+
         const response = await Promise.race([
           axios.get(`/api/waqi?city=${encodeURIComponent(city)}`, { signal }),
           new Promise((_, reject) =>
@@ -782,9 +793,14 @@ const useMapData = (params = {}) => {
 
           // Process chunks concurrently
           const chunkPromises = chunks.map(async (batch) => {
-            const batchPromises = batch.map((city) =>
-              fetchCityData(city, abortControllersRef.current.waqi.signal),
-            );
+            const batchPromises = batch.map((city) => {
+              // Check if abort controller is still valid before using
+              const currentController = abortControllersRef.current.waqi;
+              if (!currentController || currentController.signal.aborted) {
+                return Promise.reject(new Error('Request cancelled'));
+              }
+              return fetchCityData(city, currentController.signal);
+            });
 
             try {
               const settled = await Promise.allSettled(batchPromises);
@@ -794,7 +810,10 @@ const useMapData = (params = {}) => {
                 )
                 .map((result) => result.value);
             } catch (error) {
-              logger.warn('Batch processing error:', error);
+              logger.debug(
+                'Batch processing error (non-critical):',
+                error.message,
+              );
               return [];
             }
           });
@@ -813,7 +832,10 @@ const useMapData = (params = {}) => {
               await new Promise((resolve) => setTimeout(resolve, 200));
             }
           } catch (error) {
-            logger.warn('Error processing chunks:', error);
+            logger.debug(
+              'Error processing chunks (non-critical):',
+              error.message,
+            );
           }
         }
 
@@ -963,7 +985,11 @@ const useMapData = (params = {}) => {
 
     clearMarkers();
     cleanupFunctionsRef.current.forEach((cleanupFn) => {
-      cleanupFn();
+      try {
+        cleanupFn();
+      } catch (error) {
+        logger.debug('Error during cleanup function execution:', error);
+      }
     });
     cleanupFunctionsRef.current.clear();
 
@@ -980,6 +1006,13 @@ const useMapData = (params = {}) => {
     setWaqiLoading(false);
     setErrors({ mapReading: null, waqi: null });
   }, [clearMarkers]);
+
+  // Global cleanup on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      cleanup();
+    };
+  }, [cleanup]);
 
   // Helper function to clear errors
   const clearErrors = useCallback(() => {
