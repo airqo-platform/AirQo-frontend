@@ -5,6 +5,7 @@ import useDataDownload from '@/core/hooks/useDataDownload';
 // Available column definitions for preview
 export const AVAILABLE_COLUMNS = [
   { key: 'datetime', label: 'Date Time', enabled: true, required: true },
+  { key: 'month', label: 'Month Date', enabled: true, required: true },
   { key: 'device_name', label: 'Device Name', enabled: true },
   { key: 'frequency', label: 'Frequency', enabled: true },
   { key: 'humidity', label: 'Humidity', enabled: true },

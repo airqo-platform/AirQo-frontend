@@ -58,6 +58,7 @@ const DataDownload = ({
   onClose,
   sidebarBg = '#f6f6f7',
   resetOnClose = false,
+  backToDownload = true,
 }) => {
   const dispatch = useDispatch();
 
@@ -221,6 +222,7 @@ const DataDownload = ({
     citiesError,
     citiesErrorMsg,
     setFilterErrors,
+    backToDownload,
   ]);
 
   // Handle site IDs fetching status with UX feedback
@@ -671,7 +673,7 @@ const DataDownload = ({
             type: 'inSights',
             ids: null,
             data: selectedItems,
-            backToDownload: true,
+            backToDownload,
           }),
         );
         dispatch(setOpenModal(true));
@@ -812,6 +814,7 @@ DataDownload.propTypes = {
   onClose: PropTypes.func.isRequired,
   sidebarBg: PropTypes.string,
   resetOnClose: PropTypes.bool,
+  backToDownload: PropTypes.bool,
 };
 
 // Export the header component for use in other places

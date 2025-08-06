@@ -3,10 +3,15 @@
 import CardWrapper from '@/common/components/CardWrapper';
 import DataDownload from '../data-download/DataDownload';
 
-const DataExportPage = () => {
+const DataExportPage = (props) => {
   return (
     <CardWrapper padding="0px" className="overflow-hidden">
-      <DataDownload onClose={() => {}} sidebarBg="#fff" resetOnClose />
+      <DataDownload
+        onClose={() => {}}
+        sidebarBg="#fff"
+        resetOnClose
+        {...props}
+      />
     </CardWrapper>
   );
 };
