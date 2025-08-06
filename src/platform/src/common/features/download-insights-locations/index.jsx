@@ -112,7 +112,8 @@ const Modal = ({ isOpen, onClose }) => {
 
             {/* Scrollable Content */}
             <div className="modal-content flex-1 overflow-hidden dark:text-white">
-              <ModalBody onClose={onClose} />
+              {/* Only render modal body when modal is open to prevent unnecessary API calls */}
+              {isOpen && <ModalBody onClose={onClose} />}
             </div>
           </motion.div>
         </div>

@@ -108,9 +108,15 @@ export default function useMoreInsights() {
   const abortRef = useMergeAbort();
 
   /* ------------- data ------------- */
-  const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
-    useAnalyticsData(
-      {
+  // Add a condition to prevent API calls when modal is not open or not the right modal type
+  const modalState = useSelector((state) => state.modal);
+  const shouldFetchData =
+    modalState.openModal &&
+    modalState.modalType?.type === 'inSights' &&
+    dataLoadingSites.length > 0;
+
+  const analyticsParams = shouldFetchData
+    ? {
         selectedSiteIds: dataLoadingSites,
         dateRange: {
           startDate: new Date(dateRange.startDate),
@@ -120,28 +126,30 @@ export default function useMoreInsights() {
         frequency,
         pollutant: chartData.pollutionType,
         organisationName: chartData.organizationName,
+      }
+    : null;
+
+  const { allSiteData, chartLoading, isError, error, refetch, isValidating } =
+    useAnalyticsData(analyticsParams, {
+      revalidateOnFocus: false,
+      dedupingInterval: 10000,
+      errorRetryCount: 2,
+      onError: (err) => {
+        if (err.name === 'AbortError') return;
+        if (isManualRefresh) setIsManualRefresh(false);
       },
-      {
-        revalidateOnFocus: false,
-        dedupingInterval: 10000,
-        errorRetryCount: 2,
-        onError: (err) => {
-          if (err.name === 'AbortError') return;
-          if (isManualRefresh) setIsManualRefresh(false);
-        },
-        onSuccess: () => {
-          if (isManualRefresh) {
-            setRefreshSuccess(true);
-            setIsManualRefresh(false);
-            clearTimeout(abortRef.current.success);
-            abortRef.current.success = setTimeout(
-              () => setRefreshSuccess(false),
-              3000,
-            );
-          }
-        },
+      onSuccess: () => {
+        if (isManualRefresh) {
+          setRefreshSuccess(true);
+          setIsManualRefresh(false);
+          clearTimeout(abortRef.current.success);
+          abortRef.current.success = setTimeout(
+            () => setRefreshSuccess(false),
+            3000,
+          );
+        }
       },
-    );
+    });
 
   /* ------------- handlers ------------- */
   const handleSiteAction = useCallback(

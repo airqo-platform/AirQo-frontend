@@ -188,9 +188,7 @@ export const useGridSummary = (admin_level = null, options = {}) => {
  * @returns {Object} - SWR response with data, loading and error states
  */
 export const useAnalyticsData = (params, options = {}) => {
-  // Use default values if params are undefined
-  const safeParams = params || {};
-
+  // Use default values if params are provided but incomplete
   const {
     selectedSiteIds = [],
     dateRange = { startDate: new Date(), endDate: new Date() },
@@ -198,17 +196,20 @@ export const useAnalyticsData = (params, options = {}) => {
     frequency = 'daily',
     pollutant = 'pm2_5',
     organisationName = '',
-  } = safeParams;
+  } = params || {};
 
-  // Generate cache key for SWR
-  const swrKey = getAnalyticsKey({
-    selectedSiteIds,
-    dateRange,
-    chartType,
-    frequency,
-    pollutant,
-    organisationName,
-  });
+  // Generate cache key for SWR - return null to disable fetching
+  const swrKey =
+    params && selectedSiteIds.length > 0
+      ? getAnalyticsKey({
+          selectedSiteIds,
+          dateRange,
+          chartType,
+          frequency,
+          pollutant,
+          organisationName,
+        })
+      : null;
   // Use SWR for data fetching with caching
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
