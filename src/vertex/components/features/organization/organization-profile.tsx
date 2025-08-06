@@ -10,9 +10,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { groupsApi } from "@/core/apis/organizations";
 import { useGroupsDetails } from "@/core/hooks/useGroups";
-import { toast } from "@/components/ui/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const formatTitle = (title: string) => {
   return title
@@ -50,18 +50,10 @@ export function OrganizationProfile({
       groupsApi.updateGroupDetailsApi(organizationId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["groupDetails", organizationId] });
-      toast({
-        title: "Profile Updated",
-        description: "The organization profile has been successfully updated.",
-      });
+      toast("The organization profile has been successfully updated.");
     },
     onError: () => {
-      toast({
-        title: "Update Failed",
-        description:
-          "There was an error updating the organization profile. Please try again.",
-        variant: "destructive",
-      });
+      toast("There was an error updating the organization profile. Please try again.");
     },
   });
 
