@@ -41,10 +41,43 @@ export const postUserLoginDetails = (data) =>
   openApiMethods.post(LOGIN_URL, data);
 
 // User Management
-export const getUserDetails = (userID) =>
-  secureApiProxy
-    .get(`${USERS_URL}/${userID}`, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+export const getUserDetails = (userID) => {
+  if (!userID) {
+    return Promise.reject(new Error('User ID is required'));
+  }
+
+  return secureApiProxy
+    .get(`${USERS_URL}/${userID}`, {
+      authType: AUTH_TYPES.JWT,
+      timeout: 15000, // 15 second timeout
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      // Enhanced error handling
+      if (error.response) {
+        const status = error.response.status;
+        const message =
+          error.response.data?.message || 'Failed to fetch user details';
+
+        switch (status) {
+          case 404:
+            throw new Error('User not found');
+          case 403:
+            throw new Error('Access denied');
+          case 401:
+            throw new Error('Authentication required');
+          case 500:
+            throw new Error('Server error occurred');
+          default:
+            throw new Error(message);
+        }
+      } else if (error.request) {
+        throw new Error('Network error - please check your connection');
+      } else {
+        throw new Error(error.message || 'Failed to fetch user details');
+      }
+    });
+};
 
 export const updateUserCreationDetails = (data, identifier) =>
   secureApiProxy
@@ -285,13 +318,29 @@ export const getUserThemeApi = (userId, groupId) => {
   return secureApiProxy
     .get(getUserThemeUrl(userId, groupId), {
       authType: AUTH_TYPES.JWT,
+      timeout: 10000, // 10 second timeout
     })
     .then((response) => response.data)
     .catch((error) => {
-      // Enhanced error handling
-      const errorMessage =
-        error.response?.data?.message || 'Failed to fetch user theme';
-      throw new Error(errorMessage);
+      // Enhanced error handling with fallback
+      if (error.response) {
+        const status = error.response.status;
+        switch (status) {
+          case 404:
+            // User theme not found - return default theme
+            logger.info('User theme not found, using defaults');
+            return { theme: null }; // Let the caller handle defaults
+          case 403:
+          case 401:
+            logger.warn('Authentication issue when fetching theme');
+            return { theme: null };
+          default:
+            logger.error('Theme API error:', error);
+            return { theme: null };
+        }
+      }
+      logger.error('Network error fetching theme:', error);
+      return { theme: null };
     });
 };
 

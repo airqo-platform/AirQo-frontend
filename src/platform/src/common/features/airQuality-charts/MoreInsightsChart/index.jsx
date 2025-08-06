@@ -77,8 +77,24 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
 
     const style = document.createElement('style');
     style.textContent = `
-      .recharts-wrapper,
-      .recharts-legend-wrapper { overflow: visible !important; }
+      .exporting .recharts-wrapper,
+      .exporting .recharts-legend-wrapper { 
+        overflow: visible !important; 
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      .exporting .recharts-legend-item {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      .exporting .legend,
+      .exporting [class*="legend"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
     `;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
@@ -240,6 +256,31 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               />
             );
           })}
+
+          {/* Add Legend component for proper export */}
+          <Legend
+            content={
+              <CustomLegend
+                payload={seriesKeys.map((key, idx) => ({
+                  dataKey: key,
+                  value: siteIdToName[key] || key,
+                  color: getColor(idx),
+                }))}
+                onMouseEnter={legendState.handleLegendMouseEnter}
+                onMouseLeave={legendState.handleLegendMouseLeave}
+                onClick={legendState.handleLegendClick}
+                activeIndex={legendState.activeIndex}
+              />
+            }
+            wrapperStyle={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              marginTop: '20px',
+            }}
+          />
+
           {WHO_STANDARD_VALUE > 0 && (
             <ReferenceLine
               y={WHO_STANDARD_VALUE}

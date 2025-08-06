@@ -66,14 +66,22 @@ export const getMapReadings = (abortSignal = null) => {
     authType: AUTH_TYPES.API_TOKEN,
   };
 
-  // Add abort signal if provided
-  if (abortSignal) {
+  // Add abort signal if provided and still valid
+  if (abortSignal && !abortSignal.aborted) {
     config.signal = abortSignal;
   }
 
   return secureApiProxy
     .get(READINGS_URL, config)
-    .then((response) => response.data);
+    .then((response) => response.data)
+    .catch((error) => {
+      // Handle abort errors gracefully
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        throw new Error('Request cancelled');
+      }
+      // Re-throw other errors
+      throw error;
+    });
 };
 
 export const getNearestSite = (params) =>
