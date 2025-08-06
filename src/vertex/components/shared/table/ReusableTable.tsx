@@ -482,6 +482,7 @@ interface ReusableTableProps<T extends TableItem> {
   multiSelect?: boolean;
   actions?: TableAction[];
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
+  onRowClick?: (item: unknown) => void;
 }
 
 const ReusableTable = <T extends TableItem>({
@@ -501,6 +502,7 @@ const ReusableTable = <T extends TableItem>({
   multiSelect = false,
   actions = [],
   onSelectedItemsChange,
+  onRowClick
 }: ReusableTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -908,6 +910,7 @@ const ReusableTable = <T extends TableItem>({
                 paginatedData.map((item, index) => (
                   <tr
                     key={item.id ?? index}
+                    onClick={onRowClick(item)}
                     className="hover:bg-primary/5 dark:hover:bg-primary/20"
                   >
                     {displayColumns.map((column) => (

@@ -1,22 +1,23 @@
 "use client";
 
 import { useDeviceStatus } from "@/core/hooks/useDevices";
-import { Loader2, ZoomIn, ZoomOut, Crosshair, RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import { AqRefreshCw05, AqMark, AqPlus, AqMinus } from "@airqo/icons-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import { LoadingOverlay } from "./loading-overlay";
 
 // Set your Mapbox access token
-mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || "";
 
 const DEFAULT_CENTER: [number, number] = [32.2903, 1.3733];
 const DEFAULT_ZOOM = 6;
 
 const isValidCoordinate = (num: number | string | null | undefined) => {
-  if (typeof num === 'number') {
+  if (typeof num === "number") {
     return !isNaN(num) && num !== 0;
   }
-  if (typeof num === 'string') {
+  if (typeof num === "string") {
     const parsed = parseFloat(num);
     return !isNaN(parsed) && parsed !== 0;
   }
@@ -30,7 +31,7 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
     const currentZoom = map.getZoom();
     map.easeTo({
       zoom: currentZoom + 1,
-      duration: 300
+      duration: 300,
     });
   };
 
@@ -39,7 +40,7 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
     const currentZoom = map.getZoom();
     map.easeTo({
       zoom: currentZoom - 1,
-      duration: 300
+      duration: 300,
     });
   };
 
@@ -48,7 +49,7 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
     const center = map.getCenter();
     map.easeTo({
       center: center,
-      duration: 300
+      duration: 300,
     });
   };
 
@@ -57,7 +58,7 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
     map.flyTo({
       center: DEFAULT_CENTER,
       zoom: DEFAULT_ZOOM,
-      duration: 1000
+      duration: 1000,
     });
   };
 
@@ -65,13 +66,13 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
   //   if (!map) return;
   //   try {
   //     const canvas = map.getCanvas();
-  //     const dataURL = canvas.toDataURL('image/png');
-  //     const link = document.createElement('a');
-  //     link.download = 'network-map.png';
+  //     const dataURL = canvas.toDataURL("image/png");
+  //     const link = document.createElement("a");
+  //     link.download = "network-map.png";
   //     link.href = dataURL;
   //     link.click();
   //   } catch (error) {
-  //     console.error('Failed to take screenshot:', error);
+  //     console.error("Failed to take screenshot:", error);
   //   }
   // };
 
@@ -80,9 +81,10 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
   //   const center = map.getCenter();
   //   const zoom = map.getZoom();
   //   const url = `${window.location.origin}${window.location.pathname}?center=${center.lng},${center.lat}&zoom=${zoom}`;
-  //   navigator.clipboard.writeText(url)
-  //     .then(() => alert('Map URL copied to clipboard!'))
-  //     .catch(() => alert('Failed to copy URL to clipboard'));
+  //   navigator.clipboard
+  //     .writeText(url)
+  //     .then(() => alert("Map URL copied to clipboard!"))
+  //     .catch(() => alert("Failed to copy URL to clipboard"));
   // };
 
   return (
@@ -93,14 +95,14 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
           className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Zoom in"
         >
-          <ZoomIn className="h-5 w-5 text-gray-700" />
+          <AqPlus className="h-5 w-5 text-gray-700" />
         </button>
         <button
           onClick={handleZoomOut}
           className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Zoom out"
         >
-          <ZoomOut className="h-5 w-5 text-gray-700" />
+          <AqMinus className="h-5 w-5 text-gray-700" />
         </button>
       </div>
       <div className="flex flex-col gap-2">
@@ -109,14 +111,14 @@ function MapControls({ map }: { map: mapboxgl.Map | null }) {
           className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Center map"
         >
-          <Crosshair className="h-5 w-5 text-gray-700" />
+          <AqMark className="h-5 w-5 text-gray-700" />
         </button>
         <button
           onClick={handleReset}
           className="w-10 h-10 bg-white hover:bg-gray-50 rounded-full shadow-lg flex items-center justify-center transition-colors"
           title="Reset view"
         >
-          <RotateCcw className="h-5 w-5 text-gray-700" />
+          <AqRefreshCw05 className="h-5 w-5 text-gray-700" />
         </button>
       </div>
       {/* <div className="flex flex-col gap-2">
@@ -143,285 +145,430 @@ export function NetworkMap() {
   const { devices, isLoading } = useDeviceStatus();
   const [isClient, setIsClient] = useState(false);
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const currentPopupRef = useRef<mapboxgl.Popup | null>(null);
   const isFirstLoad = useRef(true);
-  
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // First useEffect for map initialization and layer setup
+  // Force map resize when container dimensions change
+  const handleResize = useCallback(() => {
+    if (mapInstance && mapLoaded && mapInstance.getContainer()) {
+      // Small delay to ensure DOM has updated
+      setTimeout(() => {
+        try {
+          if (mapInstance && mapInstance.getContainer()) {
+            mapInstance.resize();
+          }
+        } catch (error) {
+          console.warn("Map resize failed:", error);
+        }
+      }, 100);
+    }
+  }, [mapInstance, mapLoaded]);
+
+  // Set up ResizeObserver for container size changes
+  useEffect(() => {
+    if (!mapContainerRef.current || !mapInstance) return;
+
+    resizeObserverRef.current = new ResizeObserver(handleResize);
+    resizeObserverRef.current.observe(mapContainerRef.current);
+
+    return () => {
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+      }
+    };
+  }, [mapInstance, handleResize]);
+
+  // Map initialization effect
   useEffect(() => {
     if (!isClient || !mapContainerRef.current || !mapboxgl.accessToken) return;
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/standard',
-      center: DEFAULT_CENTER,
-      zoom: DEFAULT_ZOOM,
-      maxZoom: 22,
-      projection: 'mercator'
-    });
+    // Ensure container has dimensions before initializing map
+    const containerRect = mapContainerRef.current.getBoundingClientRect();
+    if (containerRect.width === 0 || containerRect.height === 0) {
+      // Retry after a short delay if container has no dimensions
+      const timeout = setTimeout(() => {
+        if (mapContainerRef.current) {
+          const newRect = mapContainerRef.current.getBoundingClientRect();
+          if (newRect.width > 0 && newRect.height > 0) {
+            initializeMap();
+          }
+        }
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
 
-    // Initialize map layers and sources on load
-    map.on('load', () => {
-      // Create and add marker images
-      const statuses = ['online', 'offline'];
-      const maintenanceStatuses = ['good', 'due', 'overdue'];
+    initializeMap();
 
-      statuses.forEach(status => {
-        maintenanceStatuses.forEach(maintenance => {
-          const markerKey = `marker-${status}-${maintenance}`;
-          if (map.hasImage(markerKey)) return;
-          
-          const size = 24;
-          const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
+    function initializeMap() {
+      if (!mapContainerRef.current) return;
 
-          // Draw outer circle (maintenance status)
-          ctx.beginPath();
-          ctx.arc(size/2, size/2, 10, 0, Math.PI * 2);
-          ctx.strokeStyle = maintenance === "good" ? "#22c55e" :
-                         maintenance === "due" ? "#eab308" :
-                         maintenance === "overdue" ? "#ef4444" :
-                         "#94a3b8";
-          ctx.lineWidth = 2;
-          ctx.stroke();
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: "mapbox://styles/mapbox/standard",
+        center: DEFAULT_CENTER,
+        zoom: DEFAULT_ZOOM,
+        maxZoom: 22,
+        projection: "mercator",
+        // Add these options for better initial rendering
+        preserveDrawingBuffer: true,
+        antialias: true,
+      });
 
-          // Draw inner circle (online status)
-          ctx.beginPath();
-          ctx.arc(size/2, size/2, 6, 0, Math.PI * 2);
-          ctx.fillStyle = status === "online" ? "#22c55e" : "#ef4444";
-          ctx.fill();
+      // Initialize map layers and sources on load
+      map.on("load", () => {
+        setMapLoaded(true);
 
-          map.addImage(markerKey, {
-            width: size,
-            height: size,
-            data: ctx.getImageData(0, 0, size, size).data,
+        // Force resize after load to ensure proper dimensions
+        setTimeout(() => {
+          try {
+            if (map && map.getContainer()) {
+              map.resize();
+            }
+          } catch (error) {
+            console.warn("Initial map resize failed:", error);
+          }
+        }, 100);
+
+        // Create and add marker images
+        const statuses = ["online", "offline"];
+        const maintenanceStatuses = ["good", "due", "overdue"];
+
+        statuses.forEach((status) => {
+          maintenanceStatuses.forEach((maintenance) => {
+            const markerKey = `marker-${status}-${maintenance}`;
+            if (map.hasImage(markerKey)) return;
+
+            const size = 24;
+            const canvas = document.createElement("canvas");
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+
+            // Draw outer circle (maintenance status)
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, 10, 0, Math.PI * 2);
+            ctx.strokeStyle =
+              maintenance === "good"
+                ? "#22c55e"
+                : maintenance === "due"
+                ? "#eab308"
+                : maintenance === "overdue"
+                ? "#ef4444"
+                : "#94a3b8";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Draw inner circle (online status)
+            ctx.beginPath();
+            ctx.arc(size / 2, size / 2, 6, 0, Math.PI * 2);
+            ctx.fillStyle = status === "online" ? "#22c55e" : "#ef4444";
+            ctx.fill();
+
+            map.addImage(markerKey, {
+              width: size,
+              height: size,
+              data: ctx.getImageData(0, 0, size, size).data,
+            });
           });
         });
-      });
 
-      // Add source and layers
-      map.addSource('devices', {
-        type: 'geojson',
-        data: {
-          type: 'FeatureCollection',
-          features: []
-        },
-        cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 50
-      });
+        // Add source and layers
+        map.addSource("devices", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: [],
+          },
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50,
+        });
 
-      map.addLayer({
-        id: 'clusters',
-        type: 'circle',
-        source: 'devices',
-        filter: ['has', 'point_count'],
-        paint: {
-          'circle-color': '#4F46E5',
-          'circle-radius': [
-            'step',
-            ['get', 'point_count'],
-            20,
-            5,
-            25,
-            10,
-            30
-          ],
-          'circle-opacity': 0.8
-        }
-      });
+        map.addLayer({
+          id: "clusters",
+          type: "circle",
+          source: "devices",
+          filter: ["has", "point_count"],
+          paint: {
+            "circle-color": "#4F46E5",
+            "circle-radius": [
+              "step",
+              ["get", "point_count"],
+              20,
+              5,
+              25,
+              10,
+              30,
+            ],
+            "circle-opacity": 0.8,
+          },
+        });
 
-      map.addLayer({
-        id: 'cluster-count',
-        type: 'symbol',
-        source: 'devices',
-        filter: ['has', 'point_count'],
-        layout: {
-          'text-field': '{point_count_abbreviated}',
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12
-        },
-        paint: {
-          'text-color': '#ffffff'
-        }
-      });
+        map.addLayer({
+          id: "cluster-count",
+          type: "symbol",
+          source: "devices",
+          filter: ["has", "point_count"],
+          layout: {
+            "text-field": "{point_count_abbreviated}",
+            "text-font": ["DIN Offc Pro Medium", "Arial Unicode MS Bold"],
+            "text-size": 12,
+          },
+          paint: {
+            "text-color": "#ffffff",
+          },
+        });
 
-      map.addLayer({
-        id: 'unclustered-point',
-        type: 'symbol',
-        source: 'devices',
-        filter: ['!', ['has', 'point_count']],
-        layout: {
-          'icon-image': [
-            'concat',
-            'marker-',
-            ['get', 'status'],
-            '-',
-            ['get', 'maintenance_status']
-          ],
-          'icon-size': 1,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true
-        }
-      });
+        map.addLayer({
+          id: "unclustered-point",
+          type: "symbol",
+          source: "devices",
+          filter: ["!", ["has", "point_count"]],
+          layout: {
+            "icon-image": [
+              "concat",
+              "marker-",
+              ["get", "status"],
+              "-",
+              ["get", "maintenance_status"],
+            ],
+            "icon-size": 1,
+            "icon-allow-overlap": true,
+            "icon-ignore-placement": true,
+          },
+        });
 
-      // Add event handlers
-      const handleClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-        const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
-        if (!features.length) return;
+        // Add event handlers
+        const handleClusterClick = (
+          e: mapboxgl.MapMouseEvent & {
+            features?: mapboxgl.MapboxGeoJSONFeature[];
+          }
+        ) => {
+          const features = map.queryRenderedFeatures(e.point, {
+            layers: ["clusters"],
+          });
+          if (!features.length) return;
 
-        const clusterId = features[0].properties?.cluster_id;
-        const source = map.getSource('devices') as mapboxgl.GeoJSONSource;
-        const coordinates = (features[0].geometry as GeoJSON.Point).coordinates;
-        
-        source.getClusterExpansionZoom(
-          clusterId as number,
-          (err, zoom) => {
-            if (err || typeof zoom !== 'number') return;
+          const clusterId = features[0].properties?.cluster_id;
+          const source = map.getSource("devices") as mapboxgl.GeoJSONSource;
+          const coordinates = (features[0].geometry as GeoJSON.Point)
+            .coordinates;
+
+          source.getClusterExpansionZoom(clusterId as number, (err, zoom) => {
+            if (err || typeof zoom !== "number") return;
 
             map.easeTo({
               center: coordinates as [number, number],
               zoom: Math.min(zoom + 1, map.getMaxZoom()),
-              duration: 500
+              duration: 500,
             });
+          });
+        };
+
+        const handlePointClick = (
+          e: mapboxgl.MapMouseEvent & {
+            features?: mapboxgl.MapboxGeoJSONFeature[];
           }
-        );
-      };
+        ) => {
+          if (!e.features?.length) return;
+          const feature = e.features[0];
 
-      const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-        if (!e.features?.length) return;
-        const feature = e.features[0];
-        
-        const coordinates = (feature.geometry as GeoJSON.Point).coordinates.slice() as [number, number];
-        const properties = feature.properties;
-        if (!properties) return;
+          const coordinates = (
+            feature.geometry as GeoJSON.Point
+          ).coordinates.slice() as [number, number];
+          const properties = feature.properties;
+          if (!properties) return;
 
-        if (currentPopupRef.current) {
-          currentPopupRef.current.remove();
-        }
+          if (currentPopupRef.current) {
+            currentPopupRef.current.remove();
+          }
 
-        currentPopupRef.current = new mapboxgl.Popup({ 
-          offset: 25,
-          closeButton: true,
-          closeOnClick: false
-        })
-          .setLngLat(coordinates)
-          .setHTML(`
-            <div class="p-2">
-              <h3 class="font-semibold">${properties.name}</h3>
-              <div class="text-sm space-y-1 mt-2">
-                <p>Status: <span class="${properties.status === "online" ? "text-green-600" : "text-red-600"}">${properties.status}</span></p>
-                <p>Maintenance: <span class="${
-                  properties.maintenance_status === "good" ? "text-green-600" :
-                  properties.maintenance_status === "due" ? "text-yellow-600" :
-                  "text-red-600"
-                }">${properties.maintenance_status}</span></p>
-                <p>Power Source: ${properties.powerType}</p>
-                ${properties.nextMaintenance ? `
-                  <p>Next Maintenance: ${new Date(properties.nextMaintenance).toLocaleDateString()}</p>
-                ` : ''}
+          currentPopupRef.current = new mapboxgl.Popup({
+            offset: 25,
+            closeButton: true,
+            closeOnClick: false,
+          })
+            .setLngLat(coordinates)
+            .setHTML(
+              `
+              <div class="p-2">
+                <h3 class="font-semibold">${properties.name}</h3>
+                <div class="text-sm space-y-1 mt-2">
+                  <p>Status: <span class="${
+                    properties.status === "online"
+                      ? "text-green-600"
+                      : "text-red-600"
+                  }">${properties.status}</span></p>
+                  <p>Maintenance: <span class="${
+                    properties.maintenance_status === "good"
+                      ? "text-green-600"
+                      : properties.maintenance_status === "due"
+                      ? "text-yellow-600"
+                      : "text-red-600"
+                  }">${properties.maintenance_status}</span></p>
+                  <p>Power Source: ${properties.powerType}</p>
+                  ${
+                    properties.nextMaintenance
+                      ? `
+                    <p>Next Maintenance: ${new Date(
+                      properties.nextMaintenance
+                    ).toLocaleDateString()}</p>
+                  `
+                      : ""
+                  }
+                </div>
               </div>
-            </div>
-          `)
-          .addTo(map);
+            `
+            )
+            .addTo(map);
 
-        currentPopupRef.current.on('close', () => {
-          currentPopupRef.current = null;
-        });
-      };
+          currentPopupRef.current.on("close", () => {
+            currentPopupRef.current = null;
+          });
+        };
 
-      const handleMouseEnter = () => {
-        map.getCanvas().style.cursor = 'pointer';
-      };
+        const handleMouseEnter = () => {
+          map.getCanvas().style.cursor = "pointer";
+        };
 
-      const handleMouseLeave = () => {
-        map.getCanvas().style.cursor = '';
-      };
+        const handleMouseLeave = () => {
+          map.getCanvas().style.cursor = "";
+        };
 
-      map.on('click', 'clusters', handleClusterClick);
-      map.on('click', 'unclustered-point', handlePointClick);
-      map.on('mouseenter', 'clusters', handleMouseEnter);
-      map.on('mouseenter', 'unclustered-point', handleMouseEnter);
-      map.on('mouseleave', 'clusters', handleMouseLeave);
-      map.on('mouseleave', 'unclustered-point', handleMouseLeave);
+        map.on("click", "clusters", handleClusterClick);
+        map.on("click", "unclustered-point", handlePointClick);
+        map.on("mouseenter", "clusters", handleMouseEnter);
+        map.on("mouseenter", "unclustered-point", handleMouseEnter);
+        map.on("mouseleave", "clusters", handleMouseLeave);
+        map.on("mouseleave", "unclustered-point", handleMouseLeave);
 
-      // Set map instance after everything is set up
-      setMapInstance(map);
-    });
+        // Set map instance after everything is set up
+        setMapInstance(map);
+      });
+
+      // Handle resize events
+      map.on("resize", () => {
+        try {
+          // Force redraw after resize
+          if (map && map.getCanvas()) {
+            map.getCanvas().focus();
+          }
+        } catch (error) {
+          console.warn("Map resize event handler failed:", error);
+        }
+      });
+    }
 
     return () => {
+      setMapLoaded(false);
+      if (resizeObserverRef.current) {
+        resizeObserverRef.current.disconnect();
+        resizeObserverRef.current = null;
+      }
       if (currentPopupRef.current) {
         currentPopupRef.current.remove();
+        currentPopupRef.current = null;
       }
-      map.remove();
-      setMapInstance(null);
+      if (mapInstance) {
+        try {
+          mapInstance.remove();
+        } catch (error) {
+          console.warn("Map cleanup failed:", error);
+        }
+        setMapInstance(null);
+      }
     };
-  }, [isClient]);
+  }, [isClient, mapInstance]);
 
   // Separate effect for updating device data
   useEffect(() => {
-    if (!mapInstance?.loaded()) return;
+    if (!mapInstance?.loaded() || !mapLoaded) return;
 
-    const source = mapInstance.getSource('devices') as mapboxgl.GeoJSONSource;
+    const source = mapInstance.getSource("devices") as mapboxgl.GeoJSONSource;
     if (!source) return;
 
     source.setData({
-      type: 'FeatureCollection',
+      type: "FeatureCollection",
       features: devices
-        .filter(device => isValidCoordinate(device.latitude) && isValidCoordinate(device.longitude))
-        .map(device => {
-          const lng = typeof device.longitude === 'string' ? parseFloat(device.longitude) : device.longitude;
-          const lat = typeof device.latitude === 'string' ? parseFloat(device.latitude) : device.latitude;
+        .filter(
+          (device) =>
+            isValidCoordinate(device.latitude) &&
+            isValidCoordinate(device.longitude)
+        )
+        .map((device) => {
+          const lng =
+            typeof device.longitude === "string"
+              ? parseFloat(device.longitude)
+              : device.longitude;
+          const lat =
+            typeof device.latitude === "string"
+              ? parseFloat(device.latitude)
+              : device.latitude;
           return {
-            type: 'Feature' as const,
+            type: "Feature" as const,
             geometry: {
-              type: 'Point' as const,
-              coordinates: [lng, lat] as [number, number]
+              type: "Point" as const,
+              coordinates: [lng, lat] as [number, number],
             },
             properties: {
               id: device._id,
               name: device.name,
-              status: (typeof device.status === 'string' ? device.status : 'offline').toLowerCase(),
-              maintenance_status: (typeof device.maintenance_status === 'string' ? device.maintenance_status : 'good').toLowerCase(),
+              status: (typeof device.status === "string"
+                ? device.status
+                : "offline"
+              ).toLowerCase(),
+              maintenance_status: (typeof device.maintenance_status === "string"
+                ? device.maintenance_status
+                : "good"
+              ).toLowerCase(),
               powerType: device.powerType,
-              nextMaintenance: device.nextMaintenance || undefined
-            }
+              nextMaintenance: device.nextMaintenance || undefined,
+            },
           };
-        })
+        }),
     });
 
     // Only fit bounds on first load with data
     if (isFirstLoad.current && devices.length > 0) {
       const validDevices = devices.filter(
-        device => isValidCoordinate(device.latitude) && isValidCoordinate(device.longitude)
+        (device) =>
+          isValidCoordinate(device.latitude) &&
+          isValidCoordinate(device.longitude)
       );
 
       if (validDevices.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
-        validDevices.forEach(device => {
-          const lng = typeof device.longitude === 'string' ? parseFloat(device.longitude) : device.longitude;
-          const lat = typeof device.latitude === 'string' ? parseFloat(device.latitude) : device.latitude;
+        validDevices.forEach((device) => {
+          const lng =
+            typeof device.longitude === "string"
+              ? parseFloat(device.longitude)
+              : device.longitude;
+          const lat =
+            typeof device.latitude === "string"
+              ? parseFloat(device.latitude)
+              : device.latitude;
           bounds.extend([lng as number, lat as number]);
         });
 
         mapInstance.fitBounds(bounds, {
           padding: 50,
-          maxZoom: 16
+          maxZoom: 16,
         });
         isFirstLoad.current = false;
       }
     }
-  }, [mapInstance, devices]);
+  }, [mapInstance, mapLoaded, devices]);
 
   if (!isClient) {
-    return null;
+    return <div className="h-full w-full bg-gray-100 animate-pulse" />;
   }
 
   return (
@@ -435,19 +582,28 @@ export function NetworkMap() {
         }
         .mapboxgl-popup-content {
           border-radius: 0.5rem;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+            0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .mapboxgl-canvas {
+          width: 100% !important;
+          height: 100% !important;
+          outline: none;
+          border: none;
+        }
+        .mapboxgl-map {
+          width: 100% !important;
+          height: 100% !important;
+          outline: none;
+          border: none;
         }
       `}</style>
-      <div ref={mapContainerRef} className="h-full w-full" />
+      <div
+        ref={mapContainerRef}
+        className="flex-grow h-full w-full relative dark:text-black-900 outline-none"
+      />
       <MapControls map={mapInstance} />
-      {isLoading && (
-        <div className="absolute top-4 right-4 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm px-4 py-2 rounded-lg shadow-lg border">
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-sm">Loading devices...</span>
-          </div>
-        </div>
-      )}
+      {(isLoading || !mapLoaded) && <LoadingOverlay />}
     </div>
   );
-} 
+}

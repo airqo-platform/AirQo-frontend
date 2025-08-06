@@ -2,31 +2,49 @@
 
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { 
-  Plus, 
-  Search, 
-  MapPin, 
-  Calendar, 
-  Wifi, 
+import {
+  Plus,
+  Search,
+  MapPin,
+  Calendar,
+  Wifi,
   WifiOff,
   Building2,
   User,
   Settings,
   Rocket,
-  Share2
+  Share2,
 } from "lucide-react";
-import { AqCollocation } from '@airqo/icons-react';
+import { AqCollocation } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useMyDevices, useUnassignDeviceFromOrganization } from "@/core/hooks/useDevices";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  useMyDevices,
+  useUnassignDeviceFromOrganization,
+} from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { Device } from "@/app/types/devices";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import DevicesTable from "@/components/features/devices/device-list-table";
+
+const ITEMS_PER_PAGE = 8;
 
 type DeviceFilter = "all" | "my-devices" | "shared-devices";
 type DeviceStatus = "all" | "not deployed" | "deployed" | "recalled";
@@ -40,10 +58,11 @@ const MyDevicesPage = () => {
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
-  const { data: devicesData, isLoading, error } = useMyDevices(
-    userDetails?._id || "",
-    activeGroup?._id
-  );
+  const {
+    data: devicesData,
+    isLoading,
+    error,
+  } = useMyDevices(userDetails?._id || "", activeGroup?._id);
 
   const unassignDevice = useUnassignDeviceFromOrganization();
 
@@ -52,15 +71,17 @@ const MyDevicesPage = () => {
 
     return devicesData.devices.filter((device) => {
       // Search filter
-      const matchesSearch = 
+      const matchesSearch =
         device.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         device.long_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         device.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Ownership filter
       const isMyDevice = device.owner_id === userDetails?._id;
-      const isSharedDevice = Boolean(device.assigned_organization_id && !isMyDevice);
-      
+      const isSharedDevice = Boolean(
+        device.assigned_organization_id && !isMyDevice
+      );
+
       let matchesOwnership = true;
       if (ownershipFilter === "my-devices") {
         matchesOwnership = isMyDevice;
@@ -76,7 +97,13 @@ const MyDevicesPage = () => {
 
       return matchesSearch && matchesOwnership && matchesStatus;
     });
-  }, [devicesData?.devices, searchQuery, ownershipFilter, statusFilter, userDetails?._id]);
+  }, [
+    devicesData?.devices,
+    searchQuery,
+    ownershipFilter,
+    statusFilter,
+    userDetails?._id,
+  ]);
 
   const handleDeployDevice = (device: Device) => {
     router.push(`/devices/deploy?device=${device.name}`);
@@ -89,7 +116,7 @@ const MyDevicesPage = () => {
 
   const handleUnassignDevice = async (device: Device) => {
     if (!userDetails?._id) return;
-    
+
     await unassignDevice.mutateAsync({
       deviceName: device.name,
       userId: userDetails._id,
@@ -116,15 +143,19 @@ const MyDevicesPage = () => {
 
   const getOwnershipBadge = (device: Device) => {
     if (device.owner_id === userDetails?._id) {
-      return <Badge variant="default" className="flex items-center gap-1">
-        <User className="h-3 w-3" />
-        You
-      </Badge>;
+      return (
+        <Badge variant="default" className="flex items-center gap-1">
+          <User className="h-3 w-3" />
+          You
+        </Badge>
+      );
     }
-    return <Badge variant="outline" className="flex items-center gap-1">
-      <Building2 className="h-3 w-3" />
-      Shared
-    </Badge>;
+    return (
+      <Badge variant="outline" className="flex items-center gap-1">
+        <Building2 className="h-3 w-3" />
+        Shared
+      </Badge>
+    );
   };
 
   if (error) {
@@ -155,15 +186,21 @@ const MyDevicesPage = () => {
             <CardContent className="pt-12 pb-12">
               <div className="text-center">
                 <AqCollocation className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">Unable to load devices</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  Unable to load devices
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  There was an error loading your devices. Please try again or contact support if the problem persists.
+                  There was an error loading your devices. Please try again or
+                  contact support if the problem persists.
                 </p>
                 <div className="flex gap-2 justify-center">
                   <Button onClick={() => window.location.reload()}>
                     Retry
                   </Button>
-                  <Button variant="outline" onClick={() => router.push("/devices/claim")}>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push("/devices/claim")}
+                  >
                     <Plus className="mr-2 h-4 w-4" />
                     Claim Device
                   </Button>
@@ -208,7 +245,12 @@ const MyDevicesPage = () => {
                   />
                 </div>
               </div>
-              <Select value={ownershipFilter} onValueChange={(value) => setOwnershipFilter(value as DeviceFilter)}>
+              <Select
+                value={ownershipFilter}
+                onValueChange={(value) =>
+                  setOwnershipFilter(value as DeviceFilter)
+                }
+              >
                 <SelectTrigger className="w-full md:w-48">
                   <SelectValue placeholder="Filter by ownership" />
                 </SelectTrigger>
@@ -218,7 +260,12 @@ const MyDevicesPage = () => {
                   <SelectItem value="shared-devices">Shared Devices</SelectItem>
                 </SelectContent>
               </Select>
-              <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as DeviceStatus)}>
+              <Select
+                value={statusFilter}
+                onValueChange={(value) =>
+                  setStatusFilter(value as DeviceStatus)
+                }
+              >
                 <SelectTrigger className="w-full md:w-48">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
@@ -249,88 +296,12 @@ const MyDevicesPage = () => {
             ))}
           </div>
         ) : filteredDevices.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredDevices.map((device) => (
-              <Card key={device._id} className="hover:shadow-md transition-shadow">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg">{device.long_name}</CardTitle>
-                      <CardDescription className="font-mono text-sm">
-                        {device.name}
-                      </CardDescription>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {getDeviceStatusIcon(device)}
-                      {getOwnershipBadge(device)}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    {getDeviceStatusBadge(device)}
-                    {device.status === "deployed" && (
-                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                        <MapPin className="h-3 w-3" />
-                        {typeof device.latitude === 'number' ? device.latitude.toFixed(4) : device.latitude}, {typeof device.longitude === 'number' ? device.longitude.toFixed(4) : device.longitude}
-                      </div>
-                    )}
-                  </div>
-                  
-                  {device.description && (
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {device.description}
-                    </p>
-                  )}
-
-                  {device.claimed_at && (
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                      <Calendar className="h-3 w-3" />
-                      Claimed {new Date(device.claimed_at).toLocaleDateString()}
-                    </div>
-                  )}
-
-                  <div className="flex gap-2 pt-2">
-                    {device.owner_id === userDetails?._id && device.claim_status === "claimed" && (
-                      <Button 
-                        size="sm" 
-                        onClick={() => handleDeployDevice(device)}
-                        className="flex-1"
-                      >
-                        <Rocket className="mr-1 h-3 w-3" />
-                        Deploy
-                      </Button>
-                    )}
-                    
-                    {device.owner_id === userDetails?._id && !device.assigned_organization_id && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleAssignDevice(device)}
-                        className="flex-1"
-                      >
-                        <Share2 className="mr-1 h-3 w-3" />
-                        Share
-                      </Button>
-                    )}
-
-                    {device.assigned_organization_id && device.owner_id === userDetails?._id && (
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleUnassignDevice(device)}
-                        disabled={unassignDevice.isPending}
-                        className="flex-1"
-                      >
-                        <Settings className="mr-1 h-3 w-3" />
-                        Unshare
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DevicesTable
+            devices={filteredDevices || []}
+            isLoading={isLoading}
+            error={error}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
         ) : (
           <Card>
             <CardContent className="pt-12 pb-12">
@@ -338,7 +309,9 @@ const MyDevicesPage = () => {
                 <AqCollocation className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No devices found</h3>
                 <p className="text-muted-foreground mb-4">
-                  {searchQuery || ownershipFilter !== "all" || statusFilter !== "all"
+                  {searchQuery ||
+                  ownershipFilter !== "all" ||
+                  statusFilter !== "all"
                     ? "Try adjusting your search or filters."
                     : "Get started by claiming your first device."}
                 </p>
@@ -371,4 +344,4 @@ const MyDevicesPage = () => {
   );
 };
 
-export default MyDevicesPage; 
+export default MyDevicesPage;

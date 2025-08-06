@@ -166,7 +166,7 @@ export const useUserContext = (): UserContextState => {
         return {
           title: 'AirQo Organization',
           showContextSwitcher: canSwitchContext,
-          showNetworkMap: true,
+          showNetworkMap: false,
           showSites: canViewSites,
           showGrids: canViewSites,
           showCohorts: canViewDevices,

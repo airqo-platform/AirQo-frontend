@@ -9,11 +9,26 @@ import {
   Shield,
   ChevronDown,
 } from "lucide-react";
-import { AqHomeSmile, AqMonitor, AqGlobe05, AqUser03, AqMarkerPin01 } from '@airqo/icons-react';
+import {
+  AqHomeSmile,
+  AqMonitor,
+  AqGlobe05,
+  AqUser03,
+  AqMarkerPin01,
+} from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from "@/components/ui/popover";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import Card from "../shared/card/CardWrapper";
 
@@ -24,33 +39,67 @@ interface SecondarySidebarProps {
 }
 
 const styles = {
-  scrollbar: "scrollbar-thumb-gray-300 scrollbar-track-gray-100"
-}
+  scrollbar: "scrollbar-thumb-gray-300 scrollbar-track-gray-100",
+};
 
-const SidebarSectionHeading = ({ children, isCollapsed }: { children: React.ReactNode; isCollapsed: boolean }) => (
+const SidebarSectionHeading = ({
+  children,
+  isCollapsed,
+}: {
+  children: React.ReactNode;
+  isCollapsed: boolean;
+}) =>
   !isCollapsed ? (
     <div className="mt-6 mb-2 px-2 text-xs font-semibold text-muted-foreground capitalize tracking-wider">
       {children}
     </div>
-  ) : null
-);
+  ) : null;
 
-const NavItem = ({ href, icon: Icon, label, isCollapsed, disabled = false, tooltip, activeOverride }: { href: string; icon: React.ElementType; label: string; isCollapsed: boolean; disabled?: boolean; tooltip?: string; activeOverride?: boolean }) => {
+const NavItem = ({
+  href,
+  icon: Icon,
+  label,
+  isCollapsed,
+  disabled = false,
+  tooltip,
+  activeOverride,
+}: {
+  href: string;
+  icon: React.ElementType;
+  label: string;
+  isCollapsed: boolean;
+  disabled?: boolean;
+  tooltip?: string;
+  activeOverride?: boolean;
+}) => {
   const pathname = usePathname();
-  const isActive = typeof activeOverride === 'boolean' ? activeOverride : pathname.startsWith(href);
+  const isActive =
+    typeof activeOverride === "boolean"
+      ? activeOverride
+      : pathname.startsWith(href);
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
-            href={disabled ? '#' : href}
+            href={disabled ? "#" : href}
             tabIndex={disabled ? -1 : 0}
             aria-disabled={disabled}
             className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition text-base
-                ${isActive ? (isCollapsed ? 'bg-blue-50' : 'bg-blue-50 font-semibold text-blue-700') : 'hover:bg-muted text-foreground'}
-                ${isCollapsed ? 'justify-center px-2 py-2' : ''}
-                ${disabled ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}
-            style={{ position: 'relative' }}
+                ${
+                  isActive
+                    ? isCollapsed
+                      ? "bg-blue-50"
+                      : "bg-blue-50 font-semibold text-blue-700"
+                    : "hover:bg-muted text-foreground"
+                }
+                ${isCollapsed ? "justify-center px-2 py-2" : ""}
+                ${
+                  disabled
+                    ? "opacity-50 pointer-events-none cursor-not-allowed"
+                    : ""
+                }`}
+            style={{ position: "relative" }}
           >
             {isActive && !isCollapsed && (
               <span className="absolute -left-2 top-[17px] bottom-2 w-1 rounded-full bg-blue-600 h-3" />
@@ -70,21 +119,44 @@ const NavItem = ({ href, icon: Icon, label, isCollapsed, disabled = false, toolt
   );
 };
 
-const SubMenuItem = ({ href, label, disabled = false, tooltip, activeOverride }: { href: string; label: string; disabled?: boolean; tooltip?: string; activeOverride?: boolean }) => {
+const SubMenuItem = ({
+  href,
+  label,
+  disabled = false,
+  tooltip,
+  activeOverride,
+}: {
+  href: string;
+  label: string;
+  disabled?: boolean;
+  tooltip?: string;
+  activeOverride?: boolean;
+}) => {
   const pathname = usePathname();
-  const isActive = typeof activeOverride === 'boolean' ? activeOverride : pathname.startsWith(href);
+  const isActive =
+    typeof activeOverride === "boolean"
+      ? activeOverride
+      : pathname.startsWith(href);
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
-            href={disabled ? '#' : href}
+            href={disabled ? "#" : href}
             tabIndex={disabled ? -1 : 0}
             aria-disabled={disabled}
             className={`relative flex items-center gap-3 px-4 py-2 rounded-lg transition text-sm
-                ${isActive ? 'bg-blue-50 font-semibold text-blue-700' : 'hover:bg-muted text-foreground'}
-                ${disabled ? 'opacity-50 pointer-events-none cursor-not-allowed' : ''}`}
-            style={{ position: 'relative' }}
+                ${
+                  isActive
+                    ? "bg-blue-50 font-semibold text-blue-700"
+                    : "hover:bg-muted text-foreground"
+                }
+                ${
+                  disabled
+                    ? "opacity-50 pointer-events-none cursor-not-allowed"
+                    : ""
+                }`}
+            style={{ position: "relative" }}
           >
             {/* {isActive && (
               <span className="absolute -left-1 top-[13px] bottom-1 w-1 h-3 rounded-full bg-blue-600" />
@@ -128,9 +200,16 @@ const SidebarDropdown = ({
             <Icon size={20} className="shrink-0" />
           </button>
         </PopoverTrigger>
-        <PopoverContent side="right" align="center" sideOffset={8} className="p-2 w-48">
+        <PopoverContent
+          side="right"
+          align="center"
+          sideOffset={8}
+          className="p-2 w-48"
+        >
           <div className="flex flex-col gap-1">
-            <span className="text-xs font-semibold text-muted-foreground px-2 mb-1">{label}</span>
+            <span className="text-xs font-semibold text-muted-foreground px-2 mb-1">
+              {label}
+            </span>
             {children}
           </div>
         </PopoverContent>
@@ -159,113 +238,112 @@ const SidebarDropdown = ({
   );
 };
 
-const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, activeModule, toggleSidebar }) => {
-  const { getSidebarConfig, getContextPermissions, isPersonalContext } = useUserContext();
+const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
+  isCollapsed,
+  activeModule,
+  toggleSidebar,
+}) => {
+  const { getSidebarConfig, getContextPermissions, isPersonalContext } =
+    useUserContext();
   const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
 
   return (
     <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
-    <div
-      className={`transition-all duration-300 ease-in-out relative z-50 p-1
-          ${isCollapsed ? 'w-[75px]' : 'w-[256px]'} h-[calc(100vh-4rem)]`}
-    >
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleSidebar}
-        className={`absolute flex rounded-full top-4 -right-[6px] z-50 shadow-lg justify-center items-center border w-6 h-6 bg-white border-gray-200 text-gray-800 hover:shadow-xl transition-all duration-200`}
+      <div
+        className={`transition-all duration-300 ease-in-out relative z-50 p-1
+          ${isCollapsed ? "w-[75px]" : "w-[256px]"} h-[calc(100vh-4rem)]`}
       >
-        {isCollapsed ? (
-          <ChevronRight className="h-4 w-4 text-gray-700" />
-        ) : (
-          <ChevronLeft className="h-4 w-4 text-gray-700" />
-        )}
-      </Button>
-      <Card
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={toggleSidebar}
+          className={`absolute flex rounded-full top-4 -right-[6px] z-50 shadow-lg justify-center items-center border w-6 h-6 bg-white border-gray-200 text-gray-800 hover:shadow-xl transition-all duration-200`}
+        >
+          {isCollapsed ? (
+            <ChevronRight className="h-4 w-4 text-gray-700" />
+          ) : (
+            <ChevronLeft className="h-4 w-4 text-gray-700" />
+          )}
+        </Button>
+        <Card
           className="h-full relative overflow-hidden"
-          padding={isCollapsed ? 'p-2' : 'p-3'}
+          padding={isCollapsed ? "p-2" : "p-3"}
           overflow
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
         >
-{activeModule === 'network' && (
-          <>
-            <NavItem
-              href="/home"
-              icon={AqHomeSmile}
-              label="Home"
-              isCollapsed={isCollapsed}
-              disabled={false}
-            />
-
-            {/* Network Map - only for AirQo Internal */}
-            {sidebarConfig.showNetworkMap && (
+          {activeModule === "network" && (
+            <>
               <NavItem
-                href="/network-map"
-                icon={AqGlobe05}
-                label="Network Map"
+                href="/home"
+                icon={AqHomeSmile}
+                label="Home"
                 isCollapsed={isCollapsed}
                 disabled={false}
               />
-            )}
 
-            {/* Network Section Heading */}
-            <SidebarSectionHeading isCollapsed={isCollapsed}>
-              {isPersonalContext ? 'My Network' : 'Network'}
-            </SidebarSectionHeading>
+              {/* Network Map - only for AirQo Internal */}
+              {sidebarConfig.showNetworkMap && (
+                <NavItem
+                  href="/network-map"
+                  icon={AqGlobe05}
+                  label="Network Map"
+                  isCollapsed={isCollapsed}
+                  disabled={false}
+                />
+              )}
 
-            {/* Devices Section */}
-            {contextPermissions.canViewDevices && (
-              <SidebarDropdown
-                label="Devices"
-                icon={AqMonitor}
-                isCollapsed={isCollapsed}
-                defaultOpen={true}
-              >
-                {sidebarConfig.showDeviceOverview && (
-                  <SubMenuItem
-                    href="/devices/overview"
-                    label="Overview"
-                    disabled={!contextPermissions.canViewDevices}
-                    tooltip="You do not have permission to view devices."
-                  />
-                )}
-                {sidebarConfig.showMyDevices && (
-                  <SubMenuItem
-                    href="/devices/my-devices"
-                    label="My Devices"
-                    disabled={!contextPermissions.canViewDevices}
-                    tooltip="You do not have permission to view devices."
-                  />
-                )}
-                {sidebarConfig.showClaimDevice && (
-                  <SubMenuItem
-                    href="/devices/claim"
-                    label="Claim Device"
-                  />
-                )}
-                {sidebarConfig.showDeployDevice && (
-                  <SubMenuItem
-                    href="/devices/deploy"
-                    label="Deploy Device"
-                  />
-                )}
-              </SidebarDropdown>
-            )}
+              {/* Network Section Heading */}
+              <SidebarSectionHeading isCollapsed={isCollapsed}>
+                {isPersonalContext ? "My Network" : "Network"}
+              </SidebarSectionHeading>
 
-            {/* Sites - only for non-personal contexts */}
-            {sidebarConfig.showSites && contextPermissions.canViewSites && (
-              <NavItem
-                href="/sites"
-                icon={AqMarkerPin01}
-                label="Sites"
-                isCollapsed={isCollapsed}
-                disabled={false}
-              />
-            )}
+              {/* Devices Section */}
+              {contextPermissions.canViewDevices && (
+                <SidebarDropdown
+                  label="Devices"
+                  icon={AqMonitor}
+                  isCollapsed={isCollapsed}
+                  defaultOpen={true}
+                >
+                  {sidebarConfig.showDeviceOverview && (
+                    <SubMenuItem
+                      href="/devices/overview"
+                      label="Overview"
+                      disabled={!contextPermissions.canViewDevices}
+                      tooltip="You do not have permission to view devices."
+                    />
+                  )}
+                  {sidebarConfig.showMyDevices && (
+                    <SubMenuItem
+                      href="/devices/my-devices"
+                      label="My Devices"
+                      disabled={!contextPermissions.canViewDevices}
+                      tooltip="You do not have permission to view devices."
+                    />
+                  )}
+                  {sidebarConfig.showClaimDevice && (
+                    <SubMenuItem href="/devices/claim" label="Claim Device" />
+                  )}
+                  {sidebarConfig.showDeployDevice && (
+                    <SubMenuItem href="/devices/deploy" label="Deploy Device" />
+                  )}
+                </SidebarDropdown>
+              )}
 
-            {/* {sidebarConfig.showGrids && contextPermissions.canViewSites && (
+              {/* Sites - only for non-personal contexts */}
+              {sidebarConfig.showSites && contextPermissions.canViewSites && (
+                <NavItem
+                  href="/sites"
+                  icon={AqMarkerPin01}
+                  label="Sites"
+                  isCollapsed={isCollapsed}
+                  disabled={false}
+                />
+              )}
+
+              {/* {sidebarConfig.showGrids && contextPermissions.canViewSites && (
               <NavItem
                 href="/grids"
                 icon={Grid}
@@ -284,53 +362,60 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({ isCollapsed, active
                 disabled={false}
               />
             )} */}
-          </>
-        )}
+            </>
+          )}
 
-        {activeModule === 'admin' && (
-          <>
-            {sidebarConfig.showUserManagement && (
-              <NavItem
-                href="/user-management"
-                icon={Users}
-                label="User Management"
-                isCollapsed={isCollapsed}
-                disabled={!contextPermissions.canViewUserManagement}
-                tooltip="You do not have permission to view user management."
-              />
-            )}
-            {sidebarConfig.showAccessControl && (
-              <NavItem
-                href="/access-control"
-                icon={Shield}
-                label="Access Control"
-                isCollapsed={isCollapsed}
-                disabled={!contextPermissions.canViewAccessControl}
-                tooltip="You do not have permission to view access control."
-              />
-            )}
-            {sidebarConfig.showOrganizations && (
-              <NavItem
-                href="/organizations"
-                icon={AqHomeSmile}
-                label="Organizations"
-                isCollapsed={isCollapsed}
-                disabled={!contextPermissions.canViewOrganizations}
-                tooltip="You do not have permission to view organizations."
-              />
-            )}
-          </>
-        )}
+          {activeModule === "admin" && (
+            <>
+              {sidebarConfig.showUserManagement && (
+                <NavItem
+                  href="/user-management"
+                  icon={Users}
+                  label="User Management"
+                  isCollapsed={isCollapsed}
+                  disabled={!contextPermissions.canViewUserManagement}
+                  tooltip="You do not have permission to view user management."
+                />
+              )}
+              {sidebarConfig.showAccessControl && (
+                <NavItem
+                  href="/access-control"
+                  icon={Shield}
+                  label="Access Control"
+                  isCollapsed={isCollapsed}
+                  disabled={!contextPermissions.canViewAccessControl}
+                  tooltip="You do not have permission to view access control."
+                />
+              )}
+              {sidebarConfig.showOrganizations && (
+                <NavItem
+                  href="/organizations"
+                  icon={AqHomeSmile}
+                  label="Organizations"
+                  isCollapsed={isCollapsed}
+                  disabled={!contextPermissions.canViewOrganizations}
+                  tooltip="You do not have permission to view organizations."
+                />
+              )}
+            </>
+          )}
         </Card>
 
-      {/* Account Section at the bottom */}
-      <div className="mt-auto">
-        <SidebarSectionHeading isCollapsed={isCollapsed}>Account</SidebarSectionHeading>
-        <NavItem href="/profile" icon={AqUser03} label="Profile" isCollapsed={isCollapsed} />
+        {/* Account Section at the bottom */}
+        <div className="mt-auto">
+          <SidebarSectionHeading isCollapsed={isCollapsed}>
+            Account
+          </SidebarSectionHeading>
+          <NavItem
+            href="/profile"
+            icon={AqUser03}
+            label="Profile"
+            isCollapsed={isCollapsed}
+          />
+        </div>
       </div>
-    </div>
     </aside>
   );
 };
 
-export default SecondarySidebar; 
+export default SecondarySidebar;

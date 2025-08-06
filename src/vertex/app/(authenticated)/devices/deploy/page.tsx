@@ -564,7 +564,7 @@ const DeployDevicePage = () => {
   ];
 
   return (
-    <div className="container mx-auto p-6 flex flex-col md:flex-row gap-8">
+    <div className="flex flex-col md:flex-row gap-8">
       {/* Main Steps Column */}
       <div className="flex-1 min-w-0">
         <h1 className="text-2xl font-semibold mb-4">Deploy Device</h1>

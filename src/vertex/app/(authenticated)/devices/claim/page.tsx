@@ -64,7 +64,7 @@ const DeviceClaimingPage = () => {
 
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.UPDATE}>
-      <div className="p-6">
+      <div>
         {/* Dismissible Info Section */}
         {showInfo && (
           <div className="relative flex items-center bg-white border border-gray-200 rounded-lg px-6 py-4 mb-6 shadow-sm">

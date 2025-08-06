@@ -57,7 +57,7 @@ export default function DeviceDetailsPage() {
     }
 
     return (
-        <div className="min-h-screen p-6">
+        <div>
             <div className="flex gap-2 mb-6 justify-between items-center">
                 <Button variant="ghost" onClick={() => router.back()}>
                     <ArrowLeft className="w-4 h-4" />
