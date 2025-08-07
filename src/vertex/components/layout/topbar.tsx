@@ -8,7 +8,6 @@ import {
   Sun,
   BarChart2,
   BookOpen,
-  LayoutDashboard,
   Settings,
 } from "lucide-react";
 import { AqMenu02, AqDotsGrid, AqUser02 } from "@airqo/icons-react";
@@ -138,15 +137,14 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
       <Card className={`w-full bg-white`} padding="py-1 px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
+            <button
               onClick={onMenuClick}
-              className="inline-flex items-center justify-center focus:outline-none min-h-[32px]"
+              className="inline-flex items-center justify-center focus:outline-none min-h-[32px] hover:bg-blue-50 p-2 rounded-md"
             >
               <span>
                 <AqMenu02 size={20} color="#0A84FF" />
               </span>
-            </Button>
+            </button>
             <LogoComponent
               className={`flex items-center justify-center text-gray-800`}
             />

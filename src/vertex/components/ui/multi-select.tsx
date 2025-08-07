@@ -149,7 +149,7 @@ export function MultiSelectCombobox({
                     value={`create-new-${inputValue.toLowerCase()}`}
                     className="cursor-pointer flex items-center justify-between"
                   >
-                    <span>Create "{inputValue}"</span>
+                    <span>Create &quot;{inputValue}&quot;</span>
                     <PlusCircle className="ml-2 h-4 w-4" />
                   </CommandItem>
                 )}

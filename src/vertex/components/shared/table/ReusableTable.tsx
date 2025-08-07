@@ -1,7 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useMemo, useRef, useEffect, useCallback, ReactNode } from 'react';
-import Fuse from 'fuse.js';
+import React, {
+  useState,
+  useMemo,
+  useRef,
+  useEffect,
+  useCallback,
+  ReactNode,
+  ReactElement,
+} from "react";
+import Fuse from "fuse.js";
 import {
   AqSearchSm,
   AqChevronDown,
@@ -9,9 +17,9 @@ import {
   AqChevronLeft,
   AqChevronRight,
   AqFilterLines,
-  AqXClose
-} from '@airqo/icons-react';
-import { Loader2 } from 'lucide-react';
+  AqXClose,
+} from "@airqo/icons-react";
+import { Loader2 } from "lucide-react";
 
 // --- Type Definitions ---
 interface FilterOption {
@@ -26,16 +34,13 @@ interface FilterConfig {
   isMulti?: boolean;
 }
 
-export interface TableColumn<
-  T extends Record<string, unknown>,
-  K extends keyof T = keyof T,
-  V = T[K]                          // fallback to the key-based value
-> {
+export type TableColumn<T, K extends keyof T = keyof T> = {
   key: K;
-  label: ReactNode;
-  render?: (value: V, item: T) => ReactNode;
+  title?: string;
+  label?: React.ReactNode;
+  render: (value: T[keyof T], item: T) => React.ReactNode;
   sortable?: boolean;
-}
+};
 
 interface TableAction {
   label: string;
@@ -43,20 +48,22 @@ interface TableAction {
   handler: (selectedIds: (string | number)[]) => void;
 }
 
-type TableItem<T = unknown> = {
+export type TableItem<T = unknown> = {
   id: string | number;
 } & Record<string, T>;
 
 interface SortConfig {
   key: string | null;
-  direction: 'asc' | 'desc';
+  direction: "asc" | "desc";
 }
 
 // --- CustomFilter Component ---
 interface CustomFilterProps {
   options: FilterOption[];
   value: string | number | boolean | (string | number | boolean)[];
-  onChange: (value: string | number | boolean | (string | number | boolean)[]) => void;
+  onChange: (
+    value: string | number | boolean | (string | number | boolean)[]
+  ) => void;
   placeholder: string;
   isMulti?: boolean;
 }
@@ -69,29 +76,32 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
   isMulti = false,
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>("");
   const filterRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     };
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
 
   const filteredOptions = useMemo(
     () =>
       options.filter((option) =>
-        option.label.toLowerCase().includes(searchTerm.toLowerCase()),
+        option.label.toLowerCase().includes(searchTerm.toLowerCase())
       ),
-    [options, searchTerm],
+    [options, searchTerm]
   );
 
   const handleSelect = useCallback(
@@ -107,13 +117,15 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
         setIsOpen(false);
       }
     },
-    [isMulti, value, onChange],
+    [isMulti, value, onChange]
   );
 
   const getDisplayValue = useCallback((): string => {
     if (isMulti) {
       const arrayValue = Array.isArray(value) ? value : [];
-      return arrayValue.length > 0 ? `${arrayValue.length} selected` : placeholder;
+      return arrayValue.length > 0
+        ? `${arrayValue.length} selected`
+        : placeholder;
     }
     const selected = options.find((opt) => opt.value === value);
     return selected ? selected.label : placeholder;
@@ -165,14 +177,16 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
                       ? Array.isArray(value) && value.includes(option.value)
                       : value === option.value
                   )
-                    ? 'bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary'
-                    : 'text-gray-900 dark:text-gray-100'
+                    ? "bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary"
+                    : "text-gray-900 dark:text-gray-100"
                 }`}
               >
                 {isMulti && (
                   <input
                     type="checkbox"
-                    checked={Array.isArray(value) && value.includes(option.value)}
+                    checked={
+                      Array.isArray(value) && value.includes(option.value)
+                    }
                     onChange={() => {}} // Handled by parent div click
                     className="mr-2 text-primary focus:ring-primary"
                   />
@@ -245,7 +259,7 @@ const TableHeader = <T extends TableItem>({
   onFilterChange,
 }: TableHeaderProps<T>) => {
   return (
-    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20]">
+    <div className="px-6 py-4 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           {title}
@@ -279,7 +293,7 @@ const TableHeader = <T extends TableItem>({
                   <CustomFilter
                     options={filter.options}
                     value={
-                      filterValues[filter.key] || (filter.isMulti ? [] : '')
+                      filterValues[filter.key] || (filter.isMulti ? [] : "")
                     }
                     onChange={(value) => onFilterChange(filter.key, value)}
                     placeholder={filter.placeholder}
@@ -334,8 +348,8 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
           disabled={!selectedAction}
           className={`px-3 py-1 text-sm rounded-md border transition-colors ${
             selectedAction
-              ? 'bg-primary text-white border-primary hover:bg-primary/90'
-              : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+              ? "bg-primary text-white border-primary hover:bg-primary/90"
+              : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed"
           }`}
           type="button"
         >
@@ -375,25 +389,25 @@ const Pagination: React.FC<PaginationProps> = ({
       }
     } else {
       if (currentPage <= 3) {
-        pages.push(1, 2, 3, 4, '...', totalPages);
+        pages.push(1, 2, 3, 4, "...", totalPages);
       } else if (currentPage >= totalPages - 2) {
         pages.push(
           1,
-          '...',
+          "...",
           totalPages - 3,
           totalPages - 2,
           totalPages - 1,
-          totalPages,
+          totalPages
         );
       } else {
         pages.push(
           1,
-          '...',
+          "...",
           currentPage - 1,
           currentPage,
           currentPage + 1,
-          '...',
-          totalPages,
+          "...",
+          totalPages
         );
       }
     }
@@ -410,10 +424,9 @@ const Pagination: React.FC<PaginationProps> = ({
             options={pageSizeOptions}
           />
           <div className="text-sm text-gray-700 dark:text-gray-300">
-            Showing{' '}
-            {Math.min((currentPage - 1) * pageSize + 1, totalItems)}{' '}
-            to {Math.min(currentPage * pageSize, totalItems)}{' '}
-            of {totalItems} results
+            Showing {Math.min((currentPage - 1) * pageSize + 1, totalItems)} to{" "}
+            {Math.min(currentPage * pageSize, totalItems)} of {totalItems}{" "}
+            results
           </div>
         </div>
         {totalPages > 1 && (
@@ -431,16 +444,14 @@ const Pagination: React.FC<PaginationProps> = ({
               {generatePageNumbers().map((page, index) => (
                 <button
                   key={index}
-                  onClick={() =>
-                    typeof page === 'number' && onPageChange(page)
-                  }
-                  disabled={typeof page !== 'number'}
+                  onClick={() => typeof page === "number" && onPageChange(page)}
+                  disabled={typeof page !== "number"}
                   className={`px-3 py-1 text-sm border rounded-md transition-colors ${
                     page === currentPage
-                      ? 'bg-primary text-white border-primary'
-                      : typeof page === 'number'
-                        ? 'border-primary/30 dark:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900'
-                        : 'border-transparent cursor-default bg-transparent dark:bg-transparent text-gray-400 dark:text-gray-500'
+                      ? "bg-primary text-white border-primary"
+                      : typeof page === "number"
+                      ? "border-primary/30 dark:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900"
+                      : "border-transparent cursor-default bg-transparent dark:bg-transparent text-gray-400 dark:text-gray-500"
                   }`}
                   type="button"
                 >
@@ -449,7 +460,9 @@ const Pagination: React.FC<PaginationProps> = ({
               ))}
             </div>
             <button
-              onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
+              onClick={() =>
+                onPageChange(Math.min(currentPage + 1, totalPages))
+              }
               disabled={currentPage === totalPages}
               className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               type="button"
@@ -483,10 +496,11 @@ interface ReusableTableProps<T extends TableItem> {
   actions?: TableAction[];
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
   onRowClick?: (item: unknown) => void;
+  emptyState?: string | React.ReactNode;
 }
 
 const ReusableTable = <T extends TableItem>({
-  title = 'Table',
+  title = "Table",
   data = [],
   columns = [],
   searchable = true,
@@ -502,21 +516,26 @@ const ReusableTable = <T extends TableItem>({
   multiSelect = false,
   actions = [],
   onSelectedItemsChange,
-  onRowClick
+  onRowClick,
 }: ReusableTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
-  const [filterValues, setFilterValues] = useState<Record<string, FilterValue>>({});
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: null,
+    direction: "asc",
+  });
+  const [filterValues, setFilterValues] = useState<Record<string, FilterValue>>(
+    {}
+  );
   const [currentPageSize, setCurrentPageSize] = useState<number>(pageSize);
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
-  const [selectedAction, setSelectedAction] = useState<string>('');
+  const [selectedAction, setSelectedAction] = useState<string>("");
 
   // Initialize filter values
   useEffect(() => {
     const initialFilters: Record<string, FilterValue> = {};
     filters.forEach((filter) => {
-      initialFilters[filter.key] = filter.isMulti ? [] : '';
+      initialFilters[filter.key] = filter.isMulti ? [] : "";
     });
     setFilterValues(initialFilters);
   }, [filters]);
@@ -530,17 +549,26 @@ const ReusableTable = <T extends TableItem>({
       if (
         value !== undefined &&
         value !== null &&
-        value !== '' &&
+        value !== "" &&
         !(Array.isArray(value) && value.length === 0)
       ) {
         result = result.filter((item) => {
           if (Array.isArray(value)) {
-            return value.includes(item[key]);
+            const itemValue = item[key];
+            if (
+              typeof itemValue === "string" ||
+              typeof itemValue === "number" ||
+              typeof itemValue === "boolean"
+            ) {
+              return value.includes(itemValue);
+            }
+            return false; // fallback if itemValue is not a primitive
           }
+
           if (
-            typeof value === 'boolean' ||
-            value === 'true' ||
-            value === 'false'
+            typeof value === "boolean" ||
+            value === "true" ||
+            value === "false"
           ) {
             return String(item[key]) === String(value);
           }
@@ -560,10 +588,13 @@ const ReusableTable = <T extends TableItem>({
           (item) =>
             item[key] !== null &&
             item[key] !== undefined &&
-            String(item[key]).trim() !== '',
-        ),
+            String(item[key]).trim() !== ""
+        )
       );
-      fuseKeys = keysWithData.length > 0 ? keysWithData : allKeys;
+      fuseKeys = (keysWithData.length > 0 ? keysWithData : allKeys) as Extract<
+        keyof T,
+        string
+      >[];
     }
 
     // Process data for Fuse.js search ONLY if there's a search term
@@ -571,38 +602,43 @@ const ReusableTable = <T extends TableItem>({
       const getSearchableString = (item: T, key: string): string => {
         const col = columns.find((c) => c.key === key);
         const value = item[key];
-        
+
         // If column has a render function, attempt to get a searchable string from it
-        if (col && typeof col.render === 'function') {
+        if (col && typeof col.render === "function") {
           try {
-            const rendered = col.render(item[key], item);
+            const key = col.key;
+            const value = item[key as typeof col.key] as T[typeof col.key];
+            const rendered = col.render(value, item);
+
             // If render returns a simple string or number, use it
-            if (typeof rendered === 'string') return rendered;
-            if (typeof rendered === 'number') return String(rendered);
+            if (typeof rendered === "string") return rendered;
+            if (typeof rendered === "number") return String(rendered);
             // If it returns JSX, try to extract text content
-            if (rendered && typeof rendered === 'object' && 'props' in rendered) {
-              const props = (rendered as any).props;
-              if (typeof props.children === 'string') {
+            if (React.isValidElement(rendered)) {
+              const props = (rendered as ReactElement).props;
+              if (typeof props.children === "string") {
                 return props.children;
               }
               if (Array.isArray(props.children)) {
                 return props.children
-                  .map((child: unknown) => (typeof child === 'string' ? child : ''))
-                  .join(' ');
+                  .map((child: unknown) =>
+                    typeof child === "string" ? child : ""
+                  )
+                  .join(" ");
               }
               // Fallback to raw value if complex JSX
-              return value === null || value === undefined ? '' : String(value);
+              return value === null || value === undefined ? "" : String(value);
             }
           } catch {
             // If render throws or is complex, fallback to raw value stringification
           }
         }
-        
+
         // Default stringification for non-rendered or failed render cases
-        if (value && typeof value === 'object') {
+        if (value && typeof value === "object") {
           return JSON.stringify(value);
         }
-        return value === null || value === undefined ? '' : String(value);
+        return value === null || value === undefined ? "" : String(value);
       };
 
       // Prepare the data specifically for Fuse.js
@@ -632,7 +668,9 @@ const ReusableTable = <T extends TableItem>({
           .filter((res) => (res.score ?? 1) <= 0.8)
           .map((searchResult) => result[searchResult.refIndex]);
       } else {
-        result = fuseResults.map((searchResult) => result[searchResult.refIndex]);
+        result = fuseResults.map(
+          (searchResult) => result[searchResult.refIndex]
+        );
       }
     }
 
@@ -650,10 +688,10 @@ const ReusableTable = <T extends TableItem>({
       const aStr = String(aValue).toLowerCase();
       const bStr = String(bValue).toLowerCase();
       if (aStr < bStr) {
-        return sortConfig.direction === 'asc' ? -1 : 1;
+        return sortConfig.direction === "asc" ? -1 : 1;
       }
       if (aStr > bStr) {
-        return sortConfig.direction === 'asc' ? 1 : -1;
+        return sortConfig.direction === "asc" ? 1 : -1;
       }
       return 0;
     });
@@ -685,40 +723,51 @@ const ReusableTable = <T extends TableItem>({
       setSortConfig((prev) => ({
         key,
         direction:
-          prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+          prev.key === key && prev.direction === "asc" ? "desc" : "asc",
       }));
     },
-    [sortable],
+    [sortable]
   );
 
-  const handleFilterChange = useCallback((key: string, value: string | number | boolean | (string | number | boolean)[]) => {
-    setFilterValues((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-    setCurrentPage(1);
-  }, []);
+  const handleFilterChange = useCallback(
+    (
+      key: string,
+      value: string | number | boolean | (string | number | boolean)[]
+    ) => {
+      setFilterValues((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+      setCurrentPage(1);
+    },
+    []
+  );
 
   const getSortIcon = useCallback(
     (key: string): ReactNode => {
       if (sortConfig.key !== key)
-        return <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />;
-      return sortConfig.direction === 'asc' ? (
+        return (
+          <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />
+        );
+      return sortConfig.direction === "asc" ? (
         <AqChevronUp className="w-3 h-3 text-primary" />
       ) : (
         <AqChevronDown className="w-3 h-3 text-primary" />
       );
     },
-    [sortConfig],
+    [sortConfig]
   );
 
-  const renderCell = useCallback((item: T, column: TableColumn<T>): ReactNode => {
-    if (column.render) {
-      return column.render(item[column.key], item);
-    }
-    const value = item[column.key];
-    return value === null || value === undefined ? '' : String(value);
-  }, []);
+  const renderCell = useCallback(
+    (item: T, column: TableColumn<T>): ReactNode => {
+      if (column.render) {
+        return column.render(item[column.key], item);
+      }
+      const value = item[column.key];
+      return value === null || value === undefined ? "" : String(value);
+    },
+    []
+  );
 
   // Multi-Select Logic
   const handleSelectAll = useCallback(
@@ -727,7 +776,7 @@ const ReusableTable = <T extends TableItem>({
         const currentPageIds = paginatedData.map((item) => item.id);
         setSelectedItems((prevSelected) => {
           const newItems = currentPageIds.filter(
-            (id) => !prevSelected.includes(id),
+            (id) => !prevSelected.includes(id)
           );
           const updatedSelected = [...prevSelected, ...newItems];
           onSelectedItemsChange?.(updatedSelected);
@@ -737,14 +786,14 @@ const ReusableTable = <T extends TableItem>({
         const currentPageIds = paginatedData.map((item) => item.id);
         setSelectedItems((prevSelected) => {
           const updatedSelected = prevSelected.filter(
-            (id) => !currentPageIds.includes(id),
+            (id) => !currentPageIds.includes(id)
           );
           onSelectedItemsChange?.(updatedSelected);
           return updatedSelected;
         });
       }
     },
-    [paginatedData, onSelectedItemsChange],
+    [paginatedData, onSelectedItemsChange]
   );
 
   const handleSelectItem = useCallback(
@@ -763,14 +812,14 @@ const ReusableTable = <T extends TableItem>({
         });
       }
     },
-    [onSelectedItemsChange],
+    [onSelectedItemsChange]
   );
 
   const isAllSelectedOnPage = useMemo(
     () =>
       paginatedData.length > 0 &&
       paginatedData.every((item) => selectedItems.includes(item.id)),
-    [paginatedData, selectedItems],
+    [paginatedData, selectedItems]
   );
 
   const isIndeterminate = useMemo(
@@ -778,7 +827,7 @@ const ReusableTable = <T extends TableItem>({
       paginatedData.length > 0 &&
       paginatedData.some((item) => selectedItems.includes(item.id)) &&
       !isAllSelectedOnPage,
-    [paginatedData, selectedItems, isAllSelectedOnPage],
+    [paginatedData, selectedItems, isAllSelectedOnPage]
   );
 
   const isAnySelected = selectedItems.length > 0;
@@ -790,16 +839,16 @@ const ReusableTable = <T extends TableItem>({
   const handleActionSubmit = useCallback(() => {
     if (selectedAction && actions.length > 0) {
       const action = actions.find((a) => a.value === selectedAction);
-      if (action && typeof action.handler === 'function') {
+      if (action && typeof action.handler === "function") {
         action.handler(selectedItems);
       }
     }
-    setSelectedAction('');
+    setSelectedAction("");
   }, [selectedAction, actions, selectedItems]);
 
   // Clear search
   const handleClearSearch = useCallback(() => {
-    setSearchTerm('');
+    setSearchTerm("");
   }, []);
 
   // Determine columns to display
@@ -807,7 +856,7 @@ const ReusableTable = <T extends TableItem>({
     const cols = [...columns];
     if (multiSelect) {
       cols.unshift({
-        key: 'checkbox',
+        key: "checkbox",
         label: (
           <input
             type="checkbox"
@@ -819,7 +868,7 @@ const ReusableTable = <T extends TableItem>({
             className="rounded text-primary focus:ring-primary"
           />
         ),
-        render: (value: FilterValue, item: T) => (
+        render: (_value: T[keyof T], item: T) => (
           <input
             type="checkbox"
             checked={selectedItems.includes(item.id)}
@@ -883,23 +932,23 @@ const ReusableTable = <T extends TableItem>({
               <tr>
                 {displayColumns.map((column) => (
                   <th
-                    key={column.key}
+                    key={String(column.key)}
                     className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${
                       sortable && column.sortable !== false
-                        ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'
-                        : ''
+                        ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                        : ""
                     }`}
                     onClick={() =>
                       sortable &&
                       column.sortable !== false &&
-                      handleSort(column.key)
+                      handleSort(String(column.key))
                     }
                   >
                     <div className="flex items-center space-x-1">
                       <span>{column.label}</span>
                       {sortable &&
                         column.sortable !== false &&
-                        getSortIcon(column.key)}
+                        getSortIcon(String(column.key))}
                     </div>
                   </th>
                 ))}
@@ -910,12 +959,18 @@ const ReusableTable = <T extends TableItem>({
                 paginatedData.map((item, index) => (
                   <tr
                     key={item.id ?? index}
-                    onClick={onRowClick(item)}
-                    className="hover:bg-primary/5 dark:hover:bg-primary/20"
+                    onClick={() => {
+                      if (onRowClick) {
+                        onRowClick(item);
+                      }
+                    }}
+                    className={`hover:bg-primary/5 dark:hover:bg-primary/20 ${
+                      onRowClick && "cursor-pointer"
+                    }`}
                   >
                     {displayColumns.map((column) => (
                       <td
-                        key={column.key}
+                        key={String(column.key)}
                         className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
                       >
                         {renderCell(item, column)}
@@ -931,10 +986,10 @@ const ReusableTable = <T extends TableItem>({
                   >
                     {searchTerm ||
                     Object.values(filterValues).some(
-                      (v) => v && (Array.isArray(v) ? v.length > 0 : v !== ''),
+                      (v) => v && (Array.isArray(v) ? v.length > 0 : v !== "")
                     )
-                      ? 'No matching results found'
-                      : 'No data available'}
+                      ? "No matching results found"
+                      : "No data available"}
                   </td>
                 </tr>
               )}

@@ -123,7 +123,7 @@ export function ComboBox({
                 <div className="py-2 text-center text-sm">
                   <div className="text-muted-foreground">{emptyMessage}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    Press Enter to use "{inputValue}"
+                    Press Enter to use &quot;{inputValue}&quot;
                   </div>
                 </div>
               ) : (
