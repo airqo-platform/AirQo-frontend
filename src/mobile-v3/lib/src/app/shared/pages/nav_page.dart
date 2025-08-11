@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
+import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -26,6 +27,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
     return Scaffold(
       body: IndexedStack(index: currentIndex, children: [
         DashboardPage(),
+        ExposureDashboardView(),
         MapScreen(),
         KyaPage(),
       ]),
@@ -40,30 +42,34 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
         items: [
           BottomNavigationBarItem(
               icon: _buildNavIcon(
-                "assets/icons/home_icon.svg", 
+                "assets/icons/home_icon_new.svg", 
                 "Home", 
                 0,
-                Theme.of(context).brightness == Brightness.dark
-                    ? "assets/icons/home_icon.svg"
-                    : "assets/icons/home_icon_white.svg",
+                "assets/icons/home_icon_new.svg",
+              ),
+              label: ""), // Empty label
+          BottomNavigationBarItem(
+              icon: _buildNavIcon(
+                "assets/icons/exposure_icon.svg", 
+                "Exposure", 
+                1,
+                "assets/icons/exposure_icon.svg",
               ),
               label: ""), // Empty label
           BottomNavigationBarItem(
               icon: _buildNavIcon(
                 "assets/icons/search_icon.svg", 
                 "Search", 
-                1,
+                2,
                 "assets/icons/search_icon.svg",
               ),
               label: ""), // Empty label
           BottomNavigationBarItem(
               icon: _buildNavIcon(
-                "assets/icons/learn_icon.svg", 
+                "assets/icons/learn_icon_new.svg", 
                 "Learn", 
-                2,
-                Theme.of(context).brightness == Brightness.dark
-                    ? "assets/icons/learn_icon.svg"
-                    : "assets/icons/learn_icon_white.svg",
+                3,
+                "assets/icons/learn_icon_new.svg",
               ),
               label: "")
         ],
@@ -78,7 +84,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       children: [
         SvgPicture.asset(
           iconPath,
-          height: index == 2 ? 23 : (index == 0 ? 18 : 20),
+          height: index == 3 ? 23 : (index == 0 ? 18 : (index == 1 ? 22 : 20)),
           // Use the primary color when selected
           color: isSelected ? Theme.of(context).primaryColor : null,
         ),

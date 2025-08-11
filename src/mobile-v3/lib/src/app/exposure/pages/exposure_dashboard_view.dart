@@ -1,18 +1,50 @@
 import 'package:flutter/material.dart';
-import 'package:airqo/src/app/exposure/models/exposure_models.dart';
-import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
-import 'package:airqo/src/app/exposure/services/activity_recognition_service.dart';
-import 'package:airqo/src/app/exposure/widgets/exposure_analytics_card.dart';
-import 'package:airqo/src/app/exposure/widgets/exposure_timeline_widget.dart';
-import 'package:airqo/src/app/exposure/widgets/exposure_map_widget.dart';
-import 'package:airqo/src/app/exposure/widgets/activity_analysis_widget.dart';
-import 'package:airqo/src/app/exposure/widgets/daily_comparison_widget.dart';
+import 'dart:math' as math;
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
+import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
+import 'package:airqo/src/app/dashboard/widgets/dashboard_header.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 
-/// Exposure dashboard view for embedding in the main dashboard
-/// This version doesn't have its own app bar since it's a dashboard view
+class ClockExposurePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final strokeWidth = 12.0;
+    
+    // Paint for background segments
+    final backgroundPaint = Paint()
+      ..color = Colors.grey.withValues(alpha: 0.2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+    
+    // Calculate angle per hour (360° / 24 hours = 15° per hour)
+    final anglePerHour = 2 * math.pi / 24;
+    final segmentGap = 0.02; // Small gap between segments
+    
+    // Draw 24 hour segments
+    for (int hour = 0; hour < 24; hour++) {
+      final startAngle = (hour * anglePerHour) - (math.pi / 2) + segmentGap;
+      final sweepAngle = anglePerHour - (2 * segmentGap);
+      
+      // Initial state - all segments are inactive
+      final paint = backgroundPaint;
+      
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
+        startAngle,
+        sweepAngle,
+        false,
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
+}
+
 class ExposureDashboardView extends StatefulWidget {
   const ExposureDashboardView({super.key});
 
@@ -20,348 +52,166 @@ class ExposureDashboardView extends StatefulWidget {
   State<ExposureDashboardView> createState() => _ExposureDashboardViewState();
 }
 
-class _ExposureDashboardViewState extends State<ExposureDashboardView>
-    with AutomaticKeepAliveClientMixin {
-  final ExposureCalculator _exposureCalculator = ExposureCalculator();
-  final ActivityRecognitionService _activityService = ActivityRecognitionService();
-  final EnhancedLocationServiceManager _locationManager = EnhancedLocationServiceManager();
-  
-  DailyExposureSummary? _todayExposure;
-  WeeklyExposureTrend? _weeklyTrend;
-  List<DailyExposureSummary> _recentSummaries = [];
-  ActivityAnalysis? _todayActivityAnalysis;
-  bool _isLoading = true;
-  String? _errorMessage;
-  int _selectedTabIndex = 0;
-
-  @override
-  bool get wantKeepAlive => true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadExposureData();
-  }
-
-  Future<void> _loadExposureData() async {
-    try {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      // Load data in parallel
-      final futures = await Future.wait([
-        _exposureCalculator.getTodayExposure(),
-        _exposureCalculator.getCurrentWeekTrend(),
-        _exposureCalculator.calculateDailySummaries(
-          startDate: DateTime.now().subtract(const Duration(days: 14)),
-          endDate: DateTime.now().add(const Duration(days: 1)),
-        ),
-      ]);
-
-      final todayExposure = futures[0] as DailyExposureSummary?;
-      final weeklyTrend = futures[1] as WeeklyExposureTrend?;
-      final recentSummaries = futures[2] as List<DailyExposureSummary>;
-
-      // Analyze today's activities if we have data
-      ActivityAnalysis? activityAnalysis;
-      if (todayExposure != null && todayExposure.dataPoints.isNotEmpty) {
-        activityAnalysis = await _activityService.analyzeDay(
-          DateTime.now(),
-          todayExposure.dataPoints,
-        );
-      }
-
-      setState(() {
-        _todayExposure = todayExposure;
-        _weeklyTrend = weeklyTrend;
-        _recentSummaries = recentSummaries;
-        _todayActivityAnalysis = activityAnalysis;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Failed to load exposure data: $e';
-        _isLoading = false;
-      });
-    }
-  }
+class _ExposureDashboardViewState extends State<ExposureDashboardView> {
+  int _selectedTabIndex = 0; // 0 for Today, 1 for This week
+  bool _isRequestingPermission = false;
+  final EnhancedLocationServiceManager _locationService = EnhancedLocationServiceManager();
 
   @override
   Widget build(BuildContext context) {
-    super.build(context);
-    final theme = Theme.of(context);
-
-    return RefreshIndicator(
-      onRefresh: _loadExposureData,
-      child: _buildBody(theme),
-    );
-  }
-
-  Widget _buildBody(ThemeData theme) {
-    if (_isLoading) {
-      return _buildLoadingState();
-    }
-
-    if (_errorMessage != null) {
-      return _buildErrorState(theme);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Info header
-        _buildInfoHeader(theme),
-
-        // Tab selector
-        _buildTabSelector(),
-
-        // Tab content
-        _buildTabContent(),
-
-        const SizedBox(height: 32),
-      ],
-    );
-  }
-
-  Widget _buildInfoHeader(ThemeData theme) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.primaryColor.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.info_outline,
-            color: AppColors.primaryColor,
-            size: 24,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Personal Air Quality Exposure',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Track how air quality affects your daily activities. All data is processed locally following your privacy settings.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.primaryColor.withOpacity(0.8),
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNoDataCard(ThemeData theme, String title) {
-    final isTrackingEnabled = _locationManager.isTrackingActive;
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Material(
-        color: theme.highlightColor,
-        borderRadius: BorderRadius.circular(12),
-        elevation: 0,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              children: [
-                Icon(
-                  isTrackingEnabled ? Icons.hourglass_empty : Icons.location_off,
-                  size: 48,
-                  color: theme.textTheme.bodySmall?.color?.withOpacity(0.3),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  'No $title Data',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  isTrackingEnabled
-                      ? 'Your exposure data is being collected. Check back later to see your analysis.'
-                      : 'Enable location tracking to see your exposure analysis. You can control data sharing in privacy settings.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                if (!isTrackingEnabled) ...[
-                  const SizedBox(height: 16),
-                  OutlinedButton(
-                    onPressed: _openPrivacySettings,
-                    child: const Text('Privacy Settings'),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInsightsSection(ThemeData theme) {
-    final insights = _generateInsights();
-    
-    if (insights.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Material(
-        color: theme.highlightColor,
-        borderRadius: BorderRadius.circular(12),
-        elevation: 0,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Icon(
-                      Icons.insights,
-                      color: AppColors.primaryColor,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Insights & Tips',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
+    return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: DashboardAppBar(),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dashboard header
+            DashboardHeader(),
+            
+            // Exposure content
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24.0, 0, 24.0, 24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 
-                ...insights.map((insight) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                // Tab selector
+                Container(
+                  height: 44,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildTabButton(
+                        label: "Today",
+                        isSelected: _selectedTabIndex == 0,
+                        onTap: () => setState(() => _selectedTabIndex = 0),
+                      ),
+                      const SizedBox(width: 8),
+                      _buildTabButton(
+                        label: "This week",
+                        isSelected: _selectedTabIndex == 1,
+                        onTap: () => setState(() => _selectedTabIndex = 1),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 25),
+                
+                // Title
+                Text(
+                  'Monitor your pollution exposure',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // Subtitle
+                Text(
+                  'Allow access to your location to start.',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: const Color.fromARGB(137, 10, 6, 6),
+                  ),
+                  textAlign: TextAlign.left,
+                ),
+                
+                const SizedBox(height: 40),
+                
+                // 24-hour clock chart
+                Center(
+                  child: SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: Stack(
+                      alignment: Alignment.center,
                       children: [
-                        Icon(
-                          Icons.lightbulb_outline,
-                          size: 20,
-                          color: AppColors.primaryColor,
+                        // Custom 24-hour clock painter
+                        SizedBox(
+                          width: 220,
+                          height: 220,
+                          child: CustomPaint(
+                            painter: ClockExposurePainter(),
+                          ),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            insight,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              height: 1.4,
-                            ),
+                        
+                        // Inner circle background
+                        Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.grey.withValues(alpha: 0.15),
+                          ),
+                          child: Icon(
+                            Icons.person_outline,
+                            size: 50,
+                            color: Colors.grey.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
                     ),
-                  );
-                }),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorState(ThemeData theme) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.withOpacity(0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Something went wrong',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              _errorMessage!,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _loadExposureData,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
+                
+                const SizedBox(height: 30),
+                
+                // Allow access button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isRequestingPermission ? null : _requestLocationPermission,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: _isRequestingPermission
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                'Requesting permission...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Text(
+                            'Allow access to location',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                  ),
+                ),
+                
+                const SizedBox(height: 40),
+                ],
               ),
-              child: const Text('Try Again'),
             ),
           ],
         ),
@@ -369,228 +219,150 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView>
     );
   }
 
-  List<String> _generateInsights() {
-    final insights = <String>[];
+  Future<void> _requestLocationPermission() async {
+    if (_isRequestingPermission) return;
 
-    if (_todayExposure != null) {
-      final today = _todayExposure!;
+    setState(() {
+      _isRequestingPermission = true;
+    });
+
+    try {
+      final result = await _locationService.requestLocationPermission();
       
-      if (today.totalOutdoorTime.inHours > 6) {
-        insights.add('You spent ${today.totalOutdoorTime.inHours}+ hours outdoors today. Consider checking air quality before long outdoor activities.');
-      }
+      if (!mounted) return;
 
-      if (today.riskLevel == ExposureRiskLevel.high) {
-        insights.add('High exposure detected today. Consider using air quality alerts for better planning.');
-      }
+      setState(() {
+        _isRequestingPermission = false;
+      });
 
-      if (today.averagePm25 > 50) {
-        insights.add('PM2.5 levels were elevated today. Indoor air purifiers can help reduce exposure at home.');
-      }
-    }
+      if (result.isSuccess) {
+        // Permission granted successfully
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Location permission granted! You can now track your exposure.'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+        // Initialize location service and potentially start tracking
+        await _locationService.initialize();
+      } else {
+        // Handle different error states
+        String errorMessage;
+        String actionText = 'OK';
+        VoidCallback? action;
 
-    if (_weeklyTrend != null) {
-      final trend = _weeklyTrend!;
-      
-      if (trend.overallRiskLevel == ExposureRiskLevel.high) {
-        insights.add('Your weekly exposure shows a concerning trend. Consider reducing outdoor activities during high pollution periods.');
-      }
+        switch (result.status) {
+          case LocationStatus.permissionDenied:
+            errorMessage = 'Location permission is required to track your pollution exposure. Please allow location access to continue.';
+            actionText = 'Try Again';
+            action = () => _requestLocationPermission();
+            break;
+          case LocationStatus.permissionDeniedForever:
+            errorMessage = 'Location permission has been permanently denied. Please enable it in your device settings to track exposure.';
+            actionText = 'Open Settings';
+            action = () => _openAppSettings();
+            break;
+          case LocationStatus.serviceDisabled:
+            errorMessage = 'Location services are disabled. Please enable location services in your device settings.';
+            actionText = 'Open Settings';
+            action = () => _openAppSettings();
+            break;
+          default:
+            errorMessage = result.error ?? 'Unable to request location permission. Please try again.';
+        }
 
-      if (trend.recommendations.isNotEmpty) {
-        insights.addAll(trend.recommendations.take(2));
-      }
-    }
-
-    // General tips if no specific insights
-    if (insights.isEmpty) {
-      insights.add('Check air quality forecasts to plan outdoor activities during cleaner air periods.');
-      insights.add('Morning and evening hours often have different air quality patterns in your area.');
-    }
-
-    return insights;
-  }
-
-  Widget _buildTabSelector() {
-    final tabs = ['Overview', 'Map', 'Activities', 'Compare'];
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: tabs.asMap().entries.map((entry) {
-          final index = entry.key;
-          final tab = entry.value;
-          final isSelected = _selectedTabIndex == index;
-          
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _selectedTabIndex = index),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryColor : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  tab,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: isSelected ? Colors.white : Colors.grey[600],
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        // Show error dialog
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Location Access Required'),
+            content: Text(errorMessage),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text('Cancel'),
+              ),
+              if (action != null)
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    action!();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
                   ),
+                  child: Text(actionText),
                 ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  Widget _buildTabContent() {
-    switch (_selectedTabIndex) {
-      case 0:
-        return _buildOverviewTab();
-      case 1:
-        return _buildMapTab();
-      case 2:
-        return _buildActivitiesTab();
-      case 3:
-        return _buildCompareTab();
-      default:
-        return _buildOverviewTab();
-    }
-  }
-
-  Widget _buildOverviewTab() {
-    return Column(
-      children: [
-        // Today's exposure
-        if (_todayExposure != null)
-          ExposureAnalyticsCard(
-            exposureSummary: _todayExposure!,
-            showDetailedView: true,
-          )
-        else
-          _buildNoDataCard(Theme.of(context), 'Today\'s Exposure'),
-
-        // Weekly trend
-        if (_weeklyTrend != null)
-          WeeklyExposureTrendCard(weeklyTrend: _weeklyTrend!)
-        else
-          _buildNoDataCard(Theme.of(context), 'Weekly Trend'),
-
-        // Timeline
-        if (_recentSummaries.isNotEmpty)
-          ExposureTimelineWidget(
-            dailySummaries: _recentSummaries,
-            daysToShow: 7,
-          )
-        else
-          _buildNoDataCard(Theme.of(context), 'Timeline'),
-
-        // Insights and tips
-        _buildInsightsSection(Theme.of(context)),
-      ],
-    );
-  }
-
-  Widget _buildMapTab() {
-    if (_todayExposure == null || _todayExposure!.dataPoints.isEmpty) {
-      return _buildNoDataCard(Theme.of(context), 'Movement Map');
-    }
-
-    return Column(
-      children: [
-        ExposureMapWidget(
-          exposureSummary: _todayExposure!,
-          showFullscreen: false,
-          onToggleFullscreen: () {
-            // TODO: Implement fullscreen map
-          },
-        ),
-        const SizedBox(height: 16),
-        _buildMapInsights(),
-      ],
-    );
-  }
-
-  Widget _buildActivitiesTab() {
-    if (_todayActivityAnalysis == null) {
-      return _buildNoDataCard(Theme.of(context), 'Activity Analysis');
-    }
-
-    return ActivityAnalysisWidget(
-      analysis: _todayActivityAnalysis!,
-      showDetailedView: true,
-    );
-  }
-
-  Widget _buildCompareTab() {
-    if (_recentSummaries.isEmpty) {
-      return _buildNoDataCard(Theme.of(context), 'Daily Comparison');
-    }
-
-    return DailyComparisonWidget(
-      dailySummaries: _recentSummaries,
-      selectedDay: _todayExposure,
-    );
-  }
-
-  Widget _buildMapInsights() {
-    if (_todayExposure == null) return const SizedBox.shrink();
-
-    final highExposurePoints = _todayExposure!.dataPoints
-        .where((point) => point.exposureScore > 5)
-        .length;
-
-    final totalPoints = _todayExposure!.dataPoints.length;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.primaryColor.withOpacity(0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                Icons.insights,
-                color: AppColors.primaryColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Map Insights',
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primaryColor,
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'You visited $totalPoints locations today, with $highExposurePoints showing elevated pollution levels.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: AppColors.primaryColor.withOpacity(0.8),
-            ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      
+      setState(() {
+        _isRequestingPermission = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error requesting location permission: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _openAppSettings() async {
+    // This would typically use a plugin like app_settings
+    // For now, show instructions to user
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Open Settings'),
+        content: Text('Please go to Settings > Apps > AirQo > Permissions and enable Location access.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text('OK'),
           ),
         ],
       ),
     );
   }
 
-  void _openPrivacySettings() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => LocationPrivacyScreen()),
+  Widget _buildTabButton({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryColor
+              : Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? Colors.white
+                : Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
     );
   }
 }

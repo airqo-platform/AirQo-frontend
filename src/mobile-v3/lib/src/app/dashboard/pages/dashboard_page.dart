@@ -18,7 +18,6 @@ import '../widgets/measurements_list.dart';
 import '../widgets/my_places_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
-import '../../exposure/pages/exposure_dashboard_view.dart';
 import 'package:loggy/loggy.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -318,8 +317,6 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
               return MeasurementsList(measurements: countryMeasurements);
 
-            case DashboardView.exposure:
-              return ExposureDashboardView();
 
             default:
               return MeasurementsList(
