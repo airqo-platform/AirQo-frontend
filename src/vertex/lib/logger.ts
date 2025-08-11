@@ -10,7 +10,7 @@ const shouldLogToSlack = () => {
   return env === 'production' || env === 'staging';
 };
 
-const logToSlack = (level, message, context = {}) => {
+const logToSlack = (level: string, message: string, context = {}) => {
   if (!shouldLogToSlack()) {
     return;
   }
@@ -48,18 +48,18 @@ const logToSlack = (level, message, context = {}) => {
 };
 
 const logger = {
-  error: (message, context = {}) => {
+  error: (message: string, context = {}) => {
     log.error(message);
     logToSlack('error', message, context);
   },
-  warn: (message, context = {}) => {
+  warn: (message: string, context = {}) => {
     log.warn(message);
     logToSlack('warn', message, context);
   },
-  info: (message) => {
+  info: (message: string) => {
     log.info(message);
   },
-  debug: (message, context = {}) => {
+  debug: (message: string, context = {}) => {
     log.debug(message, context);
   },
 };
