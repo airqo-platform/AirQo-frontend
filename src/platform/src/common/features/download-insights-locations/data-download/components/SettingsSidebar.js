@@ -4,8 +4,8 @@ import {
   AqClockFastForward,
   AqFileCheck02,
   AqAlertTriangle,
+  AqMonitor01,
 } from '@airqo/icons-react';
-import { MdDevices } from 'react-icons/md';
 
 import CustomFields from './CustomFields';
 import { motion } from 'framer-motion';
@@ -85,7 +85,7 @@ const SettingsSidebar = ({
             title="Device categories"
             options={DEVICE_CATEGORY_OPTIONS}
             id="deviceCategory"
-            icon={<MdDevices size={16} />}
+            icon={<AqMonitor01 size={16} />}
             defaultOption={formData.deviceCategory}
             handleOptionSelect={handleOptionSelect}
             disabled={activeFilterKey !== 'devices'} // Disable unless devices filter is active
