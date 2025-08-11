@@ -4,6 +4,7 @@ import {
   DATA_TYPE_OPTIONS,
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
+  DEVICE_CATEGORY_OPTIONS,
 } from '../constants';
 
 /**
@@ -13,6 +14,7 @@ import {
 // Default form state
 export const getDefaultFormData = () => ({
   title: { name: 'Untitled Report' },
+  deviceCategory: DEVICE_CATEGORY_OPTIONS[0], // Default to 'lowcost'
   dataType: DATA_TYPE_OPTIONS[0],
   pollutant: [POLLUTANT_OPTIONS[0]],
   duration: null,

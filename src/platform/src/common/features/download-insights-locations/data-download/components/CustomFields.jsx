@@ -46,13 +46,17 @@ const CustomFields = ({
   requiredText = '',
   className = '',
   multiSelect = false,
+  disabled = false, // Add disabled prop
 }) => {
   const prevDefaultRef = useRef(null);
 
-  const normalize = (val) =>
-    multiSelect
-      ? (Array.isArray(val) ? val : [val]).filter(Boolean)
-      : val || { id: '', name: '' };
+  const normalize = useCallback(
+    (val) =>
+      multiSelect
+        ? (Array.isArray(val) ? val : [val]).filter(Boolean)
+        : val || { id: '', name: '' },
+    [multiSelect],
+  );
 
   const [selected, setSelected] = useState(() =>
     normalize(defaultOption || options[0]),
@@ -66,7 +70,7 @@ const CustomFields = ({
       setSelected(normalize(defaultOption));
       prevDefaultRef.current = defaultOption;
     }
-  }, [defaultOption, multiSelect]);
+  }, [defaultOption, multiSelect, normalize]);
 
   const handleSelect = useCallback(
     (option) => {
@@ -275,15 +279,17 @@ const CustomFields = ({
             dropdownAlign="left"
             disableMobileCollapse
             disabled={
-              !edit &&
-              options.length > 0 &&
-              ![
-                'dataType',
-                'organization',
-                'pollutant',
-                'frequency',
-                'fileType',
-              ].includes(id)
+              disabled || // Use the disabled prop
+              (!edit &&
+                options.length > 0 &&
+                ![
+                  'dataType',
+                  'organization',
+                  'pollutant',
+                  'frequency',
+                  'fileType',
+                  'deviceCategory', // Add deviceCategory to allowed fields
+                ].includes(id))
             }
           >
             {options.map((opt) => {
@@ -364,6 +370,7 @@ CustomFields.propTypes = {
   requiredText: PropTypes.string,
   className: PropTypes.string,
   multiSelect: PropTypes.bool,
+  disabled: PropTypes.bool,
 };
 
 export default CustomFields;

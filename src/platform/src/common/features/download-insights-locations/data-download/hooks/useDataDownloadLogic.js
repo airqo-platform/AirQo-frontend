@@ -443,6 +443,12 @@ export const useDataDownloadLogic = () => {
       setFormError('');
 
       try {
+        // Ensure formData has deviceCategory field
+        if (!formData.deviceCategory) {
+          // Fallback to default if deviceCategory is missing
+          formData.deviceCategory = { id: 1, name: 'lowcost' };
+        }
+
         const validationError = validateFormData(formData, selectedItems);
         if (validationError) {
           throw new Error(validationError);
@@ -472,7 +478,24 @@ export const useDataDownloadLogic = () => {
           );
         }
 
-        // API request data
+        // Extract device category value with multiple fallbacks
+        let deviceCategoryValue = 'lowcost'; // Default fallback
+
+        if (formData.deviceCategory) {
+          if (typeof formData.deviceCategory === 'string') {
+            deviceCategoryValue = formData.deviceCategory.toLowerCase();
+          } else if (formData.deviceCategory.name) {
+            deviceCategoryValue = formData.deviceCategory.name.toLowerCase();
+          }
+        }
+
+        // Ensure deviceCategoryValue is valid
+        const validCategories = ['lowcost', 'bam', 'mobile'];
+        if (!validCategories.includes(deviceCategoryValue)) {
+          deviceCategoryValue = 'lowcost';
+        }
+
+        // API request data - explicitly set all fields
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -491,12 +514,23 @@ export const useDataDownloadLogic = () => {
           minimum: true,
         };
 
+        // Explicitly add device_category to the payload after creating the base object
+        // This ensures it's not accidentally omitted
+        apiData.device_category = deviceCategoryValue;
+
         // Add the appropriate selection parameters
         if (activeFilterKey === 'devices') {
           apiData.device_names = deviceNames;
         } else {
           apiData.sites = siteIds;
         }
+
+        // Debug logging to verify the payload includes device_category
+        console.log('Final API payload:', JSON.stringify(apiData, null, 2));
+        console.log(
+          'Device category value being sent:',
+          apiData.device_category,
+        );
 
         // Set timeout for the request
         const timeoutId = setTimeout(() => {

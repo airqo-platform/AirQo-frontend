@@ -24,6 +24,12 @@ export const FILE_TYPE_OPTIONS = [
   // { id: 3, name: 'PDF' },
 ];
 
+export const DEVICE_CATEGORY_OPTIONS = [
+  { id: 1, name: 'lowcost' },
+  { id: 2, name: 'bam' },
+  { id: 3, name: 'mobile' },
+];
+
 // Constants
 export const MESSAGE_TYPES = {
   ERROR: 'error',

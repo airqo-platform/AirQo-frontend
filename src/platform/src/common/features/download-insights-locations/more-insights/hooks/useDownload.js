@@ -39,6 +39,7 @@ export default function useDownload({
             sites: visibleSites,
             pollutants: [pollutant],
             frequency,
+            device_category: 'lowcost',
             datatype: datatype?.value,
             downloadType: 'csv',
             outputFormat: 'airqo-standard',
