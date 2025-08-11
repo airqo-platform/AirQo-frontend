@@ -5,8 +5,7 @@ import { StatusSummary } from "@/components/features/network-map/status-summary"
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import useWindowSize from "@/core/hooks/useWindow";
 import { PERMISSIONS } from "@/core/permissions/constants";
-
-export const isDesktop = (width: number) => width >= 1024;
+import { isDesktop } from "@/core/utils/responsive";
 
 export default function NetworkMapPage() {
   const { width } = useWindowSize();
