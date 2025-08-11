@@ -40,9 +40,9 @@ export const options: NextAuthOptions = {
               // Include other fields you need
               firstName: decoded.firstName,
               lastName: decoded.lastName,
-              country: decoded.country,
-              timezone: decoded.timezone,
-              phoneNumber: decoded.phoneNumber,
+              country: decoded.country || '',
+              timezone: decoded.timezone || '',
+              phoneNumber: decoded.phoneNumber || '',
             };
           }
           
