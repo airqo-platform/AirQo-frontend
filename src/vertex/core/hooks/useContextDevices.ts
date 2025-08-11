@@ -1,4 +1,3 @@
-import { useAppSelector } from "@/core/redux/hooks";
 import { useUserContext } from "@/core/hooks/useUserContext";
 
 export interface Device {

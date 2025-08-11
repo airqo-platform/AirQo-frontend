@@ -9,7 +9,9 @@ import type {
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
   Device,
-  DeviceCreationResponse
+  DeviceCreationResponse,
+  DeviceUpdateGroupResponse,
+  MaintenanceLogData,
 } from "@/app/types/devices";
 
 // Create secure API clients that use the proxy
@@ -357,7 +359,7 @@ export const devices = {
     }
   },
 
-  updateDeviceLocal: async (deviceId: string, deviceData: Record<string, any>) => {
+  updateDeviceLocal: async (deviceId: string, deviceData: Partial<Device>) => {
     try {
       // Remove network field if present
       const { network, ...updateData } = deviceData;
@@ -375,7 +377,7 @@ export const devices = {
     }
   },
 
-  updateDeviceGlobal: async (deviceId: string, deviceData: Record<string, any>) => {
+  updateDeviceGlobal: async (deviceId: string, deviceData: Partial<Device>) => {
     try {
       // Remove network field if present
       const { network, ...updateData } = deviceData;
@@ -393,7 +395,7 @@ export const devices = {
     }
   },
 
-  addMaintenanceLog: async (deviceName: string, logData: any) => {
+  addMaintenanceLog: async (deviceName: string, logData: MaintenanceLogData) => {
     try {
       const response = await jwtApiClient.post(
         `/devices/activities/maintain?deviceName=${deviceName}`,
@@ -412,7 +414,7 @@ export const devices = {
   updateDeviceGroup: async (
     deviceId: string,
     groupName: string
-  ): Promise<any> => {
+  ): Promise<DeviceUpdateGroupResponse> => {
     try {
       const requestBody = {
         deviceIds: [deviceId],

@@ -123,7 +123,7 @@ export const useIsSuperAdmin = () => {
 /**
  * Hook to check if user can perform action on resource
  */
-export const useCanPerformAction = (action: string, resource: unknown) => {
+export const useCanPerformAction = (action: string, resource: { deviceId?: string; organizationId?: string }) => {
   const user = useAppSelector((state) => state.user.userDetails);
 
   return useMemo(() => {

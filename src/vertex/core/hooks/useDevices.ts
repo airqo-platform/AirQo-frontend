@@ -9,10 +9,13 @@ import type {
   DeviceAvailabilityResponse,
   DeviceClaimRequest,
   DeviceClaimResponse,
-  MyDevicesResponse,
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
-  DeviceCreationResponse
+  Device,
+  DeviceCreationResponse,
+  DeviceUpdateGroupResponse,
+  MyDevicesResponse,
+  MaintenanceLogData, // Add MaintenanceLogData type
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
@@ -215,7 +218,7 @@ export const useUnassignDeviceFromOrganization = () => {
     },
     onError: (error) => {
       toast.error("Unassignment Failed", {
-        description: error.message,
+        description: error.response?.data?.message || "Failed to update device group",
       });
     },
   });
@@ -236,7 +239,7 @@ export const useUpdateDeviceLocal = () => {
   return useMutation({
     mutationFn: ({ deviceId, deviceData }: {
       deviceId: string;
-      deviceData: Record<string, any>;
+      deviceData: Partial<Device>;
     }) => devices.updateDeviceLocal(deviceId, deviceData),
     onSuccess: (data, variables) => {
       toast("Device Updated Successfully!", {
@@ -248,7 +251,7 @@ export const useUpdateDeviceLocal = () => {
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast.error("Update Failed", {
-        description: error.message,
+        description: error.response?.data?.message || "Failed to update device locally",
       });
     },
   });
@@ -261,7 +264,7 @@ export const useUpdateDeviceGlobal = () => {
   return useMutation({
     mutationFn: ({ deviceId, deviceData }: {
       deviceId: string;
-      deviceData: Record<string, any>;
+      deviceData: Partial<Device>;
     }) => devices.updateDeviceGlobal(deviceId, deviceData),
     onSuccess: (data, variables) => {
       toast("Device Synced Successfully!", {
@@ -273,7 +276,7 @@ export const useUpdateDeviceGlobal = () => {
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast.error("Sync Failed", {
-        description: error.message,
+        description: error.response?.data?.message || "Failed to update device globally",
       });
     },
   });
@@ -291,20 +294,20 @@ export const useDeviceStatusFeed = (deviceNumber?: number) => {
 export const useUpdateDeviceGroup = () => {
 
   return useMutation<
-    any,
+    DeviceUpdateGroupResponse,
     AxiosError<ErrorResponse>,
     { deviceId: string; groupName: string }
   >({
     mutationFn: ({ deviceId, groupName }) =>
       devices.updateDeviceGroup(deviceId, groupName),
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast("Device Group Updated", {
         description: "Device has been successfully added to the group.",
       });
     },
     onError: (error) => {
       toast.error("Group Update Failed", {
-        description: error.message,
+        description: error.response?.data?.message || "Failed to update device group",
       });
     },
   });
@@ -450,7 +453,7 @@ export const useAddMaintenanceLog = () => {
   return useMutation({
     mutationFn: ({ deviceName, logData }: {
       deviceName: string;
-      logData: any;
+      logData: MaintenanceLogData; // Update type to MaintenanceLogData
     }) => devices.addMaintenanceLog(deviceName, logData),
     onSuccess: (data, variables) => {
       toast("Maintenance Log Added Successfully!", {
@@ -468,4 +471,3 @@ export const useAddMaintenanceLog = () => {
     },
   });
 };
-

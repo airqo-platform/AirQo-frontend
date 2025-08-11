@@ -203,3 +203,21 @@ export interface DeviceCreationResponse {
   message: string;
   created_device: Device;
 }
+
+export interface DeviceUpdateGroupResponse {
+  success: boolean;
+  message: string;
+  updated_device?: Device;
+}
+
+export interface MaintenanceLogData {
+  date: string;
+  tags: string[];
+  description: string;
+  userName: string;
+  maintenanceType: "preventive" | "corrective";
+  email: string;
+  firstName: string;
+  lastName: string;
+  user_id: string;
+}
