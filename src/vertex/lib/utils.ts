@@ -31,7 +31,7 @@ export const transformDataToGeoJson = (
   };
 };
 
-export const getElapsedDurationMapper = (dateTimeStr: string) => {
+export const getElapsedDurationMapper = (dateTimeStr: string): [number, { [key: string]: number }] => {
   let delta: number = Math.abs(moment.utc(new Date()).valueOf() - moment.utc(new Date(dateTimeStr)).valueOf()) / 1000;
   const seconds = delta;
   const result: { [key: string]: number } = {};

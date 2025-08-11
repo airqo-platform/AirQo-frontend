@@ -5,7 +5,7 @@ import React from "react";
 
 interface RunDeviceTestCardProps {
   deviceNumber: number;
-  getElapsedDurationMapper: (dateTimeStr: string) => object[];
+  getElapsedDurationMapper: (dateTimeStr: string) => [number, { [key: string]: number }];
 }
 
 const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, getElapsedDurationMapper }) => {
