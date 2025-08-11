@@ -82,7 +82,7 @@ const reverseGeocode = async (lng: number, lat: number): Promise<string> => {
   return fallbackName;
 };
 
-export function MiniMap({ 
+function MiniMap({ 
   latitude, 
   longitude, 
   onCoordinateChange, 
@@ -188,3 +188,5 @@ export function MiniMap({
     </div>
   );
 }
+
+export default MiniMap;

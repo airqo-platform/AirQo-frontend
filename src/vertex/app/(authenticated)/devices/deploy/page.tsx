@@ -22,13 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppSelector } from "@/core/redux/hooks";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
 import { ComboBox } from "@/components/ui/combobox";
-import { MiniMap } from "@/components/features/mini-map/mini-map";
-import { useAppSelector } from "@/core/redux/hooks";
+import MiniMap from "@/components/features/mini-map/mini-map";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
 import { toast } from "sonner";
 
