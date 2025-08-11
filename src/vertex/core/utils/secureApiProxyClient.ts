@@ -1,6 +1,5 @@
 import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosHeaders } from 'axios';
 import { getSession } from 'next-auth/react';
-import { Session } from 'next-auth';
 import { getApiToken } from '@/lib/envConstants';
 import logger from '@/lib/logger';
 
@@ -10,14 +9,21 @@ interface TokenCacheEntry {
   expiry: number;
 }
 
-interface ExtendedSession extends Session {
-  accessToken?: string;
-  user?: {
-    accessToken?: string;
-    name?: string;
-    email?: string;
-    image?: string;
+interface ExtendedSession {
+  user: {
+    id: string;
+    accessToken: string;
+    userName: string;
+    organization: string;
+    privilege: string;
+    firstName: string;
+    lastName: string;
+    country: string;
+    timezone: string;
+    phoneNumber: string;
   };
+  expires: string;
+  accessToken?: string;
 }
 
 // Token cache implementation
@@ -59,7 +65,10 @@ async function getJwtToken(): Promise<string | null> {
     
     // If NextAuth doesn't have the token, fallback to localStorage
     if (!token && typeof window !== 'undefined') {
-      token = localStorage.getItem('token');
+      const localStorageToken = localStorage.getItem('token');
+      if (localStorageToken !== null) {
+        token = localStorageToken;
+      }
     }
     
     if (token) {
@@ -68,12 +77,12 @@ async function getJwtToken(): Promise<string | null> {
     }
     
     return null;
-  } catch (error) {
-    logger.error('Failed to get JWT token:', error);
+  } catch (error: unknown) {
+    logger.error('Failed to get JWT token:', { error: error instanceof Error ? error.message : String(error) });
     // Fallback to localStorage if session fails
     if (typeof window !== 'undefined') {
       const fallbackToken = localStorage.getItem('token');
-      if (fallbackToken) {
+      if (fallbackToken !== null) {
         tokenCache.set(fallbackToken);
         return fallbackToken;
       }
@@ -105,7 +114,7 @@ const createSecureApiClient = (): AxiosInstance => {
             config.url = config.url?.includes('?') ? `${config.url}&token=${apiToken}` : `${config.url}?token=${apiToken}`;
           }
         } catch (error) {
-          logger.error('Failed to get API token:', error);
+          logger.error('Failed to get API token:', {error: error instanceof Error ? error.message : String(error)});
         }
       } else {
         // Handle JWT authentication
@@ -124,7 +133,7 @@ const createSecureApiClient = (): AxiosInstance => {
       return config;
     },
     (error) => {
-      logger.error('Request interceptor error:', error);
+      logger.error('Request interceptor error:', {error: error instanceof Error ? error.message : String(error)});
       return Promise.reject(error);
     }
   );
