@@ -127,10 +127,26 @@ const DataDownload = ({
     }
   }, [resetOnClose, setFormData, clearSelections, onClose]);
 
-  // All data type options are available for all filter types
+  // Filter data type options based on device category
   const filteredDataTypeOptions = useMemo(() => {
+    const deviceCategory =
+      formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
+
+    // For lowcost devices: both calibrated and raw data available
+    if (deviceCategory === 'lowcost') {
+      return DATA_TYPE_OPTIONS; // Both calibrated and raw
+    }
+
+    // For bam and mobile devices: only raw data available
+    if (deviceCategory === 'bam' || deviceCategory === 'mobile') {
+      return DATA_TYPE_OPTIONS.filter(
+        (option) => option.name.toLowerCase() === 'raw data',
+      );
+    }
+
+    // Default fallback
     return DATA_TYPE_OPTIONS;
-  }, []);
+  }, [formData.deviceCategory]);
 
   // Active group info
   const activeGroup = useMemo(
@@ -274,6 +290,28 @@ const DataDownload = ({
     // Note: We don't need to reset when switching TO devices,
     // as user should be able to keep their last selection
   }, [activeFilterKey, formData.deviceCategory?.name]);
+
+  // Auto-switch to Raw Data when bam or mobile device categories are selected
+  useEffect(() => {
+    const deviceCategory = formData.deviceCategory?.name?.toLowerCase();
+    if (deviceCategory === 'bam' || deviceCategory === 'mobile') {
+      // Find the Raw Data option
+      const rawDataOption = DATA_TYPE_OPTIONS.find(
+        (option) => option.name.toLowerCase() === 'raw data',
+      );
+
+      if (
+        rawDataOption &&
+        formData.dataType?.name?.toLowerCase() !== 'raw data'
+      ) {
+        setFormData((prev) => ({
+          ...prev,
+          dataType: rawDataOption,
+        }));
+        clearSelections(); // Clear selections when data type changes automatically
+      }
+    }
+  }, [formData.deviceCategory?.name, formData.dataType?.name, clearSelections]);
 
   // Handle form field updates
   const handleOptionSelect = useCallback(

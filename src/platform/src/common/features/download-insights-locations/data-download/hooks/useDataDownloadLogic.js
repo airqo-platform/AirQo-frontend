@@ -489,7 +489,13 @@ export const useDataDownloadLogic = () => {
           }
         }
 
-        // API request data
+        // Ensure deviceCategoryValue is valid
+        const validCategories = ['lowcost', 'bam', 'mobile'];
+        if (!validCategories.includes(deviceCategoryValue)) {
+          deviceCategoryValue = 'lowcost';
+        }
+
+        // API request data - explicitly set all fields
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(endDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -506,8 +512,11 @@ export const useDataDownloadLogic = () => {
           downloadType: formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
           minimum: true,
-          device_category: deviceCategoryValue,
         };
+
+        // Explicitly add device_category to the payload after creating the base object
+        // This ensures it's not accidentally omitted
+        apiData.device_category = deviceCategoryValue;
 
         // Add the appropriate selection parameters
         if (activeFilterKey === 'devices') {
@@ -515,6 +524,13 @@ export const useDataDownloadLogic = () => {
         } else {
           apiData.sites = siteIds;
         }
+
+        // Debug logging to verify the payload includes device_category
+        console.log('Final API payload:', JSON.stringify(apiData, null, 2));
+        console.log(
+          'Device category value being sent:',
+          apiData.device_category,
+        );
 
         // Set timeout for the request
         const timeoutId = setTimeout(() => {

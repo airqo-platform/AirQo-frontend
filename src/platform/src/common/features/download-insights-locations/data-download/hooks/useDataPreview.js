@@ -151,6 +151,10 @@ export const useDataPreview = () => {
           ),
         );
 
+        // Extract device category value with fallback
+        const deviceCategoryValue =
+          formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
+
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           endDateTime: format(previewEndDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -167,6 +171,8 @@ export const useDataPreview = () => {
           downloadType: 'csv', // Always use CSV for preview
           outputFormat: 'airqo-standard',
           minimum: true,
+          // Always include device_category in preview payload
+          device_category: deviceCategoryValue,
         };
 
         // Add selection parameters
@@ -175,6 +181,13 @@ export const useDataPreview = () => {
         } else {
           apiData.sites = siteIds;
         }
+
+        // Debug logging to verify the preview payload includes device_category
+        console.log('Preview API payload:', JSON.stringify(apiData, null, 2));
+        console.log(
+          'Preview device category value being sent:',
+          apiData.device_category,
+        );
 
         // Fetch preview data
         const response = await fetchData(apiData);
