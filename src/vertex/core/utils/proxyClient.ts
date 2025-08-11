@@ -170,7 +170,7 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
       try {
         API_BASE_URL = getApiBaseUrl();
       } catch (envError) {
-        logger.error('Failed to get API base URL from environment:', envError);
+        logger.error('Failed to get API base URL from environment:', { error: envError instanceof Error ? envError.message : String(envError) });
         return NextResponse.json(
           {
             success: false,
