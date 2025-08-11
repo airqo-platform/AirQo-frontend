@@ -443,6 +443,12 @@ export const useDataDownloadLogic = () => {
       setFormError('');
 
       try {
+        // Ensure formData has deviceCategory field
+        if (!formData.deviceCategory) {
+          // Fallback to default if deviceCategory is missing
+          formData.deviceCategory = { id: 1, name: 'lowcost' };
+        }
+
         const validationError = validateFormData(formData, selectedItems);
         if (validationError) {
           throw new Error(validationError);
@@ -472,6 +478,17 @@ export const useDataDownloadLogic = () => {
           );
         }
 
+        // Extract device category value with multiple fallbacks
+        let deviceCategoryValue = 'lowcost'; // Default fallback
+
+        if (formData.deviceCategory) {
+          if (typeof formData.deviceCategory === 'string') {
+            deviceCategoryValue = formData.deviceCategory.toLowerCase();
+          } else if (formData.deviceCategory.name) {
+            deviceCategoryValue = formData.deviceCategory.name.toLowerCase();
+          }
+        }
+
         // API request data
         const apiData = {
           startDateTime: format(startDate, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
@@ -489,6 +506,7 @@ export const useDataDownloadLogic = () => {
           downloadType: formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
           minimum: true,
+          device_category: deviceCategoryValue,
         };
 
         // Add the appropriate selection parameters

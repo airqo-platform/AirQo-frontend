@@ -5,6 +5,7 @@ import {
   AqFileCheck02,
   AqAlertTriangle,
 } from '@airqo/icons-react';
+import { MdDevices } from 'react-icons/md';
 
 import CustomFields from './CustomFields';
 import { motion } from 'framer-motion';
@@ -13,6 +14,7 @@ import {
   POLLUTANT_OPTIONS,
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
+  DEVICE_CATEGORY_OPTIONS,
 } from '../constants';
 
 /**
@@ -26,6 +28,7 @@ const SettingsSidebar = ({
   durationGuidance,
   handleTitleChange,
   sidebarBg = '#f6f6f7',
+  activeFilterKey, // Add this prop to determine current filter
 }) => {
   // Animation variants for sidebar
   const sidebarVariants = {
@@ -75,6 +78,19 @@ const SettingsSidebar = ({
               }}
             />
           </div>
+        </motion.div>
+
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="Device categories"
+            options={DEVICE_CATEGORY_OPTIONS}
+            id="deviceCategory"
+            icon={<MdDevices size={16} />}
+            defaultOption={formData.deviceCategory}
+            handleOptionSelect={handleOptionSelect}
+            disabled={activeFilterKey !== 'devices'} // Disable unless devices filter is active
+            edit={activeFilterKey === 'devices'} // Only allow editing when devices filter is active
+          />
         </motion.div>
 
         <motion.div variants={formItemVariants}>
