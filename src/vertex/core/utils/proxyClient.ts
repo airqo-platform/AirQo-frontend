@@ -1,4 +1,4 @@
-import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 import { getServerSession } from 'next-auth';
 import { options as authOptions } from '@/app/api/auth/[...nextauth]/options';
 import logger from '@/lib/logger';
@@ -12,7 +12,7 @@ interface ProxyOptions {
 }
 
 interface CacheEntry {
-  session: any;
+  session: unknown;
   timestamp: number;
 }
 
@@ -23,7 +23,22 @@ interface ProxyContext {
 }
 
 interface ExtendedAxiosConfig extends AxiosRequestConfig {
-  data?: any;
+  data?: Record<string, unknown> | string;
+}
+
+interface ExtendedSession {
+  user: {
+    id: string;
+    accessToken: string;
+    userName: string;
+    organization: string;
+    privilege: string;
+    firstName: string;
+    lastName: string;
+    country: string;
+    timezone: string;
+    phoneNumber: string;
+  };
 }
 
 // Session cache implementation
@@ -70,7 +85,7 @@ class SessionCache {
     }
   }
 
-  get(key: string): any {
+  get(key: string): unknown {
     const entry = this.cache.get(key);
     if (!entry) return null;
 
@@ -83,7 +98,7 @@ class SessionCache {
     return entry.session;
   }
 
-  set(key: string, session: any): void {
+  set(key: string, session: unknown): void {
     this.cache.set(key, {
       session,
       timestamp: Date.now(),
@@ -101,14 +116,14 @@ class SessionCache {
 
 const sessionCache = new SessionCache();
 
-const getCachedSession = async (): Promise<any> => {
+const getCachedSession = async (): Promise<ExtendedSession | null> => {
   sessionCache.init();
 
   const cacheKey = 'nextauth_session';
   const cachedSession = sessionCache.get(cacheKey);
   
   if (cachedSession) {
-    return cachedSession;
+    return cachedSession as ExtendedSession | null;
   }
 
   try {
@@ -116,7 +131,7 @@ const getCachedSession = async (): Promise<any> => {
     if (session) {
       sessionCache.set(cacheKey, session);
     }
-    return session;
+    return session as ExtendedSession | null;
   } catch (error: unknown) {
     logger.warn('Failed to get server session:', { error: error instanceof Error ? error.message : String(error) });
     return null;
@@ -243,7 +258,7 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
             authHeader = `JWT ${authHeader}`;
           }
           if (!config.headers) config.headers = {};
-          (config.headers as any).Authorization = authHeader;
+          (config.headers as Record<string, string>).Authorization = authHeader;
         }
       }
 
@@ -252,9 +267,9 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
 
       return NextResponse.json(response.data, { status: response.status });
 
-    } catch (error: any) {
-      const statusCode = error.response?.status || 500;
-      const errorMessage = error.response?.data || {
+    } catch (error: unknown) {
+      const statusCode = (error as AxiosError)?.response?.status || 500;
+      const errorMessage = (error as AxiosError)?.response?.data || {
         success: false,
         message: 'An error occurred while processing the request',
       };
