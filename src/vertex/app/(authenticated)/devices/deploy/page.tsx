@@ -491,7 +491,7 @@ const DeployDevicePage = () => {
       setCurrentStep(0);
       setInputMode('siteName');
       
-    } catch (error) {
+    } catch {
       toast.error("Deployment Failed", {
         description: "An error occurred while deploying the device. Please try again.",
       });

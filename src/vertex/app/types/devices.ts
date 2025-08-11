@@ -64,7 +64,7 @@ export interface Device {
   device_codes: string[];
   category: string;
   cohorts: unknown[];
-  device_number?: number;
+  device_number?: number | undefined | string;
   readKey?: string;
   writeKey?: string;
   phoneNumber?: string;

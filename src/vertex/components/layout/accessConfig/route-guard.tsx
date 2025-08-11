@@ -38,7 +38,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const hasPermission = usePermission(permission, { resourceContext });
   const permissionCheck = usePermissionCheck(permission, { resourceContext });
 
-  const hasValidContext = !allowedContexts || allowedContexts.includes(userContext);
+  const hasValidContext = !allowedContexts || (userContext !== null && allowedContexts.includes(userContext));
   
   const hasAccess = hasPermission && hasValidContext;
 
@@ -149,7 +149,7 @@ export const withRoutePermission = (
         if (!hasPermission) {
           router.push(redirectTo || "/unauthorized");
         }
-      }, [hasPermission, router, redirectTo]);
+      }, [hasPermission, router]);
 
       if (!hasPermission) {
         return null;

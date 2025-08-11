@@ -17,12 +17,13 @@ import OnlineStatusCard from "@/components/features/devices/online-status-card";
 import RunDeviceTestCard from "@/components/features/devices/run-device-test-card";
 import RecallDeviceDialog from "@/components/features/devices/recall-device-dialog";
 import AddMaintenanceLogModal from "@/components/features/devices/add-maintenance-log-modal";
+import { Device } from "@/app/types/devices";
 
 export default function DeviceDetailsPage() {
     const params = useParams();
     const deviceId = params?.id as string;
     const { data: deviceResponse, isLoading, error } = useDeviceDetails(deviceId);
-    const device = deviceResponse?.data;
+    const device = deviceResponse?.data as Device;
     const router = useRouter();
 
     // Real permission checks
@@ -125,7 +126,7 @@ export default function DeviceDetailsPage() {
                 <DeviceDetailsCard deviceId={deviceId} onShowDetailsModal={() => setShowDetailsModal(true)} />
                 <DeviceMeasurementsApiCard deviceId={deviceId} />
                 <OnlineStatusCard deviceId={deviceId} />
-                <RunDeviceTestCard deviceNumber={device.device_number} getElapsedDurationMapper={getElapsedDurationMapper} />
+                <RunDeviceTestCard deviceNumber={Number(device.device_number)} getElapsedDurationMapper={getElapsedDurationMapper} />
             </div>
             <DeviceDetailsModal
                 open={showDetailsModal}

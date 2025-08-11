@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, Save, X, RefreshCw } from "lucide-react";
+import { Loader2, Save, RefreshCw } from "lucide-react";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,11 +16,12 @@ import { useUpdateDeviceLocal, useUpdateDeviceGlobal } from "@/core/hooks/useDev
 import { DEVICE_CATEGORIES, DEVICE_POWER_TYPES } from "@/core/constants/devices";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import { Device } from "@/app/types/devices";
 
 interface DeviceDetailsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  device: Record<string, any>;
+  device: Device;
   onClose: () => void;
 }
 
@@ -78,7 +79,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
       longitude: device?.longitude?.toString() || "",
       visibility: device?.visibility || false,
       isPrimaryInLocation: device?.isPrimaryInLocation || false,
-      generation_version: device?.generation_version || "",
+      generation_version: String(device?.generation_version) || "",
       generation_count: device?.generation_count?.toString() || "",
       phoneNumber: device?.phoneNumber || "",
       height: device?.height || undefined,
@@ -103,7 +104,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
         longitude: device.longitude?.toString() || "",
         visibility: device.visibility || false,
         isPrimaryInLocation: device.isPrimaryInLocation || false,
-        generation_version: device.generation_version || "",
+        generation_version: String(device.generation_version) || "",
         generation_count: device.generation_count?.toString() || "",
         phoneNumber: device.phoneNumber || "",
         height: device.height || undefined,
@@ -469,7 +470,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
                             <div className="space-y-0.5">
                               <FormLabel className="text-base">Public Data Access</FormLabel>
                               <div className="text-sm text-muted-foreground">
-                                Allow public access to this device's data
+                                Allow public access to this device&apos;s data
                               </div>
                             </div>
                             <FormControl>
