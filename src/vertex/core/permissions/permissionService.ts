@@ -1,5 +1,5 @@
 import { UserDetails, Network, Group } from "@/app/types/users";
-import { PERMISSIONS, ROLES, Permission, RoleName } from "./constants";
+import { PERMISSIONS, Permission } from "./constants";
 
 // Access context for permission checking
 export interface AccessContext {
@@ -42,12 +42,6 @@ class PermissionService {
       return { hasPermission: false, reason: "User not authenticated" };
     }
 
-    const accessContext: AccessContext = {
-      user,
-      requestedPermission: permission,
-      ...context,
-    };
-
     // 1. Check if user is AIRQO_SUPER_ADMIN (system-wide override)
     if (this.isSuperAdmin(user)) {
       return {
@@ -62,7 +56,7 @@ class PermissionService {
     const effectivePermissions = this.getEffectivePermissions(user, context?.activeOrganization?._id);
 
     // 3. Check direct permission
-    if (effectivePermissions.includes(permission as any)) {
+    if (effectivePermissions.includes(permission)) {
       return {
         hasPermission: true,
         reason: "User has direct permission",
@@ -74,7 +68,7 @@ class PermissionService {
     // 4. Check organization context if applicable
     if (context?.activeOrganization && this.isOrganizationPermission(permission)) {
       const orgPermissions = this.getOrganizationPermissions(user, context.activeOrganization._id);
-      if (orgPermissions.includes(permission as any)) {
+      if (orgPermissions.includes(permission)) {
         return {
           hasPermission: true,
           reason: "User has permission in organization context",
@@ -139,7 +133,7 @@ class PermissionService {
   /**
    * Check if user can perform action on specific resource
    */
-  canPerformAction(user: UserDetails, action: string, resource: any): boolean {
+  canPerformAction(user: UserDetails, action: string, resource: { deviceId?: string; organizationId?: string }): boolean {
     // Map common actions to permissions
     const actionPermissionMap: Record<string, Permission> = {
       'view': PERMISSIONS.DEVICE.VIEW,
@@ -217,6 +211,7 @@ class PermissionService {
    */
   isOrganizationPermission(permission: Permission): boolean {
     const orgPermissions = [
+      ...Object.values(PERMISSIONS.SYSTEM),
       ...Object.values(PERMISSIONS.ORGANIZATION),
       ...Object.values(PERMISSIONS.GROUP),
       ...Object.values(PERMISSIONS.USER),
@@ -224,10 +219,11 @@ class PermissionService {
       ...Object.values(PERMISSIONS.ROLE),
       ...Object.values(PERMISSIONS.DEVICE),
       ...Object.values(PERMISSIONS.SITE),
+      ...Object.values(PERMISSIONS.ANALYTICS),
       ...Object.values(PERMISSIONS.SETTINGS),
     ];
 
-    return orgPermissions.includes(permission as any);
+    return orgPermissions.includes(permission);
   }
 
   /**
@@ -268,7 +264,7 @@ class PermissionService {
    */
   hasPermissionInOrganization(user: UserDetails, permission: Permission, organizationId: string): boolean {
     const orgPermissions = this.getOrganizationPermissions(user, organizationId);
-    return orgPermissions.includes(permission as any);
+    return orgPermissions.includes(permission);
   }
 
   /**
