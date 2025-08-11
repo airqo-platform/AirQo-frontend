@@ -87,7 +87,7 @@ export default function GridDetailsPage() {
       await updateGridDetails(updatedFields);
       toast("Grid details updated successfully");
     } catch (error) {
-      logger.error('Failed to update grid details', error);
+      logger.error('Failed to update grid details', { error: error instanceof Error ? error.message : String(error) });
       toast("Failed to update grid details");
     }
   };
