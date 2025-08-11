@@ -28,9 +28,9 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
 import { ComboBox } from "@/components/ui/combobox";
-import MiniMap from "@/components/features/mini-map/mini-map";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
 import { toast } from "sonner";
+import MiniMap from "@/components/features/mini-map/mini-map";
 
 interface MountTypeOption {
   value: string;
