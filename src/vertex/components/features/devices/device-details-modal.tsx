@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useUpdateDeviceLocal, useUpdateDeviceGlobal } from "@/core/hooks/useDevices";
-import { DEVICE_CATEGORIES, DEVICE_POWER_TYPES } from "@/core/constants/devices";
+import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { Device } from "@/app/types/devices";
@@ -43,11 +43,11 @@ const deviceUpdateSchema = z.object({
   generation_count: z.string().optional(),
   phoneNumber: z.string().optional(),
   height: z.number().optional(),
-  powerType: z.string().optional(),
-  claim_status: z.string().optional(),
+  powerType: z.enum(["solar", "alternator", "mains"]).optional(),
+  claim_status: z.enum(["claimed", "unclaimed"]).optional(),
   // Read-only fields for display
   network: z.string().optional(),
-  status: z.string().optional(),
+  status: z.enum(["not deployed", "deployed", "recalled", "online", "offline"]).optional(),
   isActive: z.boolean().optional(),
   isOnline: z.boolean().optional(),
   createdAt: z.string().optional(),
@@ -83,8 +83,8 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
       generation_count: device?.generation_count?.toString() || "",
       phoneNumber: device?.phoneNumber || "",
       height: device?.height || undefined,
-      powerType: device?.powerType || "",
-      claim_status: device?.claim_status || "",
+      powerType: device?.powerType || undefined,
+      claim_status: device?.claim_status || undefined,
     },
   });
 
@@ -108,8 +108,8 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
         generation_count: device.generation_count?.toString() || "",
         phoneNumber: device.phoneNumber || "",
         height: device.height || undefined,
-        powerType: device.powerType || "",
-        claim_status: device.claim_status || "",
+        powerType: device.powerType || undefined,
+        claim_status: device.claim_status || undefined,
       });
     }
   }, [device, form]);
@@ -392,7 +392,11 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {DEVICE_POWER_TYPES.map((powerType) => (
+                                {[
+                                  { value: "solar", label: "Solar" },
+                                  { value: "alternator", label: "Alternator" },
+                                  { value: "mains", label: "Mains" },
+                                ].map((powerType) => (
                                   <SelectItem key={powerType.value} value={powerType.value}>
                                     {powerType.label}
                                   </SelectItem>
