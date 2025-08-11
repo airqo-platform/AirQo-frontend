@@ -121,7 +121,7 @@ export function MultiSelectCombobox({
           <CommandInput
             placeholder="Search or add new tag..."
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            onValueChange={(value) => setInputValue(value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && canCreateNew) {
                 e.preventDefault()

@@ -74,7 +74,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setSuggestions(data.features || []);
       setIsOpen(true);
     } catch (err) {
-      logger.error('Error fetching location suggestions:', err);
+      logger.error('Error fetching location suggestions:', { error: err instanceof Error ? err.message : String(err) });
       setError('Failed to load suggestions');
       setSuggestions([]);
       setIsOpen(false);
