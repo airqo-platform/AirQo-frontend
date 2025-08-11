@@ -117,8 +117,8 @@ const getCachedSession = async (): Promise<any> => {
       sessionCache.set(cacheKey, session);
     }
     return session;
-  } catch (error) {
-    logger.warn('Failed to get server session:', error);
+  } catch (error: unknown) {
+    logger.warn('Failed to get server session:', { error: error instanceof Error ? error.message : String(error) });
     return null;
   }
 };
