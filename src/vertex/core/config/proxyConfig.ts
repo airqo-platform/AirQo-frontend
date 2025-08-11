@@ -187,18 +187,33 @@ export const getAuthOptions = (
  */
 export const validateProxyConfig = (): boolean => {
   try {
+    // Check if NEXT_PUBLIC_API_URL is set and valid
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (!apiUrl) {
+      logger.error('NEXT_PUBLIC_API_URL is not set in environment variables');
+      return false;
+    }
+
+    // Validate URL format
+    try {
+      new URL(apiUrl);
+    } catch {
+      logger.error('NEXT_PUBLIC_API_URL is not a valid URL', { url: apiUrl });
+      return false;
+    }
+
     // Check if required environment variables are set
     const requiredVars = ['NEXT_PUBLIC_API_URL', 'NEXT_PUBLIC_API_TOKEN'];
     const missing = requiredVars.filter(key => !process.env[key]);
     
     if (missing.length > 0) {
-      logger.error('Missing required environment variables for proxy:', missing);
+      logger.error('Missing required environment variables for proxy:', { missing });
       return false;
     }
 
     return true;
   } catch (error) {
-    logger.error('Error validating proxy configuration:', error);
+    logger.error('Error validating proxy configuration:', { error: error instanceof Error ? error.message : String(error) });
     return false;
   }
 };
