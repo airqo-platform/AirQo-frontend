@@ -538,7 +538,7 @@ const ReusableTable = <T extends TableItem>({
       initialFilters[filter.key] = filter.isMulti ? [] : "";
     });
     setFilterValues(initialFilters);
-  }, [filters]);
+  }, [JSON.stringify(filters)]);
 
   // Filter and search data with improved Fuse.js
   const filteredData = useMemo(() => {
