@@ -18,6 +18,7 @@ import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeC
 import UnifiedGroupProvider from './UnifiedGroupProvider';
 import LogoutProvider from './LogoutProvider';
 import { useThemeInitialization } from '@/core/hooks';
+import { TourProvider } from '@/features/tours/contexts/TourProvider';
 // Import environment validation
 import { validateEnvironment } from '@/lib/envConstants';
 
@@ -100,6 +101,14 @@ function ClientProvidersInner({ children }) {
 
   useEffect(() => {
     const handleGlobalError = (event) => {
+      // Ignore ResizeObserver loop errors - they're benign
+      if (
+        event.error?.message?.includes('ResizeObserver loop') ||
+        event.message?.includes('ResizeObserver loop')
+      ) {
+        return;
+      }
+
       event.preventDefault();
       logger.error('Uncaught error', event.error || new Error(event.message), {
         source: event.filename,
@@ -171,7 +180,9 @@ export default function ClientProviders({ children }) {
           <ThemeProvider>
             <ThemeInitializer />
             <LogoutProvider>
-              <UnifiedGroupProvider>{children}</UnifiedGroupProvider>
+              <UnifiedGroupProvider>
+                <TourProvider>{children}</TourProvider>
+              </UnifiedGroupProvider>
             </LogoutProvider>
           </ThemeProvider>
         </ReduxProviders>

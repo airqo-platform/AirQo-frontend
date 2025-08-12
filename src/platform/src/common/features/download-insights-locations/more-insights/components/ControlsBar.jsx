@@ -3,19 +3,37 @@ import { motion } from 'framer-motion';
 import CustomDropdown, {
   DropdownItem,
 } from '@/components/Button/CustomDropdown';
+import ReusableDropdown from '@/components/Button/DownloadDropdown';
 import CustomCalendar from '@/components/Calendar/CustomCalendar';
-import Button from '@/components/Button';
 import { Tooltip } from 'flowbite-react';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
-import LineChartIcon from '@/icons/Charts/LineChartIcon';
-import RefreshIcon from '@/icons/map/refreshIcon';
-import DownloadIcon from '@/icons/Analytics/downloadIcon';
+import {
+  AqRefreshCcw02,
+  AqLineChartUp01,
+  AqClockFastForward,
+  AqDatabase01,
+  AqZap,
+  AqDownload02,
+} from '@airqo/icons-react';
 import { TIME_OPTIONS, CHART_TYPE } from '../constants/options';
 
 const variants = {
   hidden: { opacity: 0, y: -10 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
+const DATA_TYPE_OPTIONS = [
+  {
+    label: 'Calibrated Data',
+    value: 'calibrated',
+    description: 'Processed and validated data',
+    icon: AqDatabase01,
+  },
+  {
+    label: 'Raw Data',
+    value: 'raw',
+    description: 'Unprocessed sensor readings',
+    icon: AqZap,
+  },
+];
 
 function ControlsBar({
   frequency,
@@ -51,7 +69,11 @@ function ControlsBar({
       <div className="flex flex-wrap gap-2 items-center">
         <CustomDropdown
           dropdownWidth="150px"
-          icon={window.innerWidth < 640 ? <FrequencyIcon /> : undefined}
+          icon={
+            window.innerWidth < 640 ? (
+              <AqClockFastForward size={16} />
+            ) : undefined
+          }
           text={frequency.charAt(0).toUpperCase() + frequency.slice(1)}
         >
           {TIME_OPTIONS.map((opt) => (
@@ -71,11 +93,15 @@ function ControlsBar({
           onChange={handleDateChange}
           horizontalOffset={isMobile ? 0 : 60}
           dropdown
+          enableTimePicker={isMobile ? false : true}
+          showTimePickerToggle={isMobile ? false : true}
         />
 
         <CustomDropdown
           dropdownWidth="150px"
-          icon={window.innerWidth < 640 ? <LineChartIcon /> : undefined}
+          icon={
+            window.innerWidth < 640 ? <AqLineChartUp01 size={16} /> : undefined
+          }
           text={chartType.charAt(0).toUpperCase() + chartType.slice(1)}
         >
           {CHART_TYPE.map((opt) => (
@@ -96,32 +122,42 @@ function ControlsBar({
             className="p-1 md:p-2 rounded-md border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition"
           >
             {isValidating ? (
-              <RefreshIcon className="animate-spin" />
+              <AqRefreshCcw02 className="animate-spin" />
             ) : (
-              <RefreshIcon />
+              <AqRefreshCcw02 />
             )}
           </button>
         </Tooltip>
       </div>
 
       <div>
-        <Tooltip
-          content={
-            !visibleSites.length
-              ? 'Select at least one site'
-              : `Download (${visibleSites.length})`
+        {/* <DownloadDropdown
+          onDownload={download}
+          downloadLoading={downloadLoading}
+          visibleSites={visibleSites}
+          disabled={!visibleSites.length}
+        /> */}
+
+        <ReusableDropdown
+          options={DATA_TYPE_OPTIONS}
+          onSelect={download}
+          loading={downloadLoading}
+          disabled={!visibleSites.length}
+          buttonText={downloadLoading ? 'Downloading...' : 'Download Data'}
+          loadingText="Downloading..."
+          showCount={true}
+          countValue={visibleSites.length}
+          tooltip={
+            visibleSites.length > 0
+              ? 'Download data for selected sites'
+              : 'No sites selected for download'
           }
-        >
-          <Button
-            onClick={download}
-            disabled={downloadLoading}
-            Icon={DownloadIcon}
-          >
-            {downloadLoading
-              ? 'Downloading...'
-              : `Download ${visibleSites.length ? `(${visibleSites.length})` : 'Data'}`}
-          </Button>
-        </Tooltip>
+          showTooltipOnDisabled={true}
+          icon={AqDownload02}
+          buttonVariant="primary"
+          size="md"
+          closeOnSelect={true}
+        />
       </div>
     </motion.div>
   );

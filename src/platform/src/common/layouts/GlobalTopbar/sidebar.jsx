@@ -1,8 +1,7 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { usePathname, useParams } from 'next/navigation';
+import { usePathname, useParams, useRouter } from 'next/navigation';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
-import CloseIcon from '@/icons/close_icon';
-import LineChartIcon from '@/icons/Charts/LineChartIcon';
+import { AqBarChart07, AqXClose } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   setGlobalSidebarOpen,
@@ -15,6 +14,8 @@ import {
   getNavigationItems,
   USER_TYPES,
 } from '../../layouts/SideBar/sidebarConfig';
+import { usePermissions } from '@/core/HOC/authUtils';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * GlobalSideBarDrawer - Enhanced with stable subroute hover functionality
@@ -31,7 +32,23 @@ import {
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
-  const params = useParams(); // Use the new separate global sidebar states
+  const router = useRouter();
+  const { hasAnyPermission, isLoading } = usePermissions();
+  const { id: activeGroupID } = useGetActiveGroup();
+  const canViewAdminPanel = hasAnyPermission(
+    [
+      'SUPER_ADMIN',
+      'SYSTEM_ADMIN',
+      'GROUP_MANAGEMENT',
+      'USER_MANAGEMENT',
+      'ROLE_VIEW',
+      'USER_MANAGEMENT',
+    ],
+    activeGroupID,
+    'AIRQO_ADMIN',
+    true,
+  );
+  const params = useParams();
   const isGlobalSidebarOpen = useSelector((state) => {
     try {
       return state?.sidebar?.isGlobalSidebarOpen || false;
@@ -92,14 +109,10 @@ const GlobalSideBarDrawer = () => {
         if (subroute.path.startsWith('http')) {
           // External links
           window.open(subroute.path, '_blank', 'noopener,noreferrer');
-        } else if (subroute.path.includes('/admin')) {
-          // Admin routes - use direct navigation for better performance
-          window.location.href = subroute.path;
         } else {
-          // Internal routes
-          window.location.href = subroute.path;
+          // Internal routes - use Next.js router for SPA navigation
+          router.push(subroute.path);
         }
-
         // Close drawer immediately after starting navigation
         closeDrawer();
       } catch {
@@ -218,31 +231,33 @@ const GlobalSideBarDrawer = () => {
           </div>
           <button
             type="button"
-            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+            className="relative w-auto focus:outline-none p-2"
             onClick={closeDrawer}
           >
-            <CloseIcon />
+            <AqXClose />
           </button>
         </div>
 
         {/* Enhanced navigation section with better dark mode */}
         <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
-            {/* Enhanced Admin Panel with improved subroute functionality */}
-            <SideBarItem
-              label="Admin Panel"
-              Icon={MdAdminPanelSettings}
-              navPath="/admin"
-              onClick={closeDrawer}
-              subroutes={adminSubroutes}
-              onSubrouteClick={handleSubrouteClick}
-              key="admin-panel-enhanced"
-            />
+            {/* Enhanced Admin Panel with improved subroute functionality, now access-controlled */}
+            {!isLoading && canViewAdminPanel && (
+              <SideBarItem
+                label="Admin Panel"
+                Icon={MdAdminPanelSettings}
+                navPath="/admin"
+                onClick={closeDrawer}
+                subroutes={adminSubroutes}
+                onSubrouteClick={handleSubrouteClick}
+                key="admin-panel-enhanced"
+              />
+            )}
 
             {/* Data Analytics */}
             <SideBarItem
               label="Data Analytics"
-              Icon={LineChartIcon}
+              Icon={AqBarChart07}
               navPath={getAnalyticsPath}
               onClick={closeDrawer}
               key="data-analytics"

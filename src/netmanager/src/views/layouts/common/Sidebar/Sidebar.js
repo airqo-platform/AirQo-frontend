@@ -30,6 +30,8 @@ import GroupAddIcon from '@material-ui/icons/GroupAdd';
 import AssignmentIndIcon from '@material-ui/icons/AssignmentInd';
 import AppsIcon from '@material-ui/icons/Apps';
 import DeviceHubIcon from '@material-ui/icons/DeviceHub';
+import { PERMISSIONS } from '../../../../constants/permissions';
+import { hasPermission } from '../../../../utils/permissions';
 
 const useStyles = makeStyles((theme) => ({
   drawer: {
@@ -60,11 +62,10 @@ const excludePages = (allPages, unwantedPages) => {
 
 const checkAccess = (pages, rolePermissions) => {
   const accessDenied = [];
-  const permissions = rolePermissions.map((permission) => permission.permission);
   pages.forEach((page) => {
     if (page.permission) {
       const requiredPermission = page.permission;
-      if (!permissions.includes(requiredPermission)) {
+      if (!hasPermission(rolePermissions, requiredPermission)) {
         accessDenied.push(page.title);
       }
     }
@@ -76,7 +77,7 @@ const allMainPages = [
   {
     title: 'Overview',
     href: '/overview',
-    icon: <AspectRatioIcon />
+    icon: <AspectRatioIcon />,
   },
   {
     title: 'Analytics',
@@ -87,30 +88,30 @@ const allMainPages = [
   {
     title: 'Map',
     href: '/map',
-    icon: <MapIcon />
+    icon: <MapIcon />,
   },
   {
     title: 'Export data',
     href: '/export-data/options',
-    icon: <CloudDownloadIcon />
+    icon: <CloudDownloadIcon />,
   },
   {
     title: 'Deploy Device',
     href: '/deploy-device',
     icon: <DeviceHubIcon />,
-    permission: 'DEPLOY_AIRQO_DEVICES'
+    permission: PERMISSIONS.DEVICE.DEPLOY
   },
   {
     title: 'Locate',
     href: '/locate',
     icon: <LocateIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+    permission: PERMISSIONS.SITE.CREATE
   },
   {
     title: 'Network Monitoring',
     href: '/manager',
     icon: <ManageIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    permission: PERMISSIONS.DEVICE.VIEW,
     collapse: true,
     nested: true,
     nestItems: [
@@ -124,27 +125,27 @@ const allMainPages = [
     title: 'Device Registry',
     href: '/registry',
     icon: <AddIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES'
+    permission: PERMISSIONS.DEVICE.VIEW
   },
 
   {
     title: 'Site Registry',
     href: '/sites',
     icon: <EditLocationIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES'
+    permission: PERMISSIONS.SITE.VIEW
   },
   {
     title: 'Host Registry',
     href: '/hosts',
     icon: <PeopleOutline />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES',
+    permission: PERMISSIONS.SITE.VIEW,
     isNew: true
   },
   {
     title: 'SIM Registry',
     href: '/sim',
     icon: <SimCardIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_SITES',
+    permission: PERMISSIONS.DEVICE.VIEW,
     isNew: true
   },
 
@@ -152,14 +153,14 @@ const allMainPages = [
     title: 'Cohorts Registry',
     href: '/cohorts',
     icon: <GroupWorkIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    permission: PERMISSIONS.SITE.VIEW,
     isNew: true
   },
   {
     title: 'Grids Registry',
     href: '/grids',
     icon: <GrainIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_AIRQLOUDS',
+    permission: PERMISSIONS.SITE.VIEW,
     isNew: true
   }
 ];
@@ -169,25 +170,27 @@ const allUserManagementPages = [
     title: 'Logs',
     href: '/logs',
     icon: <DataUsageIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
+    permission: PERMISSIONS.DEVICE.VIEW
   },
   {
     title: 'Networks',
     href: '/networks',
     icon: <TapAndPlayIcon />,
+    permission: PERMISSIONS.ROLE.VIEW,
     disabled: true
   },
   {
     title: 'Teams',
     href: '/teams',
     icon: <GroupAddIcon />,
+    permission: PERMISSIONS.ROLE.VIEW,
     isNew: true
   },
   {
     title: 'Users',
     href: '/admin/users',
     icon: <PeopleIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+    permission: PERMISSIONS.ROLE.VIEW,
     collapse: true,
     nested: true,
     nestItems: [
@@ -201,13 +204,13 @@ const allUserManagementPages = [
     title: 'Roles',
     href: '/roles',
     icon: <AssignmentIndIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_ROLES'
+    permission: PERMISSIONS.ROLE.VIEW
   },
   {
     title: 'Clients',
     href: '/clients-activation',
     icon: <AppsIcon />,
-    permission: 'CREATE_UPDATE_AND_DELETE_NETWORK_USERS'
+    permission: PERMISSIONS.ROLE.VIEW
   },
   {
     title: 'Account',
@@ -217,7 +220,7 @@ const allUserManagementPages = [
   {
     title: 'Settings',
     href: '/settings',
-    icon: <SettingsIcon />
+    icon: <SettingsIcon />,
   }
 ];
 

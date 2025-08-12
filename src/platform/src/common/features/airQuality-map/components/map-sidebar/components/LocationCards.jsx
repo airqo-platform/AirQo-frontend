@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
+import { AqMarkerPin01 } from '@airqo/icons-react';
 import { capitalizeAllText } from '@/core/utils/strings';
 import Button from '@/components/Button';
 import Card from '@/components/CardWrapper';
@@ -134,7 +134,7 @@ const LocationCards = ({ searchResults, isLoading, handleLocationSelect }) => {
                         : 'bg-gray-100 dark:bg-gray-700'
                     }`}
                   >
-                    <LocationIcon />
+                    <AqMarkerPin01 />
                   </div>
                 </div>
               </Card>

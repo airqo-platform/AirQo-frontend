@@ -29,6 +29,8 @@ const DataContent = ({
   handleFilter,
   searchKeysByFilter,
   handleRetryLoad,
+  showViewDataButton,
+  onViewDataClick,
 }) => {
   // Animation variants for content area
   const contentVariants = {
@@ -118,7 +120,13 @@ const DataContent = ({
           filters={filters}
           onFilter={handleFilter}
           searchKeys={searchKeysByFilter}
+          showViewDataButton={showViewDataButton}
+          onViewDataClick={onViewDataClick}
           onRetry={() => handleRetryLoad(activeFilterKey)}
+          enableSorting={true}
+          enableColumnFilters={true}
+          defaultSortColumn="name"
+          defaultSortDirection="asc"
         />
       </motion.div>
     </motion.div>

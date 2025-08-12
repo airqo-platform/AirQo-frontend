@@ -1,6 +1,5 @@
-import React from 'react';
 import PropTypes from 'prop-types';
-import CloseIcon from '@/icons/close_icon';
+import { AqXClose } from '@airqo/icons-react';
 import TabSelector from './TabSelector';
 
 const SidebarHeader = ({
@@ -19,7 +18,7 @@ const SidebarHeader = ({
             onClick={handleHeaderClick}
             className="focus:outline-none border border-gray-300 dark:border-gray-600 rounded-xl hover:cursor-pointer p-2 bg-white dark:bg-gray-800"
           >
-            <CloseIcon fill="#536A87" />
+            <AqXClose color="#536A87" />
           </button>
         )}
       </div>

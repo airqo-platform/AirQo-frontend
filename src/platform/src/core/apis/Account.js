@@ -19,23 +19,18 @@ import {
   GROUP_ROLES_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
+import { openApiMethods } from '../utils/openApiClient';
 
 // Password Management
 export const forgotPasswordApi = (data) =>
-  secureApiProxy
-    .post(FORGOT_PWD_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(FORGOT_PWD_URL, data);
 
 export const resetPasswordApi = (data) =>
-  secureApiProxy
-    .put(RESET_PWD_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.put(RESET_PWD_URL, data);
 
 // Authentication
 export const postUserCreationDetails = (data) =>
-  secureApiProxy
-    .post(AUTH_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(AUTH_URL, data);
 
 export const getGoogleAuthDetails = () =>
   secureApiProxy
@@ -43,20 +38,58 @@ export const getGoogleAuthDetails = () =>
     .then((response) => response.data);
 
 export const postUserLoginDetails = (data) =>
-  secureApiProxy
-    .post(LOGIN_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(LOGIN_URL, data);
 
 // User Management
-export const getUserDetails = (userID) =>
-  secureApiProxy
-    .get(`${USERS_URL}/${userID}`, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+export const getUserDetails = (userID) => {
+  if (!userID) {
+    return Promise.reject(new Error('User ID is required'));
+  }
+
+  return secureApiProxy
+    .get(`${USERS_URL}/${userID}`, {
+      authType: AUTH_TYPES.JWT,
+      timeout: 15000, // 15 second timeout
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      // Enhanced error handling
+      if (error.response) {
+        const status = error.response.status;
+        const message =
+          error.response.data?.message || 'Failed to fetch user details';
+
+        switch (status) {
+          case 404:
+            throw new Error('User not found');
+          case 403:
+            throw new Error('Access denied');
+          case 401:
+            throw new Error('Authentication required');
+          case 500:
+            throw new Error('Server error occurred');
+          default:
+            throw new Error(message);
+        }
+      } else if (error.request) {
+        throw new Error('Network error - please check your connection');
+      } else {
+        throw new Error(error.message || 'Failed to fetch user details');
+      }
+    });
+};
 
 export const updateUserCreationDetails = (data, identifier) =>
   secureApiProxy
     .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data, {
       authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+export const updateUserCreationDetailsWithToken = (data, identifier) =>
+  secureApiProxy
+    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data, {
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data);
 
@@ -202,6 +235,11 @@ export const postUserPreferencesApi = (data) =>
     .post(`${USER_PREFERENCES_URL}`, data, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data);
 
+export const postUserPreferencesApiWithToken = (data) =>
+  secureApiProxy
+    .post(`${USER_PREFERENCES_URL}`, data, { authType: AUTH_TYPES.API_TOKEN })
+    .then((response) => response.data);
+
 export const updateUserPreferencesApi = (data) =>
   secureApiProxy
     .post(`${USER_PREFERENCES_URL}/upsert`, data, {
@@ -223,6 +261,13 @@ export const patchUserPreferencesApi = (data) =>
   secureApiProxy
     .patch(`${USER_PREFERENCES_URL}/replace`, data, {
       authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+export const patchUserPreferencesApiWithToken = (data) =>
+  secureApiProxy
+    .patch(`${USER_PREFERENCES_URL}/replace`, data, {
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data);
 
@@ -273,13 +318,29 @@ export const getUserThemeApi = (userId, groupId) => {
   return secureApiProxy
     .get(getUserThemeUrl(userId, groupId), {
       authType: AUTH_TYPES.JWT,
+      timeout: 10000, // 10 second timeout
     })
     .then((response) => response.data)
     .catch((error) => {
-      // Enhanced error handling
-      const errorMessage =
-        error.response?.data?.message || 'Failed to fetch user theme';
-      throw new Error(errorMessage);
+      // Enhanced error handling with fallback
+      if (error.response) {
+        const status = error.response.status;
+        switch (status) {
+          case 404:
+            // User theme not found - return default theme
+            logger.info('User theme not found, using defaults');
+            return { theme: null }; // Let the caller handle defaults
+          case 403:
+          case 401:
+            logger.warn('Authentication issue when fetching theme');
+            return { theme: null };
+          default:
+            logger.error('Theme API error:', error);
+            return { theme: null };
+        }
+      }
+      logger.error('Network error fetching theme:', error);
+      return { theme: null };
     });
 };
 
@@ -292,7 +353,6 @@ export const getUserThemeApi = (userId, groupId) => {
  * @returns {Promise} - Promise resolving to updated theme preferences
  */
 export const updateUserThemeApi = (userId, groupId, currentTheme, newTheme) => {
-  console.log('group id:', groupId);
   // Validate user ID and group ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
@@ -543,6 +603,38 @@ export const assignRoleToUserApi = (roleId, body) => {
     .catch((error) => {
       const errorMessage =
         error.response?.data?.message || 'Failed to assign role to user';
+      throw new Error(errorMessage);
+    });
+};
+
+// Get user's permissions for different groups
+export const getUserGroupPermissionsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/roles/me/roles-simplified`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        'Failed to fetch user group permissions';
+      throw new Error(errorMessage);
+    });
+
+// Get analytics for a group
+/**
+ * Fetch analytics for a specific group
+ * @param {string} groupId - The group ID
+ * @returns {Promise} - Promise resolving to group analytics data
+ */
+export const getGroupAnalyticsApi = (groupId) => {
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
+  }
+  return secureApiProxy
+    .get(`${GROUPS_URL}/${groupId}/analytics`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch group analytics';
       throw new Error(errorMessage);
     });
 };

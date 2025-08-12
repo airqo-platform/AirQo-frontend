@@ -4,6 +4,7 @@ import { useState, useEffect, FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2, Mail, Lock, AlertCircle } from "lucide-react"
@@ -14,6 +15,7 @@ import authService from "@/services/api-service"
  * Login Page Component
  * Handles user authentication for the AirQo platform
  */
+
 export default function LoginPage() {
   const router = useRouter()
   
@@ -41,6 +43,7 @@ export default function LoginPage() {
       if (authService.isAuthenticated()) {
         router.push("/dashboard")
       }
+
     }
   }, [router])
   
@@ -71,6 +74,7 @@ export default function LoginPage() {
     }
     
     setIsLoading(true)
+
     
     try {
       // Clear any existing auth data (without redirect)
@@ -128,6 +132,7 @@ export default function LoginPage() {
       } else {
         setError(err.message || "Authentication failed. Please check your credentials.")
       }
+
     } finally {
       setIsLoading(false)
     }
@@ -143,6 +148,7 @@ export default function LoginPage() {
   }, [email, password])
 
   return (
+
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
@@ -276,6 +282,7 @@ export default function LoginPage() {
           <Link href="/privacy" className="underline">Privacy Policy</Link>
         </p>
       </div>
+
     </div>
   )
 }

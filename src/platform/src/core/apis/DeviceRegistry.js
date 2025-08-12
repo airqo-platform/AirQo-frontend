@@ -31,7 +31,15 @@ export const getSiteSummaryDetails = () =>
     })
     .then((response) => response.data);
 
-export const getGirdsSummaryDetails = () =>
+// Get site summary details with API token auth
+export const getSiteSummaryDetailsWithToken = () =>
+  secureApiProxy
+    .get(`${SITES_URL}/summary`, {
+      authType: AUTH_TYPES.API_TOKEN,
+    })
+    .then((response) => response.data);
+
+export const getGridsSummaryDetails = () =>
   secureApiProxy
     .get(GRIDS_SUMMARY_URL, {
       authType: AUTH_TYPES.JWT,
@@ -53,12 +61,28 @@ export const updateCohortDetails = (body, cohortID) =>
     })
     .then((response) => response.data);
 
-export const getMapReadings = () =>
-  secureApiProxy
-    .get(READINGS_URL, {
-      authType: AUTH_TYPES.API_TOKEN,
-    })
-    .then((response) => response.data);
+export const getMapReadings = (abortSignal = null) => {
+  const config = {
+    authType: AUTH_TYPES.API_TOKEN,
+  };
+
+  // Add abort signal if provided and still valid
+  if (abortSignal && !abortSignal.aborted) {
+    config.signal = abortSignal;
+  }
+
+  return secureApiProxy
+    .get(READINGS_URL, config)
+    .then((response) => response.data)
+    .catch((error) => {
+      // Handle abort errors gracefully
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        throw new Error('Request cancelled');
+      }
+      // Re-throw other errors
+      throw error;
+    });
+};
 
 export const getNearestSite = (params) =>
   secureApiProxy

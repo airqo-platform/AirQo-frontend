@@ -1,4 +1,3 @@
-// ShortCuts.js
 import React from 'react';
 import PropTypes from 'prop-types';
 import {
@@ -22,8 +21,8 @@ const timePeriods = [
   {
     label: 'Yesterday',
     range: () => {
-      const yesterday = subDays(new Date(), 1);
-      return [startOfDay(yesterday), endOfDay(yesterday)];
+      const d = subDays(new Date(), 1);
+      return [startOfDay(d), endOfDay(d)];
     },
   },
   {
@@ -49,9 +48,8 @@ const timePeriods = [
   {
     label: 'Last year',
     range: () => {
-      const lastYearStart = startOfYear(subDays(new Date(), 365));
-      const lastYearEnd = endOfYear(subDays(new Date(), 365));
-      return [lastYearStart, lastYearEnd];
+      const y = subDays(new Date(), 365);
+      return [startOfYear(y), endOfYear(y)];
     },
   },
   {
@@ -60,43 +58,30 @@ const timePeriods = [
   },
   {
     label: 'Last quarter',
-    range: () => [
-      startOfQuarter(subQuarters(new Date(), 1)),
-      endOfQuarter(subQuarters(new Date(), 1)),
-    ],
+    range: () => {
+      const q = subQuarters(new Date(), 1);
+      return [startOfQuarter(q), endOfQuarter(q)];
+    },
   },
 ];
 
-/**
- * ShortCuts component provides quick date range selections.
- */
-const ShortCuts = ({ setSelectedRange }) => {
-  const handleShortcutClick = (range) => {
-    const [start, end] = range();
-    setSelectedRange({ start, end });
-  };
+const ShortCuts = ({ handleShortcutClick }) => (
+  <div className="py-6 border-r border-gray-100 dark:border-gray-700 w-full md:w-[260px] max-h-[350px] overflow-y-auto">
+    <ul className="text-xs leading-5 font-normal flex flex-wrap md:flex-col lg:flex-col">
+      {timePeriods.map((period) => (
+        <li key={period.label}>
+          <button
+            onClick={() => handleShortcutClick(period.range)}
+            className="px-6 py-[10px] w-full leading-5 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 text-left"
+            aria-label={`Select ${period.label}`}
+          >
+            {period.label}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+);
 
-  return (
-    <div className="py-6 border-r border-gray-100 dark:border-gray-700 w-full md:w-[260px] max-h-[350px] overflow-y-auto">
-      <ul className="text-xs leading-5 font-normal flex flex-wrap md:flex-col lg:flex-col">
-        {timePeriods.map((period) => (
-          <li key={period.label}>
-            <button
-              onClick={() => handleShortcutClick(period.range)}
-              className="px-6 py-[10px] w-full leading-5 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 text-left"
-              aria-label={`Select ${period.label}`}
-            >
-              {period.label}
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-ShortCuts.propTypes = {
-  setSelectedRange: PropTypes.func.isRequired,
-};
-
+ShortCuts.propTypes = { handleShortcutClick: PropTypes.func.isRequired };
 export default React.memo(ShortCuts);

@@ -21,7 +21,6 @@ export const useMapInitialization = ({
   clusterUpdate,
   addControls,
   ensureControls,
-  handleMainLoading,
   onToastMessage,
 }) => {
   const dispatch = useDispatch();
@@ -52,7 +51,6 @@ export const useMapInitialization = ({
           });
         })
         .finally(() => {
-          handleMainLoading(false);
           dispatch(setMapLoading(false));
           isReloadingRef.current = false;
           ensureControls();
@@ -62,7 +60,6 @@ export const useMapInitialization = ({
     mapRef,
     addControls,
     fetchAndProcessData,
-    handleMainLoading,
     dispatch,
     ensureControls,
     onToastMessage,
@@ -91,18 +88,11 @@ export const useMapInitialization = ({
       map.on('idle', ensureControls);
 
       map.on('error', () => {
-        handleMainLoading(false);
         dispatch(setMapLoading(false));
         isReloadingRef.current = false;
       });
     },
-    [
-      initializeMapFeatures,
-      debouncedClusterUpdate,
-      ensureControls,
-      handleMainLoading,
-      dispatch,
-    ],
+    [initializeMapFeatures, debouncedClusterUpdate, ensureControls, dispatch],
   );
 
   const initializeMap = useCallback(() => {
@@ -122,7 +112,6 @@ export const useMapInitialization = ({
 
     isReloadingRef.current = true;
     dispatch(setMapLoading(true));
-    handleMainLoading(true);
 
     mapboxgl.accessToken = mapboxApiAccessToken;
 
@@ -147,7 +136,6 @@ export const useMapInitialization = ({
     initialCenter,
     initialZoom,
     dispatch,
-    handleMainLoading,
     setupMapEventHandlers,
     mapRef,
   ]);

@@ -1,5 +1,4 @@
-import React from 'react';
-import { IoWarningOutline } from 'react-icons/io5';
+import { AqAlertTriangle } from '@airqo/icons-react';
 import dayjs from 'dayjs';
 
 const MaintenanceBanner = ({ maintenance }) => {
@@ -11,7 +10,7 @@ const MaintenanceBanner = ({ maintenance }) => {
         <div className="flex items-center justify-center">
           <div className="flex items-center">
             <span className="flex">
-              <IoWarningOutline
+              <AqAlertTriangle
                 className="h-6 w-6 text-yellow-600"
                 aria-hidden="true"
               />

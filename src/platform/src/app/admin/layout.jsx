@@ -7,6 +7,7 @@ import {
   UnifiedSideBarDrawer,
 } from '@/common/layouts/SideBar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
+import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -71,7 +72,7 @@ function AdminLayout({ children }) {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 overflow-y-auto 
+        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 overflow-y-auto pb-20 md:pb-0
           ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
       >
         <div className={`overflow-hidden ${containerClasses}`}>
@@ -85,8 +86,11 @@ function AdminLayout({ children }) {
         </div>
       </main>
 
+      {/* Mobile Bottom Navigation - Show admin navigation for mobile */}
+      <MobileBottomNavigation userType="admin" />
+
       {/* Theme Customizer */}
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
 
       {/* Admin SideBar Drawer */}
       <UnifiedSideBarDrawer userType="admin" />

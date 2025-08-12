@@ -104,7 +104,9 @@ const MonitorPage = () => {
             <p className="text-lg text-gray-700 mb-4">
               The monitors are optimized with capabilities to cope with
               challenges like extreme weather conditions, including high levels
-              of dust and heat, typical to the context of African cities.
+              of dust and heat, typical of the context of African cities. We
+              apply AI-driven calibration systems to enhance the accuracy and
+              reliability of the air quality data.
             </p>
             <p className="text-lg text-gray-700 mb-6">
               Powered by either mains or solar, the device is optimized to work

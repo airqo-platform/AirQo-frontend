@@ -1,11 +1,15 @@
 'use client';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import Close from '@/icons/close_icon';
+import { AqXClose } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './data-download/DataDownload';
-import { AddLocations, AddLocationHeader } from './add-locations/AddLocations';
+import { AddLocations } from './add-locations/AddLocations';
+import AddLocationHeader from './add-locations/components/AddLocationHeader';
+import AddLocationsForMoreInsights, {
+  AddLocationsForMoreInsightsHeader,
+} from './add-locations-more-insights';
 import MoreInsights, { InSightsHeader } from './more-insights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
@@ -17,6 +21,10 @@ import './styles/modal-responsive.css';
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },
   addLocation: { header: AddLocationHeader, body: AddLocations },
+  addLocationForMoreInsights: {
+    header: AddLocationsForMoreInsightsHeader,
+    body: AddLocationsForMoreInsights,
+  },
   inSights: { header: InSightsHeader, body: MoreInsights },
   moreSights: { header: SelectMoreHeader, body: SelectMore },
   plant_tree: { header: AddPlantTreeHeader, body: PlantTree },
@@ -97,14 +105,15 @@ const Modal = ({ isOpen, onClose }) => {
                 className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700 p-1.5 rounded-full transition-colors duration-150"
                 aria-label="Close Modal"
               >
-                <Close fill={`${isDarkMode ? '#fff' : '#000'}`} />
+                <AqXClose color={`${isDarkMode ? '#fff' : '#000'}`} />
                 <span className="sr-only">Close Modal</span>
               </button>
             </div>
 
             {/* Scrollable Content */}
             <div className="modal-content flex-1 overflow-hidden dark:text-white">
-              <ModalBody onClose={onClose} />
+              {/* Only render modal body when modal is open to prevent unnecessary API calls */}
+              {isOpen && <ModalBody onClose={onClose} />}
             </div>
           </motion.div>
         </div>

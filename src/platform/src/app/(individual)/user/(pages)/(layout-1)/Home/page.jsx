@@ -15,9 +15,8 @@ import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
-
 import { useRouter } from 'next/navigation';
-import { FiDownload, FiBarChart2, FiUsers } from 'react-icons/fi';
+import { AqDownload01, AqBuilding07, AqBarChart01 } from '@airqo/icons-react';
 
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';
@@ -35,6 +34,7 @@ const Home = () => {
   const checklistStatus = useSelector((state) => state.cardChecklist.status);
   const checklistData = useSelector((state) => state.cardChecklist.checklist);
   const reduxUserInfo = useSelector((state) => state.login.userInfo);
+
   // Get user display name from multiple sources with priority
   const getUserDisplayName = () => {
     // Priority: Redux user info -> NextAuth session -> Guest
@@ -45,7 +45,7 @@ const Home = () => {
       return reduxUserInfo.name;
     }
     if (session?.user?.name) {
-      return session.user.name.split(' ')[0]; // Get first name from full name
+      return session.user.name.split(' ')[0];
     }
     if (userData?.firstName) {
       return userData.firstName;
@@ -54,7 +54,7 @@ const Home = () => {
       return userData.name;
     }
     return 'Guest';
-  }; // Load user data and fetch checklist - enhanced with session integration
+  };
   useEffect(() => {
     let timer;
 
@@ -114,15 +114,13 @@ const Home = () => {
     session,
     status,
     reduxUserInfo,
-  ]); // Enhanced data recovery check for Mac users - no localStorage dependency
+  ]);
   useEffect(() => {
     const checkPlatform = () => {
       const platform = navigator.platform || '';
       const isMacOS = /Mac|iPad|iPhone|iPod/.test(platform);
 
       if (isMacOS) {
-        // Extra check for Mac users to ensure data persistence
-        // Check if checklist data is missing but we have user data
         if (
           (!checklistData || checklistData.length === 0) &&
           (userData?._id || session?.user?.id) &&
@@ -204,15 +202,15 @@ const Home = () => {
             <Button
               variant="outlined"
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              Icon={FiDownload}
-              onClick={() => router.push('/user/analytics')}
+              Icon={AqDownload01}
+              onClick={() => router.push('/user/data-export')}
             >
               Download Data
             </Button>
             <Button
               variant="outlined"
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              Icon={FiBarChart2}
+              Icon={AqBarChart01}
               onClick={() => router.push('/user/analytics')}
             >
               Data Analysis
@@ -220,7 +218,7 @@ const Home = () => {
             <Button
               variant="outlined"
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
-              Icon={FiUsers}
+              Icon={AqBuilding07}
               onClick={() => {
                 router.push('/create-organization');
               }}

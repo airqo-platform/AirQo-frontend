@@ -1,4 +1,9 @@
-import { FaUserPlus, FaEnvelope, FaTrash, FaUsers } from 'react-icons/fa';
+import {
+  AqUsers03,
+  AqUserPlus01,
+  AqMail01,
+  AqTrash03,
+} from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
@@ -137,7 +142,7 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
       onClose={handleClose}
       title="Invite Team Members"
       subtitle={`${validEmailsCount} ${validEmailsCount === 1 ? 'invitation' : 'invitations'} ready`}
-      icon={FaUsers}
+      icon={AqUsers03}
       iconColor="text-primary"
       iconBgColor="bg-primary/10 dark:bg-primary/20"
       maxHeight="max-h-96"
@@ -176,7 +181,7 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
           {inviteEmails.map((email, index) => (
             <div key={index} className="flex items-center space-x-3">
               <div className="flex-1 relative">
-                <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <AqMail01 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <input
                   type="email"
                   value={email}
@@ -192,7 +197,7 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
                   className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
                   aria-label="Remove email field"
                 >
-                  <FaTrash className="w-4 h-4" />
+                  <AqTrash03 className="w-4 h-4" />
                 </button>
               )}
             </div>
@@ -205,14 +210,14 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
           onClick={handleAddEmailField}
           className="flex items-center space-x-2 text-sm text-primary hover:text-primary/80 font-medium transition-colors duration-200"
         >
-          <FaUserPlus className="w-4 h-4" />
+          <AqUserPlus01 className="w-4 h-4" />
           <span>Add another email address</span>
         </button>
 
         {/* Info Box */}
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
           <div className="flex items-start space-x-2">
-            <FaEnvelope className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <AqMail01 className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
                 Invitation Process

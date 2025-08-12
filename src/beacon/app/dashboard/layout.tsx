@@ -145,6 +145,7 @@ export default function DashboardLayout({
     }
   }
 
+
   // Handle logout
   const handleLogout = async () => {
     setIsLoggingOut(true)
@@ -172,6 +173,7 @@ export default function DashboardLayout({
       setIsLoggingOut(false)
       setShowLogoutDialog(false)
     }
+
   }
 
   // Generate user initials from first_name and last_name

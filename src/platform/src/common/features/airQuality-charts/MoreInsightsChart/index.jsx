@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import {
   LineChart,
   BarChart,
+  Line,
+  Bar,
   CartesianGrid,
   XAxis,
   YAxis,
@@ -29,10 +31,8 @@ import ImprovedAxisTick from './components/AxisTicks/ImprovedAxisTick';
 import EmptyChart from './components/EmptyStates/EmptyChart';
 import CustomReferenceLabel from './components/Reference/CustomReferenceLabel';
 import CustomDot from './components/Series/CustomDot';
-import CustomBar from './components/Series/CustomBar';
 import CustomGraphTooltip from './components/Tooltip/CustomGraphTooltip';
 import CustomLegend from './components/Legend/CustomLegend';
-import { SeriesLine, SeriesBar } from './components/Series/SeriesComponents';
 
 const MoreInsightsChart = React.memo(function MoreInsightsChart({
   data,
@@ -77,8 +77,24 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
 
     const style = document.createElement('style');
     style.textContent = `
-      .recharts-wrapper,
-      .recharts-legend-wrapper { overflow: visible !important; }
+      .exporting .recharts-wrapper,
+      .exporting .recharts-legend-wrapper { 
+        overflow: visible !important; 
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      .exporting .recharts-legend-item {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
+      .exporting .legend,
+      .exporting [class*="legend"] {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+      }
     `;
     document.head.appendChild(style);
     return () => document.head.removeChild(style);
@@ -86,7 +102,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
 
   // Chart type selection
   const ChartComponent = chartType === 'bar' ? BarChart : LineChart;
-  const SeriesComponent = chartType === 'bar' ? SeriesBar : SeriesLine;
+  const SeriesComponent = chartType === 'bar' ? Bar : Line;
 
   if (!chartData.length || !seriesKeys.length)
     return (
@@ -116,7 +132,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
             stroke={isDark ? '#555' : '#999'}
             strokeDasharray="2 2"
             className="chart-grid"
-            opacity={1}
+            opacity={CHART_CONFIG.chart.gridOpacity}
             strokeWidth={1}
           />
           <XAxis
@@ -231,7 +247,6 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
                 opacity={isActive ? 1 : 0.5}
                 dot={chartType === 'line' ? <CustomDot /> : undefined}
                 activeDot={chartType === 'line' ? { r: 6 } : undefined}
-                shape={chartType === 'bar' ? <CustomBar /> : undefined}
                 onMouseEnter={() => legendState.handleLegendMouseEnter(idx)}
                 onMouseLeave={legendState.handleLegendMouseLeave}
                 className={`chart-series chart-series-${idx} ${
@@ -241,6 +256,31 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
               />
             );
           })}
+
+          {/* Add Legend component for proper export */}
+          <Legend
+            content={
+              <CustomLegend
+                payload={seriesKeys.map((key, idx) => ({
+                  dataKey: key,
+                  value: siteIdToName[key] || key,
+                  color: getColor(idx),
+                }))}
+                onMouseEnter={legendState.handleLegendMouseEnter}
+                onMouseLeave={legendState.handleLegendMouseLeave}
+                onClick={legendState.handleLegendClick}
+                activeIndex={legendState.activeIndex}
+              />
+            }
+            wrapperStyle={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexWrap: 'wrap',
+              gap: '12px',
+              marginTop: '20px',
+            }}
+          />
+
           {WHO_STANDARD_VALUE > 0 && (
             <ReferenceLine
               y={WHO_STANDARD_VALUE}

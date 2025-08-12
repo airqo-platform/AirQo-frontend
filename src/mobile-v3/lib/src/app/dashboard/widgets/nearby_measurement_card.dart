@@ -8,12 +8,12 @@ import 'package:airqo/src/meta/utils/utils.dart';
 
 class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
   final Measurement measurement;
-  // final double distance;
+  final String? fallbackLocationName;
 
   const NearbyMeasurementCard({
     super.key,
     required this.measurement,
-    // this.distance,
+    this.fallbackLocationName,
   });
 
   void _showAnalyticsDetails(BuildContext context, Measurement measurement) {
@@ -23,6 +23,7 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
         builder: (context) {
           return AnalyticsDetails(
             measurement: measurement,
+            fallbackLocationName: fallbackLocationName,
           );
         });
   }
@@ -120,7 +121,9 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                           children: [
                             Text(
                               measurement.siteDetails?.searchName ??
-                                  "Unknown Location",
+                                  measurement.siteDetails?.name ??
+                                  fallbackLocationName ??
+                                  "---",
                               style: TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,
@@ -158,25 +161,6 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                                 ),
                               ],
                             ),
-                            // SizedBox(height: 8),
-                            // Row(
-                            //   children: [
-                            //     Icon(
-                            //       Icons.near_me,
-                            //       size: 14,
-                            //       color: AppColors.primaryColor,
-                            //     ),
-                            //     SizedBox(width: 4),
-                            //     // Text(
-                            //     //   "${distance.toStringAsFixed(1)} km away",
-                            //     //   style: TextStyle(
-                            //     //     fontSize: 14,
-                            //     //     fontWeight: FontWeight.w500,
-                            //     //     color: AppColors.primaryColor,
-                            //     //   ),
-                            //     // ),
-                            //   ],
-                            // ),
                           ],
                         ),
                       ),

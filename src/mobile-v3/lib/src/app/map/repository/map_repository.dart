@@ -112,7 +112,7 @@ class MapImpl extends MapRepository with UiLoggy {
       }
 
       throw Exception(
-          'No internet connection and no cached map data available');
+          'Unable to load map data. Please check your connection and try again.');
     }
   }
 

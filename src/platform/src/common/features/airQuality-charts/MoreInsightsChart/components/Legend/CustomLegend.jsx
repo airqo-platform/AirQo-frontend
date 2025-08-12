@@ -29,8 +29,8 @@ const CustomLegend = ({
         const isActive = activeIndex === null || activeIndex === idx;
         return (
           <div
-            key={`legend-${idx}`}
-            className={`flex items-center gap-1 text-xs dark:text-gray-300 whitespace-nowrap cursor-pointer transition-opacity duration-200 ${
+            key={`legend-${entry.dataKey || idx}`}
+            className={`flex items-center gap-1.5 text-xs cursor-pointer transition-opacity duration-200 ${
               !isActive ? 'opacity-50' : 'opacity-100'
             }`}
             onMouseEnter={() => onMouseEnter(idx)}
@@ -38,22 +38,18 @@ const CustomLegend = ({
             onClick={() => onClick(idx)}
           >
             <span
-              className="w-3 h-3 rounded-full transition-transform duration-200"
+              className="w-2 h-2 rounded-full transition-transform duration-200"
               style={{
                 backgroundColor: entry.color || 'var(--color-primary)',
-                transform: isActive ? 'scale(1.2)' : 'scale(1)',
+                transform: isActive ? 'scale(1.1)' : 'scale(1)',
               }}
             />
             {truncateLegend ? (
               <Tooltip content={entry.value} className="w-auto">
-                <div className="truncate max-w-[100px] text-gray-700 dark:text-gray-200">
-                  {entry.value}
-                </div>
+                <div className="truncate max-w-[80px]">{entry.value}</div>
               </Tooltip>
             ) : (
-              <div className="text-gray-700 dark:text-gray-200">
-                {entry.value}
-              </div>
+              <div>{entry.value}</div>
             )}
           </div>
         );
@@ -63,11 +59,21 @@ const CustomLegend = ({
 };
 
 CustomLegend.propTypes = {
-  payload: PropTypes.array.isRequired,
+  payload: PropTypes.arrayOf(
+    PropTypes.shape({
+      dataKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      value: PropTypes.string.isRequired,
+      color: PropTypes.string,
+    }),
+  ).isRequired,
   onMouseEnter: PropTypes.func.isRequired,
   onMouseLeave: PropTypes.func.isRequired,
   onClick: PropTypes.func.isRequired,
   activeIndex: PropTypes.number,
+};
+
+CustomLegend.defaultProps = {
+  activeIndex: null,
 };
 
 export default CustomLegend;

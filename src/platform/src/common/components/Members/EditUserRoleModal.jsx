@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ReusableDialog from '../Modal/ReusableDialog';
 import SelectField from '../SelectField';
@@ -12,7 +12,6 @@ const EditUserRoleModal = ({
   onSave,
   isLoading,
 }) => {
-  console.log(user);
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(user?.role || '');
   const [loadingRoles, setLoadingRoles] = useState(false);

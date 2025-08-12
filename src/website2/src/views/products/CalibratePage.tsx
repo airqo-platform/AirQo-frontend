@@ -132,20 +132,23 @@ const CalibratePage = () => {
               Cost effective and accessible
             </h3>
             <p className="text-lg text-gray-700 mb-4">
-              AirQalibrate is a Machine Learning based calibration tool that
-              eliminates the need for reference-grade monitors or on-site
-              monitor calibration.
+              AirQalibrate is an AI-powered calibration tool that enhances the
+              accuracy and reliability of air quality data from low-cost
+              sensors. By using machine learning models, it corrects for
+              environmental variability and sensor drift, delivering reliable,
+              high-quality data without the need for reference-grade monitors or
+              on-site calibration.
             </p>
             <p className="text-lg text-gray-700">
-              It enables users without access to reference grade monitors or
-              technical expertise to calibrate data from their low-cost
-              monitors, improve performance, and build trust in the air quality
-              network.
+              AirQalibrate empowers users without access to reference-grade
+              monitors or technical expertise to calibrate their sensor data,
+              improve performance, and build trust in their air quality
+              networks.
             </p>
             <p className="text-lg text-gray-700 mt-4">
-              This reduces operational costs involved in monitoring, thereby
-              enabling the expansion of monitoring systems to create a dense air
-              quality monitoring and management network.
+              By reducing the operational costs of monitoring, it supports the
+              expansion of a dense, city-wide air quality monitoring and
+              management network.
             </p>
           </motion.div>
 

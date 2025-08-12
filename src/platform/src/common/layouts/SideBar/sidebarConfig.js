@@ -1,13 +1,19 @@
-import HomeIcon from '@/icons/SideBar/HomeIcon';
-import SettingsIcon from '@/icons/SideBar/SettingsIcon';
-import BarChartIcon from '@/icons/SideBar/BarChartIcon';
-import CollocateIcon from '@/icons/SideBar/CollocateIcon';
-import WorldIcon from '@/icons/SideBar/world_Icon';
-import UsersIcon from '@/icons/SideBar/UsersIcon';
-import UserIcon from '@/icons/Topbar/userIcon';
-import { MdBusiness, MdDescription, MdDashboard } from 'react-icons/md';
-import ShieldIcon from '@/icons/SideBar/ShieldIcon';
-import { checkAccess } from '@/core/HOC/authUtils';
+import { useState, useEffect } from 'react';
+import {
+  AqHomeSmile,
+  AqUser03,
+  AqBarChartSquare02,
+  AqGlobe05,
+  AqUsers01,
+  AqSettings02,
+  AqShieldTick,
+  AqFile02,
+  AqBuilding05,
+  AqHome01,
+  AqDownload01,
+  AqFolderShield,
+} from '@airqo/icons-react';
+// import { checkAccess } from '@/core/HOC/authUtils';
 
 /**
  * Centralized sidebar configuration for all user types
@@ -28,6 +34,7 @@ export const USER_TYPES = {
  * @typedef {Object} NavigationItem
  * @property {string} type - Type of item: 'item', 'divider', 'dropdown'
  * @property {string} label - Display label
+ * @property {string} shortLabel - Short label for mobile/compact views
  * @property {React.Component} icon - Icon component
  * @property {string} path - Navigation path (for items)
  * @property {boolean} dropdown - Whether item has dropdown (for dropdown type)
@@ -44,13 +51,15 @@ export const getUserNavigationItems = () => {
     {
       type: 'item',
       label: 'Home',
-      icon: HomeIcon,
+      shortLabel: 'Home',
+      icon: AqHomeSmile,
       path: '/user/Home',
     },
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartIcon,
+      shortLabel: 'Analytics',
+      icon: AqBarChartSquare02,
       path: '/user/analytics',
     },
     {
@@ -60,31 +69,41 @@ export const getUserNavigationItems = () => {
   ];
 
   // Add collocation section if user has access
-  if (checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
-    items.push({
-      type: 'dropdown',
-      label: 'Collocation',
-      icon: CollocateIcon,
-      dropdown: true,
-      children: [
-        {
-          label: 'Overview',
-          path: '/user/collocation/overview',
-        },
-        {
-          label: 'Collocate',
-          path: '/user/collocation/collocate',
-        },
-      ],
-    });
-  }
+  // if (checkAccess('CREATE_UPDATE_AND_DELETE_NETWORK_DEVICES')) {
+  //   items.push({
+  //     type: 'dropdown',
+  //     label: 'Collocation',
+  //     shortLabel: 'Collocate',
+  //     icon: AqGlobe05,
+  //     dropdown: true,
+  //     children: [
+  //       {
+  //         label: 'Overview',
+  //         path: '/user/collocation/overview',
+  //       },
+  //       {
+  //         label: 'Collocate',
+  //         path: '/user/collocation/collocate',
+  //       },
+  //     ],
+  //   });
+  // }
 
   // Add remaining navigation items
   items.push({
     type: 'item',
     label: 'Map',
-    icon: WorldIcon,
+    shortLabel: 'Map', // Same as label since it's already short
+    icon: AqGlobe05,
     path: '/user/map',
+  });
+
+  items.push({
+    type: 'item',
+    label: 'Data Download',
+    shortLabel: 'Download',
+    icon: AqDownload01,
+    path: '/user/data-export',
   });
 
   // divider for Account section
@@ -95,7 +114,8 @@ export const getUserNavigationItems = () => {
   items.push({
     type: 'item',
     label: 'Profile',
-    icon: UserIcon,
+    shortLabel: 'Profile',
+    icon: AqUser03,
     path: '/user/profile',
   });
 
@@ -110,7 +130,8 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: MdDashboard,
+      shortLabel: 'Home',
+      icon: AqHome01,
       path: '/admin',
     },
     {
@@ -120,13 +141,22 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Organizations',
-      icon: MdBusiness,
+      shortLabel: 'Orgs',
+      icon: AqBuilding05,
       path: '/admin/organizations/requests',
     },
     {
       type: 'item',
+      label: 'Client Management',
+      shortLabel: 'Clients',
+      icon: AqFolderShield,
+      path: '/admin/clients-management',
+    },
+    {
+      type: 'item',
       label: 'Users',
-      icon: UsersIcon,
+      shortLabel: 'Users',
+      icon: AqUser03,
       path: '/admin/users',
     },
     {
@@ -136,13 +166,14 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Analytics',
-      icon: BarChartIcon,
+      icon: AqBarChartSquare02,
       path: '/admin/analytics',
     },
     {
       type: 'item',
       label: 'Activity Logs',
-      icon: MdDescription,
+      shortLabel: 'Logs',
+      icon: AqFile02,
       path: '/admin/activity-logs',
     },
     {
@@ -152,13 +183,15 @@ export const getAdminNavigationItems = () => {
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: ShieldIcon,
+      shortLabel: 'Roles',
+      icon: AqShieldTick,
       path: '/admin/roles',
     },
     {
       type: 'item',
       label: 'Settings',
-      icon: SettingsIcon,
+      shortLabel: 'Settings',
+      icon: AqSettings02,
       path: '/admin/settings',
     },
   ];
@@ -173,14 +206,23 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Dashboard',
-      icon: HomeIcon,
+      shortLabel: 'Home',
+      icon: AqHomeSmile,
       path: `/org/${orgSlug}/dashboard`,
     },
     {
       type: 'item',
       label: 'Data Insights',
-      icon: BarChartIcon,
+      shortLabel: 'Insights',
+      icon: AqBarChartSquare02,
       path: `/org/${orgSlug}/insights`,
+    },
+    {
+      type: 'item',
+      label: 'Data Download',
+      shortLabel: 'Download',
+      icon: AqDownload01,
+      path: `/org/${orgSlug}/data-export`,
     },
 
     {
@@ -190,13 +232,15 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Members',
-      icon: UsersIcon,
+      shortLabel: 'Members',
+      icon: AqUsers01,
       path: `/org/${orgSlug}/members`,
     },
     {
       type: 'item',
       label: 'Roles & Permissions',
-      icon: ShieldIcon,
+      shortLabel: 'Roles',
+      icon: AqShieldTick,
       path: `/org/${orgSlug}/roles-permissions`,
       matcher: {
         pattern: '/org/{slug}/roles-permissions',
@@ -208,7 +252,8 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Settings',
-      icon: SettingsIcon,
+      shortLabel: 'Settings',
+      icon: AqSettings02,
       path: `/org/${orgSlug}/settings`,
     },
     // Account section
@@ -219,7 +264,8 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     {
       type: 'item',
       label: 'Profile',
-      icon: UserIcon,
+      shortLabel: 'Profile',
+      icon: AqUser03,
       path: `/org/${orgSlug}/profile`,
     },
   ];
@@ -247,9 +293,61 @@ export const getNavigationItems = (userType, options = {}) => {
  * @param {string} userType - Type of user
  * @param {Object} options - Additional options
  */
-export const getMobileNavigationItems = (userType, options = {}) => {
-  // For now, same as desktop navigation
-  return getNavigationItems(userType, options);
+export const getMobileNavigationItems = (
+  userType,
+  options = {},
+  excludeBottomNavItems = true,
+) => {
+  const allItems = getNavigationItems(userType, options);
+
+  if (!excludeBottomNavItems) {
+    return allItems;
+  }
+
+  // Get the first 4 navigation items (shown in bottom nav)
+  const bottomNavItems = allItems
+    .filter((item) => item.type === 'item' && item.path)
+    .slice(0, 4);
+
+  const bottomNavPaths = new Set(bottomNavItems.map((item) => item.path));
+
+  // Filter out items that are in bottom navigation
+  const filteredItems = allItems.filter((item) => {
+    if (item.type !== 'item' || !item.path) {
+      return true; // Keep dividers and non-navigation items for now
+    }
+    return !bottomNavPaths.has(item.path);
+  });
+
+  // Remove dividers that have no following navigation items
+  const cleanedItems = [];
+  for (let i = 0; i < filteredItems.length; i++) {
+    const item = filteredItems[i];
+
+    if (item.type === 'divider') {
+      // Check if there are any navigation items after this divider
+      let hasFollowingNavItems = false;
+      for (let j = i + 1; j < filteredItems.length; j++) {
+        const nextItem = filteredItems[j];
+        if (nextItem.type === 'divider') {
+          break; // Reached next divider, stop checking
+        }
+        if (nextItem.type === 'item' && nextItem.path) {
+          hasFollowingNavItems = true;
+          break;
+        }
+      }
+
+      // Only include divider if it has following nav items
+      if (hasFollowingNavItems) {
+        cleanedItems.push(item);
+      }
+    } else {
+      cleanedItems.push(item);
+    }
+  }
+
+  return cleanedItems;
 };
 
 /**
@@ -275,6 +373,10 @@ export const getUserTypeFromPath = (pathname) => {
   }
   if (pathname.startsWith('/org/')) {
     return USER_TYPES.ORGANIZATION;
+  }
+  // create-organization route should use user navigation
+  if (pathname === '/create-organization') {
+    return USER_TYPES.USER;
   }
   return USER_TYPES.USER;
 };
@@ -307,3 +409,46 @@ export const getSidebarStyles = (isDarkMode = false) => ({
   iconFill: isDarkMode ? 'ffffff' : undefined,
   stroke: isDarkMode ? 'white' : '#1f2937',
 });
+
+/**
+ * Utility function to get appropriate label based on context
+ * @param {Object} item - Navigation item with label and shortLabel
+ * @param {boolean} useShortLabel - Whether to prefer short label
+ * @param {boolean} iconOnly - Whether in icon-only mode
+ */
+export const getDisplayLabel = (
+  item,
+  useShortLabel = false,
+  iconOnly = false,
+) => {
+  if (iconOnly) return ''; // No label in icon-only mode
+
+  if (useShortLabel && item.shortLabel) {
+    return item.shortLabel;
+  }
+
+  return item.label;
+};
+
+/**
+ * Hook to determine if short labels should be used based on screen size
+ * Can be used in components that render navigation items
+ */
+export const useShortLabels = () => {
+  const [useShortLabels, setUseShortLabels] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      // Use short labels on screens smaller than 640px (Tailwind 'sm' breakpoint)
+      // or when the available space is limited
+      setUseShortLabels(window.innerWidth < 640);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  return useShortLabels;
+};

@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 import Footer from '../components/Footer';
-import RightArrowIcon from '@/icons/SideBar/rightArrowIcon';
+import { AqArrowNarrowRight } from '@airqo/icons-react';
 import PlantTreeImg from '@/images/carousel/plantTree.webp';
 
 const AddPlantTreeHeader = () => (
@@ -11,7 +11,7 @@ const AddPlantTreeHeader = () => (
     id="modal-title"
   >
     Take Action{' '}
-    <RightArrowIcon className="mx-2" width={16} height={16} color="#9EA3AA" />{' '}
+    <AqArrowNarrowRight className="mx-2" size={16} color="#9EA3AA" />{' '}
     <span className="text-black-600">Plant a Tree</span>
   </h3>
 );
@@ -42,11 +42,11 @@ const PlantTree = ({ onClose }) => {
     setSelectedAmount('$10');
   };
 
-  const getFinalAmount = () => {
-    return customAmount ? `$${customAmount}` : selectedAmount;
-  };
+  // const getFinalAmount = () => {
+  //   return customAmount ? `$${customAmount}` : selectedAmount;
+  // };
   const handleSubmit = useCallback(() => {
-    const _finalAmount = getFinalAmount();
+    // const _finalAmount = getFinalAmount();
     // Submit donation logic would go here
   }, [selectedAmount, customAmount]);
 
