@@ -46,7 +46,7 @@ AirQo GSM Sensors → ThingSpeak → Backend APIs → Frontend Dashboard
 ### Environment Variables
 ```bash
 # Required
-BACKEND_API_URL=http://srv828289.hstgr.cloud:8000
+BACKEND_API_URL=http://localhost:8000
 NEXT_PUBLIC_API_URL=/api
 
 # Optional
@@ -77,7 +77,7 @@ docker logs airqo-frontend-microservice
 
 **Backend connection issues?**
 ```bash
-curl http://srv828289.hstgr.cloud:8000/health
+curl http://localhost:8000/health
 ```
 
 **Dashboard not loading data?**
@@ -86,7 +86,7 @@ curl http://srv828289.hstgr.cloud:8000/health
 curl http://localhost:3000/api/health
 
 # Verify backend services
-curl http://srv828289.hstgr.cloud:8000/api/devices
+curl http://localhost:8000/api/devices
 ```
 
 ## 📖 Documentation

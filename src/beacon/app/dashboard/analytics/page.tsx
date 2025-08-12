@@ -41,6 +41,135 @@ import RegionalAnalysis from "./RegionalAnalysisPage"
 import CountryAnalysisPage from "./CountryAnalysisPage"
 import DistrictAnalysisPage from "./DistrictAnalysisPage"
 
+// TypeScript interfaces
+interface Device {
+  id: string;
+  name: string;
+  status: string;
+  pm25?: number;
+  pm10?: number;
+}
+
+interface RegionalSummaryData {
+  regions: number;
+  totalDevices: number;
+  countries: number;
+  countriesDevices: number;
+  districts: number;
+  districtsWithDevices: number;
+  onlineDevices: number;
+  offlineDevices: number;
+  dataCompleteness: number;
+  averagePM25: number;
+  averagePM10: number;
+}
+
+interface RegionalData {
+  region: string;
+  deviceCount: number;
+  onlineDevices: number;
+  offlineDevices: number;
+  dataTransmissionRate: number;
+  dataCompleteness: number;
+  pm25: number;
+  pm10: number;
+  aqiGood: number;
+  aqiModerate: number;
+  aqiUhfsg: number;
+  aqiUnhealthy: number;
+  aqiVeryUnhealthy: number;
+  aqiHazardous: number;
+  countries: number;
+  districts: number;
+}
+
+interface CountryData {
+  name: string;
+  region: string;
+  deviceCount: number;
+  onlineDevices: number;
+  offlineDevices: number;
+  dataTransmissionRate: number;
+  dataCompleteness: number;
+  pm25: number;
+  pm10: number;
+  aqiGood: number;
+  aqiModerate: number;
+  aqiUhfsg: number;
+  aqiUnhealthy: number;
+  aqiVeryUnhealthy: number;
+  aqiHazardous: number;
+  devicesList: Device[];
+}
+
+interface DistrictData {
+  name: string;
+  country: string;
+  deviceCount: number;
+  onlineDevices: number;
+  offlineDevices: number;
+  dataTransmissionRate: number;
+  dataCompleteness: number;
+  pm25: number;
+  pm10: number;
+  aqiGood: number;
+  aqiModerate: number;
+  aqiUhfsg: number;
+  aqiUnhealthy: number;
+  aqiVeryUnhealthy: number;
+  aqiHazardous: number;
+  devicesList: Device[];
+}
+
+interface VillageData {
+  name: string;
+  district: string;
+  deviceCount: number;
+  onlineDevices: number;
+  offlineDevices: number;
+  dataTransmissionRate: number;
+  dataCompleteness: number;
+  pm25: number;
+  pm10: number;
+  aqiGood: number;
+  aqiModerate: number;
+  aqiUhfsg: number;
+  aqiUnhealthy: number;
+  aqiVeryUnhealthy: number;
+  aqiHazardous: number;
+  devicesList: Device[];
+}
+
+interface Site {
+  id: string;
+  name: string;
+  location: string;
+  status: string;
+}
+
+interface AirQualityData {
+  [key: string]: any;
+}
+
+interface PerformanceData {
+  [key: string]: any[];
+}
+
+interface AqiDistributionItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface EntityWithAqi {
+  aqiGood?: number;
+  aqiModerate?: number;
+  aqiUhfsg?: number;
+  aqiUnhealthy?: number;
+  aqiVeryUnhealthy?: number;
+  aqiHazardous?: number;
+}
+
 // API endpoint base URL
 const API_BASE_URL = "http://srv828289.hstgr.cloud:8000";
 
@@ -55,7 +184,7 @@ const aqiColors = {
 }
 
 // Function to format number with units
-function formatNumber(value, decimals = 1) {
+function formatNumber(value: number | null | undefined, decimals: number = 1): string {
   // Check if value is null, undefined, or not a number
   if (value === null || value === undefined || isNaN(Number(value))) {
     return "N/A"
@@ -65,23 +194,23 @@ function formatNumber(value, decimals = 1) {
 
 export default function AnalyticsPage() {
   // State variables
-  const [timeRange, setTimeRange] = useState("month")
-  const [activeTab, setActiveTab] = useState("network")
-  const [selectedSite, setSelectedSite] = useState("")
-  const [selectedRegion, setSelectedRegion] = useState("")
-  const [selectedRegionForCountry, setSelectedRegionForCountry] = useState("")
-  const [selectedCountry, setSelectedCountry] = useState("")
-  const [selectedRegionForDistrict, setSelectedRegionForDistrict] = useState("")
-  const [selectedCountryForDistrict, setSelectedCountryForDistrict] = useState("")
-  const [selectedDistrict, setSelectedDistrict] = useState("")
-  const [selectedLocation, setSelectedLocation] = useState("")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [isLoading, setIsLoading] = useState(false)
-  const [hasError, setHasError] = useState(false)
+  const [timeRange, setTimeRange] = useState<string>("month")
+  const [activeTab, setActiveTab] = useState<string>("network")
+  const [selectedSite, setSelectedSite] = useState<string>("")
+  const [selectedRegion, setSelectedRegion] = useState<string>("")
+  const [selectedRegionForCountry, setSelectedRegionForCountry] = useState<string>("")
+  const [selectedCountry, setSelectedCountry] = useState<string>("")
+  const [selectedRegionForDistrict, setSelectedRegionForDistrict] = useState<string>("")
+  const [selectedCountryForDistrict, setSelectedCountryForDistrict] = useState<string>("")
+  const [selectedDistrict, setSelectedDistrict] = useState<string>("")
+  const [selectedLocation, setSelectedLocation] = useState<string>("")
+  const [searchTerm, setSearchTerm] = useState<string>("")
+  const [statusFilter, setStatusFilter] = useState<string>("all")
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [hasError, setHasError] = useState<boolean>(false)
   
   // Data states - replace static data with these states
-  const [regionalSummaryData, setRegionalSummaryData] = useState({
+  const [regionalSummaryData, setRegionalSummaryData] = useState<RegionalSummaryData>({
     regions: 6,
     totalDevices: 243,
     countries: 9,
@@ -95,13 +224,13 @@ export default function AnalyticsPage() {
     averagePM10: 25,
   })
   
-  const [regionalComparisonData, setRegionalComparisonData] = useState([])
-  const [countryData, setCountryData] = useState([])
-  const [districtData, setDistrictData] = useState([])
-  const [villageData, setVillageData] = useState([])
-  const [sitesList, setSitesList] = useState([])
-  const [siteAirQualityData, setSiteAirQualityData] = useState({})
-  const [sitePerformanceData, setSitePerformanceData] = useState({})
+  const [regionalComparisonData, setRegionalComparisonData] = useState<RegionalData[]>([])
+  const [countryData, setCountryData] = useState<CountryData[]>([])
+  const [districtData, setDistrictData] = useState<DistrictData[]>([])
+  const [villageData, setVillageData] = useState<VillageData[]>([])
+  const [sitesList, setSitesList] = useState<Site[]>([])
+  const [siteAirQualityData, setSiteAirQualityData] = useState<AirQualityData>({})
+  const [sitePerformanceData, setSitePerformanceData] = useState<PerformanceData>({})
 
   // Fetch data when component mounts or when dependencies change
   useEffect(() => {
@@ -119,7 +248,7 @@ export default function AnalyticsPage() {
     fetchTimeRangeData()
   }, [timeRange])
 
-  const fetchSummaryData = async () => {
+  const fetchSummaryData = async (): Promise<void> => {
     try {
       setIsLoading(true);
       setHasError(false);
@@ -150,7 +279,7 @@ export default function AnalyticsPage() {
       
       // You can also store the regionsData for more detailed analysis
       if (data.regionsData) {
-        setRegionalComparisonData(data.regionsData.map(region => ({
+        setRegionalComparisonData(data.regionsData.map((region: any) => ({
           region: region.region,
           deviceCount: region.deviceCount || 0,
           onlineDevices: region.onlineDevices || 0,
@@ -194,7 +323,7 @@ export default function AnalyticsPage() {
     }
   };
 
-  const fetchRegionalData = async () => {
+  const fetchRegionalData = async (): Promise<void> => {
     try {
       // Actual API call to the regional data endpoint
       const response = await fetch(`${API_BASE_URL}/network-analysis/regional`);
@@ -206,7 +335,7 @@ export default function AnalyticsPage() {
       
       // Process the regions data 
       if (result.regions && Array.isArray(result.regions)) {
-        const regionsData = result.regions.map(region => {
+        const regionsData: RegionalData[] = result.regions.map((region: any) => {
           // Extract relevant data from the region.data object
           const regionData = region.data || {};
           
@@ -247,7 +376,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  const fetchCountryData = async () => {
+  const fetchCountryData = async (): Promise<void> => {
     try {
       const response = await fetch(`${API_BASE_URL}/network-analysis/countries`);
       if (!response.ok) {
@@ -258,7 +387,7 @@ export default function AnalyticsPage() {
       
       // Process the countries data
       if (result.countries && Array.isArray(result.countries)) {
-        const countriesData = result.countries.map(country => {
+        const countriesData: CountryData[] = result.countries.map((country: any) => {
           // Extract relevant data from the country.data object
           const countryData = country.data || {};
           
@@ -298,7 +427,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  const fetchDistrictData = async () => {
+  const fetchDistrictData = async (): Promise<void> => {
     try {
       // If we have a selected country, filter by it
       const url = selectedCountryForDistrict 
@@ -314,7 +443,7 @@ export default function AnalyticsPage() {
       
       if (result.districts && Array.isArray(result.districts)) {
         // Process the districts data
-        const districtsData = result.districts.map(district => {
+        const districtsData: DistrictData[] = result.districts.map((district: any) => {
           // Extract relevant data from the district.data object
           const districtData = district.data || {};
           
@@ -353,7 +482,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  const fetchVillageData = async () => {
+  const fetchVillageData = async (): Promise<void> => {
     // This function would need to be implemented when there's an API endpoint for village data
     try {
       // For now, this is a placeholder
@@ -369,7 +498,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  const fetchSitesData = async () => {
+  const fetchSitesData = async (): Promise<void> => {
     // This function would need to be implemented when there's an API endpoint for sites data
     try {
       // For now, these are placeholders
@@ -386,7 +515,7 @@ export default function AnalyticsPage() {
     }
   }
 
-  const fetchTimeRangeData = async () => {
+  const fetchTimeRangeData = async (): Promise<void> => {
     // This would be implemented to fetch time-dependent data based on the selected range
     try {
       // For now, this is a placeholder
@@ -532,7 +661,7 @@ export default function AnalyticsPage() {
   }, [regionalComparisonData])
 
   // Prepare AQI distribution data for pie chart
-  const getAqiDistributionData = (entity) => {
+  const getAqiDistributionData = (entity: EntityWithAqi | null): AqiDistributionItem[] => {
     if (!entity) return []
     
     return [
@@ -552,7 +681,7 @@ export default function AnalyticsPage() {
   const locationAqiData = useMemo(() => getAqiDistributionData(currentLocation), [currentLocation])
 
   // Filter devices based on search term and status filter
-  const filterDevices = (devices) => {
+  const filterDevices = (devices: Device[]): Device[] => {
     if (!devices) return []
     
     return devices.filter((device) => {
@@ -579,7 +708,7 @@ export default function AnalyticsPage() {
   }, [currentLocation, searchTerm, statusFilter])
 
   // Handlers for data refresh and export
-  const handleRefresh = () => {
+  const handleRefresh = (): void => {
     // Refetch all data
     fetchSummaryData()
     fetchRegionalData()
@@ -590,10 +719,14 @@ export default function AnalyticsPage() {
     fetchTimeRangeData()
   }
 
-  const handleExport = () => {
+  const handleExport = (): void => {
     // Implement export functionality
     console.log("Exporting data...")
     // Example: generate CSV or Excel file
+  }
+
+  const handleTimeRangeChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+    setTimeRange(event.target.value)
   }
 
   return (
@@ -601,7 +734,11 @@ export default function AnalyticsPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Device Performance Analytics</h1>
         <div className="flex items-center space-x-2">
-          <select className="border rounded-md p-2" value={timeRange} onChange={(e) => setTimeRange(e.target.value)}>
+          <select 
+            className="border rounded-md p-2" 
+            value={timeRange} 
+            onChange={handleTimeRangeChange}
+          >
             <option value="week">Last Week</option>
             <option value="month">Last Month</option>
             <option value="quarter">Last Quarter</option>
