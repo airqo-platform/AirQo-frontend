@@ -1,50 +1,61 @@
-FROM node:18-alpine3.18 AS base
+# Use Node.js Alpine image for smaller size
+FROM node:18-alpine AS base
 
-# Install dependencies only when needed
-FROM base AS deps
-# Update package index and install dependencies with error handling
-RUN apk update && apk add --no-cache libc6-compat curl || \
-    (sleep 5 && apk update && apk add --no-cache libc6-compat curl)
-WORKDIR /app
-COPY package*.json ./
-COPY pnpm-lock.yaml* ./
-RUN npm ci --legacy-peer-deps
+# Install dependencies needed for node-gyp
+RUN apk add --no-cache libc6-compat
 
-# Rebuild the source code only when needed
+# Builder stage
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including devDependencies for build)
+RUN npm ci
+
+# Copy all files
 COPY . .
+
+# Disable telemetry and set production environment
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
+
+# Build the application
 RUN npm run build
 
 # Production image
 FROM base AS runner
 WORKDIR /app
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
 
-# Install curl for health checks with error handling
-RUN apk update && apk add --no-cache curl || \
-    (sleep 5 && apk update && apk add --no-cache curl)
+# Install production dependencies only
+COPY package*.json ./
+RUN npm ci --only=production && \
+    npm cache clean --force
 
+# Copy built application from builder
 COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/next.config.mjs ./
+COPY --from=builder /app/.env* ./
 
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+# Set ownership
+RUN chown -R nextjs:nodejs /app
 
-# Copy the standalone build
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
+# Switch to non-root user
 USER nextjs
 
+# Expose port
 EXPOSE 3000
+
+# Set environment variables
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+ENV NODE_ENV production
 
-CMD ["node", "server.js"]
+# Start the application using Next.js start command
+CMD ["npm", "start"]

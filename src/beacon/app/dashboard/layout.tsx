@@ -15,18 +15,33 @@ import {
   Home,
   Users,
   LogOut,
+  Loader2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { config } from "@/lib/config"
+import authService from "@/services/api-service"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type User = {
-  id: number
-  first_name: string
-  last_name: string
-  email: string
+  id?: number
+  _id?: string
+  first_name?: string
+  last_name?: string
+  firstName?: string
+  lastName?: string
+  email?: string
+  userName?: string
   phone?: string
-  role: string
-  created_at: string
+  role?: string
+  created_at?: string
 }
 
 export default function DashboardLayout({
@@ -37,85 +52,179 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const router = useRouter()
 
-  // Function to get auth token
-  const getAuthToken = () => {
-    const token = localStorage.getItem('access_token')
-    return token
-  }
+  // Initialize user data
+  useEffect(() => {
+    const initializeUser = async () => {
+      try {
+        // Check if user is authenticated
+        if (!authService.isAuthenticated()) {
+          // Clear any stale data and redirect to login
+          authService.clearAllAuthData()
+          router.push("/login")
+          return
+        }
 
-  // Fetch current user data
-  const fetchUser = async () => {
-    try {
-      const token = getAuthToken()
-      if (!token) {
-        // No token, redirect to login
+        // Get user data from auth service
+        const userData = authService.getUserData()
+        
+        if (userData) {
+          // Normalize user data structure (handle different API response formats)
+          const normalizedUser: User = {
+            id: userData.id || userData._id,
+            _id: userData._id || userData.id,
+            first_name: userData.first_name || userData.firstName,
+            last_name: userData.last_name || userData.lastName,
+            firstName: userData.firstName || userData.first_name,
+            lastName: userData.lastName || userData.last_name,
+            email: userData.email || userData.userName,
+            userName: userData.userName || userData.email,
+            phone: userData.phone,
+            role: userData.role || 'user',
+            created_at: userData.created_at || userData.createdAt
+          }
+          setUser(normalizedUser)
+        } else {
+          // If no user data but authenticated, try to fetch from API
+          await fetchUserFromAPI()
+        }
+      } catch (error) {
+        console.error("Error initializing user:", error)
+        // On error, redirect to login
+        authService.clearAllAuthData()
         router.push("/login")
-        return
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    initializeUser()
+  }, [router])
+
+  // Fetch user data from API if needed
+  const fetchUserFromAPI = async () => {
+    try {
+      const token = authService.getToken()
+      if (!token) {
+        throw new Error("No authentication token")
       }
 
-      const response = await fetch(`${config.apiUrl}/users/me/`, {
+      // Try to fetch from the API
+      const response = await fetch('/api/users/me', {
         headers: {
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
       })
 
       if (response.status === 401 || response.status === 403) {
-        // Token is invalid, redirect to login
-        localStorage.removeItem('access_token')
-        router.push("/login")
-        return
+        // Token is invalid
+        throw new Error("Invalid authentication")
       }
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch user data: ${response.status}`)
+      if (response.ok) {
+        const userData = await response.json()
+        
+        // Store user data in auth service
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('userData', JSON.stringify(userData))
+        }
+        
+        setUser(userData)
       }
-
-      const userData = await response.json()
-      setUser(userData)
     } catch (error) {
-      console.error("Error fetching user:", error)
-      // On error, check if we have a token, if not redirect to login
-      const token = getAuthToken()
-      if (!token) {
-        router.push("/login")
+      console.error("Error fetching user from API:", error)
+      // If we can't fetch user data, use what we have or show default
+      const storedData = authService.getUserData()
+      if (storedData) {
+        setUser(storedData)
       }
-    } finally {
-      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    fetchUser()
-  }, [])
-
-  const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    localStorage.removeItem("user") 
-    router.push("/login?logout=true")
+  // Handle logout
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    
+    try {
+      // Clear all authentication data
+      authService.logout()
+      
+      // Small delay to ensure cleanup
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Redirect to login with logout flag
+      router.push("/login?action=logout")
+      
+      // Force page refresh to clear any cached data
+      router.refresh()
+      
+    } catch (error) {
+      console.error("Logout error:", error)
+      
+      // Force logout even if there's an error
+      authService.forceLogout()
+      
+    } finally {
+      setIsLoggingOut(false)
+      setShowLogoutDialog(false)
+    }
   }
 
   // Generate user initials from first_name and last_name
   const getUserInitials = (user: User | null) => {
     if (!user) return "U"
     
-    const firstInitial = user.first_name?.[0]?.toUpperCase() || ""
-    const lastInitial = user.last_name?.[0]?.toUpperCase() || ""
+    const firstInitial = (user.first_name || user.firstName)?.[0]?.toUpperCase() || ""
+    const lastInitial = (user.last_name || user.lastName)?.[0]?.toUpperCase() || ""
     
-    return firstInitial + lastInitial || user.email?.[0]?.toUpperCase() || "U"
+    if (firstInitial || lastInitial) {
+      return firstInitial + lastInitial
+    }
+    
+    // Fallback to email or userName
+    const emailOrUsername = user.email || user.userName
+    return emailOrUsername?.[0]?.toUpperCase() || "U"
   }
 
   // Get display name
   const getDisplayName = (user: User | null) => {
     if (!user) return "User"
     
-    const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim()
-    return fullName || user.email || "User"
+    const firstName = user.first_name || user.firstName || ""
+    const lastName = user.last_name || user.lastName || ""
+    const fullName = `${firstName} ${lastName}`.trim()
+    
+    return fullName || user.email || user.userName || "User"
   }
 
   const userInitials = getUserInitials(user)
   const displayName = getDisplayName(user)
+
+  // Check authentication status periodically
+  useEffect(() => {
+    const checkAuth = () => {
+      if (!authService.isAuthenticated()) {
+        authService.clearAllAuthData()
+        router.push("/login")
+      }
+    }
+
+    // Check every 30 seconds
+    const interval = setInterval(checkAuth, 30000)
+    
+    // Also check on focus
+    const handleFocus = () => checkAuth()
+    window.addEventListener('focus', handleFocus)
+    
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('focus', handleFocus)
+    }
+  }, [router])
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -144,6 +253,7 @@ export default function DashboardLayout({
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="text-white p-1 rounded-md hover:bg-primary-foreground/10"
+              aria-label="Close sidebar"
             >
               <X size={20} />
             </button>
@@ -154,7 +264,7 @@ export default function DashboardLayout({
             <li>
               <Link
                 href="/dashboard"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10"
+                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
               >
                 <Home className="h-5 w-5" />
                 {sidebarOpen && <span className="ml-3">Overview</span>}
@@ -163,7 +273,7 @@ export default function DashboardLayout({
             <li>
               <Link
                 href="/dashboard/analytics"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10"
+                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
               >
                 <BarChart3 className="h-5 w-5" />
                 {sidebarOpen && <span className="ml-3">Analytics</span>}
@@ -172,7 +282,7 @@ export default function DashboardLayout({
             <li>
               <Link
                 href="/dashboard/devices"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10"
+                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
               >
                 <MapPin className="h-5 w-5" />
                 {sidebarOpen && <span className="ml-3">Devices</span>}
@@ -181,7 +291,7 @@ export default function DashboardLayout({
             <li>
               <Link
                 href="/dashboard/alerts"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10"
+                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
               >
                 <Bell className="h-5 w-5" />
                 {sidebarOpen && <span className="ml-3">Alerts</span>}
@@ -190,7 +300,7 @@ export default function DashboardLayout({
             <li>
               <Link
                 href="/dashboard/users"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10"
+                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
               >
                 <Users className="h-5 w-5" />
                 {sidebarOpen && <span className="ml-3">Users</span>}
@@ -199,7 +309,7 @@ export default function DashboardLayout({
             <li>
               <Link
                 href="/dashboard/settings"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10"
+                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
               >
                 <Settings className="h-5 w-5" />
                 {sidebarOpen && <span className="ml-3">Settings</span>}
@@ -207,6 +317,20 @@ export default function DashboardLayout({
             </li>
           </ul>
         </nav>
+
+        {/* Logout button in sidebar (optional) */}
+        {sidebarOpen && (
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-primary-foreground/10">
+            <button
+              onClick={() => setShowLogoutDialog(true)}
+              className="flex items-center w-full p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+              disabled={isLoggingOut}
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="ml-3">Logout</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Main content */}
@@ -214,9 +338,10 @@ export default function DashboardLayout({
         <header className="bg-white shadow-sm p-4 flex justify-between items-center">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={`p-2 rounded-md hover:bg-gray-100 ${
+            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
               sidebarOpen && "hidden md:block"
             }`}
+            aria-label="Toggle sidebar"
           >
             <Menu size={20} />
           </button>
@@ -225,7 +350,11 @@ export default function DashboardLayout({
             <div className="flex items-center space-x-2">
               {/* User Avatar with initials */}
               <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
-                {loading ? "..." : userInitials}
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  userInitials
+                )}
               </div>
               
               {/* User name and logout button */}
@@ -238,11 +367,18 @@ export default function DashboardLayout({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex items-center text-gray-600 hover:text-primary"
-                  onClick={handleLogout}
+                  className="flex items-center text-gray-600 hover:text-primary transition-colors"
+                  onClick={() => setShowLogoutDialog(true)}
+                  disabled={isLoggingOut}
                 >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  <span className="hidden sm:inline">Logout</span>
+                  {isLoggingOut ? (
+                    <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                  ) : (
+                    <LogOut className="h-4 w-4 mr-1" />
+                  )}
+                  <span className="hidden sm:inline">
+                    {isLoggingOut ? "Logging out..." : "Logout"}
+                  </span>
                 </Button>
               </div>
             </div>
@@ -250,6 +386,48 @@ export default function DashboardLayout({
         </header>
         <main className="p-4">{children}</main>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to logout?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be redirected to the login page and will need to sign in again to access your account.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoggingOut}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Logging out...
+                </>
+              ) : (
+                "Logout"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Debug Info - Remove in production */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="fixed bottom-4 right-4 p-2 bg-gray-900 text-white text-xs rounded-md opacity-50 hover:opacity-100 transition-opacity">
+          <p>Auth: {authService.isAuthenticated() ? '✓' : '✗'}</p>
+          <p>User: {user?.email || 'None'}</p>
+          <button 
+            onClick={() => authService.forceLogout()}
+            className="text-red-400 underline mt-1"
+          >
+            Force Logout
+          </button>
+        </div>
+      )}
     </div>
   )
 }
