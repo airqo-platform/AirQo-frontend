@@ -3,6 +3,11 @@ import 'package:airqo/src/app/dashboard/widgets/expanded_analytics_card.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_forecast_widget.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter/services.dart';
+import 'dart:io';
 
 class AnalyticsSpecifics extends StatefulWidget {
   final Measurement measurement;
@@ -61,6 +66,36 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
             siteDetails.formattedName ??
             "Unknown location";
   }
+  
+  void _shareAirQualityData() async {
+  try {
+    final location = _getLocationDescription(widget.measurement);
+    final locationId = widget.measurement.siteDetails?.id ?? '';
+    final deepLink = 'https://airqo.page.link/$locationId';
+
+    final shareText = '''
+Check out the Air Quality of $location on the AirQo app!
+👉 $deepLink
+''';
+    // Load AirQo logo from assets
+    final byteData = await rootBundle.load('assets/images/airQo_logo.png');
+   
+    final tempDir = await getTemporaryDirectory();
+    final logoFile = await File('${tempDir.path}/airqo_logo_${DateTime.now().millisecondsSinceEpoch}.png').writeAsBytes(
+      byteData.buffer.asUint8List(),
+    );
+      
+      // Share with logo and text
+      await Share.shareXFiles(
+        [XFile(logoFile.path)],
+        text: shareText,
+        subject: 'Air Quality Update from AirQo',
+      );
+      
+  } catch (e) {
+    print("Error sharing data: $e");
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -86,58 +121,34 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 24,
-                          color: AppColors.boldHeadlineColor,
+                          color: AppColors.boldHeadlineColor4,
                         ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    InkWell(
-                      onTap: () => Navigator.pop(context),
-                      child: Icon(
-                        Icons.close,
-                        color: AppColors.boldHeadlineColor,
-                      ),
-                    )
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on,
-                      size: 14,
-                      color: AppColors.primaryColor,
-                    ),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        _getLocationDescription(widget.measurement),
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Theme.of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.color
-                              ?.withOpacity(0.7),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Share button with emoji
+                        InkWell(
+                          onTap: _shareAirQualityData,
+                          borderRadius: BorderRadius.circular(20),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            child: SvgPicture.asset(
+                              "assets/icons/share-icon.svg",
+                              height: 24,
+                              width: 24,
+                              colorFilter: ColorFilter.mode(
+                                AppColors.boldHeadlineColor4,
+                                BlendMode.srcIn,
+                              ),
+                            ),
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Today",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 20,
-                        color: AppColors.boldHeadlineColor,
-                      ),
+
+                        const SizedBox(width: 8),
+                      ],
                     ),
                   ],
                 ),
