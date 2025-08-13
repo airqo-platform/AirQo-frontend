@@ -30,8 +30,76 @@ import {
 import { AlertTriangle, Download, RefreshCw, WifiOff, CheckCircle, XCircle, Wifi } from "lucide-react"
 import { config } from "@/lib/config"
 
+// TypeScript interfaces
+interface HourlyData {
+  hour: string;
+  transmissionCount: number;
+  successRate: number;
+  deviceCount: number;
+  dataVolume: number;
+}
+
+interface DeviceHourlyData {
+  deviceId: string;
+  hour: string;
+  transmissionCount: number;
+  successRate: number;
+  signalStrength: number;
+  batteryLevel: number;
+}
+
+interface HourlyTrends {
+  day: string;
+  hour: string;
+  transmissionCount: number;
+  successRate: number;
+  deviceCount: number;
+}
+
+interface AggregateStats {
+  totalTransmissions: number;
+  avgTransmissionsPerHour: number;
+  peakHour: string;
+  lowestHour: string;
+  peakDeviceCount: number;
+  avgSuccessRate: number;
+  totalDataVolume: number;
+  avgDailyTransmissions?: number;
+  commonFailureHours: string[];
+}
+
+interface DeviceStats {
+  deviceId: string;
+  name: string;
+  totalTransmissions: number;
+  successRate: number;
+  peakHour: string;
+  lowestHour: string;
+  avgSignalStrength: number;
+  transmissionGaps: number;
+}
+
+interface AvailableDevice {
+  id: string;
+  name: string;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    name: string;
+    value: number | string;
+    color: string;
+  }>;
+  label?: string;
+}
+
+interface DataTransmissionAnalysisProps {
+  timeRange?: string;
+}
+
 // Custom tooltip for charts
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip: React.FC<TooltipProps> = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     return (
       <div className="bg-white p-3 border shadow-sm rounded-md">
@@ -47,19 +115,28 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null
 }
 
-export default function DataTransmissionAnalysis({ timeRange = "today" }) {
-  const [hourlyData, setHourlyData] = useState([])
-  const [deviceHourlyData, setDeviceHourlyData] = useState([])
-  const [hourlyTrends, setHourlyTrends] = useState([])
-  const [aggregateStats, setAggregateStats] = useState({})
-  const [deviceStats, setDeviceStats] = useState([])
+export default function DataTransmissionAnalysis({ timeRange = "today" }: DataTransmissionAnalysisProps) {
+  const [hourlyData, setHourlyData] = useState<HourlyData[]>([])
+  const [deviceHourlyData, setDeviceHourlyData] = useState<DeviceHourlyData[]>([])
+  const [hourlyTrends, setHourlyTrends] = useState<HourlyTrends[]>([])
+  const [aggregateStats, setAggregateStats] = useState<AggregateStats>({
+    totalTransmissions: 0,
+    avgTransmissionsPerHour: 0,
+    peakHour: "N/A",
+    lowestHour: "N/A",
+    peakDeviceCount: 0,
+    avgSuccessRate: 0,
+    totalDataVolume: 0,
+    commonFailureHours: []
+  })
+  const [deviceStats, setDeviceStats] = useState<DeviceStats[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   const [datePicker, setDatePicker] = useState(new Date().toISOString().split("T")[0])
   const [dateFilter, setDateFilter] = useState(timeRange || "today") // Use the timeRange prop as default
   const [deviceFilter, setDeviceFilter] = useState("all")
   const [activeTab, setActiveTab] = useState("hourly-overview")
-  const [availableDevices, setAvailableDevices] = useState([])
+  const [availableDevices, setAvailableDevices] = useState<AvailableDevice[]>([])
 
   // Fetch data on component mount or when filters change
   useEffect(() => {
@@ -84,7 +161,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
       console.log("Hourly data fetched successfully:", hourlyData)
 
       // Get device-specific statistics - use device-failures endpoint or mock data
-      let deviceStatsData = []
+      let deviceStatsData: DeviceStats[] = []
       try {
         const deviceStatsResponse = await fetch(
           `${config.apiUrl}/api/analytics/device-failures?timeRange=${timeRange || dateFilter}`,
@@ -93,7 +170,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
           const deviceFailures = await deviceStatsResponse.json()
 
           // Transform device failures data to match our required format
-          deviceStatsData = deviceFailures.map((device) => ({
+          deviceStatsData = deviceFailures.map((device: any) => ({
             deviceId: device.device,
             name: device.name,
             totalTransmissions: Math.round((device.uptime * 24) / 100), // Estimate based on uptime percentage
@@ -115,7 +192,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
       setDeviceStats(deviceStatsData)
 
       // Now that we have device stats, create mock device hourly data
-      const mockDeviceHourly = []
+      const mockDeviceHourly: DeviceHourlyData[] = []
 
       // Generate mock hourly data for each device in deviceStats
       deviceStatsData.slice(0, 5).forEach((device) => {
@@ -149,32 +226,32 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
       // Extract aggregate stats from the all-devices-transmission endpoint
       const allDevicesResponse = await trendsResponse.json()
 
-      const statsData = {
+      const statsData: AggregateStats = {
         totalTransmissions: allDevicesResponse.totalActualReadings || 0,
         avgTransmissionsPerHour: Math.round(
           (allDevicesResponse.totalActualReadings || 0) / (allDevicesResponse.hourlyData?.length || 1),
         ),
         peakHour: allDevicesResponse.maxDevicesHour || "N/A",
         lowestHour: allDevicesResponse.minDevicesHour || "N/A",
-        peakDeviceCount: Math.max(...(allDevicesResponse.hourlyData || []).map((h) => h.transmittingDevices || 0), 0),
+        peakDeviceCount: Math.max(...(allDevicesResponse.hourlyData || []).map((h: any) => h.transmittingDevices || 0), 0),
         avgSuccessRate: allDevicesResponse.overallCompleteness || 0,
         totalDataVolume: allDevicesResponse.totalActualReadings || 0,
         commonFailureHours: (allDevicesResponse.hourlyData || [])
-          .filter((h) => h.completenessPercentage < 70)
-          .map((h) => h.hour)
+          .filter((h: any) => h.completenessPercentage < 70)
+          .map((h: any) => h.hour)
           .slice(0, 3),
       }
 
-      setAggregateStats(statsData || {})
+      setAggregateStats(statsData)
 
       // Transform hourlyData to match our trends format - creating data points for each day of the week
-      const hourlyTrendsData = []
+      const hourlyTrendsData: HourlyTrends[] = []
       const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
       // If we have hourly data from the API
       if (allDevicesResponse.hourlyData && allDevicesResponse.hourlyData.length > 0) {
         // For each hour in the all-devices data
-        allDevicesResponse.hourlyData.forEach((hourData) => {
+        allDevicesResponse.hourlyData.forEach((hourData: any) => {
           // Repeat similar pattern across all days of the week with some variance
           days.forEach((day) => {
             // Add some randomness to make each day slightly different
@@ -220,17 +297,17 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
       setHourlyTrends(hourlyTrendsData)
 
       // Extract available devices from the device stats data
-      const availableDevicesList = deviceStatsData.map((device) => ({
+      const availableDevicesList: AvailableDevice[] = deviceStatsData.map((device) => ({
         id: device.deviceId,
         name: device.name || device.deviceId,
       }))
-      setAvailableDevices(availableDevicesList || [])
+      setAvailableDevices(availableDevicesList)
 
       setIsLoading(false)
       console.log("All data loaded successfully")
     } catch (err) {
       console.error("Error fetching hourly data:", err)
-      setError(err.message)
+      setError(err instanceof Error ? err.message : "Unknown error occurred")
       setIsLoading(false)
 
       // Set mock data for development purposes
@@ -240,7 +317,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
   }
 
   // Helper function to create mock device stats
-  const createMockDeviceStats = () => {
+  const createMockDeviceStats = (): DeviceStats[] => {
     const devices = ["device-001", "device-002", "device-003", "device-004", "device-005"]
     return devices.map((device) => ({
       deviceId: device,
@@ -260,7 +337,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
     const hours = Array.from({ length: 24 }, (_, i) => i)
 
     // Generate network hourly data
-    const mockHourlyData = hours.map((hour) => ({
+    const mockHourlyData: HourlyData[] = hours.map((hour) => ({
       hour: `${hour}:00`,
       transmissionCount: Math.floor(Math.random() * 500) + 100,
       successRate: Math.random() * 30 + 70, // 70-100%
@@ -270,7 +347,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
 
     // Generate device hourly data (for 5 sample devices)
     const devices = ["device-001", "device-002", "device-003", "device-004", "device-005"]
-    const mockDeviceHourly = []
+    const mockDeviceHourly: DeviceHourlyData[] = []
 
     devices.forEach((device) => {
       hours.forEach((hour) => {
@@ -287,7 +364,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
 
     // Generate hourly trends (past 7 days)
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
-    const mockHourlyTrends = []
+    const mockHourlyTrends: HourlyTrends[] = []
 
     days.forEach((day) => {
       hours.forEach((hour) => {
@@ -302,7 +379,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
     })
 
     // Generate aggregate statistics
-    const mockAggregateStats = {
+    const mockAggregateStats: AggregateStats = {
       totalTransmissions: 25463,
       avgTransmissionsPerHour: 1061,
       peakHour: "14:00",
@@ -315,7 +392,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
     }
 
     // Generate device statistics
-    const mockDeviceStats = devices.map((device) => ({
+    const mockDeviceStats: DeviceStats[] = devices.map((device) => ({
       deviceId: device,
       name: `Device ${device.split("-")[1]}`,
       totalTransmissions: Math.floor(Math.random() * 500) + 100,
@@ -342,7 +419,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
     if (!hourlyData || hourlyData.length === 0) return null
     return hourlyData.reduce(
       (max, current) => (current.transmissionCount > (max?.transmissionCount || 0) ? current : max),
-      null,
+      null as HourlyData | null,
     )
   }, [hourlyData])
 
@@ -352,7 +429,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
     return hourlyData.reduce(
       (min, current) =>
         current.transmissionCount < (min?.transmissionCount || Number.POSITIVE_INFINITY) ? current : min,
-      null,
+      null as HourlyData | null,
     )
   }, [hourlyData])
 
@@ -367,12 +444,12 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
   }
 
   // Handle date filter change
-  const handleDateFilterChange = (value) => {
+  const handleDateFilterChange = (value: string) => {
     setDateFilter(value)
   }
 
   // Handle device filter change
-  const handleDeviceFilterChange = (value) => {
+  const handleDeviceFilterChange = (value: string) => {
     setDeviceFilter(value)
   }
 
@@ -682,7 +759,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
                             dataKey="successRate"
                             name="Success Rate (%)"
                             fill="#8884d8"
-                            label={{ position: "right", formatter: (value) => `${value.toFixed(1)}%` }}
+                            label={{ position: "right", formatter: (value: number) => `${value.toFixed(1)}%` }}
                           >
                             {deviceStats.slice(0, 10).map((entry, index) => (
                               <Cell
@@ -727,7 +804,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
                             dataKey="avgSignalStrength"
                             name="Signal Strength"
                             fill="#8884d8"
-                            label={{ position: "right", formatter: (value) => `${value}` }}
+                            label={{ position: "right", formatter: (value: number) => `${value}` }}
                           >
                             {deviceStats.slice(0, 10).map((entry, index) => (
                               <Cell
@@ -931,7 +1008,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
                             dataKey="transmissionCount"
                             name="Avg Transmissions"
                             fill="#8884d8"
-                            label={{ position: "top", formatter: (value) => value.toLocaleString() }}
+                            label={{ position: "top", formatter: (value: number) => value.toLocaleString() }}
                           />
                         </BarChart>
                       </ResponsiveContainer>
@@ -978,7 +1055,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }) {
                             stroke="#82ca9d"
                             dot={{ r: 3 }}
                             activeDot={{ r: 5 }}
-                            label={{ position: "top", formatter: (value) => `${value.toFixed(1)}%` }}
+                            label={{ position: "top", formatter: (value: number) => `${value.toFixed(1)}%` }}
                           />
                         </LineChart>
                       </ResponsiveContainer>

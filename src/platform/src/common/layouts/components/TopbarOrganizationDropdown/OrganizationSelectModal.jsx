@@ -130,6 +130,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       {/* Search via reusable component */}
       <div className="border-gray-200 px-2 dark:border-gray-700">
         <SearchField
+          placeholder="Search organizations..."
           onSearch={() => {}}
           onClearSearch={() => dispatch(addSearchTerm(''))}
           focus={false}

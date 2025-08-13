@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, ReactElement } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
@@ -28,8 +28,27 @@ import {
 } from "lucide-react"
 import { config } from "@/lib/config"
 
+// Types
+type AlertType = "critical" | "warning" | "success"
+type Severity = "high" | "medium" | "low"
+
+interface AlertData {
+  id: string
+  deviceId: string
+  deviceName: string
+  type: AlertType
+  message: string
+  location: string
+  timestamp: string
+  formattedDate: string
+  formattedTime: string
+  icon: ReactElement
+  status: string
+  severity: Severity
+}
+
 // Helper functions for date formatting
-const formatDate = (dateString) => {
+const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { 
     month: 'short', 
@@ -38,7 +57,7 @@ const formatDate = (dateString) => {
   })
 }
 
-const formatTime = (dateString) => {
+const formatTime = (dateString: string): string => {
   const date = new Date(dateString)
   return date.toLocaleTimeString('en-US', { 
     hour: '2-digit', 
@@ -47,22 +66,20 @@ const formatTime = (dateString) => {
   })
 }
 
-const isWithinDays = (dateString, days) => {
+const isWithinDays = (dateString: string, days: number): boolean => {
   const date = new Date(dateString)
   const now = new Date()
   const daysAgo = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000))
   return date > daysAgo
 }
 
-const isToday = (dateString) => {
+const isToday = (dateString: string): boolean => {
   const date = new Date(dateString)
   const today = new Date()
   return date.toDateString() === today.toDateString()
 }
 
-const getDateRangeAlerts = (alerts, daysFilter) => {
-  const now = new Date()
-  
+const getDateRangeAlerts = (alerts: AlertData[], daysFilter: string): AlertData[] => {
   switch(daysFilter) {
     case "today":
       return alerts.filter(alert => isToday(alert.timestamp))
@@ -81,9 +98,9 @@ const getDateRangeAlerts = (alerts, daysFilter) => {
 
 export default function AlertsPage() {
   // State management
-  const [alerts, setAlerts] = useState([])
+  const [alerts, setAlerts] = useState<AlertData[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState<string | null>(null)
   
   // Filtering and pagination state
   const [searchTerm, setSearchTerm] = useState("")
@@ -110,9 +127,9 @@ export default function AlertsPage() {
       const devices = data.devices || []
       
       // Process all maintenance events as alerts
-      const allAlerts = devices
-        .flatMap(device => 
-          (device.maintenance_history || []).map(event => ({
+      const allAlerts: AlertData[] = devices
+        .flatMap((device: any) => 
+          (device.maintenance_history || []).map((event: any) => ({
             id: `${device.device.id}-${event.timestamp}`,
             deviceId: device.device.id,
             deviceName: device.device.name,
@@ -128,7 +145,7 @@ export default function AlertsPage() {
             severity: getSeverity(event.maintenance_type)
           }))
         )
-        .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+        .sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
       
       setAlerts(allAlerts)
       setTotalPages(Math.ceil(allAlerts.length / alertsPerPage))
@@ -144,7 +161,7 @@ export default function AlertsPage() {
   }
 
   // Helper function to determine alert type
-  function getAlertType(maintenanceType) {
+  function getAlertType(maintenanceType: string): AlertType {
     switch(maintenanceType) {
       case "Offline":
         return "critical"
@@ -156,7 +173,7 @@ export default function AlertsPage() {
   }
   
   // Helper function to determine severity
-  function getSeverity(maintenanceType) {
+  function getSeverity(maintenanceType: string): Severity {
     switch(maintenanceType) {
       case "Offline":
         return "high"
@@ -172,7 +189,7 @@ export default function AlertsPage() {
   }
   
   // Helper function to determine alert icon
-  function getAlertIcon(maintenanceType) {
+  function getAlertIcon(maintenanceType: string): ReactElement {
     switch(maintenanceType) {
       case "Offline":
         return <WifiOff className="h-4 w-4" />
@@ -188,7 +205,7 @@ export default function AlertsPage() {
   }
 
   // Get priority styling
-  const getPriorityStyle = (type, severity = 'medium') => {
+  const getPriorityStyle = (type: AlertType, severity: Severity = 'medium') => {
     const styles = {
       critical: {
         badge: "bg-red-100 text-red-800 border-red-200",
@@ -233,11 +250,11 @@ export default function AlertsPage() {
   const dateFilteredAlerts = getDateRangeAlerts(filteredAlerts, daysFilter)
 
   // Sort the filtered alerts
-  const sortedAlerts = [...dateFilteredAlerts].sort((a, b) => {
+  const sortedAlerts = [...dateFilteredAlerts].sort((a: any, b: any) => {
     if (sortOrder === "newest") {
-      return new Date(b.timestamp) - new Date(a.timestamp)
+      return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
     } else {
-      return new Date(a.timestamp) - new Date(b.timestamp)
+      return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
     }
   })
 
@@ -259,8 +276,23 @@ export default function AlertsPage() {
   }, [dateFilteredAlerts.length, alertsPerPage])
 
   // Dismiss alert function
-  const dismissAlert = (alertId) => {
+  const dismissAlert = (alertId: string) => {
     setAlerts(alerts.filter(alert => alert.id !== alertId))
+  }
+
+  // Helper function to get the appropriate no alerts message
+  const getNoAlertsMessage = () => {
+    const hasActiveFilters = searchTerm || typeFilter !== 'all'
+    
+    if (hasActiveFilters) {
+      return "Try adjusting your search or filters"
+    }
+    
+    if (daysFilter === 'today') {
+      return "No alerts for today - all systems running normally"
+    }
+    
+    return "All systems are running normally"
   }
 
   return (
@@ -423,11 +455,7 @@ export default function AlertsPage() {
                 <Bell className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No alerts found</h3>
                 <p className="text-gray-500">
-                  {searchTerm || typeFilter !== 'all' || daysFilter !== 'all' 
-                    ? "Try adjusting your search or filters" 
-                    : daysFilter === 'today' 
-                      ? "No alerts for today - all systems running normally"
-                      : "All systems are running normally"}
+                  {getNoAlertsMessage()}
                 </p>
               </div>
             </CardContent>

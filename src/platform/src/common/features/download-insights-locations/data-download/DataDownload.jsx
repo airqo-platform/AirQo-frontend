@@ -127,10 +127,26 @@ const DataDownload = ({
     }
   }, [resetOnClose, setFormData, clearSelections, onClose]);
 
-  // All data type options are available for all filter types
+  // Filter data type options based on device category
   const filteredDataTypeOptions = useMemo(() => {
+    const deviceCategory =
+      formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
+
+    // For lowcost devices: both calibrated and raw data available
+    if (deviceCategory === 'lowcost') {
+      return DATA_TYPE_OPTIONS; // Both calibrated and raw
+    }
+
+    // For bam and mobile devices: only raw data available
+    if (deviceCategory === 'bam' || deviceCategory === 'mobile') {
+      return DATA_TYPE_OPTIONS.filter(
+        (option) => option.name.toLowerCase() === 'raw data',
+      );
+    }
+
+    // Default fallback
     return DATA_TYPE_OPTIONS;
-  }, []);
+  }, [formData.deviceCategory]);
 
   // Active group info
   const activeGroup = useMemo(
@@ -259,6 +275,44 @@ const DataDownload = ({
     clearSelections();
   }, [activeFilterKey, clearSelections]);
 
+  // Reset device category to 'lowcost' when switching away from devices filter
+  // but preserve user selection when switching back to devices
+  useEffect(() => {
+    if (activeFilterKey !== FILTER_TYPES.DEVICES) {
+      // Only reset if not already 'lowcost' to avoid unnecessary re-renders
+      if (formData.deviceCategory?.name !== 'lowcost') {
+        setFormData((prev) => ({
+          ...prev,
+          deviceCategory: { id: 1, name: 'lowcost' },
+        }));
+      }
+    }
+    // Note: We don't need to reset when switching TO devices,
+    // as user should be able to keep their last selection
+  }, [activeFilterKey, formData.deviceCategory?.name]);
+
+  // Auto-switch to Raw Data when bam or mobile device categories are selected
+  useEffect(() => {
+    const deviceCategory = formData.deviceCategory?.name?.toLowerCase();
+    if (deviceCategory === 'bam' || deviceCategory === 'mobile') {
+      // Find the Raw Data option
+      const rawDataOption = DATA_TYPE_OPTIONS.find(
+        (option) => option.name.toLowerCase() === 'raw data',
+      );
+
+      if (
+        rawDataOption &&
+        formData.dataType?.name?.toLowerCase() !== 'raw data'
+      ) {
+        setFormData((prev) => ({
+          ...prev,
+          dataType: rawDataOption,
+        }));
+        clearSelections(); // Clear selections when data type changes automatically
+      }
+    }
+  }, [formData.deviceCategory?.name, formData.dataType?.name, clearSelections]);
+
   // Handle form field updates
   const handleOptionSelect = useCallback(
     (id, option) => {
@@ -371,16 +425,83 @@ const DataDownload = ({
     return baseFilters;
   }, [activeGroup]);
 
-  // Get data for current filter tab with proper null handling
+  // Get data for current filter tab with proper null handling and device filtering
   const currentFilterData = useMemo(() => {
-    const dataMap = {
+    const baseDataMap = {
       [FILTER_TYPES.COUNTRIES]: countriesData || [],
       [FILTER_TYPES.CITIES]: citiesData || [],
       [FILTER_TYPES.DEVICES]: devicesData || [],
       [FILTER_TYPES.SITES]: sitesData || [],
     };
-    return dataMap[activeFilterKey] || [];
-  }, [activeFilterKey, countriesData, citiesData, devicesData, sitesData]);
+
+    const baseData = baseDataMap[activeFilterKey] || [];
+
+    // Apply special filtering for devices
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      return baseData.filter((device) => {
+        // Only show deployed devices (exclude "not deployed" and "recalled" devices)
+        // Check multiple possible status fields since the data structure might vary
+        const deploymentStatus = String(
+          device.deployment_status || '',
+        ).toLowerCase();
+        const status = String(device.status || '').toLowerCase();
+        const deviceStatus = String(device.device_status || '').toLowerCase();
+
+        // List of statuses that indicate device is deployed and active
+        const deployedStatuses = ['deployed', 'active', 'online'];
+        const excludedStatuses = [
+          'recalled',
+          'not deployed',
+          'inactive',
+          'offline',
+          'maintenance',
+        ];
+
+        // Check if any status field indicates deployment
+        const hasDeployedStatus = deployedStatuses.some(
+          (deployedStatus) =>
+            deploymentStatus.includes(deployedStatus) ||
+            status.includes(deployedStatus) ||
+            deviceStatus.includes(deployedStatus),
+        );
+
+        // Check if device is online (another indicator of deployment)
+        const isOnline = device.isOnline === true || device.online === true;
+
+        // Check if any status field indicates exclusion
+        const hasExcludedStatus = excludedStatuses.some(
+          (excludedStatus) =>
+            deploymentStatus.includes(excludedStatus) ||
+            status.includes(excludedStatus) ||
+            deviceStatus.includes(excludedStatus),
+        );
+
+        // Device is considered deployed if it has deployed status OR is online,
+        // AND doesn't have any excluded status
+        const isDeployed =
+          (hasDeployedStatus || isOnline) && !hasExcludedStatus;
+
+        // Filter by device category if specified
+        let matchesCategory = true;
+        if (formData.deviceCategory) {
+          const selectedCategory = formData.deviceCategory.name.toLowerCase();
+          const deviceCategory = String(device.category || '').toLowerCase();
+          matchesCategory = deviceCategory === selectedCategory;
+        }
+
+        return isDeployed && matchesCategory;
+      });
+    }
+
+    return baseData;
+  }, [
+    activeFilterKey,
+    countriesData,
+    citiesData,
+    devicesData,
+    sitesData,
+    formData.deviceCategory,
+  ]);
 
   // Get loading state for current filter
   const isLoading = useMemo(() => {
@@ -617,6 +738,7 @@ const DataDownload = ({
         handleSubmit={handlePreview}
         sidebarBg={darkMode ? '' : sidebarBg}
         isMobile={isMobileSidebarVisible}
+        activeFilterKey={activeFilterKey} // Pass the active filter key
       />
     );
   }, [
@@ -632,6 +754,7 @@ const DataDownload = ({
     darkMode,
     sidebarBg,
     isMobileSidebarVisible,
+    activeFilterKey, // Add activeFilterKey to dependencies
   ]);
 
   // Render main content area with error handling
@@ -727,6 +850,7 @@ const DataDownload = ({
     searchKeysByFilter,
     handleRetryLoad,
     dispatch,
+    backToDownload, // Add missing dependency
   ]);
 
   return (
