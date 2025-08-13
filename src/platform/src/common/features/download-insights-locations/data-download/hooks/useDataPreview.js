@@ -168,7 +168,7 @@ export const useDataPreview = () => {
           metaDataFields: ['latitude', 'longitude'],
           weatherFields: ['temperature', 'humidity'],
           frequency: formData.frequency.name.toLowerCase(),
-          downloadType: 'csv', // Always use CSV for preview
+          downloadType: formData.fileType.value || formData.fileType.name.toLowerCase(), // Use user's selected file type
           outputFormat: 'airqo-standard',
           minimum: true,
           // Always include device_category in preview payload
@@ -182,13 +182,6 @@ export const useDataPreview = () => {
           apiData.sites = siteIds;
         }
 
-        // Debug logging to verify the preview payload includes device_category
-        console.log('Preview API payload:', JSON.stringify(apiData, null, 2));
-        console.log(
-          'Preview device category value being sent:',
-          apiData.device_category,
-        );
-
         // Fetch preview data
         const response = await fetchData(apiData);
 
@@ -200,13 +193,31 @@ export const useDataPreview = () => {
             : response;
         } else if (
           typeof response === 'object' &&
-          response !== null &&
-          response.data
+          response !== null
         ) {
-          csvData =
-            typeof response.data === 'string'
+          // Handle new API response format
+          if (response.status === 'success' && response.data) {
+            // Convert JSON data to CSV for preview consistency
+            const jsonData = response.data;
+            if (Array.isArray(jsonData) && jsonData.length > 0) {
+              const headers = Object.keys(jsonData[0]);
+              const headerRow = headers.join(',');
+              const dataRows = jsonData.map((row) =>
+                headers.map((header) => row[header] || '').join(','),
+              );
+              csvData = [headerRow, ...dataRows].join('\n');
+            } else {
+              throw new Error('No data available for preview');
+            }
+          } else if (response.status === 'error') {
+            throw new Error(response.message || 'No data available for the selected criteria');
+          } else if (response.data) {
+            csvData = typeof response.data === 'string'
               ? response.data
               : JSON.stringify(response.data);
+          } else {
+            throw new Error('No data available for preview');
+          }
         }
 
         if (!csvData || csvData.length < 10) {

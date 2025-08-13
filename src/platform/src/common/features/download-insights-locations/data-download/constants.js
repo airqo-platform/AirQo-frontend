@@ -7,21 +7,22 @@ export const POLLUTANT_OPTIONS = [
 ];
 
 export const DATA_TYPE_OPTIONS = [
-  { id: 1, name: 'Calibrated Data' },
-  { id: 2, name: 'Raw Data' },
+  { id: 1, name: 'Calibrated Data', value: 'calibrated' },
+  { id: 2, name: 'Raw Data', value: 'raw' },
 ];
 
 export const FREQUENCY_OPTIONS = [
-  { id: 1, name: 'Daily' },
-  { id: 2, name: 'Hourly' },
-  { id: 3, name: 'Weekly' },
-  { id: 4, name: 'Monthly' },
+  { id: 1, name: 'Daily', value: 'daily' },
+  { id: 2, name: 'Hourly', value: 'hourly' },
+  { id: 3, name: 'Weekly', value: 'weekly' },
+  { id: 4, name: 'Monthly', value: 'monthly' },
+  { id: 5, name: 'Raw', value: 'raw' },
 ];
 
 export const FILE_TYPE_OPTIONS = [
-  { id: 1, name: 'CSV' },
-  { id: 2, name: 'Json' },
-  // { id: 3, name: 'PDF' },
+  { id: 1, name: 'CSV', value: 'csv' },
+  { id: 2, name: 'JSON', value: 'json' },
+  // { id: 3, name: 'PDF', value: 'pdf' },
 ];
 
 export const DEVICE_CATEGORY_OPTIONS = [
@@ -29,6 +30,14 @@ export const DEVICE_CATEGORY_OPTIONS = [
   { id: 2, name: 'bam' },
   { id: 3, name: 'mobile' },
 ];
+
+// Filter type constants
+export const FILTER_TYPES = {
+  COUNTRIES: 'countries',
+  CITIES: 'cities',
+  SITES: 'sites',
+  DEVICES: 'devices',
+};
 
 // Constants
 export const MESSAGE_TYPES = {
