@@ -39,6 +39,27 @@ export const useDataPreview = () => {
 
   const fetchData = useDataDownload();
 
+  // Helper function to escape CSV values
+  const escapeCSVValue = useCallback((value) => {
+    if (value == null || value === undefined) return '';
+
+    const stringValue = String(value).trim();
+
+    // If the value contains comma, quote, or newline, wrap it in quotes
+    if (
+      stringValue.includes(',') ||
+      stringValue.includes('"') ||
+      stringValue.includes('\n') ||
+      stringValue.includes('\r')
+    ) {
+      // Escape existing quotes by doubling them
+      const escapedValue = stringValue.replace(/"/g, '""');
+      return `"${escapedValue}"`;
+    }
+
+    return stringValue;
+  }, []);
+
   // Parse CSV response to structured data
   const parseCSVResponse = useCallback((csvString) => {
     if (!csvString || typeof csvString !== 'string') {
@@ -168,7 +189,8 @@ export const useDataPreview = () => {
           metaDataFields: ['latitude', 'longitude'],
           weatherFields: ['temperature', 'humidity'],
           frequency: formData.frequency.name.toLowerCase(),
-          downloadType: formData.fileType.value || formData.fileType.name.toLowerCase(), // Use user's selected file type
+          downloadType:
+            formData.fileType.value || formData.fileType.name.toLowerCase(), // Use user's selected file type
           outputFormat: 'airqo-standard',
           minimum: true,
           // Always include device_category in preview payload
@@ -191,30 +213,32 @@ export const useDataPreview = () => {
           csvData = response.startsWith('resp')
             ? response.substring(4)
             : response;
-        } else if (
-          typeof response === 'object' &&
-          response !== null
-        ) {
+        } else if (typeof response === 'object' && response !== null) {
           // Handle new API response format
           if (response.status === 'success' && response.data) {
             // Convert JSON data to CSV for preview consistency
             const jsonData = response.data;
             if (Array.isArray(jsonData) && jsonData.length > 0) {
               const headers = Object.keys(jsonData[0]);
-              const headerRow = headers.join(',');
+              const headerRow = headers.map(escapeCSVValue).join(',');
               const dataRows = jsonData.map((row) =>
-                headers.map((header) => row[header] || '').join(','),
+                headers
+                  .map((header) => escapeCSVValue(row[header] || ''))
+                  .join(','),
               );
               csvData = [headerRow, ...dataRows].join('\n');
             } else {
               throw new Error('No data available for preview');
             }
           } else if (response.status === 'error') {
-            throw new Error(response.message || 'No data available for the selected criteria');
+            throw new Error(
+              response.message || 'No data available for the selected criteria',
+            );
           } else if (response.data) {
-            csvData = typeof response.data === 'string'
-              ? response.data
-              : JSON.stringify(response.data);
+            csvData =
+              typeof response.data === 'string'
+                ? response.data
+                : JSON.stringify(response.data);
           } else {
             throw new Error('No data available for preview');
           }
@@ -265,7 +289,7 @@ export const useDataPreview = () => {
         setPreviewLoading(false);
       }
     },
-    [fetchData, parseCSVResponse],
+    [fetchData, parseCSVResponse, escapeCSVValue],
   );
 
   // Toggle column selection
