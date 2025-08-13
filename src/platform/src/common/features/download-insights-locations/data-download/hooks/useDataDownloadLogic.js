@@ -256,7 +256,7 @@ export const useDataDownloadLogic = () => {
   // Process different file types with improved CSV handling
   const processDownloadResponse = useCallback(
     async (response, formData, selectedColumns = null) => {
-      const fileExtension = formData.fileType.name.toLowerCase();
+      const fileExtension = formData.fileType.value || formData.fileType.name.toLowerCase();
       const mimeType = getMimeType(fileExtension);
       const fileName = `${formData.title.name || 'Air_Quality_Data'}.${fileExtension}`;
 
@@ -509,7 +509,7 @@ export const useDataDownloadLogic = () => {
           metaDataFields: ['latitude', 'longitude'],
           weatherFields: ['temperature', 'humidity'],
           frequency: formData.frequency.name.toLowerCase(),
-          downloadType: formData.fileType.name.toLowerCase(),
+          downloadType: formData.fileType.value || formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
           minimum: true,
         };
@@ -524,13 +524,6 @@ export const useDataDownloadLogic = () => {
         } else {
           apiData.sites = siteIds;
         }
-
-        // Debug logging to verify the payload includes device_category
-        console.log('Final API payload:', JSON.stringify(apiData, null, 2));
-        console.log(
-          'Device category value being sent:',
-          apiData.device_category,
-        );
 
         // Set timeout for the request
         const timeoutId = setTimeout(() => {

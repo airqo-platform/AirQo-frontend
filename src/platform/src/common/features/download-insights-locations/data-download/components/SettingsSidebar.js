@@ -25,6 +25,7 @@ const SettingsSidebar = ({
   handleOptionSelect,
   edit,
   filteredDataTypeOptions,
+  filteredFrequencyOptions = FREQUENCY_OPTIONS, // Default fallback
   durationGuidance,
   handleTitleChange,
   sidebarBg = '#f6f6f7',
@@ -157,7 +158,7 @@ const SettingsSidebar = ({
         <motion.div variants={formItemVariants}>
           <CustomFields
             title="Frequency"
-            options={FREQUENCY_OPTIONS}
+            options={filteredFrequencyOptions}
             id="frequency"
             icon={<AqClockFastForward size={16} />}
             defaultOption={formData.frequency}

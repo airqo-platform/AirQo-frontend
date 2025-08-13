@@ -103,6 +103,7 @@ const CustomFields = ({
         ...option,
         name: formatFieldValue(option.name, id, textFormat),
       };
+      
       setSelected(single);
       handleOptionSelect(id, single);
     },

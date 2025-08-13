@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { AqGlobe05, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-import { DATA_TYPE_OPTIONS } from './constants';
+import { DATA_TYPE_OPTIONS, FREQUENCY_OPTIONS, FILTER_TYPES } from './constants';
 
 import {
   useSitesSummary,
@@ -32,7 +32,7 @@ import { DownloadDataHeader, MobileMenuButton } from './components/Header';
 import MobileSidebar from './components/MobileSidebar';
 import DataPreviewDialog from './components/DataPreviewDialog';
 import SettingsSidebar from './components/SettingsSidebar';
-import DataContent, { FILTER_TYPES } from './components/DataContent';
+import DataContent from './components/DataContent';
 import Footer from '../components/Footer';
 import InfoMessage from '@/components/Messages/InfoMessage';
 
@@ -147,6 +147,19 @@ const DataDownload = ({
     // Default fallback
     return DATA_TYPE_OPTIONS;
   }, [formData.deviceCategory]);
+
+  // Filter frequency options based on device category and filter type
+  const filteredFrequencyOptions = useMemo(() => {
+    const deviceCategory = formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
+    
+    // For mobile and bam devices in devices filter: only show Raw frequency
+    if (activeFilterKey === FILTER_TYPES.DEVICES && (deviceCategory === 'mobile' || deviceCategory === 'bam')) {
+      return FREQUENCY_OPTIONS.filter(option => option.name.toLowerCase() === 'raw');
+    }
+    
+    // For other cases, exclude Raw frequency (it's only for mobile and bam devices)
+    return FREQUENCY_OPTIONS.filter(option => option.name.toLowerCase() !== 'raw');
+  }, [formData.deviceCategory, activeFilterKey]);
 
   // Active group info
   const activeGroup = useMemo(
@@ -313,6 +326,40 @@ const DataDownload = ({
     }
   }, [formData.deviceCategory?.name, formData.dataType?.name, clearSelections]);
 
+  // Auto-switch to Raw frequency for mobile and bam devices in devices filter
+  useEffect(() => {
+    const deviceCategory = formData.deviceCategory?.name?.toLowerCase();
+    if (activeFilterKey === FILTER_TYPES.DEVICES && (deviceCategory === 'mobile' || deviceCategory === 'bam')) {
+      const rawFrequencyOption = FREQUENCY_OPTIONS.find(
+        (option) => option.name.toLowerCase() === 'raw',
+      );
+
+      if (
+        rawFrequencyOption &&
+        formData.frequency?.name?.toLowerCase() !== 'raw'
+      ) {
+        setFormData((prev) => ({
+          ...prev,
+          frequency: rawFrequencyOption,
+        }));
+        clearSelections(); // Clear selections when frequency changes automatically
+      }
+    } else if (formData.frequency?.name?.toLowerCase() === 'raw') {
+      // If not mobile/bam devices, switch back to default frequency if currently on raw
+      const defaultFrequencyOption = FREQUENCY_OPTIONS.find(
+        (option) => option.name.toLowerCase() === 'daily',
+      );
+      
+      if (defaultFrequencyOption) {
+        setFormData((prev) => ({
+          ...prev,
+          frequency: defaultFrequencyOption,
+        }));
+        clearSelections();
+      }
+    }
+  }, [activeFilterKey, formData.deviceCategory?.name, formData.frequency?.name, clearSelections]);
+
   // Handle form field updates
   const handleOptionSelect = useCallback(
     (id, option) => {
@@ -439,57 +486,26 @@ const DataDownload = ({
     // Apply special filtering for devices
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
       return baseData.filter((device) => {
-        // Only show deployed devices (exclude "not deployed" and "recalled" devices)
-        // Check multiple possible status fields since the data structure might vary
-        const deploymentStatus = String(
-          device.deployment_status || '',
-        ).toLowerCase();
-        const status = String(device.status || '').toLowerCase();
-        const deviceStatus = String(device.device_status || '').toLowerCase();
-
-        // List of statuses that indicate device is deployed and active
-        const deployedStatuses = ['deployed', 'active', 'online'];
-        const excludedStatuses = [
-          'recalled',
-          'not deployed',
-          'inactive',
-          'offline',
-          'maintenance',
-        ];
-
-        // Check if any status field indicates deployment
-        const hasDeployedStatus = deployedStatuses.some(
-          (deployedStatus) =>
-            deploymentStatus.includes(deployedStatus) ||
-            status.includes(deployedStatus) ||
-            deviceStatus.includes(deployedStatus),
-        );
-
-        // Check if device is online (another indicator of deployment)
-        const isOnline = device.isOnline === true || device.online === true;
-
-        // Check if any status field indicates exclusion
-        const hasExcludedStatus = excludedStatuses.some(
-          (excludedStatus) =>
-            deploymentStatus.includes(excludedStatus) ||
-            status.includes(excludedStatus) ||
-            deviceStatus.includes(excludedStatus),
-        );
-
-        // Device is considered deployed if it has deployed status OR is online,
-        // AND doesn't have any excluded status
-        const isDeployed =
-          (hasDeployedStatus || isOnline) && !hasExcludedStatus;
-
         // Filter by device category if specified
         let matchesCategory = true;
         if (formData.deviceCategory) {
           const selectedCategory = formData.deviceCategory.name.toLowerCase();
           const deviceCategory = String(device.category || '').toLowerCase();
-          matchesCategory = deviceCategory === selectedCategory;
+          
+          // Special handling for mobile devices
+          if (selectedCategory === 'mobile') {
+            // For mobile devices, check that category is 'lowcost' AND mobility is true
+            const isMobileDevice = 
+              deviceCategory === 'lowcost' && 
+              (device.mobility === true || device.mobility === 'true');
+            matchesCategory = isMobileDevice;
+          } else {
+            // For other categories, direct match
+            matchesCategory = deviceCategory === selectedCategory;
+          }
         }
 
-        return isDeployed && matchesCategory;
+        return matchesCategory;
       });
     }
 
@@ -734,6 +750,7 @@ const DataDownload = ({
         edit={edit}
         setEdit={setEdit}
         filteredDataTypeOptions={filteredDataTypeOptions}
+        filteredFrequencyOptions={filteredFrequencyOptions}
         durationGuidance={durationGuidance}
         handleSubmit={handlePreview}
         sidebarBg={darkMode ? '' : sidebarBg}
@@ -749,6 +766,7 @@ const DataDownload = ({
     edit,
     setEdit,
     filteredDataTypeOptions,
+    filteredFrequencyOptions,
     durationGuidance,
     handlePreview,
     darkMode,
@@ -823,6 +841,7 @@ const DataDownload = ({
           handleRetryLoad={handleRetryLoad}
           showViewDataButton={showViewDataButton}
           onViewDataClick={onViewDataClick}
+          deviceCategory={formData.deviceCategory} // Pass device category
         />
       </motion.div>
     );
@@ -851,6 +870,7 @@ const DataDownload = ({
     handleRetryLoad,
     dispatch,
     backToDownload, // Add missing dependency
+    formData.deviceCategory, // Add device category dependency
   ]);
 
   return (

@@ -2,12 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AqDotsGrid,
-  AqSliders02,
+  AqCalibration,
   AqBarChartSquarePlus,
   AqGlobe02Maps_Travel,
   AqFile07,
   AqPhone01,
   AqArrowNarrowLeft,
+  AqCpuChip01,
 } from '@airqo/icons-react';
 import { FaGooglePlay, FaApple } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -43,7 +44,7 @@ const AppDropdown = ({ className = '' }) => {
   const apps = [
     {
       name: 'Calibrate',
-      icon: AqSliders02,
+      icon: AqCalibration,
       href: getUrl('https://airqalibrate.airqo.net/'),
       color: 'bg-blue-500',
     },
@@ -70,6 +71,12 @@ const AppDropdown = ({ className = '' }) => {
       icon: AqPhone01,
       type: 'qr',
       color: 'bg-indigo-500',
+    },
+    {
+      name: 'AI platform',
+      icon: AqCpuChip01,
+      href: 'https://ai.airqo.net',
+      color: 'bg-pink-500',
     },
   ];
 
