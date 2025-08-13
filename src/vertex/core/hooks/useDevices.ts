@@ -406,6 +406,7 @@ export const useDeployDevice = () => {
       // Invalidate and refetch devices
       queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
       queryClient.invalidateQueries({ queryKey: ["claimedDevices"] });
+      queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {

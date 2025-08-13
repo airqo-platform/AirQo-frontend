@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from '@tanstack/react-query';
+import { QueryClient, useQuery } from '@tanstack/react-query';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 import { Button } from "@/components/ui/button";
@@ -75,6 +75,9 @@ interface LocationStepProps {
 interface DeployDeviceComponentProps {
   prefilledDevice?: Device;
   onClose?: () => void;
+  availableDevices?: Device[];
+  onDeploymentSuccess?: () => void;
+  onDeploymentError?: (error: Error) => void;
 }
 
 const mountTypeOptions: MountTypeOption[] = [
@@ -326,11 +329,21 @@ const SummaryItem = ({ label, value }: { label: string; value: React.ReactNode }
   </div>
 );
 
-const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceComponentProps) => {
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+const queryClient = new QueryClient();
 
+const DeployDeviceComponent = ({ 
+  prefilledDevice, 
+  onClose, 
+  availableDevices: externalAvailableDevices = [],
+  onDeploymentSuccess,
+  onDeploymentError 
+}: DeployDeviceComponentProps) => {
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const { isPersonalContext, userDetails } = useUserContext();
+  const { devices: allDevices } = useDevices();
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
+  
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
     deviceName: prefilledDevice?.long_name || prefilledDevice?.name || "",
     height: prefilledDevice?.height?.toString() || "",
@@ -340,21 +353,17 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
     latitude: prefilledDevice?.latitude?.toString() || "",
     longitude: prefilledDevice?.longitude?.toString() || "",
     siteName: prefilledDevice?.site_name || "",
-    network: activeNetwork?.net_name || "-",
+    network: activeNetwork?.net_name || "airqo",
   });
-  const { isPersonalContext, userDetails } = useUserContext();
-  const { devices: allDevices, isLoading: isLoadingAllDevices } = useDevices();
-  const deployDevice = useDeployDevice();
 
-  // Filter AirQo devices for internal context: not deployed or recalled
+  // Use external availableDevices if provided, otherwise use internal filtering
   const filteredAirQoDevices = React.useMemo(() => {
+    if (externalAvailableDevices.length > 0) return externalAvailableDevices;
     if (isPersonalContext) return [];
     return allDevices.filter(
-      (dev) =>
-        dev.status === "not deployed" ||
-        dev.status === "recalled"
+      (dev) => dev.status === "not deployed" || dev.status === "recalled"
     );
-  }, [isPersonalContext, allDevices]);
+  }, [externalAvailableDevices, isPersonalContext, allDevices]);
 
   // Fetch claimed devices for personal context
   const { data: claimedDevices = [], isLoading: isLoadingClaimedDevices, refetch: refetchDevices } = useQuery({
@@ -366,7 +375,7 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
 
   // Choose which devices to show based on context
   const availableDevices = isPersonalContext ? claimedDevices : filteredAirQoDevices;
-  const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : isLoadingAllDevices;
+  const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : false;
 
   // When returning from claim page, refresh device list (only for personal context)
   React.useEffect(() => {
@@ -441,6 +450,8 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
     return Boolean(deviceData.latitude && deviceData.longitude);
   };
 
+  const deployDevice = useDeployDevice();
+
   const handleDeploy = async (): Promise<void> => {
     if (!userDetails?._id) {
       toast.error("User information not available. Please reload the page.");
@@ -461,14 +472,43 @@ const DeployDeviceComponent = ({ prefilledDevice, onClose }: DeployDeviceCompone
         user_id: userDetails._id,
       });
 
-      // On successful deployment, close modal
+      toast("Deployment Successful", {
+        description: "Device has been successfully deployed.",
+      });
+
+      // Invalidate device queries
+      await queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice?._id] });
+
+      // On successful deployment, reset form fields
+      setDeviceData({
+        deviceName: "",
+        height: "",
+        mountType: "",
+        powerType: "",
+        isPrimarySite: false,
+        latitude: "",
+        longitude: "",
+        siteName: "",
+        network: activeNetwork?.net_name || "-",
+      });
+
+      setCurrentStep(0);
+      setInputMode('siteName');
+
+      // Call success callback if provided
+      onDeploymentSuccess?.();
+      
+      // Close modal if in modal context
       if (onClose) {
         onClose();
       }
       
     } catch (error) {
-      console.error('Deployment failed:', error);
-      // Error handling is already done in the useDeployDevice hook
+      toast.error("Deployment Failed", {
+        description: "An error occurred while deploying the device. Please try again.",
+      });
+      // Call error callback if provided
+      onDeploymentError?.(error instanceof Error ? error : new Error('Unknown error'));
     }
   };
 

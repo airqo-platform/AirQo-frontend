@@ -84,10 +84,10 @@ export default function RecallDeviceDialog({
           <div className="grid gap-2">
             <Label htmlFor="recallType">Recall Type *</Label>
             <Select value={recallType} onValueChange={setRecallType}>
-              <SelectTrigger>
+              <SelectTrigger id="recallType">
                 <SelectValue placeholder="Select recall type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" sideOffset={5}>
                 {recallTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
