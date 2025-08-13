@@ -73,8 +73,9 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Api/HeaderImage_ktsstb.webp"
-              alt="Access real-time air quality data"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755074667/website/photos/OurProducts/Api/AirQo_API_dcc8rm.jpg"
+              alt="AirQo API - African air quality data API for developers"
+              title="AirQo API - African air quality data API for developers"
               width={500}
               height={350}
               style={{ objectFit: 'cover' }}
@@ -103,7 +104,7 @@ const ApiPage = () => {
           className="text-lg text-gray-700 mb-6"
           variants={itemVariants}
         >
-          The AirQo API provides open access to a vast repository of over 2
+          The AirQo API provides open access to a vast repository of over 10
           million records of raw and calibrated real-time, historical, and
           forecast air quality data.
         </motion.p>
@@ -145,8 +146,9 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132441/website/photos/OurProducts/Api/section-1_or1hzy.webp"
-              alt="Redefining Data Access"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755074678/website/photos/OurProducts/Api/Air_quality_API_for_developers_vci9ds.jpg"
+              alt="AirQo API - African air quality data API for developers, redefining data access"
+              title="AirQo API - African air quality data API for developers"
               width={741}
               height={540}
               style={{ objectFit: 'cover' }}
@@ -173,8 +175,9 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Api/section-2_vhnqbf.webp"
-              alt="API Console Data"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755074730/website/photos/OurProducts/Api/AirQo_API...._rc4auu.jpg"
+              alt="API Console Data - AirQo API for African air quality data developers"
+              title="AirQo API Console - African air quality data API for developers"
               width={600}
               height={400}
               style={{ objectFit: 'cover' }}
@@ -238,7 +241,7 @@ const ApiPage = () => {
               }
               className=" text-white "
             >
-              Read Docs
+              Get the API
             </CustomButton>
           </motion.div>
 
@@ -249,7 +252,8 @@ const ApiPage = () => {
           >
             <Image
               src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132442/website/photos/OurProducts/Api/section-3_uwtkrz.webp"
-              alt="Easy to use interface"
+              alt="Easy-to-use AirQo API interface for African air quality data developers"
+              title="AirQo API interface - African air quality data API for developers"
               width={1200}
               height={600}
               className="rounded-lg w-full"
