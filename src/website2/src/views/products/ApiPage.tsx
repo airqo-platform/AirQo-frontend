@@ -73,7 +73,7 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755074667/website/photos/OurProducts/Api/AirQo_API_dcc8rm.jpg"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105828/website/photos/OurProducts/Api/AirQo_API_hero_eoosnz.webp"
               alt="AirQo API - African air quality data API for developers"
               title="AirQo API - African air quality data API for developers"
               width={500}
@@ -146,7 +146,7 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755074678/website/photos/OurProducts/Api/Air_quality_API_for_developers_vci9ds.jpg"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105658/website/photos/OurProducts/Api/Air_quality_API_t0blnw.webp"
               alt="AirQo API - African air quality data API for developers, redefining data access"
               title="AirQo API - African air quality data API for developers"
               width={741}
@@ -175,7 +175,7 @@ const ApiPage = () => {
             variants={itemVariants}
           >
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755074730/website/photos/OurProducts/Api/AirQo_API...._rc4auu.jpg"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1755105933/website/photos/OurProducts/Api/AirQo_API_nky6xb.webp"
               alt="API Console Data - AirQo API for African air quality data developers"
               title="AirQo API Console - African air quality data API for developers"
               width={600}
