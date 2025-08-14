@@ -21,6 +21,18 @@ import {
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import { openApiMethods } from '../utils/openApiClient';
 
+// Get Users
+export const getUsersApi = () =>
+  secureApiProxy
+    .get(USERS_URL, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
+
+// Get User analytics
+export const getUsersAnalyticsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/stats`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
+
 // Password Management
 export const forgotPasswordApi = (data) =>
   openApiMethods.post(FORGOT_PWD_URL, data);

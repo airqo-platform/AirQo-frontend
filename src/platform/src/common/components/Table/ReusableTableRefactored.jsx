@@ -1,7 +1,8 @@
 'use client';
-import React, { useMemo, useCallback, useEffect } from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import { FaSort } from 'react-icons/fa';
 import { AqChevronDown, AqChevronUp } from '@airqo/icons-react';
+import { FiCheck, FiMinus } from 'react-icons/fi';
 import Spinner from '@/components/Spinner';
 import CardWrapper from '@/components/CardWrapper';
 
@@ -10,7 +11,6 @@ import { useTableSearch } from './hooks/useTableSearch';
 import { useTableFilters } from './hooks/useTableFilters';
 import { useTableSorting } from './hooks/useTableSorting';
 import { useTablePagination } from './hooks/useTablePagination';
-import { useTableMultiSelect } from './hooks/useTableMultiSelect';
 
 // Components
 import TableHeader from './components/TableHeader';
@@ -24,9 +24,50 @@ import {
   hasActiveFilters,
 } from './utils/tableUtils';
 
-/**
- * Reusable table component with search, filtering, sorting, pagination, and multi-select
- */
+/* ---------------- Helpers ---------------- */
+const hashObj = (obj) => {
+  const str = typeof obj === 'string' ? obj : JSON.stringify(obj);
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) h = (h * 33) ^ str.charCodeAt(i);
+  return (h >>> 0).toString(36);
+};
+
+// Unified 16×16 checkbox used for both header and rows
+const CheckBox = ({ checked, indeterminate = false, onToggle, ariaLabel }) => {
+  const next = () => (indeterminate ? true : !checked);
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-label={ariaLabel}
+      aria-checked={indeterminate ? 'mixed' : checked}
+      onClick={(e) => {
+        e.stopPropagation();
+        onToggle(next());
+      }}
+      onKeyDown={(e) => {
+        if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          onToggle(next());
+        }
+      }}
+      className={`h-4 w-4 flex items-center justify-center rounded border text-white ${
+        checked || indeterminate
+          ? 'bg-green-600 border-green-600'
+          : 'bg-white border-gray-300 dark:border-gray-600 text-transparent'
+      }`}
+      style={{ lineHeight: 0 }}
+    >
+      {indeterminate ? (
+        <FiMinus size={12} />
+      ) : checked ? (
+        <FiCheck size={12} />
+      ) : null}
+    </button>
+  );
+};
+/* ----------------------------------------- */
+
 const ReusableTable = ({
   title = 'Table',
   data = [],
@@ -43,29 +84,30 @@ const ReusableTable = ({
   loading = false,
   loadingComponent = null,
   headerComponent = null,
-  // Multi-Select Props
+
+  // Multi-select
   multiSelect = false,
-  actions = [], // Array of { label, value, handler }
-  onSelectedItemsChange, // Callback for parent to know selected items
+  actions = [], // [{ label, value?, handler:(rows)=>void }]
+  onSelectedItemsChange, // (rows)=>void
 }) => {
-  // Search functionality
+  /* Search */
   const { searchTerm, setSearchTerm, searchedData, handleClearSearch } =
     useTableSearch(data, columns, searchableColumns);
 
-  // Filter functionality
+  /* Filters */
   const {
     filterValues,
     filteredData: postFilterData,
     handleFilterChange,
   } = useTableFilters(searchedData, filters);
 
-  // Sort functionality
+  /* Sort */
   const { sortConfig, sortedData, handleSort } = useTableSorting(
     postFilterData,
     sortable,
   );
 
-  // Pagination functionality
+  /* Pagination */
   const {
     currentPage,
     setCurrentPage,
@@ -76,58 +118,127 @@ const ReusableTable = ({
     generatePageNumbers,
   } = useTablePagination(sortedData, pageSize);
 
-  // Multi-select functionality
-  const {
-    selectedItems,
-    selectedAction,
-    isAllSelectedOnPage,
-    isIndeterminate,
-    handleSelectAll,
-    handleSelectItem,
-    handleActionChange,
-    handleActionSubmit,
-  } = useTableMultiSelect(paginatedData, onSelectedItemsChange);
+  /* -------- Multi-select (object-based) -------- */
+  const [selectedSet, setSelectedSet] = useState(() => new Set());
+  const [selectedActionValue, setSelectedActionValue] = useState('');
 
-  // Reset to first page when search or filters change (but not on multi-select)
+  // Normalize actions: ensure value exists and is a string
+  const normalizedActions = useMemo(
+    () =>
+      actions.map((a) => ({
+        ...a,
+        value: String(a.value ?? a.label ?? ''),
+      })),
+    [actions],
+  );
+
+  // Keep only rows still present after search/filter/sort
+  useEffect(() => {
+    if (selectedSet.size === 0) return;
+    const present = new Set(sortedData); // reference equality
+    const next = new Set();
+    selectedSet.forEach((row) => present.has(row) && next.add(row));
+    if (next.size !== selectedSet.size) setSelectedSet(next);
+  }, [sortedData]); // runs only when sortedData ref changes
+
+  const pageRows = paginatedData;
+
+  const selectedCountOnPage = useMemo(
+    () => pageRows.reduce((acc, r) => acc + (selectedSet.has(r) ? 1 : 0), 0),
+    [pageRows, selectedSet],
+  );
+  const isAllSelectedOnPage =
+    pageRows.length > 0 && selectedCountOnPage === pageRows.length;
+  const isIndeterminate =
+    selectedCountOnPage > 0 && selectedCountOnPage < pageRows.length;
+
+  const selectedRows = useMemo(() => Array.from(selectedSet), [selectedSet]);
+
+  const handleSelectItem = useCallback((row, checked) => {
+    setSelectedSet((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(row);
+      else next.delete(row);
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = useCallback(
+    (val) => {
+      setSelectedSet((prev) => {
+        const next = new Set(prev);
+        if (val) pageRows.forEach((r) => next.add(r));
+        else pageRows.forEach((r) => next.delete(r));
+        return next;
+      });
+    },
+    [pageRows],
+  );
+
+  // Accept event/string/object from action bar and extract value
+  const handleActionChange = useCallback((a) => {
+    let v = '';
+    if (a && typeof a === 'object') {
+      if ('target' in a && a.target && typeof a.target.value !== 'undefined') {
+        v = String(a.target.value);
+      } else if ('value' in a) {
+        v = String(a.value);
+      }
+    } else if (typeof a === 'string') {
+      v = a;
+    }
+    setSelectedActionValue(v);
+  }, []);
+
+  const selectedActionObj = useMemo(
+    () =>
+      normalizedActions.find((x) => x.value === selectedActionValue) || null,
+    [normalizedActions, selectedActionValue],
+  );
+
+  const handleActionSubmit = useCallback(() => {
+    if (!selectedActionObj || typeof selectedActionObj.handler !== 'function')
+      return;
+    if (selectedRows.length === 0) return;
+    selectedActionObj.handler(selectedRows); // pass FULL ROW OBJECTS
+  }, [selectedActionObj, selectedRows]);
+
+  // Notify parent once per change
+  useEffect(() => {
+    if (onSelectedItemsChange) onSelectedItemsChange(selectedRows);
+  }, [selectedRows, onSelectedItemsChange]);
+
+  // Reset to first page when search/filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterValues, setCurrentPage]);
 
-  // Enhanced getSortIcon with required icons
+  /* Sort icons */
   const getSortIconWithIcons = useCallback(
     (key) =>
       getSortIcon(key, sortConfig, { FaSort, AqChevronUp, AqChevronDown }),
     [sortConfig],
   );
 
-  // Handle action submit with actions array
-  const handleMultiSelectAction = useCallback(() => {
-    handleActionSubmit(actions);
-  }, [handleActionSubmit, actions]);
-
-  // Determine columns to display (include checkbox column if multi-select is enabled)
+  /* Columns (prepend checkbox column for multiSelect) */
   const displayColumns = useMemo(() => {
     const cols = [...columns];
     if (multiSelect) {
       cols.unshift({
         key: 'checkbox',
         label: (
-          <input
-            type="checkbox"
+          <CheckBox
             checked={isAllSelectedOnPage}
-            ref={(input) => {
-              if (input) input.indeterminate = isIndeterminate;
-            }}
-            onChange={(e) => handleSelectAll(e.target.checked)}
-            className="rounded text-primary focus:ring-primary"
+            indeterminate={isIndeterminate}
+            onToggle={(val) => handleSelectAll(val)}
+            ariaLabel="Select all rows on this page"
           />
         ),
         render: (value, item) => (
-          <input
-            type="checkbox"
-            checked={selectedItems.includes(item.id)}
-            onChange={(e) => handleSelectItem(item.id, e.target.checked)}
-            className="rounded text-primary focus:ring-primary"
+          <CheckBox
+            checked={selectedSet.has(item)}
+            onToggle={(val) => handleSelectItem(item, val)}
+            ariaLabel="Select row"
           />
         ),
         sortable: false,
@@ -139,10 +250,16 @@ const ReusableTable = ({
     multiSelect,
     isAllSelectedOnPage,
     isIndeterminate,
-    selectedItems,
+    selectedSet,
     handleSelectAll,
     handleSelectItem,
   ]);
+
+  // Stable React key (rendering only; not used for selection)
+  const getRowKey = useCallback((item, index) => {
+    const k = item?.id ?? item?._id ?? item?.uuid ?? item?.key;
+    return k != null ? String(k) : `${hashObj(item)}-${index}`;
+  }, []);
 
   return (
     <CardWrapper
@@ -166,24 +283,23 @@ const ReusableTable = ({
       {/* Multi-Select Action Bar */}
       {multiSelect && (
         <MultiSelectActionBar
-          selectedItems={selectedItems}
-          actions={actions}
-          selectedAction={selectedAction}
-          onActionChange={handleActionChange}
-          onActionSubmit={handleMultiSelectAction}
+          key={`${selectedActionValue}-${selectedRows.length}`} /* force fresh render */
+          selectedItems={selectedRows} /* array of full rows */
+          actions={normalizedActions}
+          selectedAction={selectedActionValue} /* value string */
+          onActionChange={handleActionChange} /* event/string/object safe */
+          onActionSubmit={handleActionSubmit} /* calls handler(rows) */
         />
       )}
 
-      {/* Table or Loading */}
+      {/* Table / Loading */}
       <div className="overflow-x-auto">
         {loading ? (
-          loadingComponent ? (
-            loadingComponent
-          ) : (
+          (loadingComponent ?? (
             <div className="w-full py-12 flex justify-center items-center">
               <Spinner size={30} />
             </div>
-          )
+          ))
         ) : (
           <table className="w-full">
             <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
@@ -213,10 +329,10 @@ const ReusableTable = ({
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
-              {paginatedData.length > 0 ? (
-                paginatedData.map((item, index) => (
+              {pageRows.length > 0 ? (
+                pageRows.map((item, index) => (
                   <tr
-                    key={item.id ?? index}
+                    key={getRowKey(item, index)}
                     className="hover:bg-primary/5 dark:hover:bg-primary/20"
                   >
                     {displayColumns.map((column) => (

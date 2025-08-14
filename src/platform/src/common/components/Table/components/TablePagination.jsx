@@ -19,7 +19,7 @@ const TablePagination = ({
 
   return (
     <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20]">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row flex-wrap sm:items-center sm:justify-between gap-4">
         <div className="flex items-center space-x-4">
           <PageSizeSelector
             pageSize={currentPageSize}
