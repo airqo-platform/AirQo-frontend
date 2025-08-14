@@ -2,13 +2,10 @@
 
 import * as React from "react";
 import { useSearchParams } from 'next/navigation';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
 import DeployDeviceComponent from "@/components/features/devices/deploy-device-component";
-
-const queryClient = new QueryClient();
 
 const DeployDevicePage = () => {
   const searchParams = useSearchParams();
@@ -32,12 +29,10 @@ const DeployDevicePage = () => {
   }, [deviceIdFromUrl, allDevices]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <DeployDeviceComponent 
-        prefilledDevice={prefilledDevice} 
-        availableDevices={isPersonalContext ? [] : filteredAirQoDevices}
-      />
-    </QueryClientProvider>
+    <DeployDeviceComponent 
+      prefilledDevice={prefilledDevice} 
+      availableDevices={isPersonalContext ? [] : filteredAirQoDevices}
+    />
   );
 };
 
