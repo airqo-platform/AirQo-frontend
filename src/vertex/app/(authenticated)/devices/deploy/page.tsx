@@ -5,7 +5,12 @@ import { useSearchParams } from 'next/navigation';
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
-import DeployDeviceComponent from "@/components/features/devices/deploy-device-component";
+import dynamic from 'next/dynamic';
+
+const DeployDeviceComponent = dynamic(
+  () => import('@/components/features/devices/deploy-device-component'),
+  { ssr: false }
+);
 
 const DeployDevicePage = () => {
   const searchParams = useSearchParams();
