@@ -1,9 +1,6 @@
-import createAxiosInstance from "./axiosConfig";
-import { SITES_MGT_URL } from "../urls";
+import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosError } from "axios";
 import { Site } from "@/app/types/sites";
-
-const axiosInstance = createAxiosInstance();
 
 interface ApproximateCoordinatesResponse {
   success: boolean;
@@ -45,8 +42,9 @@ interface UpdateSiteRequest {
 export const sites = {
   getSitesSummary: async (networkId: string, groupName: string) => {
     try {
-      const response = await axiosInstance.get(
-        `${SITES_MGT_URL}/summary?network=${networkId}&group=${groupName}`
+      const response = await createSecureApiClient().get(
+        `/sites/summary?network=${networkId}&group=${groupName}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -58,8 +56,9 @@ export const sites = {
   },
   getSitesApi: async (networkId: string) => {
     try {
-      const response = await axiosInstance.get(
-        `${SITES_MGT_URL}/summary?network=${networkId}`
+      const response = await createSecureApiClient().get(
+        `/sites/summary?network=${networkId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -76,7 +75,9 @@ export const sites = {
     network: string;
   }) => {
     try {
-      const response = await axiosInstance.post(`${SITES_MGT_URL}`, data);
+      const response = await createSecureApiClient().post(`/sites`, data, {
+        headers: { 'X-Auth-Type': 'JWT' }
+      });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -91,8 +92,9 @@ export const sites = {
     longitude: string
   ): Promise<ApproximateCoordinatesResponse> => {
     try {
-      const response = await axiosInstance.get<ApproximateCoordinatesResponse>(
-        `${SITES_MGT_URL}/approximate?latitude=${latitude}&longitude=${longitude}`
+      const response = await createSecureApiClient().get<ApproximateCoordinatesResponse>(
+        `/sites/approximate?latitude=${latitude}&longitude=${longitude}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -106,8 +108,9 @@ export const sites = {
 
   getSiteDetails: async (siteId: string): Promise<SiteDetailsResponse> => {
     try {
-      const response = await axiosInstance.get<SiteDetailsResponse>(
-        `${SITES_MGT_URL}/${siteId}`
+      const response = await createSecureApiClient().get<SiteDetailsResponse>(
+        `/sites/${siteId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -120,9 +123,10 @@ export const sites = {
 
   updateSiteDetails: async (siteId: string, data: UpdateSiteRequest): Promise<SiteDetailsResponse> => {
     try {
-      const response = await axiosInstance.put<SiteDetailsResponse>(
-        `${SITES_MGT_URL}?id=${siteId}`,
-        data
+      const response = await createSecureApiClient().put<SiteDetailsResponse>(
+        `/sites?id=${siteId}`,
+        data,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {

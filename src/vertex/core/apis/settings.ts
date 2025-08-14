@@ -1,6 +1,5 @@
-import createAxiosInstance from "./axiosConfig";
+import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosResponse } from "axios";
-import { USERS_MGT_URL} from "@/core/urls";
 import { Client } from "@/app/types/clients";
 import { UserDetails } from "@/app/types/users";
 
@@ -17,18 +16,19 @@ interface PasswordData {
   old_password: string;
 }
 
-const axiosInstance = createAxiosInstance();
-
 export const settings = {
   getUserClientsApi: async (userID: string) => {
-      return await axiosInstance.get(`${USERS_MGT_URL}/clients`, {
+      return await createSecureApiClient().get(`/users/clients`, {
         params: { user_id: userID },
+        headers: { 'X-Auth-Type': 'JWT' }
       })
       .then((response) => response.data);
   },
 
   createClientApi: async (data: CreateClientData): Promise<Client> => {
-    return await axiosInstance.post<CreateClientData, AxiosResponse<Client>>(`${USERS_MGT_URL}/clients`, data)
+    return await createSecureApiClient().post<CreateClientData, AxiosResponse<Client>>(`/users/clients`, data, {
+      headers: { 'X-Auth-Type': 'JWT' }
+    })
       .then((response) => response.data);
   },
 
@@ -36,8 +36,9 @@ export const settings = {
     userId: string,
     userData: PasswordData
   ): Promise<PasswordData> => {
-    return await axiosInstance.put(`${USERS_MGT_URL}/updatePassword`, userData, {
+    return await createSecureApiClient().put(`/users/updatePassword`, userData, {
       params: { id: userId },
+      headers: { 'X-Auth-Type': 'JWT' }
     })
       .then((response) => response.data);
   },
@@ -46,35 +47,47 @@ export const settings = {
     data: CreateClientData,
     client_id: string
   ): Promise<Client> => {
-    return await axiosInstance.put(`${USERS_MGT_URL}/clients/${client_id}`, data)
+    return await createSecureApiClient().put(`/users/clients/${client_id}`, data, {
+      headers: { 'X-Auth-Type': 'JWT' }
+    })
       .then((response) => response.data);
   },
 
   generateTokenApi: async (data: Client): Promise<Client> => {
     const client_id = data._id
     const formData = { client_id, name: data.name }
-    const response = await axiosInstance.post(`${USERS_MGT_URL}/tokens`, formData);
+    const response = await createSecureApiClient().post(`/users/tokens`, formData, {
+      headers: { 'X-Auth-Type': 'JWT' }
+    });
     return response.data;
   },
 
 
   getClientsApi: async () => {
-    return axiosInstance.get(`${USERS_MGT_URL}/clients`).then((response) => response.data);
+    return createSecureApiClient().get(`/users/clients`, {
+      headers: { 'X-Auth-Type': 'JWT' }
+    }).then((response) => response.data);
   },
 
   activateUserClientApi: async (data: { _id: string; isActive: boolean }) => {
-    return axiosInstance
-      .post(`${USERS_MGT_URL}/clients/activate/${data._id}`, data)
+    return createSecureApiClient()
+      .post(`/users/clients/activate/${data._id}`, data, {
+        headers: { 'X-Auth-Type': 'JWT' }
+      })
       .then((response) => response.data);
   },
 
   activationRequestApi: async (clientID: string): Promise<Client> => {
-    return await axiosInstance.get(`${USERS_MGT_URL}/clients/activate-request/${clientID}`)
+    return await createSecureApiClient().get(`/users/clients/activate-request/${clientID}`, {
+      headers: { 'X-Auth-Type': 'JWT' }
+    })
       .then((response) => response.data);
   },
 
   updateUserDetailsApi: async (data: any, userID: string): Promise<UserDetails> => {
-    return await axiosInstance.put(`${USERS_MGT_URL}/${userID}`, data)
+    return await createSecureApiClient().put(`/users/${userID}`, data, {
+      headers: { 'X-Auth-Type': 'JWT' }
+    })
       .then((response) => response.data);
   }
 }
