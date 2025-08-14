@@ -16,4 +16,6 @@ class ConnectivityChanged extends ConnectivityEvent {
   List<Object?> get props => [isConnected];
 }
 
+class ConnectivityCheckRequested extends ConnectivityEvent {}
+
 class ConnectivityBannerDismissed extends ConnectivityEvent {}
