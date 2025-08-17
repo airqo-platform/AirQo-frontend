@@ -95,8 +95,16 @@ export const getAnalyticsDataApi = async ({ body }) => {
       return [];
     }
 
+    // Ensure site_id is requested in metadata fields
+    const enrichedBody = {
+      ...body,
+      metaDataFields: Array.isArray(body.metaDataFields)
+        ? Array.from(new Set([...body.metaDataFields, 'site_id']))
+        : ['site_id'],
+    };
+
     return secureApiProxy
-      .post(ANALYTICS_URL, body, {
+      .post(ANALYTICS_URL, enrichedBody, {
         authType: AUTH_TYPES.JWT,
         timeout: 30000, // 30 second timeout
       })
