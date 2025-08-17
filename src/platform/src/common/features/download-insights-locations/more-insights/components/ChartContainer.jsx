@@ -94,7 +94,7 @@ function ChartContainer({
   return (
     <motion.div
       variants={variants}
-      className="relative border dark:border-gray-700 rounded-xl p-2 h-[360px] sm:h-[410px] flex-shrink-0"
+      className="relative border dark:border-gray-700 rounded-xl p-2 h-[360px] sm:h-[410px] flex-shrink-0 dark:bg-gray-800"
     >
       <AnimatePresence>
         {refreshSuccess && !isValidating && (
