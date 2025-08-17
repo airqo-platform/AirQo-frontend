@@ -20,6 +20,19 @@ import {
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import { openApiMethods } from '../utils/openApiClient';
+import logger from '@/lib/logger';
+
+// Get Users
+export const getUsersApi = () =>
+  secureApiProxy
+    .get(USERS_URL, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
+
+// Get User analytics
+export const getUsersAnalyticsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/stats`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
 
 // Password Management
 export const forgotPasswordApi = (data) =>
@@ -318,7 +331,7 @@ export const getUserThemeApi = (userId, groupId) => {
   return secureApiProxy
     .get(getUserThemeUrl(userId, groupId), {
       authType: AUTH_TYPES.JWT,
-      timeout: 10000, // 10 second timeout
+      timeout: 60000,
     })
     .then((response) => response.data)
     .catch((error) => {
