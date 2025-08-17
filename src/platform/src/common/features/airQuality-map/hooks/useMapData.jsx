@@ -672,9 +672,9 @@ const useMapData = (params = {}) => {
         }
 
         if (retryCount < maxRetries) {
-          logger.warn(
-            `Map readings fetch failed, retrying (${retryCount + 1}/${maxRetries}):`,
-            error.message,
+          // Lower severity to info to avoid excessive warning noise in logs
+          logger.info(
+            `Map readings fetch retry ${retryCount + 1}/${maxRetries}: ${error.message}`,
           );
           await new Promise((resolve) =>
             setTimeout(resolve, 1000 * (retryCount + 1)),
