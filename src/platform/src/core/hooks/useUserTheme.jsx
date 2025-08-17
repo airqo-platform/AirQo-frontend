@@ -116,7 +116,10 @@ const useUserTheme = () => {
         return JSON.parse(storedTheme);
       }
     } catch (error) {
-      console.warn('Failed to parse session storage theme:', error);
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.warn('Failed to parse session storage theme:', error);
+      }
     }
 
     return null;
@@ -134,22 +137,8 @@ const useUserTheme = () => {
     const { signal } = abortControllerRef.current;
 
     // Validation checks
-    if (!isValidUser) {
-      safeSetState(setError, 'Invalid or missing user ID for fetching theme');
-      safeSetState(setIsInitialized, true);
-      safeSetState(setLoading, false);
-      return;
-    }
-
-    if (!isValidGroup) {
-      safeSetState(setError, 'Invalid or missing group ID for fetching theme');
-      safeSetState(setIsInitialized, true);
-      safeSetState(setLoading, false);
-      return;
-    }
-
-    if (!activeGroup) {
-      safeSetState(setError, 'Active group data is not available');
+    // If prerequisites are not ready, gracefully exit without flagging an error
+    if (!isValidUser || !isValidGroup || !activeGroup) {
       safeSetState(setIsInitialized, true);
       safeSetState(setLoading, false);
       return;

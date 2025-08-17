@@ -335,17 +335,18 @@ export const getUserThemeApi = (userId, groupId) => {
     })
     .then((response) => response.data)
     .catch((error) => {
-      // Enhanced error handling with fallback
+      // Enhanced error handling with fallback (use info for expected cases)
       if (error.response) {
         const status = error.response.status;
         switch (status) {
           case 404:
-            // User theme not found - return default theme
-            logger.info('User theme not found, using defaults');
-            return { theme: null }; // Let the caller handle defaults
+            // Theme not set for this user/group; treat as normal
+            logger.info('User theme not found; applying defaults');
+            return { theme: null };
           case 403:
           case 401:
-            logger.warn('Authentication issue when fetching theme');
+            // Session/permission issue; allow defaults silently
+            logger.info('Auth issue when fetching theme; applying defaults');
             return { theme: null };
           default:
             logger.error('Theme API error:', error);
