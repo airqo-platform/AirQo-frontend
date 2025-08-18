@@ -91,11 +91,6 @@ const allMainPages = [
     icon: <MapIcon />,
   },
   {
-    title: 'Export data',
-    href: '/export-data/options',
-    icon: <CloudDownloadIcon />,
-  },
-  {
     title: 'Deploy Device',
     href: '/deploy-device',
     icon: <DeviceHubIcon />,
@@ -116,8 +111,6 @@ const allMainPages = [
     nested: true,
     nestItems: [
       { title: 'Network Map', href: '/manager/map' },
-      { title: 'Network Statistics', href: '/manager/stats' },
-      { title: 'Network Activity Logs', href: '/manager/activities' }
     ],
     isNew: true
   },

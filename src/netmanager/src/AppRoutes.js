@@ -21,20 +21,15 @@ const DeviceView = lazy(() => import('./views/components/DataDisplay/DeviceView'
 const ManagerMap = lazy(() =>
   import('./views/components/DataDisplay/DeviceManagement/ManagementMap')
 );
-const ManagerStats = lazy(() =>
-  import('./views/components/DataDisplay/DeviceManagement/ManagementStats')
-);
 const Map = lazy(() => import('./views/components/Map'));
 const OverlayMap = lazy(() => import('./views/pages/Map'));
 const ForgotPassword = lazy(() => import('./views/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./views/pages/ResetPassword'));
 const Login = lazy(() => import('./views/pages/SignUp/Login'));
-const Register = lazy(() => import('./views/pages/SignUp/Register'));
 const UserList = lazy(() => import('./views/pages/UserList'));
 const AvailableUserList = lazy(() => import('./views/pages/UserList/AvailableUserList'));
 const Roles = lazy(() => import('./views/pages/Roles'));
 const Settings = lazy(() => import('./views/pages/Settings'));
-const SiteActivities = lazy(() => import('./views/components/Activities/ActivitiesRegistry'));
 const SiteRegistry = lazy(() => import('./views/components/Sites/SiteRegistry'));
 const SiteView = lazy(() => import('./views/components/Sites/SiteView'));
 const Organisation = lazy(() => import('./views/pages/Organisation'));
@@ -146,18 +141,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
             <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
-            <PrivateRoute
-              exact
-              path="/manager/stats"
-              component={ManagerStats}
-              layout={MainLayout}
-            />
-            <PrivateRoute
-              exact
-              path="/manager/activities"
-              component={SiteActivities}
-              layout={MainLayout}
-            />
             <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/hosts/:id" component={HostView} layout={MainLayout} />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
