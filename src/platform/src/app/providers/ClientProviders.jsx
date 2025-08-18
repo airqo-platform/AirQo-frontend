@@ -118,13 +118,24 @@ function ClientProvidersInner({ children }) {
     };
 
     const handlePromiseRejection = (event) => {
-      event.preventDefault();
-      logger.error(
-        'Unhandled promise rejection',
+      const reason =
         event.reason instanceof Error
           ? event.reason
-          : new Error(String(event.reason)),
-      );
+          : new Error(String(event.reason));
+
+      // Filter known benign or noisy sources (minified vendor helpers)
+      const msg = String(reason.stack || reason.message || '');
+      const isNoisyVendor = /isFeatureBroken|updateFeaturesInner/i.test(msg);
+
+      event.preventDefault();
+      if (isNoisyVendor) {
+        // Downgrade to info to avoid noisy error logs while still recording
+        logger.info('Filtered unhandled rejection from vendor helper', {
+          message: reason.message,
+        });
+        return;
+      }
+      logger.error('Unhandled promise rejection', reason);
     };
 
     const manageDevTools = () => {

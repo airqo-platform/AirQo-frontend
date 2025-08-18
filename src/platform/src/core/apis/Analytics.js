@@ -40,7 +40,10 @@ export const getSitesSummaryApi = async ({ group }) => {
 
 // Get device summary data
 export const getDeviceSummaryApi = async ({ group = null }) => {
-  const params = group ? { group } : {};
+  const params = {
+    status: 'deployed',
+    ...(group ? { group } : {}),
+  };
 
   return secureApiProxy
     .get(DEVICE_SUMMARY_URL, {

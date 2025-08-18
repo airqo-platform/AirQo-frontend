@@ -231,6 +231,7 @@ export const useAnalyticsData = (params, options = {}) => {
           frequency,
           pollutant,
           organisation_name: organisationName,
+          metaDataFields: ['site_id'],
         };
 
         const result = await getAnalyticsDataApi({ body: requestBody });

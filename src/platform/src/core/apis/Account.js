@@ -20,6 +20,19 @@ import {
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import { openApiMethods } from '../utils/openApiClient';
+import logger from '@/lib/logger';
+
+// Get Users
+export const getUsersApi = () =>
+  secureApiProxy
+    .get(USERS_URL, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
+
+// Get User analytics
+export const getUsersAnalyticsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/stats`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
 
 // Password Management
 export const forgotPasswordApi = (data) =>
@@ -318,21 +331,22 @@ export const getUserThemeApi = (userId, groupId) => {
   return secureApiProxy
     .get(getUserThemeUrl(userId, groupId), {
       authType: AUTH_TYPES.JWT,
-      timeout: 10000, // 10 second timeout
+      timeout: 60000,
     })
     .then((response) => response.data)
     .catch((error) => {
-      // Enhanced error handling with fallback
+      // Enhanced error handling with fallback (use info for expected cases)
       if (error.response) {
         const status = error.response.status;
         switch (status) {
           case 404:
-            // User theme not found - return default theme
-            logger.info('User theme not found, using defaults');
-            return { theme: null }; // Let the caller handle defaults
+            // Theme not set for this user/group; treat as normal
+            logger.info('User theme not found; applying defaults');
+            return { theme: null };
           case 403:
           case 401:
-            logger.warn('Authentication issue when fetching theme');
+            // Session/permission issue; allow defaults silently
+            logger.info('Auth issue when fetching theme; applying defaults');
             return { theme: null };
           default:
             logger.error('Theme API error:', error);
