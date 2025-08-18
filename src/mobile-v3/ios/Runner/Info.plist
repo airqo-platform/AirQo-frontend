@@ -25,9 +25,15 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>This app needs access to location when open to show air quality data near you.</string>
+    <string>AirQo needs access to your location to show relevant air quality data for your area and help you find nearby air quality monitoring stations.</string>
     <key>NSLocationAlwaysUsageDescription</key>
-    <string>This app needs access to location when in the background to monitor air quality near you.</string>
+    <string>AirQo needs background location access to provide timely air quality alerts and updates for your current location.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>AirQo needs camera access to let you take profile pictures and capture images for feedback.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>AirQo needs photo library access to let you select profile pictures and attach images for feedback.</string>
+    <key>NSUserTrackingUsageDescription</key>
+    <string>This data helps us provide personalized air quality insights and improve app performance.</string>
     <key>UILaunchStoryboardName</key>
     <string>LaunchScreen</string>
     <key>UIMainStoryboardFile</key>
