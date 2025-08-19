@@ -27,7 +27,7 @@ const WelcomePage = () => {
       showInExternalOrg: true,
     },
     {
-      href: "/devices/deploy",
+      href: "/devices/activate",
       label: "Deploy a Device",
       permission: PERMISSIONS.DEVICE.DEPLOY,
       showInPersonal: true,

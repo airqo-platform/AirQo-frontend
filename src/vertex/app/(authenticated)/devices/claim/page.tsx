@@ -103,7 +103,7 @@ const DeviceClaimingPage = () => {
                 </div>
                 <div className="flex gap-4">
                   <Button
-                    onClick={() => router.push(`/devices/deploy?deviceId=${claimedDeviceId}`)}
+                    onClick={() => router.push(`/devices/activate?deviceId=${claimedDeviceId}`)}
                     className="w-40"
                   >
                     Deploy Device
