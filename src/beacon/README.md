@@ -1,4 +1,4 @@
-# AirQo Device Health Monitoring Frontend
+# AirQo Device Health Monitoring Frontend.
 
 ## Node.js Version Requirement
 This project requires **Node.js v22.x**. Please ensure you are using Node.js 22 for development and production environments.
