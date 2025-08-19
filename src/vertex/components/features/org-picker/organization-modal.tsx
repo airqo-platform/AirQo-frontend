@@ -196,7 +196,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
                 />
             </div>
         </div>
-        <div className="flex-grow flex flex-col min-h-0 px-6">
+        <div className="flex-grow flex flex-col min-h-0 px-6 max-h-[450px] overflow-y-auto">
           {renderOrganizationList(filteredGroups)}
         </div>
         <DialogFooter className="p-4 border-t flex-shrink-0">
