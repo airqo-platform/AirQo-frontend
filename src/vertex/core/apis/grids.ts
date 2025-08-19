@@ -1,9 +1,6 @@
-import createAxiosInstance from "./axiosConfig";
-import { DEVICES_MGT_URL } from "../urls";
+import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosError } from "axios";
 import { CreateGrid } from "@/app/types/grids";
-
-const axiosInstance = createAxiosInstance();
 
 interface ErrorResponse {
   message: string;
@@ -12,8 +9,9 @@ interface ErrorResponse {
 export const grids = {
   getGridsApi: async (networkId: string) => {
     try {
-      const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/grids/summary?network=${networkId}`
+      const response = await createSecureApiClient().get(
+        `/devices/grids/summary?network=${networkId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -25,8 +23,9 @@ export const grids = {
   },
   getGridDetailsApi: async (gridId: string) => {
     try {
-      const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/grids/${gridId}`
+      const response = await createSecureApiClient().get(
+        `/devices/grids/${gridId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -41,9 +40,10 @@ export const grids = {
     updatePayload: { name?: string; visibility?: boolean }
   ) => {
     try {
-      const response = await axiosInstance.put(
-        `${DEVICES_MGT_URL}/grids/${gridId}`,
-        updatePayload
+      const response = await createSecureApiClient().put(
+        `/devices/grids/${gridId}`,
+        updatePayload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -55,9 +55,10 @@ export const grids = {
   },
   createGridApi: async (data: CreateGrid) => {
     try {
-      const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}/grids`,
-        data
+      const response = await createSecureApiClient().post(
+        `/devices/grids`,
+        data,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {

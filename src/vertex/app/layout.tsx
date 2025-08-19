@@ -2,6 +2,12 @@ import type React from "react"
 import type { Metadata } from "next"
 import "./globals.css"
 import ClientLayout from "./client-layout"
+import { Inter } from "next/font/google"
+
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: {
@@ -45,5 +51,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <ClientLayout>{children}</ClientLayout>
+  return (
+    <html lang="en" className={inter.className}>
+      <ClientLayout>{children}</ClientLayout>
+    </html>
+  )
 }
