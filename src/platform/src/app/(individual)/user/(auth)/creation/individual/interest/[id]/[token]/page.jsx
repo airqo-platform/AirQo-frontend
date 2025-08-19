@@ -76,6 +76,7 @@ export default function IndividualAccountInterest() {
     step1: false,
     step2: false,
   });
+  const [formError, setFormError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   // --- 1. Process sites data to extract countries and group sites ---
@@ -121,11 +122,8 @@ export default function IndividualAccountInterest() {
             // Optionally provide less intrusive feedback or none
           }
         })
-        .catch((err) => {
-          console.warn('Email verification check completed.', err);
-          if (isMounted) {
-            // CustomToast({ message: 'Email verification check completed.', type: 'info' });
-          }
+        .catch(() => {
+          // Email verification check completed (non-fatal). See server logs for details.
         });
 
       try {
@@ -138,9 +136,9 @@ export default function IndividualAccountInterest() {
             type: 'warning',
           });
         }
-      } catch (err) {
+      } catch {
         if (isMounted) {
-          console.error('Error fetching sites:', err);
+          // Failed to fetch sites. User-visible toast presented.
           CustomToast({ message: 'Failed to load locations.', type: 'error' });
         }
       } finally {
@@ -195,7 +193,7 @@ export default function IndividualAccountInterest() {
         );
       }
     } catch (err) {
-      console.error('API Error saving preferences:', err);
+      // Error saving preferences; user-visible toast presented already.
       CustomToast({
         message: `Error: ${err.message || 'Failed to save locations.'}`,
         type: 'error',
@@ -208,6 +206,9 @@ export default function IndividualAccountInterest() {
   const handleSaveDetails = async () => {
     if (loading.step2 || !userId || !token) return;
 
+    // Clear previous form error
+    setFormError(null);
+
     if (!selectedIndustry || !interestDetails.trim()) {
       CustomToast({ message: 'Please complete all fields.', type: 'error' });
       return;
@@ -217,13 +218,15 @@ export default function IndividualAccountInterest() {
 
     try {
       const payload = {
-        industry: selectedIndustry,
-        interest: interestDetails.trim(),
+        // Backend expects an array of interests even if a single selection is allowed for now
+        interests: [selectedIndustry],
+        interestsDescription: interestDetails.trim(),
       };
+
+      // call API wrapper (wrapper handles API_TOKEN auth); token argument is not required
       const response = await updateUserCreationDetailsWithToken(
         payload,
         userId,
-        token,
       );
 
       if (response?.success) {
@@ -233,14 +236,21 @@ export default function IndividualAccountInterest() {
         });
         router.push('/user/creation/get-started');
       } else {
-        const errorMsg =
-          response?.message || response?.errors || 'Failed to save details.';
-        throw new Error(
-          typeof errorMsg === 'string' ? errorMsg : JSON.stringify(errorMsg),
-        );
+        // Prefer the backend validation message when available
+        const apiError =
+          Array.isArray(response?.errors) && response.errors.length
+            ? response.errors[0].message
+            : response?.message || 'Failed to save details.';
+
+        // Surface the error inline and via toast
+        setFormError(apiError);
+        CustomToast({ message: `Error: ${apiError}`, type: 'error' });
+        // Also throw to be caught by catch for logging
+        throw new Error(apiError);
       }
     } catch (err) {
-      console.error('API Error saving details:', err);
+      // Error saving details; set form error and show toast
+      setFormError(err?.message || 'Failed to save details.');
       CustomToast({
         message: `Error: ${err.message || 'Failed to save details.'}`,
         type: 'error',
@@ -461,6 +471,11 @@ export default function IndividualAccountInterest() {
                 placeholder="E.g., I'm a researcher focusing on PM2.5 trends..."
                 className="w-full rounded-lg"
               />
+              {formError && (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                  {formError}
+                </p>
+              )}
             </div>
 
             <div className="mt-8 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
