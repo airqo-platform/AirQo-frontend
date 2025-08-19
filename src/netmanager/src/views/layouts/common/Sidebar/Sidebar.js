@@ -103,18 +103,6 @@ const allMainPages = [
     permission: PERMISSIONS.SITE.CREATE
   },
   {
-    title: 'Network Monitoring',
-    href: '/manager',
-    icon: <ManageIcon />,
-    permission: PERMISSIONS.DEVICE.VIEW,
-    collapse: true,
-    nested: true,
-    nestItems: [
-      { title: 'Network Map', href: '/manager/map' },
-    ],
-    isNew: true
-  },
-  {
     title: 'Device Registry',
     href: '/registry',
     icon: <AddIcon />,
@@ -267,7 +255,6 @@ const Sidebar = (props) => {
       } else {
         const selectedUserPages = excludePages(allMainPages, [
           'Locate',
-          'Network Monitoring',
           'Location Registry',
           'Device Registry',
           'Host Registry',
@@ -290,7 +277,6 @@ const Sidebar = (props) => {
     } else {
       const selectedUserPages = excludePages(allMainPages, [
         'Locate',
-        'Network Monitoring',
         'Location Registry',
         'Device Registry',
         'Host Registry',

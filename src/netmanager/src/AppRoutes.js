@@ -18,9 +18,6 @@ import ConfirmDialog from './views/containers/ConfirmDialog';
 const Landing = lazy(() => import('./views/layouts/Landing'));
 const Account = lazy(() => import('./views/pages/Account'));
 const DeviceView = lazy(() => import('./views/components/DataDisplay/DeviceView'));
-const ManagerMap = lazy(() =>
-  import('./views/components/DataDisplay/DeviceManagement/ManagementMap')
-);
 const Map = lazy(() => import('./views/components/Map'));
 const OverlayMap = lazy(() => import('./views/pages/Map'));
 const ForgotPassword = lazy(() => import('./views/pages/ForgotPassword'));
@@ -140,7 +137,6 @@ const AppRoutes = ({ auth, logoutUser }) => {
               </MainLayout>
             </Route>
             <PrivateRoute component={Account} exact layout={MainLayout} path="/account" />
-            <PrivateRoute exact path="/manager/map" component={ManagerMap} layout={MainLayout} />
             <PrivateRoute exact path="/hosts" component={HostRegistry} layout={MainLayout} />
             <PrivateRoute exact path="/hosts/:id" component={HostView} layout={MainLayout} />
             <PrivateRoute exact path="/sites" component={SiteRegistry} layout={MainLayout} />
