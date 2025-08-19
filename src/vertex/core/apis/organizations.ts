@@ -1,9 +1,6 @@
-import createAxiosInstance from "./axiosConfig";
-import { USERS_MGT_URL, DEVICES_MGT_URL } from "../urls";
+import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosError } from "axios";
 import { Group } from "@/app/types/groups";
-
-const axiosInstance = createAxiosInstance();
 
 interface ErrorResponse {
   message: string;
@@ -26,7 +23,7 @@ interface CreateOrgInput {
 export const groupsApi = {
   getGroupsApi: async () => {
     try {
-      const response = await axiosInstance.get(`${USERS_MGT_URL}/groups/summary`);
+      const response = await createSecureApiClient().get(`/users/groups/summary`, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -36,7 +33,7 @@ export const groupsApi = {
 
   getGroupDetailsApi: async (groupId: string) => {
     try {
-      const response = await axiosInstance.get(`${USERS_MGT_URL}/groups/${groupId}`);
+      const response = await createSecureApiClient().get(`/users/groups/${groupId}`, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -46,7 +43,7 @@ export const groupsApi = {
 
   updateGroupDetailsApi: async (groupId: string, data: Partial<Group>) => {
     try {
-      const response = await axiosInstance.put(`${USERS_MGT_URL}/groups/${groupId}`, data);
+      const response = await createSecureApiClient().put(`/users/groups/${groupId}`, data, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -56,7 +53,7 @@ export const groupsApi = {
 
   createGroupApi: async (data: CreateOrgInput) => {
     try {
-      const response = await axiosInstance.post(`${USERS_MGT_URL}/groups`, data);
+      const response = await createSecureApiClient().post(`/users/groups`, data);
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -66,10 +63,10 @@ export const groupsApi = {
 
   assignDevicesToGroupApi: async (deviceIds: string[], groups: string[]) => {
     try {
-      const response = await axiosInstance.put(`${DEVICES_MGT_URL}/bulk`, {
+      const response = await createSecureApiClient().put(`/devices/bulk`, {
         deviceIds,
         updateData: { groups },
-      });
+      }, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -79,10 +76,10 @@ export const groupsApi = {
 
   assignSitesToGroupApi: async (siteIds: string[], groups: string[]) => {
     try {
-      const response = await axiosInstance.put(`${DEVICES_MGT_URL}/sites/bulk`, {
+      const response = await createSecureApiClient().put(`/devices/sites/bulk`, {
         siteIds,
         updateData: { groups },
-      });
+      }, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -94,7 +91,7 @@ export const groupsApi = {
 export const groupMembers = {
   getGroupMembersApi: async (groupId: string) => {
     try {
-      const response = await axiosInstance.get(`${USERS_MGT_URL}/groups/${groupId}/assigned-users`);
+      const response = await createSecureApiClient().get(`/users/groups/${groupId}/assigned-users`, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -104,7 +101,7 @@ export const groupMembers = {
 
   inviteUserToGroupTeam: async (groupId: string, userEmail: string) => {
     try {
-      const response = await axiosInstance.post(`${USERS_MGT_URL}/requests/emails/groups/${groupId}`, { emails: [userEmail] });
+      const response = await createSecureApiClient().post(`/users/requests/emails/groups/${groupId}`, { emails: [userEmail] }, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -114,7 +111,7 @@ export const groupMembers = {
 
   acceptGroupTeamInvite: async (groupId: string, userEmail: string) => {
     try {
-      const response = await axiosInstance.post(`${USERS_MGT_URL}/requests/emails/groups/${groupId}/accept`, { email: userEmail });
+      const response = await createSecureApiClient().post(`/users/requests/emails/groups/${groupId}/accept`, { email: userEmail }, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -124,7 +121,7 @@ export const groupMembers = {
 
   updateGroupTeam: async (groupId: string, userEmail: string, role: string) => {
     try {
-      const response = await axiosInstance.put(`${USERS_MGT_URL}/groups/${groupId}/members/${userEmail}`, { role });
+      const response = await createSecureApiClient().put(`/users/groups/${groupId}/members/${userEmail}`, { role }, { headers: { 'X-Auth-Type': 'JWT' } });
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;

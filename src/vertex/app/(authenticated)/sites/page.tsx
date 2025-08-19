@@ -22,9 +22,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useRouter } from "next/navigation";
-import { RouteGuard } from "@/components/route-guard";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useSites } from "@/core/hooks/useSites";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import {
   DropdownMenu,
@@ -150,24 +149,17 @@ export default function SitesPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <ExclamationTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error.message}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   return (
-    <RouteGuard permission="CREATE_UPDATE_AND_DELETE_NETWORK_SITES">
-      <div className="p-6">
+    <RouteGuard 
+      permission="SITE_VIEW"
+      allowedContexts={['airqo-internal', 'external-org']}
+    >
+      <div>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Site Registry</h1>
-          <CreateSiteForm />
+          <h1 className="text-2xl font-semibold">Sites</h1>
+          <div className="flex gap-2">
+            <CreateSiteForm disabled={isLoading || !!error} />
+          </div>
         </div>
 
         <div className="flex items-center gap-2 mb-4">
@@ -178,11 +170,12 @@ export default function SitesPage() {
               className="pl-8"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-2">
+              <Button variant="outline" className="ml-2" disabled={isLoading}>
                 Sort by <ArrowUpDown className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -212,16 +205,16 @@ export default function SitesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("name")}
+                  className={error ? "" : "cursor-pointer"}
+                  onClick={error ? undefined : () => handleSort("name")}
                 >
                   Name{" "}
                   {sortField === "name" && (sortOrder === "asc" ? "↑" : "↓")}
                 </TableHead>
                 <TableHead>Site ID</TableHead>
                 <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("description")}
+                  className={error ? "" : "cursor-pointer"}
+                  onClick={error ? undefined : () => handleSort("description")}
                 >
                   Description{" "}
                   {sortField === "description" &&
@@ -230,8 +223,8 @@ export default function SitesPage() {
                 <TableHead>Country</TableHead>
                 <TableHead>District</TableHead>
                 <TableHead
-                  className="cursor-pointer"
-                  onClick={() => handleSort("isOnline")}
+                  className={error ? "" : "cursor-pointer"}
+                  onClick={error ? undefined : () => handleSort("isOnline")}
                 >
                   Status{" "}
                   {sortField === "isOnline" &&
@@ -281,7 +274,17 @@ export default function SitesPage() {
               {currentSites.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8">
-                    No sites found
+                    {error ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
+                        <p className="text-muted-foreground">Unable to load sites</p>
+                        <p className="text-sm text-muted-foreground">{error.message}</p>
+                      </div>
+                    ) : searchQuery ? (
+                      "No sites found matching your search"
+                    ) : (
+                      "No sites available"
+                    )}
                   </TableCell>
                 </TableRow>
               )}
@@ -290,7 +293,7 @@ export default function SitesPage() {
         </div>
 
         {/* Pagination */}
-        {sortedSites.length > 0 && (
+        {sortedSites.length > 0 && !error && (
           <div className="mt-4 flex justify-center">
             <Pagination>
               <PaginationContent>
