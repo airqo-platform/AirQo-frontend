@@ -42,7 +42,6 @@ const GlobalSideBarDrawer = () => {
       'GROUP_MANAGEMENT',
       'USER_MANAGEMENT',
       'ROLE_VIEW',
-      'USER_MANAGEMENT',
     ],
     activeGroupID,
     'AIRQO_ADMIN',
