@@ -12,7 +12,7 @@ const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   '/devices/my-devices': 'showMyDevices',
   '/devices/overview': 'showDeviceOverview',
   '/devices/claim': 'showClaimDevice',
-  '/devices/activate': 'showDeployDevice',
+  '/devices/deploy': 'showDeployDevice',
   '/grids': 'showGrids',
   '/cohorts': 'showCohorts',
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useSearchParams } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
@@ -13,8 +13,8 @@ const DeployDeviceComponent = dynamic(
 );
 
 const DeployDevicePage = () => {
-  const searchParams = useSearchParams();
-  const deviceIdFromUrl = searchParams.get('deviceId');
+  const params = useParams();
+  const deviceIdFromUrl = params?.id as string;
   const { isPersonalContext } = useUserContext();
   const { devices: allDevices } = useDevices();
 

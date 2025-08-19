@@ -327,7 +327,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     <SubMenuItem href="/devices/claim" label="Claim Device" />
                   )}
                   {sidebarConfig.showDeployDevice && (
-                    <SubMenuItem href="/devices/activate" label="Deploy Device" />
+                    <SubMenuItem href="/devices/deploy" label="Deploy Device" />
                   )}
                 </SidebarDropdown>
               )}

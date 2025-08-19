@@ -31,7 +31,7 @@ const actions = [
         size="sm"
         className="border-primary text-primary hover:bg-primary/10 hover:text-primary focus:ring-primary"
       >
-        <a href="/devices/activate">Deploy a Monitor</a>
+        <a href="/devices/deploy">Deploy a Monitor</a>
       </Button>
     ),
   },
