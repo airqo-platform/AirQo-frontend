@@ -14,7 +14,6 @@ import {
   AqMonitor,
   AqGlobe05,
   AqUser03,
-  AqMarkerPin01,
 } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import {
