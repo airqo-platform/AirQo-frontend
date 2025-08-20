@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Loader2, Upload } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDevices } from "@/core/hooks/useDevices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
@@ -24,14 +24,6 @@ export default function DevicesPage() {
 
   // Permission checks
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
