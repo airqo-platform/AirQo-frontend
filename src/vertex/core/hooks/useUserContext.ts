@@ -175,7 +175,7 @@ export const useUserContext = (): UserContextState => {
           showOrganizations: canViewOrganizations,
           showMyDevices: false,
           showDeviceOverview: canViewDevices,
-          showClaimDevice: false,
+          showClaimDevice: true,
           showDeployDevice: true,
         };
 
@@ -192,7 +192,7 @@ export const useUserContext = (): UserContextState => {
           showOrganizations: false,
           showMyDevices: false,
           showDeviceOverview: canViewDevices,
-          showClaimDevice: false,
+          showClaimDevice: true,
           showDeployDevice: true,
         };
 
