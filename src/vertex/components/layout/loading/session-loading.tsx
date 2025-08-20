@@ -14,13 +14,6 @@ const SessionLoadingState = () => (
                     borderRadius: "50%",
                 }}></div>
             </div>
-
-            <div className="text-center space-y-2">
-                {/* Loading text */}
-                <p className="text-sm animate-pulse transition-colors duration-300 text-gray-600">
-                    Loading session...
-                </p>
-            </div>
         </div>
     </div>
 );

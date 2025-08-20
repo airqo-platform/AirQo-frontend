@@ -4,7 +4,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useDeviceDetails } from "@/core/hooks/useDevices";
 import { Button } from "@/components/ui/button";
 import { Loader2, XCircle, ArrowLeft } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { getElapsedDurationMapper } from "@/lib/utils";
@@ -18,6 +17,7 @@ import RunDeviceTestCard from "@/components/features/devices/run-device-test-car
 import RecallDeviceDialog from "@/components/features/devices/recall-device-dialog";
 import AddMaintenanceLogModal from "@/components/features/devices/add-maintenance-log-modal";
 import { Device } from "@/app/types/devices";
+import PermissionTooltip from "@/components/ui/permission-tooltip";
 
 export default function DeviceDetailsPage() {
     const params = useParams();
@@ -33,7 +33,7 @@ export default function DeviceDetailsPage() {
 
     // Determine deployment status
     const deploymentStatus = device?.status || "unknown";
-    
+
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRecallDialog, setShowRecallDialog] = useState(false);
     const [showDeployModal, setShowDeployModal] = useState(false);
@@ -64,63 +64,83 @@ export default function DeviceDetailsPage() {
                     <ArrowLeft className="w-4 h-4" />
                     Back to Devices
                 </Button>
-                <TooltipProvider>
-                    <div className="flex gap-1">
-                        {/* Action buttons */}
-                        <Tooltip>
-                            <TooltipTrigger asChild>
+                <div className="flex gap-1">
+                    {/* Action buttons */}
+                    {deploymentStatus === "deployed" && (
+                        canRecall ? (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-yellow-800 hover:bg-yellow-700"
+                                onClick={() => setShowRecallDialog(true)}
+                            >
+                                Recall Device
+                            </Button>
+                        ) : (
+                            <PermissionTooltip permission={PERMISSIONS.DEVICE.RECALL}>
                                 <span>
-                                    {deploymentStatus === "deployed" && (
-                                        <Button
-                                            variant="default"
-                                            disabled={!canRecall}
-                                            size="sm"
-                                            className="bg-yellow-800 hover:bg-yellow-700"
-                                            onClick={() => setShowRecallDialog(true)}
-                                        >
-                                            Recall Device
-                                        </Button>
-                                    )}
-                                </span>
-                            </TooltipTrigger>
-                            {!canRecall && deploymentStatus === "deployed" && (
-                                <TooltipContent>Insufficient permissions to recall device</TooltipContent>
-                            )}
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <span>
-                                    {deploymentStatus !== "deployed" && (
-                                        <Button
-                                            variant="default"
-                                            disabled={!canDeploy}
-                                            size="sm"
-                                            className="bg-green-900 hover:bg-green-700"
-                                            onClick={() => setShowDeployModal(true)}
-                                        >
-                                            Deploy Device
-                                        </Button>
-                                    )}
-                                </span>
-                            </TooltipTrigger>
-                            {!canDeploy && deploymentStatus !== "deployed" && (
-                                <TooltipContent>Insufficient permissions to deploy device</TooltipContent>
-                            )}
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <span>
-                                    <Button variant="outline" disabled={!canAddLog} size="sm" onClick={() => setShowMaintenanceLogModal(true)}>
-                                        Add Maintenance Log
+                                    <Button
+                                        variant="default"
+                                        disabled
+                                        size="sm"
+                                        className="bg-yellow-800 hover:bg-yellow-700 opacity-50"
+                                    >
+                                        Recall Device
                                     </Button>
                                 </span>
-                            </TooltipTrigger>
-                            {!canAddLog && (
-                                <TooltipContent>Insufficient permissions to add maintenance log</TooltipContent>
-                            )}
-                        </Tooltip>
-                    </div>
-                </TooltipProvider>
+                            </PermissionTooltip>
+                        )
+                    )}
+
+                    {deploymentStatus !== "deployed" && (
+                        canDeploy ? (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                className="bg-green-900 hover:bg-green-700"
+                                onClick={() => setShowDeployModal(true)}
+                            >
+                                Deploy Device
+                            </Button>
+                        ) : (
+                            <PermissionTooltip permission={PERMISSIONS.DEVICE.DEPLOY}>
+                                <span>
+                                    <Button
+                                        variant="default"
+                                        disabled
+                                        size="sm"
+                                        className="bg-green-900 hover:bg-green-700 opacity-50"
+                                    >
+                                        Deploy Device
+                                    </Button>
+                                </span>
+                            </PermissionTooltip>
+                        )
+                    )}
+
+                    {canAddLog ? (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowMaintenanceLogModal(true)}
+                        >
+                            Add Maintenance Log
+                        </Button>
+                    ) : (
+                        <PermissionTooltip permission={PERMISSIONS.DEVICE.MAINTAIN}>
+                            <span>
+                                <Button
+                                    variant="outline"
+                                    disabled
+                                    size="sm"
+                                    className="opacity-50"
+                                >
+                                    Add Maintenance Log
+                                </Button>
+                            </span>
+                        </PermissionTooltip>
+                    )}
+                </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
                 <DeviceDetailsCard deviceId={deviceId} onShowDetailsModal={() => setShowDetailsModal(true)} />

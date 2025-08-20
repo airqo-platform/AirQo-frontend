@@ -5,12 +5,7 @@ import { useParams } from 'next/navigation';
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices } from "@/core/hooks/useDevices";
 import { Device } from "@/app/types/devices";
-import dynamic from 'next/dynamic';
-
-const DeployDeviceComponent = dynamic(
-  () => import('@/components/features/devices/deploy-device-component'),
-  { ssr: false }
-);
+import DeployDeviceComponent from "@/components/features/devices/deploy-device-component";
 
 const DeployDevicePage = () => {
   const params = useParams();
