@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
-import { setActiveGroup, setUserContext } from "@/core/redux/slices/userSlice";
+import { setActiveGroup, setUserContext, setOrganizationSwitching } from "@/core/redux/slices/userSlice";
 import type { Group } from "@/app/types/users";
 import OrganizationModal from "./organization-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
@@ -26,7 +26,13 @@ const OrganizationPicker: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isPersonalContext } = useUserContext();
 
-  const handleOrganizationChange = (group: Group | "private") => {
+  const handleOrganizationChange = async (group: Group | "private") => {
+    // Dispatch global loading state to Redux
+    dispatch(setOrganizationSwitching({ 
+      isSwitching: true, 
+      switchingTo: group === "private" ? "Private Mode" : group.grp_title 
+    }));
+
     // Validate context change before allowing it
     let newContext: UserContext;
     if (group === "private") {
@@ -40,43 +46,49 @@ const OrganizationPicker: React.FC = () => {
 
     // Validate context change
     if (newContext === "airqo-internal" && !isAirQoStaff) {
-      // Non-staff users cannot access AirQo internal context
-      console.error(
-        "Unauthorized context change attempt: non-staff user trying to access airqo-internal"
-      );
+      console.error("Unauthorized context change attempt");
+      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
       return;
     }
 
-    if (group === "private") {
-      // Set to private mode - keep AirQo as active group but set context to personal
-      const airqoGroup = userGroups.find(
-        (g) => g.grp_title.toLowerCase() === "airqo"
-      );
-      if (airqoGroup) {
-        dispatch(setActiveGroup(airqoGroup));
-        dispatch(setUserContext("personal"));
-        localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
-        localStorage.setItem("userContext", "personal");
+    try {
+      // Update Redux state immediately
+      if (group === "private") {
+        const airqoGroup = userGroups.find(
+          (g) => g.grp_title.toLowerCase() === "airqo"
+        );
+        if (airqoGroup) {
+          dispatch(setActiveGroup(airqoGroup));
+          dispatch(setUserContext("personal"));
+          localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
+          localStorage.setItem("userContext", "personal");
+        } else {
+          dispatch(setUserContext("personal"));
+          localStorage.setItem("userContext", "personal");
+        }
       } else {
-        // If no AirQo group found, still set context to personal
-        dispatch(setUserContext("personal"));
-        localStorage.setItem("userContext", "personal");
+        dispatch(setActiveGroup(group));
+        if (group.grp_title.toLowerCase() === "airqo") {
+          dispatch(setUserContext("airqo-internal"));
+          localStorage.setItem("userContext", "airqo-internal");
+        } else {
+          dispatch(setUserContext("external-org"));
+          localStorage.setItem("userContext", "external-org");
+        }
+        localStorage.setItem("activeGroup", JSON.stringify(group));
       }
-    } else {
-      // Set to organization mode
-      dispatch(setActiveGroup(group));
-      // Determine context based on organization
-      if (group.grp_title.toLowerCase() === "airqo") {
-        dispatch(setUserContext("airqo-internal"));
-        localStorage.setItem("userContext", "airqo-internal");
-      } else {
-        dispatch(setUserContext("external-org"));
-        localStorage.setItem("userContext", "external-org");
-      }
-      localStorage.setItem("activeGroup", JSON.stringify(group));
+
+      router.replace("/");
+      
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error switching organization:", error);
+    } finally {
+      // Clear loading state after a brief delay to ensure smooth transition
+      setTimeout(() => {
+        dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
+      }, 3000);
     }
-    router.replace("/");
-    setIsModalOpen(false);
   };
 
   const getDisplayTitle = () => {
