@@ -9,7 +9,7 @@ interface PermissionTooltipProps {
   message?: string;
 }
 
-export const PermissionTooltip: React.FC<PermissionTooltipProps> = ({
+const PermissionTooltip: React.FC<PermissionTooltipProps> = ({
   permission,
   permissions,
   learnMoreUrl = "https://docs.airqo.net/platform/access-control", // Default docs link

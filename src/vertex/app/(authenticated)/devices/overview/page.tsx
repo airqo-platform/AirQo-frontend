@@ -1,16 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Loader2, Upload } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useDevices } from "@/core/hooks/useDevices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { toast } from "sonner";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { usePermission } from "@/core/hooks/usePermissions";
 import ImportDeviceModal from "@/components/features/devices/import-device-modal";
 import CreateDeviceModal from "@/components/features/devices/create-device-modal";
 import DevicesTable from "@/components/features/devices/device-list-table";
+import PermissionTooltip from "@/components/ui/permission-tooltip";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -20,13 +22,8 @@ export default function DevicesPage() {
   const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
+  // Permission checks
+  const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
 
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
@@ -36,14 +33,37 @@ export default function DevicesPage() {
           <div className="flex gap-2">
             {isAirQoInternal && (
               <>
-                <Button disabled={isLoading || !!error} onClick={() => setCreateDeviceOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add AirQo Device
-                </Button>
-                <Button variant="outline" disabled={isLoading || !!error} onClick={() => setImportDeviceOpen(true)}>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Import Existing Device
-                </Button>
+                {canUpdateDevice ? (
+                  <Button disabled={isLoading || !!error} onClick={() => setCreateDeviceOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add AirQo Device
+                  </Button>
+                ) : (
+                  <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
+                    <span>
+                      <Button disabled className="opacity-50">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add AirQo Device
+                      </Button>
+                    </span>
+                  </PermissionTooltip>
+                )}
+                
+                {canUpdateDevice ? (
+                  <Button variant="outline" disabled={isLoading || !!error} onClick={() => setImportDeviceOpen(true)}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import Existing Device
+                  </Button>
+                ) : (
+                  <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
+                    <span>
+                      <Button variant="outline" disabled className="opacity-50">
+                        <Upload className="mr-2 h-4 w-4" />
+                        Import Existing Device
+                      </Button>
+                    </span>
+                  </PermissionTooltip>
+                )}
               </>
             )}
             {isExternalOrg && (

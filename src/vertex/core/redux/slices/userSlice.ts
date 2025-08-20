@@ -29,6 +29,10 @@ interface UserState {
   isAirQoStaff: boolean;
   canSwitchContext: boolean;
   forbidden: ForbiddenState;
+  organizationSwitching: {
+    isSwitching: boolean;
+    switchingTo: string;
+  };
 }
 
 const initialState: UserState = {
@@ -48,6 +52,10 @@ const initialState: UserState = {
     message: "",
     timestamp: null,
     url: null,
+  },
+  organizationSwitching: {
+    isSwitching: false,
+    switchingTo: "",
   },
 };
 
@@ -155,7 +163,7 @@ const userSlice = createSlice({
     },
     // New action to manually set context (for context switching)
     setUserContext(state, action: PayloadAction<UserContext>) {
-      const { userDetails, isAirQoStaff } = state;
+      const { isAirQoStaff } = state;
       
       // Validate context change
       if (action.payload === 'airqo-internal' && !isAirQoStaff) {
@@ -182,6 +190,9 @@ const userSlice = createSlice({
         url: null,
       };
     },
+    setOrganizationSwitching: (state, action: PayloadAction<{ isSwitching: boolean; switchingTo: string }>) => {
+      state.organizationSwitching = action.payload;
+    },
   },
 });
 
@@ -196,5 +207,6 @@ export const {
   setUserContext,
   setForbiddenState,
   clearForbiddenState,
+  setOrganizationSwitching,
 } = userSlice.actions;
 export default userSlice.reducer;

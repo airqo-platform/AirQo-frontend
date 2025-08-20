@@ -1,5 +1,5 @@
 import { UserDetails, Network, Group } from "@/app/types/users";
-import { PERMISSIONS, Permission } from "./constants";
+import { PERMISSIONS, Permission, mapLegacyPermission } from "./constants";
 
 // Access context for permission checking
 export interface AccessContext {
@@ -35,11 +35,43 @@ class PermissionService {
   }
 
   /**
-   * Detailed permission check with reasoning
-   */
+ * Detailed permission check with reasoning
+ */
   checkPermission(user: UserDetails, permission: Permission, context?: Partial<AccessContext>): PermissionResult {
     if (!user) {
       return { hasPermission: false, reason: "User not authenticated" };
+    }
+
+    // 0. Fast-path: respect active organization role permissions if provided in context
+    const activeOrg = context?.activeOrganization;
+    // Build new-permission set from active org role permissions
+    const activeOrgNewPerms = new Set<Permission>();
+    activeOrg?.role?.role_permissions?.forEach((rp) => {
+      const perm = rp.permission as string;
+
+      const ALL_PERMISSIONS = new Set<Permission>(
+        (Object.values(PERMISSIONS) as Array<Record<string, Permission>>)
+          .flatMap(group => Object.values(group))
+      );
+
+      const isNewPermission = ALL_PERMISSIONS.has(perm as Permission);
+
+      if (isNewPermission) {
+        activeOrgNewPerms.add(perm as Permission);
+        return;
+      }
+
+      // Otherwise map legacy → new
+      mapLegacyPermission(perm).forEach((p) => activeOrgNewPerms.add(p));
+    });
+
+    if (activeOrg && activeOrgNewPerms.has(permission)) {
+      return {
+        hasPermission: true,
+        reason: "Granted by active organization role",
+        role: activeOrg.role?.role_name,
+        organizationContext: activeOrg._id,
+      };
     }
 
     // 1. Check if user is AIRQO_SUPER_ADMIN (system-wide override)
@@ -65,66 +97,53 @@ class PermissionService {
       };
     }
 
-    // 4. Check organization context if applicable
-    if (context?.activeOrganization && this.isOrganizationPermission(permission)) {
-      const orgPermissions = this.getOrganizationPermissions(user, context.activeOrganization._id);
-      if (orgPermissions.includes(permission)) {
-        return {
-          hasPermission: true,
-          reason: "User has permission in organization context",
-          role: this.getUserRole(user, context.activeOrganization._id),
-          organizationContext: context.activeOrganization._id,
-        };
-      }
-    }
-
+    // 4. Fallback deny
     return {
       hasPermission: false,
       reason: `User lacks permission: ${permission}`,
       role: this.getUserRole(user, context?.activeOrganization?._id),
       organizationContext: context?.activeOrganization?._id,
     };
+
   }
 
   /**
    * Get user's effective permissions (including inherited)
    */
+
   getEffectivePermissions(user: UserDetails, organizationId?: string): Permission[] {
     if (!user) return [];
 
     const permissions = new Set<Permission>();
 
-    // Add permissions from user's networks
+    // helper to add new-style permissions (handles legacy strings)
+    const addPerm = (permStr: string | undefined) => {
+      if (!permStr) return;
+      const mapped = mapLegacyPermission(permStr);
+      if (mapped.length === 0) return;
+      mapped.forEach((p) => permissions.add(p));
+    };
+
+    // From user's networks
     if (user.networks) {
       user.networks.forEach((network) => {
-        if (network.role?.role_permissions) {
-          network.role.role_permissions.forEach((permission) => {
-            if (permission.permission) {
-              permissions.add(permission.permission as Permission);
-            }
-          });
-        }
+        network.role?.role_permissions?.forEach((rp) => addPerm(rp.permission));
       });
     }
 
-    // Add permissions from user's groups
+    // From user's groups
     if (user.groups) {
       user.groups.forEach((group) => {
-        if (group.role?.role_permissions) {
-          group.role.role_permissions.forEach((permission) => {
-            if (permission.permission) {
-              permissions.add(permission.permission as Permission);
-            }
-          });
-        }
+        group.role?.role_permissions?.forEach((rp) =>
+          addPerm(rp.permission)
+        )
       });
     }
 
-    // Filter by organization if specified
     if (organizationId) {
-      return Array.from(permissions).filter((permission) => {
-        return this.hasPermissionInOrganization(user, permission, organizationId);
-      });
+      return Array.from(permissions).filter((p) =>
+        this.hasPermissionInOrganization(user, p, organizationId)
+      );
     }
 
     return Array.from(permissions);
@@ -191,14 +210,14 @@ class PermissionService {
 
     // Check if user has SUPER_ADMIN permission in any network
     if (user.networks) {
-      return user.networks.some((network) => 
+      return user.networks.some((network) =>
         network.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
       );
     }
 
     // Check if user has SUPER_ADMIN permission in any group
     if (user.groups) {
-      return user.groups.some((group) => 
+      return user.groups.some((group) =>
         group.role?.role_permissions?.some((p) => p.permission === PERMISSIONS.SYSTEM.SUPER_ADMIN)
       );
     }
@@ -328,58 +347,58 @@ class PermissionService {
       [PERMISSIONS.SYSTEM.SUPER_ADMIN]: "Complete system access with ability to override any restrictions",
       [PERMISSIONS.SYSTEM.SYSTEM_ADMIN]: "System-wide administrative access",
       [PERMISSIONS.SYSTEM.DATABASE_ADMIN]: "Database administration access",
-      
+
       [PERMISSIONS.ORGANIZATION.CREATE]: "Create new organizations",
       [PERMISSIONS.ORGANIZATION.VIEW]: "View organization information",
       [PERMISSIONS.ORGANIZATION.UPDATE]: "Update organization settings",
       [PERMISSIONS.ORGANIZATION.DELETE]: "Delete organizations",
       [PERMISSIONS.ORGANIZATION.APPROVE]: "Approve organization requests",
       [PERMISSIONS.ORGANIZATION.REJECT]: "Reject organization requests",
-      
+
       [PERMISSIONS.GROUP.VIEW]: "View group information",
       [PERMISSIONS.GROUP.CREATE]: "Create new groups",
       [PERMISSIONS.GROUP.EDIT]: "Edit group settings",
       [PERMISSIONS.GROUP.DELETE]: "Delete groups",
       [PERMISSIONS.GROUP.MANAGEMENT]: "Full group management access",
-      
+
       [PERMISSIONS.USER.VIEW]: "View user information",
       [PERMISSIONS.USER.CREATE]: "Create new users",
       [PERMISSIONS.USER.EDIT]: "Edit user information",
       [PERMISSIONS.USER.DELETE]: "Delete users",
       [PERMISSIONS.USER.MANAGEMENT]: "Full user management access",
       [PERMISSIONS.USER.INVITE]: "Invite new users",
-      
+
       [PERMISSIONS.MEMBER.VIEW]: "View organization members",
       [PERMISSIONS.MEMBER.INVITE]: "Invite new members",
       [PERMISSIONS.MEMBER.REMOVE]: "Remove members",
       [PERMISSIONS.MEMBER.SEARCH]: "Search members",
       [PERMISSIONS.MEMBER.EXPORT]: "Export member data",
-      
+
       [PERMISSIONS.ROLE.VIEW]: "View roles and permissions",
       [PERMISSIONS.ROLE.CREATE]: "Create new roles",
       [PERMISSIONS.ROLE.EDIT]: "Edit existing roles",
       [PERMISSIONS.ROLE.DELETE]: "Delete roles",
       [PERMISSIONS.ROLE.ASSIGNMENT]: "Assign roles to users",
-      
+
       [PERMISSIONS.DEVICE.VIEW]: "View device information",
       [PERMISSIONS.DEVICE.DEPLOY]: "Deploy devices to sites",
       [PERMISSIONS.DEVICE.RECALL]: "Recall devices from deployment",
       [PERMISSIONS.DEVICE.MAINTAIN]: "Perform device maintenance",
       [PERMISSIONS.DEVICE.UPDATE]: "Update device configuration",
       [PERMISSIONS.DEVICE.DELETE]: "Delete device records",
-      
+
       [PERMISSIONS.SITE.VIEW]: "View site information",
       [PERMISSIONS.SITE.CREATE]: "Create new sites",
       [PERMISSIONS.SITE.UPDATE]: "Update site information",
       [PERMISSIONS.SITE.DELETE]: "Delete sites",
-      
+
       [PERMISSIONS.ANALYTICS.DASHBOARD_VIEW]: "View dashboard",
       [PERMISSIONS.ANALYTICS.ANALYTICS_VIEW]: "View analytics and reports",
       [PERMISSIONS.ANALYTICS.ANALYTICS_EXPORT]: "Export analytics data",
       [PERMISSIONS.ANALYTICS.DATA_VIEW]: "View data",
       [PERMISSIONS.ANALYTICS.DATA_EXPORT]: "Export data",
       [PERMISSIONS.ANALYTICS.DATA_COMPARE]: "Compare data across sources",
-      
+
       [PERMISSIONS.SETTINGS.VIEW]: "View system settings",
       [PERMISSIONS.SETTINGS.EDIT]: "Edit system settings",
       [PERMISSIONS.SETTINGS.GROUP_SETTINGS]: "Manage group-specific settings",
