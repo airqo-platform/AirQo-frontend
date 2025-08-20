@@ -1,3 +1,5 @@
+"use client";
+
 // Loading component for session loading
 const SessionLoadingState = () => (
     <div className="fixed inset-0 z-[99999] flex flex-col justify-center items-center transition-colors duration-300" style={{

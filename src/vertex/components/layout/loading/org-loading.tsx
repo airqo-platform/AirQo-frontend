@@ -1,3 +1,5 @@
+"use client";
+
 // Loading component for organization switching
 const OrganizationLoadingState = ({ organizationName }: { organizationName: string }) => (
     <div className="fixed inset-0 z-[99999] flex flex-col justify-center items-center transition-colors duration-300" style={{
