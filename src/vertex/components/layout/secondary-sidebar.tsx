@@ -14,6 +14,8 @@ import {
   AqMonitor,
   AqGlobe05,
   AqUser03,
+  AqAirQlouds,
+  AqMarkerPin01,
 } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -332,7 +334,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
               )}
 
               {/* Sites - only for non-personal contexts */}
-              {/* {sidebarConfig.showSites && contextPermissions.canViewSites && (
+              {sidebarConfig.showSites && contextPermissions.canViewSites && (
                 <NavItem
                   href="/sites"
                   icon={AqMarkerPin01}
@@ -340,12 +342,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                   isCollapsed={isCollapsed}
                   disabled={false}
                 />
-              )} */}
+              )}
 
-              {/* {sidebarConfig.showGrids && contextPermissions.canViewSites && (
+              {sidebarConfig.showGrids && contextPermissions.canViewSites && (
               <NavItem
                 href="/grids"
-                icon={Grid}
+                icon={AqAirQlouds}
                 label="Grids"
                 isCollapsed={isCollapsed}
                 disabled={false}
@@ -360,7 +362,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 isCollapsed={isCollapsed}
                 disabled={false}
               />
-            )} */}
+            )}
             </>
           )}
 

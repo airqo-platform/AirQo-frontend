@@ -20,7 +20,7 @@ const DeployDeviceModal: React.FC<DeployDeviceModalProps> = ({ open, onOpenChang
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="h-screen w-screen max-w-none max-h-none m-0 p-0 rounded-none">
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto p-6">
           <DeployDeviceComponent 
             prefilledDevice={device} 
             onClose={handleClose}

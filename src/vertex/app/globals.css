@@ -5,6 +5,8 @@
 @layer base {
   :root {
     /* Light mode defaults */
+  --color-primary: #145fff;
+  --color-primary-rgb: 20, 95, 255;
     --background: #f6f6f7;
     --text: #1f2937;
     --border: #e5e7eb;
@@ -92,6 +94,32 @@
   }
 }
 
+/* Animations */
+@keyframes slide-in {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out forwards;
+}
+
+/* HTML: spinner */
+.SecondaryMainloader {
+  width: 50px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(farthest-side, var(--color-primary) 94%, #0000) top/8px 8px
+      no-repeat,
+    conic-gradient(#0000 30%, var(--color-primary));
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  animation: l13 1s infinite linear;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -110,15 +138,3 @@
   background: var(--scrollbar-hover);
 }
 
-/* Animations */
-@keyframes slide-in {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
-}

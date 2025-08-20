@@ -7,9 +7,10 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertTriangle, Loader2, Lock } from "lucide-react";
+import { AlertTriangle, Lock } from "lucide-react";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
+import SessionLoadingState from "../loading/session-loading";
 
 interface RouteGuardProps {
   permission: Permission;
@@ -48,7 +49,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   }, [hasAccess, router, redirectTo]);
 
   if(!userContext) {
-    return <div className="flex justify-center items-center container"><Loader2 className="w-8 h-8 animate-spin" /></div>
+    return <SessionLoadingState />
   }
 
   if (!hasAccess) {
