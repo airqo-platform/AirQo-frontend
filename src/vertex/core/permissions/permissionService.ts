@@ -78,8 +78,8 @@ class PermissionService {
     if (this.isSuperAdmin(user)) {
       return {
         hasPermission: true,
-        reason: "User has SUPER_ADMIN role with system-wide access",
-        role: "SUPER_ADMIN",
+        reason: "User has AIRQO_SUPER_ADMIN role with system-wide access",
+        role: "AIRQO_SUPER_ADMIN",
         canOverride: true,
       };
     }
