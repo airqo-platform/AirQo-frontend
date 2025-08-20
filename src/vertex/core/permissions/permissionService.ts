@@ -44,10 +44,24 @@ class PermissionService {
 
     // 0. Fast-path: respect active organization role permissions if provided in context
     const activeOrg = context?.activeOrganization;
+    // Build new-permission set from active org role permissions
     const activeOrgNewPerms = new Set<Permission>();
     activeOrg?.role?.role_permissions?.forEach((rp) => {
-      mapLegacyPermission(rp.permission).forEach((p) => activeOrgNewPerms.add(p));
+      const perm = rp.permission as string;
+
+      // If it's already a new-style permission, add directly
+      const isNewPermission = Object.values(PERMISSIONS).some((group: any) =>
+        Object.values(group).includes(perm)
+      );
+      if (isNewPermission) {
+        activeOrgNewPerms.add(perm as Permission);
+        return;
+      }
+
+      // Otherwise map legacy → new
+      mapLegacyPermission(perm).forEach((p) => activeOrgNewPerms.add(p));
     });
+
     if (activeOrg && activeOrgNewPerms.has(permission)) {
       return {
         hasPermission: true,
@@ -61,8 +75,8 @@ class PermissionService {
     if (this.isSuperAdmin(user)) {
       return {
         hasPermission: true,
-        reason: "User has AIRQO_SUPER_ADMIN role with system-wide access",
-        role: "AIRQO_SUPER_ADMIN",
+        reason: "User has AIRQO_ADMIN role with system-wide access",
+        role: "AIRQO_ADMIN",
         canOverride: true,
       };
     }
@@ -117,7 +131,9 @@ class PermissionService {
     // From user's groups
     if (user.groups) {
       user.groups.forEach((group) => {
-        group.role?.role_permissions?.forEach((rp) => addPerm(rp.permission));
+        group.role?.role_permissions?.forEach((rp) =>
+          addPerm(rp.permission)
+        )
       });
     }
 
