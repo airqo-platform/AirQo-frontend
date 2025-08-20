@@ -49,10 +49,13 @@ class PermissionService {
     activeOrg?.role?.role_permissions?.forEach((rp) => {
       const perm = rp.permission as string;
 
-      // If it's already a new-style permission, add directly
-      const isNewPermission = Object.values(PERMISSIONS).some((group: any) =>
-        Object.values(group).includes(perm)
+      const ALL_PERMISSIONS = new Set<Permission>(
+        (Object.values(PERMISSIONS) as Array<Record<string, Permission>>)
+          .flatMap(group => Object.values(group))
       );
+
+      const isNewPermission = ALL_PERMISSIONS.has(perm as Permission);
+
       if (isNewPermission) {
         activeOrgNewPerms.add(perm as Permission);
         return;
