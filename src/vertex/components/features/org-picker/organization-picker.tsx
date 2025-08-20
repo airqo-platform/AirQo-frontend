@@ -9,6 +9,7 @@ import OrganizationModal from "./organization-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
+import { useRouter } from "next/navigation";
 
 const formatTitle = (title: string) => {
   if (!title) return "";
@@ -17,6 +18,7 @@ const formatTitle = (title: string) => {
 
 const OrganizationPicker: React.FC = () => {
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const userContext = useAppSelector((state) => state.user.userContext);
@@ -73,6 +75,7 @@ const OrganizationPicker: React.FC = () => {
       }
       localStorage.setItem("activeGroup", JSON.stringify(group));
     }
+    router.replace("/");
     setIsModalOpen(false);
   };
 

@@ -14,6 +14,7 @@ import {
   AqMonitor,
   AqGlobe05,
   AqUser03,
+  AqAirQlouds,
 } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -342,10 +343,10 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 />
               )} */}
 
-              {/* {sidebarConfig.showGrids && contextPermissions.canViewSites && (
+              {sidebarConfig.showGrids && contextPermissions.canViewSites && (
               <NavItem
                 href="/grids"
-                icon={Grid}
+                icon={AqAirQlouds}
                 label="Grids"
                 isCollapsed={isCollapsed}
                 disabled={false}
@@ -360,7 +361,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 isCollapsed={isCollapsed}
                 disabled={false}
               />
-            )} */}
+            )}
             </>
           )}
 

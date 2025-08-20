@@ -1,5 +1,5 @@
 import { UserDetails, Network, Group } from "@/app/types/users";
-import { PERMISSIONS, Permission } from "./constants";
+import { PERMISSIONS, Permission, mapLegacyPermission } from "./constants";
 
 // Access context for permission checking
 export interface AccessContext {
@@ -44,9 +44,11 @@ class PermissionService {
 
     // 0. Fast-path: respect active organization role permissions if provided in context
     const activeOrg = context?.activeOrganization;
-    const activeOrgPerms =
-      activeOrg?.role?.role_permissions?.map((p) => p.permission) ?? [];
-    if (activeOrg && activeOrgPerms.includes(permission)) {
+    const activeOrgNewPerms = new Set<Permission>();
+    activeOrg?.role?.role_permissions?.forEach((rp) => {
+      mapLegacyPermission(rp.permission).forEach((p) => activeOrgNewPerms.add(p));
+    });
+    if (activeOrg && activeOrgNewPerms.has(permission)) {
       return {
         hasPermission: true,
         reason: "Granted by active organization role",
@@ -91,42 +93,38 @@ class PermissionService {
   /**
    * Get user's effective permissions (including inherited)
    */
+
   getEffectivePermissions(user: UserDetails, organizationId?: string): Permission[] {
     if (!user) return [];
 
     const permissions = new Set<Permission>();
 
-    // Add permissions from user's networks
+    // helper to add new-style permissions (handles legacy strings)
+    const addPerm = (permStr: string | undefined) => {
+      if (!permStr) return;
+      const mapped = mapLegacyPermission(permStr);
+      if (mapped.length === 0) return;
+      mapped.forEach((p) => permissions.add(p));
+    };
+
+    // From user's networks
     if (user.networks) {
       user.networks.forEach((network) => {
-        if (network.role?.role_permissions) {
-          network.role.role_permissions.forEach((permission) => {
-            if (permission.permission) {
-              permissions.add(permission.permission as Permission);
-            }
-          });
-        }
+        network.role?.role_permissions?.forEach((rp) => addPerm(rp.permission));
       });
     }
 
-    // Add permissions from user's groups
+    // From user's groups
     if (user.groups) {
       user.groups.forEach((group) => {
-        if (group.role?.role_permissions) {
-          group.role.role_permissions.forEach((permission) => {
-            if (permission.permission) {
-              permissions.add(permission.permission as Permission);
-            }
-          });
-        }
+        group.role?.role_permissions?.forEach((rp) => addPerm(rp.permission));
       });
     }
 
-    // Filter by organization if specified
     if (organizationId) {
-      return Array.from(permissions).filter((permission) => {
-        return this.hasPermissionInOrganization(user, permission, organizationId);
-      });
+      return Array.from(permissions).filter((p) =>
+        this.hasPermissionInOrganization(user, p, organizationId)
+      );
     }
 
     return Array.from(permissions);
