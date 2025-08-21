@@ -66,36 +66,38 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
             siteDetails.formattedName ??
             "Unknown location";
   }
-  
-  void _shareAirQualityData() async {
-  try {
-    final location = _getLocationDescription(widget.measurement);
-    final locationId = widget.measurement.siteDetails?.id ?? '';
-    final deepLink = 'https://airqo.page.link/$locationId';
 
-    final shareText = '''
+  void _shareAirQualityData() async {
+    try {
+      final location = _getLocationDescription(widget.measurement);
+      //final locationId = widget.measurement.siteId ?? '';
+      final deepLink =
+          'https://airqo.net/products/mobile-app';
+
+      final shareText = '''
 Check out the Air Quality of $location on the AirQo app!
 👉 $deepLink
 ''';
-    // Load AirQo logo from assets
-    final byteData = await rootBundle.load('assets/images/airQo_logo.png');
-   
-    final tempDir = await getTemporaryDirectory();
-    final logoFile = await File('${tempDir.path}/airqo_logo_${DateTime.now().millisecondsSinceEpoch}.png').writeAsBytes(
-      byteData.buffer.asUint8List(),
-    );
-      
+      // Load AirQo logo from assets
+      final byteData = await rootBundle.load('assets/images/airQo_logo.png');
+
+      final tempDir = await getTemporaryDirectory();
+      final logoFile = await File(
+              '${tempDir.path}/airqo_logo_${DateTime.now().millisecondsSinceEpoch}.png')
+          .writeAsBytes(
+        byteData.buffer.asUint8List(),
+      );
+
       // Share with logo and text
       await Share.shareXFiles(
         [XFile(logoFile.path)],
         text: shareText,
         subject: 'Air Quality Update from AirQo',
       );
-      
-  } catch (e) {
-    print("Error sharing data: $e");
+    } catch (e) {
+      print("Error sharing data: $e");
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
