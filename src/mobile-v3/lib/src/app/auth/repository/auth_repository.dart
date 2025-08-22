@@ -49,11 +49,18 @@ class AuthImpl extends AuthRepository {
       },
     );
 
-    final data = json.decode(loginResponse.body);
+    Map<String, dynamic> data = {};
+    try {
+      final decoded = jsonDecode(loginResponse.body);
+      if (decoded is Map<String, dynamic>) data = decoded;
+    } catch (_) {
+      loggy.warning('AuthRepository: Non-JSON login response');
+    }
 
     if (loginResponse.statusCode != 200) {
-      loggy.error('AuthRepository: Login failed - ${data['message']}');
-      throw Exception(data['message']);
+      final msg = (data['message'] as String?) ?? 'Login failed. Please try again.';
+      loggy.error('AuthRepository: Login failed - $msg');
+      throw Exception(msg);
     }
 
     final String userId = data["_id"];
