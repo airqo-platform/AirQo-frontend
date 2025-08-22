@@ -91,11 +91,6 @@ const allMainPages = [
     icon: <MapIcon />,
   },
   {
-    title: 'Export data',
-    href: '/export-data/options',
-    icon: <CloudDownloadIcon />,
-  },
-  {
     title: 'Deploy Device',
     href: '/deploy-device',
     icon: <DeviceHubIcon />,
@@ -106,20 +101,6 @@ const allMainPages = [
     href: '/locate',
     icon: <LocateIcon />,
     permission: PERMISSIONS.SITE.CREATE
-  },
-  {
-    title: 'Network Monitoring',
-    href: '/manager',
-    icon: <ManageIcon />,
-    permission: PERMISSIONS.DEVICE.VIEW,
-    collapse: true,
-    nested: true,
-    nestItems: [
-      { title: 'Network Map', href: '/manager/map' },
-      { title: 'Network Statistics', href: '/manager/stats' },
-      { title: 'Network Activity Logs', href: '/manager/activities' }
-    ],
-    isNew: true
   },
   {
     title: 'Device Registry',
@@ -274,7 +255,6 @@ const Sidebar = (props) => {
       } else {
         const selectedUserPages = excludePages(allMainPages, [
           'Locate',
-          'Network Monitoring',
           'Location Registry',
           'Device Registry',
           'Host Registry',
@@ -297,7 +277,6 @@ const Sidebar = (props) => {
     } else {
       const selectedUserPages = excludePages(allMainPages, [
         'Locate',
-        'Network Monitoring',
         'Location Registry',
         'Device Registry',
         'Host Registry',
