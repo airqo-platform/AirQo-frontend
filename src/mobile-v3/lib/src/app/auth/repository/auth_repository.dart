@@ -239,8 +239,15 @@ class AuthImpl extends AuthRepository {
       return data['message'] ?? 'Password reset successful.';
     }
 
-    final error =
-        jsonDecode(response.body)['message'] ?? 'Failed to reset password.';
+    String error = 'Failed to reset password.';
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        error = (decoded['message'] as String?) ?? error;
+      }
+    } catch (_) {
+      // keep fallback
+    }
     loggy.error('AuthRepository: Password reset failed - $error');
     throw Exception(error);
   }
