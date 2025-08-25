@@ -13,6 +13,18 @@ class ConnectivityOnline extends ConnectivityState {}
 
 class ConnectivityOffline extends ConnectivityState {
   final bool isDismissed;
+  final bool reappeared;
 
-  ConnectivityOffline([this.isDismissed = false]);
+  const ConnectivityOffline(
+      {this.isDismissed = false, this.reappeared = false});
+
+  @override
+  List<Object> get props => [isDismissed, reappeared];
+
+  ConnectivityOffline copyWith({bool? isDismissed, bool? reappeared}) {
+    return ConnectivityOffline(
+      isDismissed: isDismissed ?? this.isDismissed,
+      reappeared: reappeared ?? this.reappeared,
+    );
+  }
 }
