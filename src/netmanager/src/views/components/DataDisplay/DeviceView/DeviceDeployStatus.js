@@ -318,7 +318,6 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
         setSelectVisible(false);
         setrecallLoading(true);
         await handleRecall(selectedRecallType);
-        window.location.reload();
         setrecallLoading(false);
         setSelectedRecallType('');
       }
@@ -534,7 +533,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
-      lastName: parsedData.lastName
+      lastName: parsedData.lastName,
+      date: new Date().toISOString()
     };
 
     // Add user_id only if it exists
