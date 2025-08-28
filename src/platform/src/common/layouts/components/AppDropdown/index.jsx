@@ -5,10 +5,11 @@ import {
   AqCalibration,
   AqBarChartSquarePlus,
   AqGlobe02Maps_Travel,
-  AqFile07,
+  AqBookOpen01,
   AqPhone01,
   AqArrowNarrowLeft,
   AqCpuChip01,
+  AqServer03,
 } from '@airqo/icons-react';
 import { FaGooglePlay, FaApple } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -27,7 +28,9 @@ const AppDropdown = ({ className = '' }) => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const getUrl = (baseUrl) => {
@@ -62,13 +65,13 @@ const AppDropdown = ({ className = '' }) => {
     },
     {
       name: 'Vertex',
-      icon: AqCpuChip01,
+      icon: AqServer03,
       href: getUrl('https://vertex.airqo.net/'),
       color: 'bg-yellow-500',
     },
     {
       name: 'API Docs',
-      icon: AqFile07,
+      icon: AqBookOpen01,
       href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
       color: 'bg-orange-500',
     },
