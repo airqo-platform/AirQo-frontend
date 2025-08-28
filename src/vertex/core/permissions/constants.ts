@@ -62,6 +62,7 @@ export const PERMISSIONS = {
     MAINTAIN: 'DEVICE_MAINTAIN',
     UPDATE: 'DEVICE_UPDATE',
     DELETE: 'DEVICE_DELETE',
+    CLAIM: 'DEVICE_CLAIM'
   },
   
   // Site permissions

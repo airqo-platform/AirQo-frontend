@@ -63,7 +63,7 @@ const DeviceClaimingPage = () => {
   const deviceStatus = availabilityData?.data?.status;
 
   return (
-    <RouteGuard permission={PERMISSIONS.DEVICE.UPDATE}>
+    <RouteGuard permission={PERMISSIONS.DEVICE.CLAIM}>
       <div>
         {/* Dismissible Info Section */}
         {showInfo && (

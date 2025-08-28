@@ -4,6 +4,7 @@ import * as React from "react";
 import { QueryClient, useQuery } from '@tanstack/react-query';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
+import { AqChevronDown, AqChevronUp } from '@airqo/icons-react';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -309,7 +310,7 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
         <CardHeader className="cursor-pointer select-none py-0 px-2" onClick={() => onHeaderClick(stepIndex)}>
           <CardTitle className="text-lg font-semibold flex items-center justify-between">
             {title}
-            <span className="ml-2 text-base">▼</span>
+            <span className="ml-2 text-base">{currentStep === stepIndex ? <AqChevronUp/> : <AqChevronDown />}</span>
           </CardTitle>
         </CardHeader>
       </CollapsibleTrigger>
@@ -319,14 +320,6 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
       </CollapsibleContent>
     </Collapsible>
   </Card>
-);
-
-// Add SummaryItem component
-const SummaryItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div>
-    <div className="text-primary font-semibold text-sm">{label}</div>
-    <div className="text-base">{value}</div>
-  </div>
 );
 
 const queryClient = new QueryClient();
@@ -563,19 +556,6 @@ const DeployDeviceComponent = ({
     },
   ];
 
-  // In the sidebar summary section:
-  const summaryFields = [
-    { label: "Device", value: deviceData.deviceName || "-" },
-    { label: "Height", value: `${deviceData.height || "-"} m` },
-    { label: "Mount", value: deviceData.mountType || "-" },
-    { label: "Power", value: deviceData.powerType || "-" },
-    { label: "Site Name", value: deviceData.siteName || "-" },
-    { label: "Lat", value: deviceData.latitude || "-" },
-    { label: "Lng", value: deviceData.longitude || "-" },
-    { label: "Primary", value: deviceData.isPrimarySite ? "Yes" : "No" },
-    { label: "Network", value: deviceData.network || "-" },
-  ];
-
   return (
     <div className="flex flex-col md:flex-row gap-8 h-full">
       {/* Main Steps Column */}
@@ -593,43 +573,6 @@ const DeployDeviceComponent = ({
             {step.content}
           </StepCard>
         ))}
-      </div>
-      {/* Sidebar */}
-      <div className="w-full md:w-80 flex-shrink-0">
-        <div className="sticky top-8">
-          <Card className="p-3 md:p-4">
-            <Collapsible defaultOpen>
-              <CollapsibleTrigger asChild>
-                <CardHeader className="cursor-pointer select-none py-0 px-2">
-                  <CardTitle className="text-lg flex items-center justify-between">
-                    Summary
-                    <span className="ml-2 text-base">▼</span>
-                  </CardTitle>
-                </CardHeader>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <CardContent
-                  className="space-y-4 px-2 pb-2 pt-2"
-                  style={{ maxHeight: '40vh', overflowY: 'auto' }}
-                >
-                  {summaryFields.map((item) => (
-                    <SummaryItem key={item.label} label={item.label} value={item.value} />
-                  ))}
-                </CardContent>
-              </CollapsibleContent>
-              <CardFooter className="flex flex-col gap-2 border-t py-2 px-2">
-                <Button
-                  type="submit"
-                  onClick={handleDeploy}
-                  className="w-full"
-                  disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isPending}
-                >
-                  {deployDevice.isPending ? "Deploying..." : "Deploy"}
-                </Button>
-              </CardFooter>
-            </Collapsible>
-          </Card>
-        </div>
       </div>
     </div>
   );
