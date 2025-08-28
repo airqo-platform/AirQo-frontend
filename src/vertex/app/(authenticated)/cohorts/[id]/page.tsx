@@ -41,12 +41,6 @@ export default function CohortDetailsPage() {
 
   const devices = useMemo(() => cohort?.devices || [], [cohort]);
 
-  // Optional: wire up save to API when available
-  const handleSaveDetails = async ({ name, visibility }: { name: string; visibility: boolean }) => {
-    // TODO: call update cohort API when implemented, then optimistically update local UI or refetch
-    setCohortDetails((prev) => ({ ...prev, name, visibility: visibility }));
-  };
-
   return (
     <RouteGuard permission="DEVICE_VIEW">
       <div>
@@ -93,7 +87,6 @@ export default function CohortDetailsPage() {
               onOpenChange={setShowDetailsModal}
               cohortDetails={cohortDetails}
               onClose={handleCloseDetails}
-              onSave={handleSaveDetails}
             />
           </div>
         )}

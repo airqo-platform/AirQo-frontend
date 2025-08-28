@@ -25,7 +25,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
         <div>
           <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Visibility</div>
           <Badge variant={visibility ? "default" : "secondary"}>
-            {visibility ? "Visible" : "Hidden"}
+            {visibility ? "Public" : "Private"}
           </Badge>
         </div>
 

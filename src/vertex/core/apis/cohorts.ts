@@ -1,3 +1,4 @@
+import { Cohort } from "@/app/types/cohorts";
 import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosError } from "axios";
 
@@ -27,6 +28,21 @@ export const cohorts = {
       const axiosError = error as AxiosError<{ message?: string }>;
       throw new Error(
         axiosError.response?.data?.message || "Failed to fetch cohort information"
+      );
+    }
+  },
+  updateCohortDetailsApi: async (cohortId: string, cohortData: Partial<Cohort>) => {
+    try {
+      const response = await createSecureApiClient().put(
+        `/devices/cohorts/${cohortId}`,
+        cohortData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to update cohort information"
       );
     }
   }
