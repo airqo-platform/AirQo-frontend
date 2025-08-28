@@ -5,6 +5,9 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React, { useEffect, useState } from "react";
 import { useUpdateCohortDetails } from "@/core/hooks/useCohorts";
+import { usePermission } from "@/core/hooks/usePermissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
+import PermissionTooltip from "@/components/ui/permission-tooltip";
 
 interface CohortDetailsModalProps {
     open: boolean;
@@ -25,6 +28,7 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
 }) => {
     const [form, setForm] = useState({ name: cohortDetails.name, visibility: cohortDetails.visibility });
     const updateCohort = useUpdateCohortDetails();
+    const canUpdate = usePermission(PERMISSIONS.DEVICE.UPDATE);
 
     useEffect(() => {
         setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
@@ -39,17 +43,17 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         const updates: Partial<{ name: string; visibility: boolean }> = {};
         if (form.name !== cohortDetails.name) updates.name = form.name;
         if (form.visibility !== cohortDetails.visibility) updates.visibility = form.visibility;
-    
+
         if (Object.keys(updates).length === 0) return onClose();
-    
+
         try {
             await updateCohort.mutateAsync({ cohortId: cohortDetails.id, data: updates });
-          onClose(); // close only on success
+            onClose(); // close only on success
         } catch (err) {
-          // keep modal open on failure
-          console.error("Failed to update cohort:", err);
+            // keep modal open on failure
+            console.error("Failed to update cohort:", err);
         }
-      };
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -89,7 +93,19 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
 
                 <DialogFooter className="mt-4 flex gap-2">
                     <Button variant="outline" onClick={handleCancel} disabled={updateCohort.isPending}>Cancel</Button>
-                    <Button onClick={handleSave} disabled={updateCohort.isPending}>{updateCohort.isPending ? "Saving..." : "Save"}</Button>
+                    {canUpdate ? (
+                        <Button onClick={handleSave} disabled={updateCohort.isPending}>
+                            {updateCohort.isPending ? "Saving..." : "Save"}
+                        </Button>
+                    ) : (
+                        <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
+                            <span>
+                                <Button disabled className="opacity-50">
+                                    Save
+                                </Button>
+                            </span>
+                        </PermissionTooltip>
+                    )}
                 </DialogFooter>
             </DialogContent>
         </Dialog>
