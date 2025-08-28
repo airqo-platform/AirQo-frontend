@@ -14,7 +14,7 @@ import { checkAccess } from './authUtils';
 import { setupUserSession, clearUserSession } from '@/core/utils/loginSetup';
 import { getLoginRedirectPath } from '@/app/api/auth/[...nextauth]/options';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
-import LogoutOverlay from '@/common/components/LogoutOverlay';
+// import LogoutOverlay from '@/common/components/LogoutOverlay'; // Removed - no logout overlay needed
 import { getLogoutProgress } from './LogoutUser';
 import logger from '@/lib/logger';
 
@@ -259,10 +259,11 @@ export const withSessionAuth = (
       }, []);
 
       // --- Render Logic ---
+      // Skip logout overlay - user requested no dialog during logout
       // Show logout overlay if logout is in progress
-      if (getLogoutProgress()) {
-        return <LogoutOverlay isVisible={true} message="Logging out..." />;
-      }
+      // if (getLogoutProgress()) {
+      //   return <LogoutOverlay isVisible={true} message="Logging out..." />;
+      // }
 
       // Show setup loading screen
       if (isSettingUp) {
@@ -386,18 +387,21 @@ export const withAdminAccess = (Component) => {
             userId: session.user.id,
             email: session.user.email,
             role: session.user.role?.role_name,
-            permissions: session.user.role?.role_permissions?.map(p => p.permission)
+            permissions: session.user.role?.role_permissions?.map(
+              (p) => p.permission,
+            ),
           });
 
           // Method 1: Check role name directly (most reliable)
           if (session.user.role) {
             const roleName = session.user.role.role_name?.toLowerCase();
-            if (roleName && (
-              roleName === 'super_admin' ||
-              roleName === 'admin' ||
-              roleName === 'superadmin' ||
-              roleName.includes('admin')
-            )) {
+            if (
+              roleName &&
+              (roleName === 'super_admin' ||
+                roleName === 'admin' ||
+                roleName === 'superadmin' ||
+                roleName.includes('admin'))
+            ) {
               hasAdminAccess = true;
               logger.info('Admin access granted via role name:', roleName);
             }
@@ -414,18 +418,24 @@ export const withAdminAccess = (Component) => {
             try {
               // Try permission check without the complex session setup
               if (session.user.role?.role_permissions) {
-                const permissions = session.user.role.role_permissions.map(p => p.permission);
+                const permissions = session.user.role.role_permissions.map(
+                  (p) => p.permission,
+                );
                 const adminPermissions = [
                   'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
                   'CREATE_UPDATE_AND_DELETE_AIRQO_USERS',
                   'MANAGE_ADMIN_USERS',
                   'ADMIN_ACCESS',
-                  'SUPER_ADMIN'
+                  'SUPER_ADMIN',
                 ];
-                
-                hasAdminAccess = adminPermissions.some(perm => permissions.includes(perm));
+
+                hasAdminAccess = adminPermissions.some((perm) =>
+                  permissions.includes(perm),
+                );
                 if (hasAdminAccess) {
-                  logger.info('Admin access granted via direct permission check');
+                  logger.info(
+                    'Admin access granted via direct permission check',
+                  );
                 }
               }
             } catch (permError) {
@@ -434,12 +444,15 @@ export const withAdminAccess = (Component) => {
           }
 
           if (!hasAdminAccess) {
-            logger.warn('User denied admin access - redirecting to dashboard:', {
-              userId: session.user.id,
-              email: session.user.email,
-              role: session.user.role?.role_name,
-            });
-            
+            logger.warn(
+              'User denied admin access - redirecting to dashboard:',
+              {
+                userId: session.user.id,
+                email: session.user.email,
+                role: session.user.role?.role_name,
+              },
+            );
+
             // Small delay to prevent immediate redirect conflicts
             setTimeout(() => {
               router.replace('/user/Home');
@@ -470,7 +483,9 @@ export const withAdminAccess = (Component) => {
         <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
-            <p className="text-gray-600 mb-4">You don&apos;t have permission to access the admin panel.</p>
+            <p className="text-gray-600 mb-4">
+              You don&apos;t have permission to access the admin panel.
+            </p>
             <div className="space-y-2">
               <button
                 onClick={() => router.replace('/user/Home')}

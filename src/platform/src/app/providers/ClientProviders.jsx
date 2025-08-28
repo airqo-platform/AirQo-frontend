@@ -16,7 +16,7 @@ import NextAuthProvider from './NextAuthProvider';
 import SWRProvider from './SWRProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 import UnifiedGroupProvider from './UnifiedGroupProvider';
-import LogoutProvider from './LogoutProvider';
+// import LogoutProvider from './LogoutProvider'; // Removed - no logout overlay needed
 import { useThemeInitialization } from '@/core/hooks';
 import { TourProvider } from '@/features/tours/contexts/TourProvider';
 // Import environment validation
@@ -190,11 +190,10 @@ export default function ClientProviders({ children }) {
         <ReduxProviders>
           <ThemeProvider>
             <ThemeInitializer />
-            <LogoutProvider>
-              <UnifiedGroupProvider>
-                <TourProvider>{children}</TourProvider>
-              </UnifiedGroupProvider>
-            </LogoutProvider>
+            {/* LogoutProvider removed - no logout overlay needed */}
+            <UnifiedGroupProvider>
+              <TourProvider>{children}</TourProvider>
+            </UnifiedGroupProvider>
           </ThemeProvider>
         </ReduxProviders>
       </SWRProvider>
