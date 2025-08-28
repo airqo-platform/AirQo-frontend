@@ -55,7 +55,6 @@ export const getRouteType = (pathname) => {
     pathname.includes('(individual)') ||
     pathname.startsWith('/Home') ||
     pathname.startsWith('/analytics') ||
-    pathname.startsWith('/collocation') ||
     pathname.startsWith('/settings')
   ) {
     return ROUTE_TYPES.USER;
