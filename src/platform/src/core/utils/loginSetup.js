@@ -181,6 +181,24 @@ export const setupUserSession = async (
         );
       }
       redirectPath = '/user/Home';
+    } else if (pathname.startsWith('/admin')) {
+      // ADMIN ROUTES: Set AirQo group and stay on current admin path
+      logger.info('Admin route detected, setting up admin session...');
+      
+      // Find AirQo group for admin context
+      const airqoGroup = user.groups.find(isAirQoGroup) || user.groups[0];
+      if (airqoGroup) {
+        activeGroup = airqoGroup;
+        logger.info('Admin session: Set active group', {
+          groupId: activeGroup._id,
+          groupName: activeGroup.grp_title || activeGroup.grp_name,
+          loginContext: 'admin',
+          pathname,
+        });
+      }
+      
+      // Don't set redirectPath for admin routes - let them stay on the current path
+      redirectPath = null;
     } else if (pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
