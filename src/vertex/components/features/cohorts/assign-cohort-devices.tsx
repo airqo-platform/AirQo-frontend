@@ -34,6 +34,9 @@ import {
 } from "@/components/ui/popover";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePermission } from "@/core/hooks/usePermissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
+import PermissionTooltip from "@/components/ui/permission-tooltip";
 
 const devices = [
   { value: "aq_40", label: "Aq_40" },
@@ -50,6 +53,7 @@ const formSchema = z.object({
 
 export function AddDevicesDialog() {
   const [open, setOpen] = useState(false);
+  const canUpdateDevices = usePermission(PERMISSIONS.DEVICE.UPDATE);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -66,7 +70,15 @@ export function AddDevicesDialog() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
+      {canUpdateDevices ? (
         <Button>Add New Devices</Button>
+      ) : (
+        <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
+          <span>
+            <Button disabled>Add New Devices</Button>
+          </span>
+        </PermissionTooltip>
+      )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

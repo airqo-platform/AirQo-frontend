@@ -51,7 +51,7 @@ export default function CohortDetailsPage() {
     <RouteGuard permission="DEVICE_VIEW">
       <div>
         <div className="flex justify-between items-center">
-          <Button variant="ghost" className="gap-2" onClick={() => router.back()}>
+          <Button variant="ghost" onClick={() => router.back()}>
             <ArrowLeft className="w-4 h-4" />
             Back to Cohorts
           </Button>

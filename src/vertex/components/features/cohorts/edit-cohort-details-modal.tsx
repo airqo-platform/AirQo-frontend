@@ -67,8 +67,8 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="true">True</SelectItem>
-                <SelectItem value="false">False</SelectItem>
+                <SelectItem value="true">Public</SelectItem>
+                <SelectItem value="false">Private</SelectItem>
               </SelectContent>
             </Select>
           </div>

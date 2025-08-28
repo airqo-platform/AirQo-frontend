@@ -18,14 +18,14 @@ type CohortRow = {
 
 export default function CohortsPage() {
   const router = useRouter();
-  const {cohorts, isLoading, error} = useCohorts();
+  const { cohorts, isLoading, error } = useCohorts();
 
-  const rows: CohortRow[] = (cohorts || []).map((c:Cohort) => ({
+  const rows: CohortRow[] = (cohorts || []).map((c: Cohort) => ({
     id: c._id,
     name: c.name,
     numberOfDevices: c.numberOfDevices ?? 0,
     visibility: c.visibility,
-    dateCreated: c.createdAt 
+    dateCreated: c.createdAt
   }));
 
   const columns: TableColumn<CohortRow>[] = [
@@ -46,7 +46,7 @@ export default function CohortsPage() {
       label: "Visibility",
       sortable: true,
       render: (v) => (
-        <Badge variant={v ? "default" : "secondary"}>{v ? "Visible" : "Hidden"}</Badge>
+        <Badge variant={v ? "default" : "secondary"}>{v ? "Public" : "Private"}</Badge>
       )
     },
     {
@@ -78,18 +78,18 @@ export default function CohortsPage() {
         </div>
 
         <ReusableTable
-        title="Cohorts"
-        data={rows}
-        columns={columns}
-        searchable
-        filterable={false}
-        sortable
-        loading={isLoading}
-        onRowClick={(item: unknown) => {
-          const row = item as CohortRow;
-          if (row?.id) router.push(`/cohorts/${row.id}`)
-        }}
-      emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
+          title="Cohorts"
+          data={rows}
+          columns={columns}
+          searchable
+          filterable={false}
+          sortable
+          loading={isLoading}
+          onRowClick={(item: unknown) => {
+            const row = item as CohortRow;
+            if (row?.id) router.push(`/cohorts/${row.id}`)
+          }}
+          emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
         />
       </div>
     </RouteGuard>
