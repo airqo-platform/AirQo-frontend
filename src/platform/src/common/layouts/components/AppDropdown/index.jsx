@@ -61,6 +61,12 @@ const AppDropdown = ({ className = '' }) => {
       color: 'bg-purple-500',
     },
     {
+      name: 'Vertex',
+      icon: AqCpuChip01,
+      href: getUrl('https://vertex.airqo.net/'),
+      color: 'bg-yellow-500',
+    },
+    {
       name: 'API Docs',
       icon: AqFile07,
       href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
@@ -123,7 +129,7 @@ const AppDropdown = ({ className = '' }) => {
               <CardWrapper padding="p-0" className="shadow-xl overflow-hidden">
                 {!showQRCode ? (
                   <motion.div
-                    className="p-6 grid grid-cols-3 gap-6"
+                    className="p-6 grid grid-cols-3 gap-4"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
@@ -135,7 +141,7 @@ const AppDropdown = ({ className = '' }) => {
                         <button
                           key={i}
                           onClick={() => handleAppClick(app)}
-                          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 focus:outline-none"
+                          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 focus:outline-none h-28"
                           aria-label={app.name}
                         >
                           <div
@@ -143,7 +149,7 @@ const AppDropdown = ({ className = '' }) => {
                           >
                             <Icon className="w-7 h-7 text-white" />
                           </div>
-                          <span className="mt-2 text-sm font-medium text-gray-700">
+                          <span className="mt-2 text-sm font-medium text-gray-700 text-center whitespace-nowrap truncate max-w-[72px]">
                             {app.name}
                           </span>
                         </button>
