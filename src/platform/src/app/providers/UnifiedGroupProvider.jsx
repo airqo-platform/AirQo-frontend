@@ -68,6 +68,9 @@ const initialState = {
   organizationLoading: false,
   organizationError: null,
   organizationInitialized: false,
+  organizationRetryCount: 0,
+  organizationLastFailedAt: null,
+  organizationRequestCache: new Map(),
 };
 
 const reducer = (state, action) => {
@@ -90,6 +93,10 @@ const reducer = (state, action) => {
         organizationInitialized: true,
         organization: action.payload.org,
         organizationTheme: action.payload.theme,
+        organizationRetryCount: action.payload.error
+          ? state.organizationRetryCount + 1
+          : 0,
+        organizationLastFailedAt: action.payload.error ? Date.now() : null,
       };
     case 'CLEAR_ORG_DATA':
       return {
@@ -99,6 +106,8 @@ const reducer = (state, action) => {
         organizationLoading: false,
         organizationError: null,
         organizationInitialized: false,
+        organizationRetryCount: 0,
+        organizationLastFailedAt: null,
       };
     default:
       return state;
@@ -295,7 +304,7 @@ export function UnifiedGroupProvider({ children }) {
     setActiveGroupAtomic,
   ]);
 
-  // Organization data fetching
+  // Organization data fetching with rate limiting protection
   useEffect(() => {
     if (!isOrganizationContext || !organizationSlug) {
       if (state.organization || state.organizationLoading) {
@@ -304,16 +313,57 @@ export function UnifiedGroupProvider({ children }) {
       return;
     }
 
+    // Rate limiting logic - check if we should wait before making another request
+    const timeSinceLastFailure = state.organizationLastFailedAt
+      ? Date.now() - state.organizationLastFailedAt
+      : Infinity;
+
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, then 5 minutes
+    const backoffDelays = [1000, 2000, 4000, 8000, 16000, 300000];
+    const currentBackoff =
+      backoffDelays[
+        Math.min(state.organizationRetryCount, backoffDelays.length - 1)
+      ];
+
+    if (
+      state.organizationRetryCount > 0 &&
+      timeSinceLastFailure < currentBackoff
+    ) {
+      logger.warn(
+        `Rate limiting: waiting ${currentBackoff - timeSinceLastFailure}ms before retry`,
+        {
+          organizationSlug,
+          retryCount: state.organizationRetryCount,
+          timeSinceLastFailure,
+          currentBackoff,
+        },
+      );
+      return;
+    }
+
+    // Check cache for pending requests (deduplication)
+    const cacheKey = organizationSlug;
+    if (state.organizationRequestCache.has(cacheKey)) {
+      logger.info(`Deduplicating request for ${organizationSlug}`);
+      return;
+    }
+
     // Abort previous request
     abortRef.current?.abort?.();
     abortRef.current = new AbortController();
     const { signal } = abortRef.current;
+
+    // Add to cache to prevent duplicate requests
+    state.organizationRequestCache.set(cacheKey, true);
 
     dispatch({ type: 'SET_ORG_LOADING' });
 
     getOrganizationBySlugApi(organizationSlug, { signal })
       .then((res) => {
         if (signal.aborted) return;
+
+        // Clear from cache on completion
+        state.organizationRequestCache.delete(cacheKey);
 
         const org = res.success ? res.data : null;
         const theme = org
@@ -337,16 +387,48 @@ export function UnifiedGroupProvider({ children }) {
       })
       .catch((error) => {
         if (!signal.aborted) {
-          logger.error('Organization fetch error:', error);
+          // Clear from cache on error
+          state.organizationRequestCache.delete(cacheKey);
+
+          // Check if it's a rate limiting error
+          const isRateLimited =
+            error.response?.status === 429 ||
+            error.message?.includes('rate limit') ||
+            error.message?.includes('Too many requests');
+
+          if (isRateLimited) {
+            logger.error('Rate limited by server:', {
+              organizationSlug,
+              retryCount: state.organizationRetryCount,
+              error: error.message,
+            });
+          } else {
+            logger.error('Organization fetch error:', error);
+          }
+
           dispatch({
             type: 'SET_ORG_DATA',
-            payload: { error: error.message, org: null, theme: null },
+            payload: {
+              error: isRateLimited
+                ? 'Too many requests. Please wait.'
+                : error.message,
+              org: null,
+              theme: null,
+            },
           });
         }
       });
 
-    return () => abortRef.current?.abort?.(); // Cleanup on unmount/change
-  }, [organizationSlug, isOrganizationContext]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      abortRef.current?.abort?.(); // Cleanup on unmount/change
+      state.organizationRequestCache.delete(cacheKey);
+    };
+  }, [
+    organizationSlug,
+    isOrganizationContext,
+    state.organizationRetryCount,
+    state.organizationLastFailedAt,
+  ]); // These are the only dependencies we want to trigger re-fetching
 
   // Clear switching state when route changes (organization switch complete)
   useEffect(() => {

@@ -6,6 +6,7 @@
 import axios from 'axios';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import logger from '@/lib/logger';
+import { withRateLimit } from '@/core/utils/rateLimitManager';
 import {
   ORGANIZATION_THEME_URL,
   ORGANIZATION_THEME_PREFERENCES_URL,
@@ -26,7 +27,8 @@ import {
 const requestCache = new Map();
 const CACHE_TTL = 30000; // 30 seconds cache
 
-export const getOrganizationBySlugApi = async (orgSlug, options = {}) => {
+// Internal function without rate limiting (for wrapping)
+const _getOrganizationBySlugApiInternal = async (orgSlug, options = {}) => {
   // Validate orgSlug
   if (!orgSlug || typeof orgSlug !== 'string') {
     return Promise.reject(new Error('Valid organization slug is required'));
@@ -100,6 +102,12 @@ export const getOrganizationBySlugApi = async (orgSlug, options = {}) => {
     };
   }
 };
+
+// Export rate-limited version
+export const getOrganizationBySlugApi = withRateLimit(
+  _getOrganizationBySlugApiInternal,
+  'org-by-slug',
+);
 
 /**
  * Register user to organization
@@ -421,12 +429,8 @@ export const resetPasswordApi = async (data) => {
   }
 };
 
-/**
- * Get organization theme preferences
- * @param {string} groupId - Organization group ID
- * @returns {Promise} Organization theme preferences
- */
-export const getOrganizationThemePreferencesApi = (groupId) => {
+// Internal function for organization theme preferences
+const _getOrganizationThemePreferencesApiInternal = (groupId) => {
   // Validate group ID
   if (!groupId || typeof groupId !== 'string') {
     return Promise.reject(new Error('Valid group ID is required'));
@@ -446,6 +450,16 @@ export const getOrganizationThemePreferencesApi = (groupId) => {
       throw new Error(errorMessage);
     });
 };
+
+/**
+ * Get organization theme preferences (rate-limited)
+ * @param {string} groupId - Organization group ID
+ * @returns {Promise} Organization theme preferences
+ */
+export const getOrganizationThemePreferencesApi = withRateLimit(
+  _getOrganizationThemePreferencesApiInternal,
+  'org-theme-preferences',
+);
 
 /**
  * Update organization theme preferences
