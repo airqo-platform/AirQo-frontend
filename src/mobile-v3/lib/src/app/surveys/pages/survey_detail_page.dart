@@ -5,6 +5,7 @@ import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_question_widgets.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_progress_indicator.dart';
+import 'package:airqo/src/app/shared/widgets/airqo_button.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 
@@ -68,12 +69,14 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
       appBar: AppBar(
         title: Text(
           widget.survey.title,
-          style: theme.textTheme.titleLarge?.copyWith(
+          style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
+            fontSize: 16,
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: BlocConsumer<SurveyBloc, SurveyState>(
         listener: (context, state) {
@@ -100,10 +103,15 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
     final theme = Theme.of(context);
     final isCompleted = widget.existingResponse?.isCompleted ?? false;
     final canResume = widget.existingResponse?.isInProgress ?? false;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
+      padding: EdgeInsets.all(isLargeScreen ? 32 : 16),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Survey info card
@@ -114,8 +122,8 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
               ],
@@ -125,16 +133,27 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.quiz,
-                      color: AppColors.primaryColor,
-                      size: 24,
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.assignment,
+                        color: AppColors.primaryColor,
+                        size: 20,
+                      ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      widget.survey.title,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        widget.survey.title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
@@ -143,8 +162,9 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
                 Text(
                   widget.survey.description,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.5,
-                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+                    height: 1.4,
+                    color: AppColors.secondaryHeadlineColor,
+                    fontSize: 14,
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -182,7 +202,9 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
 
           // Action buttons
           _buildActionButtons(context, isCompleted, canResume),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -199,13 +221,13 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
         Icon(
           icon,
           size: 16,
-          color: theme.textTheme.bodySmall?.color,
+          color: AppColors.boldHeadlineColor,
         ),
         const SizedBox(width: 4),
         Text(
           '$label: ',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+            color: AppColors.secondaryHeadlineColor,
           ),
         ),
         Text(
@@ -224,9 +246,9 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.green.withOpacity(0.1),
+        color: Colors.green.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.green.withOpacity(0.3)),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -264,9 +286,9 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.1),
+        color: Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,7 +318,7 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
           const SizedBox(height: 12),
           LinearProgressIndicator(
             value: progress / 100,
-            backgroundColor: Colors.orange.withOpacity(0.2),
+            backgroundColor: Colors.orange.withValues(alpha: 0.2),
             valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
           ),
         ],
@@ -309,42 +331,20 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (!isCompleted) ...[
-          ElevatedButton(
+          AirQoButton(
+            label: canResume ? 'Resume Survey' : 'Start Survey',
             onPressed: () => _startOrResumeSurvey(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryColor,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(
-              canResume ? 'Resume Survey' : 'Start Survey',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            color: AppColors.primaryColor,
+            textColor: Colors.white,
           ),
         ],
         
         if (isCompleted) ...[
-          OutlinedButton(
+          AirQoButton(
+            label: 'View Results',
             onPressed: () => _viewResults(context),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text(
-              'View Results',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            color: Colors.transparent,
+            textColor: AppColors.primaryColor,
           ),
         ],
       ],
@@ -363,19 +363,28 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
         // Question content
         Expanded(
           child: SingleChildScrollView(
-            child: Column(
-              children: [
-                if (state.currentQuestion != null)
-                  SurveyQuestionWidget(
-                    question: state.currentQuestion!,
-                    currentAnswer: state.getCurrentAnswer(),
-                    onAnswerChanged: (answer) {
-                      context.read<SurveyBloc>().add(
-                        AnswerQuestion(state.currentQuestion!.id, answer),
-                      );
-                    },
-                  ),
-              ],
+            padding: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width > 600 ? 32 : 0,
+            ),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: 800,
+                minHeight: MediaQuery.of(context).size.height * 0.3,
+              ),
+              child: Column(
+                children: [
+                  if (state.currentQuestion != null)
+                    SurveyQuestionWidget(
+                      question: state.currentQuestion!,
+                      currentAnswer: state.getCurrentAnswer(),
+                      onAnswerChanged: (answer) {
+                        context.read<SurveyBloc>().add(
+                          AnswerQuestion(state.currentQuestion!.id, answer),
+                        );
+                      },
+                    ),
+                ],
+              ),
             ),
           ),
         ),
@@ -388,21 +397,31 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
 
   Widget _buildNavigationButtons(BuildContext context, SurveyInProgress state) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isLargeScreen = screenWidth > 600;
     
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.fromLTRB(
+        isLargeScreen ? 32 : 16, 
+        16, 
+        isLargeScreen ? 32 : 16, 
+        MediaQuery.of(context).padding.bottom + 16
+      ),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, -2),
           ),
         ],
       ),
-      child: Row(
-        children: [
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 800),
+          child: Row(
+            children: [
           // Previous button
           if (!state.isFirstQuestion)
             Expanded(
@@ -411,6 +430,8 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
                   context.read<SurveyBloc>().add(const PreviousQuestion());
                 },
                 style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.boldHeadlineColor,
+                  side: BorderSide(color: AppColors.boldHeadlineColor),
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: const Text('Previous'),
@@ -444,7 +465,9 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
               ),
             ),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

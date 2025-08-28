@@ -189,6 +189,12 @@ class Survey extends Equatable {
     return DateTime.now().isBefore(expiresAt!);
   }
 
+  // Helper method to check if survey is expired
+  bool get isExpired {
+    if (expiresAt == null) return false;
+    return DateTime.now().isAfter(expiresAt!);
+  }
+
   // Get estimated completion time as formatted string
   String get estimatedTimeString {
     if (timeToComplete == null) return '2 min';

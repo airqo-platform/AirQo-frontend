@@ -7,6 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
 import 'package:http/http.dart' as http;
 
 abstract class DashboardRepository extends BaseRepository {
@@ -49,6 +50,9 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
   }
 
   final _airQualityController = StreamController<AirQualityResponse>.broadcast();
+  
+  // Survey trigger service for air quality-based surveys  
+  final SurveyTriggerService _surveyTriggerService = SurveyTriggerService();
   
   static const String _airQualityCacheKey = 'air_quality_readings';
   
@@ -114,6 +118,9 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
           );
           
           _airQualityController.add(dashboardResponse);
+          
+          // Notify survey trigger service about air quality update
+          _notifySurveyTriggerService(dashboardResponse);
           
           loggy.info('Successfully fetched and cached air quality data');
           return dashboardResponse;
@@ -200,6 +207,32 @@ class DashboardImpl extends DashboardRepository with UiLoggy {
     }
   }
   
+  /// Helper method to notify survey trigger service about air quality updates
+  void _notifySurveyTriggerService(AirQualityResponse response) {
+    try {
+      // Extract relevant air quality data for survey triggers
+      if (response.measurements != null && response.measurements!.isNotEmpty) {
+        final measurement = response.measurements!.first; // Use first available measurement
+        
+        final airQualityData = {
+          'pm2_5': measurement.pm25?.value,
+          'category': measurement.aqiCategory,
+          'timestamp': measurement.time,
+          'site_name': measurement.siteDetails?.name ?? measurement.siteDetails?.formattedName,
+          'location': {
+            'latitude': measurement.siteDetails?.approximateLatitude,
+            'longitude': measurement.siteDetails?.approximateLongitude,
+          }
+        };
+        
+        _surveyTriggerService.updateAirQuality(airQualityData);
+        loggy.debug('Notified survey trigger service with air quality data: PM2.5=${measurement.pm25?.value}');
+      }
+    } catch (e) {
+      loggy.error('Error notifying survey trigger service: $e');
+    }
+  }
+
   void dispose() {
     _airQualityController.close();
     _httpClient.close();

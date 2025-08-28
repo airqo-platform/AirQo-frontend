@@ -5,6 +5,10 @@ import 'package:loggy/loggy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_trigger_model.dart';
+import 'package:flutter/material.dart';
+import 'package:airqo/src/app/shared/services/notification_manager.dart';
+import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
+import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 
 class SurveyTriggerService with UiLoggy {
   static final SurveyTriggerService _instance = SurveyTriggerService._internal();
@@ -22,6 +26,10 @@ class SurveyTriggerService with UiLoggy {
   Position? _lastKnownPosition;
   Map<String, dynamic>? _lastAirQualityData;
 
+  // UI context for showing notifications (set by main app)
+  BuildContext? _context;
+  final NotificationManager _notificationManager = NotificationManager();
+
   // Settings
   static const Duration _defaultCooldownPeriod = Duration(hours: 6);
   static const Duration _checkInterval = Duration(minutes: 5);
@@ -35,6 +43,11 @@ class SurveyTriggerService with UiLoggy {
     await _loadTriggerHistory();
     _startPeriodicChecks();
     loggy.info('SurveyTriggerService initialized');
+  }
+
+  /// Set UI context for showing survey notifications
+  void setContext(BuildContext context) {
+    _context = context;
   }
 
   /// Dispose of resources
@@ -146,7 +159,13 @@ class SurveyTriggerService with UiLoggy {
             additionalData: {'pollutant': thresholdCondition.pollutant},
           );
 
-          _triggerSurvey(survey, contextData: contextData.toJson());
+          // Show air quality alert first, then trigger survey after delay
+          _showAirQualityAlert(airQualityData, currentValue, thresholdCondition.pollutant);
+          
+          // Delay survey trigger to allow user to see and respond to alert
+          Timer(const Duration(seconds: 3), () {
+            _triggerSurvey(survey, contextData: contextData.toJson());
+          });
         }
       } catch (e) {
         loggy.error('Error checking air quality trigger for survey ${survey.id}: $e');
@@ -228,6 +247,11 @@ class SurveyTriggerService with UiLoggy {
 
       // Emit the survey to listeners
       _surveyTriggeredController.add(survey);
+
+      // Show notification if context is available
+      if (_context != null) {
+        _showSurveyNotification(survey);
+      }
 
       return true;
     } catch (e) {
@@ -328,5 +352,72 @@ class SurveyTriggerService with UiLoggy {
       'triggersByType': triggersByType,
       'activeSurveys': _activeSurveys.length,
     };
+  }
+
+  /// Show survey notification to user
+  void _showSurveyNotification(Survey survey) {
+    if (_context == null) return;
+
+    _notificationManager.showSurveyBanner(
+      _context!,
+      survey: survey,
+      onTap: () => _navigateToSurvey(survey),
+      onDismiss: () {
+        loggy.info('User dismissed survey notification: ${survey.title}');
+      },
+    );
+  }
+
+  /// Navigate to survey detail page
+  void _navigateToSurvey(Survey survey) {
+    if (_context == null) return;
+
+    Navigator.of(_context!).push(
+      MaterialPageRoute(
+        builder: (context) => SurveyDetailPage(
+          survey: survey,
+          existingResponse: null,
+          repository: SurveyRepository(),
+        ),
+      ),
+    );
+  }
+
+  /// Show air quality alert notification
+  void _showAirQualityAlert(Map<String, dynamic> airQualityData, double pollutionLevel, String pollutant) {
+    if (_context == null) return;
+
+    final category = airQualityData['category'] ?? 'Unknown';
+    final location = airQualityData['location'] ?? 'your area';
+    
+    String message = 'High pollution levels detected in $location';
+    
+    // Customize message based on category
+    switch (category.toLowerCase()) {
+      case 'unhealthy':
+        message = 'Unhealthy air quality detected! Consider limiting outdoor activities.';
+        break;
+      case 'very unhealthy':
+        message = 'Very unhealthy air quality! Avoid prolonged outdoor exposure.';
+        break;
+      case 'hazardous':
+        message = 'Hazardous air quality! Stay indoors and close windows.';
+        break;
+      case 'unhealthy for sensitive groups':
+        message = 'Air quality may affect sensitive individuals. Take precautions.';
+        break;
+      default:
+        message = 'Air quality alert for $location';
+    }
+
+    _notificationManager.showAirQualityAlert(
+      _context!,
+      message: message,
+      category: category,
+      pollutionLevel: pollutionLevel,
+      onDismiss: () {
+        loggy.info('User dismissed air quality alert: $category');
+      },
+    );
   }
 }

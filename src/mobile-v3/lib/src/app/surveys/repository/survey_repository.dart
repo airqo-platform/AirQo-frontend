@@ -13,12 +13,12 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   static const String _surveyStatsBoxName = 'survey_stats';
 
   // Development mode flag - set to false when APIs are ready
-  static const bool _useMockData = true;
+  static const bool _useMockData = false;
 
-  // API endpoints
-  static const String _surveysEndpoint = '/api/v2/surveys';
-  static const String _surveyResponsesEndpoint = '/api/v2/survey-responses';
-  static const String _surveyStatsEndpoint = '/api/v2/survey-stats';
+  // API endpoints (matching API documentation)
+  static const String _surveysEndpoint = '/api/v2/users/surveys';
+  static const String _surveyResponsesEndpoint = '/api/v2/users/surveys/responses';
+  static const String _surveyStatsEndpoint = '/api/v2/users/surveys/stats';
 
   /// Get all available surveys
   Future<List<Survey>> getSurveys({bool forceRefresh = false}) async {
@@ -37,19 +37,25 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         }
       }
 
-      // Fetch from API
-      final response = await createAuthenticatedGetRequest(_surveysEndpoint, {});
+      // Fetch from API with query parameters for active surveys only
+      final queryParams = {
+        'isActive': 'true',
+        'limit': '100',
+      };
+      
+      final response = await createAuthenticatedGetRequest(_surveysEndpoint, queryParams);
       final data = json.decode(response.body);
 
       if (data['success'] == true && data['surveys'] != null) {
         final surveys = (data['surveys'] as List)
             .map((surveyJson) => Survey.fromJson(surveyJson))
+            .where((survey) => survey.isActive && !survey.isExpired)
             .toList();
 
         // Cache the surveys
         await _cacheSurveys(surveys);
         
-        loggy.info('Fetched ${surveys.length} surveys from API');
+        loggy.info('Fetched ${surveys.length} active surveys from API');
         return surveys;
       } else {
         throw Exception('Failed to fetch surveys: ${data['message'] ?? 'Unknown error'}');
@@ -64,7 +70,18 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         return cachedSurveys;
       }
       
-      rethrow;
+      // If no cache available, throw specific error for UI to handle
+      if (e.toString().contains('401')) {
+        throw Exception('Authentication required. Please log in to view surveys.');
+      } else if (e.toString().contains('403')) {
+        throw Exception('Access denied. You may not have permission to view surveys.');
+      } else if (e.toString().contains('404')) {
+        throw Exception('No surveys found.');
+      } else if (e.toString().contains('No internet')) {
+        throw Exception('No internet connection. Please check your network.');
+      } else {
+        throw Exception('Unable to load surveys. Please try again later.');
+      }
     }
   }
 
@@ -78,12 +95,12 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         return cachedSurvey;
       }
 
-      // Fetch from API
+      // Fetch from API 
       final response = await createAuthenticatedGetRequest('$_surveysEndpoint/$surveyId', {});
       final data = json.decode(response.body);
 
-      if (data['success'] == true && data['survey'] != null) {
-        return Survey.fromJson(data['survey']);
+      if (data['success'] == true && data['surveys'] != null && data['surveys'].isNotEmpty) {
+        return Survey.fromJson(data['surveys'][0]); // API returns surveys array even for single survey
       }
       
       return null;

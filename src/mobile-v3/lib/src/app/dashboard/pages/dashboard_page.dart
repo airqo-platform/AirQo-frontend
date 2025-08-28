@@ -1,6 +1,9 @@
 import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/location_selection_screen.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
+import 'package:airqo/src/app/dashboard/services/location_service_mananger.dart';
+import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
+import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,6 +36,10 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   String? userCountry;
   // Background refresher that triggers silently
   Timer? _backgroundRefreshTimer;
+  
+  // Survey system services
+  final SurveyTriggerService _surveyTriggerService = SurveyTriggerService();
+  final LocationServiceManager _locationService = LocationServiceManager();
 
   @override
   void initState() {
@@ -56,11 +63,16 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
       _silentBackgroundRefresh();
     });
+
+    // Initialize survey system
+    _initializeSurveySystem();
   }
 
   @override
   void dispose() {
     _backgroundRefreshTimer?.cancel();
+    _locationService.dispose();
+    _surveyTriggerService.dispose();
     super.dispose();
   }
 
@@ -327,5 +339,36 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
         return DashboardLoadingPage();
       },
     );
+  }
+
+  /// Initialize survey trigger system
+  Future<void> _initializeSurveySystem() async {
+    try {
+      // Set context for survey notifications
+      _surveyTriggerService.setContext(context);
+      
+      // Initialize survey trigger service
+      await _surveyTriggerService.initialize();
+      
+      // Load and set active surveys
+      final surveyRepository = SurveyRepository();
+      final surveys = await surveyRepository.getSurveys();
+      _surveyTriggerService.setActiveSurveys(surveys);
+      
+      loggy.info('Survey system initialized with ${surveys.length} surveys');
+      
+      // Start location tracking for research participants
+      // Only start if user has granted location permission during app initialization
+      final permissionResult = await _locationService.checkLocationPermission();
+      if (permissionResult.isSuccess) {
+        await _locationService.startLocationTracking();
+        loggy.info('Started location tracking for survey triggers');
+      } else {
+        loggy.info('Location permission not granted, survey triggers limited');
+      }
+      
+    } catch (e) {
+      loggy.error('Error initializing survey system: $e');
+    }
   }
 }
