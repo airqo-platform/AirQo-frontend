@@ -15,6 +15,10 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
   // Development mode flag - set to false when APIs are ready
   static const bool _useMockData = false;
+  
+  // Retry tracking
+  final Map<String, int> _retryCount = <String, int>{};
+  static const int _baseDelayMs = 1000; // 1 second base delay
 
   // API endpoints (matching API documentation)
   static const String _surveysEndpoint = '/api/v2/users/surveys';
@@ -226,7 +230,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  /// Retry failed survey response submissions
+  /// Retry failed survey response submissions with exponential backoff
   Future<void> retryFailedSubmissions({int maxRetries = 3}) async {
     try {
       final responses = await _getCachedSurveyResponses();
@@ -234,13 +238,58 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         (r) => r.status == SurveyResponseStatus.inProgress
       ).toList();
 
-      loggy.info('Retrying ${pendingResponses.length} failed submissions');
+      loggy.info('Retrying ${pendingResponses.length} failed submissions (max retries: $maxRetries)');
 
       for (final response in pendingResponses) {
-        await submitSurveyResponse(response);
+        final currentRetryCount = _retryCount[response.id] ?? 0;
+        
+        // Skip responses that have exceeded max retries
+        if (currentRetryCount >= maxRetries) {
+          loggy.warning('Response ${response.id} exceeded max retries ($currentRetryCount >= $maxRetries), skipping');
+          continue;
+        }
+
+        try {
+          // Implement exponential backoff: baseDelay * 2^attempt
+          if (currentRetryCount > 0) {
+            final delayMs = _baseDelayMs * (1 << currentRetryCount); // 2^currentRetryCount
+            loggy.info('Waiting ${delayMs}ms before retry attempt ${currentRetryCount + 1} for response ${response.id}');
+            await Future.delayed(Duration(milliseconds: delayMs));
+          }
+
+          // Increment retry count before attempting submission
+          _retryCount[response.id] = currentRetryCount + 1;
+          
+          // Attempt submission
+          await submitSurveyResponse(response);
+          
+          // Success - remove from retry tracking
+          _retryCount.remove(response.id);
+          loggy.info('Successfully submitted response ${response.id} after ${currentRetryCount + 1} attempt(s)');
+          
+        } catch (e) {
+          final newRetryCount = _retryCount[response.id] ?? 0;
+          loggy.error('Failed to submit response ${response.id} (attempt $newRetryCount): $e');
+          
+          // Check if we've reached max retries
+          if (newRetryCount >= maxRetries) {
+            loggy.error('Response ${response.id} failed after $maxRetries attempts, marking as failed');
+            _retryCount.remove(response.id);
+            
+            // Optionally update response status to indicate permanent failure
+            // This would require updating the response in cache with a 'failed' status
+            // For now, we just log and remove from retry tracking
+          }
+          
+          // Continue with next response - don't let one failure abort the loop
+          continue;
+        }
       }
+      
+      loggy.info('Completed retry attempts. Remaining failed responses: ${_retryCount.length}');
+      
     } catch (e) {
-      loggy.error('Error retrying failed submissions: $e');
+      loggy.error('Error in retryFailedSubmissions: $e');
     }
   }
 

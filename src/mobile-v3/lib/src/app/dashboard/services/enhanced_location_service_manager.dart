@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
+import 'secure_location_storage.dart';
 
 class PrivacyZone {
   final String id;
@@ -33,9 +32,9 @@ class PrivacyZone {
   factory PrivacyZone.fromJson(Map<String, dynamic> json) => PrivacyZone(
         id: json['id'],
         name: json['name'],
-        latitude: json['latitude'],
-        longitude: json['longitude'],
-        radius: json['radius'],
+        latitude: (json['latitude'] as num).toDouble(),
+        longitude: (json['longitude'] as num).toDouble(),
+        radius: (json['radius'] as num).toDouble(),
         createdAt: DateTime.parse(json['createdAt']),
       );
 }
@@ -69,10 +68,10 @@ class LocationDataPoint {
   factory LocationDataPoint.fromJson(Map<String, dynamic> json) =>
       LocationDataPoint(
         id: json['id'],
-        latitude: json['latitude'],
-        longitude: json['longitude'],
+        latitude: (json['latitude'] as num).toDouble(),
+        longitude: (json['longitude'] as num).toDouble(),
         timestamp: DateTime.parse(json['timestamp']),
-        accuracy: json['accuracy'],
+        accuracy: json['accuracy'] != null ? (json['accuracy'] as num).toDouble() : null,
         isSharedWithResearchers: json['isSharedWithResearchers'] ?? false,
       );
 }
@@ -88,6 +87,7 @@ class EnhancedLocationServiceManager with UiLoggy {
   bool _isTrackingPaused = false;
   List<PrivacyZone> _privacyZones = [];
   List<LocationDataPoint> _locationHistory = [];
+  late final SecureLocationStorage _secureStorage;
   final StreamController<bool> _trackingStatusController =
       StreamController<bool>.broadcast();
   final StreamController<Position?> _locationController =
@@ -106,6 +106,7 @@ class EnhancedLocationServiceManager with UiLoggy {
 
   // Initialize the service
   Future<void> initialize() async {
+    _secureStorage = SecureLocationStorage();
     await _loadPrivacyZones();
     await _loadLocationHistory();
     await _loadTrackingSettings();
@@ -130,47 +131,39 @@ class EnhancedLocationServiceManager with UiLoggy {
 
   Future<void> removePrivacyZone(String zoneId) async {
     _privacyZones.removeWhere((zone) => zone.id == zoneId);
-    await _savePrivacyZones();
+    await _secureStorage.removePrivacyZone(zoneId);
     loggy.info('Removed privacy zone: $zoneId');
   }
 
   Future<void> _savePrivacyZones() async {
-    final prefs = await SharedPreferences.getInstance();
     final zonesJson = _privacyZones.map((zone) => zone.toJson()).toList();
-    await prefs.setString('privacy_zones', jsonEncode(zonesJson));
+    await _secureStorage.savePrivacyZones(zonesJson);
   }
 
   Future<void> _loadPrivacyZones() async {
-    final prefs = await SharedPreferences.getInstance();
-    final zonesString = prefs.getString('privacy_zones');
-    if (zonesString != null) {
-      final zonesList = jsonDecode(zonesString) as List;
-      _privacyZones =
-          zonesList.map((json) => PrivacyZone.fromJson(json)).toList();
-    }
+    final zonesList = await _secureStorage.getPrivacyZones();
+    _privacyZones = zonesList
+        .map((json) => PrivacyZone.fromJson(json))
+        .toList();
   }
 
   // Location Data Management
   Future<void> _saveLocationHistory() async {
-    final prefs = await SharedPreferences.getInstance();
     final historyJson =
         _locationHistory.map((point) => point.toJson()).toList();
-    await prefs.setString('location_history', jsonEncode(historyJson));
+    await _secureStorage.saveLocationHistory(historyJson);
   }
 
   Future<void> _loadLocationHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyString = prefs.getString('location_history');
-    if (historyString != null) {
-      final historyList = jsonDecode(historyString) as List;
-      _locationHistory =
-          historyList.map((json) => LocationDataPoint.fromJson(json)).toList();
-    }
+    final historyList = await _secureStorage.getLocationHistory();
+    _locationHistory = historyList
+        .map((json) => LocationDataPoint.fromJson(json))
+        .toList();
   }
 
   Future<void> deleteLocationPoint(String pointId) async {
     _locationHistory.removeWhere((point) => point.id == pointId);
-    await _saveLocationHistory();
+    await _secureStorage.deleteLocationPoint(pointId);
     loggy.info('Deleted location point: $pointId');
   }
 
@@ -178,7 +171,7 @@ class EnhancedLocationServiceManager with UiLoggy {
     _locationHistory.removeWhere((point) =>
         point.timestamp.isAfter(start.subtract(Duration(milliseconds: 1))) &&
         point.timestamp.isBefore(end.add(Duration(milliseconds: 1))));
-    await _saveLocationHistory();
+    await _secureStorage.deleteLocationPointsInRange(start, end);
     loggy.info('Deleted location points between $start and $end');
   }
 
@@ -284,15 +277,16 @@ class EnhancedLocationServiceManager with UiLoggy {
   }
 
   Future<void> _saveTrackingSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('is_tracking_active', _isTrackingActive);
-    await prefs.setBool('is_tracking_paused', _isTrackingPaused);
+    await _secureStorage.saveTrackingSettings({
+      'is_tracking_active': _isTrackingActive,
+      'is_tracking_paused': _isTrackingPaused,
+    });
   }
 
   Future<void> _loadTrackingSettings() async {
-    final prefs = await SharedPreferences.getInstance();
-    _isTrackingActive = prefs.getBool('is_tracking_active') ?? false;
-    _isTrackingPaused = prefs.getBool('is_tracking_paused') ?? false;
+    final settings = await _secureStorage.getTrackingSettings();
+    _isTrackingActive = settings['is_tracking_active'] ?? false;
+    _isTrackingPaused = settings['is_tracking_paused'] ?? false;
 
     // Update tracking status controller based on restored state
     if (_isTrackingActive && !_isTrackingPaused) {
@@ -440,6 +434,7 @@ class EnhancedLocationServiceManager with UiLoggy {
     _trackingTimer?.cancel();
     _trackingStatusController.close();
     _locationController.close();
+    _secureStorage.dispose();
   }
 }
 

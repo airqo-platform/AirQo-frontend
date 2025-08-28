@@ -94,7 +94,7 @@ class SurveyInProgress extends SurveyState {
   }
 
   // Validate if an answer is valid for the given question
-  bool _isAnswerValid(dynamic question, dynamic answer) {
+  bool _isAnswerValid(SurveyQuestion question, dynamic answer) {
     if (answer == null) return false;
 
     // Check for empty strings (after trimming)
@@ -113,22 +113,34 @@ class SurveyInProgress extends SurveyState {
   }
 
   // Validate numeric answers for rating/scale questions
-  bool _isNumericAnswerValid(dynamic question, dynamic answer) {
+  bool _isNumericAnswerValid(SurveyQuestion question, dynamic answer) {
     // Try to parse as numeric
     num? numValue;
-    try {
-      if (answer is num) {
-        numValue = answer;
-      } else if (answer is String) {
-        numValue = num.tryParse(answer);
+    
+    if (answer is num) {
+      numValue = answer;
+      // Check for NaN values in existing numbers
+      if (numValue.isNaN) return false;
+    } else if (answer is String) {
+      // Try parsing as int first, then as double
+      final intValue = int.tryParse(answer);
+      if (intValue != null) {
+        numValue = intValue;
       } else {
-        return false; // Not a valid numeric type
+        try {
+          final doubleValue = double.parse(answer);
+          // Check for NaN after parsing
+          if (doubleValue.isNaN) return false;
+          numValue = doubleValue;
+        } catch (e) {
+          return false; // Failed to parse as numeric
+        }
       }
-    } catch (e) {
-      return false;
+    } else {
+      return false; // Not a valid numeric type
     }
 
-    if (numValue == null) return false;
+    // numValue is guaranteed to be non-null at this point
 
     // Check bounds for rating questions
     if (question.type == QuestionType.rating) {
@@ -159,8 +171,8 @@ class SurveyInProgress extends SurveyState {
       survey: survey ?? this.survey,
       currentResponse: currentResponse ?? this.currentResponse,
       currentQuestionIndex: currentQuestionIndex ?? this.currentQuestionIndex,
-      answers: answers ?? this.answers,
-      contextData: contextData ?? this.contextData,
+      answers: answers ?? Map<String, dynamic>.from(this.answers),
+      contextData: contextData ?? (this.contextData != null ? Map<String, dynamic>.from(this.contextData!) : null),
     );
   }
 }

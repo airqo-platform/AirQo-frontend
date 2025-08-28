@@ -7,35 +7,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_trigger_model.dart';
 import 'package:flutter/material.dart';
-import 'package:airqo/src/app/shared/services/notification_manager.dart';
-import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
-import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:airqo/src/app/shared/services/navigation_service.dart';
 
 class SurveyTriggerService with UiLoggy {
   static final SurveyTriggerService _instance = SurveyTriggerService._internal();
   factory SurveyTriggerService() => _instance;
   SurveyTriggerService._internal();
 
-  // Streams and controllers
   final StreamController<Survey> _surveyTriggeredController = StreamController<Survey>.broadcast();
   Stream<Survey> get surveyTriggeredStream => _surveyTriggeredController.stream;
 
-  // Internal state
   List<Survey> _activeSurveys = [];
   List<SurveyTriggerHistory> _triggerHistory = [];
   Timer? _periodicCheckTimer;
   Position? _lastKnownPosition;
+  Position? _previousKnownPosition;
   Map<String, dynamic>? _lastAirQualityData;
 
-  // UI context for showing notifications (set by main app)
-  BuildContext? _context;
-  final NotificationManager _notificationManager = NotificationManager();
-
-  // Settings
+  final NavigationService _navigationService = NavigationService();
   static const Duration _defaultCooldownPeriod = Duration(hours: 6);
   static const Duration _checkInterval = Duration(minutes: 5);
 
-  // Getters
   List<Survey> get activeSurveys => List.unmodifiable(_activeSurveys);
   List<SurveyTriggerHistory> get triggerHistory => List.unmodifiable(_triggerHistory);
 
@@ -46,15 +38,15 @@ class SurveyTriggerService with UiLoggy {
     loggy.info('SurveyTriggerService initialized');
   }
 
-  /// Set UI context for showing survey notifications
+  @Deprecated('Use NavigationService instead - context is managed globally')
   void setContext(BuildContext context) {
-    _context = context;
+    loggy.info('setContext called but is deprecated - using NavigationService instead');
   }
 
-  /// Dispose of resources
   void dispose() {
     _periodicCheckTimer?.cancel();
     _surveyTriggeredController.close();
+    loggy.info('SurveyTriggerService disposed');
   }
 
   /// Set active surveys that can be triggered
@@ -65,6 +57,7 @@ class SurveyTriggerService with UiLoggy {
 
   /// Update current location (called by location service)
   void updateLocation(Position position) {
+    _previousKnownPosition = _lastKnownPosition;
     _lastKnownPosition = position;
     _checkLocationBasedTriggers(position);
   }
@@ -80,6 +73,12 @@ class SurveyTriggerService with UiLoggy {
     final survey = _activeSurveys.firstWhereOrNull((s) => s.id == surveyId);
     if (survey == null) {
       loggy.warning('Survey not found: $surveyId');
+      return false;
+    }
+
+    // Check cooldown rules before triggering
+    if (!canTriggerSurvey(surveyId)) {
+      loggy.info('Survey $surveyId cannot be triggered due to cooldown restrictions');
       return false;
     }
 
@@ -106,6 +105,14 @@ class SurveyTriggerService with UiLoggy {
 
   /// Start periodic checks for time-based triggers
   void _startPeriodicChecks() {
+    // Cancel any existing timer to avoid duplicates
+    _periodicCheckTimer?.cancel();
+    _periodicCheckTimer = null;
+    
+    // Run the first check immediately
+    _checkTimeBasedTriggers();
+    
+    // Start the periodic timer for subsequent checks
     _periodicCheckTimer = Timer.periodic(_checkInterval, (timer) {
       _checkTimeBasedTriggers();
     });
@@ -122,10 +129,10 @@ class SurveyTriggerService with UiLoggy {
 
       try {
         final locationCondition = LocationBasedTriggerCondition.fromJson(conditions);
-        if (locationCondition.isTriggered(currentPosition)) {
+        if (locationCondition.isTriggered(currentPosition, _previousKnownPosition)) {
           final contextData = SurveyTriggerContext(
             currentLocation: currentPosition,
-            currentAirQuality: _lastAirQualityData?['pm2_5']?.toDouble(),
+            currentAirQuality: _parsePollutantValue(_lastAirQualityData?['pm2_5']),
             currentAirQualityCategory: _lastAirQualityData?['category'],
             timestamp: DateTime.now(),
           );
@@ -183,6 +190,12 @@ class SurveyTriggerService with UiLoggy {
           
           // Delay survey trigger to allow user to see and respond to alert
           Timer(const Duration(seconds: 3), () {
+            // Re-check eligibility before triggering (survey state may have changed)
+            if (!canTriggerSurvey(survey.id)) {
+              loggy.info('Survey ${survey.id} no longer eligible after delay - skipping trigger');
+              return;
+            }
+            
             _triggerSurvey(survey, contextData: contextData.toJson());
           });
         }
@@ -267,10 +280,8 @@ class SurveyTriggerService with UiLoggy {
       // Emit the survey to listeners
       _surveyTriggeredController.add(survey);
 
-      // Show notification if context is available
-      if (_context != null) {
-        _showSurveyNotification(survey);
-      }
+      // Show survey notification using NavigationService
+      _navigationService.showSurveyNotification(survey);
 
       return true;
     } catch (e) {
@@ -373,46 +384,14 @@ class SurveyTriggerService with UiLoggy {
     };
   }
 
-  /// Show survey notification to user
-  void _showSurveyNotification(Survey survey) {
-    if (_context == null) return;
 
-    _notificationManager.showSurveyBanner(
-      _context!,
-      survey: survey,
-      onTap: () => _navigateToSurvey(survey),
-      onDismiss: () {
-        loggy.info('User dismissed survey notification: ${survey.title}');
-      },
-    );
-  }
-
-  /// Navigate to survey detail page
-  void _navigateToSurvey(Survey survey) {
-    if (_context == null) return;
-
-    Navigator.of(_context!).push(
-      MaterialPageRoute(
-        builder: (context) => SurveyDetailPage(
-          survey: survey,
-          existingResponse: null,
-          repository: SurveyRepository(),
-        ),
-      ),
-    );
-  }
-
-  /// Show air quality alert notification
   void _showAirQualityAlert(Map<String, dynamic> airQualityData, double pollutionLevel, String pollutant) {
-    if (_context == null) return;
-
-    final category = airQualityData['category'] ?? 'Unknown';
-    final location = airQualityData['location'] ?? 'your area';
+    final normalizedCategory = _normalizeStringValue(airQualityData['category'], 'Unknown');
+    final normalizedLocation = _normalizeStringValue(airQualityData['location'], 'your area');
+    final categoryLower = normalizedCategory.toLowerCase();
     
-    String message = 'High pollution levels detected in $location';
-    
-    // Customize message based on category
-    switch (category.toLowerCase()) {
+    String message = 'High pollution levels detected in $normalizedLocation';
+    switch (categoryLower) {
       case 'unhealthy':
         message = 'Unhealthy air quality detected! Consider limiting outdoor activities.';
         break;
@@ -426,17 +405,22 @@ class SurveyTriggerService with UiLoggy {
         message = 'Air quality may affect sensitive individuals. Take precautions.';
         break;
       default:
-        message = 'Air quality alert for $location';
+        message = 'Air quality alert for $normalizedLocation';
     }
 
-    _notificationManager.showAirQualityAlert(
-      _context!,
+    _navigationService.showAirQualityAlert(
       message: message,
-      category: category,
+      category: normalizedCategory,
       pollutionLevel: pollutionLevel,
       onDismiss: () {
-        loggy.info('User dismissed air quality alert: $category');
+        loggy.info('User dismissed air quality alert: $normalizedCategory');
       },
     );
+  }
+
+  String _normalizeStringValue(dynamic value, String defaultValue) {
+    if (value == null) return defaultValue;
+    if (value is String) return value;
+    return value.toString();
   }
 }

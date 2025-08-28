@@ -325,14 +325,40 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
                     : Theme.of(context).highlightColor,
                 value: _isTrackingActive,
                 onChanged: (value) async {
-                  if (value) {
-                    await _locationManager.startLocationTracking();
-                  } else {
-                    await _locationManager.stopLocationTracking();
+                  final previousValue = _isTrackingActive;
+                  
+                  try {
+                    if (value) {
+                      await _locationManager.startLocationTracking();
+                    } else {
+                      await _locationManager.stopLocationTracking();
+                    }
+                    
+                    // Only update state after successful operation
+                    setState(() {
+                      _isTrackingActive = value;
+                    });
+                  } catch (e) {
+                    // Revert switch to previous state on error
+                    setState(() {
+                      _isTrackingActive = previousValue;
+                    });
+                    
+                    // Show error feedback to user
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            value 
+                              ? 'Failed to start location tracking: ${e.toString()}'
+                              : 'Failed to stop location tracking: ${e.toString()}',
+                          ),
+                          backgroundColor: Colors.red,
+                          duration: const Duration(seconds: 4),
+                        ),
+                      );
+                    }
                   }
-                  setState(() {
-                    _isTrackingActive = value;
-                  });
                 },
               ),
             ],

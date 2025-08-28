@@ -127,15 +127,33 @@ class LocationBasedTriggerCondition extends Equatable {
     };
   }
 
-  // Check if current position is within trigger zone
-  bool isTriggered(Position currentPosition) {
-    final distance = Geolocator.distanceBetween(
+  // Check if location transition triggers the survey
+  bool isTriggered(Position currentPosition, [Position? previousPosition]) {
+    final currentDistance = Geolocator.distanceBetween(
       latitude,
       longitude,
       currentPosition.latitude,
       currentPosition.longitude,
     );
-    return distance <= radius;
+
+    // If no previous position, treat as no transition to avoid false triggers
+    if (previousPosition == null) {
+      return false;
+    }
+
+    final previousDistance = Geolocator.distanceBetween(
+      latitude,
+      longitude,
+      previousPosition.latitude,
+      previousPosition.longitude,
+    );
+
+    // Determine transition type
+    final entered = previousDistance > radius && currentDistance <= radius;
+    final exited = previousDistance <= radius && currentDistance > radius;
+
+    // Return true only when the configured transition occurs
+    return (entered && triggerOnEnter) || (exited && triggerOnExit);
   }
 }
 
