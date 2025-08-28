@@ -35,6 +35,14 @@ export function MultiSelectCombobox({
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+
+  React.useEffect(() => {
+    if (open) {
+      const id = setTimeout(() => inputRef.current?.focus(), 0)
+      return () => clearTimeout(id)
+    }
+  }, [open])
 
   const selectedValues = new Set(value)
 
@@ -118,14 +126,16 @@ export function MultiSelectCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-        className="w-[var(--radix-popover-trigger-width)] p-0" 
-        onOpenAutoFocus={(e) => e.preventDefault()}
+        onOpenAutoFocus={(e) => { e.preventDefault(); inputRef.current?.focus(); }}
+        className="w-[var(--radix-popover-trigger-width)] p-0"
       >
         <Command shouldFilter={false}>
           <CommandInput
+            ref={inputRef}
             placeholder="Search or add new tag..."
             value={inputValue}
             onValueChange={(value) => setInputValue(value)}
+            autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter" && canCreateNew) {
                 e.preventDefault()
