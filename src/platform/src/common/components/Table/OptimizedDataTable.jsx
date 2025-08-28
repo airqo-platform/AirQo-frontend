@@ -52,22 +52,6 @@ const OptimizedDataTable = memo(
           render: (value) => value || 'N/A',
         },
         {
-          key: 'status',
-          label: 'Status',
-          sortable: true,
-          render: (value) => (
-            <span
-              className={`px-2 py-1 rounded text-sm ${
-                value === 'active'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}
-            >
-              {value}
-            </span>
-          ),
-        },
-        {
           key: 'createdAt',
           label: 'Created',
           sortable: true,
@@ -79,20 +63,7 @@ const OptimizedDataTable = memo(
     );
 
     // Memoized filters configuration
-    const filters = useMemo(
-      () => [
-        {
-          key: 'status',
-          placeholder: 'Filter by status',
-          options: [
-            { label: 'Active', value: 'active' },
-            { label: 'Inactive', value: 'inactive' },
-          ],
-          isMulti: false,
-        },
-      ],
-      [],
-    );
+    const filters = useMemo(() => [], []);
 
     // Optimized data fetching function
     const fetchData = useCallback(
@@ -225,7 +196,7 @@ const OptimizedDataTable = memo(
           headerComponent={actionButtons}
           pageSize={20}
           pageSizeOptions={[10, 20, 50, 100]}
-          searchableColumns={['name', 'status']}
+          searchableColumns={['name']}
           {...props}
         />
       </div>

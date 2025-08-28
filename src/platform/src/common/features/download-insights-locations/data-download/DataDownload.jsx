@@ -6,7 +6,11 @@ import PropTypes from 'prop-types';
 import { AqGlobe05, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-import { DATA_TYPE_OPTIONS, FREQUENCY_OPTIONS, FILTER_TYPES } from './constants';
+import {
+  DATA_TYPE_OPTIONS,
+  FREQUENCY_OPTIONS,
+  FILTER_TYPES,
+} from './constants';
 
 import {
   useSitesSummary,
@@ -150,15 +154,23 @@ const DataDownload = ({
 
   // Filter frequency options based on device category and filter type
   const filteredFrequencyOptions = useMemo(() => {
-    const deviceCategory = formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
-    
+    const deviceCategory =
+      formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
+
     // For mobile and bam devices in devices filter: only show Raw frequency
-    if (activeFilterKey === FILTER_TYPES.DEVICES && (deviceCategory === 'mobile' || deviceCategory === 'bam')) {
-      return FREQUENCY_OPTIONS.filter(option => option.name.toLowerCase() === 'raw');
+    if (
+      activeFilterKey === FILTER_TYPES.DEVICES &&
+      (deviceCategory === 'mobile' || deviceCategory === 'bam')
+    ) {
+      return FREQUENCY_OPTIONS.filter(
+        (option) => option.name.toLowerCase() === 'raw',
+      );
     }
-    
+
     // For other cases, exclude Raw frequency (it's only for mobile and bam devices)
-    return FREQUENCY_OPTIONS.filter(option => option.name.toLowerCase() !== 'raw');
+    return FREQUENCY_OPTIONS.filter(
+      (option) => option.name.toLowerCase() !== 'raw',
+    );
   }, [formData.deviceCategory, activeFilterKey]);
 
   // Active group info
@@ -329,7 +341,10 @@ const DataDownload = ({
   // Auto-switch to Raw frequency for mobile and bam devices in devices filter
   useEffect(() => {
     const deviceCategory = formData.deviceCategory?.name?.toLowerCase();
-    if (activeFilterKey === FILTER_TYPES.DEVICES && (deviceCategory === 'mobile' || deviceCategory === 'bam')) {
+    if (
+      activeFilterKey === FILTER_TYPES.DEVICES &&
+      (deviceCategory === 'mobile' || deviceCategory === 'bam')
+    ) {
       const rawFrequencyOption = FREQUENCY_OPTIONS.find(
         (option) => option.name.toLowerCase() === 'raw',
       );
@@ -349,7 +364,7 @@ const DataDownload = ({
       const defaultFrequencyOption = FREQUENCY_OPTIONS.find(
         (option) => option.name.toLowerCase() === 'daily',
       );
-      
+
       if (defaultFrequencyOption) {
         setFormData((prev) => ({
           ...prev,
@@ -358,7 +373,12 @@ const DataDownload = ({
         clearSelections();
       }
     }
-  }, [activeFilterKey, formData.deviceCategory?.name, formData.frequency?.name, clearSelections]);
+  }, [
+    activeFilterKey,
+    formData.deviceCategory?.name,
+    formData.frequency?.name,
+    clearSelections,
+  ]);
 
   // Handle form field updates
   const handleOptionSelect = useCallback(
@@ -491,12 +511,12 @@ const DataDownload = ({
         if (formData.deviceCategory) {
           const selectedCategory = formData.deviceCategory.name.toLowerCase();
           const deviceCategory = String(device.category || '').toLowerCase();
-          
+
           // Special handling for mobile devices
           if (selectedCategory === 'mobile') {
             // For mobile devices, check that category is 'lowcost' AND mobility is true
-            const isMobileDevice = 
-              deviceCategory === 'lowcost' && 
+            const isMobileDevice =
+              deviceCategory === 'lowcost' &&
               (device.mobility === true || device.mobility === 'true');
             matchesCategory = isMobileDevice;
           } else {
@@ -671,21 +691,6 @@ const DataDownload = ({
               </span>
               <span>{item.name || item.long_name || '--'}</span>
             </div>
-          ),
-        },
-        {
-          key: 'status',
-          label: 'Status',
-          render: (item) => (
-            <span
-              className={`px-2 py-1 rounded-full text-xs ${
-                item.isOnline
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {item.isOnline ? 'Online' : 'Offline'}
-            </span>
           ),
         },
         {
