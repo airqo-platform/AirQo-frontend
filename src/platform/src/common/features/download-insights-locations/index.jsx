@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './data-download/DataDownload';
 import { AddLocations } from './add-locations/AddLocations';
 import AddLocationHeader from './add-locations/components/AddLocationHeader';
+import AddFavorites, { AddFavoritesHeader } from './add-favorites';
 import AddLocationsForMoreInsights, {
   AddLocationsForMoreInsightsHeader,
 } from './add-locations-more-insights';
@@ -21,6 +22,7 @@ import './styles/modal-responsive.css';
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },
   addLocation: { header: AddLocationHeader, body: AddLocations },
+  addFavorites: { header: AddFavoritesHeader, body: AddFavorites },
   addLocationForMoreInsights: {
     header: AddLocationsForMoreInsightsHeader,
     body: AddLocationsForMoreInsights,
