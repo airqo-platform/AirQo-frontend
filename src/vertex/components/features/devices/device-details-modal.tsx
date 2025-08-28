@@ -17,6 +17,7 @@ import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { Device } from "@/app/types/devices";
+import PermissionTooltip from "@/components/ui/permission-tooltip";
 
 interface DeviceDetailsModalProps {
   open: boolean;
@@ -519,7 +520,8 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
               <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
                 Cancel
               </Button>
-              {canSync && (
+
+              {canSync ? (
                 <Button
                   variant="secondary"
                   onClick={form.handleSubmit(onSubmitGlobal)}
@@ -533,19 +535,44 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
                   )}
                   Sync Global
                 </Button>
+              ) : (
+                <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
+                  <span>
+                    <Button
+                      variant="secondary"
+                      disabled
+                      className="flex items-center gap-2 opacity-50"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                      Sync Global
+                    </Button>
+                  </span>
+                </PermissionTooltip>
               )}
-              {canEdit && <Button
-                onClick={form.handleSubmit(onSubmitLocal)}
-                disabled={isLoading}
-                className="flex items-center gap-2"
-              >
-                {updateLocal.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Save className="w-4 h-4" />
-                )}
-                Save Local
-              </Button>}
+
+              {canEdit ? (
+                <Button
+                  onClick={form.handleSubmit(onSubmitLocal)}
+                  disabled={isLoading}
+                  className="flex items-center gap-2"
+                >
+                  {updateLocal.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Save className="w-4 h-4" />
+                  )}
+                  Save Local
+                </Button>
+              ) : (
+                <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
+                  <span>
+                    <Button disabled className="flex items-center gap-2 opacity-50">
+                      <Save className="w-4 h-4" />
+                      Save Local
+                    </Button>
+                  </span>
+                </PermissionTooltip>
+              )}
             </DialogFooter>
           </div>
         </div>
