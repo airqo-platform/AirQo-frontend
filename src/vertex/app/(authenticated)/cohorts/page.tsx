@@ -87,7 +87,7 @@ export default function CohortsPage() {
         loading={isLoading}
         onRowClick={(item: unknown) => {
           const row = item as CohortRow;
-          if (row?.name) router.push(`/cohorts/${row.name}`)
+          if (row?.id) router.push(`/cohorts/${row.id}`)
         }}
       emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
         />
