@@ -23,10 +23,15 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
     'Mozambique': '🇲🇿',
   };
 
-  List<String> get filteredLocations {
-    // Replace with dynamic location fetching logic if needed
-    return [];
-  }
+  final List<Map<String, String>> locations = [
+    {'name': 'Kampala', 'region': 'Central, Uganda'},
+    {'name': 'Gulu', 'region': 'North, Uganda'},
+    {'name': 'Kira', 'region': 'Central, Uganda'},
+    {'name': 'Mukono', 'region': 'Central, Uganda'},
+    {'name': 'Naalya', 'region': 'Central, Uganda'},
+  ];
+
+  final List<String> selectedLocations = [];
 
   @override
   Widget build(BuildContext context) {
@@ -80,12 +85,43 @@ class _AddLocationScreenState extends State<AddLocationScreen> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView(
-                children: filteredLocations.map((location) {
-                  return ListTile(
-                    title: Text(location),
+              child: ListView.builder(
+                itemCount: locations.length,
+                itemBuilder: (context, index) {
+                  final location = locations[index];
+                  final isSelected =
+                      selectedLocations.contains(location['name']);
+                  return CheckboxListTile(
+                    title: Text(location['name']!),
+                    subtitle: Text(location['region']!),
+                    value: isSelected,
+                    onChanged: (value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedLocations.add(location['name']!);
+                        } else {
+                          selectedLocations.remove(location['name']!);
+                        }
+                      });
+                    },
                   );
-                }).toList(),
+                },
+              ),
+            ),
+            ElevatedButton(
+              onPressed: selectedLocations.isNotEmpty
+                  ? () {
+                      // Handle save action
+                      print('Saved locations: $selectedLocations');
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    selectedLocations.isNotEmpty ? Colors.blue : Colors.grey,
+              ),
+              child: Text(
+                'Save (${selectedLocations.length}) Locations',
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ],
