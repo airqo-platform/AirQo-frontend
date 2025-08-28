@@ -1,7 +1,6 @@
 import SelectionMessage from '../../components/SelectionMessage';
 import { motion, AnimatePresence } from 'framer-motion';
 import DataTable from '../../components/DataTable';
-import { AqAlertCircle } from '@airqo/icons-react';
 import { FILTER_TYPES } from '../constants';
 
 /**
@@ -51,53 +50,56 @@ const DataContent = ({
       initial="hidden"
       animate="visible"
     >
-      {/* Special Device Info Banner */}
+      {/* Special Device Info Banner rendered via SelectionMessage for consistency */}
       <AnimatePresence>
-        {activeFilterKey === FILTER_TYPES.DEVICES && 
-         (deviceCategory?.name?.toLowerCase() === 'mobile' || deviceCategory?.name?.toLowerCase() === 'bam') && (
-          <motion.div
-            variants={itemVariants}
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="mb-4"
-          >
-            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <AqAlertCircle size={20} className="text-blue-600 dark:text-blue-400 mt-0.5" />
-                </div>
-                <div className="flex-1 text-sm">
+        {activeFilterKey === FILTER_TYPES.DEVICES &&
+          (deviceCategory?.name?.toLowerCase() === 'mobile' ||
+            deviceCategory?.name?.toLowerCase() === 'bam') && (
+            <motion.div
+              variants={itemVariants}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="mb-4"
+            >
+              <SelectionMessage type="info">
+                <div>
                   <p className="font-medium text-blue-800 dark:text-blue-200 mb-2">
-                    {deviceCategory?.name?.toLowerCase() === 'mobile' ? 'Mobile' : 'BAM'} Device Data Download
+                    {deviceCategory?.name?.toLowerCase() === 'mobile'
+                      ? 'Mobile'
+                      : 'BAM'}{' '}
+                    Device Data Download
                   </p>
                   <div className="text-blue-700 dark:text-blue-300">
                     <p className="mb-2">
-                      {deviceCategory?.name?.toLowerCase() === 'mobile' 
+                      {deviceCategory?.name?.toLowerCase() === 'mobile'
                         ? 'Mobile devices require specific settings for data download:'
-                        : 'BAM (Beta Attenuation Monitoring) devices require specific settings for data download:'
-                      }
+                        : 'BAM (Beta Attenuation Monitoring) devices require specific settings for data download:'}
                     </p>
                     <ul className="list-disc list-inside space-y-1 ml-2">
-                      <li>Only <strong>Raw data</strong> type is available</li>
-                      <li>Only <strong>Raw frequency</strong> option can be used</li>
                       <li>
-                        {deviceCategory?.name?.toLowerCase() === 'mobile' 
+                        Only <strong>Raw data</strong> type is available
+                      </li>
+                      <li>
+                        Only <strong>Raw frequency</strong> option can be used
+                      </li>
+                      <li>
+                        {deviceCategory?.name?.toLowerCase() === 'mobile'
                           ? 'Devices shown are filtered to mobile-enabled lowcost sensors'
-                          : 'Devices shown are filtered to BAM reference monitors'
-                        }
+                          : 'Devices shown are filtered to BAM reference monitors'}
                       </li>
                     </ul>
                     <p className="mt-2 text-xs">
-                      These settings are automatically applied when {deviceCategory?.name?.toLowerCase()} category is selected.
+                      These settings are automatically applied when{' '}
+                      {deviceCategory?.name?.toLowerCase()} category is
+                      selected.
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
+              </SelectionMessage>
+            </motion.div>
+          )}
       </AnimatePresence>
       {/* Selection info with SelectionMessage component */}
       <AnimatePresence>
