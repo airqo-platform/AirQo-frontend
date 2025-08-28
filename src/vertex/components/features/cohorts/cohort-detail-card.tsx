@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy } from "lucide-react";
+import { Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface CohortDetailsCardProps {
@@ -9,9 +9,13 @@ interface CohortDetailsCardProps {
   id: string;
   visibility: boolean;
   onShowDetailsModal: () => void;
+  loading: boolean;
 }
 
-const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibility, onShowDetailsModal }) => {
+const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibility, onShowDetailsModal, loading }) => {
+  if (loading) {
+    return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
+  }
   return (
     <Card className="w-full rounded-lg bg-white flex flex-col justify-between">
       <div className="px-3 py-2 flex flex-col gap-4">

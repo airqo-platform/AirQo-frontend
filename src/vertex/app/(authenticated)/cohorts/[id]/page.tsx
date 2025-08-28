@@ -13,6 +13,15 @@ import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-detail
 
 const ITEMS_PER_PAGE = 8;
 
+// Loading skeleton for content grid
+const ContentGridSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="h-48 bg-gray-200 rounded-lg animate-pulse" />
+    ))}
+  </div>
+);
+
 export default function CohortDetailsPage() {
   const router = useRouter();
   const params = useParams();
@@ -53,22 +62,19 @@ export default function CohortDetailsPage() {
         </div>
 
         {/* Loading / Error states */}
-        {isLoading && <div className="text-sm text-muted-foreground">Loading cohort...</div>}
-        {!isLoading && error && (
-          <div className="text-sm text-destructive">{error.message || "Unable to load cohort"}</div>
-        )}
-
-        {/* Details form */}
-        {!isLoading && cohort && (
+        {isLoading ? (
+          <ContentGridSkeleton />
+        ) : (
           <div className="flex flex-col gap-6">
             {/* Cohort basic info card */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-start">
-            <CohortDetailsCard
-              name={cohort?.name || ""}
-              id={cohort?._id || ""}
-              visibility={Boolean(cohort?.visibility)}
-              onShowDetailsModal={handleOpenDetails}
-            />
+              <CohortDetailsCard
+                name={cohort?.name || ""}
+                id={cohort?._id || ""}
+                visibility={Boolean(cohort?.visibility)}
+                onShowDetailsModal={handleOpenDetails}
+                loading={isLoading}
+              />
             </div>
 
             {/* Devices list */}
