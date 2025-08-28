@@ -119,7 +119,7 @@ const MoreInsightsChart = React.memo(function MoreInsightsChart({
     <div
       id={id}
       ref={containerRef}
-      className="w-full h-full relative chart-container flex items-center justify-center"
+      className="w-full h-full dark:bg-gray-800 relative chart-container flex items-center justify-center"
       data-chart-id={id}
     >
       <ResponsiveContainer width="100%" height={height}>
