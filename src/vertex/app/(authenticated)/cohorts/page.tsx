@@ -7,6 +7,8 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
 import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 type CohortRow = {
   id: string;
@@ -19,6 +21,8 @@ type CohortRow = {
 export default function CohortsPage() {
   const router = useRouter();
   const { cohorts, isLoading, error } = useCohorts();
+
+  const [showCreateCohortModal, setShowCreateCohortModal] = useState(false);
 
   const rows: CohortRow[] = (cohorts || []).map((c: Cohort) => ({
     id: c._id,
@@ -74,7 +78,7 @@ export default function CohortsPage() {
               Manage and organize your device cohorts
             </p>
           </div>
-          <CreateCohortDialog />
+          <Button onClick={() => setShowCreateCohortModal(true)}>Create Cohort</Button>
         </div>
 
         <ReusableTable
@@ -91,6 +95,7 @@ export default function CohortsPage() {
           }}
           emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
         />
+        <CreateCohortDialog open={showCreateCohortModal} onOpenChange={setShowCreateCohortModal} />
       </div>
     </RouteGuard>
   );

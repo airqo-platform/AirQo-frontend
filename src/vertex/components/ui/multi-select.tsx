@@ -82,10 +82,11 @@ export function MultiSelectCombobox({
     !selectedValues.has(inputValue.toLowerCase())
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal={false}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          type="button"
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between h-auto min-h-[40px] flex-wrap bg-transparent"
@@ -116,7 +117,11 @@ export function MultiSelectCombobox({
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+      <PopoverContent 
+      className="w-[var(--radix-popover-trigger-width)] p-0" 
+      onOpenAutoFocus={(e) => e.preventDefault()} 
+      onCloseAutoFocus={(e) => e.preventDefault()}
+      onPointerDownOutside={(e) => e.preventDefault()}>
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search or add new tag..."
