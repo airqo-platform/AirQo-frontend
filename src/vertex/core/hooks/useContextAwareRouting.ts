@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUserContext, SidebarConfig } from './useUserContext';
+import logger from '@/lib/logger';
 
 // Map routes to sidebar config properties
 const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
@@ -22,10 +23,17 @@ export const useContextAwareRouting = () => {
   const pathname = usePathname();
   const { getSidebarConfig, userContext, isLoading } = useUserContext();
   const previousContextRef = useRef<string | null>(null);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
     // Don't validate during loading
     if (isLoading || !userContext) {
+      return;
+    }
+
+    if(!initializedRef.current) {
+      initializedRef.current = true;
+      previousContextRef.current = userContext;
       return;
     }
 
@@ -64,7 +72,7 @@ export const useContextAwareRouting = () => {
 
     // If current route is not accessible, redirect to dashboard
     if (!isRouteAccessible(pathname)) {
-      console.log(`Route ${pathname} not accessible in ${userContext} context, redirecting to dashboard`);
+      logger.debug('Context-aware redirect', { from: pathname, to: '/home', userContext, sidebarConfig })
       router.push('/home');
     }
   }, [userContext, pathname, isLoading, getSidebarConfig, router]);

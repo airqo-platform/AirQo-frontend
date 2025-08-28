@@ -139,42 +139,31 @@ const createSecureApiClient = (): AxiosInstance => {
   );
 
   instance.interceptors.response.use(
-    (response) => {
-      return response;
-    },
+    (response) => response,
     (error) => {
       const status = error.response?.status;
       const url = error.config?.url;
-      
-      logger.error(`API request failed:`, {
+      const authType = (error.config?.headers?.['x-auth-type'] || 'jwt').toString().toLowerCase();
+
+      logger.error('API request failed:', {
         url,
         status,
         message: error.message,
-        responseData: error.response?.data
+        responseData: error.response?.data,
+        authType,
       });
       
-      if ([401, 403].includes(status)) {
-        // Clear token cache on authentication/authorization failures
-        tokenCache.clear();
-        
-        if (typeof window !== 'undefined') {
-          // Also clear localStorage token if it exists
-          localStorage.removeItem('token');
-        }
-        
-        // Optionally trigger a re-authentication flow
-        if (status === 401 && typeof window !== 'undefined') {
-          // Dispatch a custom event that components can listen to
-          window.dispatchEvent(new CustomEvent('auth-token-expired', {
-            detail: { url, status }
-          }));
-        }
-      }
-      
+     // For JWT-protected endpoints, signal token issues without nuking local storage.
+     if (status === 401 && authType === 'jwt' && typeof window !== 'undefined') {
+       window.dispatchEvent(new CustomEvent('auth-token-expired', {
+         detail: { url, status, authType }
+       }));
+     }
+
       if (status === 429) {
-        logger.warn(`Rate limit exceeded for ${url}`);
+        logger.warn('Rate limit exceeded', { url });
       }
-      
+
       return Promise.reject(error);
     }
   );

@@ -62,16 +62,14 @@ export const ENDPOINT_CONFIG: Record<string, EndpointConfig> = {
     requiresApiToken: false,
     timeout: 30000,
   },
-
-  // Data and analytics endpoints - require API token
   analytics: {
-    requiresAuth: false,
-    requiresApiToken: true,
+    requiresAuth: true,
+    requiresApiToken: false,
     timeout: 45000, // Longer timeout for analytics
   },
   devices: {
-    requiresAuth: false,
-    requiresApiToken: true,
+    requiresAuth: true,
+    requiresApiToken: false,
     timeout: 30000,
   },
   data: {
@@ -85,8 +83,8 @@ export const ENDPOINT_CONFIG: Record<string, EndpointConfig> = {
     timeout: 30000,
   },
   sites: {
-    requiresAuth: false,
-    requiresApiToken: true,
+    requiresAuth: true,
+    requiresApiToken: false,
     timeout: 30000,
   },
   grids: {
@@ -95,8 +93,8 @@ export const ENDPOINT_CONFIG: Record<string, EndpointConfig> = {
     timeout: 30000,
   },
   cohorts: {
-    requiresAuth: false,
-    requiresApiToken: true,
+    requiresAuth: true,
+    requiresApiToken: false,
     timeout: 30000,
   },
 
