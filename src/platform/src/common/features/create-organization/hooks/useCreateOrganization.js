@@ -135,8 +135,8 @@ export const useCreateOrganization = () => {
       } finally {
         setIsSubmitting(false);
       }
-  },
-  [uploadLogo],
+    },
+    [uploadLogo],
   );
 
   return {

@@ -25,6 +25,6 @@ export function useColorResolver(activeIndex) {
         ? color
         : 'rgba(204, 204, 204, 0.5)';
     },
-  [activeIndex],
+    [activeIndex],
   );
 }

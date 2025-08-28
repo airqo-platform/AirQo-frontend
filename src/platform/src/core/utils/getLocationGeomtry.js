@@ -23,7 +23,7 @@ export const getPlaceDetails = async (placeId) => {
     });
   });
 
-    /* eslint-disable no-console */
+  /* eslint-disable no-console */
   try {
     const locations = await locationPromise;
     return locations;
