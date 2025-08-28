@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -76,7 +77,7 @@ class SurveyTriggerService with UiLoggy {
 
   /// Manually trigger a survey
   Future<bool> triggerSurvey(String surveyId, {Map<String, dynamic>? contextData}) async {
-    final survey = _activeSurveys.where((s) => s.id == surveyId).firstOrNull;
+    final survey = _activeSurveys.firstWhereOrNull((s) => s.id == surveyId);
     if (survey == null) {
       loggy.warning('Survey not found: $surveyId');
       return false;
@@ -137,6 +138,24 @@ class SurveyTriggerService with UiLoggy {
     }
   }
 
+  /// Parse pollutant value from air quality data, handling both num and String types
+  double? _parsePollutantValue(dynamic value) {
+    if (value == null) return null;
+    
+    try {
+      if (value is num) {
+        return value.toDouble();
+      }
+      if (value is String) {
+        return double.tryParse(value);
+      }
+      return null;
+    } catch (e) {
+      loggy.warning('Failed to parse pollutant value: $value');
+      return null;
+    }
+  }
+
   /// Check air quality threshold triggers
   void _checkAirQualityThresholdTriggers(Map<String, dynamic> airQualityData) {
     for (final survey in _activeSurveys) {
@@ -148,7 +167,7 @@ class SurveyTriggerService with UiLoggy {
 
       try {
         final thresholdCondition = AirQualityThresholdTriggerCondition.fromJson(conditions);
-        final currentValue = airQualityData[thresholdCondition.pollutant]?.toDouble();
+        final currentValue = _parsePollutantValue(airQualityData[thresholdCondition.pollutant]);
         
         if (currentValue != null && thresholdCondition.isTriggered(currentValue)) {
           final contextData = SurveyTriggerContext(

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
@@ -61,12 +62,15 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     try {
       final responseId = DateTime.now().millisecondsSinceEpoch.toString();
       final startTime = DateTime.now();
+      
+      // Get current user ID from auth token
+      final userId = await AuthHelper.getCurrentUserId() ?? '';
 
       // Create initial survey response
       final response = SurveyResponse(
         id: responseId,
         surveyId: event.survey.id,
-        userId: 'current_user', // TODO: Get from auth state
+        userId: userId,
         answers: [],
         status: SurveyResponseStatus.inProgress,
         startedAt: startTime,
@@ -182,7 +186,9 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
       
       try {
         final completedAt = DateTime.now();
-        final completionTime = completedAt.difference(currentState.currentResponse.startedAt);
+        final completionTime = currentState.currentResponse.startedAt != null 
+            ? completedAt.difference(currentState.currentResponse.startedAt!)
+            : Duration.zero;
 
         final finalResponse = currentState.currentResponse.copyWith(
           status: SurveyResponseStatus.completed,
@@ -235,19 +241,39 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
   }
 
   Future<void> _onRetryFailedSubmissions(RetryFailedSubmissions event, Emitter<SurveyState> emit) async {
-    emit(SurveyRetryInProgress(0));
+    int retryCount = 0;
+    const maxRetries = 3;
+    
+    emit(SurveyRetryInProgress(retryCount));
+    
     try {
-      await repository.retryFailedSubmissions();
+      // Emit progress updates for each retry attempt
+      for (int attempt = 1; attempt <= maxRetries; attempt++) {
+        retryCount = attempt;
+        emit(SurveyRetryInProgress(retryCount));
+        
+        try {
+          await repository.retryFailedSubmissions(maxRetries: maxRetries);
+          break; // Success, exit retry loop
+        } catch (e) {
+          if (attempt == maxRetries) {
+            // Last attempt failed, rethrow
+            rethrow;
+          }
+          // Continue to next attempt
+          loggy.warning('Retry attempt $attempt failed: $e');
+        }
+      }
       
       // Reload surveys to reflect updated status
       final surveys = await repository.getSurveys();
       final userResponses = await repository.getSurveyResponses();
       emit(SurveysLoaded(surveys, userResponses: userResponses));
       
-      loggy.info('Retry completed successfully');
+      loggy.info('Retry completed successfully after $retryCount attempts');
     } catch (e) {
-      loggy.error('Error during retry: $e');
-      emit(SurveyError('Failed to retry submissions', error: e));
+      loggy.error('Error during retry after $maxRetries attempts: $e');
+      emit(SurveyError('Failed to retry submissions after $maxRetries attempts', error: e));
     }
   }
 
