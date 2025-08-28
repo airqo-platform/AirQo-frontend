@@ -14,7 +14,7 @@ export default function useMoreInsights() {
   const dispatch = useDispatch();
   const modalData = useSelector((s) => s.modal.modalType?.data);
   const modalType = useSelector((s) => s.modal.modalType?.type);
-  const isModalOpen = useSelector((s) => s.modal.open);
+  const isModalOpen = useSelector((s) => s.modal.openModal);
   const chartData = useSelector((s) => s.chart);
   const moreInsightsSites = useSelector(selectMoreInsightsSites);
 
