@@ -8,6 +8,7 @@ import { useUpdateCohortDetails } from "@/core/hooks/useCohorts";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
+import logger from "@/lib/logger";
 
 interface CohortDetailsModalProps {
     open: boolean;
@@ -50,7 +51,7 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
             await updateCohort.mutateAsync({ cohortId: cohortDetails.id, data: updates });
             onClose();
         } catch (error) {
-            
+            logger.info("Something went wrong")
         }
     };
 
