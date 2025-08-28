@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUserContext, SidebarConfig } from './useUserContext';
-import logger from '@/lib/logger';
 
 // Map routes to sidebar config properties
 const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
