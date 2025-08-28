@@ -13,27 +13,21 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   static const String _surveyResponsesBoxName = 'survey_responses';
   static const String _surveyStatsBoxName = 'survey_stats';
 
-  // Development mode flag - set to false when APIs are ready
   static const bool _useMockData = false;
   
-  // Retry tracking
   final Map<String, int> _retryCount = <String, int>{};
-  static const int _baseDelayMs = 1000; // 1 second base delay
-
-  // API endpoints (matching API documentation)
+  static const int _baseDelayMs = 1000;
   static const String _surveysEndpoint = '/api/v2/users/surveys';
   static const String _surveyResponsesEndpoint = '/api/v2/users/surveys/responses';
   static const String _surveyStatsEndpoint = '/api/v2/users/surveys/stats';
 
-  /// Get all available surveys
+
   Future<List<Survey>> getSurveys({bool forceRefresh = false}) async {
     try {
-      // Use mock data in development mode
       if (_useMockData) {
         return _getMockSurveys(forceRefresh: forceRefresh);
       }
 
-      // Try to get from cache first
       if (!forceRefresh) {
         final cachedSurveys = await _getCachedSurveys();
         if (cachedSurveys.isNotEmpty) {
@@ -42,7 +36,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         }
       }
 
-      // Fetch from API with query parameters for active surveys only
       final queryParams = {
         'isActive': 'true',
         'limit': '100',
@@ -57,7 +50,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
             .where((survey) => survey.isActive && !survey.isExpired)
             .toList();
 
-        // Cache the surveys
         await _cacheSurveys(surveys);
         
         loggy.info('Fetched ${surveys.length} active surveys from API');
@@ -68,14 +60,14 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     } catch (e) {
       loggy.error('Error fetching surveys: $e');
       
-      // Return cached data as fallback
+
       final cachedSurveys = await _getCachedSurveys();
       if (cachedSurveys.isNotEmpty) {
         loggy.info('Returning ${cachedSurveys.length} cached surveys as fallback');
         return cachedSurveys;
       }
       
-      // If no cache available, throw specific error for UI to handle
+
       if (e.toString().contains('401')) {
         throw Exception('Authentication required. Please log in to view surveys.');
       } else if (e.toString().contains('403')) {
@@ -93,19 +85,18 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   /// Get a specific survey by ID
   Future<Survey?> getSurvey(String surveyId) async {
     try {
-      // Check cache first
+
       final cachedSurveys = await _getCachedSurveys();
       final cachedSurvey = cachedSurveys.firstWhereOrNull((s) => s.id == surveyId);
       if (cachedSurvey != null) {
         return cachedSurvey;
       }
 
-      // Fetch from API 
       final response = await createAuthenticatedGetRequest('$_surveysEndpoint/$surveyId', {});
       final data = json.decode(response.body);
 
       if (data['success'] == true && data['surveys'] != null && data['surveys'].isNotEmpty) {
-        return Survey.fromJson(data['surveys'][0]); // API returns surveys array even for single survey
+        return Survey.fromJson(data['surveys'][0]);
       }
       
       return null;
@@ -118,10 +109,8 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   /// Submit a survey response
   Future<bool> submitSurveyResponse(SurveyResponse response) async {
     try {
-      // Save locally first
       await _cacheSurveyResponse(response);
 
-      // Submit to API
       final responseData = response.toJson();
       final apiResponse = await createPostRequest(
         path: _surveyResponsesEndpoint,
@@ -132,8 +121,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       
       if (data['success'] == true) {
         loggy.info('Successfully submitted survey response: ${response.id}');
-        
-        // Mark as synced in local storage
+
         final updatedResponse = response.copyWith(
           status: SurveyResponseStatus.completed,
           completedAt: DateTime.now(),
@@ -147,9 +135,8 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     } catch (e) {
       loggy.error('Error submitting survey response: $e');
       
-      // Keep locally cached for retry later
       final failedResponse = response.copyWith(
-        status: SurveyResponseStatus.inProgress, // Mark as pending sync
+        status: SurveyResponseStatus.inProgress, 
       );
       await _cacheSurveyResponse(failedResponse);
       
@@ -157,18 +144,17 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  /// Get user's survey responses
+
   Future<List<SurveyResponse>> getSurveyResponses({String? surveyId}) async {
     try {
       // Get cached responses
       final cachedResponses = await _getCachedSurveyResponses();
-      
-      // Filter by survey ID if provided
+
       var responses = surveyId != null 
           ? cachedResponses.where((r) => r.surveyId == surveyId).toList()
           : cachedResponses;
 
-      // Try to sync with API
+
       try {
         final endpoint = surveyId != null 
             ? '$_surveyResponsesEndpoint?surveyId=$surveyId'
@@ -182,10 +168,8 @@ class SurveyRepository extends BaseRepository with UiLoggy {
               .map((responseJson) => SurveyResponse.fromJson(responseJson))
               .toList();
 
-          // Merge with cached responses (API takes precedence)
           responses = _mergeResponses(cachedResponses, apiResponses);
           
-          // Update cache
           for (final response in apiResponses) {
             await _cacheSurveyResponse(response);
           }
@@ -201,13 +185,12 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  /// Get survey statistics
+
   Future<SurveyStats?> getSurveyStats(String surveyId) async {
     try {
-      // Check cache first
+
       final cachedStats = await _getCachedSurveyStats(surveyId);
       
-      // Try to get fresh data from API
       try {
         final response = await createAuthenticatedGetRequest(
           '$_surveyStatsEndpoint/$surveyId', {}
@@ -230,7 +213,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  /// Retry failed survey response submissions with exponential backoff
   Future<void> retryFailedSubmissions({int maxRetries = 3}) async {
     try {
       final responses = await _getCachedSurveyResponses();
@@ -242,28 +224,24 @@ class SurveyRepository extends BaseRepository with UiLoggy {
 
       for (final response in pendingResponses) {
         final currentRetryCount = _retryCount[response.id] ?? 0;
-        
-        // Skip responses that have exceeded max retries
+
         if (currentRetryCount >= maxRetries) {
           loggy.warning('Response ${response.id} exceeded max retries ($currentRetryCount >= $maxRetries), skipping');
           continue;
         }
 
         try {
-          // Implement exponential backoff: baseDelay * 2^attempt
+
           if (currentRetryCount > 0) {
-            final delayMs = _baseDelayMs * (1 << currentRetryCount); // 2^currentRetryCount
+            final delayMs = _baseDelayMs * (1 << currentRetryCount);
             loggy.info('Waiting ${delayMs}ms before retry attempt ${currentRetryCount + 1} for response ${response.id}');
             await Future.delayed(Duration(milliseconds: delayMs));
           }
 
-          // Increment retry count before attempting submission
           _retryCount[response.id] = currentRetryCount + 1;
           
-          // Attempt submission
           await submitSurveyResponse(response);
           
-          // Success - remove from retry tracking
           _retryCount.remove(response.id);
           loggy.info('Successfully submitted response ${response.id} after ${currentRetryCount + 1} attempt(s)');
           
@@ -271,17 +249,12 @@ class SurveyRepository extends BaseRepository with UiLoggy {
           final newRetryCount = _retryCount[response.id] ?? 0;
           loggy.error('Failed to submit response ${response.id} (attempt $newRetryCount): $e');
           
-          // Check if we've reached max retries
           if (newRetryCount >= maxRetries) {
             loggy.error('Response ${response.id} failed after $maxRetries attempts, marking as failed');
             _retryCount.remove(response.id);
             
-            // Optionally update response status to indicate permanent failure
-            // This would require updating the response in cache with a 'failed' status
-            // For now, we just log and remove from retry tracking
           }
-          
-          // Continue with next response - don't let one failure abort the loop
+
           continue;
         }
       }
@@ -293,12 +266,11 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  /// Clear all cached data
   Future<void> clearCache() async {
     try {
       await HiveRepository.deleteData(_surveysBoxName, 'surveys');
       await HiveRepository.deleteData(_surveyResponsesBoxName, 'responses');
-      // Clear individual survey stats
+
       final responses = await _getCachedSurveyResponses();
       for (final response in responses) {
         await HiveRepository.deleteData(_surveyStatsBoxName, response.surveyId);
@@ -309,14 +281,12 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  // Mock data methods for development
 
   Future<List<Survey>> _getMockSurveys({bool forceRefresh = false}) async {
     try {
-      // Simulate network delay
       await Future.delayed(const Duration(milliseconds: 500));
       
-      // Try to get from cache first
+
       if (!forceRefresh) {
         final cachedSurveys = await _getCachedSurveys();
         if (cachedSurveys.isNotEmpty) {
@@ -325,10 +295,8 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         }
       }
 
-      // Get example surveys
       final surveys = ExampleSurveyData.getAllExampleSurveys();
-      
-      // Cache the surveys
+
       await _cacheSurveys(surveys);
       
       loggy.info('Returning ${surveys.length} mock surveys');
@@ -339,7 +307,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  // Private helper methods
 
   Future<List<Survey>> _getCachedSurveys() async {
     try {
@@ -382,7 +349,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     try {
       final responses = await _getCachedSurveyResponses();
       
-      // Update existing response or add new one
       final existingIndex = responses.indexWhere((r) => r.id == response.id);
       if (existingIndex >= 0) {
         responses[existingIndex] = response;
@@ -428,12 +394,10 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   ) {
     final merged = <String, SurveyResponse>{};
     
-    // Add cached responses
     for (final response in cached) {
       merged[response.id] = response;
     }
     
-    // Override with API responses (more authoritative)
     for (final response in api) {
       merged[response.id] = response;
     }
