@@ -149,12 +149,12 @@ const createSecureApiClient = (): AxiosInstance => {
         url,
         status,
         message: error.message,
-        responseData: error.response?.data,
+        responseData: status && status >= 500 ? error.response?.data : undefined,
         authType,
       });
-      
+
      // For JWT-protected endpoints, signal token issues without nuking local storage.
-     if (status === 401 && authType === 'jwt' && typeof window !== 'undefined') {
+     if ((status === 401 || status === 403) && authType === 'jwt' && typeof window !== 'undefined') {
        window.dispatchEvent(new CustomEvent('auth-token-expired', {
          detail: { url, status, authType }
        }));
