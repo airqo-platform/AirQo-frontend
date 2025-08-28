@@ -5,8 +5,30 @@ import { motion } from 'framer-motion';
 import { AqMarkerPin01 } from '@airqo/icons-react';
 
 const truncateName = (name, maxLength = 13) => {
-  if (!name) return 'Unknown Location';
+  if (
+    !name ||
+    name.toLowerCase() === 'unknown' ||
+    name === 'Unknown Location'
+  ) {
+    return ''; // Return empty string for unknown names
+  }
   return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+};
+
+// Format location description, return empty string if no valid location data
+const formatLocationDescription = (country, city) => {
+  const parts = [];
+  if (city && city.toLowerCase() !== 'unknown' && city !== 'Unknown Location') {
+    parts.push(city);
+  }
+  if (
+    country &&
+    country.toLowerCase() !== 'unknown' &&
+    country !== 'Unknown Location'
+  ) {
+    parts.push(country);
+  }
+  return parts.length > 0 ? parts.join(', ') : ''; // Return empty string instead of null
 };
 
 const LocationCard = ({
@@ -48,7 +70,9 @@ const LocationCard = ({
   const { name, search_name, country, city, _id } = site;
   const fullName = name || (search_name && search_name.split(',')[0]) || '';
   const displayName = truncateName(fullName);
-  const locationDescription = country || city || 'Unknown Location';
+  const locationDescription = formatLocationDescription(country, city);
+
+  // Always show the card, even if name or location is unknown
 
   const handleCardClick = () => {
     if (!disableToggle) onToggle(site);
@@ -88,13 +112,17 @@ const LocationCard = ({
           <AqMarkerPin01 size={20} />
         </motion.div>
         <div className="flex flex-col">
-          <Tooltip content={fullName} placement="top" trigger="hover">
-            <h3 className="text-sm font-medium dark:text-white cursor-help">
-              {displayName}
+          <Tooltip
+            content={fullName || 'No name available'}
+            placement="top"
+            trigger="hover"
+          >
+            <h3 className="text-sm font-medium dark:text-white cursor-help min-h-[20px]">
+              {displayName || ' '}
             </h3>
           </Tooltip>
-          <small className="text-xs text-gray-500 dark:text-white">
-            {locationDescription}
+          <small className="text-xs text-gray-500 dark:text-white min-h-[16px]">
+            {locationDescription || ' '}
           </small>
         </div>
       </div>
@@ -104,7 +132,7 @@ const LocationCard = ({
         className="flex items-center justify-center"
       >
         <label htmlFor={`checkbox-${_id || 'unknown'}`} className="sr-only">
-          Select {displayName}
+          Select {displayName || 'site'}
         </label>
         <input
           type="checkbox"
@@ -117,7 +145,7 @@ const LocationCard = ({
           className={`w-4 h-4 text-primary bg-white dark:bg-gray-800 border-primary/30 dark:border-primary/50 rounded focus:ring-primary/50 ${
             disableToggle ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
           }`}
-          aria-label={`Select ${displayName}`}
+          aria-label={`Select ${displayName || 'site'}`}
           disabled={disableToggle}
         />
       </motion.div>

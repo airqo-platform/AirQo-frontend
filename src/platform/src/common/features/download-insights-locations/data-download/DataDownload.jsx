@@ -592,6 +592,140 @@ const DataDownload = ({
     [handleToggleItem, activeFilterKey],
   );
 
+  // Enhanced handler for View Data button click supporting all filter types
+  const onViewDataClick = useCallback(async () => {
+    if (selectedItems.length === 0) return;
+
+    try {
+      let visualizationData = [];
+      let modalTitle = 'Air Quality Insights';
+
+      switch (activeFilterKey) {
+        case FILTER_TYPES.SITES:
+          // For sites, use selected items directly
+          visualizationData = selectedItems;
+          modalTitle = `Air Quality Insights - ${selectedItems.length} Site${selectedItems.length > 1 ? 's' : ''}`;
+          break;
+
+        case FILTER_TYPES.COUNTRIES:
+        case FILTER_TYPES.CITIES:
+          // Enhanced handling for countries and cities with better error management
+          if (siteAndDeviceIds?.site_ids?.length > 0) {
+            // Map site IDs to actual site objects from the available sites data
+            const availableSites = sitesData || [];
+
+            // Use a more efficient approach for large datasets
+            const siteMap = new Map(
+              availableSites.map((site) => [site._id, site]),
+            );
+
+            visualizationData = siteAndDeviceIds.site_ids
+              .map((siteId) => siteMap.get(siteId))
+              .filter(Boolean); // Remove any undefined entries
+
+            // Format location name properly (remove underscores/hyphens, capitalize)
+            const rawLocationName =
+              selectedItems[0]?.name ||
+              selectedItems[0]?.long_name ||
+              'Selected Location';
+            const formattedLocationName = rawLocationName
+              .replace(/[_-]/g, ' ')
+              .split(' ')
+              .map(
+                (word) =>
+                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
+              )
+              .join(' ');
+
+            modalTitle = `Air Quality Insights - ${formattedLocationName} (${visualizationData.length} Site${visualizationData.length > 1 ? 's' : ''})`;
+
+            // For very large datasets, limit to first 100 sites with a warning
+            if (visualizationData.length > 100) {
+              setStatusMessage(
+                `Showing data for the first 100 out of ${visualizationData.length} sites for optimal performance.`,
+              );
+              setMessageType('warning');
+              visualizationData = visualizationData.slice(0, 100);
+            }
+          } else {
+            // No sites found, show error
+            const locationTypeText =
+              activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city';
+            setFormError(
+              `No monitoring sites found for the selected ${locationTypeText}. This may be due to data availability or connectivity issues.`,
+            );
+            return;
+          }
+          break;
+
+        case FILTER_TYPES.DEVICES:
+          // For devices, we can visualize device-specific data
+          visualizationData = selectedItems;
+          modalTitle = `Air Quality Insights - ${selectedItems.length} Device${selectedItems.length > 1 ? 's' : ''}`;
+          break;
+
+        default:
+          setFormError('Unable to visualize data for this selection type');
+          return;
+      }
+
+      if (visualizationData.length === 0) {
+        setFormError(
+          'No data available for visualization. Please try selecting a different location or check back later.',
+        );
+        return;
+      }
+
+      // Clear any existing errors
+      setFormError('');
+
+      // Dispatch modal with enhanced data structure
+      dispatch(
+        setModalType({
+          type: 'inSights',
+          ids: null,
+          data: visualizationData,
+          backToDownload,
+          filterType: activeFilterKey,
+          modalTitle,
+          originalSelection: selectedItems,
+        }),
+      );
+      dispatch(setOpenModal(true));
+    } catch (error) {
+      // Enhanced error handling with more specific messages
+      // Log error for debugging (in development only)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error in onViewDataClick:', error);
+      }
+
+      if (error.name === 'QuotaExceededError') {
+        setFormError(
+          'Unable to load visualization due to data size. Please try selecting fewer items.',
+        );
+      } else if (error.message?.includes('network')) {
+        setFormError(
+          'Network error. Please check your connection and try again.',
+        );
+      } else {
+        setFormError(
+          'Failed to open visualization. Please try again or contact support if the issue persists.',
+        );
+      }
+    }
+  }, [
+    selectedItems,
+    activeFilterKey,
+    siteAndDeviceIds,
+    sitesData,
+    dispatch,
+    backToDownload,
+    setFormError,
+    setStatusMessage,
+    setMessageType,
+  ]);
+
   // Columns config for each filter type
   const columnsByFilter = useMemo(
     () => ({
@@ -807,24 +941,8 @@ const DataDownload = ({
       );
     }
 
-    // Only enable View Data for Sites
-    const showViewDataButton =
-      activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0;
-
-    // Handler for View Data button click (Sites only)
-    const onViewDataClick = () => {
-      if (activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0) {
-        dispatch(
-          setModalType({
-            type: 'inSights',
-            ids: null,
-            data: selectedItems,
-            backToDownload,
-          }),
-        );
-        dispatch(setOpenModal(true));
-      }
-    };
+    // Enable View Data for all filter types with selections
+    const showViewDataButton = selectedItems.length > 0;
 
     return (
       <motion.div variants={animations.itemVariants}>
@@ -860,10 +978,10 @@ const DataDownload = ({
     countriesErrorMsg,
     citiesErrorMsg,
     isLoading,
-    activeFilterKey,
     selectedItems,
     clearSelections,
     currentFilterData,
+    activeFilterKey,
     setSelectedItems,
     clearSelected,
     filterErrors,
@@ -873,9 +991,8 @@ const DataDownload = ({
     handleFilter,
     searchKeysByFilter,
     handleRetryLoad,
-    dispatch,
-    backToDownload, // Add missing dependency
-    formData.deviceCategory, // Add device category dependency
+    onViewDataClick,
+    formData.deviceCategory,
   ]);
 
   return (

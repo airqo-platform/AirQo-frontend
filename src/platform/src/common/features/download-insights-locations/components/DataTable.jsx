@@ -11,7 +11,12 @@ import {
   MdCheck,
   MdSearch,
 } from 'react-icons/md';
-import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
+import {
+  AqChevronLeft,
+  AqChevronRight,
+  AqBarChart07,
+  AqEye,
+} from '@airqo/icons-react';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -793,7 +798,12 @@ const DataTable = ({
       {!loading && totalPages > 1 && (
         <div className="flex items-center justify-between">
           {showViewDataButton && (
-            <Button variant="text" onClick={onViewDataClick}>
+            <Button
+              variant="text"
+              onClick={onViewDataClick}
+              className="text-primary hover:bg-primary/10 flex items-center gap-2"
+            >
+              <AqBarChart07 size={16} />
               Visualize Data
             </Button>
           )}
@@ -818,6 +828,20 @@ const DataTable = ({
               <AqChevronRight size={16} />
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Show View Data button even when pagination is not visible */}
+      {!loading && totalPages <= 1 && showViewDataButton && (
+        <div className="flex justify-start py-2">
+          <Button
+            variant="text"
+            onClick={onViewDataClick}
+            className="text-primary hover:bg-primary/10 flex items-center gap-2"
+          >
+            <AqEye size={16} />
+            Visualize Data
+          </Button>
         </div>
       )}
     </div>

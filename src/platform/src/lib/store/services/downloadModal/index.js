@@ -8,6 +8,9 @@ const initialState = {
     data: [],
     backToDownload: false,
     fromMoreInsights: false,
+    filterType: null, // Track the type of filter (sites, countries, cities, devices)
+    modalTitle: 'Air Quality Insights', // Custom title for the modal
+    originalSelection: [], // Track original user selection for context
   },
 };
 
@@ -25,8 +28,20 @@ const modalSlice = createSlice({
         data = [],
         backToDownload = false,
         fromMoreInsights = false,
+        filterType = null,
+        modalTitle = 'Air Quality Insights',
+        originalSelection = [],
       } = action.payload;
-      state.modalType = { type, ids, data, backToDownload, fromMoreInsights };
+      state.modalType = {
+        type,
+        ids,
+        data,
+        backToDownload,
+        fromMoreInsights,
+        filterType,
+        modalTitle,
+        originalSelection,
+      };
     },
     setModalText(state, action) {
       state.modalType.type = action.payload;
@@ -48,7 +63,13 @@ const modalSlice = createSlice({
     },
     resetModalState(state) {
       state.openModal = false;
-      state.modalType = { ...initialState.modalType, fromMoreInsights: false };
+      state.modalType = {
+        ...initialState.modalType,
+        fromMoreInsights: false,
+        filterType: null,
+        modalTitle: 'Air Quality Insights',
+        originalSelection: [],
+      };
     },
   },
 });
