@@ -1,5 +1,6 @@
 import { markerDetails, colors, images } from '../constants/mapConstants';
 
+/* eslint-disable no-console */
 import { parseISO, format } from 'date-fns';
 
 // -------------------------------------------------------------------

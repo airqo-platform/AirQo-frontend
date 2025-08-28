@@ -469,7 +469,7 @@ export const SESSION_TYPES = {
   ORGANIZATION: 'organization',
 };
 
-export default {
+const sessionUtils = {
   SESSION_TYPES,
   ROUTE_TYPES,
   getRouteType,
@@ -488,3 +488,5 @@ export default {
   createSessionRedirect,
   logSessionValidation,
 };
+
+export default sessionUtils;

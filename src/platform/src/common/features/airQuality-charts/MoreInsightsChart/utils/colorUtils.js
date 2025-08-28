@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 
-export function useColorResolver(activeIndex, theme, systemTheme) {
+export function useColorResolver(activeIndex) {
   return useCallback(
     (idx) => {
       if (typeof window === 'undefined') return 'rgba(20,95,255,1)';
@@ -25,6 +25,6 @@ export function useColorResolver(activeIndex, theme, systemTheme) {
         ? color
         : 'rgba(204, 204, 204, 0.5)';
     },
-    [activeIndex, theme, systemTheme],
+  [activeIndex],
   );
 }

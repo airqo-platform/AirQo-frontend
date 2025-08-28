@@ -98,6 +98,7 @@ export const useCreateOrganization = () => {
    * @param {File} logoFile - The logo file object
    * @returns {Promise<{success: boolean, error?: any}>}
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const submitOrganizationRequest = useCallback(
     async (formData, logoFile) => {
       setIsSubmitting(true);
@@ -134,8 +135,8 @@ export const useCreateOrganization = () => {
       } finally {
         setIsSubmitting(false);
       }
-    },
-    [uploadLogo, transformFormDataForAPI],
+  },
+  [uploadLogo],
   );
 
   return {

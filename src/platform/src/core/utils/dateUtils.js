@@ -6,6 +6,7 @@ import { parseISO, isValid } from 'date-fns';
  * @param {string} dateString - The ISO date string to parse.
  * @returns {Date|null} - Returns a valid Date object or null if invalid.
  */
+/* eslint-disable no-console */
 export const parseAndValidateISODate = (dateString) => {
   const date = parseISO(dateString);
   if (isValid(date)) {

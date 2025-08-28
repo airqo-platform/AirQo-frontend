@@ -1,5 +1,4 @@
-'use strict';
-
+/* eslint-disable no-console */
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const event = ({ action, category, label, value }) => {
@@ -8,7 +7,7 @@ export const event = ({ action, category, label, value }) => {
       window.gtag('event', action, {
         event_category: category,
         event_label: label,
-        value: value,
+        value,
       });
     }
   } catch (error) {

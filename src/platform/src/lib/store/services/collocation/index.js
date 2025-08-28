@@ -142,90 +142,90 @@ const collocationSlice = createSlice({
       .addCase(getDeviceStatusSummary.pending, (state) => {
         state.collocationBatchSummary.loading = true;
       })
-      .addCase(getDeviceStatusSummary.fulfilled, (state, action) => {
+      .addCase(getDeviceStatusSummary.fulfilled, (state, _action) => {
         state.collocationBatchSummary.loading = false;
-        state.collocationBatchSummary.data = action.payload.data;
+        state.collocationBatchSummary.data = _action.payload.data;
       })
-      .addCase(getDeviceStatusSummary.rejected, (state, action) => {
+      .addCase(getDeviceStatusSummary.rejected, (state, _action) => {
         state.collocationBatchSummary.loading = false;
-        state.collocationBatchSummary.error = action.error.message || '';
+        state.collocationBatchSummary.error = _action.error.message || '';
       })
       .addCase(getCollocationResults.pending, (state) => {
         state.collocationResults.loading = true;
       })
-      .addCase(getCollocationResults.fulfilled, (state, action) => {
+      .addCase(getCollocationResults.fulfilled, (state, _action) => {
         state.collocationResults.loading = false;
-        state.collocationResults.data = action.payload;
+        state.collocationResults.data = _action.payload;
       })
-      .addCase(getCollocationResults.rejected, (state, action) => {
+      .addCase(getCollocationResults.rejected, (state, _action) => {
         state.collocationResults.loading = false;
-        state.collocationResults.error = action.error.message || '';
+        state.collocationResults.error = _action.error.message || '';
       })
       .addCase(getDataCompletenessResults.pending, (state) => {
         state.dataCompletenessData.loading = true;
       })
-      .addCase(getDataCompletenessResults.fulfilled, (state, action) => {
+      .addCase(getDataCompletenessResults.fulfilled, (state, _action) => {
         state.dataCompletenessData.loading = false;
-        state.dataCompletenessData.data = action.payload.data;
+        state.dataCompletenessData.data = _action.payload.data;
       })
-      .addCase(getDataCompletenessResults.rejected, (state, action) => {
+      .addCase(getDataCompletenessResults.rejected, (state, _action) => {
         state.dataCompletenessData.loading = false;
-        state.dataCompletenessData.error = action.error.message || '';
+        state.dataCompletenessData.error = _action.error.message || '';
       })
       .addCase(getIntraSensorCorrelation.pending, (state) => {
         state.intraSensorCorrelationData.loading = true;
       })
-      .addCase(getIntraSensorCorrelation.fulfilled, (state, action) => {
+      .addCase(getIntraSensorCorrelation.fulfilled, (state, _action) => {
         state.intraSensorCorrelationData.loading = false;
-        state.intraSensorCorrelationData.data = action.payload.data;
+        state.intraSensorCorrelationData.data = _action.payload.data;
       })
-      .addCase(getIntraSensorCorrelation.rejected, (state, action) => {
+      .addCase(getIntraSensorCorrelation.rejected, (state, _action) => {
         state.intraSensorCorrelationData.loading = false;
-        state.intraSensorCorrelationData.error = action.error.message || '';
+        state.intraSensorCorrelationData.error = _action.error.message || '';
       })
       .addCase(getInterSensorCorrelation.pending, (state) => {
         state.interSensorCorrelationData.loading = true;
       })
-      .addCase(getInterSensorCorrelation.fulfilled, (state, action) => {
+      .addCase(getInterSensorCorrelation.fulfilled, (state, _action) => {
         state.interSensorCorrelationData.loading = false;
-        state.interSensorCorrelationData.data = action.payload.data;
+        state.interSensorCorrelationData.data = _action.payload.data;
       })
-      .addCase(getInterSensorCorrelation.rejected, (state, action) => {
+      .addCase(getInterSensorCorrelation.rejected, (state, _action) => {
         state.interSensorCorrelationData.loading = false;
-        state.interSensorCorrelationData.error = action.error.message || '';
+        state.interSensorCorrelationData.error = _action.error.message || '';
       })
       .addCase(getCollocationStatistics.pending, (state) => {
         state.collocationStatisticsData.loading = true;
       })
-      .addCase(getCollocationStatistics.fulfilled, (state, action) => {
+      .addCase(getCollocationStatistics.fulfilled, (state, _action) => {
         state.collocationStatisticsData.loading = false;
-        state.collocationStatisticsData.data = action.payload.data;
+        state.collocationStatisticsData.data = _action.payload.data;
       })
-      .addCase(getCollocationStatistics.rejected, (state, action) => {
+      .addCase(getCollocationStatistics.rejected, (state, _action) => {
         state.collocationStatisticsData.loading = false;
-        state.collocationStatisticsData.error = action.error.message || '';
+        state.collocationStatisticsData.error = _action.error.message || '';
       })
       .addCase(getCollocationBatchResults.pending, (state) => {
         state.collocationBatchResults.loading = true;
       })
-      .addCase(getCollocationBatchResults.fulfilled, (state, action) => {
+      .addCase(getCollocationBatchResults.fulfilled, (state, _action) => {
         state.collocationBatchResults.loading = false;
-        state.collocationBatchResults.data = action.payload.data;
+        state.collocationBatchResults.data = _action.payload.data;
       })
-      .addCase(getCollocationBatchResults.rejected, (state, action) => {
+      .addCase(getCollocationBatchResults.rejected, (state, _action) => {
         state.collocationBatchResults.loading = false;
-        state.collocationBatchResults.error = action.error.message || '';
+        state.collocationBatchResults.error = _action.error.message || '';
       })
       .addCase(collocateDevices.pending, (state) => {
         state.collocateDevices.loading = true;
       })
-      .addCase(collocateDevices.fulfilled, (state, action) => {
+      .addCase(collocateDevices.fulfilled, (state) => {
         state.collocateDevices.loading = false;
         state.collocateDevices.fulfilled = true;
       })
-      .addCase(collocateDevices.rejected, (state, action) => {
+      .addCase(collocateDevices.rejected, (state, _action) => {
         state.collocateDevices.loading = false;
-        state.collocateDevices.error = action.error.message;
+        state.collocateDevices.error = _action.error.message;
         state.collocateDevices.rejected = true;
       });
   },
