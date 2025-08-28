@@ -72,7 +72,7 @@ export const useContextAwareRouting = () => {
 
     // If current route is not accessible, redirect to dashboard
     if (!isRouteAccessible(pathname)) {
-      logger.debug('Context-aware redirect', { from: pathname, to: '/home', userContext, sidebarConfig })
+      // logger.debug('Context-aware redirect', { from: pathname, to: '/home', userContext, sidebarConfig })
       router.push('/home');
     }
   }, [userContext, pathname, isLoading, getSidebarConfig, router]);

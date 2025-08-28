@@ -97,10 +97,6 @@ const createSecureApiClient = (): AxiosInstance => {
     baseURL: '/api',
     withCredentials: true,
     timeout: 25000,
-    headers: {
-      'Accept-Encoding': 'gzip, deflate, br',
-      Connection: 'keep-alive',
-    },
   });
 
   instance.interceptors.request.use(
