@@ -14,6 +14,7 @@
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useEffect, useState } from 'react';
 import PermissionDenied from '@/common/components/PermissionDenied';
+import { usePermissions } from '@/core/HOC/authUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import {
@@ -46,6 +47,9 @@ const OrganizationSettingsPage = () => {
   const userInfo = useSelector((state) => state.login?.userInfo);
   const { updateActiveGroupDetails, triggerGroupRefresh } =
     useActiveGroupManager();
+  // Permissions
+  const { hasPermission, isLoading: permLoading } = usePermissions();
+  const canManageGroup = hasPermission('GROUP_MANAGEMENT', activeGroup?._id);
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
@@ -372,9 +376,11 @@ const OrganizationSettingsPage = () => {
     return <PermissionDenied />;
   }
 
-  if (isLoading || groupLoading) {
+  if (isLoading || groupLoading || permLoading) {
     return <OrganizationSettingsSkeleton />;
   }
+
+  if (!canManageGroup) return <PermissionDenied />;
 
   // If no active group and not loading, show error state
   if (!activeGroup && !groupLoading) {

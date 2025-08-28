@@ -55,12 +55,24 @@ const Dropdown = ({ onItemClick, menu }) => {
                 <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
                   {menu.map((item) => (
                     <li key={item.id} className="px-2">
-                      <span
-                        onClick={() => onItemClick(item.id)}
-                        className="flex justify-start px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded-md"
-                      >
-                        {item.name}
-                      </span>
+                      {item.disabled ? (
+                        <span
+                          className="flex justify-start px-3 py-2 rounded-md text-gray-400 dark:text-gray-500"
+                          aria-disabled="true"
+                        >
+                          {item.name}
+                        </span>
+                      ) : (
+                        <span
+                          onClick={() => {
+                            onItemClick(item.id);
+                            setIsOpen(false);
+                          }}
+                          className="flex justify-start px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded-md"
+                        >
+                          {item.name}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>

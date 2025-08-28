@@ -11,6 +11,7 @@ import DashboardPageSkeleton from '@/common/components/Skeleton/DashboardPageSke
 import ErrorState from '@/common/components/ErrorState';
 import { getGroupAnalyticsApi } from '@/core/apis/Account';
 import PermissionDenied from '@/common/components/PermissionDenied';
+import { usePermissions } from '@/core/HOC/authUtils';
 
 import {
   AqUsers01,
@@ -29,8 +30,9 @@ const OrganizationDashboardPage = () => {
   const [analyticsError, setAnalyticsError] = useState(null);
   const { data: session } = useSession();
 
-  // For demo: isAdmin is always true. Replace with real logic as needed.
-  const isAdmin = true;
+  // Permissions
+  const { hasPermission } = usePermissions();
+  const canManageGroup = hasPermission('GROUP_MANAGEMENT', activeGroupId);
 
   // Fetch group analytics with useCallback to prevent unnecessary re-renders
   const fetchAnalytics = useCallback(async () => {
@@ -182,7 +184,7 @@ const OrganizationDashboardPage = () => {
       value: totalMembers.toLocaleString(),
       subtitle: `Registered team members (${timeRange})`,
       icon: AqUsers01,
-      href: isAdmin ? '/organization/members' : null,
+      href: canManageGroup ? '/organization/members' : null,
       trend: recentGrowth > 0 ? `+${recentGrowth} this week` : null,
       color: 'blue',
     },
@@ -280,7 +282,7 @@ const OrganizationDashboardPage = () => {
       </div>
 
       {/* Growth Analytics Section */}
-      {dailyGrowth.length > 0 && (
+      {canManageGroup && dailyGrowth.length > 0 && (
         <Card padding="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -327,7 +329,7 @@ const OrganizationDashboardPage = () => {
       )}
 
       {/* Role Distribution Section */}
-      {isAdmin && processedRoles.length > 0 && (
+      {canManageGroup && processedRoles.length > 0 && (
         <Card padding="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">

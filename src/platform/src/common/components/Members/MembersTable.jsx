@@ -22,6 +22,8 @@ const MembersTable = ({
   removeLoading = false,
   groupDetails = null,
   formatLastActive = () => 'Never',
+  canRemoveMembers = true,
+  canEditRole = true,
 }) => {
   const { data: session } = useSession();
   const [showRemoveModal, setShowRemoveModal] = useState(false);
@@ -174,11 +176,8 @@ const MembersTable = ({
             },
             {
               id: 'edit-role',
-              name: (
-                <span className="flex items-center text-blue-600">
-                  Edit role
-                </span>
-              ),
+              name: 'Edit role',
+              disabled: !canEditRole,
             },
           ];
         } else if (isSelf) {
@@ -195,11 +194,8 @@ const MembersTable = ({
             },
             {
               id: 'edit-role',
-              name: (
-                <span className="flex items-center text-blue-600">
-                  Edit role
-                </span>
-              ),
+              name: 'Edit role',
+              disabled: !canEditRole,
             },
           ];
         } else {
@@ -207,23 +203,26 @@ const MembersTable = ({
             {
               id: 'remove',
               name: (
-                <span className="flex items-center text-red-600">
+                <span
+                  className={`flex items-center ${
+                    canRemoveMembers ? 'text-red-600' : 'text-gray-400'
+                  }`}
+                >
                   Remove from group
                 </span>
               ),
+              disabled: !canRemoveMembers,
             },
             {
               id: 'edit-role',
-              name: (
-                <span className="flex items-center text-blue-600">
-                  Edit role
-                </span>
-              ),
+              name: 'Edit role',
+              disabled: !canEditRole,
             },
           ];
         }
         const handleMenuClick = (id) => {
-          if (id === 'remove' && !isSelf) handleRemove(member);
+          if (id === 'remove' && !isSelf && canRemoveMembers)
+            handleRemove(member);
           if (id === 'edit-role') handleEditRole(member);
         };
         return (
@@ -296,6 +295,8 @@ MembersTable.propTypes = {
   removeLoading: PropTypes.bool,
   groupDetails: PropTypes.object,
   formatLastActive: PropTypes.func,
+  canRemoveMembers: PropTypes.bool,
+  canEditRole: PropTypes.bool,
 };
 
 export default MembersTable;
