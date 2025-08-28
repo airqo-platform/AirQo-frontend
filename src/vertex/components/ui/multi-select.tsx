@@ -82,7 +82,7 @@ export function MultiSelectCombobox({
     !selectedValues.has(inputValue.toLowerCase())
 
   return (
-    <Popover open={open} onOpenChange={setOpen} modal={false}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
@@ -118,10 +118,9 @@ export function MultiSelectCombobox({
         </Button>
       </PopoverTrigger>
       <PopoverContent 
-      className="w-[var(--radix-popover-trigger-width)] p-0" 
-      onOpenAutoFocus={(e) => e.preventDefault()} 
-      onCloseAutoFocus={(e) => e.preventDefault()}
-      onPointerDownOutside={(e) => e.preventDefault()}>
+        className="w-[var(--radix-popover-trigger-width)] p-0" 
+        onOpenAutoFocus={(e) => e.preventDefault()}
+      >
         <Command shouldFilter={false}>
           <CommandInput
             placeholder="Search or add new tag..."
@@ -143,6 +142,7 @@ export function MultiSelectCombobox({
                     key={option.value}
                     value={option.value}
                     onSelect={() => handleSelect(option.value)}
+                    onMouseDown={(e) => e.preventDefault()}
                     className="cursor-pointer"
                   >
                     {option.label}
@@ -151,6 +151,7 @@ export function MultiSelectCombobox({
                 {canCreateNew && (
                   <CommandItem
                     onSelect={handleCreateNew}
+                    onMouseDown={(e) => e.preventDefault()}
                     value={`create-new-${inputValue.toLowerCase()}`}
                     className="cursor-pointer flex items-center justify-between"
                   >
