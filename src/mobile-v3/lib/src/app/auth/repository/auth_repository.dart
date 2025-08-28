@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 
 abstract class AuthRepository with UiLoggy {
@@ -25,43 +27,49 @@ class AuthImpl extends AuthRepository {
   @override
   Future<String> loginWithEmailAndPassword(
       String username, String password) async {
-    final connectivityResult = await _connectivity.checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
-      loggy.info('AuthRepository: Offline, checking cached token');
-      final cachedToken =
-          await HiveRepository.getData('token', HiveBoxNames.authBox);
-      if (cachedToken != null && cachedToken.isNotEmpty) {
-        loggy.info('AuthRepository: Returning cached token for $username');
-        return cachedToken; // Use cached token when offline
+    try {
+      final connectivityResult = await _connectivity.checkConnectivity();
+      if (connectivityResult == ConnectivityResult.none) {
+        loggy.info(
+            'AuthRepository: Offline, showing No Internet Connection banner');
+        // Trigger the No Internet Connection banner
+        throw Exception(
+            'No Internet Connection. Please check your network and try again.');
       }
-      loggy.error('AuthRepository: No cached token found while offline');
-      throw Exception('Offline: Please try again when connected.');
+
+      loggy.info('AuthRepository: Attempting login for $username');
+      final loginResponse = await http.post(
+        Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
+        body: jsonEncode({"userName": username, "password": password}),
+        headers: {
+          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
+          "Accept": "*/*",
+          "Content-Type": "application/json"
+        },
+      );
+
+      final data = json.decode(loginResponse.body);
+
+      if (loginResponse.statusCode != 200) {
+        loggy.error('AuthRepository: Login failed - ${data['message']}');
+        throw Exception(
+            'Login failed. Please check your credentials and try again.');
+      }
+
+      final String userId = data["_id"];
+      final String token = data["token"];
+      await HiveRepository.saveData(HiveBoxNames.authBox, "token", token);
+      await HiveRepository.saveData(HiveBoxNames.authBox, "userId", userId);
+      loggy.info('AuthRepository: Login successful, token saved');
+      return token;
+    } catch (e) {
+      if (e is SocketException || e is ClientException) {
+        loggy.error('AuthRepository: Network error - $e');
+        throw Exception('Please check your internet connection and try again.');
+      }
+      loggy.error('AuthRepository: Unexpected error - $e');
+      throw Exception('An unexpected error occurred. Please try again later.');
     }
-
-    loggy.info('AuthRepository: Attempting login for $username');
-    final loginResponse = await http.post(
-      Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
-      body: jsonEncode({"userName": username, "password": password}),
-      headers: {
-        "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
-        "Accept": "*/*",
-        "Content-Type": "application/json"
-      },
-    );
-
-    final data = json.decode(loginResponse.body);
-
-    if (loginResponse.statusCode != 200) {
-      loggy.error('AuthRepository: Login failed - ${data['message']}');
-      throw Exception(data['message']);
-    }
-
-    final String userId = data["_id"];
-    final String token = data["token"];
-    await HiveRepository.saveData(HiveBoxNames.authBox, "token", token);
-    await HiveRepository.saveData(HiveBoxNames.authBox, "userId", userId);
-    loggy.info('AuthRepository: Login successful, token saved');
-    return token;
   }
 
   @override

@@ -33,7 +33,6 @@ import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -131,7 +130,8 @@ class AirqoMobile extends StatelessWidget {
           create: (context) => MapBloc(mapRepository)..add(LoadMap()),
         ),
         BlocProvider(
-          create: (context) => ConnectivityBloc(connectivity),
+          create: (context) =>
+              ConnectivityBloc(connectivity)..add(ConnectivityCheckRequested()),
         ),
         BlocProvider(
           create: (context) =>
@@ -198,8 +198,7 @@ class Decider extends StatefulWidget {
 }
 
 class _DeciderState extends State<Decider> with WidgetsBindingObserver {
-
-    @override
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -218,7 +217,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     if (state == AppLifecycleState.resumed) {
       AutoUpdateService().checkForUpdates(showDialog: true);
     }
@@ -249,7 +248,6 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                   context.read<UserBloc>().add(LoadUser());
                   return NavPage();
                 }
-
 
                 if (authState is AuthLoadingError) {
                   return Scaffold(

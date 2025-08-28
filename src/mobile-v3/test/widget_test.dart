@@ -17,7 +17,6 @@ import 'package:path_provider_platform_interface/path_provider_platform_interfac
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:loggy/loggy.dart';
 
-
 class FakePathProviderPlatform extends PathProviderPlatform
     with MockPlatformInterfaceMixin {
   @override
@@ -39,13 +38,13 @@ class FakePathProviderPlatform extends PathProviderPlatform
 // Test implementations of repositories
 class TestAuthRepository extends AuthRepository {
   @override
-  Future<String> loginWithEmailAndPassword(String username, String password) async {
+  Future<String> loginWithEmailAndPassword(
+      String username, String password) async {
     return 'test_token';
   }
 
   @override
-  Future<void> registerWithEmailAndPassword(RegisterInputModel model) async {
-  }
+  Future<void> registerWithEmailAndPassword(RegisterInputModel model) async {}
 
   @override
   Future<String> requestPasswordReset(String email) async {
@@ -62,8 +61,7 @@ class TestAuthRepository extends AuthRepository {
   }
 
   @override
-  Future<void> verifyEmailCode(String token, String email) async {
-  }
+  Future<void> verifyEmailCode(String token, String email) async {}
 }
 
 void main() {
@@ -71,20 +69,20 @@ void main() {
 
   setUpAll(() async {
     PathProviderPlatform.instance = FakePathProviderPlatform();
-    
+
     try {
       final path = '.';
       Hive.init(path);
     } catch (e) {
       print('Hive initialization: $e');
     }
-    
+
     try {
       await CacheManager().initialize();
     } catch (e) {
       print('CacheManager initialization: $e');
     }
-    
+
     // Load test environment variables
     dotenv.testLoad(mergeWith: {
       'AIRQO_MOBILE_TOKEN': 'test_token',
@@ -92,7 +90,7 @@ void main() {
       'BASE_URL': 'https://test.example.com',
       'GOOGLE_MAPS_API_KEY': 'test_google_maps_key',
     });
-    
+
     // Initialize logging
     Loggy.initLoggy(
       logPrinter: const PrettyPrinter(
@@ -111,7 +109,7 @@ void main() {
   });
 
   group('AirqoMobile Widget Tests', () {
-    testWidgets('App loads without crashing with test repositories', 
+    testWidgets('App loads without crashing with test repositories',
         (WidgetTester tester) async {
       // Use a shorter timeout for async operations
       await tester.runAsync(() async {
@@ -137,13 +135,12 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 100));
         await tester.pump();
 
-
         expect(find.byType(AirqoMobile), findsOneWidget);
-        expect(find.byType(MaterialApp), findsWidgets); 
+        expect(find.byType(MaterialApp), findsWidgets);
       });
     });
 
-    testWidgets('Simple widget test - App structure exists', 
+    testWidgets('Simple widget test - App structure exists',
         (WidgetTester tester) async {
       final widget = AirqoMobile(
         authRepository: TestAuthRepository(),
@@ -166,7 +163,7 @@ void main() {
       expect(widget.dashboardRepository, isA<DashboardRepository>());
     });
 
-    testWidgets('Minimal app test - Just verify widget creation', 
+    testWidgets('Minimal app test - Just verify widget creation',
         (WidgetTester tester) async {
       await tester.pumpWidget(
         Directionality(
