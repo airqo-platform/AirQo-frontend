@@ -50,7 +50,7 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         try {
             await updateCohort.mutateAsync({ cohortId: cohortDetails.id, data: updates });
             onClose();
-        } catch (error) {
+        } catch {
             logger.info("Something went wrong")
         }
     };
