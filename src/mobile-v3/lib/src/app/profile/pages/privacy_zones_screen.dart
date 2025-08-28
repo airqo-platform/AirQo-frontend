@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/dashboard/pages/location_selection/components/swipeable_analytics_card.dart';
 import 'add_location_screen.dart'; // Import the AddLocationScreen
 
 class PrivacyZonesScreen extends StatefulWidget {
@@ -10,32 +13,50 @@ class PrivacyZonesScreen extends StatefulWidget {
 }
 
 class _PrivacyZonesScreenState extends State<PrivacyZonesScreen> {
-  final List<String> privacyZones = []; // List of selected privacy zones
+  final List<Measurement> privacyZones = []; // List of selected privacy zone measurements
   final List<String> availableLocations = []; // List of available locations
 
-  void _showDeleteConfirmation(BuildContext context, String zone) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Delete Privacy Zone"),
-        content: Text("Are you sure you want to delete \"$zone\"?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Cancel"),
+  void _removePrivacyZone(String siteId) {
+    // Find the measurement by matching the siteId
+    Measurement? measurementToRemove;
+    for (Measurement measurement in privacyZones) {
+      if (measurement.siteId == siteId) {
+        measurementToRemove = measurement;
+        break;
+      }
+    }
+    
+    if (measurementToRemove != null) {
+      final locationName = measurementToRemove.siteDetails?.name ?? 
+                          measurementToRemove.siteDetails?.formattedName ?? 
+                          'Unknown Location';
+      
+      setState(() {
+        privacyZones.remove(measurementToRemove);
+      });
+      
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            'Privacy zone "$locationName" removed',
+            style: const TextStyle(color: Colors.white),
           ),
-          ElevatedButton(
+          backgroundColor: Colors.orange,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          action: SnackBarAction(
+            label: 'Undo',
+            textColor: Colors.white,
             onPressed: () {
               setState(() {
-                privacyZones.remove(zone);
+                privacyZones.add(measurementToRemove!);
               });
-              Navigator.pop(context);
             },
-            child: const Text("Delete"),
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    }
   }
 
   @override
@@ -56,13 +77,24 @@ class _PrivacyZonesScreenState extends State<PrivacyZonesScreen> {
             Text(
               privacyZones.isEmpty
                   ? "No privacy zones configured"
-                  : "Manage your privacy zones below",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  : "Add Privacy Zones",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : AppColors.boldHeadlineColor4,
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              "Add privacy zones to automatically disable tracking in sensitive areas",
-              style: TextStyle(color: Colors.black87),
+            Text(
+              "Set locations where tracking is disabled",
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.boldHeadlineColor2
+                    : AppColors.secondaryHeadlineColor,
+              ),
             ),
             const SizedBox(height: 16),
             Expanded(
@@ -83,7 +115,7 @@ class _PrivacyZonesScreenState extends State<PrivacyZonesScreen> {
         children: [
           DottedBorder(
             borderType: BorderType.Circle,
-            color: Colors.blue,
+            color: AppColors.primaryColor,
             dashPattern: const [6, 3],
             strokeWidth: 2,
             child: Container(
@@ -95,13 +127,42 @@ class _PrivacyZonesScreenState extends State<PrivacyZonesScreen> {
           ),
           const SizedBox(height: 25),
           ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final result = await Navigator.push<List<Measurement>>(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AddLocationScreen(),
+                  builder: (context) => const AddLocationScreen(),
                 ),
               );
+              
+              if (result != null && result.isNotEmpty && mounted) {
+                setState(() {
+                  privacyZones.addAll(result);
+                });
+                
+                if (mounted) {
+                  scaffoldMessenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Added ${result.length} location${result.length != 1 ? 's' : ''} to privacy zones',
+                        style: const TextStyle(color: Colors.white),
+                      ),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
             },
             icon: const Icon(Icons.add_location_alt, color: Colors.white),
             label: const Text("+ Add location"),
@@ -111,75 +172,71 @@ class _PrivacyZonesScreenState extends State<PrivacyZonesScreen> {
     );
   }
 
-  Widget _buildPrivacyZonesList(BuildContext context, List<String> zones) {
-    return ListView.builder(
-      itemCount: zones.length,
-      itemBuilder: (context, index) {
-        return ListTile(
-          leading: const Icon(Icons.location_on),
-          title: Text(zones[index]),
-          trailing: IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () => _showDeleteConfirmation(context, zones[index]),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _AddLocationDialog extends StatefulWidget {
-  final List<String> availableLocations;
-  final Function(List<String>) onSave;
-
-  const _AddLocationDialog({
-    required this.availableLocations,
-    required this.onSave,
-  });
-
-  @override
-  State<_AddLocationDialog> createState() => _AddLocationDialogState();
-}
-
-class _AddLocationDialogState extends State<_AddLocationDialog> {
-  final List<String> selectedLocations = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text('Add Zone'),
-      content: SingleChildScrollView(
-        child: Column(
-          children: widget.availableLocations.map((location) {
-            return CheckboxListTile(
-              title: Text(location),
-              value: selectedLocations.contains(location),
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value == true) {
-                    selectedLocations.add(location);
-                  } else {
-                    selectedLocations.remove(location);
+  Widget _buildPrivacyZonesList(BuildContext context, List<Measurement> zones) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                final result = await Navigator.push<List<Measurement>>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AddLocationScreen(),
+                  ),
+                );
+                
+                if (result != null && result.isNotEmpty && mounted) {
+                  setState(() {
+                    privacyZones.addAll(result);
+                  });
+                  
+                  if (mounted) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Added ${result.length} location${result.length != 1 ? 's' : ''} to privacy zones',
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        backgroundColor: Colors.green,
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
                   }
-                });
-              },
-            );
-          }).toList(),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: selectedLocations.isNotEmpty
-              ? () {
-                  widget.onSave(selectedLocations);
-                  Navigator.pop(context);
                 }
-              : null,
-          child: const Text('Save Locations'),
+              },
+              icon: const Icon(Icons.add_location_alt, color: Colors.white),
+              label: const Text("+ Add location"),
+            ),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            itemCount: zones.length,
+            itemBuilder: (context, index) {
+              final measurement = zones[index];
+              final locationName = measurement.siteDetails?.name ?? 
+                                   measurement.siteDetails?.formattedName ?? 
+                                   'Unknown Location';
+              return SwipeableAnalyticsCard(
+                measurement: measurement,
+                onRemove: _removePrivacyZone,
+                fallbackLocationName: locationName,
+              );
+            },
+          ),
         ),
       ],
     );

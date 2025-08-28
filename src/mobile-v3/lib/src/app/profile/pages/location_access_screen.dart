@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'privacy_zones_screen.dart'; // Import the PrivacyZonesScreen
 import 'add_location_screen.dart'; // Import the AddLocationScreen
 
@@ -21,13 +22,25 @@ class _LocationAccessScreenState extends State<LocationAccessScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               "Allow Location Access",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : AppColors.boldHeadlineColor4,
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               "Get air quality data for nearby locations and pollution exposure insights.",
+              style: TextStyle(
+                fontSize: 16,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.boldHeadlineColor2
+                    : AppColors.secondaryHeadlineColor,
+              ),
             ),
             const SizedBox(height: 20),
 
@@ -74,19 +87,30 @@ class _LocationAccessScreenState extends State<LocationAccessScreen> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(top: 8),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight
+                      : AppColors.lightHighlight,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.dividerColordark
+                        : AppColors.dividerColorlight,
+                  ),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.info_outline, color: Colors.blue),
+                    Icon(Icons.info_outline, color: AppColors.primaryColor),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: const Text(
+                      child: Text(
                         "Enable location access to get personalized air quality information and pollution exposure insights. Your data will be used solely for research not in anyway that causes harm.",
-                        style: TextStyle(fontSize: 14),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.boldHeadlineColor2
+                              : AppColors.secondaryHeadlineColor,
+                        ),
                       ),
                     ),
                   ],
@@ -97,16 +121,38 @@ class _LocationAccessScreenState extends State<LocationAccessScreen> {
             if (_selectedOption == "WhileUsing" ||
                 _selectedOption == "Always") ...[
               const Divider(height: 32),
-              const Text(
+              Text(
                 "Privacy & Data",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
+                      : AppColors.boldHeadlineColor4,
+                ),
               ),
               const SizedBox(height: 8),
               ListTile(
                 leading: const Icon(Icons.location_off_outlined),
-                title: const Text("Privacy zones"),
-                subtitle:
-                    const Text("Set locations where tracking is disabled"),
+                title: Text(
+                  "Privacy zones",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : AppColors.boldHeadlineColor4,
+                  ),
+                ),
+                subtitle: Text(
+                  "Set locations where tracking is disabled",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.boldHeadlineColor2
+                        : AppColors.secondaryHeadlineColor,
+                  ),
+                ),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -117,9 +163,25 @@ class _LocationAccessScreenState extends State<LocationAccessScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.add_location),
-                title: const Text("Add Location"),
-                subtitle:
-                    const Text("Add a new location to your privacy zones"),
+                title: Text(
+                  "Add Location",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : AppColors.boldHeadlineColor4,
+                  ),
+                ),
+                subtitle: Text(
+                  "Add a new location to your privacy zones",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.boldHeadlineColor2
+                        : AppColors.secondaryHeadlineColor,
+                  ),
+                ),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -131,30 +193,55 @@ class _LocationAccessScreenState extends State<LocationAccessScreen> {
               ),
               ListTile(
                 leading: const Icon(Icons.history),
-                title: const Text("Location history"),
-                subtitle: const Text("View and manage your location data"),
+                title: Text(
+                  "Location history",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : AppColors.boldHeadlineColor4,
+                  ),
+                ),
+                subtitle: Text(
+                  "View and manage your location data",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.boldHeadlineColor2
+                        : AppColors.secondaryHeadlineColor,
+                  ),
+                ),
                 onTap: () {
                   // TODO: Add Location History screen
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.share),
-                title: const Text("Data Sharing"),
-                subtitle:
-                    const Text("Control how your data contributes to research"),
+                title: Text(
+                  "Data Sharing",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white
+                        : AppColors.boldHeadlineColor4,
+                  ),
+                ),
+                subtitle: Text(
+                  "Control how your data contributes to research",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.boldHeadlineColor2
+                        : AppColors.secondaryHeadlineColor,
+                  ),
+                ),
                 onTap: () {
                   // TODO: Add Data Sharing screen
                 },
               ),
             ],
-            const SizedBox(height: 24),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, _selectedOption);
-              },
-              child: const Text("Save"),
-            ),
           ],
         ),
       ),
