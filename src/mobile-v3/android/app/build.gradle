@@ -46,9 +46,9 @@ if (localPropertiesFile.exists()) {
         localProperties.load(reader)
     }
 }
-def googleMapApiKey = appProperties.getProperty('google.maps.key') ?: secretsProperties.getProperty('MAPS_API_KEY')
-if (googleMapApiKey == null) {
-    throw new GradleException("Google Maps Key not found. Define either google.maps.key in key.properties or MAPS_API_KEY in secrets.properties")
+def googleMapApiKey = (appProperties.getProperty('google.maps.key') ?: secretsProperties.getProperty('MAPS_API_KEY'))?.trim()
+if (!googleMapApiKey) {
+    throw new GradleException("Google Maps Key not found or blank. Define google.maps.key in key.properties or MAPS_API_KEY in secrets.properties")
 }
 
 def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev') ?: secretsProperties.getProperty('MAPS_API_KEY_DEV')
