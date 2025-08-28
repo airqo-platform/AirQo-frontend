@@ -1,14 +1,7 @@
 import PropTypes from 'prop-types';
 import { Tooltip } from 'flowbite-react';
 
-const brightness = (hex) => {
-  if (!hex) return 0;
-  const color = hex.replace('#', '');
-  const r = parseInt(color.substring(0, 2), 16);
-  const g = parseInt(color.substring(2, 4), 16);
-  const b = parseInt(color.substring(4, 6), 16);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-};
+// ...existing code...
 
 const CustomLegend = ({
   payload,
@@ -19,13 +12,12 @@ const CustomLegend = ({
 }) => {
   const truncateLegend = payload.length > 3;
 
-  const sorted = [...payload].sort(
-    (a, b) => brightness(a.color) - brightness(b.color),
-  );
+  // Keep legend order matching the series order so colors map consistently.
+  const entries = payload;
 
   return (
     <div className="flex flex-wrap relative justify-end gap-2 w-full">
-      {sorted.map((entry, idx) => {
+      {entries.map((entry, idx) => {
         const isActive = activeIndex === null || activeIndex === idx;
         return (
           <div
@@ -42,6 +34,9 @@ const CustomLegend = ({
               style={{
                 backgroundColor: entry.color || 'var(--color-primary)',
                 transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                // Add a thin border for contrast on light colors
+                border: '1px solid rgba(0,0,0,0.12)',
+                boxSizing: 'border-box',
               }}
             />
             {truncateLegend ? (
