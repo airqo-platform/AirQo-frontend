@@ -8,6 +8,8 @@ import { useUpdateCohortDetails } from "@/core/hooks/useCohorts";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
+import { toast } from "sonner";
+import logger from "@/lib/logger";
 
 interface CohortDetailsModalProps {
     open: boolean;
@@ -48,10 +50,9 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
 
         try {
             await updateCohort.mutateAsync({ cohortId: cohortDetails.id, data: updates });
-            onClose(); // close only on success
-        } catch (err) {
-            // keep modal open on failure
-            console.error("Failed to update cohort:", err);
+            onClose();
+        } catch (error) {
+            
         }
     };
 

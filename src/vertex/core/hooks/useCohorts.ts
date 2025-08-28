@@ -5,6 +5,14 @@ import { setCohorts, setError } from "../redux/slices/cohortsSlice";
 import { useAppSelector } from "../redux/hooks";
 import React from "react";
 import { toast } from "sonner";
+import { AxiosError } from "axios";
+
+interface ErrorResponse {
+  message: string;
+  errors?: {
+    message: string;
+  };
+}
 
 export const useCohorts = () => {
   const dispatch = useDispatch();
@@ -58,5 +66,10 @@ export const useUpdateCohortDetails = () => {
       queryClient.invalidateQueries({ queryKey: ["cohort-details", variables.cohortId] });
       queryClient.invalidateQueries({ queryKey: ["cohorts"] });
     },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      toast.error("Update Failed", {
+        description: error.response?.data?.message || "Failed to update cohort details",
+      });
+    }
   });
 }; 
