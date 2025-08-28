@@ -17,39 +17,70 @@ import {
 /**
  * Get organization theme and branding data by slug
  * @param {string} orgSlug - Organization slug from URL
+ * @param {Object} options - Request options
+ * @param {AbortSignal} options.signal - AbortSignal for request cancellation
  * @returns {Promise} Organization data including theme settings
  */
-export const getOrganizationBySlugApi = async (orgSlug) => {
-  try {
-    const response = await axios.get(ORGANIZATION_THEME_URL(orgSlug));
 
-    if (response.data.success) {
-      return {
-        success: true,
-        data: {
-          _id: response.data.data._id || null,
-          slug: response.data.data.slug,
-          name: response.data.data.name,
-          logo: response.data.data.logo,
-          primaryColor: response.data.data.theme?.primaryColor || '#135DFF',
-          secondaryColor: response.data.data.theme?.secondaryColor || '#1B2559',
-          font: response.data.data.theme?.font || 'Inter',
-          status: 'ACTIVE',
-          // Set default settings for auth pages
-          settings: {
-            allowSelfRegistration: true,
-            requireApproval: false,
-            defaultRole: 'user',
+// Request cache to prevent duplicate requests
+const requestCache = new Map();
+const CACHE_TTL = 30000; // 30 seconds cache
+
+export const getOrganizationBySlugApi = async (orgSlug, options = {}) => {
+  // Validate orgSlug
+  if (!orgSlug || typeof orgSlug !== 'string') {
+    return Promise.reject(new Error('Valid organization slug is required'));
+  }
+
+  // Check cache first
+  const cacheKey = `org-${orgSlug}`;
+  const cached = requestCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    logger.info(`Using cached organization data for ${orgSlug}`);
+    return cached.data;
+  }
+
+  try {
+    const response = await axios.get(ORGANIZATION_THEME_URL(orgSlug), {
+      signal: options.signal,
+    });
+
+    const result = response.data.success
+      ? {
+          success: true,
+          data: {
+            _id: response.data.data._id || null,
+            slug: response.data.data.slug,
+            name: response.data.data.name,
+            logo: response.data.data.logo,
+            primaryColor: response.data.data.theme?.primaryColor || '#135DFF',
+            secondaryColor:
+              response.data.data.theme?.secondaryColor || '#1B2559',
+            font: response.data.data.theme?.font || 'Inter',
+            status: 'ACTIVE',
+            // Set default settings for auth pages
+            settings: {
+              allowSelfRegistration: true,
+              requireApproval: false,
+              defaultRole: 'user',
+            },
           },
-        },
-      };
+        }
+      : {
+          success: false,
+          message: response.data.message || 'Failed to fetch organization',
+          data: null,
+        };
+
+    // Cache successful results only
+    if (result.success) {
+      requestCache.set(cacheKey, {
+        data: result,
+        timestamp: Date.now(),
+      });
     }
 
-    return {
-      success: false,
-      message: response.data.message || 'Failed to fetch organization',
-      data: null,
-    };
+    return result;
   } catch (error) {
     logger.error('Error fetching organization:', error);
 
