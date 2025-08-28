@@ -18,7 +18,9 @@ class SurveyProgressIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = totalQuestions > 0 ? currentQuestion / totalQuestions : 0.0;
+    final progress = totalQuestions > 0 
+        ? (currentQuestion / totalQuestions).clamp(0.0, 1.0) 
+        : 0.0;
     final progressPercentage = (progress * 100).toInt();
 
     return Container(
@@ -50,34 +52,38 @@ class SurveyProgressIndicator extends StatelessWidget {
           ],
           
           // Progress Bar
-          Stack(
-            children: [
-              Container(
-                height: 6,
-                decoration: BoxDecoration(
-                  color: theme.dividerColor.withOpacity(0.3),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              ),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                height: 6,
-                width: progress * MediaQuery.of(context).size.width * 0.9,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  borderRadius: BorderRadius.circular(3),
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primaryColor,
-                      AppColors.primaryColor.withOpacity(0.8),
-                    ],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  Container(
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
-                ),
-              ),
-            ],
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    height: 6,
+                    width: progress * constraints.maxWidth,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor,
+                      borderRadius: BorderRadius.circular(3),
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.primaryColor,
+                          AppColors.primaryColor.withOpacity(0.8),
+                        ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           
           // Question Dots Indicator

@@ -196,6 +196,10 @@ class AirQualityThresholdTriggerCondition extends Equatable {
   final String pollutant; // 'pm2_5', 'pm10', 'aqi', etc.
   final Duration? sustainedDuration; // How long threshold must be crossed
 
+  /// Epsilon constant for floating-point comparison tolerance
+  /// Used to handle precision issues when comparing double values
+  static const double _epsilon = 1e-9;
+
   const AirQualityThresholdTriggerCondition({
     required this.threshold,
     required this.comparison,
@@ -239,11 +243,14 @@ class AirQualityThresholdTriggerCondition extends Equatable {
       case 'less':
         return currentValue < threshold;
       case 'equal':
-        return currentValue == threshold;
+        // Use epsilon-based comparison for floating-point equality
+        return (currentValue - threshold).abs() <= _epsilon;
       case 'greaterOrEqual':
-        return currentValue >= threshold;
+        // Greater than threshold OR within epsilon tolerance
+        return currentValue > threshold || (currentValue - threshold).abs() <= _epsilon;
       case 'lessOrEqual':
-        return currentValue <= threshold;
+        // Less than threshold OR within epsilon tolerance  
+        return currentValue < threshold || (currentValue - threshold).abs() <= _epsilon;
       default:
         return false;
     }

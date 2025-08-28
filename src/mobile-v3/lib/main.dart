@@ -39,7 +39,12 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await EnhancedLocationServiceManager().initialize();
+  try {
+    await EnhancedLocationServiceManager().initialize();
+  } catch (error, stackTrace) {
+    debugPrint('Location service initialization failed: $error');
+    debugPrint('Stack trace: $stackTrace');
+  }
 
   await CacheManager().initialize();
 

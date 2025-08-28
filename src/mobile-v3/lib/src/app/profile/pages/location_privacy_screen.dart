@@ -34,10 +34,12 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
 
   Future<void> _initializeLocationManager() async {
     await _locationManager.initialize();
-    setState(() {
-      _isTrackingActive = _locationManager.isTrackingActive;
-      _isTrackingPaused = _locationManager.isTrackingPaused;
-    });
+    if (mounted) {
+      setState(() {
+        _isTrackingActive = _locationManager.isTrackingActive;
+        _isTrackingPaused = _locationManager.isTrackingPaused;
+      });
+    }
   }
 
   void _setupTrackingListener() {
@@ -64,45 +66,53 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
 
   Future<void> _toggleLocation(bool value) async {
     setState(() => _isProcessing = true);
-    if (value) {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        bool openedSettings = await Geolocator.openLocationSettings();
-        if (!openedSettings) {
-          _showSnackBar('Please enable location services in settings.');
-          setState(() => _isProcessing = false);
-          return;
+    
+    bool shouldUpdateState = false;
+    
+    try {
+      if (value) {
+        bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+        if (!serviceEnabled) {
+          bool openedSettings = await Geolocator.openLocationSettings();
+          if (!openedSettings) {
+            _showSnackBar('Please enable location services in settings.');
+            return;
+          }
+
+          await Future.delayed(Duration(seconds: 1));
+          serviceEnabled = await Geolocator.isLocationServiceEnabled();
+
+          if (!serviceEnabled) {
+            return;
+          }
         }
 
-        await Future.delayed(Duration(seconds: 1));
-        serviceEnabled = await Geolocator.isLocationServiceEnabled();
-
-        if (!serviceEnabled) {
-          setState(() => _isProcessing = false);
-          return;
+        LocationPermission permission = await Geolocator.checkPermission();
+        if (permission == LocationPermission.denied ||
+            permission == LocationPermission.deniedForever) {
+          permission = await Geolocator.requestPermission();
+          if (permission == LocationPermission.denied) {
+            _showSnackBar('Location permission denied.');
+            return;
+          } else if (permission == LocationPermission.deniedForever) {
+            _showSnackBar(
+                'Location permission permanently denied. Please enable it in settings.');
+            await Geolocator.openAppSettings();
+            return;
+          }
         }
       }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          _showSnackBar('Location permission denied.');
-          return;
-        } else if (permission == LocationPermission.deniedForever) {
-          _showSnackBar(
-              'Location permission permanently denied. Please enable it in settings.');
-          await Geolocator.openAppSettings();
-          return;
-        }
+      
+      // All checks passed, allow state update
+      shouldUpdateState = true;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _locationEnabled = shouldUpdateState ? value : _locationEnabled;
+          _isProcessing = false;
+        });
       }
     }
-
-    setState(() {
-      _locationEnabled = value;
-      _isProcessing = false;
-    });
   }
 
   void _showSnackBar(String message) {

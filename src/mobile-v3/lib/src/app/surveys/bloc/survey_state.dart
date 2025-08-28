@@ -84,13 +84,67 @@ class SurveyInProgress extends SurveyState {
     final question = currentQuestion;
     if (question == null) return false;
     final answer = answers[question.id];
-    return answer != null && answer.toString().isNotEmpty;
+    return _isAnswerValid(question, answer);
   }
 
   // Check if survey can be submitted
   bool get canSubmit {
     final requiredQuestions = survey.questions.where((q) => q.isRequired);
-    return requiredQuestions.every((q) => answers.containsKey(q.id) && answers[q.id] != null);
+    return requiredQuestions.every((q) => _isAnswerValid(q, answers[q.id]));
+  }
+
+  // Validate if an answer is valid for the given question
+  bool _isAnswerValid(dynamic question, dynamic answer) {
+    if (answer == null) return false;
+
+    // Check for empty strings (after trimming)
+    if (answer is String && answer.trim().isEmpty) return false;
+
+    // Check for empty iterables/maps
+    if (answer is Iterable && answer.isEmpty) return false;
+    if (answer is Map && answer.isEmpty) return false;
+
+    // For rating and scale questions, validate numeric bounds
+    if (question.type == QuestionType.rating || question.type == QuestionType.scale) {
+      return _isNumericAnswerValid(question, answer);
+    }
+
+    return true;
+  }
+
+  // Validate numeric answers for rating/scale questions
+  bool _isNumericAnswerValid(dynamic question, dynamic answer) {
+    // Try to parse as numeric
+    num? numValue;
+    try {
+      if (answer is num) {
+        numValue = answer;
+      } else if (answer is String) {
+        numValue = num.tryParse(answer);
+      } else {
+        return false; // Not a valid numeric type
+      }
+    } catch (e) {
+      return false;
+    }
+
+    if (numValue == null) return false;
+
+    // Check bounds for rating questions
+    if (question.type == QuestionType.rating) {
+      final minValue = question.minValue ?? 1;
+      final maxValue = question.maxValue ?? 5;
+      return numValue >= minValue && numValue <= maxValue;
+    }
+
+    // Check bounds for scale questions
+    if (question.type == QuestionType.scale) {
+      final minValue = question.minValue ?? 1;
+      final maxValue = question.maxValue ?? 10;
+      return numValue >= minValue && numValue <= maxValue;
+    }
+
+    return true;
   }
 
   // Copy with method for state updates

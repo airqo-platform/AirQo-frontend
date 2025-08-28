@@ -31,6 +31,17 @@ class _DataSharingScreenState extends State<DataSharingScreen> {
     _applyFilters();
   }
 
+  @override
+  void didUpdateWidget(DataSharingScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Check if locationHistory has changed
+    if (oldWidget.locationHistory != widget.locationHistory ||
+        oldWidget.locationHistory.length != widget.locationHistory.length) {
+      _applyFilters();
+    }
+  }
+
   void _applyFilters() {
     setState(() {
       switch (_filterType) {

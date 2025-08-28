@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
-class SurveyQuestionWidget extends StatelessWidget {
+class SurveyQuestionWidget extends StatefulWidget {
   final SurveyQuestion question;
   final dynamic currentAnswer;
   final Function(dynamic) onAnswerChanged;
@@ -15,6 +15,45 @@ class SurveyQuestionWidget extends StatelessWidget {
     required this.onAnswerChanged,
     this.isRequired = false,
   });
+
+  @override
+  State<SurveyQuestionWidget> createState() => _SurveyQuestionWidgetState();
+}
+
+class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
+  TextEditingController? _textController;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.question.type == QuestionType.text) {
+      _textController = TextEditingController(
+        text: widget.currentAnswer?.toString() ?? '',
+      );
+      _textController!.addListener(_onTextChanged);
+    }
+  }
+
+  @override
+  void didUpdateWidget(SurveyQuestionWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_textController != null && oldWidget.currentAnswer != widget.currentAnswer) {
+      _textController!.text = widget.currentAnswer?.toString() ?? '';
+    }
+  }
+
+  @override
+  void dispose() {
+    _textController?.removeListener(_onTextChanged);
+    _textController?.dispose();
+    super.dispose();
+  }
+
+  void _onTextChanged() {
+    if (_textController != null) {
+      widget.onAnswerChanged(_textController!.text);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,8 +76,8 @@ class SurveyQuestionWidget extends StatelessWidget {
                 height: 1.4,
               ),
               children: [
-                TextSpan(text: question.question),
-                if (question.isRequired)
+                TextSpan(text: widget.question.question),
+                if (widget.question.isRequired)
                   TextSpan(
                     text: ' *',
                     style: TextStyle(color: Colors.red[600]),
@@ -56,7 +95,7 @@ class SurveyQuestionWidget extends StatelessWidget {
   }
 
   Widget _buildQuestionInput(BuildContext context) {
-    switch (question.type) {
+    switch (widget.question.type) {
       case QuestionType.multipleChoice:
         return _buildMultipleChoice(context);
       case QuestionType.rating:
@@ -72,20 +111,20 @@ class SurveyQuestionWidget extends StatelessWidget {
 
   Widget _buildMultipleChoice(BuildContext context) {
     final theme = Theme.of(context);
-    final options = question.options ?? [];
+    final options = widget.question.options ?? [];
 
     return Column(
       children: options.asMap().entries.map((entry) {
         final index = entry.key;
         final option = entry.value;
-        final isSelected = currentAnswer == option;
+        final isSelected = widget.currentAnswer == option;
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => onAnswerChanged(option),
+              onTap: () => widget.onAnswerChanged(option),
               borderRadius: BorderRadius.circular(8),
               child: Container(
                 padding: const EdgeInsets.all(16),
@@ -152,8 +191,28 @@ class SurveyQuestionWidget extends StatelessWidget {
 
   Widget _buildRating(BuildContext context) {
     final theme = Theme.of(context);
-    final maxValue = question.maxValue ?? 5;
-    final currentRating = currentAnswer as int? ?? 0;
+    
+    // Defensive validation for maxValue
+    int maxValue = 5; // default
+    if (widget.question.maxValue != null) {
+      try {
+        maxValue = (widget.question.maxValue as num).toInt();
+        maxValue = maxValue.clamp(1, 10); // enforce reasonable bounds
+      } catch (e) {
+        maxValue = 5; // fallback if casting fails
+      }
+    }
+    
+    // Defensive validation for currentRating
+    int currentRating = 0;
+    if (widget.currentAnswer != null) {
+      try {
+        currentRating = (widget.currentAnswer as num).toInt();
+      } catch (e) {
+        currentRating = 0; // fallback if casting fails
+      }
+    }
+    currentRating = currentRating.clamp(0, maxValue);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,7 +224,7 @@ class SurveyQuestionWidget extends StatelessWidget {
             final isSelected = rating <= currentRating;
             
             return GestureDetector(
-              onTap: () => onAnswerChanged(rating),
+              onTap: () => widget.onAnswerChanged(rating),
               child: Container(
                 width: 40,
                 height: 40,
@@ -210,9 +269,9 @@ class SurveyQuestionWidget extends StatelessWidget {
 
   Widget _buildScale(BuildContext context) {
     final theme = Theme.of(context);
-    final minValue = (question.minValue ?? 1).toDouble();
-    final maxValue = (question.maxValue ?? 10).toDouble();
-    final currentValue = (currentAnswer as double?) ?? minValue;
+    final minValue = (widget.question.minValue ?? 1).toDouble();
+    final maxValue = (widget.question.maxValue ?? 10).toDouble();
+    final currentValue = (widget.currentAnswer as double?) ?? minValue;
 
     return Column(
       children: [
@@ -243,7 +302,7 @@ class SurveyQuestionWidget extends StatelessWidget {
             min: minValue,
             max: maxValue,
             divisions: (maxValue - minValue).toInt(),
-            onChanged: (value) => onAnswerChanged(value),
+            onChanged: (value) => widget.onAnswerChanged(value),
           ),
         ),
         Text(
@@ -259,7 +318,7 @@ class SurveyQuestionWidget extends StatelessWidget {
 
   Widget _buildYesNo(BuildContext context) {
     final theme = Theme.of(context);
-    final currentBool = currentAnswer as bool?;
+    final currentBool = widget.currentAnswer as bool?;
 
     return Row(
       children: [
@@ -269,7 +328,7 @@ class SurveyQuestionWidget extends StatelessWidget {
             label: 'Yes',
             value: true,
             isSelected: currentBool == true,
-            onTap: () => onAnswerChanged(true),
+            onTap: () => widget.onAnswerChanged(true),
           ),
         ),
         const SizedBox(width: 12),
@@ -279,7 +338,7 @@ class SurveyQuestionWidget extends StatelessWidget {
             label: 'No',
             value: false,
             isSelected: currentBool == false,
-            onTap: () => onAnswerChanged(false),
+            onTap: () => widget.onAnswerChanged(false),
           ),
         ),
       ],
@@ -337,10 +396,10 @@ class SurveyQuestionWidget extends StatelessWidget {
     final isDarkMode = theme.brightness == Brightness.dark;
 
     return TextField(
-      onChanged: onAnswerChanged,
-      maxLines: question.type == QuestionType.text ? 4 : 1,
+      controller: _textController,
+      maxLines: widget.question.type == QuestionType.text ? 4 : 1,
       decoration: InputDecoration(
-        hintText: question.placeholder ?? 'Enter your answer...',
+        hintText: widget.question.placeholder ?? 'Enter your answer...',
         hintStyle: theme.textTheme.bodyMedium?.copyWith(
           color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
         ),

@@ -10,12 +10,12 @@ enum SurveyResponseStatus {
 class SurveyAnswer extends Equatable {
   final String questionId;
   final dynamic answer; // Can be String, int, List<String>, etc.
-  final DateTime answeredAt;
+  final DateTime? answeredAt; // Nullable to handle invalid dates
 
   const SurveyAnswer({
     required this.questionId,
     required this.answer,
-    required this.answeredAt,
+    this.answeredAt,
   });
 
   @override
@@ -25,15 +25,28 @@ class SurveyAnswer extends Equatable {
     return SurveyAnswer(
       questionId: json['questionId'] ?? '',
       answer: json['answer'],
-      answeredAt: DateTime.parse(json['answeredAt'] ?? DateTime.now().toIso8601String()),
+      answeredAt: _parseDateTime(json['answeredAt']),
     );
+  }
+
+  /// Safely parse DateTime from JSON, return null on invalid input
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is! String) return null;
+    if (value.isEmpty) return null;
+    
+    try {
+      return DateTime.tryParse(value);
+    } catch (e) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toJson() {
     return {
       'questionId': questionId,
       'answer': answer,
-      'answeredAt': answeredAt.toIso8601String(),
+      'answeredAt': answeredAt?.toIso8601String(),
     };
   }
 }
@@ -44,7 +57,7 @@ class SurveyResponse extends Equatable {
   final String userId;
   final List<SurveyAnswer> answers;
   final SurveyResponseStatus status;
-  final DateTime startedAt;
+  final DateTime? startedAt; // Nullable to handle invalid/missing timestamps
   final DateTime? completedAt;
   final Map<String, dynamic>? contextData; // Location, air quality, etc. when survey was triggered
   final Duration? timeToComplete;
@@ -55,7 +68,7 @@ class SurveyResponse extends Equatable {
     required this.userId,
     required this.answers,
     required this.status,
-    required this.startedAt,
+    this.startedAt,
     this.completedAt,
     this.contextData,
     this.timeToComplete,
@@ -87,10 +100,8 @@ class SurveyResponse extends Equatable {
         (e) => e.toString().split('.').last == json['status'],
         orElse: () => SurveyResponseStatus.inProgress,
       ),
-      startedAt: DateTime.parse(json['startedAt'] ?? DateTime.now().toIso8601String()),
-      completedAt: json['completedAt'] != null
-          ? DateTime.parse(json['completedAt'])
-          : null,
+      startedAt: SurveyAnswer._parseDateTime(json['startedAt']),
+      completedAt: SurveyAnswer._parseDateTime(json['completedAt']),
       contextData: json['contextData'],
       timeToComplete: json['timeToComplete'] != null
           ? Duration(seconds: json['timeToComplete'])
@@ -105,7 +116,7 @@ class SurveyResponse extends Equatable {
       'userId': userId,
       'answers': answers.map((a) => a.toJson()).toList(),
       'status': status.toString().split('.').last,
-      'startedAt': startedAt.toIso8601String(),
+      'startedAt': startedAt?.toIso8601String(),
       if (completedAt != null) 'completedAt': completedAt!.toIso8601String(),
       if (contextData != null) 'contextData': contextData,
       if (timeToComplete != null) 'timeToComplete': timeToComplete!.inSeconds,

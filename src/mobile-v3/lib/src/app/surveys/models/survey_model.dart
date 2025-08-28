@@ -57,14 +57,53 @@ class SurveyQuestion extends Equatable {
         (e) => e.toString().split('.').last == json['type'],
         orElse: () => QuestionType.text,
       ),
-      options: json['options'] != null
-          ? List<String>.from(json['options'])
-          : null,
-      minValue: json['minValue'],
-      maxValue: json['maxValue'],
-      placeholder: json['placeholder'],
+      options: _parseStringList(json['options']),
+      minValue: _parseIntValue(json['minValue']),
+      maxValue: _parseIntValue(json['maxValue']),
+      placeholder: _parseStringValue(json['placeholder']),
       isRequired: json['isRequired'] ?? true,
     );
+  }
+
+  // Safe parsing helper methods
+  static List<String>? _parseStringList(dynamic value) {
+    if (value == null) return null;
+    if (value is! Iterable) return null;
+    
+    try {
+      return value
+          .where((item) => item != null)
+          .map((item) => item.toString())
+          .toList();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static int? _parseIntValue(dynamic value) {
+    if (value == null) return null;
+    
+    try {
+      if (value is int) return value;
+      if (value is num) return value.toInt();
+      if (value is String) {
+        final parsed = int.tryParse(value);
+        return parsed;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  static String? _parseStringValue(dynamic value) {
+    if (value == null) return null;
+    
+    try {
+      return value.toString();
+    } catch (e) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -99,8 +138,25 @@ class SurveyTrigger extends Equatable {
         (e) => e.toString().split('.').last == json['type'],
         orElse: () => SurveyTriggerType.manual,
       ),
-      conditions: json['conditions'],
+      conditions: _parseConditionsMap(json['conditions']),
     );
+  }
+
+  // Safe parsing for conditions map
+  static Map<String, dynamic>? _parseConditionsMap(dynamic value) {
+    if (value == null) return null;
+    
+    try {
+      if (value is Map<String, dynamic>) {
+        return value;
+      } else if (value is Map) {
+        // Convert Map<dynamic, dynamic> to Map<String, dynamic>
+        return Map<String, dynamic>.from(value);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -150,22 +206,86 @@ class Survey extends Equatable {
   factory Survey.fromJson(Map<String, dynamic> json) {
     return Survey(
       id: json['_id'] ?? json['id'] ?? '',
-      title: json['title'] ?? '',
-      description: json['description'] ?? '',
-      questions: (json['questions'] as List<dynamic>?)
-              ?.map((q) => SurveyQuestion.fromJson(q))
-              .toList() ??
-          [],
-      trigger: SurveyTrigger.fromJson(json['trigger'] ?? {}),
-      timeToComplete: json['timeToComplete'] != null
-          ? Duration(seconds: json['timeToComplete'])
-          : null,
+      title: SurveyQuestion._parseStringValue(json['title']) ?? '',
+      description: SurveyQuestion._parseStringValue(json['description']) ?? '',
+      questions: _parseQuestionsList(json['questions']),
+      trigger: _parseTrigger(json['trigger']),
+      timeToComplete: _parseDuration(json['timeToComplete']),
       isActive: json['isActive'] ?? true,
-      createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      expiresAt: json['expiresAt'] != null
-          ? DateTime.parse(json['expiresAt'])
-          : null,
+      createdAt: _parseDateTime(json['createdAt']) ?? DateTime.now(),
+      expiresAt: _parseDateTime(json['expiresAt']),
     );
+  }
+
+  // Safe parsing for questions list
+  static List<SurveyQuestion> _parseQuestionsList(dynamic value) {
+    if (value == null) return [];
+    if (value is! List) return [];
+    
+    try {
+      return value
+          .where((item) => item != null && item is Map)
+          .map((item) {
+            try {
+              return SurveyQuestion.fromJson(Map<String, dynamic>.from(item));
+            } catch (e) {
+              return null;
+            }
+          })
+          .where((question) => question != null)
+          .cast<SurveyQuestion>()
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // Safe parsing for trigger
+  static SurveyTrigger _parseTrigger(dynamic value) {
+    try {
+      if (value is Map<String, dynamic>) {
+        return SurveyTrigger.fromJson(value);
+      } else if (value is Map) {
+        return SurveyTrigger.fromJson(Map<String, dynamic>.from(value));
+      }
+      return SurveyTrigger.fromJson({});
+    } catch (e) {
+      return SurveyTrigger.fromJson({});
+    }
+  }
+
+  // Safe parsing for duration
+  static Duration? _parseDuration(dynamic value) {
+    if (value == null) return null;
+    
+    try {
+      int? seconds;
+      if (value is int) {
+        seconds = value;
+      } else if (value is num) {
+        seconds = value.toInt();
+      } else if (value is String) {
+        seconds = int.tryParse(value);
+      }
+      
+      return seconds != null && seconds >= 0 ? Duration(seconds: seconds) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Safe parsing for DateTime
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+    
+    try {
+      if (value is String && value.isNotEmpty) {
+        return DateTime.parse(value);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   Map<String, dynamic> toJson() {

@@ -450,6 +450,8 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
       _isLoading = true;
     });
 
+    String? errorMessage;
+
     try {
       double lat = 0, lng = 0;
 
@@ -460,41 +462,44 @@ class _AddPrivacyZoneDialogState extends State<AddPrivacyZoneDialog>
           lat = result.position!.latitude;
           lng = result.position!.longitude;
         } else {
-          _showSnackBar('Could not get current location: ${result.error}');
-          return;
+          errorMessage = 'Could not get current location: ${result.error}';
         }
       } else {
         final latParsed = double.tryParse(_latController.text);
         final lngParsed = double.tryParse(_lngController.text);
 
         if (latParsed == null || lngParsed == null) {
-          _showSnackBar('Please enter valid coordinates');
-          return;
-        }
+          errorMessage = 'Please enter valid coordinates';
+        } else {
+          lat = latParsed;
+          lng = lngParsed;
 
-        lat = latParsed;
-        lng = lngParsed;
-
-        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-          _showSnackBar(
-              'Please enter valid latitude (-90 to 90) and longitude (-180 to 180)');
-          return;
+          if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+            errorMessage = 'Please enter valid latitude (-90 to 90) and longitude (-180 to 180)';
+          }
         }
       }
 
-      await widget.onAddZone(_nameController.text.trim(), lat, lng, radius);
-      if (mounted) {
-        Navigator.pop(context);
-        _showSuccessSnackBar(
-            'Privacy zone "${_nameController.text.trim()}" created successfully');
+      if (errorMessage == null) {
+        await widget.onAddZone(_nameController.text.trim(), lat, lng, radius);
+        if (mounted) {
+          Navigator.pop(context);
+          _showSuccessSnackBar(
+              'Privacy zone "${_nameController.text.trim()}" created successfully');
+        }
       }
     } catch (e) {
-      _showSnackBar('Failed to create privacy zone: $e');
+      errorMessage = 'Failed to create privacy zone: $e';
     } finally {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
+        
+        // Show error message after loading state is reset
+        if (errorMessage != null) {
+          _showSnackBar(errorMessage);
+        }
       }
     }
   }

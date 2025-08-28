@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:collection/collection.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
@@ -90,7 +91,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
     try {
       // Check cache first
       final cachedSurveys = await _getCachedSurveys();
-      final cachedSurvey = cachedSurveys.where((s) => s.id == surveyId).firstOrNull;
+      final cachedSurvey = cachedSurveys.firstWhereOrNull((s) => s.id == surveyId);
       if (cachedSurvey != null) {
         return cachedSurvey;
       }
@@ -226,7 +227,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   }
 
   /// Retry failed survey response submissions
-  Future<void> retryFailedSubmissions() async {
+  Future<void> retryFailedSubmissions({int maxRetries = 3}) async {
     try {
       final responses = await _getCachedSurveyResponses();
       final pendingResponses = responses.where(

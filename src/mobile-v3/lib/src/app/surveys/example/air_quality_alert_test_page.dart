@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
@@ -8,6 +9,11 @@ class AirQualityAlertTestPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Only allow this test page in debug builds
+    if (!kDebugMode) {
+      return Container(); // Return empty container in release builds
+    }
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Air Quality Alert Tests'),

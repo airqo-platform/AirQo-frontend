@@ -219,7 +219,8 @@ class SurveyCard extends StatelessWidget {
 
   Widget _buildProgressIndicator(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = completionPercentage! / 100;
+    final pct = completionPercentage ?? 0;
+    final progress = pct / 100;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -234,7 +235,7 @@ class SurveyCard extends StatelessWidget {
               ),
             ),
             Text(
-              '${completionPercentage!.toInt()}%',
+              '${pct.toInt()}%',
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w500,
                 color: AppColors.primaryColor,

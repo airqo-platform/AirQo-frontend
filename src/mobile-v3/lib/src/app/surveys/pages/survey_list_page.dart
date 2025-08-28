@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:collection/collection.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
@@ -116,8 +117,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
               itemBuilder: (context, index) {
                 final survey = state.surveys[index];
                 final userResponse = state.userResponses
-                    .where((r) => r.surveyId == survey.id)
-                    .firstOrNull;
+                    .firstWhereOrNull((r) => r.surveyId == survey.id);
                 
                 return SurveyCard(
                   survey: survey,

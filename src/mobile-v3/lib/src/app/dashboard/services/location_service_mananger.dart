@@ -44,6 +44,9 @@ class LocationServiceManager with UiLoggy {
   // Survey trigger service for location-based surveys
   final SurveyTriggerService _surveyTriggerService = SurveyTriggerService();
   
+  // Tracking state
+  bool _isTracking = false;
+  
   // Getters
   Position? get lastKnownPosition => _lastKnownPosition;
   
@@ -205,6 +208,12 @@ class LocationServiceManager with UiLoggy {
   
   Future<void> startLocationTracking() async {
     try {
+      // Prevent duplicate subscriptions
+      if (_positionStreamSubscription != null) {
+        await _positionStreamSubscription!.cancel();
+        _positionStreamSubscription = null;
+      }
+      
       final permissionResult = await checkLocationPermission();
       if (!permissionResult.isSuccess) {
         loggy.warning('Cannot start location tracking: ${permissionResult.error}');
@@ -218,25 +227,42 @@ class LocationServiceManager with UiLoggy {
 
       _positionStreamSubscription = Geolocator.getPositionStream(
         locationSettings: locationSettings,
-      ).listen((Position position) {
-        loggy.debug('Position update: ${position.latitude}, ${position.longitude}');
-        
-        // Store as last known position
-        _lastKnownPosition = position;
-        
-        // Notify survey trigger service about location update
-        _surveyTriggerService.updateLocation(position);
-      });
-
+      ).listen(
+        (Position? position) {
+          if (position != null) {
+            loggy.debug('Position update: ${position.latitude}, ${position.longitude}');
+            
+            // Store as last known position
+            _lastKnownPosition = position;
+            
+            // Notify survey trigger service about location update
+            _surveyTriggerService.updateLocation(position);
+          }
+        },
+        onError: (error) {
+          loggy.error('Location stream error: $error');
+          _isTracking = false;
+        },
+        onDone: () {
+          loggy.info('Location stream completed');
+          _isTracking = false;
+          _positionStreamSubscription = null;
+        },
+      );
+      
+      _isTracking = true;
       loggy.info('Started location tracking for survey triggers');
     } catch (e) {
       loggy.error('Error starting location tracking: $e');
+      _isTracking = false;
     }
   }
 
   /// Stops continuous location tracking
   void stopLocationTracking() {
     _positionStreamSubscription?.cancel();
+    _positionStreamSubscription = null;
+    _isTracking = false;
     _positionStreamSubscription = null;
     loggy.info('Stopped location tracking');
   }

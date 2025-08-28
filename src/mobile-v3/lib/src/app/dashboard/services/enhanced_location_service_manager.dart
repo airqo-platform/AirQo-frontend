@@ -184,7 +184,7 @@ class EnhancedLocationServiceManager with UiLoggy {
 
   // Tracking Control
   Future<void> startLocationTracking() async {
-    if (_isTrackingActive) return;
+    if (_trackingTimer != null && _trackingTimer!.isActive) return;
 
     final permissionResult = await checkLocationPermission();
     if (!permissionResult.isSuccess) {
@@ -213,17 +213,29 @@ class EnhancedLocationServiceManager with UiLoggy {
   }
 
   Future<void> pauseLocationTracking() async {
-    _isTrackingPaused = true;
-    _trackingStatusController.add(false);
-    loggy.info('Location tracking paused');
+    try {
+      _isTrackingPaused = true;
+      _trackingStatusController.add(false);
+      await _saveTrackingSettings();
+      loggy.info('Location tracking paused');
+    } catch (error) {
+      loggy.error('Failed to pause location tracking: $error');
+      rethrow;
+    }
   }
 
   Future<void> resumeLocationTracking() async {
-    _isTrackingPaused = false;
-    if (_isTrackingActive) {
-      _trackingStatusController.add(true);
+    try {
+      _isTrackingPaused = false;
+      if (_isTrackingActive) {
+        _trackingStatusController.add(true);
+      }
+      await _saveTrackingSettings();
+      loggy.info('Location tracking resumed');
+    } catch (error) {
+      loggy.error('Failed to resume location tracking: $error');
+      rethrow;
     }
-    loggy.info('Location tracking resumed');
   }
 
   Future<void> _captureLocationPoint() async {
@@ -282,7 +294,16 @@ class EnhancedLocationServiceManager with UiLoggy {
     _isTrackingActive = prefs.getBool('is_tracking_active') ?? false;
     _isTrackingPaused = prefs.getBool('is_tracking_paused') ?? false;
 
+    // Update tracking status controller based on restored state
     if (_isTrackingActive && !_isTrackingPaused) {
+      _trackingStatusController.add(true);
+    } else {
+      _trackingStatusController.add(false);
+    }
+
+    loggy.info('Restored tracking state: active=$_isTrackingActive, paused=$_isTrackingPaused');
+
+    if (_isTrackingActive && !_isTrackingPaused && (_trackingTimer == null || !_trackingTimer!.isActive)) {
       await startLocationTracking();
     }
   }

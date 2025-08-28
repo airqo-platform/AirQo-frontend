@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
@@ -72,6 +73,11 @@ class _SurveyTestPageState extends State<SurveyTestPage> with UiLoggy {
 
   @override
   Widget build(BuildContext context) {
+    // Only allow this test page in debug builds
+    if (!kDebugMode) {
+      return Container(); // Return empty container in release builds
+    }
+    
     final theme = Theme.of(context);
     
     return Scaffold(

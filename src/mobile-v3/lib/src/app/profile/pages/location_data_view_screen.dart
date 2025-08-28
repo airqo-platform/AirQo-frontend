@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/meta/utils/date_formatters.dart';
 
 class LocationDataViewScreen extends StatefulWidget {
   final List<LocationDataPoint> locationHistory;
@@ -17,6 +18,7 @@ class LocationDataViewScreen extends StatefulWidget {
 }
 
 class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
+  List<LocationDataPoint> _allHistory = [];
   List<LocationDataPoint> _filteredHistory = [];
   String _filterType = 'all'; // 'all', 'shared', 'private'
   String _sortOrder = 'newest'; // 'newest', 'oldest'
@@ -24,25 +26,34 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
   @override
   void initState() {
     super.initState();
-    _filteredHistory = List.from(widget.locationHistory);
-    _applySorting();
+    _allHistory = List.from(widget.locationHistory);
+    _applyFilters();
+  }
+
+  @override
+  void didUpdateWidget(LocationDataViewScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.locationHistory != widget.locationHistory) {
+      _allHistory = List.from(widget.locationHistory);
+      _applyFilters();
+    }
   }
 
   void _applyFilters() {
     setState(() {
       switch (_filterType) {
         case 'shared':
-          _filteredHistory = widget.locationHistory
+          _filteredHistory = _allHistory
               .where((point) => point.isSharedWithResearchers)
               .toList();
           break;
         case 'private':
-          _filteredHistory = widget.locationHistory
+          _filteredHistory = _allHistory
               .where((point) => !point.isSharedWithResearchers)
               .toList();
           break;
         default:
-          _filteredHistory = List.from(widget.locationHistory);
+          _filteredHistory = List.from(_allHistory);
       }
       _applySorting();
     });
@@ -97,8 +108,8 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
   Widget _buildStatsHeader() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
-    final totalCount = widget.locationHistory.length;
-    final sharedCount = widget.locationHistory.where((p) => p.isSharedWithResearchers).length;
+    final totalCount = _allHistory.length;
+    final sharedCount = _allHistory.where((p) => p.isSharedWithResearchers).length;
     final privateCount = totalCount - sharedCount;
     
     return Container(
@@ -487,7 +498,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _formatDateTime(point.timestamp),
+                            DateFormatters.formatDateTime(point.timestamp),
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -495,7 +506,7 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
                             ),
                           ),
                           Text(
-                            _formatTimeAgo(point.timestamp),
+                            DateFormatters.formatTimeAgo(point.timestamp),
                             style: TextStyle(
                               fontSize: 12,
                               color: isDarkMode 
@@ -678,12 +689,12 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDetailRow('Timestamp', _formatDateTime(point.timestamp)),
+            _buildDetailRow('Timestamp', DateFormatters.formatDateTime(point.timestamp)),
             _buildDetailRow('Latitude', point.latitude.toStringAsFixed(6)),
             _buildDetailRow('Longitude', point.longitude.toStringAsFixed(6)),
             _buildDetailRow('Accuracy', '${point.accuracy != null ? point.accuracy!.toStringAsFixed(1) : 'N/A'}m'),
             _buildDetailRow('Sharing Status', point.isSharedWithResearchers ? 'Shared with researchers' : 'Private'),
-            _buildDetailRow('Recorded', _formatTimeAgo(point.timestamp)),
+            _buildDetailRow('Recorded', DateFormatters.formatTimeAgo(point.timestamp)),
           ],
         ),
       ),
@@ -790,27 +801,15 @@ class _LocationDataViewScreenState extends State<LocationDataViewScreen> {
     );
 
     if (confirmed == true) {
+      // Remove from local state immediately
+      setState(() {
+        _allHistory.removeWhere((point) => point.id == pointId);
+        _applyFilters(); // Re-apply filters to update _filteredHistory
+      });
+      
+      // Notify parent callback
       widget.onDeletePoint(pointId);
     }
   }
 
-  String _formatDateTime(DateTime dateTime) {
-    return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} '
-           '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
-
-  String _formatTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-    
-    if (difference.inDays > 0) {
-      return '${difference.inDays} day${difference.inDays == 1 ? '' : 's'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hour${difference.inHours == 1 ? '' : 's'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minute${difference.inMinutes == 1 ? '' : 's'} ago';
-    } else {
-      return 'Just now';
-    }
-  }
 }
