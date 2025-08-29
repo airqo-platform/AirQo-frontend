@@ -82,21 +82,28 @@ const Modal = ({ isOpen, onClose }) => {
       transition: { duration: 0.2 },
     },
   };
+
+  const backdropAnimationConfig = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black bg-opacity-50">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 dark:bg-black/80 transition-opacity duration-200"
-            onClick={onClose}
-            aria-label="Close organization selection modal"
-          />
+        <motion.div
+          {...backdropAnimationConfig}
+          className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-black/80"
+          onClick={onClose}
+          aria-label="Close modal backdrop"
+        >
           <motion.div
             {...modalAnimationConfig}
             className="modal-container w-full max-w-6xl bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative 
                        h-[85vh] max-h-[800px] min-h-[500px]
                        flex flex-col"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Fixed Header */}
             <div className="flex items-center justify-between py-3 sm:py-4 px-4 sm:px-5 border-b border-gray-300 dark:border-gray-700 flex-shrink-0">
@@ -118,7 +125,7 @@ const Modal = ({ isOpen, onClose }) => {
               {isOpen && <ModalBody onClose={onClose} />}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

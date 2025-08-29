@@ -804,13 +804,15 @@ const DataTable = ({
               onClick={onViewDataClick}
               disabled={isLoadingVisualizationData}
               className={`flex items-center gap-2 ${
-                isLoadingVisualizationData 
-                  ? 'text-gray-400 cursor-not-allowed' 
+                isLoadingVisualizationData
+                  ? 'text-gray-400 cursor-not-allowed'
                   : 'text-primary hover:bg-primary/10'
               }`}
             >
               <AqBarChart07 size={16} />
-              {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
+              {isLoadingVisualizationData
+                ? 'Loading Sites...'
+                : 'Visualize Data'}
             </Button>
           )}
           <div className="flex items-center gap-2 ml-auto">
@@ -845,8 +847,8 @@ const DataTable = ({
             onClick={onViewDataClick}
             disabled={isLoadingVisualizationData}
             className={`flex items-center gap-2 ${
-              isLoadingVisualizationData 
-                ? 'text-gray-400 cursor-not-allowed' 
+              isLoadingVisualizationData
+                ? 'text-gray-400 cursor-not-allowed'
                 : 'text-primary hover:bg-primary/10'
             }`}
           >
