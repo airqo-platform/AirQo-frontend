@@ -181,10 +181,10 @@ export const setupUserSession = async (
         );
       }
       redirectPath = '/user/Home';
-    } else if (pathname.startsWith('/admin')) {
+    } else if (typeof pathname === 'string' && pathname.startsWith('/admin')) {
       // ADMIN ROUTES: Set AirQo group and stay on current admin path
       logger.info('Admin route detected, setting up admin session...');
-      
+
       // Find AirQo group for admin context
       const airqoGroup = user.groups.find(isAirQoGroup) || user.groups[0];
       if (airqoGroup) {
@@ -196,7 +196,7 @@ export const setupUserSession = async (
           pathname,
         });
       }
-      
+
       // Don't set redirectPath for admin routes - let them stay on the current path
       redirectPath = null;
     } else if (pathname.includes('/org/')) {

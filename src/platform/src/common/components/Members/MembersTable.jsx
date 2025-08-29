@@ -221,9 +221,15 @@ const MembersTable = ({
           ];
         }
         const handleMenuClick = (id) => {
-          if (id === 'remove' && !isSelf && canRemoveMembers)
+          if (id === 'remove' && !isSelf && canRemoveMembers) {
             handleRemove(member);
-          if (id === 'edit-role') handleEditRole(member);
+            return;
+          }
+          if (id === 'edit-role' && canEditRole) {
+            handleEditRole(member);
+            return;
+          }
+          // other menu items or disabled actions are ignored
         };
         return (
           <Dropdown onItemClick={handleMenuClick} menu={menu} length={'last'} />

@@ -41,14 +41,16 @@ const useUserPreferences = () => {
         return;
       }
 
-      // Check if we already fetched for this combination
+      // Check if we already fetched for this combination or marked in-flight
       const lastFetched = lastFetchedRef.current;
       if (
         lastFetched.userID === userID &&
         lastFetched.activeGroupId === activeGroupId
       ) {
-        return; // Already fetched, skip
+        return; // Already fetched or in-flight, skip
       }
+      // Mark as in-flight to prevent duplicate calls on rapid re-renders
+      lastFetchedRef.current = { userID, activeGroupId };
 
       // Only include groupID if it's a valid ObjectId
       const params = { identifier: userID };
@@ -59,16 +61,13 @@ const useUserPreferences = () => {
       try {
         // Dispatch the action to fetch user preferences
         await dispatch(getIndividualUserPreferences(params));
-
-        // Only proceed if the component is still mounted
-        if (isMounted) {
-          // Update last fetched to prevent duplicate calls
-          lastFetchedRef.current = { userID, activeGroupId };
-        }
+        // Nothing else to do; lastFetchedRef already set above
       } catch (error) {
         if (isMounted) {
           // eslint-disable-next-line no-console
           console.error('Error fetching user preferences:', error);
+          // Reset ref to allow retry after error
+          lastFetchedRef.current = { userID: null, activeGroupId: null };
         }
       }
     };

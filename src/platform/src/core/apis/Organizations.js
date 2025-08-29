@@ -47,19 +47,20 @@ const _getOrganizationBySlugApiInternal = async (orgSlug, options = {}) => {
       signal: options.signal,
     });
 
-    const result = response.data.success
+    const payload = response?.data?.data || {};
+    const ok = Boolean(response?.data?.success);
+    const result = ok
       ? {
           success: true,
           data: {
-            _id: response.data.data._id || null,
-            slug: response.data.data.slug,
-            name: response.data.data.name,
-            logo: response.data.data.logo,
-            primaryColor: response.data.data.theme?.primaryColor || '#135DFF',
-            secondaryColor:
-              response.data.data.theme?.secondaryColor || '#1B2559',
-            font: response.data.data.theme?.font || 'Inter',
-            status: 'ACTIVE',
+            _id: payload._id ?? null,
+            slug: payload.slug ?? null,
+            name: payload.name ?? null,
+            logo: payload.logo ?? null,
+            primaryColor: payload.theme?.primaryColor ?? '#135DFF',
+            secondaryColor: payload.theme?.secondaryColor ?? '#1B2559',
+            font: payload.theme?.font ?? 'Inter',
+            status: payload.status ?? 'ACTIVE',
             // Set default settings for auth pages
             settings: {
               allowSelfRegistration: true,
@@ -70,7 +71,7 @@ const _getOrganizationBySlugApiInternal = async (orgSlug, options = {}) => {
         }
       : {
           success: false,
-          message: response.data.message || 'Failed to fetch organization',
+          message: response?.data?.message || 'Failed to fetch organization',
           data: null,
         };
 
@@ -106,7 +107,7 @@ const _getOrganizationBySlugApiInternal = async (orgSlug, options = {}) => {
 // Export rate-limited version
 export const getOrganizationBySlugApi = withRateLimit(
   _getOrganizationBySlugApiInternal,
-  'org-by-slug',
+  (orgSlug) => `org-by-slug:${orgSlug}`,
 );
 
 /**
@@ -458,7 +459,7 @@ const _getOrganizationThemePreferencesApiInternal = (groupId) => {
  */
 export const getOrganizationThemePreferencesApi = withRateLimit(
   _getOrganizationThemePreferencesApiInternal,
-  'org-theme-preferences',
+  (groupId) => `org-theme-preferences:${groupId}`,
 );
 
 /**

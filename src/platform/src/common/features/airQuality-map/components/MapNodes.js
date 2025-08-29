@@ -1,6 +1,5 @@
 import { markerDetails, colors, images } from '../constants/mapConstants';
-
-/* eslint-disable no-console */
+import logger from '@/lib/logger';
 import { parseISO, format } from 'date-fns';
 
 // -------------------------------------------------------------------
@@ -85,7 +84,7 @@ export const UnclusteredNode = ({
   isDarkMode = false,
 }) => {
   if (!feature?.properties?.aqi) {
-    console.error('feature.properties.aqi is not defined', feature);
+    logger.error('feature.properties.aqi is not defined', { feature });
     return '';
   }
 
@@ -142,10 +141,9 @@ export const createClusterNode = ({
   isDarkMode = false,
 }) => {
   if (!feature || !feature.properties) {
-    console.error(
-      'Invalid feature or feature.properties is undefined',
+    logger.error('Invalid feature or feature.properties is undefined', {
       feature,
-    );
+    });
     return '';
   }
 
@@ -153,9 +151,11 @@ export const createClusterNode = ({
     !Array.isArray(feature.properties.aqi) ||
     feature.properties.aqi.length < 2
   ) {
-    console.error(
+    logger.error(
       'feature.properties.aqi is not an array with at least 2 elements',
-      feature.properties.aqi,
+      {
+        aqi: feature.properties.aqi,
+      },
     );
     return '';
   }
@@ -208,7 +208,7 @@ export const createClusterNode = ({
 export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
   // 1) Basic validations
   if (!feature || !feature.properties) {
-    console.error('Invalid feature object', feature);
+    logger.error('Invalid feature object', { feature });
     return '';
   }
 
@@ -228,17 +228,16 @@ export const createPopupHTML = ({ feature, images, isDarkMode = false }) => {
   }
 
   if (typeof value !== 'number' || !aqi || typeof time !== 'string') {
-    console.error(
-      'Missing or invalid value, AQI or timestamp',
-      feature.properties,
-    );
+    logger.error('Missing or invalid value, AQI or timestamp', {
+      properties: feature.properties,
+    });
     return '';
   }
 
   // Parse + format date
   let parsedDate = parseISO(time);
   if (isNaN(parsedDate)) {
-    console.error('Invalid date string', time);
+    logger.error('Invalid date string', { time });
     return '';
   }
   const formattedDate = format(parsedDate, 'MMMM dd, yyyy');

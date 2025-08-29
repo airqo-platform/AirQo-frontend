@@ -268,7 +268,16 @@ function MoreInsights() {
                   title="No Data Available"
                   description="There are no monitoring sites available for visualization. Please check back later or contact support if this issue persists."
                   actionLabel="Back to Download"
-                  onAction={() => setMobileSidebarVisible(false)}
+                  onAction={() =>
+                    dispatch(
+                      setModalType({
+                        type: 'download',
+                        ids: [],
+                        data: [],
+                        backToDownload: false,
+                      }),
+                    )
+                  }
                   variant="card"
                   size="medium"
                 />

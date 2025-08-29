@@ -70,7 +70,7 @@ const initialState = {
   organizationInitialized: false,
   organizationRetryCount: 0,
   organizationLastFailedAt: null,
-  organizationRequestCache: new Map(),
+  organizationRetryNonce: 0,
 };
 
 const reducer = (state, action) => {
@@ -96,7 +96,9 @@ const reducer = (state, action) => {
         organizationRetryCount: action.payload.error
           ? state.organizationRetryCount + 1
           : 0,
-        organizationLastFailedAt: action.payload.error ? Date.now() : null,
+        organizationLastFailedAt: action.payload.error
+          ? action.payload.now
+          : null,
       };
     case 'CLEAR_ORG_DATA':
       return {
@@ -108,6 +110,11 @@ const reducer = (state, action) => {
         organizationInitialized: false,
         organizationRetryCount: 0,
         organizationLastFailedAt: null,
+      };
+    case 'ORG_RETRY_TICK':
+      return {
+        ...state,
+        organizationRetryNonce: state.organizationRetryNonce + 1,
       };
     default:
       return state;
@@ -126,6 +133,8 @@ export function UnifiedGroupProvider({ children }) {
   const userGroups = useSelector(selectUserGroups);
   const lock = useRef(false);
   const abortRef = useRef(null);
+  const requestCacheRef = useRef(new Map());
+  const retryTimerRef = useRef(null);
 
   const organizationSlug = useMemo(() => extractOrgSlug(pathname), [pathname]);
   const isOrganizationContext = Boolean(organizationSlug);
@@ -313,6 +322,8 @@ export function UnifiedGroupProvider({ children }) {
       return;
     }
 
+    const currentCache = requestCacheRef.current;
+
     // Rate limiting logic - check if we should wait before making another request
     const timeSinceLastFailure = state.organizationLastFailedAt
       ? Date.now() - state.organizationLastFailedAt
@@ -343,7 +354,7 @@ export function UnifiedGroupProvider({ children }) {
 
     // Check cache for pending requests (deduplication)
     const cacheKey = organizationSlug;
-    if (state.organizationRequestCache.has(cacheKey)) {
+    if (currentCache.has(cacheKey)) {
       logger.info(`Deduplicating request for ${organizationSlug}`);
       return;
     }
@@ -354,7 +365,7 @@ export function UnifiedGroupProvider({ children }) {
     const { signal } = abortRef.current;
 
     // Add to cache to prevent duplicate requests
-    state.organizationRequestCache.set(cacheKey, true);
+    currentCache.set(cacheKey, true);
 
     dispatch({ type: 'SET_ORG_LOADING' });
 
@@ -363,7 +374,7 @@ export function UnifiedGroupProvider({ children }) {
         if (signal.aborted) return;
 
         // Clear from cache on completion
-        state.organizationRequestCache.delete(cacheKey);
+        currentCache.delete(cacheKey);
 
         const org = res.success ? res.data : null;
         const theme = org
@@ -382,13 +393,14 @@ export function UnifiedGroupProvider({ children }) {
             org,
             theme,
             error: res.success ? null : res.message || 'Organization not found',
+            now: Date.now(),
           },
         });
       })
       .catch((error) => {
         if (!signal.aborted) {
           // Clear from cache on error
-          state.organizationRequestCache.delete(cacheKey);
+          currentCache.delete(cacheKey);
 
           // Check if it's a rate limiting error
           const isRateLimited =
@@ -414,21 +426,48 @@ export function UnifiedGroupProvider({ children }) {
                 : error.message,
               org: null,
               theme: null,
+              now: Date.now(),
             },
           });
+
+          // Set up retry timer for rate-limited requests
+          if (isRateLimited) {
+            // Clear any existing retry timer
+            if (retryTimerRef.current) {
+              clearTimeout(retryTimerRef.current);
+            }
+
+            // Calculate next retry delay
+            const retryDelay = calculateRetryDelay(
+              state.organizationRetryCount + 1,
+            );
+
+            // Set timer to trigger retry
+            retryTimerRef.current = setTimeout(() => {
+              dispatch({ type: 'ORG_RETRY_TICK' });
+            }, retryDelay);
+          }
         }
       });
 
     return () => {
       abortRef.current?.abort?.(); // Cleanup on unmount/change
-      state.organizationRequestCache.delete(cacheKey);
+      currentCache.delete(cacheKey);
+      // Clear retry timer on cleanup
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
     };
   }, [
     organizationSlug,
     isOrganizationContext,
     state.organizationRetryCount,
     state.organizationLastFailedAt,
-  ]); // These are the only dependencies we want to trigger re-fetching
+    state.organizationRetryNonce,
+    state.organization,
+    state.organizationLoading,
+  ]);
 
   // Clear switching state when route changes (organization switch complete)
   useEffect(() => {

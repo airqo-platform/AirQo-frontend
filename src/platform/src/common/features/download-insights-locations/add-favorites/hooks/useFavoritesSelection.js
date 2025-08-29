@@ -1,18 +1,23 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { MAX_FAVORITES } from '../constants';
 
 export const useFavoritesSelection = (
-  filteredSites,
+  filteredSites = [],
   initialSelectedIds = [],
 ) => {
   const [selectedSites, setSelectedSites] = useState([]);
   const [sidebarSites, setSidebarSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
+  const clearTimerRef = useRef(null);
 
   // Initialize selected sites when data is loaded
   useEffect(() => {
-    if (filteredSites.length > 0 && initialSelectedIds.length > 0) {
+    if (
+      Array.isArray(filteredSites) &&
+      filteredSites.length > 0 &&
+      initialSelectedIds.length > 0
+    ) {
       const initialSelected = filteredSites.filter((site) =>
         initialSelectedIds.includes(site._id),
       );
@@ -25,9 +30,16 @@ export const useFavoritesSelection = (
     setSelectedSites([]);
     setSidebarSites([]);
     setClearSelected(true);
-    // reset trigger after render
-    setTimeout(() => setClearSelected(false), 100);
+    // reset trigger after render — use a ref so we can clear on unmount
+    if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+    clearTimerRef.current = setTimeout(() => setClearSelected(false), 100);
     setError('');
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
+    };
   }, []);
 
   const handleToggleSite = useCallback((site) => {

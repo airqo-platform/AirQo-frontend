@@ -118,7 +118,7 @@ export const MainContent = ({
           'organization',
         ]}
         enableColumnFilters={true}
-        defaultSortColumn="name"
+        defaultSortColumn="search_name"
         defaultSortDirection="asc"
       />
     </motion.div>

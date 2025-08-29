@@ -27,15 +27,20 @@ const SWR_CONFIG = {
   onError: (error) => {
     // Only log non-rate-limit errors to reduce noise
     if (
-      !error.message?.includes('rate limit') &&
-      !error.message?.includes('429')
+      !error?.isRateLimit &&
+      !error?.message?.includes('rate limit') &&
+      !error?.message?.includes('429')
     ) {
       logger.error('SWR Organization Theme Error:', error);
     }
   },
   onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
     // Don't retry if rate limited
-    if (error.status === 429 || error.message?.includes('rate limit')) {
+    if (
+      error?.isRateLimit ||
+      error?.status === 429 ||
+      error?.message?.includes('rate limit')
+    ) {
       return;
     }
     // Don't retry if we've exceeded max retries

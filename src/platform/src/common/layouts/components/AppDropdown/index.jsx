@@ -138,11 +138,13 @@ const AppDropdown = ({ className = '' }) => {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                   >
-                    {apps.map((app, i) => {
+                    {apps.map((app) => {
                       const Icon = app.icon;
                       return (
                         <button
-                          key={i}
+                          key={app.name}
+                          type="button"
+                          title={app.name}
                           onClick={() => handleAppClick(app)}
                           className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 focus:outline-none h-28"
                           aria-label={app.name}

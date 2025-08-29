@@ -113,7 +113,9 @@ export default function OrgRequestsPage() {
 
     // Apply tab filter
     if (activeTab !== 'all') {
-      result = result.filter((req) => (req.status || '') === activeTab);
+      result = result.filter(
+        (req) => (req.status || '').toString().toLowerCase() === activeTab,
+      );
     }
 
     // Apply sorting
@@ -144,13 +146,21 @@ export default function OrgRequestsPage() {
   }, [filteredAndSortedRequests, currentPage, itemsPerPage]);
 
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredAndSortedRequests.length / itemsPerPage);
+    return Math.max(
+      1,
+      Math.ceil(filteredAndSortedRequests.length / itemsPerPage),
+    );
   }, [filteredAndSortedRequests.length, itemsPerPage]);
 
   // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, activeTab, sortField, sortDirection]);
+
+  // Clamp current page when totalPages changes
+  useEffect(() => {
+    setCurrentPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
 
   const handleSearchChange = useCallback((value) => {
     setSearchQuery(value || '');

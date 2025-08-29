@@ -10,10 +10,9 @@ const CustomLegend = ({
   onClick,
   activeIndex,
 }) => {
-  const truncateLegend = payload.length > 3;
-
   // Keep legend order matching the series order so colors map consistently.
-  const entries = payload;
+  const entries = Array.isArray(payload) ? payload : [];
+  const truncateLegend = entries.length > 3;
 
   return (
     <div className="flex flex-wrap relative justify-end gap-2 w-full">

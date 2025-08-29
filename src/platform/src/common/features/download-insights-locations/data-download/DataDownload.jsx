@@ -624,20 +624,23 @@ const DataDownload = ({
               .filter(Boolean); // Remove any undefined entries
 
             // Format location name properly (remove underscores/hyphens, capitalize)
-            const rawLocationName =
-              selectedItems[0]?.name ||
-              selectedItems[0]?.long_name ||
-              'Selected Location';
-            const formattedLocationName = rawLocationName
-              .replace(/[_-]/g, ' ')
-              .split(' ')
-              .map(
-                (word) =>
-                  word.charAt(0).toUpperCase() + word.slice(1).toLowerCase(),
-              )
-              .join(' ');
-
-            modalTitle = `Air Quality Insights - ${formattedLocationName} (${visualizationData.length} Site${visualizationData.length > 1 ? 's' : ''})`;
+            let locationLabel = '';
+            if (selectedItems.length === 1) {
+              const rawLocationName =
+                selectedItems[0]?.name ||
+                selectedItems[0]?.long_name ||
+                'Selected Location';
+              locationLabel = rawLocationName
+                .replace(/[_-]/g, ' ')
+                .split(' ')
+                .map(
+                  (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
+                )
+                .join(' ');
+            } else {
+              locationLabel = `${selectedItems.length} ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'Countries' : 'Cities'}`;
+            }
+            modalTitle = `Air Quality Insights - ${locationLabel} (${visualizationData.length} Site${visualizationData.length > 1 ? 's' : ''})`;
 
             // For very large datasets, limit to first 100 sites with a warning
             if (visualizationData.length > 100) {
@@ -941,7 +944,13 @@ const DataDownload = ({
       );
     }
 
-    // Enable View Data for all filter types with selections
+    // Enable View Data for all filter types with selections, but disable when fetching sites data for countries/cities
+    const isLoadingVisualizationData =
+      (activeFilterKey === FILTER_TYPES.COUNTRIES ||
+        activeFilterKey === FILTER_TYPES.CITIES) &&
+      selectedItems.length > 0 &&
+      isLoadingSiteIds;
+
     const showViewDataButton = selectedItems.length > 0;
 
     return (
@@ -963,6 +972,7 @@ const DataDownload = ({
           searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
           handleRetryLoad={handleRetryLoad}
           showViewDataButton={showViewDataButton}
+          isLoadingVisualizationData={isLoadingVisualizationData}
           onViewDataClick={onViewDataClick}
           deviceCategory={formData.deviceCategory} // Pass device category
         />
@@ -978,6 +988,7 @@ const DataDownload = ({
     countriesErrorMsg,
     citiesErrorMsg,
     isLoading,
+    isLoadingSiteIds,
     selectedItems,
     clearSelections,
     currentFilterData,

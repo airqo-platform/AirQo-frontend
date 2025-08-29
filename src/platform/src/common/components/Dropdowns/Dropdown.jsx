@@ -55,24 +55,31 @@ const Dropdown = ({ onItemClick, menu }) => {
                 <ul className="py-2 text-sm text-gray-700 dark:text-gray-200">
                   {menu.map((item) => (
                     <li key={item.id} className="px-2">
-                      {item.disabled ? (
-                        <span
-                          className="flex justify-start px-3 py-2 rounded-md text-gray-400 dark:text-gray-500"
-                          aria-disabled="true"
-                        >
-                          {item.name}
-                        </span>
-                      ) : (
-                        <span
-                          onClick={() => {
-                            onItemClick(item.id);
-                            setIsOpen(false);
-                          }}
-                          className="flex justify-start px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded-md"
-                        >
-                          {item.name}
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={!!item.disabled}
+                        aria-disabled={!!item.disabled}
+                        onClick={
+                          item.disabled
+                            ? undefined
+                            : () => {
+                                onItemClick(item.id);
+                                setIsOpen(false);
+                                // return focus to the toggle button for keyboard users
+                                dropdownRef.current
+                                  ?.querySelector('button')
+                                  ?.focus();
+                              }
+                        }
+                        className={`flex w-full justify-start px-3 py-2 rounded-md text-left ${
+                          item.disabled
+                            ? 'text-gray-400 dark:text-gray-500 cursor-not-allowed'
+                            : 'hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer'
+                        }`}
+                      >
+                        {item.name}
+                      </button>
                     </li>
                   ))}
                 </ul>

@@ -3,6 +3,37 @@
 import React from 'react';
 import logger from '@/lib/logger';
 
+const RELOAD_KEY = 'airqo:chunk-reload-ts';
+
+const isChunkLoadError = (error) => {
+  if (!error) return false;
+  const name = error.name || '';
+  const msg = error.message || '';
+  return (
+    name === 'ChunkLoadError' ||
+    /Loading (?:CSS )?chunk/i.test(msg) ||
+    /Failed to fetch dynamically imported module/i.test(msg) ||
+    /Importing a module script failed/i.test(msg)
+  );
+};
+
+const safeReload = (minIntervalMs = 30000) => {
+  try {
+    const now = Date.now();
+    const last = Number(sessionStorage.getItem(RELOAD_KEY) || 0);
+    const online =
+      typeof navigator !== 'undefined' ? navigator.onLine !== false : true;
+    if (!online) return; // don't loop while offline
+    if (now - last < minIntervalMs) return; // throttle reloads
+    sessionStorage.setItem(RELOAD_KEY, String(now));
+    const url = new URL(window.location.href);
+    url.searchParams.set('_', String(now)); // cache-bust
+    window.location.replace(url.toString());
+  } catch {
+    window.location.reload();
+  }
+};
+
 class ChunkLoadErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
@@ -10,32 +41,40 @@ class ChunkLoadErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    // Check if it's a chunk loading error
-    if (
-      error?.name === 'ChunkLoadError' ||
-      error?.message?.includes('Loading chunk')
-    ) {
+    // Only show fallback for chunk loading errors
+    if (isChunkLoadError(error)) {
       return { hasError: true, error };
     }
+    // Let non-chunk errors bubble to a higher-level boundary
     return null;
   }
 
   componentDidCatch(error, errorInfo) {
-    // Only handle chunk loading errors
-    if (
-      error?.name === 'ChunkLoadError' ||
-      error?.message?.includes('Loading chunk')
-    ) {
-      logger.error('Chunk loading error caught by boundary:', {
+    if (isChunkLoadError(error)) {
+      logger.error('Chunk loading error caught by boundary', {
         error: error.message,
         stack: error.stack,
         errorInfo,
+        url: typeof window !== 'undefined' ? window.location.href : undefined,
+        online: typeof navigator !== 'undefined' ? navigator.onLine : undefined,
       });
-
-      // Auto-reload the page after a short delay for chunk loading errors
+      // Auto-reload once (throttled) after a short delay
       setTimeout(() => {
-        window.location.reload();
+        safeReload();
       }, 1000);
+    } else {
+      // Forward non-chunk errors to upstream monitoring and boundaries
+      logger.error(
+        'Non-chunk error caught by ChunkLoadErrorBoundary; rethrowing',
+        {
+          error: error.message,
+          stack: error.stack,
+          errorInfo,
+        },
+      );
+      setTimeout(() => {
+        throw error;
+      });
     }
   }
 
@@ -76,8 +115,10 @@ class ChunkLoadErrorBoundary extends React.Component {
             </div>
 
             <button
-              onClick={() => window.location.reload()}
+              type="button"
+              onClick={() => safeReload(0)}
               className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              aria-label="Reload the page now"
             >
               Reload Now
             </button>

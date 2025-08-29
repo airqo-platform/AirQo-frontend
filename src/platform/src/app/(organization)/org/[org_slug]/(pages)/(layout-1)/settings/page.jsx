@@ -49,7 +49,9 @@ const OrganizationSettingsPage = () => {
     useActiveGroupManager();
   // Permissions
   const { hasPermission, isLoading: permLoading } = usePermissions();
-  const canManageGroup = hasPermission('GROUP_MANAGEMENT', activeGroup?._id);
+  const canManageGroup = activeGroup?._id
+    ? hasPermission('GROUP_MANAGEMENT', activeGroup._id)
+    : false;
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
@@ -380,8 +382,6 @@ const OrganizationSettingsPage = () => {
     return <OrganizationSettingsSkeleton />;
   }
 
-  if (!canManageGroup) return <PermissionDenied />;
-
   // If no active group and not loading, show error state
   if (!activeGroup && !groupLoading) {
     return (
@@ -391,7 +391,7 @@ const OrganizationSettingsPage = () => {
         </h2>
         <p className="text-gray-500 mb-4">
           Unable to load organization data. Please try refreshing the page.
-        </p>{' '}
+        </p>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -401,6 +401,8 @@ const OrganizationSettingsPage = () => {
       </div>
     );
   }
+
+  if (!canManageGroup) return <PermissionDenied />;
 
   if (fetchError) {
     return (

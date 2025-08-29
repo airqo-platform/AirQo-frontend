@@ -23,6 +23,7 @@ const DataContent = ({
   searchKeysByFilter,
   handleRetryLoad,
   showViewDataButton,
+  isLoadingVisualizationData,
   onViewDataClick,
   deviceCategory, // Add device category prop
 }) => {
@@ -166,6 +167,7 @@ const DataContent = ({
           onFilter={handleFilter}
           searchKeys={searchKeysByFilter}
           showViewDataButton={showViewDataButton}
+          isLoadingVisualizationData={isLoadingVisualizationData}
           onViewDataClick={onViewDataClick}
           onRetry={() => handleRetryLoad(activeFilterKey)}
           enableSorting={true}

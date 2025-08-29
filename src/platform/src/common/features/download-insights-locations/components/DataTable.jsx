@@ -302,6 +302,7 @@ const DataTable = ({
   onToggleRow,
   searchKeys = [],
   showViewDataButton = false,
+  isLoadingVisualizationData = false,
   onViewDataClick = () => {},
   enableSorting = true,
   enableColumnFilters = true,
@@ -801,10 +802,15 @@ const DataTable = ({
             <Button
               variant="text"
               onClick={onViewDataClick}
-              className="text-primary hover:bg-primary/10 flex items-center gap-2"
+              disabled={isLoadingVisualizationData}
+              className={`flex items-center gap-2 ${
+                isLoadingVisualizationData 
+                  ? 'text-gray-400 cursor-not-allowed' 
+                  : 'text-primary hover:bg-primary/10'
+              }`}
             >
               <AqBarChart07 size={16} />
-              Visualize Data
+              {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
             </Button>
           )}
           <div className="flex items-center gap-2 ml-auto">
@@ -837,10 +843,15 @@ const DataTable = ({
           <Button
             variant="text"
             onClick={onViewDataClick}
-            className="text-primary hover:bg-primary/10 flex items-center gap-2"
+            disabled={isLoadingVisualizationData}
+            className={`flex items-center gap-2 ${
+              isLoadingVisualizationData 
+                ? 'text-gray-400 cursor-not-allowed' 
+                : 'text-primary hover:bg-primary/10'
+            }`}
           >
             <AqEye size={16} />
-            Visualize Data
+            {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
           </Button>
         </div>
       )}

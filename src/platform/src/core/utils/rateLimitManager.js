@@ -18,18 +18,11 @@ class RateLimitManager {
    */
   canMakeRequest(key) {
     const now = Date.now();
-    const timestamps = this.requestTimestamps.get(key) || [];
-
-    // Clean old timestamps outside the window
-    const validTimestamps = timestamps.filter(
-      (timestamp) => now - timestamp < this.WINDOW_SIZE,
+    const ts = (this.requestTimestamps.get(key) || []).filter(
+      (t) => now - t < this.WINDOW_SIZE,
     );
-
-    // Update the timestamps
-    this.requestTimestamps.set(key, validTimestamps);
-
-    // Check if we're within the limit
-    return validTimestamps.length < this.MAX_REQUESTS;
+    this.requestTimestamps.set(key, ts);
+    return ts.length < this.MAX_REQUESTS;
   }
 
   /**
@@ -54,12 +47,10 @@ class RateLimitManager {
    */
   getRemainingRequests(key) {
     const now = Date.now();
-    const timestamps = this.requestTimestamps.get(key) || [];
-    const validTimestamps = timestamps.filter(
-      (timestamp) => now - timestamp < this.WINDOW_SIZE,
+    const ts = (this.requestTimestamps.get(key) || []).filter(
+      (t) => now - t < this.WINDOW_SIZE,
     );
-
-    return Math.max(0, this.MAX_REQUESTS - validTimestamps.length);
+    return Math.max(0, this.MAX_REQUESTS - ts.length);
   }
 
   /**
@@ -68,13 +59,15 @@ class RateLimitManager {
    * @returns {number} - Time in milliseconds until reset
    */
   getTimeUntilReset(key) {
-    const timestamps = this.requestTimestamps.get(key) || [];
-    if (timestamps.length === 0) return 0;
-
-    const oldestTimestamp = Math.min(...timestamps);
+    const now = Date.now();
+    const ts = (this.requestTimestamps.get(key) || []).filter(
+      (t) => now - t < this.WINDOW_SIZE,
+    );
+    if (ts.length === 0) return 0;
+    // timestamps appended in order -> first is oldest after pruning
+    const oldestTimestamp = ts[0];
     const resetTime = oldestTimestamp + this.WINDOW_SIZE;
-
-    return Math.max(0, resetTime - Date.now());
+    return Math.max(0, resetTime - now);
   }
 
   /**
@@ -117,8 +110,11 @@ export const rateLimitManager = new RateLimitManager();
  * @param {string} key - Unique key for rate limiting
  * @returns {Function} - Wrapped function with rate limiting
  */
-export function withRateLimit(apiFunction, key) {
+// keyOrKeyFn: string | ((...args:any[]) => string)
+export function withRateLimit(apiFunction, keyOrKeyFn) {
   return async (...args) => {
+    const key =
+      typeof keyOrKeyFn === 'function' ? keyOrKeyFn(...args) : keyOrKeyFn;
     if (!rateLimitManager.canMakeRequest(key)) {
       const stats = rateLimitManager.getStats(key);
       const error = new Error(
@@ -133,10 +129,10 @@ export function withRateLimit(apiFunction, key) {
       rateLimitManager.recordRequest(key);
       return await apiFunction(...args);
     } catch (error) {
-      // If we get a 429 from server, record it
+      // If we get a 429 from server, exhaust remaining allowance
       if (error.response?.status === 429) {
-        // Temporarily block further requests
-        for (let i = 0; i < 10; i++) {
+        const remaining = rateLimitManager.getRemainingRequests(key);
+        for (let i = 0; i < remaining; i++) {
           rateLimitManager.recordRequest(key);
         }
       }
