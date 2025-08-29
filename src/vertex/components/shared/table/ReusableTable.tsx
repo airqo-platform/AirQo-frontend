@@ -538,7 +538,7 @@ const ReusableTable = <T extends TableItem>({
       initialFilters[filter.key] = filter.isMulti ? [] : "";
     });
     setFilterValues(initialFilters);
-  }, [JSON.stringify(filters)]);
+  }, [filters]);
 
   // Filter and search data with improved Fuse.js
   const filteredData = useMemo(() => {
@@ -858,22 +858,35 @@ const ReusableTable = <T extends TableItem>({
       cols.unshift({
         key: "checkbox",
         label: (
-          <input
-            type="checkbox"
-            checked={isAllSelectedOnPage}
-            ref={(input) => {
-              if (input) input.indeterminate = isIndeterminate;
-            }}
-            onChange={(e) => handleSelectAll(e.target.checked)}
-            className="rounded text-primary focus:ring-primary"
-          />
+          <div className="flex items-center">
+            {isIndeterminate ? (
+              <button
+                type="button"
+                className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded cursor-pointer flex items-center justify-center"
+                onClick={() => handleSelectAll(!isAllSelectedOnPage)}
+                aria-label="Toggle selection"
+              >
+                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 10h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                </svg>
+              </button>
+            ) : (
+              <input
+                type="checkbox"
+                className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
+                checked={isAllSelectedOnPage}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                aria-label="Select all"
+              />
+            )}
+          </div>
         ),
         render: (_value: T[keyof T], item: T) => (
           <input
             type="checkbox"
+            className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
             checked={selectedItems.includes(item.id)}
             onChange={(e) => handleSelectItem(item.id, e.target.checked)}
-            className="rounded text-primary focus:ring-primary"
           />
         ),
         sortable: false,
@@ -933,23 +946,32 @@ const ReusableTable = <T extends TableItem>({
                 {displayColumns.map((column) => (
                   <th
                     key={String(column.key)}
-                    className={`px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider ${
-                      sortable && column.sortable !== false
+                    className={`${
+                      column.key === "checkbox" 
+                        ? "w-4 p-4" 
+                        : "px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                    } ${
+                      sortable && column.sortable !== false && column.key !== "checkbox"
                         ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         : ""
                     }`}
                     onClick={() =>
                       sortable &&
                       column.sortable !== false &&
+                      column.key !== "checkbox" &&
                       handleSort(String(column.key))
                     }
                   >
-                    <div className="flex items-center space-x-1">
-                      <span>{column.label}</span>
-                      {sortable &&
-                        column.sortable !== false &&
-                        getSortIcon(String(column.key))}
-                    </div>
+                    {column.key === "checkbox" ? (
+                      column.label
+                    ) : (
+                      <div className="flex items-center space-x-1">
+                        <span>{column.label}</span>
+                        {sortable &&
+                          column.sortable !== false &&
+                          getSortIcon(String(column.key))}
+                      </div>
+                    )}
                   </th>
                 ))}
               </tr>
@@ -959,19 +981,30 @@ const ReusableTable = <T extends TableItem>({
                 paginatedData.map((item, index) => (
                   <tr
                     key={item.id ?? index}
-                    onClick={() => {
+                    onClick={(e) => {
+                      if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+                        return;
+                      }
                       if (onRowClick) {
                         onRowClick(item);
                       }
                     }}
-                    className={`hover:bg-primary/5 dark:hover:bg-primary/20 ${
+                    className={`${
+                      selectedItems.includes(item.id)
+                        ? "bg-primary/10 dark:bg-primary/20"
+                        : "hover:bg-primary/5 dark:hover:bg-primary/20"
+                    } ${
                       onRowClick && "cursor-pointer"
                     }`}
                   >
                     {displayColumns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
+                        className={`${
+                          column.key === "checkbox" 
+                            ? "w-4 p-4" 
+                            : "px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
+                        }`}
                       >
                         {renderCell(item, column)}
                       </td>

@@ -12,6 +12,8 @@ interface DevicesTableProps {
   error?: Error | null;
   itemsPerPage?: number;
   onDeviceClick?: (device: Device) => void;
+  multiSelect?: boolean;
+  onSelectedDevicesChange?: (selectedDevices: Device[]) => void;
 }
 
 type TableDevice = TableItem<unknown>;
@@ -21,12 +23,13 @@ interface Site {
   id?: string;
 }
 
-
 export default function DevicesTable({
   devices,
   isLoading = false,
   error = null,
   onDeviceClick,
+  multiSelect = false,
+  onSelectedDevicesChange,
 }: DevicesTableProps) {
   const router = useRouter();
 
@@ -34,6 +37,15 @@ export default function DevicesTable({
     const device = item as Device;
     if (onDeviceClick) onDeviceClick(device);
     else router.push(`/devices/overview/${device._id}`);
+  };
+
+  const handleSelectedItemsChange = (selectedIds: (string | number)[]) => {
+    if (onSelectedDevicesChange) {
+      const selectedDevices = devices.filter(device => 
+        device._id && selectedIds.includes(device._id)
+      );
+      onSelectedDevicesChange(selectedDevices);
+    }
   };
 
   // Coerce devices to include a required 'id' field
@@ -149,6 +161,24 @@ export default function DevicesTable({
         columns={columns}
         loading={isLoading}
         onRowClick={handleDeviceClick}
+        multiSelect={multiSelect}
+        onSelectedItemsChange={handleSelectedItemsChange}
+        actions={multiSelect ? [
+          {
+            label: "Assign to Cohort",
+            value: "assign_cohort",
+            handler: (selectedIds) => {
+              console.log("Assign to cohort:", selectedIds);
+            },
+          },
+          {
+            label: "Export Selected",
+            value: "export",
+            handler: (selectedIds) => {
+              console.log("Export selected:", selectedIds);
+            },
+          },
+        ] : []}
         emptyState={
           error ? (
             <div className="flex flex-col items-center gap-2">
