@@ -1,5 +1,7 @@
 import { MAP_CONFIG } from '../constants/mapConstants';
 
+/* eslint-disable no-console */
+
 /**
  * Parses URL parameters for map viewport
  */

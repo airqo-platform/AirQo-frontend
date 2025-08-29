@@ -6,6 +6,7 @@
 import axios from 'axios';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import logger from '@/lib/logger';
+import { withRateLimit } from '@/core/utils/rateLimitManager';
 import {
   ORGANIZATION_THEME_URL,
   ORGANIZATION_THEME_PREFERENCES_URL,
@@ -17,39 +18,72 @@ import {
 /**
  * Get organization theme and branding data by slug
  * @param {string} orgSlug - Organization slug from URL
+ * @param {Object} options - Request options
+ * @param {AbortSignal} options.signal - AbortSignal for request cancellation
  * @returns {Promise} Organization data including theme settings
  */
-export const getOrganizationBySlugApi = async (orgSlug) => {
-  try {
-    const response = await axios.get(ORGANIZATION_THEME_URL(orgSlug));
 
-    if (response.data.success) {
-      return {
-        success: true,
-        data: {
-          _id: response.data.data._id || null,
-          slug: response.data.data.slug,
-          name: response.data.data.name,
-          logo: response.data.data.logo,
-          primaryColor: response.data.data.theme?.primaryColor || '#135DFF',
-          secondaryColor: response.data.data.theme?.secondaryColor || '#1B2559',
-          font: response.data.data.theme?.font || 'Inter',
-          status: 'ACTIVE',
-          // Set default settings for auth pages
-          settings: {
-            allowSelfRegistration: true,
-            requireApproval: false,
-            defaultRole: 'user',
+// Request cache to prevent duplicate requests
+const requestCache = new Map();
+const CACHE_TTL = 30000; // 30 seconds cache
+
+// Internal function without rate limiting (for wrapping)
+const _getOrganizationBySlugApiInternal = async (orgSlug, options = {}) => {
+  // Validate orgSlug
+  if (!orgSlug || typeof orgSlug !== 'string') {
+    return Promise.reject(new Error('Valid organization slug is required'));
+  }
+
+  // Check cache first
+  const cacheKey = `org-${orgSlug}`;
+  const cached = requestCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    logger.info(`Using cached organization data for ${orgSlug}`);
+    return cached.data;
+  }
+
+  try {
+    const response = await axios.get(ORGANIZATION_THEME_URL(orgSlug), {
+      signal: options.signal,
+    });
+
+    const payload = response?.data?.data || {};
+    const ok = Boolean(response?.data?.success);
+    const result = ok
+      ? {
+          success: true,
+          data: {
+            _id: payload._id ?? null,
+            slug: payload.slug ?? null,
+            name: payload.name ?? null,
+            logo: payload.logo ?? null,
+            primaryColor: payload.theme?.primaryColor ?? '#135DFF',
+            secondaryColor: payload.theme?.secondaryColor ?? '#1B2559',
+            font: payload.theme?.font ?? 'Inter',
+            status: payload.status ?? 'ACTIVE',
+            // Set default settings for auth pages
+            settings: {
+              allowSelfRegistration: true,
+              requireApproval: false,
+              defaultRole: 'user',
+            },
           },
-        },
-      };
+        }
+      : {
+          success: false,
+          message: response?.data?.message || 'Failed to fetch organization',
+          data: null,
+        };
+
+    // Cache successful results only
+    if (result.success) {
+      requestCache.set(cacheKey, {
+        data: result,
+        timestamp: Date.now(),
+      });
     }
 
-    return {
-      success: false,
-      message: response.data.message || 'Failed to fetch organization',
-      data: null,
-    };
+    return result;
   } catch (error) {
     logger.error('Error fetching organization:', error);
 
@@ -69,6 +103,12 @@ export const getOrganizationBySlugApi = async (orgSlug) => {
     };
   }
 };
+
+// Export rate-limited version
+export const getOrganizationBySlugApi = withRateLimit(
+  _getOrganizationBySlugApiInternal,
+  (orgSlug) => `org-by-slug:${orgSlug}`,
+);
 
 /**
  * Register user to organization
@@ -390,12 +430,8 @@ export const resetPasswordApi = async (data) => {
   }
 };
 
-/**
- * Get organization theme preferences
- * @param {string} groupId - Organization group ID
- * @returns {Promise} Organization theme preferences
- */
-export const getOrganizationThemePreferencesApi = (groupId) => {
+// Internal function for organization theme preferences
+const _getOrganizationThemePreferencesApiInternal = (groupId) => {
   // Validate group ID
   if (!groupId || typeof groupId !== 'string') {
     return Promise.reject(new Error('Valid group ID is required'));
@@ -415,6 +451,16 @@ export const getOrganizationThemePreferencesApi = (groupId) => {
       throw new Error(errorMessage);
     });
 };
+
+/**
+ * Get organization theme preferences (rate-limited)
+ * @param {string} groupId - Organization group ID
+ * @returns {Promise} Organization theme preferences
+ */
+export const getOrganizationThemePreferencesApi = withRateLimit(
+  _getOrganizationThemePreferencesApiInternal,
+  (groupId) => `org-theme-preferences:${groupId}`,
+);
 
 /**
  * Update organization theme preferences

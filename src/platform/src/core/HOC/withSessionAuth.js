@@ -14,7 +14,7 @@ import { checkAccess } from './authUtils';
 import { setupUserSession, clearUserSession } from '@/core/utils/loginSetup';
 import { getLoginRedirectPath } from '@/app/api/auth/[...nextauth]/options';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
-import LogoutOverlay from '@/common/components/LogoutOverlay';
+// import LogoutOverlay from '@/common/components/LogoutOverlay'; // Removed - no logout overlay needed
 import { getLogoutProgress } from './LogoutUser';
 import logger from '@/lib/logger';
 
@@ -259,10 +259,11 @@ export const withSessionAuth = (
       }, []);
 
       // --- Render Logic ---
+      // Skip logout overlay - user requested no dialog during logout
       // Show logout overlay if logout is in progress
-      if (getLogoutProgress()) {
-        return <LogoutOverlay isVisible={true} message="Logging out..." />;
-      }
+      // if (getLogoutProgress()) {
+      //   return <LogoutOverlay isVisible={true} message="Logging out..." />;
+      // }
 
       // Show setup loading screen
       if (isSettingUp) {
@@ -361,15 +362,151 @@ export const withPermission = (Component, requiredPermissions, options = {}) =>
     permissions: requiredPermissions,
   })(Component);
 
-// Note: The withAdminAccess HOC seems to reference 'activeGroup' which isn't available in this hook.
-// It might need to be handled differently or receive activeGroup as a prop.
-// For now, I'll leave it as is, assuming it's managed elsewhere or via context.
-export const withAdminAccess = (Component, options = {}) => {
-  return withSessionAuth(PROTECTION_LEVELS.PROTECTED, {
-    ...options,
-    // customValidation logic would need access to activeGroup, potentially via context
-    // This part might need adjustment based on how activeGroup is provided.
-  })(Component);
+// Note: The withAdminAccess HOC validates admin permissions without triggering session setup redirects
+export const withAdminAccess = (Component) => {
+  return function AdminAccessComponent(props) {
+    const { data: session, status } = useSession();
+    const router = useRouter();
+    const [isValidating, setIsValidating] = useState(true);
+    const [hasAccess, setHasAccess] = useState(false);
+
+    useEffect(() => {
+      const validateAdminAccess = async () => {
+        if (status === 'loading') return;
+
+        if (status === 'unauthenticated' || !session?.user) {
+          router.replace('/user/login');
+          return;
+        }
+
+        try {
+          let hasAdminAccess = false;
+
+          // Debug log the session data
+          logger.info('Admin access check for user:', {
+            userId: session.user.id,
+            email: session.user.email,
+            role: session.user.role?.role_name,
+            permissions: session.user.role?.role_permissions?.map(
+              (p) => p.permission,
+            ),
+          });
+
+          // Method 1: Check role name directly (most reliable)
+          if (session.user.role) {
+            const roleName = session.user.role.role_name?.toLowerCase();
+            if (
+              roleName &&
+              (roleName === 'super_admin' ||
+                roleName === 'admin' ||
+                roleName === 'superadmin' ||
+                roleName.includes('admin'))
+            ) {
+              hasAdminAccess = true;
+              logger.info('Admin access granted via role name:', roleName);
+            }
+          }
+
+          // Method 2: Check if user has AirQo email (simple fallback for now)
+          if (!hasAdminAccess && session.user.email?.endsWith('@airqo.net')) {
+            hasAdminAccess = true;
+            logger.info('Admin access granted via AirQo email domain');
+          }
+
+          // Method 3: Check permissions without triggering session setup
+          if (!hasAdminAccess) {
+            try {
+              // Try permission check without the complex session setup
+              if (session.user.role?.role_permissions) {
+                const permissions = session.user.role.role_permissions.map(
+                  (p) => p.permission,
+                );
+                const adminPermissions = [
+                  'CREATE_UPDATE_AND_DELETE_NETWORK_USERS',
+                  'CREATE_UPDATE_AND_DELETE_AIRQO_USERS',
+                  'MANAGE_ADMIN_USERS',
+                  'ADMIN_ACCESS',
+                  'SUPER_ADMIN',
+                ];
+
+                hasAdminAccess = adminPermissions.some((perm) =>
+                  permissions.includes(perm),
+                );
+                if (hasAdminAccess) {
+                  logger.info(
+                    'Admin access granted via direct permission check',
+                  );
+                }
+              }
+            } catch (permError) {
+              logger.warn('Direct permission check failed:', permError);
+            }
+          }
+
+          if (!hasAdminAccess) {
+            logger.warn(
+              'User denied admin access - redirecting to dashboard:',
+              {
+                userId: session.user.id,
+                email: session.user.email,
+                role: session.user.role?.role_name,
+              },
+            );
+
+            // Small delay to prevent immediate redirect conflicts
+            setTimeout(() => {
+              router.replace('/user/Home');
+            }, 100);
+            return;
+          }
+
+          logger.info('Admin access validated successfully');
+          setHasAccess(true);
+        } catch (error) {
+          logger.error('Admin access validation failed:', error);
+          // Don't redirect on error, show access denied
+          setHasAccess(false);
+        } finally {
+          setIsValidating(false);
+        }
+      };
+
+      validateAdminAccess();
+    }, [session, status, router]);
+
+    if (isValidating || status === 'loading') {
+      return <AuthLoader message="Validating admin access..." />;
+    }
+
+    if (!hasAccess) {
+      return (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
+            <p className="text-gray-600 mb-4">
+              You don&apos;t have permission to access the admin panel.
+            </p>
+            <div className="space-y-2">
+              <button
+                onClick={() => router.replace('/user/Home')}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 mr-2"
+              >
+                Go to Dashboard
+              </button>
+              <button
+                onClick={() => window.location.reload()}
+                className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return <Component {...props} />;
+  };
 };
 
 export const withSessionAwarePermissions = (Component, options = {}) => {

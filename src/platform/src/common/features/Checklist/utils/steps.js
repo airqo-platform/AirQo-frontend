@@ -54,6 +54,7 @@ export const createSteps = (handleStepClick) => [
 export const mergeStepsWithChecklist = (steps, checklistItems) => {
   // Safety check for invalid inputs
   if (!Array.isArray(steps)) {
+    /* eslint-disable no-console */
     console.error('Invalid steps provided to mergeStepsWithChecklist');
     return [];
   }

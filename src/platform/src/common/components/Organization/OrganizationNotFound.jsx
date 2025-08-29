@@ -51,6 +51,10 @@ export default function OrganizationNotFound({ orgSlug }) {
                     <li>Check the URL for typos</li>
                     <li>Contact your organization admin for the correct URL</li>
                     <li>Use the main AirQo login page instead</li>
+                    <li>
+                      If you&apos;re seeing this due to too many requests,
+                      please check back in 15 minutes
+                    </li>
                   </ul>
                 </div>
               </div>
