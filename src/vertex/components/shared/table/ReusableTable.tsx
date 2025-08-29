@@ -531,6 +531,9 @@ const ReusableTable = <T extends TableItem>({
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
 
+  // Ref for header checkbox to control indeterminate state
+  const headerCheckboxRef = useRef<HTMLInputElement>(null);
+
   // Initialize filter values
   useEffect(() => {
     const initialFilters: Record<string, FilterValue> = {};
@@ -830,6 +833,12 @@ const ReusableTable = <T extends TableItem>({
     [paginatedData, selectedItems, isAllSelectedOnPage]
   );
 
+  useEffect(() => {
+    if (headerCheckboxRef.current) {
+      headerCheckboxRef.current.indeterminate = isIndeterminate;
+    }
+  }, [isIndeterminate]);
+
   const isAnySelected = selectedItems.length > 0;
 
   const handleActionChange = useCallback((action: string) => {
@@ -859,26 +868,15 @@ const ReusableTable = <T extends TableItem>({
         key: "checkbox",
         label: (
           <div className="flex items-center">
-            {isIndeterminate ? (
-              <button
-                type="button"
-                className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded cursor-pointer flex items-center justify-center"
-                onClick={() => handleSelectAll(!isAllSelectedOnPage)}
-                aria-label="Toggle selection"
-              >
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 10h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
-            ) : (
-              <input
-                type="checkbox"
-                className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
-                checked={isAllSelectedOnPage}
-                onChange={(e) => handleSelectAll(e.target.checked)}
-                aria-label="Select all"
-              />
-            )}
+            <input
+              ref={headerCheckboxRef}
+              type="checkbox"
+              className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
+              checked={isAllSelectedOnPage}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              aria-label="Select all visible rows"
+            />
           </div>
         ),
         render: (_value: T[keyof T], item: T) => (
@@ -886,6 +884,7 @@ const ReusableTable = <T extends TableItem>({
             type="checkbox"
             className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
             checked={selectedItems.includes(item.id)}
+            onClick={(e) => e.stopPropagation()}
             onChange={(e) => handleSelectItem(item.id, e.target.checked)}
           />
         ),

@@ -231,7 +231,7 @@ The component includes comprehensive tests covering:
 
 Run tests with:
 ```bash
-npm test ReusableTable.test.tsx
+npm test -- shared/table
 ```
 
 ## Migration Guide

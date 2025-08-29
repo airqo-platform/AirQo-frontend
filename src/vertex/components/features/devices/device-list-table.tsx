@@ -27,6 +27,7 @@ export default function DevicesTable({
   devices,
   isLoading = false,
   error = null,
+  itemsPerPage = 10,
   onDeviceClick,
   multiSelect = false,
   onSelectedDevicesChange,
@@ -160,6 +161,7 @@ export default function DevicesTable({
         data={devicesWithId}
         columns={columns}
         loading={isLoading}
+        pageSize={itemsPerPage}
         onRowClick={handleDeviceClick}
         multiSelect={multiSelect}
         onSelectedItemsChange={handleSelectedItemsChange}
