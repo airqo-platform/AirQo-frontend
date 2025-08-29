@@ -711,9 +711,137 @@ const DataDownload = ({
           break;
 
         case FILTER_TYPES.DEVICES:
-          // For devices, we can visualize device-specific data
-          visualizationData = selectedItems;
-          modalTitle = `Air Quality Insights - ${selectedItems.length} Device${selectedItems.length > 1 ? 's' : ''}`;
+          // For devices, extract site IDs and visualize site data instead of device data
+          // Each device has a 'site' object with _id property
+          if (selectedItems.length > 0) {
+            // Extract unique site IDs from selected devices
+            const deviceSiteIds = selectedItems
+              .map((device) => device.site?._id)
+              .filter(Boolean); // Remove any null/undefined site IDs
+
+            // Remove duplicates in case multiple devices are on the same site
+            const uniqueSiteIds = [...new Set(deviceSiteIds)];
+
+            if (uniqueSiteIds.length === 0) {
+              setFormError(
+                'No site information available for the selected devices. Cannot visualize data without site details.',
+              );
+              return;
+            }
+
+            // Map site IDs to actual site objects from available sites data
+            const availableSites = sitesData || [];
+            const siteMap = new Map(
+              availableSites.map((site) => [site._id, site]),
+            );
+
+            // Get site objects for the unique site IDs
+            let deviceSites = uniqueSiteIds
+              .map((siteId) => siteMap.get(siteId))
+              .filter(Boolean); // Remove any undefined entries
+
+            // If we can't find site details from the main sites data,
+            // try to use the site data embedded in the devices themselves
+            if (deviceSites.length === 0) {
+              deviceSites = selectedItems
+                .map((device) => device.site)
+                .filter(Boolean)
+                .filter(
+                  (site, index, self) =>
+                    // Remove duplicates based on _id
+                    index === self.findIndex((s) => s._id === site._id),
+                );
+            }
+
+            if (deviceSites.length === 0) {
+              setFormError(
+                'Unable to retrieve site details for the selected devices. Please try again or contact support.',
+              );
+              return;
+            }
+
+            // Enhance site objects with device information for better display
+            visualizationData = deviceSites.map((site) => {
+              // Find all devices that belong to this site
+              const devicesAtSite = selectedItems.filter(
+                (device) => device.site?._id === site._id,
+              );
+
+              // Create enhanced site object with device info
+              return {
+                ...site,
+                // Override the site name with device name(s) for display purposes
+                displayName:
+                  devicesAtSite.length === 1
+                    ? devicesAtSite[0].name ||
+                      devicesAtSite[0].long_name ||
+                      site.name ||
+                      site.location_name
+                    : `${devicesAtSite.length} Devices at ${site.name || site.location_name}`,
+                // Keep original name for reference
+                originalSiteName: site.name || site.location_name,
+                // Add device information
+                associatedDevices: devicesAtSite,
+                deviceCount: devicesAtSite.length,
+                // Override name property that gets displayed in cards
+                name:
+                  devicesAtSite.length === 1
+                    ? devicesAtSite[0].name || devicesAtSite[0].long_name
+                    : `${devicesAtSite.length} Devices`,
+                // Keep location_name for geographic context
+                location_name: site.location_name || site.name,
+              };
+            });
+
+            // Create appropriate modal title
+            if (selectedItems.length === 1) {
+              const deviceName =
+                selectedItems[0].name ||
+                selectedItems[0].long_name ||
+                'Selected Device';
+              const siteName =
+                deviceSites[0]?.name ||
+                deviceSites[0]?.location_name ||
+                'Associated Site';
+              modalTitle = `Air Quality Insights - ${deviceName} at ${siteName}`;
+            } else if (uniqueSiteIds.length === 1) {
+              const siteName =
+                deviceSites[0]?.name || deviceSites[0]?.location_name || 'Site';
+              modalTitle = `Air Quality Insights - ${selectedItems.length} Devices at ${siteName}`;
+            } else {
+              modalTitle = `Air Quality Insights - ${selectedItems.length} Devices across ${uniqueSiteIds.length} Sites`;
+            }
+
+            // Debug logging for development
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.log('Selected devices:', selectedItems.length);
+              // eslint-disable-next-line no-console
+              console.log('Device site IDs extracted:', deviceSiteIds);
+              // eslint-disable-next-line no-console
+              console.log('Unique sites from devices:', uniqueSiteIds.length);
+              // eslint-disable-next-line no-console
+              console.log(
+                'Sites available for visualization:',
+                visualizationData.length,
+              );
+              // eslint-disable-next-line no-console
+              console.log(
+                'Enhanced visualization data:',
+                visualizationData.map((site) => ({
+                  id: site._id,
+                  displayName: site.displayName,
+                  deviceCount: site.deviceCount,
+                  devices:
+                    site.associatedDevices?.map((d) => d.name || d.long_name) ||
+                    [],
+                })),
+              );
+            }
+          } else {
+            setFormError('No devices selected for visualization');
+            return;
+          }
           break;
 
         default:
