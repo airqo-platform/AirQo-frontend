@@ -1,28 +1,31 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+/* eslint-disable no-console */
 import { MAX_FAVORITES } from '../constants';
 
+/**
+ * Custom hook for managing favorite location selection logic
+ * @param {Array} filteredSites – all site objects available for selection
+ * @param {string[]} initialSelectedIds – `_id` values to pre-select
+ */
 export const useFavoritesSelection = (
-  filteredSites = [],
+  filteredSites,
   initialSelectedIds = [],
 ) => {
   const [selectedSites, setSelectedSites] = useState([]);
   const [sidebarSites, setSidebarSites] = useState([]);
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
-  const clearTimerRef = useRef(null);
 
-  // Initialize selected sites when data is loaded
+  // Initialise from preferences
   useEffect(() => {
-    if (
-      Array.isArray(filteredSites) &&
-      filteredSites.length > 0 &&
-      initialSelectedIds.length > 0
-    ) {
-      const initialSelected = filteredSites.filter((site) =>
+    if (filteredSites.length && initialSelectedIds.length) {
+      const matching = filteredSites.filter((site) =>
         initialSelectedIds.includes(site._id),
       );
-      setSelectedSites(initialSelected);
-      setSidebarSites(initialSelected);
+      if (matching.length) {
+        setSelectedSites(matching);
+        setSidebarSites(matching);
+      }
     }
   }, [filteredSites, initialSelectedIds]);
 
@@ -30,21 +33,14 @@ export const useFavoritesSelection = (
     setSelectedSites([]);
     setSidebarSites([]);
     setClearSelected(true);
-    // reset trigger after render — use a ref so we can clear on unmount
-    if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
-    clearTimerRef.current = setTimeout(() => setClearSelected(false), 100);
+    // reset trigger after render
+    setTimeout(() => setClearSelected(false), 100);
     setError('');
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (clearTimerRef.current) clearTimeout(clearTimerRef.current);
-    };
   }, []);
 
   const handleToggleSite = useCallback((site) => {
     if (!site?._id) {
-      setError('Invalid location data. Please try again.');
+      console.error('Invalid site object passed to handleToggleSite', site);
       return;
     }
 
@@ -61,9 +57,7 @@ export const useFavoritesSelection = (
 
       /* ---------- ADD ---------- */
       if (prev.length >= MAX_FAVORITES) {
-        setError(
-          `You can only add up to ${MAX_FAVORITES} locations to your favorites.`,
-        );
+        setError(`You can select up to ${MAX_FAVORITES} locations only.`);
         return prev; // unchanged
       }
 

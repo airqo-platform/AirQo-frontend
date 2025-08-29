@@ -51,21 +51,6 @@ export const AddFavorites = ({ onClose }) => {
     handleToggleSite,
   } = useFavoritesSelection(filteredSites, selectedSiteIds);
 
-  // Guard against bulk selections exceeding MAX_FAVORITES
-  const guardedSetSelectedSites = useCallback(
-    (next) => {
-      const nextArr = typeof next === 'function' ? next(selectedSites) : next;
-      if (Array.isArray(nextArr) && nextArr.length > MAX_FAVORITES) {
-        setError(
-          `You can only add up to ${MAX_FAVORITES} locations to your favorites.`,
-        );
-        return setSelectedSites(nextArr.slice(0, MAX_FAVORITES));
-      }
-      setSelectedSites(nextArr || []);
-    },
-    [selectedSites, setSelectedSites, setError],
-  );
-
   const footerInfo = useFooterInfo({
     selectionError,
     statusMessage,
@@ -102,18 +87,20 @@ export const AddFavorites = ({ onClose }) => {
     setStatusMessage('Saving your favorite locations...');
     setMessageType(MESSAGE_TYPES.INFO);
 
-    const ids = selectedSites.map((s) => s?._id).filter(Boolean);
     const payload = {
       user_id: userID,
       group_id: activeGroupId,
-      selected_sites: ids, // IDs only
+      selected_sites: selectedSites.map(({ ...rest }) => rest),
     };
 
     Promise.resolve(dispatch(replaceUserPreferences(payload)))
       .then(() => {
         onClose();
         if (userID) {
-          if (ids.length) dispatch(setChartSites(ids));
+          if (selectedSites.length) {
+            const ids = selectedSites.map((s) => s._id).filter(Boolean);
+            dispatch(setChartSites(ids));
+          }
           dispatch(
             getIndividualUserPreferences({
               identifier: userID,
@@ -201,7 +188,7 @@ export const AddFavorites = ({ onClose }) => {
             <MainContent
               filteredSites={filteredSites}
               selectedSites={selectedSites}
-              setSelectedSites={guardedSetSelectedSites}
+              setSelectedSites={setSelectedSites}
               clearSelected={clearSelected}
               loading={isLoading}
               isError={isError}
