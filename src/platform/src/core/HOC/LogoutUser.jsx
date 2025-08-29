@@ -17,20 +17,21 @@ export const setLogoutContext = (setIsLoggingOut, setLogoutMessage) => {
   globalLogoutState.setLogoutMessage = setLogoutMessage;
 };
 
-const triggerLogoutOverlay = (message = 'Logging out...') => {
-  if (globalLogoutState.setIsLoggingOut) {
-    globalLogoutState.setIsLoggingOut(true);
-  }
-  if (globalLogoutState.setLogoutMessage) {
-    globalLogoutState.setLogoutMessage(message);
-  }
-};
+// Legacy functions kept for backward compatibility but not used
+// const triggerLogoutOverlay = (message = 'Logging out...') => {
+//   if (globalLogoutState.setIsLoggingOut) {
+//     globalLogoutState.setIsLoggingOut(true);
+//   }
+//   if (globalLogoutState.setLogoutMessage) {
+//     globalLogoutState.setLogoutMessage(message);
+//   }
+// };
 
-const hideLogoutOverlay = () => {
-  if (globalLogoutState.setIsLoggingOut) {
-    globalLogoutState.setIsLoggingOut(false);
-  }
-};
+// const hideLogoutOverlay = () => {
+//   if (globalLogoutState.setIsLoggingOut) {
+//     globalLogoutState.setIsLoggingOut(false);
+//   }
+// };
 
 const clearTokenCache = () => {
   try {
@@ -205,7 +206,8 @@ const LogoutUser = async (dispatch) => {
   }
 
   try {
-    triggerLogoutOverlay('Logging you out...');
+    // Remove logout overlay - user requested no dialog during logout
+    // triggerLogoutOverlay('Logging you out...');
 
     clearTokenCache();
     clearSessionCache();
@@ -277,7 +279,8 @@ const LogoutUser = async (dispatch) => {
       window.location.href = redirectUrl;
     }
   } finally {
-    hideLogoutOverlay();
+    // Remove logout overlay hiding - no overlay to hide
+    // hideLogoutOverlay();
     setTimeout(() => {
       isGlobalLogoutInProgress = false;
       logger.debug('Global logout state reset');

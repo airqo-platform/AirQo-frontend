@@ -55,7 +55,6 @@ export const getRouteType = (pathname) => {
     pathname.includes('(individual)') ||
     pathname.startsWith('/Home') ||
     pathname.startsWith('/analytics') ||
-    pathname.startsWith('/collocation') ||
     pathname.startsWith('/settings')
   ) {
     return ROUTE_TYPES.USER;
@@ -469,7 +468,7 @@ export const SESSION_TYPES = {
   ORGANIZATION: 'organization',
 };
 
-export default {
+const sessionUtils = {
   SESSION_TYPES,
   ROUTE_TYPES,
   getRouteType,
@@ -488,3 +487,5 @@ export default {
   createSessionRedirect,
   logSessionValidation,
 };
+
+export default sessionUtils;

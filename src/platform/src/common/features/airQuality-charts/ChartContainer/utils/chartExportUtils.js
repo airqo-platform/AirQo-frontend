@@ -2,6 +2,7 @@
  * Modern Chart Export Utility
  * Clean, professional exports with proper spacing and typography
  */
+/* eslint-disable no-console */
 export class ChartExportUtils {
   static EXPORT_FORMATS = ['pdf', 'png'];
   static FORMATS = ['pdf', 'png']; // Legacy compatibility

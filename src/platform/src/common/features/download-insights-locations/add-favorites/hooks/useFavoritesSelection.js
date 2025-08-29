@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 /* eslint-disable no-console */
-import { MAX_LOCATIONS } from '../constants';
+import { MAX_FAVORITES } from '../constants';
 
 /**
- * Custom hook for managing location selection logic
+ * Custom hook for managing favorite location selection logic
  * @param {Array} filteredSites – all site objects available for selection
  * @param {string[]} initialSelectedIds – `_id` values to pre-select
  */
-export const useLocationSelection = (
+export const useFavoritesSelection = (
   filteredSites,
   initialSelectedIds = [],
 ) => {
@@ -56,8 +56,8 @@ export const useLocationSelection = (
       }
 
       /* ---------- ADD ---------- */
-      if (prev.length >= MAX_LOCATIONS) {
-        setError(`You can select up to ${MAX_LOCATIONS} locations only.`);
+      if (prev.length >= MAX_FAVORITES) {
+        setError(`You can select up to ${MAX_FAVORITES} locations only.`);
         return prev; // unchanged
       }
 

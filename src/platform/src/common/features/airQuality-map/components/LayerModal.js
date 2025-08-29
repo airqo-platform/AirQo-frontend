@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable no-console */
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';

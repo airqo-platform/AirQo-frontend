@@ -38,13 +38,15 @@ export default function OrgRequestsPage() {
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [feedbackText, setFeedbackText] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('pending'); // Set pending as default
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedRows, setExpandedRows] = useState({});
   const itemsPerPage = 10;
 
+  // Fetch requests on component mount
   useEffect(() => {
     let isMounted = true;
+
     dispatch(fetchOrgRequests())
       .unwrap()
       .then((fetchedRequests) => {
@@ -64,9 +66,41 @@ export default function OrgRequestsPage() {
     };
   }, [dispatch]);
 
+  // Memoized callbacks to prevent unnecessary re-renders
+  const formatDate = useCallback((dateString) => {
+    if (!dateString) return 'N/A';
+    try {
+      return moment(dateString).format('MMM DD, YYYY [at] HH:mm');
+    } catch (error) {
+      logger.error('Error formatting date:', error);
+      return 'Invalid Date';
+    }
+  }, []);
+
+  const toggleExpand = useCallback((id) => {
+    setExpandedRows((prev) => ({ ...prev, [id]: !prev[id] }));
+  }, []);
+
+  const openViewDialog = useCallback((request) => {
+    setSelectedRequest(request);
+    setIsViewDialogOpen(true);
+  }, []);
+
+  const openApproveDialog = useCallback((request) => {
+    setSelectedRequest(request);
+    setIsApproveDialogOpen(true);
+  }, []);
+
+  const openRejectDialog = useCallback((request) => {
+    setSelectedRequest(request);
+    setIsRejectDialogOpen(true);
+  }, []);
+
+  // Filtered and sorted requests with performance optimization
   const filteredAndSortedRequests = useMemo(() => {
     let result = Array.isArray(requests) ? [...requests] : [];
 
+    // Apply search filter
     if (searchQuery) {
       const lowerSearch = searchQuery.toLowerCase();
       result = result.filter(
@@ -77,10 +111,14 @@ export default function OrgRequestsPage() {
       );
     }
 
+    // Apply tab filter
     if (activeTab !== 'all') {
-      result = result.filter((req) => (req.status || '') === activeTab);
+      result = result.filter(
+        (req) => (req.status || '').toString().toLowerCase() === activeTab,
+      );
     }
 
+    // Apply sorting
     if (sortField) {
       result.sort((a, b) => {
         let aValue, bValue;
@@ -92,12 +130,8 @@ export default function OrgRequestsPage() {
           bValue = (b[sortField] || '').toString().toLowerCase();
         }
 
-        if (aValue < bValue) {
-          return sortDirection === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortDirection === 'asc' ? 1 : -1;
-        }
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
         return 0;
       });
     }
@@ -105,18 +139,28 @@ export default function OrgRequestsPage() {
     return result;
   }, [requests, searchQuery, activeTab, sortField, sortDirection]);
 
+  // Paginated requests
   const paginatedRequests = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredAndSortedRequests.slice(start, start + itemsPerPage);
   }, [filteredAndSortedRequests, currentPage, itemsPerPage]);
 
   const totalPages = useMemo(() => {
-    return Math.ceil(filteredAndSortedRequests.length / itemsPerPage);
+    return Math.max(
+      1,
+      Math.ceil(filteredAndSortedRequests.length / itemsPerPage),
+    );
   }, [filteredAndSortedRequests.length, itemsPerPage]);
 
+  // Reset to first page when filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, activeTab, sortField, sortDirection]);
+
+  // Clamp current page when totalPages changes
+  useEffect(() => {
+    setCurrentPage((p) => Math.min(p, totalPages));
+  }, [totalPages]);
 
   const handleSearchChange = useCallback((value) => {
     setSearchQuery(value || '');
@@ -196,60 +240,75 @@ export default function OrgRequestsPage() {
     }
   };
 
-  const formatDate = useCallback((dateString) => {
-    if (!dateString) return 'N/A';
-    return moment(dateString).format('MMM DD, YYYY HH:mm');
-  }, []);
-
-  const toggleExpand = useCallback((id) => {
-    setExpandedRows((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
-  }, []);
-
+  // Table columns configuration - memoized to prevent re-creation
   const tableColumns = useMemo(
     () => [
       {
         key: 'organization_name',
-        label: 'Organization',
+        header: 'Organization',
         sortable: true,
-      },
-      {
-        key: 'contact_info',
-        label: 'Contact',
-        render: (_, item) => (
-          <div className="flex flex-col">
-            <span className="font-normal text-sm leading-5 capitalize">
-              {item.contact_name || 'N/A'}
-            </span>
-            <span className="font-normal text-xs leading-5">
-              {item.contact_email || 'N/A'}
-            </span>
+        render: (value, item) => (
+          <div className="space-y-1">
+            <div className="font-medium text-sm">{value || 'N/A'}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {item.organization_type || 'N/A'}
+            </div>
           </div>
         ),
       },
       {
+        key: 'contact_name',
+        header: 'Contact Person',
+        sortable: true,
+        render: (value, item) => (
+          <div className="space-y-1">
+            <div className="font-medium text-sm">{value || 'N/A'}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">
+              {item.contact_email || 'N/A'}
+            </div>
+          </div>
+        ),
+      },
+      {
+        key: 'country',
+        header: 'Country',
+        sortable: true,
+        render: (value) => value || 'N/A',
+      },
+      {
+        key: 'createdAt',
+        header: 'Submitted',
+        sortable: true,
+        render: (value) => <div className="text-xs">{formatDate(value)}</div>,
+      },
+      {
+        key: 'status',
+        header: 'Status',
+        sortable: true,
+        render: (value) => <StatusBadge status={value} />,
+      },
+      {
         key: 'use_case',
-        label: 'Use Case',
-        render: (_, item) => {
+        header: 'Use Case',
+        render: (value, item) => {
+          const maxLength = 50;
           const isExpanded = expandedRows[item._id];
-          const useCase = item.use_case || '';
-          const shouldTruncate = useCase.length > 120;
+          const shouldTruncate = value && value.length > maxLength;
 
           return (
-            <div className="w-[200px] whitespace-pre-wrap break-words">
-              <div className={isExpanded ? '' : 'line-clamp-3'}>
-                {useCase || 'N/A'}
-              </div>
+            <div className="max-w-xs">
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                {shouldTruncate && !isExpanded
+                  ? `${value.substring(0, maxLength)}...`
+                  : value || 'N/A'}
+              </p>
               {shouldTruncate && (
                 <button
-                  className="text-blue-500 text-xs mt-1 focus:outline-none"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleExpand(item._id);
                   }}
-                  type="button"
+                  className="text-xs text-primary hover:underline mt-1"
                 >
                   {isExpanded ? 'Show less' : 'Show more'}
                 </button>
@@ -259,39 +318,17 @@ export default function OrgRequestsPage() {
         },
       },
       {
-        key: 'country',
-        label: 'Country',
-        sortable: true,
-      },
-      {
-        key: 'organization_type',
-        label: 'Type',
-        sortable: true,
-      },
-      {
-        key: 'createdAt',
-        label: 'Submitted',
-        sortable: true,
-        render: (value) => formatDate(value),
-      },
-      {
-        key: 'status',
-        label: 'Status',
-        sortable: true,
-        render: (value) => <StatusBadge status={value} />,
-      },
-      {
         key: 'actions',
-        label: 'Actions',
+        header: 'Actions',
         render: (_, item) => (
-          <div className="flex justify-end space-x-2">
+          <div className="flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 openViewDialog(item);
               }}
-              className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              aria-label="View"
+              className="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+              aria-label="View Details"
             >
               <AqEye className="w-4 h-4" />
             </button>
@@ -323,28 +360,21 @@ export default function OrgRequestsPage() {
         ),
       },
     ],
-    [formatDate, expandedRows, toggleExpand],
+    [
+      formatDate,
+      expandedRows,
+      toggleExpand,
+      openViewDialog,
+      openApproveDialog,
+      openRejectDialog,
+    ],
   );
 
-  const openViewDialog = useCallback((request) => {
-    setSelectedRequest(request);
-    setIsViewDialogOpen(true);
-  }, []);
-
-  const openApproveDialog = useCallback((request) => {
-    setSelectedRequest(request);
-    setIsApproveDialogOpen(true);
-  }, []);
-
-  const openRejectDialog = useCallback((request) => {
-    setSelectedRequest(request);
-    setIsRejectDialogOpen(true);
-  }, []);
-
+  // Tab configuration - memoized to prevent re-creation
   const tabs = useMemo(
     () => [
-      { id: 'all', name: 'All Requests' },
       { id: 'pending', name: 'Pending' },
+      { id: 'all', name: 'All Requests' },
       { id: 'approved', name: 'Approved' },
       { id: 'rejected', name: 'Rejected' },
     ],
@@ -380,6 +410,7 @@ export default function OrgRequestsPage() {
         onRowClick={openViewDialog}
       />
 
+      {/* View Dialog */}
       <ReusableDialog
         isOpen={isViewDialogOpen}
         onClose={() => setIsViewDialogOpen(false)}
@@ -463,6 +494,7 @@ export default function OrgRequestsPage() {
         )}
       </ReusableDialog>
 
+      {/* Approve Dialog */}
       <ReusableDialog
         isOpen={isApproveDialogOpen}
         onClose={() => setIsApproveDialogOpen(false)}
@@ -491,6 +523,7 @@ export default function OrgRequestsPage() {
         )}
       </ReusableDialog>
 
+      {/* Reject Dialog */}
       <ReusableDialog
         isOpen={isRejectDialogOpen}
         onClose={() => setIsRejectDialogOpen(false)}
@@ -543,6 +576,7 @@ export default function OrgRequestsPage() {
   );
 }
 
+// Status Badge Component
 function StatusBadge({ status }) {
   const statusConfig = {
     pending: {
@@ -577,6 +611,7 @@ function StatusBadge({ status }) {
   );
 }
 
+// Detail Item Component
 function DetailItem({ label, value }) {
   return (
     <div>

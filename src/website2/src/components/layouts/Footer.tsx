@@ -11,7 +11,6 @@ import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
 const Footer = () => {
-  const adminUrl = `${process.env.NEXT_PUBLIC_API_URL}/website`;
   return (
     <footer
       id="WebsiteFooter"
@@ -230,14 +229,6 @@ const Footer = () => {
           <Link href="/legal/payment-refund-policy" className="hover:underline">
             Payment Terms
           </Link>
-          <a
-            href={adminUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Admin Portal
-          </a>
         </div>
 
         {/* Makerere University Attribution */}

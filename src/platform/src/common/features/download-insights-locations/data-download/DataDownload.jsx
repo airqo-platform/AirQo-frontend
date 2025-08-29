@@ -6,7 +6,11 @@ import PropTypes from 'prop-types';
 import { AqGlobe05, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
-import { DATA_TYPE_OPTIONS, FREQUENCY_OPTIONS, FILTER_TYPES } from './constants';
+import {
+  DATA_TYPE_OPTIONS,
+  FREQUENCY_OPTIONS,
+  FILTER_TYPES,
+} from './constants';
 
 import {
   useSitesSummary,
@@ -150,15 +154,23 @@ const DataDownload = ({
 
   // Filter frequency options based on device category and filter type
   const filteredFrequencyOptions = useMemo(() => {
-    const deviceCategory = formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
-    
+    const deviceCategory =
+      formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
+
     // For mobile and bam devices in devices filter: only show Raw frequency
-    if (activeFilterKey === FILTER_TYPES.DEVICES && (deviceCategory === 'mobile' || deviceCategory === 'bam')) {
-      return FREQUENCY_OPTIONS.filter(option => option.name.toLowerCase() === 'raw');
+    if (
+      activeFilterKey === FILTER_TYPES.DEVICES &&
+      (deviceCategory === 'mobile' || deviceCategory === 'bam')
+    ) {
+      return FREQUENCY_OPTIONS.filter(
+        (option) => option.name.toLowerCase() === 'raw',
+      );
     }
-    
+
     // For other cases, exclude Raw frequency (it's only for mobile and bam devices)
-    return FREQUENCY_OPTIONS.filter(option => option.name.toLowerCase() !== 'raw');
+    return FREQUENCY_OPTIONS.filter(
+      (option) => option.name.toLowerCase() !== 'raw',
+    );
   }, [formData.deviceCategory, activeFilterKey]);
 
   // Active group info
@@ -329,7 +341,10 @@ const DataDownload = ({
   // Auto-switch to Raw frequency for mobile and bam devices in devices filter
   useEffect(() => {
     const deviceCategory = formData.deviceCategory?.name?.toLowerCase();
-    if (activeFilterKey === FILTER_TYPES.DEVICES && (deviceCategory === 'mobile' || deviceCategory === 'bam')) {
+    if (
+      activeFilterKey === FILTER_TYPES.DEVICES &&
+      (deviceCategory === 'mobile' || deviceCategory === 'bam')
+    ) {
       const rawFrequencyOption = FREQUENCY_OPTIONS.find(
         (option) => option.name.toLowerCase() === 'raw',
       );
@@ -349,7 +364,7 @@ const DataDownload = ({
       const defaultFrequencyOption = FREQUENCY_OPTIONS.find(
         (option) => option.name.toLowerCase() === 'daily',
       );
-      
+
       if (defaultFrequencyOption) {
         setFormData((prev) => ({
           ...prev,
@@ -358,7 +373,12 @@ const DataDownload = ({
         clearSelections();
       }
     }
-  }, [activeFilterKey, formData.deviceCategory?.name, formData.frequency?.name, clearSelections]);
+  }, [
+    activeFilterKey,
+    formData.deviceCategory?.name,
+    formData.frequency?.name,
+    clearSelections,
+  ]);
 
   // Handle form field updates
   const handleOptionSelect = useCallback(
@@ -491,12 +511,12 @@ const DataDownload = ({
         if (formData.deviceCategory) {
           const selectedCategory = formData.deviceCategory.name.toLowerCase();
           const deviceCategory = String(device.category || '').toLowerCase();
-          
+
           // Special handling for mobile devices
           if (selectedCategory === 'mobile') {
             // For mobile devices, check that category is 'lowcost' AND mobility is true
-            const isMobileDevice = 
-              deviceCategory === 'lowcost' && 
+            const isMobileDevice =
+              deviceCategory === 'lowcost' &&
               (device.mobility === true || device.mobility === 'true');
             matchesCategory = isMobileDevice;
           } else {
@@ -571,6 +591,143 @@ const DataDownload = ({
     },
     [handleToggleItem, activeFilterKey],
   );
+
+  // Enhanced handler for View Data button click supporting all filter types
+  const onViewDataClick = useCallback(async () => {
+    if (selectedItems.length === 0) return;
+
+    try {
+      let visualizationData = [];
+      let modalTitle = 'Air Quality Insights';
+
+      switch (activeFilterKey) {
+        case FILTER_TYPES.SITES:
+          // For sites, use selected items directly
+          visualizationData = selectedItems;
+          modalTitle = `Air Quality Insights - ${selectedItems.length} Site${selectedItems.length > 1 ? 's' : ''}`;
+          break;
+
+        case FILTER_TYPES.COUNTRIES:
+        case FILTER_TYPES.CITIES:
+          // Enhanced handling for countries and cities with better error management
+          if (siteAndDeviceIds?.site_ids?.length > 0) {
+            // Map site IDs to actual site objects from the available sites data
+            const availableSites = sitesData || [];
+
+            // Use a more efficient approach for large datasets
+            const siteMap = new Map(
+              availableSites.map((site) => [site._id, site]),
+            );
+
+            visualizationData = siteAndDeviceIds.site_ids
+              .map((siteId) => siteMap.get(siteId))
+              .filter(Boolean); // Remove any undefined entries
+
+            // Format location name properly (remove underscores/hyphens, capitalize)
+            let locationLabel = '';
+            if (selectedItems.length === 1) {
+              const rawLocationName =
+                selectedItems[0]?.name ||
+                selectedItems[0]?.long_name ||
+                'Selected Location';
+              locationLabel = rawLocationName
+                .replace(/[_-]/g, ' ')
+                .split(' ')
+                .map(
+                  (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(),
+                )
+                .join(' ');
+            } else {
+              locationLabel = `${selectedItems.length} ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'Countries' : 'Cities'}`;
+            }
+            modalTitle = `Air Quality Insights - ${locationLabel} (${visualizationData.length} Site${visualizationData.length > 1 ? 's' : ''})`;
+
+            // For very large datasets, limit to first 100 sites with a warning
+            if (visualizationData.length > 100) {
+              setStatusMessage(
+                `Showing data for the first 100 out of ${visualizationData.length} sites for optimal performance.`,
+              );
+              setMessageType('warning');
+              visualizationData = visualizationData.slice(0, 100);
+            }
+          } else {
+            // No sites found, show error
+            const locationTypeText =
+              activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city';
+            setFormError(
+              `No monitoring sites found for the selected ${locationTypeText}. This may be due to data availability or connectivity issues.`,
+            );
+            return;
+          }
+          break;
+
+        case FILTER_TYPES.DEVICES:
+          // For devices, we can visualize device-specific data
+          visualizationData = selectedItems;
+          modalTitle = `Air Quality Insights - ${selectedItems.length} Device${selectedItems.length > 1 ? 's' : ''}`;
+          break;
+
+        default:
+          setFormError('Unable to visualize data for this selection type');
+          return;
+      }
+
+      if (visualizationData.length === 0) {
+        setFormError(
+          'No data available for visualization. Please try selecting a different location or check back later.',
+        );
+        return;
+      }
+
+      // Clear any existing errors
+      setFormError('');
+
+      // Dispatch modal with enhanced data structure
+      dispatch(
+        setModalType({
+          type: 'inSights',
+          ids: null,
+          data: visualizationData,
+          backToDownload,
+          filterType: activeFilterKey,
+          modalTitle,
+          originalSelection: selectedItems,
+        }),
+      );
+      dispatch(setOpenModal(true));
+    } catch (error) {
+      // Enhanced error handling with more specific messages
+      // Log error for debugging (in development only)
+      if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
+        console.error('Error in onViewDataClick:', error);
+      }
+
+      if (error.name === 'QuotaExceededError') {
+        setFormError(
+          'Unable to load visualization due to data size. Please try selecting fewer items.',
+        );
+      } else if (error.message?.includes('network')) {
+        setFormError(
+          'Network error. Please check your connection and try again.',
+        );
+      } else {
+        setFormError(
+          'Failed to open visualization. Please try again or contact support if the issue persists.',
+        );
+      }
+    }
+  }, [
+    selectedItems,
+    activeFilterKey,
+    siteAndDeviceIds,
+    sitesData,
+    dispatch,
+    backToDownload,
+    setFormError,
+    setStatusMessage,
+    setMessageType,
+  ]);
 
   // Columns config for each filter type
   const columnsByFilter = useMemo(
@@ -671,21 +828,6 @@ const DataDownload = ({
               </span>
               <span>{item.name || item.long_name || '--'}</span>
             </div>
-          ),
-        },
-        {
-          key: 'status',
-          label: 'Status',
-          render: (item) => (
-            <span
-              className={`px-2 py-1 rounded-full text-xs ${
-                item.isOnline
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-              }`}
-            >
-              {item.isOnline ? 'Online' : 'Offline'}
-            </span>
           ),
         },
         {
@@ -802,24 +944,14 @@ const DataDownload = ({
       );
     }
 
-    // Only enable View Data for Sites
-    const showViewDataButton =
-      activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0;
+    // Enable View Data for all filter types with selections, but disable when fetching sites data for countries/cities
+    const isLoadingVisualizationData =
+      (activeFilterKey === FILTER_TYPES.COUNTRIES ||
+        activeFilterKey === FILTER_TYPES.CITIES) &&
+      selectedItems.length > 0 &&
+      isLoadingSiteIds;
 
-    // Handler for View Data button click (Sites only)
-    const onViewDataClick = () => {
-      if (activeFilterKey === FILTER_TYPES.SITES && selectedItems.length > 0) {
-        dispatch(
-          setModalType({
-            type: 'inSights',
-            ids: null,
-            data: selectedItems,
-            backToDownload,
-          }),
-        );
-        dispatch(setOpenModal(true));
-      }
-    };
+    const showViewDataButton = selectedItems.length > 0;
 
     return (
       <motion.div variants={animations.itemVariants}>
@@ -840,6 +972,7 @@ const DataDownload = ({
           searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
           handleRetryLoad={handleRetryLoad}
           showViewDataButton={showViewDataButton}
+          isLoadingVisualizationData={isLoadingVisualizationData}
           onViewDataClick={onViewDataClick}
           deviceCategory={formData.deviceCategory} // Pass device category
         />
@@ -855,10 +988,11 @@ const DataDownload = ({
     countriesErrorMsg,
     citiesErrorMsg,
     isLoading,
-    activeFilterKey,
+    isLoadingSiteIds,
     selectedItems,
     clearSelections,
     currentFilterData,
+    activeFilterKey,
     setSelectedItems,
     clearSelected,
     filterErrors,
@@ -868,9 +1002,8 @@ const DataDownload = ({
     handleFilter,
     searchKeysByFilter,
     handleRetryLoad,
-    dispatch,
-    backToDownload, // Add missing dependency
-    formData.deviceCategory, // Add device category dependency
+    onViewDataClick,
+    formData.deviceCategory,
   ]);
 
   return (

@@ -19,7 +19,7 @@ export async function GET() {
       { url: '/user/Home', changefreq: 'monthly', priority: 0.8 },
       { url: '/user/map', changefreq: 'weekly', priority: 0.8 },
       { url: '/user/analytics', changefreq: 'weekly', priority: 0.7 },
-      { url: '/user/collocation', changefreq: 'monthly', priority: 0.7 },
+      // collocation removed from app
       { url: '/user/settings', changefreq: 'monthly', priority: 0.6 },
       // add any other pages you want to include
     ];

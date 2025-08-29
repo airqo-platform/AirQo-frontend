@@ -19,6 +19,8 @@ import {
   AqNoValue,
 } from '@airqo/icons-react';
 
+/* eslint-disable no-console */
+
 export const BOUNDARY_URL = 'https://nominatim.openstreetmap.org/search';
 
 export const mapStyles = [
