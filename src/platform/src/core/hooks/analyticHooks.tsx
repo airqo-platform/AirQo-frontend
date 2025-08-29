@@ -90,15 +90,17 @@ const getAnalyticsKey = (params) => {
 
 /**
  * Hook for fetching sites summary data
- * @param {string} group - Group filter
+ * @param {string} group - Group filter (null/undefined/empty string for all sites)
  * @param {Object} options - SWR options
  * @returns {Object} SWR response with data, loading and error states
  */
 export const useSitesSummary = (group, options = {}) => {
   const { data, error, isLoading, mutate } = useSWR(
-    group ? ['sites-summary', group] : null,
+    ['sites-summary', group || 'all'],
     async () => {
-      const result = await getSitesSummaryApi({ group });
+      // If group is falsy or empty string, fetch all sites without group filter
+      const groupParam = group && group.trim() ? group : null;
+      const result = await getSitesSummaryApi({ group: groupParam });
       return result;
     },
     {

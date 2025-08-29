@@ -195,13 +195,17 @@ const DataDownload = ({
   } = useSiteAndDeviceIds(selectedGridId);
 
   // Data fetching hooks with dependencies
+  // For countries/cities visualization, we need all sites without group filtering
+  // For other cases, we use group-filtered sites
+  const isGridSelection = activeFilterKey === FILTER_TYPES.COUNTRIES || activeFilterKey === FILTER_TYPES.CITIES;
+  
   const {
     data: sitesData,
     isLoading: sitesLoading,
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(groupTitle || 'AirQo', {});
+  } = useSitesSummary(isGridSelection ? '' : (groupTitle || 'AirQo'), {});
 
   const {
     data: devicesData,
@@ -610,9 +614,19 @@ const DataDownload = ({
         case FILTER_TYPES.COUNTRIES:
         case FILTER_TYPES.CITIES:
           // Enhanced handling for countries and cities with better error management
+          // IMPORTANT: We fetch all sites (not group-filtered) to ensure we can find
+          // all sites returned by the grid API, which may span multiple organizations
           if (siteAndDeviceIds?.site_ids?.length > 0) {
             // Map site IDs to actual site objects from the available sites data
             const availableSites = sitesData || [];
+
+            // Debug logging to track the data mapping issue
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.log('Grid API returned site IDs:', siteAndDeviceIds.site_ids.length);
+              // eslint-disable-next-line no-console
+              console.log('Available sites for mapping:', availableSites.length);
+            }
 
             // Use a more efficient approach for large datasets
             const siteMap = new Map(
@@ -622,6 +636,17 @@ const DataDownload = ({
             visualizationData = siteAndDeviceIds.site_ids
               .map((siteId) => siteMap.get(siteId))
               .filter(Boolean); // Remove any undefined entries
+
+            // Debug logging to track successful mappings
+            if (process.env.NODE_ENV === 'development') {
+              const unmappedCount = siteAndDeviceIds.site_ids.length - visualizationData.length;
+              if (unmappedCount > 0) {
+                // eslint-disable-next-line no-console
+                console.warn(`Could not map ${unmappedCount} site IDs to site objects. This may indicate sites from different organizations.`);
+              }
+              // eslint-disable-next-line no-console
+              console.log('Successfully mapped sites for visualization:', visualizationData.length);
+            }
 
             // Format location name properly (remove underscores/hyphens, capitalize)
             let locationLabel = '';
@@ -649,6 +674,16 @@ const DataDownload = ({
               );
               setMessageType('warning');
               visualizationData = visualizationData.slice(0, 100);
+            }
+
+            // Check if we have any sites after mapping
+            if (visualizationData.length === 0) {
+              const locationTypeText =
+                activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city';
+              setFormError(
+                `No site details available for visualization in the selected ${locationTypeText}. The sites exist but detailed information may not be accessible due to permissions or data synchronization.`,
+              );
+              return;
             }
           } else {
             // No sites found, show error

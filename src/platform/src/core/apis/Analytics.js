@@ -28,10 +28,11 @@ export const shareReportApi = async (body) => {
 };
 
 // Get sites summary data
-export const getSitesSummaryApi = async ({ group }) => {
+export const getSitesSummaryApi = async ({ group = null } = {}) => {
+  const params = group ? { group } : {};
   return secureApiProxy
     .get(SITES_SUMMARY_URL, {
-      params: { group },
+      params,
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
