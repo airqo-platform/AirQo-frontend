@@ -169,12 +169,12 @@ export default function DevicesTable({
           {
             label: "Assign to Cohort",
             value: "assign_cohort",
-            handler: (_selectedIds) => {},
+            handler: () => {},
           },
           {
             label: "Export Selected",
             value: "export",
-            handler: (_selectedIds) => {},
+            handler: () => {},
           },
         ] : []}
         emptyState={
