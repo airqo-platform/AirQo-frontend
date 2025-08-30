@@ -45,6 +45,8 @@ export default function useMoreInsights() {
       // Clear state when leaving More Insights
       dispatch(clearMoreInsightsData());
       lastModalDataRef.current = null;
+      // Ensure mobile sidebar overlay is closed when leaving the modal
+      setMobileSidebarVisible(false);
     }
 
     lastModalStateRef.current = currentModalState;
