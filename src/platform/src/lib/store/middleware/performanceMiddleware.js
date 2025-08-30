@@ -104,17 +104,10 @@ export const memoryOptimizationMiddleware = () => (next) => (action) => {
   // such as modal state or more-insights/download payloads. These
   // payloads can be large but must remain intact for reducers to work.
   const actionType = action && action.type ? String(action.type) : '';
-  const SKIP_OPTIMIZATION_KEYWORDS = [
-    'modal',
-    'setModalType',
-    'download',
-    'moreInsights',
-  ];
+  const typeLc = actionType.toLowerCase();
+  const SKIP_OPTIMIZATION_KEYWORDS = ['modal', 'download', 'moreinsights'];
 
-  if (
-    actionType &&
-    SKIP_OPTIMIZATION_KEYWORDS.some((kw) => actionType.includes(kw))
-  ) {
+  if (typeLc && SKIP_OPTIMIZATION_KEYWORDS.some((kw) => typeLc.includes(kw))) {
     return next(action);
   }
 
@@ -123,10 +116,9 @@ export const memoryOptimizationMiddleware = () => (next) => (action) => {
   if (
     payload &&
     typeof payload === 'object' &&
-    (payload.modalTitle ||
-      payload.data ||
-      payload.filterType ||
-      payload.originalSelection)
+    ['modalTitle', 'data', 'filterType', 'originalSelection'].some(
+      (k) => k in payload,
+    )
   ) {
     return next(action);
   }

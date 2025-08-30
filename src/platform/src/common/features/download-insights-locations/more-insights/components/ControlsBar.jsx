@@ -168,11 +168,11 @@ export function PaginationControls({
   currentPage,
   setCurrentPage,
   totalItems,
-  pageSize,
   sitesPerPage,
   setSitesPerPage,
 }) {
-  const totalPages = Math.max(1, Math.ceil(totalItems / (pageSize || 5)));
+  const perPage = Math.max(1, Number(sitesPerPage) || 5);
+  const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
 
   return (
     <div className="w-full">

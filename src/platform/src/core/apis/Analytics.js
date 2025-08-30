@@ -28,8 +28,9 @@ export const shareReportApi = async (body) => {
 };
 
 // Get sites summary data
-export const getSitesSummaryApi = async ({ group = null } = {}) => {
-  const params = group ? { group } : {};
+export const getSitesSummaryApi = async ({ group = undefined } = {}) => {
+  const params =
+    group !== undefined && group !== null && group !== '' ? { group } : {};
   return secureApiProxy
     .get(SITES_SUMMARY_URL, {
       params,

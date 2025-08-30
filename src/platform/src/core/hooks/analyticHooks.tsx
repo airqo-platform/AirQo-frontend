@@ -95,11 +95,19 @@ const getAnalyticsKey = (params) => {
  * @returns {Object} SWR response with data, loading and error states
  */
 export const useSitesSummary = (group, options = {}) => {
+  // Normalize once: trim non-empty strings, otherwise use empty string
+  const normalized =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
+
   const { data, error, isLoading, mutate } = useSWR(
-    ['sites-summary', group || 'all'],
+    // Use 'all' when normalized is empty, otherwise the trimmed group
+    ['sites-summary', normalized || 'all'],
     async () => {
-      // If group is falsy or empty string, fetch all sites without group filter
-      const groupParam = group && group.trim() ? group : null;
+      // For fetching, treat empty normalized as null (i.e., no group filter)
+      const groupParam = normalized || undefined;
+      // TypeScript: allow calling JS API which accepts string | undefined
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
       const result = await getSitesSummaryApi({ group: groupParam });
       return result;
     },
