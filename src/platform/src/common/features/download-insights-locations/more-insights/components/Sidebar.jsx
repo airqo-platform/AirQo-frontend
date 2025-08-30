@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
@@ -18,20 +18,45 @@ function Sidebar({
   dataLoadingSites,
   isValidating,
   handleSiteAction,
+  currentPage,
 }) {
   const dispatch = useDispatch();
+  const sidebarRef = useRef(null);
+
+  // Auto-scroll to visualized sites when pagination changes
+  useEffect(() => {
+    if (visibleSiteIds.length > 0 && sidebarRef.current) {
+      // Find the first visualized site card
+      const firstVisualizedSiteId = visibleSiteIds[0];
+      const siteCard = sidebarRef.current.querySelector(
+        `[data-site-id="${firstVisualizedSiteId}"]`,
+      );
+
+      if (siteCard) {
+        // Smooth scroll to the first visualized site
+        siteCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest',
+        });
+      }
+    }
+  }, [currentPage, visibleSiteIds]);
+
   return (
     <motion.div
+      ref={sidebarRef}
       variants={variants}
       initial="hidden"
       animate="visible"
-      className="space-y-3 p-4 h-full"
+      className="space-y-3 p-4 h-full overflow-y-auto"
     >
       {allSites.map((site) => (
         <motion.div
           key={site._id}
           variants={variants.item}
           transition={{ duration: 0.2 }}
+          data-site-id={site._id}
         >
           <LocationCard
             site={site}

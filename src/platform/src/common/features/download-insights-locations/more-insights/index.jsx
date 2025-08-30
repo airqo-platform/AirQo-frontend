@@ -6,6 +6,7 @@ import ErrorBoundary from '@/components/ErrorBoundary';
 import Sidebar from './components/Sidebar';
 import ControlsBar from './components/ControlsBar';
 import { PaginationControls } from './components/ControlsBar';
+import MoreInsightsInfoBanner from './components/MoreInsightsInfoBanner';
 import ChartContainer from './components/ChartContainer';
 import HiddenSitesInfo from './components/HiddenSitesInfo';
 import useMoreInsights from './hooks/useMoreInsights';
@@ -204,6 +205,7 @@ function MoreInsights() {
                 dataLoadingSites={dataLoadingSites}
                 isValidating={isValidating}
                 handleSiteAction={handleSiteAction}
+                currentPage={currentPage}
               />
             )}
           </motion.div>
@@ -259,6 +261,7 @@ function MoreInsights() {
                     dataLoadingSites={dataLoadingSites}
                     isValidating={isValidating}
                     handleSiteAction={handleSiteAction}
+                    currentPage={currentPage}
                   />
                 )}
               </motion.div>
@@ -304,6 +307,12 @@ function MoreInsights() {
               </div>
             ) : (
               <>
+                {/* Info banner for first-time users with large datasets */}
+                <MoreInsightsInfoBanner
+                  visibleSitesCount={visibleSites.length}
+                  sitesPerPage={sitesPerPage}
+                />
+
                 <ControlsBar
                   frequency={frequency}
                   setFrequency={setFrequency}
