@@ -195,13 +195,19 @@ const DataDownload = ({
   } = useSiteAndDeviceIds(selectedGridId);
 
   // Data fetching hooks with dependencies
+  // For countries/cities visualization, we need all sites without group filtering
+  // For other cases, we use group-filtered sites
+  const isGridSelection =
+    activeFilterKey === FILTER_TYPES.COUNTRIES ||
+    activeFilterKey === FILTER_TYPES.CITIES;
+
   const {
     data: sitesData,
     isLoading: sitesLoading,
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(groupTitle || 'AirQo', {});
+  } = useSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {});
 
   const {
     data: devicesData,
@@ -610,9 +616,25 @@ const DataDownload = ({
         case FILTER_TYPES.COUNTRIES:
         case FILTER_TYPES.CITIES:
           // Enhanced handling for countries and cities with better error management
+          // IMPORTANT: We fetch all sites (not group-filtered) to ensure we can find
+          // all sites returned by the grid API, which may span multiple organizations
           if (siteAndDeviceIds?.site_ids?.length > 0) {
             // Map site IDs to actual site objects from the available sites data
             const availableSites = sitesData || [];
+
+            // Debug logging to track the data mapping issue
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.log(
+                'Grid API returned site IDs:',
+                siteAndDeviceIds.site_ids.length,
+              );
+              // eslint-disable-next-line no-console
+              console.log(
+                'Available sites for mapping:',
+                availableSites.length,
+              );
+            }
 
             // Use a more efficient approach for large datasets
             const siteMap = new Map(
@@ -622,6 +644,23 @@ const DataDownload = ({
             visualizationData = siteAndDeviceIds.site_ids
               .map((siteId) => siteMap.get(siteId))
               .filter(Boolean); // Remove any undefined entries
+
+            // Debug logging to track successful mappings
+            if (process.env.NODE_ENV === 'development') {
+              const unmappedCount =
+                siteAndDeviceIds.site_ids.length - visualizationData.length;
+              if (unmappedCount > 0) {
+                // eslint-disable-next-line no-console
+                console.warn(
+                  `Could not map ${unmappedCount} site IDs to site objects. This may indicate sites from different organizations.`,
+                );
+              }
+              // eslint-disable-next-line no-console
+              console.log(
+                'Successfully mapped sites for visualization:',
+                visualizationData.length,
+              );
+            }
 
             // Format location name properly (remove underscores/hyphens, capitalize)
             let locationLabel = '';
@@ -642,13 +681,26 @@ const DataDownload = ({
             }
             modalTitle = `Air Quality Insights - ${locationLabel} (${visualizationData.length} Site${visualizationData.length > 1 ? 's' : ''})`;
 
-            // For very large datasets, limit to first 100 sites with a warning
-            if (visualizationData.length > 100) {
-              setStatusMessage(
-                `Showing data for the first 100 out of ${visualizationData.length} sites for optimal performance.`,
+            // For performance and to avoid sending overly large payloads to the modal,
+            // send a minimal representation of each site (only the fields needed for display)
+            // but do not arbitrarily discard sites here. The More Insights UI will
+            // handle pagination/limits when rendering charts.
+            visualizationData = visualizationData.map((site) => ({
+              _id: site._id,
+              name: site.name || site.location_name || site.location || '',
+              location_name: site.location_name || site.name || '',
+              city: site.city || site.city_name || '',
+              country: site.country || '',
+            }));
+
+            // Check if we have any sites after mapping
+            if (visualizationData.length === 0) {
+              const locationTypeText =
+                activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city';
+              setFormError(
+                `No site details available for visualization in the selected ${locationTypeText}. The sites exist but detailed information may not be accessible due to permissions or data synchronization.`,
               );
-              setMessageType('warning');
-              visualizationData = visualizationData.slice(0, 100);
+              return;
             }
           } else {
             // No sites found, show error
@@ -662,9 +714,137 @@ const DataDownload = ({
           break;
 
         case FILTER_TYPES.DEVICES:
-          // For devices, we can visualize device-specific data
-          visualizationData = selectedItems;
-          modalTitle = `Air Quality Insights - ${selectedItems.length} Device${selectedItems.length > 1 ? 's' : ''}`;
+          // For devices, extract site IDs and visualize site data instead of device data
+          // Each device has a 'site' object with _id property
+          if (selectedItems.length > 0) {
+            // Extract unique site IDs from selected devices
+            const deviceSiteIds = selectedItems
+              .map((device) => device.site?._id)
+              .filter(Boolean); // Remove any null/undefined site IDs
+
+            // Remove duplicates in case multiple devices are on the same site
+            const uniqueSiteIds = [...new Set(deviceSiteIds)];
+
+            if (uniqueSiteIds.length === 0) {
+              setFormError(
+                'No site information available for the selected devices. Cannot visualize data without site details.',
+              );
+              return;
+            }
+
+            // Map site IDs to actual site objects from available sites data
+            const availableSites = sitesData || [];
+            const siteMap = new Map(
+              availableSites.map((site) => [site._id, site]),
+            );
+
+            // Get site objects for the unique site IDs
+            let deviceSites = uniqueSiteIds
+              .map((siteId) => siteMap.get(siteId))
+              .filter(Boolean); // Remove any undefined entries
+
+            // If we can't find site details from the main sites data,
+            // try to use the site data embedded in the devices themselves
+            if (deviceSites.length === 0) {
+              deviceSites = selectedItems
+                .map((device) => device.site)
+                .filter(Boolean)
+                .filter(
+                  (site, index, self) =>
+                    // Remove duplicates based on _id
+                    index === self.findIndex((s) => s._id === site._id),
+                );
+            }
+
+            if (deviceSites.length === 0) {
+              setFormError(
+                'Unable to retrieve site details for the selected devices. Please try again or contact support.',
+              );
+              return;
+            }
+
+            // Enhance site objects with device information for better display
+            visualizationData = deviceSites.map((site) => {
+              // Find all devices that belong to this site
+              const devicesAtSite = selectedItems.filter(
+                (device) => device.site?._id === site._id,
+              );
+
+              // Create enhanced site object with device info
+              return {
+                ...site,
+                // Override the site name with device name(s) for display purposes
+                displayName:
+                  devicesAtSite.length === 1
+                    ? devicesAtSite[0].name ||
+                      devicesAtSite[0].long_name ||
+                      site.name ||
+                      site.location_name
+                    : `${devicesAtSite.length} Devices at ${site.name || site.location_name}`,
+                // Keep original name for reference
+                originalSiteName: site.name || site.location_name,
+                // Add device information
+                associatedDevices: devicesAtSite,
+                deviceCount: devicesAtSite.length,
+                // Override name property that gets displayed in cards
+                name:
+                  devicesAtSite.length === 1
+                    ? devicesAtSite[0].name || devicesAtSite[0].long_name
+                    : `${devicesAtSite.length} Devices`,
+                // Keep location_name for geographic context
+                location_name: site.location_name || site.name,
+              };
+            });
+
+            // Create appropriate modal title
+            if (selectedItems.length === 1) {
+              const deviceName =
+                selectedItems[0].name ||
+                selectedItems[0].long_name ||
+                'Selected Device';
+              const siteName =
+                deviceSites[0]?.name ||
+                deviceSites[0]?.location_name ||
+                'Associated Site';
+              modalTitle = `Air Quality Insights - ${deviceName} at ${siteName}`;
+            } else if (uniqueSiteIds.length === 1) {
+              const siteName =
+                deviceSites[0]?.name || deviceSites[0]?.location_name || 'Site';
+              modalTitle = `Air Quality Insights - ${selectedItems.length} Devices at ${siteName}`;
+            } else {
+              modalTitle = `Air Quality Insights - ${selectedItems.length} Devices across ${uniqueSiteIds.length} Sites`;
+            }
+
+            // Debug logging for development
+            if (process.env.NODE_ENV === 'development') {
+              // eslint-disable-next-line no-console
+              console.log('Selected devices:', selectedItems.length);
+              // eslint-disable-next-line no-console
+              console.log('Device site IDs extracted:', deviceSiteIds);
+              // eslint-disable-next-line no-console
+              console.log('Unique sites from devices:', uniqueSiteIds.length);
+              // eslint-disable-next-line no-console
+              console.log(
+                'Sites available for visualization:',
+                visualizationData.length,
+              );
+              // eslint-disable-next-line no-console
+              console.log(
+                'Enhanced visualization data:',
+                visualizationData.map((site) => ({
+                  id: site._id,
+                  displayName: site.displayName,
+                  deviceCount: site.deviceCount,
+                  devices:
+                    site.associatedDevices?.map((d) => d.name || d.long_name) ||
+                    [],
+                })),
+              );
+            }
+          } else {
+            setFormError('No devices selected for visualization');
+            return;
+          }
           break;
 
         default:

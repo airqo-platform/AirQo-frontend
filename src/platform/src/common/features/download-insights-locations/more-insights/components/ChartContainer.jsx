@@ -18,6 +18,7 @@ function ChartContainer({
   isValidating,
   dataLoadingSites,
   visibleSites,
+  visibleSiteIds,
   chartType,
   frequency,
   pollutantType,
@@ -60,7 +61,12 @@ function ChartContainer({
           <MoreInsightsChart
             data={allSiteData}
             selectedSites={dataLoadingSites}
-            visibleSiteIds={visibleSites}
+            // prefer paginated visible site ids when provided
+            visibleSiteIds={
+              visibleSiteIds && visibleSiteIds.length
+                ? visibleSiteIds
+                : visibleSites
+            }
             chartType={chartType}
             frequency={frequency}
             width="100%"

@@ -37,6 +37,7 @@ const LocationCard = ({
   site,
   onToggle,
   isSelected,
+  isVisualized = false,
   isLoading = false,
   disableToggle = false,
   cardStyle = null,
@@ -84,10 +85,12 @@ const LocationCard = ({
 
   return (
     <motion.div
-      className={`flex justify-between bg-gray-100 dark:bg-gray-800 items-center p-3 border ${
-        isSelected
-          ? 'border-primary/30 dark:border-primary/50 ring-1 ring-primary/50'
-          : 'border-gray-200 dark:border-gray-700'
+      className={`flex justify-between bg-gray-100 dark:bg-gray-800 items-center p-3 border-2 ${
+        isVisualized
+          ? 'border-green-500 ring-1 ring-green-500/50'
+          : isSelected
+            ? 'border-primary/30 dark:border-primary/50 ring-1 ring-primary/50'
+            : 'border-gray-200 dark:border-gray-700'
       } rounded-lg shadow-sm w-full ${disableToggle ? 'opacity-90' : ''}`}
       variants={cardVariants}
       initial="initial"
@@ -112,6 +115,7 @@ const LocationCard = ({
           initial={{ rotate: 0 }}
           animate={isSelected ? { rotate: [0, 15, 0] } : {}}
           transition={{ duration: 0.3 }}
+          className={isVisualized ? 'text-green-600' : ''}
         >
           <AqMarkerPin01 size={20} />
         </motion.div>
@@ -167,6 +171,7 @@ LocationCard.propTypes = {
   }).isRequired,
   onToggle: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
+  isVisualized: PropTypes.bool,
   isLoading: PropTypes.bool,
   disableToggle: PropTypes.bool,
   cardStyle: PropTypes.object,

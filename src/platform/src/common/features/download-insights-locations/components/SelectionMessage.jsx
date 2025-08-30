@@ -13,7 +13,6 @@ const SelectionMessage = ({
   className = '',
 }) => {
   const colorSchemes = {
-    // Info messages should match the BAM banner styling (blue with icon)
     info: {
       bg: 'bg-blue-50 dark:bg-blue-900/20',
       borderClass: 'border border-blue-200 dark:border-blue-800',
@@ -50,7 +49,6 @@ const SelectionMessage = ({
 
   const colors = colorSchemes[type] || colorSchemes.info;
 
-  // Icon mapping per message type
   const IconMap = {
     info: AqInfoCircle,
     warning: AqAlertTriangle,
@@ -58,7 +56,6 @@ const SelectionMessage = ({
     success: AqCheckCircleBroken,
   };
 
-  // Unified banner rendering for all types (same layout as info) with per-type colors/icons
   const Icon = IconMap[type] || IconMap.info;
   return (
     <div

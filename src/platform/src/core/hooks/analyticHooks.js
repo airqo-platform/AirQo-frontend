@@ -7,30 +7,25 @@ import {
   getRecentMeasurements,
   generateSiteAndDeviceIds,
 } from '../apis/Analytics';
-import { format } from 'date-fns';
 import { ANALYTICS_SWR_CONFIG, SWR_CONFIG } from '../swrConfigs';
-import logger from '../../lib/logger';
+import logger from '@/lib/logger';
 
-// Optimized date formatting with memoization
 const formatDate = (() => {
   const cache = new Map();
 
   return (date) => {
     if (!date) return null;
 
-    // Create cache key
     const key = date instanceof Date ? date.getTime() : date;
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
+    if (cache.has(key)) return cache.get(key);
 
     try {
       const dateObj = date instanceof Date ? date : new Date(date);
       if (isNaN(dateObj.getTime())) return null;
 
-      const formatted = format(dateObj, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+      // Use real UTC string instead of local-time formatted as UTC
+      const formatted = dateObj.toISOString();
 
-      // Cache result (limit cache size)
       if (cache.size > 100) {
         const firstKey = cache.keys().next().value;
         cache.delete(firstKey);
@@ -45,7 +40,6 @@ const formatDate = (() => {
   };
 })();
 
-// Optimized analytics key generator with stable sorting
 const getAnalyticsKey = (params) => {
   const {
     selectedSiteIds,
@@ -56,7 +50,6 @@ const getAnalyticsKey = (params) => {
     organisationName,
   } = params || {};
 
-  // Skip fetch if essential parameters are missing
   if (
     !selectedSiteIds?.length ||
     !dateRange?.startDate ||
@@ -68,14 +61,10 @@ const getAnalyticsKey = (params) => {
   const startDateFormatted = formatDate(dateRange.startDate);
   const endDateFormatted = formatDate(dateRange.endDate);
 
-  if (!startDateFormatted || !endDateFormatted) {
-    return null;
-  }
+  if (!startDateFormatted || !endDateFormatted) return null;
 
-  // Create stable key with sorted site IDs
   const sortedSiteIds = [...selectedSiteIds].sort().join(',');
 
-  // Return more concise key
   return [
     'analytics',
     sortedSiteIds,
@@ -88,17 +77,15 @@ const getAnalyticsKey = (params) => {
   ];
 };
 
-/**
- * Hook for fetching sites summary data
- * @param {string} group - Group filter
- * @param {Object} options - SWR options
- * @returns {Object} SWR response with data, loading and error states
- */
 export const useSitesSummary = (group, options = {}) => {
+  const normalized =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
+
   const { data, error, isLoading, mutate } = useSWR(
-    group ? ['sites-summary', group] : null,
+    ['sites-summary', normalized || 'all'],
     async () => {
-      const result = await getSitesSummaryApi({ group });
+      const groupParam = normalized || undefined;
+      const result = await getSitesSummaryApi({ group: groupParam });
       return result;
     },
     {
@@ -117,17 +104,14 @@ export const useSitesSummary = (group, options = {}) => {
   };
 };
 
-/**
- * Hook for fetching device summary data
- * @param {string|null} group - Optional group filter
- * @param {Object} options - SWR options
- * @returns {Object} SWR response with data, loading and error states
- */
 export const useDeviceSummary = (group = null, options = {}) => {
+  const normalized =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
   const { data, error, isLoading, mutate } = useSWR(
-    ['device-summary', group],
+    ['device-summary', normalized || 'all'],
     async () => {
-      const result = await getDeviceSummaryApi({ group });
+      const groupParam = normalized || undefined;
+      const result = await getDeviceSummaryApi({ group: groupParam });
       return result;
     },
     {
@@ -146,12 +130,6 @@ export const useDeviceSummary = (group = null, options = {}) => {
   };
 };
 
-/**
- * Hook for fetching grid summary data
- * @param {string|null} admin_level - Optional admin level filter
- * @param {Object} options - SWR options
- * @returns {Object} SWR response with data, loading and error states
- */
 export const useGridSummary = (admin_level = null, options = {}) => {
   const { data, error, isLoading, mutate } = useSWR(
     ['grid-summary', admin_level],
@@ -175,20 +153,7 @@ export const useGridSummary = (admin_level = null, options = {}) => {
   };
 };
 
-/**
- * Hook for fetching analytics data using SWR
- * @param {Object} params - Analytics parameters
- * @param {Array} params.selectedSiteIds - Array of site IDs
- * @param {Object} params.dateRange - Object containing startDate and endDate
- * @param {string} params.chartType - Type of chart (line, bar, etc.)
- * @param {string} params.frequency - Data frequency (hourly, daily, etc.)
- * @param {string} params.pollutant - Pollutant type (pm2_5, etc.)
- * @param {string} params.organisationName - Organization name
- * @param {Object} options - SWR options
- * @returns {Object} - SWR response with data, loading and error states
- */
 export const useAnalyticsData = (params, options = {}) => {
-  // Use default values if params are provided but incomplete
   const {
     selectedSiteIds = [],
     dateRange = { startDate: new Date(), endDate: new Date() },
@@ -198,7 +163,6 @@ export const useAnalyticsData = (params, options = {}) => {
     organisationName = '',
   } = params || {};
 
-  // Generate cache key for SWR - return null to disable fetching
   const swrKey =
     params && selectedSiteIds.length > 0
       ? getAnalyticsKey({
@@ -210,12 +174,11 @@ export const useAnalyticsData = (params, options = {}) => {
           organisationName,
         })
       : null;
-  // Use SWR for data fetching with caching
+
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     swrKey,
     async () => {
       try {
-        // Prepare request body with formatted dates
         const startDateFormatted = formatDate(dateRange.startDate);
         const endDateFormatted = formatDate(dateRange.endDate);
 
@@ -238,7 +201,7 @@ export const useAnalyticsData = (params, options = {}) => {
         return result;
       } catch (error) {
         logger.error('Error in analytics data fetcher:', error);
-        throw error; // Re-throw to let SWR handle error state
+        throw error;
       }
     },
     { ...ANALYTICS_SWR_CONFIG, ...options },
@@ -254,12 +217,6 @@ export const useAnalyticsData = (params, options = {}) => {
   };
 };
 
-/**
- * Hook for fetching and managing recent measurements data using SWR
- * @param {Object} params - Query parameters for the request
- * @param {Object} options - Additional SWR configuration options
- * @returns {Object} SWR state and methods
- */
 export const useRecentMeasurements = (params, options = {}) => {
   const { data, error, isLoading, mutate } = useSWR(
     params ? ['recent-measurements', params] : null,
@@ -276,11 +233,6 @@ export const useRecentMeasurements = (params, options = {}) => {
   };
 };
 
-/**
- * Hook for generating site and device IDs for a given grid ID
- * @param {string} grid_id - Grid ID
- * @returns {Object} SWR response with data, loading and error states
- */
 export const useSiteAndDeviceIds = (grid_id) => {
   const { data, error, isLoading, mutate } = useSWR(
     grid_id ? ['site-and-device-ids', grid_id] : null,
@@ -294,7 +246,6 @@ export const useSiteAndDeviceIds = (grid_id) => {
     },
   );
 
-  // Always return an object with site_ids and device_ids arrays for safety
   const safeData =
     data?.sites_and_devices && typeof data.sites_and_devices === 'object'
       ? data.sites_and_devices
@@ -308,3 +259,4 @@ export const useSiteAndDeviceIds = (grid_id) => {
     refresh: mutate,
   };
 };
+// (no-op) analytic hooks implementation only — removed accidental re-export

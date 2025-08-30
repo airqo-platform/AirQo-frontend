@@ -5,6 +5,8 @@ import { useMediaQuery } from 'react-responsive';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Sidebar from './components/Sidebar';
 import ControlsBar from './components/ControlsBar';
+import { PaginationControls } from './components/ControlsBar';
+import MoreInsightsInfoBanner from './components/MoreInsightsInfoBanner';
 import ChartContainer from './components/ChartContainer';
 import HiddenSitesInfo from './components/HiddenSitesInfo';
 import useMoreInsights from './hooks/useMoreInsights';
@@ -132,6 +134,11 @@ function MoreInsights() {
     isValidating,
     dataLoadingSites,
     visibleSites,
+    visibleSiteIds,
+    sitesPerPage,
+    setSitesPerPage,
+    currentPage,
+    setCurrentPage,
     mobileSidebarVisible,
     setMobileSidebarVisible,
     frequency,
@@ -194,9 +201,11 @@ function MoreInsights() {
               <Sidebar
                 allSites={allSites}
                 visibleSites={visibleSites}
+                visibleSiteIds={visibleSiteIds}
                 dataLoadingSites={dataLoadingSites}
                 isValidating={isValidating}
                 handleSiteAction={handleSiteAction}
+                currentPage={currentPage}
               />
             )}
           </motion.div>
@@ -248,9 +257,11 @@ function MoreInsights() {
                   <Sidebar
                     allSites={allSites}
                     visibleSites={visibleSites}
+                    visibleSiteIds={visibleSiteIds}
                     dataLoadingSites={dataLoadingSites}
                     isValidating={isValidating}
                     handleSiteAction={handleSiteAction}
+                    currentPage={currentPage}
                   />
                 )}
               </motion.div>
@@ -296,6 +307,12 @@ function MoreInsights() {
               </div>
             ) : (
               <>
+                {/* Info banner for first-time users with large datasets */}
+                <MoreInsightsInfoBanner
+                  visibleSitesCount={visibleSites.length}
+                  sitesPerPage={sitesPerPage}
+                />
+
                 <ControlsBar
                   frequency={frequency}
                   setFrequency={setFrequency}
@@ -311,6 +328,18 @@ function MoreInsights() {
                   isMobile={isMobile}
                 />
 
+                {/* Pagination controls in their own section below controls */}
+                {visibleSites.length > sitesPerPage && (
+                  <PaginationControls
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    totalItems={visibleSites.length}
+                    pageSize={sitesPerPage}
+                    sitesPerPage={sitesPerPage}
+                    setSitesPerPage={setSitesPerPage}
+                  />
+                )}
+
                 {downloadError && (
                   <SelectionMessage type="error">
                     {downloadError}
@@ -325,6 +354,7 @@ function MoreInsights() {
                   isValidating={isValidating}
                   dataLoadingSites={dataLoadingSites}
                   visibleSites={visibleSites}
+                  visibleSiteIds={visibleSiteIds}
                   chartType={chartType}
                   frequency={frequency}
                   pollutantType={pollutant}

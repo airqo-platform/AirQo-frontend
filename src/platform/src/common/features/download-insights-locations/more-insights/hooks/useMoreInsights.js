@@ -45,6 +45,8 @@ export default function useMoreInsights() {
       // Clear state when leaving More Insights
       dispatch(clearMoreInsightsData());
       lastModalDataRef.current = null;
+      // Ensure mobile sidebar overlay is closed when leaving the modal
+      setMobileSidebarVisible(false);
     }
 
     lastModalStateRef.current = currentModalState;
@@ -89,6 +91,17 @@ export default function useMoreInsights() {
 
   const [dataLoadingSites, setDataLoadingSites] = useState([]);
   const [visibleSites, setVisibleSites] = useState([]);
+  // Pagination / visualization limits
+  const [sitesPerPage, setSitesPerPage] = useState(5); // default to 5 for visualization
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Derived visible site ids for charting based on pagination
+  const visibleSiteIds = useMemo(() => {
+    if (!visibleSites || visibleSites.length === 0) return [];
+    const start = (currentPage - 1) * sitesPerPage;
+    const end = start + sitesPerPage;
+    return visibleSites.slice(start, end);
+  }, [visibleSites, sitesPerPage, currentPage]);
 
   // Update data loading sites and visible sites when allSites changes
   // Update data loading sites and visible sites when allSites changes (consolidated)
@@ -117,7 +130,11 @@ export default function useMoreInsights() {
 
   const analyticsParams = shouldFetchData
     ? {
-        selectedSiteIds: dataLoadingSites,
+        // Only request analytics for the currently visible page of sites to
+        // keep payloads reasonable. Backend supports multiple site ids.
+        selectedSiteIds: visibleSiteIds.length
+          ? visibleSiteIds
+          : dataLoadingSites,
         dateRange: {
           startDate: new Date(dateRange.startDate),
           endDate: new Date(dateRange.endDate),
@@ -178,6 +195,15 @@ export default function useMoreInsights() {
           );
           dispatch(setMoreInsightsSites(newSites));
 
+          // Adjust current page if necessary after deselection
+          const totalPages = Math.max(
+            1,
+            Math.ceil(newVisibleSites.length / sitesPerPage),
+          );
+          if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+          }
+
           return newVisibleSites;
         });
         return true;
@@ -193,13 +219,29 @@ export default function useMoreInsights() {
           );
           dispatch(setMoreInsightsSites(newSites));
 
+          // Adjust current page if necessary after removal
+          const totalPages = Math.max(
+            1,
+            Math.ceil(newVisibleSites.length / sitesPerPage),
+          );
+          if (currentPage > totalPages) {
+            setCurrentPage(totalPages);
+          }
+
           return newVisibleSites;
         });
         return true;
       }
       return false;
     },
-    [dataLoadingSites, allSites, dispatch],
+    [
+      dataLoadingSites,
+      allSites,
+      dispatch,
+      sitesPerPage,
+      currentPage,
+      setCurrentPage,
+    ],
   );
 
   const handleManualRefresh = useCallback(async () => {
@@ -234,6 +276,11 @@ export default function useMoreInsights() {
     setDateRange,
     dataLoadingSites,
     visibleSites,
+    visibleSiteIds,
+    sitesPerPage,
+    setSitesPerPage,
+    currentPage,
+    setCurrentPage,
     /* flags */
     isManualRefresh,
     refreshSuccess,
