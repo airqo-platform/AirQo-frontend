@@ -195,7 +195,7 @@ const ReusableTable = ({
                       sortable && column.sortable !== false
                         ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700'
                         : ''
-                    }`}
+                    } ${column.headerClassName || ''}`}
                     onClick={() =>
                       sortable &&
                       column.sortable !== false &&
@@ -222,7 +222,10 @@ const ReusableTable = ({
                     {displayColumns.map((column) => (
                       <td
                         key={column.key}
-                        className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
+                        // allow individual columns to opt into wrapping via `wrap: true`
+                        className={`px-6 py-4 text-sm text-gray-900 dark:text-gray-100 ${
+                          column.cellClassName || ''
+                        } ${column.wrap ? 'whitespace-normal break-words' : 'whitespace-nowrap'} `}
                       >
                         {renderTableCell(item, column)}
                       </td>
