@@ -8,6 +8,7 @@ export interface Cohort {
   groups: string[];
   numberOfDevices: number;
   devices: Device[];
+  createdAt?: string;
 }
 
 interface Grid {

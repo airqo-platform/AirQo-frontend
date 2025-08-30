@@ -35,6 +35,14 @@ export function MultiSelectCombobox({
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
+  const inputRef = React.useRef<HTMLInputElement | null>(null)
+
+  React.useEffect(() => {
+    if (open) {
+      const id = setTimeout(() => inputRef.current?.focus(), 0)
+      return () => clearTimeout(id)
+    }
+  }, [open])
 
   const selectedValues = new Set(value)
 
@@ -82,10 +90,11 @@ export function MultiSelectCombobox({
     !selectedValues.has(inputValue.toLowerCase())
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen} modal>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
+          type="button"
           role="combobox"
           aria-expanded={open}
           className="w-full justify-between h-auto min-h-[40px] flex-wrap bg-transparent"
@@ -116,12 +125,17 @@ export function MultiSelectCombobox({
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+      <PopoverContent 
+        onOpenAutoFocus={(e) => { e.preventDefault(); inputRef.current?.focus(); }}
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+      >
         <Command shouldFilter={false}>
           <CommandInput
+            ref={inputRef}
             placeholder="Search or add new tag..."
             value={inputValue}
             onValueChange={(value) => setInputValue(value)}
+            autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter" && canCreateNew) {
                 e.preventDefault()
@@ -138,6 +152,7 @@ export function MultiSelectCombobox({
                     key={option.value}
                     value={option.value}
                     onSelect={() => handleSelect(option.value)}
+                    onMouseDown={(e) => e.preventDefault()}
                     className="cursor-pointer"
                   >
                     {option.label}
@@ -146,6 +161,7 @@ export function MultiSelectCombobox({
                 {canCreateNew && (
                   <CommandItem
                     onSelect={handleCreateNew}
+                    onMouseDown={(e) => e.preventDefault()}
                     value={`create-new-${inputValue.toLowerCase()}`}
                     className="cursor-pointer flex items-center justify-between"
                   >
