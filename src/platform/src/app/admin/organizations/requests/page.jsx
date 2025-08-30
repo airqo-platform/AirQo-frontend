@@ -245,7 +245,7 @@ export default function OrgRequestsPage() {
     () => [
       {
         key: 'organization_name',
-        header: 'Organization',
+        label: 'Organization',
         sortable: true,
         render: (value, item) => (
           <div className="space-y-1">
@@ -258,7 +258,7 @@ export default function OrgRequestsPage() {
       },
       {
         key: 'contact_name',
-        header: 'Contact Person',
+        label: 'Contact Person',
         sortable: true,
         render: (value, item) => (
           <div className="space-y-1">
@@ -271,32 +271,34 @@ export default function OrgRequestsPage() {
       },
       {
         key: 'country',
-        header: 'Country',
+        label: 'Country',
         sortable: true,
         render: (value) => value || 'N/A',
       },
       {
         key: 'createdAt',
-        header: 'Submitted',
+        label: 'Submitted',
         sortable: true,
         render: (value) => <div className="text-xs">{formatDate(value)}</div>,
       },
       {
         key: 'status',
-        header: 'Status',
+        label: 'Status',
         sortable: true,
         render: (value) => <StatusBadge status={value} />,
       },
       {
         key: 'use_case',
-        header: 'Use Case',
+        label: 'Use Case',
+        // allow wrapping within this column so long descriptions don't push other columns
+        wrap: true,
         render: (value, item) => {
           const maxLength = 50;
           const isExpanded = expandedRows[item._id];
           const shouldTruncate = value && value.length > maxLength;
 
           return (
-            <div className="max-w-xs">
+            <div className="w-[200px]">
               <p className="text-xs text-gray-600 dark:text-gray-300">
                 {shouldTruncate && !isExpanded
                   ? `${value.substring(0, maxLength)}...`
@@ -319,7 +321,7 @@ export default function OrgRequestsPage() {
       },
       {
         key: 'actions',
-        header: 'Actions',
+        label: 'Actions',
         render: (_, item) => (
           <div className="flex items-center gap-2">
             <button
