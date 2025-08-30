@@ -54,7 +54,13 @@ class SettingsTile extends StatelessWidget {
                         : Theme.of(context).highlightColor,
                     value: switchValue!,
                     onChanged: onChanged)
-                : null,
+                : onTap != null
+                    ? Icon(
+                        Icons.chevron_right,
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                        size: 24,
+                      )
+                    : null,
             subtitle: description != null
                 ? Padding(
                     padding: const EdgeInsets.only(top: 6.0),
