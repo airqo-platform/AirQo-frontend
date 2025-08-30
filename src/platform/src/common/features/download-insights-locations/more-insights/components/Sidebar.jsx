@@ -14,6 +14,7 @@ const variants = {
 function Sidebar({
   allSites,
   visibleSites,
+  visibleSiteIds = [],
   dataLoadingSites,
   isValidating,
   handleSiteAction,
@@ -36,6 +37,7 @@ function Sidebar({
             site={site}
             onToggle={() => handleSiteAction(site._id, 'toggle')}
             isSelected={visibleSites.includes(site._id)}
+            isVisualized={visibleSiteIds.includes(site._id)}
             isLoading={
               isValidating &&
               dataLoadingSites.includes(site._id) &&

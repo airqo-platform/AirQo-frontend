@@ -123,7 +123,10 @@ export const memoryOptimizationMiddleware = () => (next) => (action) => {
   if (
     payload &&
     typeof payload === 'object' &&
-    (payload.modalTitle || payload.data || payload.filterType || payload.originalSelection)
+    (payload.modalTitle ||
+      payload.data ||
+      payload.filterType ||
+      payload.originalSelection)
   ) {
     return next(action);
   }

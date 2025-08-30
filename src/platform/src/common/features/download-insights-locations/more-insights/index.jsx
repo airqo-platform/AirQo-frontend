@@ -5,6 +5,7 @@ import { useMediaQuery } from 'react-responsive';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import Sidebar from './components/Sidebar';
 import ControlsBar from './components/ControlsBar';
+import { PaginationControls } from './components/ControlsBar';
 import ChartContainer from './components/ChartContainer';
 import HiddenSitesInfo from './components/HiddenSitesInfo';
 import useMoreInsights from './hooks/useMoreInsights';
@@ -199,6 +200,7 @@ function MoreInsights() {
               <Sidebar
                 allSites={allSites}
                 visibleSites={visibleSites}
+                visibleSiteIds={visibleSiteIds}
                 dataLoadingSites={dataLoadingSites}
                 isValidating={isValidating}
                 handleSiteAction={handleSiteAction}
@@ -253,6 +255,7 @@ function MoreInsights() {
                   <Sidebar
                     allSites={allSites}
                     visibleSites={visibleSites}
+                    visibleSiteIds={visibleSiteIds}
                     dataLoadingSites={dataLoadingSites}
                     isValidating={isValidating}
                     handleSiteAction={handleSiteAction}
@@ -313,12 +316,20 @@ function MoreInsights() {
                   download={download}
                   downloadLoading={downloadLoading}
                   visibleSites={visibleSites}
-                  sitesPerPage={sitesPerPage}
-                  setSitesPerPage={setSitesPerPage}
-                  currentPage={currentPage}
-                  setCurrentPage={setCurrentPage}
                   isMobile={isMobile}
                 />
+
+                {/* Pagination controls in their own section below controls */}
+                {visibleSites.length > sitesPerPage && (
+                  <PaginationControls
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    totalItems={visibleSites.length}
+                    pageSize={sitesPerPage}
+                    sitesPerPage={sitesPerPage}
+                    setSitesPerPage={setSitesPerPage}
+                  />
+                )}
 
                 {downloadError && (
                   <SelectionMessage type="error">

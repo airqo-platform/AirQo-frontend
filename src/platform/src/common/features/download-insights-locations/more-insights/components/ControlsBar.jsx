@@ -48,10 +48,6 @@ function ControlsBar({
   downloadLoading,
   visibleSites,
   isMobile,
-  sitesPerPage,
-  setSitesPerPage,
-  currentPage,
-  setCurrentPage,
 }) {
   const handleDateChange = useCallback(
     (start, end, label) => {
@@ -162,63 +158,79 @@ function ControlsBar({
           size="md"
           closeOnSelect={true}
         />
-        {/* Sites per page control for More Insights visualization */}
-        <div className="inline-flex items-center ml-3">
-          <label className="text-sm mr-2">Sites per page</label>
-          <select
-            value={sitesPerPage}
-            onChange={(e) => {
-              setSitesPerPage(Number(e.target.value));
-              setCurrentPage(1);
-            }}
-            className="border rounded px-2 py-1 text-sm"
-            aria-label="Sites per page"
-          >
-            {[5, 10, 20, 50].map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-          <div className="ml-2 text-sm text-gray-600">({visibleSites.length})</div>
-        </div>
-        {/* Simple pagination */}
-        <div className="inline-flex items-center ml-3">
-          {/** Compute total pages for pagination */}
-          <PaginationControls
-            currentPage={currentPage}
-            setCurrentPage={setCurrentPage}
-            totalItems={visibleSites.length}
-            pageSize={sitesPerPage}
-          />
-        </div>
       </div>
     </motion.div>
   );
 }
 
-function PaginationControls({ currentPage, setCurrentPage, totalItems, pageSize }) {
+// Enhanced pagination controls with primary color styling
+export function PaginationControls({
+  currentPage,
+  setCurrentPage,
+  totalItems,
+  pageSize,
+  sitesPerPage,
+  setSitesPerPage,
+}) {
   const totalPages = Math.max(1, Math.ceil(totalItems / (pageSize || 10)));
 
   return (
-    <div className="inline-flex items-center border rounded-md overflow-hidden">
-      <button
-        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-        disabled={currentPage === 1}
-        className="px-2 py-1 border-r disabled:opacity-50"
-        aria-label="Previous page"
-      >
-        Prev
-      </button>
-      <div className="px-3 py-1 text-sm">{currentPage} / {totalPages}</div>
-      <button
-        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-        disabled={currentPage >= totalPages}
-        className="px-2 py-1 border-l disabled:opacity-50"
-        aria-label="Next page"
-      >
-        Next
-      </button>
+    <div className="flex flex-col sm:flex-row items-center gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+      {/* Sites per page selector */}
+      <div className="flex items-center gap-2">
+        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Sites per page:
+        </label>
+        <select
+          value={sitesPerPage}
+          onChange={(e) => {
+            setSitesPerPage(Number(e.target.value));
+            setCurrentPage(1);
+          }}
+          className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-1.5 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-colors"
+          aria-label="Sites per page"
+        >
+          {[5, 10, 20, 50].map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          ({totalItems} total)
+        </span>
+      </div>
+
+      {/* Pagination controls */}
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1.5 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          aria-label="Previous page"
+        >
+          Previous
+        </button>
+
+        <div className="flex items-center gap-1">
+          <span className="text-sm text-gray-700 dark:text-gray-300">Page</span>
+          <span className="px-2 py-1 text-sm font-medium bg-primary text-white rounded-md">
+            {currentPage}
+          </span>
+          <span className="text-sm text-gray-700 dark:text-gray-300">
+            of {totalPages}
+          </span>
+        </div>
+
+        <button
+          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          disabled={currentPage >= totalPages}
+          className="px-3 py-1.5 text-sm font-medium border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:ring-2 focus:ring-primary focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          aria-label="Next page"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

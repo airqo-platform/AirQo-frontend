@@ -62,7 +62,11 @@ function ChartContainer({
             data={allSiteData}
             selectedSites={dataLoadingSites}
             // prefer paginated visible site ids when provided
-            visibleSiteIds={visibleSiteIds && visibleSiteIds.length ? visibleSiteIds : visibleSites}
+            visibleSiteIds={
+              visibleSiteIds && visibleSiteIds.length
+                ? visibleSiteIds
+                : visibleSites
+            }
             chartType={chartType}
             frequency={frequency}
             width="100%"
