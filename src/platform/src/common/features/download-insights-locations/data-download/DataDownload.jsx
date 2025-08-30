@@ -681,14 +681,17 @@ const DataDownload = ({
             }
             modalTitle = `Air Quality Insights - ${locationLabel} (${visualizationData.length} Site${visualizationData.length > 1 ? 's' : ''})`;
 
-            // For very large datasets, limit to first 100 sites with a warning
-            if (visualizationData.length > 100) {
-              setStatusMessage(
-                `Showing data for the first 100 out of ${visualizationData.length} sites for optimal performance.`,
-              );
-              setMessageType('warning');
-              visualizationData = visualizationData.slice(0, 100);
-            }
+            // For performance and to avoid sending overly large payloads to the modal,
+            // send a minimal representation of each site (only the fields needed for display)
+            // but do not arbitrarily discard sites here. The More Insights UI will
+            // handle pagination/limits when rendering charts.
+            visualizationData = visualizationData.map((site) => ({
+              _id: site._id,
+              name: site.name || site.location_name || site.location || '',
+              location_name: site.location_name || site.name || '',
+              city: site.city || site.city_name || '',
+              country: site.country || '',
+            }));
 
             // Check if we have any sites after mapping
             if (visualizationData.length === 0) {

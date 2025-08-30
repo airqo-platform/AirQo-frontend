@@ -48,6 +48,10 @@ function ControlsBar({
   downloadLoading,
   visibleSites,
   isMobile,
+  sitesPerPage,
+  setSitesPerPage,
+  currentPage,
+  setCurrentPage,
 }) {
   const handleDateChange = useCallback(
     (start, end, label) => {
@@ -158,8 +162,64 @@ function ControlsBar({
           size="md"
           closeOnSelect={true}
         />
+        {/* Sites per page control for More Insights visualization */}
+        <div className="inline-flex items-center ml-3">
+          <label className="text-sm mr-2">Sites per page</label>
+          <select
+            value={sitesPerPage}
+            onChange={(e) => {
+              setSitesPerPage(Number(e.target.value));
+              setCurrentPage(1);
+            }}
+            className="border rounded px-2 py-1 text-sm"
+            aria-label="Sites per page"
+          >
+            {[5, 10, 20, 50].map((n) => (
+              <option key={n} value={n}>
+                {n}
+              </option>
+            ))}
+          </select>
+          <div className="ml-2 text-sm text-gray-600">({visibleSites.length})</div>
+        </div>
+        {/* Simple pagination */}
+        <div className="inline-flex items-center ml-3">
+          {/** Compute total pages for pagination */}
+          <PaginationControls
+            currentPage={currentPage}
+            setCurrentPage={setCurrentPage}
+            totalItems={visibleSites.length}
+            pageSize={sitesPerPage}
+          />
+        </div>
       </div>
     </motion.div>
+  );
+}
+
+function PaginationControls({ currentPage, setCurrentPage, totalItems, pageSize }) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / (pageSize || 10)));
+
+  return (
+    <div className="inline-flex items-center border rounded-md overflow-hidden">
+      <button
+        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+        disabled={currentPage === 1}
+        className="px-2 py-1 border-r disabled:opacity-50"
+        aria-label="Previous page"
+      >
+        Prev
+      </button>
+      <div className="px-3 py-1 text-sm">{currentPage} / {totalPages}</div>
+      <button
+        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+        disabled={currentPage >= totalPages}
+        className="px-2 py-1 border-l disabled:opacity-50"
+        aria-label="Next page"
+      >
+        Next
+      </button>
+    </div>
   );
 }
 

@@ -89,6 +89,17 @@ export default function useMoreInsights() {
 
   const [dataLoadingSites, setDataLoadingSites] = useState([]);
   const [visibleSites, setVisibleSites] = useState([]);
+  // Pagination / visualization limits
+  const [sitesPerPage, setSitesPerPage] = useState(10); // default to 10 for visualization
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Derived visible site ids for charting based on pagination
+  const visibleSiteIds = useMemo(() => {
+    if (!visibleSites || visibleSites.length === 0) return [];
+    const start = (currentPage - 1) * sitesPerPage;
+    const end = start + sitesPerPage;
+    return visibleSites.slice(start, end);
+  }, [visibleSites, sitesPerPage, currentPage]);
 
   // Update data loading sites and visible sites when allSites changes
   // Update data loading sites and visible sites when allSites changes (consolidated)
@@ -117,7 +128,9 @@ export default function useMoreInsights() {
 
   const analyticsParams = shouldFetchData
     ? {
-        selectedSiteIds: dataLoadingSites,
+  // Only request analytics for the currently visible page of sites to
+  // keep payloads reasonable. Backend supports multiple site ids.
+  selectedSiteIds: visibleSiteIds.length ? visibleSiteIds : dataLoadingSites,
         dateRange: {
           startDate: new Date(dateRange.startDate),
           endDate: new Date(dateRange.endDate),
@@ -233,7 +246,12 @@ export default function useMoreInsights() {
     dateRange,
     setDateRange,
     dataLoadingSites,
-    visibleSites,
+  visibleSites,
+  visibleSiteIds,
+  sitesPerPage,
+  setSitesPerPage,
+  currentPage,
+  setCurrentPage,
     /* flags */
     isManualRefresh,
     refreshSuccess,

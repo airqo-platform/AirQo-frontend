@@ -132,6 +132,11 @@ function MoreInsights() {
     isValidating,
     dataLoadingSites,
     visibleSites,
+    visibleSiteIds,
+    sitesPerPage,
+    setSitesPerPage,
+    currentPage,
+    setCurrentPage,
     mobileSidebarVisible,
     setMobileSidebarVisible,
     frequency,
@@ -308,6 +313,10 @@ function MoreInsights() {
                   download={download}
                   downloadLoading={downloadLoading}
                   visibleSites={visibleSites}
+                  sitesPerPage={sitesPerPage}
+                  setSitesPerPage={setSitesPerPage}
+                  currentPage={currentPage}
+                  setCurrentPage={setCurrentPage}
                   isMobile={isMobile}
                 />
 
@@ -325,6 +334,7 @@ function MoreInsights() {
                   isValidating={isValidating}
                   dataLoadingSites={dataLoadingSites}
                   visibleSites={visibleSites}
+                  visibleSiteIds={visibleSiteIds}
                   chartType={chartType}
                   frequency={frequency}
                   pollutantType={pollutant}
