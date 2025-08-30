@@ -7,9 +7,8 @@ import {
   getRecentMeasurements,
   generateSiteAndDeviceIds,
 } from '../apis/Analytics';
-import { format } from 'date-fns';
 import { ANALYTICS_SWR_CONFIG, SWR_CONFIG } from '../swrConfigs';
-import logger from '../../lib/logger';
+import logger from '@/lib/logger';
 
 const formatDate = (() => {
   const cache = new Map();
@@ -24,7 +23,8 @@ const formatDate = (() => {
       const dateObj = date instanceof Date ? date : new Date(date);
       if (isNaN(dateObj.getTime())) return null;
 
-      const formatted = format(dateObj, "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+      // Use real UTC string instead of local-time formatted as UTC
+      const formatted = dateObj.toISOString();
 
       if (cache.size > 100) {
         const firstKey = cache.keys().next().value;
@@ -105,10 +105,13 @@ export const useSitesSummary = (group, options = {}) => {
 };
 
 export const useDeviceSummary = (group = null, options = {}) => {
+  const normalized =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
   const { data, error, isLoading, mutate } = useSWR(
-    ['device-summary', group],
+    ['device-summary', normalized || 'all'],
     async () => {
-      const result = await getDeviceSummaryApi({ group });
+      const groupParam = normalized || undefined;
+      const result = await getDeviceSummaryApi({ group: groupParam });
       return result;
     },
     {
