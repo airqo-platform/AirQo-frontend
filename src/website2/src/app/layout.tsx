@@ -27,6 +27,8 @@ const interFont = localFont({
     },
   ],
   variable: '--font-inter',
+  display: 'swap',
+  preload: true,
 });
 
 export default async function RootLayout({
@@ -60,24 +62,6 @@ export default async function RootLayout({
     'AirQalibrate',
     'mobile air quality app',
     'air quality API',
-    'African environmental health',
-    'ambient air monitoring',
-    'particulate matter',
-    'air quality forecasting',
-    'urban air pollution',
-    'climate change',
-    'air quality management',
-    'clean air solutions',
-    'environmental data',
-    'sustainable cities',
-    'public health',
-    'respiratory health',
-    'environmental policy',
-    'air quality research',
-    'air quality standards',
-    'air quality compliance',
-    'air pollution control',
-    'air quality education',
   ].join(', ');
 
   const maintenance = await checkMaintenance();
@@ -125,25 +109,58 @@ export default async function RootLayout({
         <meta name="description" content={description} />
         <meta name="keywords" content={keywords} />
         <meta name="author" content="AirQo" />
-        <meta name="robots" content="index, follow" />
+        <meta
+          name="robots"
+          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        />
         <meta name="apple-mobile-web-app-title" content="AirQo" />
         <meta name="theme-color" content="#145DFF" />
+
+        {/* Performance optimizations */}
+        <link rel="dns-prefetch" href="//res.cloudinary.com" />
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link
+          rel="preconnect"
+          href="//res.cloudinary.com"
+          crossOrigin="anonymous"
+        />
+
+        {/* Preload critical images */}
+        <link
+          rel="preload"
+          as="image"
+          href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+        />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:url" content={siteUrl} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:image" content={`${siteUrl}icon.png`} />
+        <meta
+          property="og:image"
+          content="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp"
+        />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
+        <meta property="og:site_name" content="AirQo" />
 
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:url" content={siteUrl} />
         <meta name="twitter:title" content={title} />
         <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={`${siteUrl}icon.png`} />
+        <meta
+          name="twitter:image"
+          content="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp"
+        />
+        <meta name="twitter:site" content="@AirQoProject" />
+        <meta name="twitter:creator" content="@AirQoProject" />
 
         {/* Structured data */}
         <Script
