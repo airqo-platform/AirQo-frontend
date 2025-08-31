@@ -20,7 +20,7 @@ const DEFAULT_METADATA = {
   siteName: 'AirQo',
   siteUrl: 'https://airqo.net',
   defaultImage: {
-    url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+    url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
     alt: 'AirQo - Clean Air for All African Cities',
     width: 1200,
     height: 630,
@@ -33,14 +33,6 @@ export function generateMetadata(config: MetadataConfig): Metadata {
   const fullUrl = config.url.startsWith('http')
     ? config.url
     : `${DEFAULT_METADATA.siteUrl}${config.url}`;
-
-  // Debug logging in development
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Generating metadata for ${config.url}:`);
-    console.log(`- Title: ${config.title}`);
-    console.log(`- Image URL: ${image.url}`);
-    console.log(`- Full URL: ${fullUrl}`);
-  }
 
   return {
     title: config.title,
@@ -86,9 +78,11 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       description: config.description,
       images: [image.url],
     },
-    verification: {
-      google: process.env.GOOGLE_SITE_VERIFICATION,
-    },
+    ...(process.env.GOOGLE_SITE_VERIFICATION && {
+      verification: {
+        google: process.env.GOOGLE_SITE_VERIFICATION,
+      },
+    }),
   };
 }
 
