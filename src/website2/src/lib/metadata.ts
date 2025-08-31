@@ -20,7 +20,7 @@ const DEFAULT_METADATA = {
   siteName: 'AirQo',
   siteUrl: 'https://airqo.net',
   defaultImage: {
-    url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+    url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
     alt: 'AirQo - Clean Air for All African Cities',
     width: 1200,
     height: 630,
@@ -33,6 +33,14 @@ export function generateMetadata(config: MetadataConfig): Metadata {
   const fullUrl = config.url.startsWith('http')
     ? config.url
     : `${DEFAULT_METADATA.siteUrl}${config.url}`;
+
+  // Debug logging in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Generating metadata for ${config.url}:`);
+    console.log(`- Title: ${config.title}`);
+    console.log(`- Image URL: ${image.url}`);
+    console.log(`- Full URL: ${fullUrl}`);
+  }
 
   return {
     title: config.title,
@@ -127,7 +135,7 @@ export const METADATA_CONFIGS = {
       'air quality monitors, pollution sensors, AirQo monitoring devices, Binos monitor, environmental monitoring equipment, African air quality sensors, urban pollution monitors, air quality measurement devices',
     url: '/products/monitor',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741870808/website/photos/OurProducts/Monitor/image14_agtyes.jpg',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
       alt: 'AirQo Binos Air Quality Monitoring Device',
     },
   },
@@ -186,6 +194,10 @@ export const METADATA_CONFIGS = {
     keywords:
       'contact AirQo, air quality support, AirQo partnerships, air quality consultation, AirQo team contact, environmental monitoring support, air quality solutions inquiry',
     url: '/contact',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+      alt: 'Contact AirQo Team - Air Quality Experts',
+    },
   },
   exploreData: {
     title: 'Explore Air Quality Data | Live Air Quality Map Across Africa',
@@ -232,7 +244,7 @@ export const METADATA_CONFIGS = {
       'African cities air quality, urban air pollution solutions, city air monitoring, African urban environment, smart city air quality, municipal air quality management',
     url: '/solutions/african-cities',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
       alt: 'Air Quality Solutions for African Cities',
     },
   },
@@ -244,7 +256,7 @@ export const METADATA_CONFIGS = {
       'community air quality, grassroots air monitoring, community air pollution, local air quality data, African community empowerment, neighborhood air quality',
     url: '/solutions/communities',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
       alt: 'Community Air Quality Solutions',
     },
   },
@@ -256,7 +268,7 @@ export const METADATA_CONFIGS = {
       'air quality research, environmental research Africa, air pollution data research, academic air quality tools, policy research air quality, environmental monitoring research',
     url: '/solutions/research',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
       alt: 'Air Quality Research Solutions',
     },
   },
@@ -268,6 +280,10 @@ export const METADATA_CONFIGS = {
     keywords:
       'AirQo privacy policy, data privacy, personal information protection, data security, privacy terms',
     url: '/legal/privacy-policy',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      alt: 'AirQo Privacy and Data Protection',
+    },
   },
   termsOfService: {
     title: 'Terms of Service | AirQo',
@@ -276,6 +292,10 @@ export const METADATA_CONFIGS = {
     keywords:
       'AirQo terms of service, terms and conditions, service agreement, platform terms',
     url: '/legal/terms-of-service',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      alt: 'AirQo Terms of Service Agreement',
+    },
   },
   paymentRefundPolicy: {
     title: 'Payment & Refund Policy | AirQo',
@@ -284,6 +304,10 @@ export const METADATA_CONFIGS = {
     keywords:
       'AirQo payment policy, refund policy, billing terms, payment processing',
     url: '/legal/payment-refund-policy',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
+      alt: 'AirQo Payment and Billing Policies',
+    },
   },
   airqoDataPolicy: {
     title: 'AirQo Data Policy | Open Air Quality Data',
@@ -292,6 +316,10 @@ export const METADATA_CONFIGS = {
     keywords:
       'AirQo data policy, open data, air quality data licensing, data usage terms, environmental data sharing',
     url: '/legal/airqo-data',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'AirQo Open Data Policy and Licensing',
+    },
   },
   // Other pages
   careers: {

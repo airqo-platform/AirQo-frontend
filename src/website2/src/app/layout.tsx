@@ -1,5 +1,6 @@
 import './globals.css';
 
+import { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Script from 'next/script';
 import { ReactNode, Suspense } from 'react';
@@ -31,18 +32,16 @@ const interFont = localFont({
   preload: true,
 });
 
-export default async function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
-  const siteUrl = 'https://airqo.net/';
-  const title = 'AirQo | Bridging the Air Quality Data Gap in Africa';
-  const description =
-    'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.';
-
-  const keywords = [
+// Default metadata - will be overridden by page-specific metadata
+export const metadata: Metadata = {
+  metadataBase: new URL('https://airqo.net'),
+  title: {
+    default: 'AirQo | Bridging the Air Quality Data Gap in Africa',
+    template: '%s | AirQo',
+  },
+  description:
+    'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
+  keywords: [
     'AirQo',
     'air quality monitoring Africa',
     'air pollution data',
@@ -62,7 +61,63 @@ export default async function RootLayout({
     'AirQalibrate',
     'mobile air quality app',
     'air quality API',
-  ].join(', ');
+  ],
+  authors: [{ name: 'AirQo' }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://airqo.net',
+    siteName: 'AirQo',
+    title: 'AirQo | Bridging the Air Quality Data Gap in Africa',
+    description:
+      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
+    images: [
+      {
+        url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+        width: 1200,
+        height: 630,
+        alt: 'AirQo - Clean Air for All African Cities',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@AirQoProject',
+    creator: '@AirQoProject',
+    title: 'AirQo | Bridging the Air Quality Data Gap in Africa',
+    description:
+      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions.',
+    images: [
+      'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+    ],
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
+  other: {
+    'apple-mobile-web-app-title': 'AirQo',
+    'theme-color': '#145DFF',
+  },
+};
+
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
+  const siteUrl = 'https://airqo.net/';
 
   const maintenance = await checkMaintenance();
 
@@ -72,7 +127,8 @@ export default async function RootLayout({
     url: siteUrl,
     name: 'AirQo',
     alternateName: 'Air Quality and Pollution Monitoring Organization',
-    description: description,
+    description:
+      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
     logo: `${siteUrl}icon.png`,
     sameAs: [
       'https://www.facebook.com/AirQo',
@@ -104,18 +160,6 @@ export default async function RootLayout({
   return (
     <html lang="en" className={interFont.variable}>
       <head>
-        {/* Primary SEO */}
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta name="keywords" content={keywords} />
-        <meta name="author" content="AirQo" />
-        <meta
-          name="robots"
-          content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-        />
-        <meta name="apple-mobile-web-app-title" content="AirQo" />
-        <meta name="theme-color" content="#145DFF" />
-
         {/* Performance optimizations */}
         <link rel="dns-prefetch" href="//res.cloudinary.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
@@ -137,31 +181,6 @@ export default async function RootLayout({
           href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
         />
 
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={siteUrl} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta
-          property="og:image"
-          content="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp"
-        />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:site_name" content="AirQo" />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={siteUrl} />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta
-          name="twitter:image"
-          content="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp"
-        />
-        <meta name="twitter:site" content="@AirQoProject" />
-        <meta name="twitter:creator" content="@AirQoProject" />
-
         {/* Structured data */}
         <Script
           id="ld-json"
@@ -170,9 +189,6 @@ export default async function RootLayout({
         >
           {JSON.stringify(structuredData)}
         </Script>
-
-        {/* Canonical URL */}
-        <link rel="canonical" href={siteUrl} />
 
         {/* GA snippet must appear in <head> for Search Console verification */}
         <Script
