@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { removeTrailingSlash } from '@/utils';
 
-const API_BASE_URL = `${removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || '';
+const API_BASE_URL = `${removeTrailingSlash(process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
+// Use a server-only environment variable for the API token so it is not exposed to the client
+const API_TOKEN =
+  process.env.API_TOKEN || process.env.NEXT_PUBLIC_API_TOKEN || '';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -17,11 +19,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Create the external API URL with proper URL construction
+    // Create the external API URL and append the server-side token
     const apiUrl = new URL(`${API_BASE_URL}/${endpoint}`);
     apiUrl.searchParams.append('token', API_TOKEN);
 
-    // Make the request to the external API
+    // Make the request to the external API from the server (token stays server-side)
     const apiResponse = await fetch(apiUrl.toString(), {
       headers: {
         'Content-Type': 'application/json',
@@ -51,31 +53,24 @@ export async function POST(request: NextRequest) {
     // Extract the endpoint from the request, but don't send it to the external API
     const { endpoint, ...body } = await request.json();
 
-    // Log to check what the remaining body looks like
-    console.log('Received body (without endpoint):', body);
-
-    // Check if the endpoint exists
+    // Validate endpoint
     if (!endpoint) {
-      console.error('Endpoint not provided');
       return NextResponse.json(
         { error: 'Endpoint is required' },
         { status: 400 },
       );
     }
 
-    // Construct the API URL with the token as a query parameter
+    // Construct the API URL with the token as a query parameter (server-side only)
     const apiUrl = `${API_BASE_URL}/${endpoint}?token=${API_TOKEN}`;
 
-    // Log the URL you're about to make the request to
-    console.log('API URL:', apiUrl);
-
-    // Make the POST request to the external API, without the endpoint field
+    // Make the POST request to the external API from the server
     const apiResponse = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body), // Send only the relevant fields (e.g., email, firstName, lastName)
+      body: JSON.stringify(body),
     });
 
     // Check if the response is successful

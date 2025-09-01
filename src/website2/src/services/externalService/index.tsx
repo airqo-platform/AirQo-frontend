@@ -9,9 +9,6 @@ import { removeTrailingSlash } from '@/utils';
 // Define the base URL for the API
 const API_BASE_URL = `${removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
 
-// Retrieve the API token from environment variables
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || '';
-
 // Create an Axios instance with default configurations
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -100,15 +97,15 @@ export const getMaintenances = async (): Promise<any | null> => {
  */
 export const getGridsSummary = async (): Promise<any | null> => {
   try {
-    const response: AxiosResponse<any> = await apiClient.get(
-      '/devices/grids/summary',
-      {
-        params: {
-          token: API_TOKEN,
-        },
-      },
+    // Use the server-side proxy to avoid exposing API_TOKEN to the client/network tab
+    const proxyResponse = await fetch(
+      `/api/proxy?endpoint=devices/grids/summary`,
     );
-    return response.data;
+    if (!proxyResponse.ok) {
+      throw new Error(`Proxy request failed: ${proxyResponse.statusText}`);
+    }
+    const data = await proxyResponse.json();
+    return data;
   } catch (error) {
     handleError(error, 'GET /devices/grids/summary');
     return null;
