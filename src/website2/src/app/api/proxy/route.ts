@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { removeTrailingSlash } from '@/utils';
 
-const API_BASE_URL = `${removeTrailingSlash(process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
+const RAW_API_URL = removeTrailingSlash(
+  process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '',
+);
+const API_BASE_URL = RAW_API_URL ? `${RAW_API_URL}/api/v2` : '';
 // Use a server-only environment variable for the API token so it is not exposed to the client
 const API_TOKEN =
   process.env.API_TOKEN || process.env.NEXT_PUBLIC_API_TOKEN || '';
@@ -19,6 +22,13 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Guard against misconfiguration: ensure API_BASE_URL is an absolute URL
+    if (!API_BASE_URL || !/^https?:\/\//.test(API_BASE_URL)) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: API_URL must be an absolute URL' },
+        { status: 500 },
+      );
+    }
     // Create the external API URL and append the server-side token
     const apiUrl = new URL(`${API_BASE_URL}/${endpoint}`);
     apiUrl.searchParams.append('token', API_TOKEN);
@@ -50,6 +60,13 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Guard against misconfiguration: ensure API_BASE_URL is an absolute URL
+    if (!API_BASE_URL || !/^https?:\/\//.test(API_BASE_URL)) {
+      return NextResponse.json(
+        { error: 'Server misconfiguration: API_URL must be an absolute URL' },
+        { status: 500 },
+      );
+    }
     // Extract the endpoint from the request, but don't send it to the external API
     const { endpoint, ...body } = await request.json();
 

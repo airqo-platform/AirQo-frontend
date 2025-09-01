@@ -97,15 +97,33 @@ export const getMaintenances = async (): Promise<any | null> => {
  */
 export const getGridsSummary = async (): Promise<any | null> => {
   try {
-    // Use the server-side proxy to avoid exposing API_TOKEN to the client/network tab
-    const proxyResponse = await fetch(
-      `/api/proxy?endpoint=devices/grids/summary`,
-    );
-    if (!proxyResponse.ok) {
-      throw new Error(`Proxy request failed: ${proxyResponse.statusText}`);
+    // Use server-side proxy without exposing tokens; support both SSR and CSR
+    const isServer = typeof window === 'undefined';
+    let url = '/api/proxy?endpoint=devices/grids/summary';
+    if (isServer) {
+      const origin =
+        process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '';
+      if (!origin) {
+        throw new Error(
+          'SITE_URL or NEXT_PUBLIC_SITE_URL must be set for server-side calls to /api/proxy',
+        );
+      }
+      url = `${origin.replace(/\/$/, '')}/api/proxy?endpoint=devices/grids/summary`;
     }
-    const data = await proxyResponse.json();
-    return data;
+
+    // Add a timeout for server-side requests to avoid hanging SSG/SSR
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const proxyResponse = await fetch(url, { signal: controller.signal });
+      if (!proxyResponse.ok) {
+        throw new Error(`Proxy request failed: ${proxyResponse.statusText}`);
+      }
+      const data = await proxyResponse.json();
+      return data;
+    } finally {
+      clearTimeout(timeout);
+    }
   } catch (error) {
     handleError(error, 'GET /devices/grids/summary');
     return null;
