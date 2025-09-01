@@ -1,5 +1,6 @@
 import './globals.css';
 
+import { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Script from 'next/script';
 import { ReactNode, Suspense } from 'react';
@@ -10,7 +11,9 @@ import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { checkMaintenance } from '@/lib/maintenance';
+import { generateViewport } from '@/lib/metadata';
 
+import PerformanceMonitorClient from '../components/PerformanceMonitor.client';
 import MaintenancePage from './MaintenancePage';
 
 const interFont = localFont({
@@ -27,20 +30,20 @@ const interFont = localFont({
     },
   ],
   variable: '--font-inter',
+  display: 'swap',
+  preload: true,
 });
 
-export default async function RootLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
-  const siteUrl = 'https://airqo.net/';
-  const title = 'AirQo | Bridging the Air Quality Data Gap in Africa';
-  const description =
-    'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.';
-
-  const keywords = [
+// Default metadata - will be overridden by page-specific metadata
+export const metadata: Metadata = {
+  metadataBase: new URL('https://airqo.net'),
+  title: {
+    default: 'AirQo | Bridging the Air Quality Data Gap in Africa',
+    template: '%s | AirQo',
+  },
+  description:
+    'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
+  keywords: [
     'AirQo',
     'air quality monitoring Africa',
     'air pollution data',
@@ -60,25 +63,68 @@ export default async function RootLayout({
     'AirQalibrate',
     'mobile air quality app',
     'air quality API',
-    'African environmental health',
-    'ambient air monitoring',
-    'particulate matter',
-    'air quality forecasting',
-    'urban air pollution',
-    'climate change',
-    'air quality management',
-    'clean air solutions',
-    'environmental data',
-    'sustainable cities',
-    'public health',
-    'respiratory health',
-    'environmental policy',
-    'air quality research',
-    'air quality standards',
-    'air quality compliance',
-    'air pollution control',
-    'air quality education',
-  ].join(', ');
+  ],
+  authors: [{ name: 'AirQo' }],
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://airqo.net',
+    siteName: 'AirQo',
+    title: 'AirQo | Bridging the Air Quality Data Gap in Africa',
+    description:
+      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
+    images: [
+      {
+        url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+        width: 1200,
+        height: 630,
+        alt: 'AirQo - Clean Air for All African Cities',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@AirQoProject',
+    creator: '@AirQoProject',
+    title: 'AirQo | Bridging the Air Quality Data Gap in Africa',
+    description:
+      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions.',
+    images: [
+      'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+    ],
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+  },
+  other: {
+    'apple-mobile-web-app-title': 'AirQo',
+    'theme-color': '#145DFF',
+  },
+};
+
+export default async function RootLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const ENABLE_GA =
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true' &&
+    !!GA_ID;
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net/';
+  const siteUrl = rawSiteUrl.replace(/\/$/, '') + '/';
 
   const maintenance = await checkMaintenance();
 
@@ -88,7 +134,8 @@ export default async function RootLayout({
     url: siteUrl,
     name: 'AirQo',
     alternateName: 'Air Quality and Pollution Monitoring Organization',
-    description: description,
+    description:
+      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
     logo: `${siteUrl}icon.png`,
     sameAs: [
       'https://www.facebook.com/AirQo',
@@ -120,30 +167,26 @@ export default async function RootLayout({
   return (
     <html lang="en" className={interFont.variable}>
       <head>
-        {/* Primary SEO */}
-        <title>{title}</title>
-        <meta name="description" content={description} />
-        <meta name="keywords" content={keywords} />
-        <meta name="author" content="AirQo" />
-        <meta name="robots" content="index, follow" />
-        <meta name="apple-mobile-web-app-title" content="AirQo" />
-        <meta name="theme-color" content="#145DFF" />
+        {/* Performance optimizations */}
+        <link rel="dns-prefetch" href="//res.cloudinary.com" />
+        <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link
+          rel="preconnect"
+          href="//res.cloudinary.com"
+          crossOrigin="anonymous"
+        />
 
-        {/* Open Graph / Facebook */}
-        <meta property="og:type" content="website" />
-        <meta property="og:url" content={siteUrl} />
-        <meta property="og:title" content={title} />
-        <meta property="og:description" content={description} />
-        <meta property="og:image" content={`${siteUrl}icon.png`} />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-
-        {/* Twitter */}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:url" content={siteUrl} />
-        <meta name="twitter:title" content={title} />
-        <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={`${siteUrl}icon.png`} />
+        {/* Preload critical images */}
+        <link
+          rel="preload"
+          as="image"
+          href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp"
+        />
+        <link
+          rel="preload"
+          as="image"
+          href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+        />
 
         {/* Structured data */}
         <Script
@@ -154,24 +197,23 @@ export default async function RootLayout({
           {JSON.stringify(structuredData)}
         </Script>
 
-        {/* Canonical URL */}
-        <link rel="canonical" href={siteUrl} />
-
-        {/* GA snippet must appear in <head> for Search Console verification */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="beforeInteractive"
-        />
-        <Script id="ga-init" strategy="beforeInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){ dataLayer.push(arguments); }
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}', {
-              page_path: window.location.pathname,
-            });
-          `}
-        </Script>
+        {/* GA snippet is gated and loaded only when ENABLE_GA is true */}
+        {ENABLE_GA && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}', { page_path: window.location.pathname });
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body>
         <ExternalLinkDecorator />
@@ -183,6 +225,7 @@ export default async function RootLayout({
               ) : (
                 <>
                   <EngagementDialog />
+                  <PerformanceMonitorClient />
                   {children}
                 </>
               )}
@@ -193,3 +236,6 @@ export default async function RootLayout({
     </html>
   );
 }
+
+// Centralized viewport export for all pages (accessible - generator removed maximumScale)
+export const viewport = generateViewport();
