@@ -1,21 +1,21 @@
 import Image from 'next/image';
 import React, { useState } from 'react';
 
-interface OptimizedImageProps {
+type BaseProps = {
   src: string;
   alt: string;
-  width?: number;
-  height?: number;
   className?: string;
   priority?: boolean;
-  fill?: boolean;
   sizes?: string;
   quality?: number;
   placeholder?: 'blur' | 'empty';
   blurDataURL?: string;
-  onLoad?: () => void;
-  onError?: () => void;
-}
+  onLoad?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+  onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
+};
+type FillProps = BaseProps & { fill: true; width?: never; height?: never };
+type FixedProps = BaseProps & { fill?: false; width: number; height: number };
+type OptimizedImageProps = FillProps | FixedProps;
 
 const OptimizedImage: React.FC<OptimizedImageProps> = ({
   src,
@@ -35,14 +35,14 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const handleLoad = () => {
+  const handleLoad: React.ComponentProps<typeof Image>['onLoad'] = (e) => {
     setImageLoaded(true);
-    onLoad?.();
+    onLoad?.(e as React.SyntheticEvent<HTMLImageElement, Event>);
   };
 
-  const handleError = () => {
+  const handleError: React.ComponentProps<typeof Image>['onError'] = (e) => {
     setImageError(true);
-    onError?.();
+    onError?.(e as React.SyntheticEvent<HTMLImageElement, Event>);
   };
 
   // Fallback image placeholder
@@ -80,7 +80,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
       {!imageLoaded && (
         <div
           className="absolute inset-0 bg-gray-200 animate-pulse"
-          style={{ width: width, height: height }}
+          style={{
+            width: fill ? '100%' : width,
+            height: fill ? '100%' : height,
+          }}
         />
       )}
     </div>

@@ -82,7 +82,13 @@ const nextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            // Allow geolocation for the current origin (used by map/location features)
+            value: 'camera=(), microphone=(), geolocation=(self)',
+          },
+          {
+            // Enforce HSTS for one year, include subdomains and preload where supported
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains; preload',
           },
         ],
       },

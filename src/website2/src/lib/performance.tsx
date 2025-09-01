@@ -25,6 +25,7 @@ export const LazyComponents = {
 
 // Image preloader for critical images
 export const preloadImage = (src: string): Promise<void> => {
+  if (typeof window === 'undefined') return Promise.resolve();
   return new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve();

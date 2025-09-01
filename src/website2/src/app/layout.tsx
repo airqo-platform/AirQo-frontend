@@ -11,7 +11,9 @@ import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { checkMaintenance } from '@/lib/maintenance';
+import { generateViewport } from '@/lib/metadata';
 
+import PerformanceMonitorClient from '../components/PerformanceMonitor.client';
 import MaintenancePage from './MaintenancePage';
 
 const interFont = localFont({
@@ -116,8 +118,13 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-79ZVCLEDSG';
-  const siteUrl = 'https://airqo.net/';
+  const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+  const ENABLE_GA =
+    process.env.NODE_ENV === 'production' &&
+    process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true' &&
+    !!GA_ID;
+  const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net/';
+  const siteUrl = rawSiteUrl.replace(/\/$/, '') + '/';
 
   const maintenance = await checkMaintenance();
 
@@ -190,21 +197,23 @@ export default async function RootLayout({
           {JSON.stringify(structuredData)}
         </Script>
 
-        {/* GA snippet must appear in <head> for Search Console verification */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="beforeInteractive"
-        />
-        <Script id="ga-init" strategy="beforeInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){ dataLayer.push(arguments); }
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}', {
-              page_path: window.location.pathname,
-            });
-          `}
-        </Script>
+        {/* GA snippet is gated and loaded only when ENABLE_GA is true */}
+        {ENABLE_GA && (
+          <>
+            <Script
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+              strategy="afterInteractive"
+            />
+            <Script id="ga-init" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){ dataLayer.push(arguments); }
+                gtag('js', new Date());
+                gtag('config', '${GA_ID}', { page_path: window.location.pathname });
+              `}
+            </Script>
+          </>
+        )}
       </head>
       <body>
         <ExternalLinkDecorator />
@@ -216,6 +225,7 @@ export default async function RootLayout({
               ) : (
                 <>
                   <EngagementDialog />
+                  <PerformanceMonitorClient />
                   {children}
                 </>
               )}
@@ -226,3 +236,6 @@ export default async function RootLayout({
     </html>
   );
 }
+
+// Centralized viewport export for all pages (accessible - generator removed maximumScale)
+export const viewport = generateViewport();

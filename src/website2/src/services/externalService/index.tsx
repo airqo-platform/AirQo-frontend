@@ -24,23 +24,7 @@ const apiClient: AxiosInstance = axios.create({
 // Generic Request Handlers
 // ----------------------
 
-/**
- * Generic GET request handler.
- */
-const getRequest = async (
-  endpoint: string,
-  params?: any,
-): Promise<any | null> => {
-  try {
-    const response: AxiosResponse<any> = await apiClient.get(endpoint, {
-      params,
-    });
-    return response.data;
-  } catch (error) {
-    handleError(error, `GET ${endpoint}`);
-    return null;
-  }
-};
+// (removed unused generic GET helper to avoid lint warnings)
 
 /**
  * Generic POST request handler.
@@ -92,7 +76,19 @@ export const postContactUs = async (body: any): Promise<any | null> => {
  * Fetch maintenance data for the website.
  */
 export const getMaintenances = async (): Promise<any | null> => {
-  return getRequest('/users/maintenances/website');
+  try {
+    const response: AxiosResponse<any> = await apiClient.get(
+      '/users/maintenances/website',
+      {
+        // keep timeout short during build to avoid long blocking delays
+        timeout: 3000,
+      },
+    );
+    return response.data;
+  } catch {
+    // Avoid noisy error logs during static generation/builds; caller handles nulls.
+    return null;
+  }
 };
 
 // ----------------------

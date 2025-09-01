@@ -1,19 +1,16 @@
 import { MetadataRoute } from 'next';
 
+export const revalidate = 86400; // refresh daily
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://airqo.net';
+  const rawBase = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net';
+  const baseUrl = rawBase.replace(/\/$/, '');
   const currentDate = new Date();
 
   // Define all static routes with their priorities and change frequencies
   const staticRoutes = [
     {
       url: `${baseUrl}/`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/home`,
       lastModified: currentDate,
       changeFrequency: 'weekly' as const,
       priority: 1,
