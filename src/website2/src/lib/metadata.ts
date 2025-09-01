@@ -250,7 +250,7 @@ export const METADATA_CONFIGS = {
       'community air quality, grassroots air monitoring, community air pollution, local air quality data, African community empowerment, neighborhood air quality',
     url: '/solutions/communities',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/community/Rectangle_411_toaajz.webp',
       alt: 'Community Air Quality Solutions',
     },
   },
