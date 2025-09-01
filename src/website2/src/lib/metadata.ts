@@ -324,7 +324,7 @@ export const METADATA_CONFIGS = {
       'AirQo careers, environmental jobs Africa, air quality jobs, impact careers, sustainability jobs, African environmental careers',
     url: '/careers',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png',
       alt: 'AirQo Team Careers',
     },
   },
