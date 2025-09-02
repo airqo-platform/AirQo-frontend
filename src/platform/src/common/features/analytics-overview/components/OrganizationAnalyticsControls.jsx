@@ -140,6 +140,8 @@ const OrganizationAnalyticsControls = ({
             iconPosition="left"
             isButton
             onClick={() => handleOpenModal('addFavorites')}
+            tooltipEnabled
+            tooltipText="Manage favorites"
           />
 
           {/* Download Data Button */}
@@ -153,6 +155,8 @@ const OrganizationAnalyticsControls = ({
                 Download Data
               </Button>
             }
+            tooltipEnabled
+            tooltipText="Download data"
           />
         </div>
       </div>
