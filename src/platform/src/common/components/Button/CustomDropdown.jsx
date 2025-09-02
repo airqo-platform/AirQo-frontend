@@ -30,11 +30,11 @@ const CustomDropdown = ({
   disableMobileCollapse = false,
   mobileMinWidth = 120,
   mobileMaxWidth = 300,
-  loading = false, // new prop for loading state
+  loading = false,
   // tooltip support (disabled by default)
   tooltipEnabled = false,
   tooltipText = '',
-  tooltipPlacement = 'top',
+  tooltipPlacement = 'auto',
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMobile, setIsMobile] = useState(
@@ -216,7 +216,7 @@ const CustomDropdown = ({
     >
       {renderTrigger()}
 
-  {/* Flowbite Tooltip is rendered around the trigger when enabled */}
+      {/* Flowbite Tooltip is rendered around the trigger when enabled */}
       {!isButton && !disabled && !loading && (
         <div
           ref={popperRef}
@@ -285,7 +285,7 @@ CustomDropdown.propTypes = {
   loading: PropTypes.bool,
   tooltipEnabled: PropTypes.bool,
   tooltipText: PropTypes.string,
-  tooltipPlacement: PropTypes.oneOf(['top', 'right', 'bottom', 'left']),
+  tooltipPlacement: PropTypes.oneOf(['top', 'right', 'bottom', 'left', 'auto']),
 };
 
 export const DropdownItem = ({
