@@ -32,10 +32,9 @@ const MyProfileDropdown = ({
       return {};
     }
   });
-  const sessionUser = session?.user || {};
   const userInfo = useMemo(
-    () => ({ ...sessionUser, ...reduxUserInfo }),
-    [sessionUser, reduxUserInfo],
+    () => ({ ...(session?.user || {}), ...reduxUserInfo }),
+    [session, reduxUserInfo],
   );
 
   // Hydration guard
@@ -93,8 +92,9 @@ const MyProfileDropdown = ({
     [router],
   );
 
-  const renderTrigger = () => (
-    <div className="cursor-pointer">
+  // renderButton receives toggle so clicks toggle the dropdown
+  const renderTriggerButton = ({ toggle }) => (
+    <div className="cursor-pointer" onClick={toggle} role="button" tabIndex={0}>
       <img
         className="w-8 h-8 rounded-full object-cover"
         src={
@@ -115,7 +115,7 @@ const MyProfileDropdown = ({
   return (
     <div className={className}>
       <CustomDropdown
-        trigger={renderTrigger()}
+        renderButton={renderTriggerButton}
         dropdownAlign={dropdownAlign}
         dropdownWidth="220px"
       >
@@ -132,13 +132,13 @@ const MyProfileDropdown = ({
               }
               alt="User Avatar"
             />
-            <div className="font-medium dark:text-white overflow-hidden">
+            <div className="font-medium dark:text-gray-100 overflow-hidden">
               <div className="capitalize truncate max-w-[14ch]">
                 {userInfo.firstName && userInfo.lastName
                   ? `${userInfo.firstName} ${userInfo.lastName}`
                   : userInfo.name || 'User'}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
+              <div className="text-xs text-gray-500 dark:text-gray-100 truncate max-w-[21ch]">
                 {userInfo.email || 'No email'}
               </div>
             </div>
@@ -155,7 +155,7 @@ const MyProfileDropdown = ({
             <span className="mr-3">
               <AqUser02
                 size={16}
-                className="text-gray-500 dark:text-gray-400"
+                className="text-gray-500 dark:text-gray-100"
               />
             </span>
             My Profile
