@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   AqHomeSmile,
   AqUser03,
-  AqBarChartSquare02,
+  AqStar05,
   AqGlobe05,
   AqUsers01,
   AqSettings02,
@@ -57,14 +57,14 @@ export const getUserNavigationItems = () => {
     },
     {
       type: 'item',
-      label: 'Analytics',
-      shortLabel: 'Analytics',
-      icon: AqBarChartSquare02,
+      label: 'My Favorites',
+      shortLabel: 'Favorites',
+      icon: AqStar05,
       path: '/user/analytics',
     },
     {
       type: 'item',
-      label: 'Data Download',
+      label: 'Bulk Data Export',
       shortLabel: 'Download',
       icon: AqDownload01,
       path: '/user/data-export',
@@ -164,8 +164,8 @@ export const getAdminNavigationItems = () => {
     },
     {
       type: 'item',
-      label: 'Analytics',
-      icon: AqBarChartSquare02,
+      label: 'My Favorites',
+      icon: AqStar05,
       path: '/admin/analytics',
     },
     {
@@ -211,14 +211,14 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     },
     {
       type: 'item',
-      label: 'Data Insights',
-      shortLabel: 'Insights',
-      icon: AqBarChartSquare02,
+      label: 'My Favorites',
+      shortLabel: 'Favorites',
+      icon: AqStar05,
       path: `/org/${orgSlug}/insights`,
     },
     {
       type: 'item',
-      label: 'Data Download',
+      label: 'Bulk Data Export',
       shortLabel: 'Download',
       icon: AqDownload01,
       path: `/org/${orgSlug}/data-export`,
