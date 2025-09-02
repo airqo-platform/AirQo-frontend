@@ -14,6 +14,7 @@ import {
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
+import { PageHeader } from '@/common/components/Header';
 
 /**
  * OrganizationAnalyticsControls component handles control elements for organization analytics
@@ -57,26 +58,28 @@ const OrganizationAnalyticsControls = ({
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Organization Header */}
-      <div className="flex flex-col gap-4">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          <span className="uppercase"> {displayName}</span> - Air Quality
-          Insights
-        </h1>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <p className="text-gray-600 dark:text-gray-300">
+      <PageHeader
+        title={
+          <>
+            <span className="uppercase">{displayName}</span> - Air Quality
+            Insights
+          </>
+        }
+        subtitle={
+          <span>
             Monitor and analyze air quality data for{' '}
-            <span className="uppercase"> {displayName}</span>
-          </p>
-          {hasSites && (
+            <span className="uppercase">{displayName}</span>
+          </span>
+        }
+        right={
+          hasSites ? (
             <div className="text-sm text-gray-500 dark:text-gray-400">
               Monitoring {totalSites} sites ({onlineSites} online)
             </div>
-          )}
-        </div>
-      </div>
+          ) : null
+        }
+      />
 
-      {/* Controls Section */}
       <div className="w-full flex flex-wrap gap-2 justify-between">
         <div className="flex flex-wrap gap-2">
           {/* Time Frame Dropdown */}

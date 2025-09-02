@@ -11,6 +11,7 @@ import {
   AqClockFastForward,
   AqSliders04,
 } from '@airqo/icons-react';
+import { PageHeader } from '@/common/components/Header';
 import { TIME_OPTIONS, POLLUTANT_OPTIONS } from '@/lib/constants';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 
@@ -35,6 +36,12 @@ const AnalyticsControls = ({
 
   return (
     <div className="w-full flex flex-wrap gap-2 justify-between">
+      {/* Page Header */}
+      <PageHeader
+        title="Quick Access Locations"
+        subtitle="Add up to 4 frequently monitored cities for instant access to air quality trends, visualizations, and quick data downloads."
+      />
+
       <div className="flex flex-wrap gap-2">
         {/* Time Frame Dropdown */}
         <CustomDropdown

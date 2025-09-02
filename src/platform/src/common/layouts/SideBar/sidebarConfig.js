@@ -63,6 +63,13 @@ export const getUserNavigationItems = () => {
       path: '/user/analytics',
     },
     {
+      type: 'item',
+      label: 'Data Download',
+      shortLabel: 'Download',
+      icon: AqDownload01,
+      path: '/user/data-export',
+    },
+    {
       type: 'divider',
       label: 'Network',
     },
@@ -96,14 +103,6 @@ export const getUserNavigationItems = () => {
     shortLabel: 'Map', // Same as label since it's already short
     icon: AqGlobe05,
     path: '/user/map',
-  });
-
-  items.push({
-    type: 'item',
-    label: 'Data Download',
-    shortLabel: 'Download',
-    icon: AqDownload01,
-    path: '/user/data-export',
   });
 
   // divider for Account section
