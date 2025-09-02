@@ -13,6 +13,7 @@ import ImportDeviceModal from "@/components/features/devices/import-device-modal
 import CreateDeviceModal from "@/components/features/devices/create-device-modal";
 import DevicesTable from "@/components/features/devices/device-list-table";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
+import { Device } from "@/app/types/devices";
 
 const ITEMS_PER_PAGE = 8;
 
@@ -21,15 +22,27 @@ export default function DevicesPage() {
   const { isAirQoInternal, isExternalOrg } = useUserContext();
   const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
+  const [selectedDevices, setSelectedDevices] = useState<Device[]>([]);
 
   // Permission checks
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
+
+  const handleSelectedDevicesChange = (devices: Device[]) => {
+    setSelectedDevices(devices);
+  };
 
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div>
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">Devices Overview</h1>
+          <div>
+            <h1 className="text-2xl font-semibold">Devices Overview</h1>
+            {selectedDevices.length > 0 && (
+              <p className="text-sm text-gray-600 mt-1">
+                {selectedDevices.length} device(s) selected
+              </p>
+            )}
+          </div>
           <div className="flex gap-2">
             {isAirQoInternal && (
               <>
@@ -92,6 +105,8 @@ export default function DevicesPage() {
           isLoading={isLoading}
           error={error}
           itemsPerPage={ITEMS_PER_PAGE}
+          multiSelect={true}
+          onSelectedDevicesChange={handleSelectedDevicesChange}
         />
       </div>
     </RouteGuard>

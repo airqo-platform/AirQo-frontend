@@ -2,6 +2,8 @@ import React, { memo, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useDispatch } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
+import { useSelector } from 'react-redux';
+import { FILTER_TYPES } from '@/common/features/download-insights-locations/data-download/constants';
 import LocationCard from '@/features/download-insights-locations/components/LocationCard';
 import { MdAdd } from 'react-icons/md';
 
@@ -21,6 +23,7 @@ function Sidebar({
   currentPage,
 }) {
   const dispatch = useDispatch();
+  const { modalType } = useSelector((state) => state.modal || {});
   const sidebarRef = useRef(null);
 
   // Auto-scroll to visualized sites when pagination changes
@@ -77,21 +80,27 @@ function Sidebar({
       ))}
 
       {/* Add locations button at the end of the list */}
-      <div className="flex justify-center mt-4">
-        <button
-          className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-primary dark:border-primary bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-lg hover:bg-primary/20 dark:hover:bg-primary/30 hover:border-primary transition-all duration-200 shadow-sm hover:shadow-md group"
-          onClick={() => {
-            dispatch(setModalType({ type: 'addLocationForMoreInsights' }));
-            dispatch(setOpenModal(true));
-          }}
-          aria-label="Add locations for analysis"
-        >
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 dark:bg-primary/30 mb-2 group-hover:bg-primary/30 dark:group-hover:bg-primary/40 transition-colors">
-            <MdAdd className="w-6 h-6 text-primary dark:text-primary" />
-          </div>
-          <span className="text-sm font-medium">Add Location</span>
-        </button>
-      </div>
+      {/* Hide Add Location button when More Insights visualization is active for devices */}
+      {!(
+        modalType?.type === 'inSights' &&
+        modalType?.filterType === FILTER_TYPES.DEVICES
+      ) && (
+        <div className="flex justify-center mt-4">
+          <button
+            className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-primary dark:border-primary bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary rounded-lg hover:bg-primary/20 dark:hover:bg-primary/30 hover:border-primary transition-all duration-200 shadow-sm hover:shadow-md group"
+            onClick={() => {
+              dispatch(setModalType({ type: 'addLocationForMoreInsights' }));
+              dispatch(setOpenModal(true));
+            }}
+            aria-label="Add locations for analysis"
+          >
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/20 dark:bg-primary/30 mb-2 group-hover:bg-primary/30 dark:group-hover:bg-primary/40 transition-colors">
+              <MdAdd className="w-6 h-6 text-primary dark:text-primary" />
+            </div>
+            <span className="text-sm font-medium">Add Location</span>
+          </button>
+        </div>
+      )}
     </motion.div>
   );
 }

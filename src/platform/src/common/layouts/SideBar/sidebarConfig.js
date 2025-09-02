@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   AqHomeSmile,
   AqUser03,
-  AqBarChartSquare02,
+  AqStar05,
   AqGlobe05,
   AqUsers01,
   AqSettings02,
@@ -57,10 +57,17 @@ export const getUserNavigationItems = () => {
     },
     {
       type: 'item',
-      label: 'Analytics',
-      shortLabel: 'Analytics',
-      icon: AqBarChartSquare02,
+      label: 'My Favorites',
+      shortLabel: 'Favorites',
+      icon: AqStar05,
       path: '/user/analytics',
+    },
+    {
+      type: 'item',
+      label: 'Bulk Data Export',
+      shortLabel: 'Download',
+      icon: AqDownload01,
+      path: '/user/data-export',
     },
     {
       type: 'divider',
@@ -96,14 +103,6 @@ export const getUserNavigationItems = () => {
     shortLabel: 'Map', // Same as label since it's already short
     icon: AqGlobe05,
     path: '/user/map',
-  });
-
-  items.push({
-    type: 'item',
-    label: 'Data Download',
-    shortLabel: 'Download',
-    icon: AqDownload01,
-    path: '/user/data-export',
   });
 
   // divider for Account section
@@ -165,8 +164,8 @@ export const getAdminNavigationItems = () => {
     },
     {
       type: 'item',
-      label: 'Analytics',
-      icon: AqBarChartSquare02,
+      label: 'My Favorites',
+      icon: AqStar05,
       path: '/admin/analytics',
     },
     {
@@ -212,14 +211,14 @@ export const getOrganizationNavigationItems = (orgSlug = '') => {
     },
     {
       type: 'item',
-      label: 'Data Insights',
-      shortLabel: 'Insights',
-      icon: AqBarChartSquare02,
+      label: 'My Favorites',
+      shortLabel: 'Favorites',
+      icon: AqStar05,
       path: `/org/${orgSlug}/insights`,
     },
     {
       type: 'item',
-      label: 'Data Download',
+      label: 'Bulk Data Export',
       shortLabel: 'Download',
       icon: AqDownload01,
       path: `/org/${orgSlug}/data-export`,

@@ -156,15 +156,19 @@ const DataDownload = ({
   const filteredFrequencyOptions = useMemo(() => {
     const deviceCategory =
       formData.deviceCategory?.name?.toLowerCase() || 'lowcost';
-
-    // For mobile and bam devices in devices filter: only show Raw frequency
+    // For mobile devices in devices filter: only show Raw frequency
     if (
       activeFilterKey === FILTER_TYPES.DEVICES &&
-      (deviceCategory === 'mobile' || deviceCategory === 'bam')
+      deviceCategory === 'mobile'
     ) {
       return FREQUENCY_OPTIONS.filter(
         (option) => option.name.toLowerCase() === 'raw',
       );
+    }
+
+    // For BAM devices in devices filter: allow all frequency options (including raw)
+    if (activeFilterKey === FILTER_TYPES.DEVICES && deviceCategory === 'bam') {
+      return FREQUENCY_OPTIONS;
     }
 
     // For other cases, exclude Raw frequency (it's only for mobile and bam devices)
@@ -344,12 +348,16 @@ const DataDownload = ({
     }
   }, [formData.deviceCategory?.name, formData.dataType?.name, clearSelections]);
 
-  // Auto-switch to Raw frequency for mobile and bam devices in devices filter
+  // Auto-switch to Raw frequency for mobile devices in devices filter only.
+  // BAM devices are allowed to use any frequency; do not auto-change frequency for BAM.
   useEffect(() => {
     const deviceCategory = formData.deviceCategory?.name?.toLowerCase();
+
+    // If we're on the devices filter and the device category is mobile,
+    // force the frequency to Raw to match backend availability.
     if (
       activeFilterKey === FILTER_TYPES.DEVICES &&
-      (deviceCategory === 'mobile' || deviceCategory === 'bam')
+      deviceCategory === 'mobile'
     ) {
       const rawFrequencyOption = FREQUENCY_OPTIONS.find(
         (option) => option.name.toLowerCase() === 'raw',
@@ -365,8 +373,14 @@ const DataDownload = ({
         }));
         clearSelections(); // Clear selections when frequency changes automatically
       }
-    } else if (formData.frequency?.name?.toLowerCase() === 'raw') {
-      // If not mobile/bam devices, switch back to default frequency if currently on raw
+
+      return; // exit early
+    }
+
+    // If we are NOT on a mobile device and the current frequency is raw,
+    // switch back to a sensible default (daily). This keeps previous behavior
+    // but avoids forcing a change for BAM devices.
+    if (formData.frequency?.name?.toLowerCase() === 'raw') {
       const defaultFrequencyOption = FREQUENCY_OPTIONS.find(
         (option) => option.name.toLowerCase() === 'daily',
       );
@@ -379,6 +393,8 @@ const DataDownload = ({
         clearSelections();
       }
     }
+    // Intentionally depend on only the values we read and the stable helper
+    // functions to prevent extra re-renders or loops.
   }, [
     activeFilterKey,
     formData.deviceCategory?.name,
@@ -905,8 +921,9 @@ const DataDownload = ({
     dispatch,
     backToDownload,
     setFormError,
-    setStatusMessage,
-    setMessageType,
+    // Note: setStatusMessage and setMessageType are intentionally omitted
+    // because they are not referenced inside this callback. Including them
+    // causes unnecessary linter warnings and re-creations of the callback.
   ]);
 
   // Columns config for each filter type
