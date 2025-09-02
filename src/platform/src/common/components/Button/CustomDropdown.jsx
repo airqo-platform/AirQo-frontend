@@ -25,9 +25,10 @@ const TriggerButton = React.forwardRef(
       hideArrow,
       isButton,
       showArrowWithButton,
+      // explicit open state for rotation/aria
+      isOpen,
       className,
       style,
-      children,
     },
     ref,
   ) => {
@@ -53,6 +54,8 @@ const TriggerButton = React.forwardRef(
         type="button"
         disabled={disabled || loading}
         onClick={toggle}
+        aria-expanded={Boolean(isOpen)}
+        aria-haspopup="menu"
         className={classes}
         style={style}
       >
@@ -76,7 +79,7 @@ const TriggerButton = React.forwardRef(
                 fill="none"
                 className={clsx(
                   'ml-2 transition-transform duration-200',
-                  children && 'rotate-180',
+                  isOpen && 'rotate-180',
                 )}
               >
                 <path
@@ -95,9 +98,7 @@ const TriggerButton = React.forwardRef(
   },
 );
 
-// Provide a display name for better devtools and to satisfy eslint/react-display-name
 TriggerButton.displayName = 'TriggerButton';
-
 const CustomDropdown = ({
   text = '',
   icon,
@@ -223,15 +224,13 @@ const CustomDropdown = ({
         text={text}
         isCollapsed={isCollapsed}
         collapseMobile={collapseMobile}
-        showArrow={!hideArrow}
         hideArrow={hideArrow}
         isButton={isButton}
         showArrowWithButton={showArrowWithButton}
+        isOpen={isOpen}
         className={buttonClassName}
         style={buttonStyle}
-      >
-        {isOpen}
-      </TriggerButton>
+      />
     );
   }, [
     renderButton,
