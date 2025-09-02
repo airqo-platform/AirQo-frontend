@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Transition } from '@headlessui/react';
 import { usePopper } from 'react-popper';
 import { AqChevronDown } from '@airqo/icons-react';
+import { Tooltip } from 'flowbite-react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 
@@ -30,6 +31,10 @@ const CustomDropdown = ({
   mobileMinWidth = 120,
   mobileMaxWidth = 300,
   loading = false, // new prop for loading state
+  // tooltip support (disabled by default)
+  tooltipEnabled = false,
+  tooltipText = '',
+  tooltipPlacement = 'top',
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMobile, setIsMobile] = useState(
@@ -89,6 +94,8 @@ const CustomDropdown = ({
     }
   };
 
+  // Tooltip is rendered via Flowbite when enabled; no local tooltip state required
+
   // determine collapse conditions for mobile
   const collapseMobile = isMobile && icon && !disableMobileCollapse;
 
@@ -111,7 +118,7 @@ const CustomDropdown = ({
 
   const renderTrigger = () => {
     if (renderButton) {
-      return (
+      const node = (
         <div
           ref={buttonRef}
           onClick={toggleDropdown}
@@ -120,9 +127,16 @@ const CustomDropdown = ({
           {renderButton({ isOpen, toggleDropdown, disabled, isCollapsed })}
         </div>
       );
+      return tooltipEnabled && tooltipText ? (
+        <Tooltip content={tooltipText} placement={tooltipPlacement}>
+          {node}
+        </Tooltip>
+      ) : (
+        node
+      );
     }
     if (trigger) {
-      return (
+      const node = (
         <div
           ref={buttonRef}
           onClick={toggleDropdown}
@@ -131,8 +145,15 @@ const CustomDropdown = ({
           {trigger}
         </div>
       );
+      return tooltipEnabled && tooltipText ? (
+        <Tooltip content={tooltipText} placement={tooltipPlacement}>
+          {node}
+        </Tooltip>
+      ) : (
+        node
+      );
     }
-    return (
+    const node = (
       <button
         ref={buttonRef}
         onClick={toggleDropdown}
@@ -168,6 +189,14 @@ const CustomDropdown = ({
         )}
       </button>
     );
+
+    return tooltipEnabled && tooltipText ? (
+      <Tooltip content={tooltipText} placement={tooltipPlacement}>
+        {node}
+      </Tooltip>
+    ) : (
+      node
+    );
   };
 
   // compute popper style for width
@@ -186,6 +215,8 @@ const CustomDropdown = ({
       className={clsx('relative inline-block', className)}
     >
       {renderTrigger()}
+
+  {/* Flowbite Tooltip is rendered around the trigger when enabled */}
       {!isButton && !disabled && !loading && (
         <div
           ref={popperRef}
@@ -252,6 +283,9 @@ CustomDropdown.propTypes = {
   mobileMinWidth: PropTypes.number,
   mobileMaxWidth: PropTypes.number,
   loading: PropTypes.bool,
+  tooltipEnabled: PropTypes.bool,
+  tooltipText: PropTypes.string,
+  tooltipPlacement: PropTypes.oneOf(['top', 'right', 'bottom', 'left']),
 };
 
 export const DropdownItem = ({

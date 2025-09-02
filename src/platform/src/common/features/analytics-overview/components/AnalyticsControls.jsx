@@ -35,7 +35,7 @@ const AnalyticsControls = ({
   };
 
   return (
-    <div className="w-full flex flex-wrap gap-2 justify-between">
+    <div className="w-full flex flex-wrap gap-6 justify-between">
       {/* Page Header */}
       <PageHeader
         title="Quick Access Locations"
