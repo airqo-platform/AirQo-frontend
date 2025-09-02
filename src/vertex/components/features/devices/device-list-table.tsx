@@ -188,6 +188,7 @@ export default function DevicesTable({
             "No devices available"
           )
         }
+        searchableColumns={["name", "long_name", "alias"]}
       />
     </div>
   );

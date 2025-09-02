@@ -36,7 +36,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <SessionRestorer>{children}</SessionRestorer>
-          <ReactQueryDevtools initialIsOpen={false} />
+          {process.env.NODE_ENV !== "production" && (
+            <ReactQueryDevtools initialIsOpen={false} />
+          )}
         </AuthProvider>
       </QueryClientProvider>
     </Provider>

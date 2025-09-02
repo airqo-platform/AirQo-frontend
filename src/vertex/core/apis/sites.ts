@@ -43,7 +43,7 @@ export const sites = {
   getSitesSummary: async (networkId: string, groupName: string) => {
     try {
       const response = await createSecureApiClient().get(
-        `/sites/summary?network=${networkId}&group=${groupName}`,
+        `/sites/summary?group=${groupName}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

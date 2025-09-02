@@ -543,6 +543,49 @@ const ReusableTable = <T extends TableItem>({
     setFilterValues(initialFilters);
   }, [filters]);
 
+  // Normalize any value to a searchable string
+  const normalizeToString = (value: unknown): string => {
+    if (value == null) return "";
+    if (Array.isArray(value)) {
+      return value.map((v) => normalizeToString(v)).filter(Boolean).join(" ");
+    }
+    const t = typeof value;
+    if (t === "string") return value as string;
+    if (t === "number" || t === "boolean") return String(value);
+    if (t === "object") {
+      const obj = value as Record<string, unknown>;
+      if (typeof obj.name === "string") return obj.name as string;
+      if (typeof obj.long_name === "string") return obj.long_name as string;
+      if (typeof obj.label === "string") return obj.label as string;
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return "";
+      }
+    }
+    return "";
+  };
+
+  // Resolve nested values using dot-notation, supporting arrays at any level
+  const resolvePath = (obj: unknown, path: string): unknown => {
+    const parts = path.split(".");
+    const walk = (current: unknown, idx: number): unknown => {
+      if (current == null) return undefined;
+      if (idx >= parts.length) return current;
+      if (Array.isArray(current)) {
+        return (current
+          .map((el) => walk(el, idx))
+          .filter((v) => v != null && v !== "")) as unknown[];
+      }
+      if (typeof current === "object") {
+        const next = (current as Record<string, unknown>)[parts[idx]];
+        return walk(next, idx + 1);
+      }
+      return undefined;
+    };
+    return walk(obj, 0);
+  };
+
   // Filter and search data with improved Fuse.js
   const filteredData = useMemo(() => {
     let result = [...data];
@@ -602,47 +645,54 @@ const ReusableTable = <T extends TableItem>({
 
     // Process data for Fuse.js search ONLY if there's a search term
     if (searchTerm && searchTerm.trim() && fuseKeys.length > 0) {
-      const getSearchableString = (item: T, key: string): string => {
-        const col = columns.find((c) => c.key === key);
-        const value = item[key];
-
-        // If column has a render function, attempt to get a searchable string from it
-        if (col && typeof col.render === "function") {
-          try {
-            const key = col.key;
-            const value = item[key as typeof col.key] as T[typeof col.key];
-            const rendered = col.render(value, item);
-
-            // If render returns a simple string or number, use it
-            if (typeof rendered === "string") return rendered;
-            if (typeof rendered === "number") return String(rendered);
-            // If it returns JSX, try to extract text content
-            if (React.isValidElement(rendered)) {
-              const props = (rendered as ReactElement).props;
-              if (typeof props.children === "string") {
-                return props.children;
-              }
-              if (Array.isArray(props.children)) {
-                return props.children
-                  .map((child: unknown) =>
-                    typeof child === "string" ? child : ""
-                  )
-                  .join(" ");
-              }
-              // Fallback to raw value if complex JSX
-              return value === null || value === undefined ? "" : String(value);
-            }
-          } catch {
-            // If render throws or is complex, fallback to raw value stringification
-          }
+      // In ReusableTable.tsx, around line 646
+const getSearchableString = (item: T, key: string): string => {
+  // 1) If key corresponds to a defined column with a render, extract visible text
+  const col = columns.find((c) => c.key === key);
+  if (col && typeof col.render === "function") {
+    try {
+      const ckey = col.key as string;
+      const cval = item[ckey as keyof T] as T[keyof T];
+      const rendered = col.render(cval, item);
+      if (typeof rendered === "string") return rendered;
+      if (typeof rendered === "number") return String(rendered);
+      if (React.isValidElement(rendered)) {
+        const props = (rendered as ReactElement).props;
+        if (typeof props.children === "string") return props.children;
+        if (Array.isArray(props.children)) {
+          return props.children
+            .map((child: unknown) => (typeof child === "string" ? child : ""))
+            .join(" ");
         }
+        return normalizeToString(item[ckey as keyof T]);
+      }
+    } catch {
+      // fall through to raw/nested resolution
+    }
+  }
 
-        // Default stringification for non-rendered or failed render cases
-        if (value && typeof value === "object") {
-          return JSON.stringify(value);
-        }
-        return value === null || value === undefined ? "" : String(value);
-      };
+  // 2) Try direct property access first
+  if (key in item) {
+    return normalizeToString(item[key as keyof T]);
+  }
+
+  // 3) If not found, try nested property access
+  const nestedValue = resolvePath(item, key);
+  if (nestedValue !== undefined) {
+    return normalizeToString(nestedValue);
+  }
+
+  // 4) Last resort: try with 'device.' prefix if not already present
+  if (!key.startsWith('device.')) {
+    const deviceKey = `device.${key}`;
+    const deviceValue = resolvePath(item, deviceKey);
+    if (deviceValue !== undefined) {
+      return normalizeToString(deviceValue);
+    }
+  }
+
+  return "";
+};
 
       // Prepare the data specifically for Fuse.js
       const fuseData = result.map((item) => {
@@ -656,29 +706,37 @@ const ReusableTable = <T extends TableItem>({
       // Configure and execute Fuse.js search
       const fuseOptions = {
         keys: fuseKeys,
-        threshold: searchTerm.length === 1 ? 0.8 : 0.4,
+        threshold: 0.3, // Lower threshold for more permissive matching
         ignoreLocation: true,
         minMatchCharLength: 1,
         isCaseSensitive: false,
         includeScore: true,
+        includeMatches: true, // Add this to get match information
+        shouldSort: true,
+        // Add this to improve partial matching
+        findAllMatches: true,
+        // Add this to make the search more permissive
+        ignoreFieldNorm: true
       };
       const fuse = new Fuse(fuseData, fuseOptions);
       const fuseResults = fuse.search(searchTerm.trim());
 
       // Map search results back to ORIGINAL data items
       if (searchTerm.length === 1) {
+        // For single character searches, be more permissive
         result = fuseResults
-          .filter((res) => (res.score ?? 1) <= 0.8)
+          .filter((res) => (res.score ?? 1) <= 0.9) // Increased threshold
           .map((searchResult) => result[searchResult.refIndex]);
       } else {
-        result = fuseResults.map(
-          (searchResult) => result[searchResult.refIndex]
-        );
+        // For longer searches, include all results but sort by score
+        result = fuseResults
+          .sort((a, b) => (a.score || 0) - (b.score || 0))
+          .map((searchResult) => result[searchResult.refIndex]);
       }
     }
 
     return result;
-  }, [data, searchTerm, filterValues, columns, searchableColumns]);
+  }, [data, filterValues, searchableColumns, searchTerm, columns, normalizeToString]);
 
   // Sort data
   const sortedData = useMemo(() => {
@@ -892,15 +950,7 @@ const ReusableTable = <T extends TableItem>({
       });
     }
     return cols;
-  }, [
-    columns,
-    multiSelect,
-    isAllSelectedOnPage,
-    isIndeterminate,
-    selectedItems,
-    handleSelectAll,
-    handleSelectItem,
-  ]);
+  }, [columns, multiSelect, isAllSelectedOnPage, selectedItems, handleSelectAll, handleSelectItem]);
 
   return (
     <div className="overflow-hidden shadow p-0 rounded-lg w-full bg-[#E9F7EF]">
