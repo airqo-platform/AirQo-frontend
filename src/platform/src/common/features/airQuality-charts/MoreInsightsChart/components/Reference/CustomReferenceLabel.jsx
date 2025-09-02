@@ -2,7 +2,8 @@ import PropTypes from 'prop-types';
 
 const LABEL_WIDTH = 40;
 const LABEL_HEIGHT = 25;
-const BG_COLOR = '#ef4444'; // Tailwind bg-red-500
+// WHO reference label should be red for emphasis
+const BG_COLOR = '#ef4444';
 const TEXT_COLOR = '#fff';
 const FONT_SIZE = 12;
 
@@ -20,6 +21,8 @@ const CustomReferenceLabel = ({ viewBox, name }) => {
         rx={4}
         ry={4}
         opacity={0.95}
+        stroke="#1f2937"
+        strokeWidth={0.8}
       />
       <text
         x={x + LABEL_WIDTH / 2}

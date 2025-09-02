@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
+import { usePermissions } from '@/core/HOC/authUtils';
 import Button from '@/common/components/Button';
 import EmptyState from '@/common/components/EmptyState';
 import ErrorState from '@/common/components/ErrorState';
@@ -31,6 +32,13 @@ const OrganizationMembersPage = () => {
     () => organization?._id || organization?.id || activeGroup?._id,
     [organization, activeGroup],
   );
+
+  // Permissions
+  const { hasPermission, isLoading: permLoading } = usePermissions();
+  const canView = hasPermission('MEMBER_VIEW', getGroupId());
+  const canInvite = hasPermission('MEMBER_INVITE', getGroupId());
+  const canRemove = hasPermission('MEMBER_REMOVE', getGroupId());
+  const canEditRole = hasPermission('ROLE_EDIT', getGroupId());
 
   const fetchMemberData = useCallback(async () => {
     const groupId = getGroupId();
@@ -118,6 +126,11 @@ const OrganizationMembersPage = () => {
 
   if (!organization || loading) return <MembersPageSkeleton />;
 
+  // Wait for permissions to load before enforcing view permission
+  if (permLoading) return <MembersPageSkeleton />;
+
+  if (!canView) return <PermissionDenied />;
+
   if (error) {
     // Use ErrorState for API/server errors
     return (
@@ -142,8 +155,8 @@ const OrganizationMembersPage = () => {
   }
 
   if (members.length === 0 && !loading) {
-    // Use EmptyState for no members
-    return (
+    // Use EmptyState for no members; only show invite action if user can invite
+    return canInvite ? (
       <EmptyState
         preset="users"
         actionLabel="Invite member"
@@ -151,6 +164,8 @@ const OrganizationMembersPage = () => {
         size="medium"
         variant="card"
       />
+    ) : (
+      <EmptyState preset="users" size="medium" variant="card" />
     );
   }
 
@@ -161,9 +176,11 @@ const OrganizationMembersPage = () => {
           <h1 className="text-2xl">Team Members</h1>
           <p className="text-sm text-gray-500">Manage your team</p>
         </div>
-        <Button onClick={() => setShowInviteModal(true)} variant="filled">
-          <FaUserPlus className="mr-2" /> Invite Member
-        </Button>
+        {canInvite && (
+          <Button onClick={() => setShowInviteModal(true)} variant="filled">
+            <FaUserPlus className="mr-2" /> Invite Member
+          </Button>
+        )}
       </div>
 
       <MembersTable
@@ -172,6 +189,8 @@ const OrganizationMembersPage = () => {
         onRemoveUser={handleRemoveUser}
         removeLoading={removeLoading}
         groupDetails={groupDetails}
+        canRemoveMembers={canRemove}
+        canEditRole={canEditRole}
         formatLastActive={formatLastActive}
       />
 

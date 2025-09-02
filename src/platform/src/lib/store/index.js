@@ -34,9 +34,6 @@ const storage =
 
 // Import your reducers
 import deviceRegistryReducer from './services/deviceRegistry';
-import selectedCollocateDevicesReducer from './services/collocation/selectedCollocateDevicesSlice';
-import collocationReducer from './services/collocation';
-import collocationDataReducer from './services/collocation/collocationDataSlice';
 import { createAccountSlice } from './services/account/CreationSlice';
 import { userLoginSlice } from './services/account/LoginSlice';
 import chartsReducer from './services/charts/ChartSlice';
@@ -61,10 +58,7 @@ import moreInsightsReducer from './services/moreInsights';
 const rootReducer = combineReducers({
   deviceRegistry: deviceRegistryReducer,
   sidebar: sidebarReducer,
-  collocation: collocationReducer,
-  selectedCollocateDevices: selectedCollocateDevicesReducer,
   modal: modalSlice,
-  collocationData: collocationDataReducer,
   creation: createAccountSlice.reducer,
   login: userLoginSlice.reducer,
   chart: chartsReducer,

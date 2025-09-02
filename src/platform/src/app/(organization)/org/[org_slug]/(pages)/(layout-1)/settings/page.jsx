@@ -14,6 +14,7 @@
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useEffect, useState } from 'react';
 import PermissionDenied from '@/common/components/PermissionDenied';
+import { usePermissions } from '@/core/HOC/authUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import {
@@ -46,6 +47,11 @@ const OrganizationSettingsPage = () => {
   const userInfo = useSelector((state) => state.login?.userInfo);
   const { updateActiveGroupDetails, triggerGroupRefresh } =
     useActiveGroupManager();
+  // Permissions
+  const { hasPermission, isLoading: permLoading } = usePermissions();
+  const canManageGroup = activeGroup?._id
+    ? hasPermission('GROUP_MANAGEMENT', activeGroup._id)
+    : false;
   const [isLoading, setIsLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
@@ -372,7 +378,7 @@ const OrganizationSettingsPage = () => {
     return <PermissionDenied />;
   }
 
-  if (isLoading || groupLoading) {
+  if (isLoading || groupLoading || permLoading) {
     return <OrganizationSettingsSkeleton />;
   }
 
@@ -385,7 +391,7 @@ const OrganizationSettingsPage = () => {
         </h2>
         <p className="text-gray-500 mb-4">
           Unable to load organization data. Please try refreshing the page.
-        </p>{' '}
+        </p>
         <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
@@ -395,6 +401,8 @@ const OrganizationSettingsPage = () => {
       </div>
     );
   }
+
+  if (!canManageGroup) return <PermissionDenied />;
 
   if (fetchError) {
     return (

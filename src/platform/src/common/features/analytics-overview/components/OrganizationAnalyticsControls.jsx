@@ -130,13 +130,13 @@ const OrganizationAnalyticsControls = ({
         </div>
 
         <div className="gap-2 flex flex-wrap">
-          {/* Add Location Button */}
+          {/* Add Favorites Button */}
           <CustomDropdown
-            text="Add location"
+            text="Add Favorites"
             icon={<AqPlus width={16} height={16} />}
             iconPosition="left"
             isButton
-            onClick={() => handleOpenModal('addLocation')}
+            onClick={() => handleOpenModal('addFavorites')}
           />
 
           {/* Download Data Button */}

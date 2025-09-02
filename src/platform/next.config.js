@@ -62,6 +62,11 @@ module.exports = withVideos({
   },
 
   webpack(config, { isServer, dev }) {
+    // Increase max listeners to prevent memory leak warnings
+    if (dev) {
+      require('events').EventEmitter.defaultMaxListeners = 20;
+    }
+
     // SVG handling
     config.module.rules.push({
       test: /\.svg$/,
@@ -88,8 +93,8 @@ module.exports = withVideos({
     // Fix webpack chunk loading issues and dynamic import problems
     config.optimization = {
       ...config.optimization,
-      moduleIds: 'deterministic',
-      chunkIds: 'deterministic',
+      moduleIds: dev ? 'named' : 'deterministic',
+      chunkIds: dev ? 'named' : 'deterministic',
       splitChunks: {
         chunks: 'all',
         minSize: 20000,
@@ -125,9 +130,11 @@ module.exports = withVideos({
         },
       },
       // Fix runtime chunk issues that cause originalFactory errors
-      runtimeChunk: {
-        name: (entrypoint) => `runtime-${entrypoint.name}`,
-      },
+      runtimeChunk: dev
+        ? 'single'
+        : {
+            name: (entrypoint) => `runtime-${entrypoint.name}`,
+          },
     };
 
     // Enhanced error handling and webpack internal error suppression

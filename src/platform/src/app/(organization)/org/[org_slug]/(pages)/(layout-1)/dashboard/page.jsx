@@ -5,12 +5,14 @@ import {
   useGetActiveGroup,
 } from '@/app/providers/UnifiedGroupProvider';
 import { useSession } from 'next-auth/react';
+import { useParams } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Card from '@/common/components/CardWrapper';
 import DashboardPageSkeleton from '@/common/components/Skeleton/DashboardPageSkeleton';
 import ErrorState from '@/common/components/ErrorState';
 import { getGroupAnalyticsApi } from '@/core/apis/Account';
 import PermissionDenied from '@/common/components/PermissionDenied';
+import { usePermissions } from '@/core/HOC/authUtils';
 
 import {
   AqUsers01,
@@ -22,6 +24,7 @@ import {
 } from '@airqo/icons-react';
 
 const OrganizationDashboardPage = () => {
+  const { org_slug: orgSlug } = useParams();
   const { activeGroup } = useUnifiedGroup();
   const { id: activeGroupId } = useGetActiveGroup();
   const [analytics, setAnalytics] = useState(null);
@@ -29,8 +32,10 @@ const OrganizationDashboardPage = () => {
   const [analyticsError, setAnalyticsError] = useState(null);
   const { data: session } = useSession();
 
-  // For demo: isAdmin is always true. Replace with real logic as needed.
-  const isAdmin = true;
+  // Permissions
+  const { hasPermission, isLoading: permLoading } = usePermissions();
+  const canManageGroup = hasPermission('GROUP_MANAGEMENT', activeGroupId);
+  const showGovernance = !permLoading && canManageGroup;
 
   // Fetch group analytics with useCallback to prevent unnecessary re-renders
   const fetchAnalytics = useCallback(async () => {
@@ -182,7 +187,7 @@ const OrganizationDashboardPage = () => {
       value: totalMembers.toLocaleString(),
       subtitle: `Registered team members (${timeRange})`,
       icon: AqUsers01,
-      href: isAdmin ? '/organization/members' : null,
+      href: showGovernance ? `/organization/${orgSlug}/members` : null,
       trend: recentGrowth > 0 ? `+${recentGrowth} this week` : null,
       color: 'blue',
     },
@@ -280,7 +285,7 @@ const OrganizationDashboardPage = () => {
       </div>
 
       {/* Growth Analytics Section */}
-      {dailyGrowth.length > 0 && (
+      {showGovernance && dailyGrowth.length > 0 && (
         <Card padding="p-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -327,7 +332,7 @@ const OrganizationDashboardPage = () => {
       )}
 
       {/* Role Distribution Section */}
-      {isAdmin && processedRoles.length > 0 && (
+      {showGovernance && processedRoles.length > 0 && (
         <Card padding="p-6">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">

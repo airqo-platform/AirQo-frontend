@@ -5,10 +5,11 @@ import {
   AqCalibration,
   AqBarChartSquarePlus,
   AqGlobe02Maps_Travel,
-  AqFile07,
+  AqBookOpen01,
   AqPhone01,
   AqArrowNarrowLeft,
   AqCpuChip01,
+  AqServer03,
 } from '@airqo/icons-react';
 import { FaGooglePlay, FaApple } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -27,7 +28,9 @@ const AppDropdown = ({ className = '' }) => {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
   const getUrl = (baseUrl) => {
@@ -61,8 +64,14 @@ const AppDropdown = ({ className = '' }) => {
       color: 'bg-purple-500',
     },
     {
+      name: 'Vertex',
+      icon: AqServer03,
+      href: getUrl('https://vertex.airqo.net/'),
+      color: 'bg-yellow-500',
+    },
+    {
       name: 'API Docs',
-      icon: AqFile07,
+      icon: AqBookOpen01,
       href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
       color: 'bg-orange-500',
     },
@@ -123,19 +132,21 @@ const AppDropdown = ({ className = '' }) => {
               <CardWrapper padding="p-0" className="shadow-xl overflow-hidden">
                 {!showQRCode ? (
                   <motion.div
-                    className="p-6 grid grid-cols-3 gap-6"
+                    className="p-6 grid grid-cols-3 gap-4"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.2 }}
                   >
-                    {apps.map((app, i) => {
+                    {apps.map((app) => {
                       const Icon = app.icon;
                       return (
                         <button
-                          key={i}
+                          key={app.name}
+                          type="button"
+                          title={app.name}
                           onClick={() => handleAppClick(app)}
-                          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 focus:outline-none"
+                          className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-50 focus:outline-none h-28"
                           aria-label={app.name}
                         >
                           <div
@@ -143,7 +154,7 @@ const AppDropdown = ({ className = '' }) => {
                           >
                             <Icon className="w-7 h-7 text-white" />
                           </div>
-                          <span className="mt-2 text-sm font-medium text-gray-700">
+                          <span className="mt-2 text-sm font-medium text-gray-700 text-center whitespace-nowrap truncate max-w-[72px]">
                             {app.name}
                           </span>
                         </button>

@@ -100,6 +100,29 @@ export const performanceMiddleware = () => (next) => (action) => {
 export const memoryOptimizationMiddleware = () => (next) => (action) => {
   const { payload } = action;
 
+  // Avoid optimizing actions that carry important nested UI payloads
+  // such as modal state or more-insights/download payloads. These
+  // payloads can be large but must remain intact for reducers to work.
+  const actionType = action && action.type ? String(action.type) : '';
+  const typeLc = actionType.toLowerCase();
+  const SKIP_OPTIMIZATION_KEYWORDS = ['modal', 'download', 'moreinsights'];
+
+  if (typeLc && SKIP_OPTIMIZATION_KEYWORDS.some((kw) => typeLc.includes(kw))) {
+    return next(action);
+  }
+
+  // Also skip optimization if payload looks like a modal configuration
+  // which commonly contains keys like `data`, `modalTitle`, `filterType`.
+  if (
+    payload &&
+    typeof payload === 'object' &&
+    ['modalTitle', 'data', 'filterType', 'originalSelection'].some(
+      (k) => k in payload,
+    )
+  ) {
+    return next(action);
+  }
+
   // Optimize large array payloads
   if (payload && Array.isArray(payload) && payload.length > 1000) {
     // For large datasets, only keep the most recent items

@@ -3,20 +3,46 @@ import { Tooltip } from 'flowbite-react';
 import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
 import { AqMarkerPin01 } from '@airqo/icons-react';
+import { useId } from 'react';
 
 const truncateName = (name, maxLength = 13) => {
-  if (!name) return 'Unknown Location';
-  return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+  const label =
+    typeof name === 'string' ? name.trim() : String(name || '').trim();
+  if (!label) return '';
+  const lower = label.toLowerCase();
+  if (['unknown', 'unknown location', 'n/a', 'na', '-'].includes(lower))
+    return '';
+  return label.length > maxLength
+    ? `${label.substring(0, maxLength)}...`
+    : label;
+};
+
+// Format location description, return empty string if no valid location data
+const formatLocationDescription = (country, city) => {
+  const parts = [];
+  if (city && city.toLowerCase() !== 'unknown' && city !== 'Unknown Location') {
+    parts.push(city);
+  }
+  if (
+    country &&
+    country.toLowerCase() !== 'unknown' &&
+    country !== 'Unknown Location'
+  ) {
+    parts.push(country);
+  }
+  return parts.length > 0 ? parts.join(', ') : ''; // Return empty string instead of null
 };
 
 const LocationCard = ({
   site,
   onToggle,
   isSelected,
+  isVisualized = false,
   isLoading = false,
   disableToggle = false,
   cardStyle = null,
 }) => {
+  const autoId = useId();
   const cardVariants = {
     initial: { opacity: 0, y: 5 },
     animate: { opacity: 1, y: 0, transition: { duration: 0.2 } },
@@ -45,10 +71,13 @@ const LocationCard = ({
     );
   }
 
-  const { name, search_name, country, city, _id } = site;
+  const { name, search_name, country, city, _id } = site || {};
   const fullName = name || (search_name && search_name.split(',')[0]) || '';
   const displayName = truncateName(fullName);
-  const locationDescription = country || city || 'Unknown Location';
+  const locationDescription = formatLocationDescription(country, city);
+
+  // Always show the card, even if name or location is unknown
+  const checkboxId = `checkbox-${_id || autoId}`;
 
   const handleCardClick = () => {
     if (!disableToggle) onToggle(site);
@@ -56,10 +85,12 @@ const LocationCard = ({
 
   return (
     <motion.div
-      className={`flex justify-between bg-gray-100 dark:bg-gray-800 items-center p-3 border ${
-        isSelected
-          ? 'border-primary/30 dark:border-primary/50 ring-1 ring-primary/50'
-          : 'border-gray-200 dark:border-gray-700'
+      className={`flex justify-between bg-gray-100 dark:bg-gray-800 items-center p-3 border-2 ${
+        isVisualized
+          ? 'border-green-500 ring-1 ring-green-500/50'
+          : isSelected
+            ? 'border-primary/30 dark:border-primary/50 ring-1 ring-primary/50'
+            : 'border-gray-200 dark:border-gray-700'
       } rounded-lg shadow-sm w-full ${disableToggle ? 'opacity-90' : ''}`}
       variants={cardVariants}
       initial="initial"
@@ -84,17 +115,22 @@ const LocationCard = ({
           initial={{ rotate: 0 }}
           animate={isSelected ? { rotate: [0, 15, 0] } : {}}
           transition={{ duration: 0.3 }}
+          className={isVisualized ? 'text-green-600' : ''}
         >
           <AqMarkerPin01 size={20} />
         </motion.div>
         <div className="flex flex-col">
-          <Tooltip content={fullName} placement="top" trigger="hover">
-            <h3 className="text-sm font-medium dark:text-white cursor-help">
-              {displayName}
+          <Tooltip
+            content={fullName || 'No name available'}
+            placement="top"
+            trigger="hover"
+          >
+            <h3 className="text-sm font-medium dark:text-white cursor-help min-h-[20px]">
+              {displayName || ' '}
             </h3>
           </Tooltip>
-          <small className="text-xs text-gray-500 dark:text-white">
-            {locationDescription}
+          <small className="text-xs text-gray-500 dark:text-white min-h-[16px]">
+            {locationDescription || ' '}
           </small>
         </div>
       </div>
@@ -103,12 +139,12 @@ const LocationCard = ({
         onClick={(e) => e.stopPropagation()}
         className="flex items-center justify-center"
       >
-        <label htmlFor={`checkbox-${_id || 'unknown'}`} className="sr-only">
-          Select {displayName}
+        <label htmlFor={checkboxId} className="sr-only">
+          Select {fullName || displayName || 'site'}
         </label>
         <input
           type="checkbox"
-          id={`checkbox-${_id || 'unknown'}`}
+          id={checkboxId}
           checked={isSelected}
           onChange={(e) => {
             e.stopPropagation();
@@ -117,7 +153,7 @@ const LocationCard = ({
           className={`w-4 h-4 text-primary bg-white dark:bg-gray-800 border-primary/30 dark:border-primary/50 rounded focus:ring-primary/50 ${
             disableToggle ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'
           }`}
-          aria-label={`Select ${displayName}`}
+          aria-label={`Select ${displayName || 'site'}`}
           disabled={disableToggle}
         />
       </motion.div>
@@ -135,6 +171,7 @@ LocationCard.propTypes = {
   }).isRequired,
   onToggle: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
+  isVisualized: PropTypes.bool,
   isLoading: PropTypes.bool,
   disableToggle: PropTypes.bool,
   cardStyle: PropTypes.object,

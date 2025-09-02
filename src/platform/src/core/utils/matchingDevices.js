@@ -16,7 +16,7 @@ export const findAllMatchingDevices = (devices) => {
 
   // convert map to array
   const matchingDevicePairs = [];
-  for (const [key, value] of datePairs) {
+  for (const value of datePairs.values()) {
     matchingDevicePairs.push(value);
   }
 

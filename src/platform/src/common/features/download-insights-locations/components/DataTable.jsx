@@ -11,7 +11,12 @@ import {
   MdCheck,
   MdSearch,
 } from 'react-icons/md';
-import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
+import {
+  AqChevronLeft,
+  AqChevronRight,
+  AqBarChart07,
+  AqEye,
+} from '@airqo/icons-react';
 import TableLoadingSkeleton from './TableLoadingSkeleton';
 import TopBarSearch from './TopBarSearch';
 import InfoMessage from '@/components/Messages/InfoMessage';
@@ -297,6 +302,7 @@ const DataTable = ({
   onToggleRow,
   searchKeys = [],
   showViewDataButton = false,
+  isLoadingVisualizationData = false,
   onViewDataClick = () => {},
   enableSorting = true,
   enableColumnFilters = true,
@@ -793,8 +799,20 @@ const DataTable = ({
       {!loading && totalPages > 1 && (
         <div className="flex items-center justify-between">
           {showViewDataButton && (
-            <Button variant="text" onClick={onViewDataClick}>
-              Visualize Data
+            <Button
+              variant="text"
+              onClick={onViewDataClick}
+              disabled={isLoadingVisualizationData}
+              className={`flex items-center gap-2 ${
+                isLoadingVisualizationData
+                  ? 'text-gray-400 cursor-not-allowed'
+                  : 'text-primary hover:bg-primary/10'
+              }`}
+            >
+              <AqBarChart07 size={16} />
+              {isLoadingVisualizationData
+                ? 'Loading Sites...'
+                : 'Visualize Data'}
             </Button>
           )}
           <div className="flex items-center gap-2 ml-auto">
@@ -818,6 +836,25 @@ const DataTable = ({
               <AqChevronRight size={16} />
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Show View Data button even when pagination is not visible */}
+      {!loading && totalPages <= 1 && showViewDataButton && (
+        <div className="flex justify-start py-2">
+          <Button
+            variant="text"
+            onClick={onViewDataClick}
+            disabled={isLoadingVisualizationData}
+            className={`flex items-center gap-2 ${
+              isLoadingVisualizationData
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-primary hover:bg-primary/10'
+            }`}
+          >
+            <AqEye size={16} />
+            {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
+          </Button>
         </div>
       )}
     </div>
