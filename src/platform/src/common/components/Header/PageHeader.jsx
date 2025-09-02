@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { AqArrowNarrowLeft } from '@airqo/icons-react';
 
@@ -33,29 +33,6 @@ const PageHeader = ({
   divider = false,
   children,
 }) => {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const root = document.documentElement;
-    const mq =
-      window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-
-    const check = () =>
-      setIsDark(root.classList.contains('dark') || !!(mq && mq.matches));
-
-    check();
-    if (mq && mq.addEventListener) mq.addEventListener('change', check);
-
-    const obs = new MutationObserver(() => check());
-    obs.observe(root, { attributes: true, attributeFilter: ['class'] });
-
-    return () => {
-      if (mq && mq.removeEventListener) mq.removeEventListener('change', check);
-      obs.disconnect();
-    };
-  }, []);
-
   return (
     <div className={`w-full ${className}`}>
       <div className="flex items-start justify-between w-full">
@@ -91,10 +68,7 @@ const PageHeader = ({
 
           <div className="min-w-0">
             {title && (
-              <h1
-                className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate"
-                style={isDark ? { color: '#ffffff' } : undefined}
-              >
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
                 {title}
               </h1>
             )}

@@ -21,7 +21,7 @@ const TriggerButton = React.forwardRef(
       iconPosition,
       text,
       isCollapsed,
-  collapseMobile,
+      collapseMobile,
       hideArrow,
       isButton,
       showArrowWithButton,
@@ -124,7 +124,7 @@ const CustomDropdown = ({
   loading = false,
   tooltipEnabled = false,
   tooltipText = '',
-  tooltipPlacement = 'auto',
+  tooltipPlacement = 'top',
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMobile, setIsMobile] = useState(

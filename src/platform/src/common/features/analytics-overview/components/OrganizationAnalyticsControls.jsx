@@ -141,7 +141,7 @@ const OrganizationAnalyticsControls = ({
             isButton
             onClick={() => handleOpenModal('addFavorites')}
             tooltipEnabled
-            tooltipText="Manage favorites"
+            tooltipText="Add up to 4 favorite locations for quick monitoring and visualization"
           />
 
           {/* Download Data Button */}
@@ -156,7 +156,7 @@ const OrganizationAnalyticsControls = ({
               </Button>
             }
             tooltipEnabled
-            tooltipText="Download data"
+            tooltipText="Download air quality data for any locations across Africa"
           />
         </div>
       </div>
