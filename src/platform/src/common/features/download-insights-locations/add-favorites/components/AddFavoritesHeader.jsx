@@ -28,7 +28,7 @@ const AddFavoritesHeader = () => {
         className="flex text-lg leading-6 font-medium dark:text-white"
         id="modal-title"
       >
-        Add Favorites
+        Manage Favorites
       </h3>
     </div>
   );
