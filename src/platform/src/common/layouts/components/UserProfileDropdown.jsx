@@ -92,9 +92,21 @@ const MyProfileDropdown = ({
     [router],
   );
 
-  // renderButton receives toggle so clicks toggle the dropdown
-  const renderTriggerButton = ({ toggle }) => (
-    <div className="cursor-pointer" onClick={toggle} role="button" tabIndex={0}>
+  // renderButton receives toggle and isOpen so clicks and keyboard toggle the dropdown
+  const renderTriggerButton = ({ toggle, isOpen }) => (
+    <button
+      type="button"
+      className="cursor-pointer rounded-full p-0 bg-transparent"
+      onClick={toggle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
+      }}
+      aria-haspopup="menu"
+      aria-expanded={Boolean(isOpen)}
+    >
       <img
         className="w-8 h-8 rounded-full object-cover"
         src={
@@ -105,7 +117,7 @@ const MyProfileDropdown = ({
         }
         alt="Avatar"
       />
-    </div>
+    </button>
   );
 
   if (!mounted) {
