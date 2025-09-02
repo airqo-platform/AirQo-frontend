@@ -210,8 +210,18 @@ const CustomDropdown = ({
 
   /* trigger element -------------------------------------------------------- */
   const triggerElement = useMemo(() => {
-    if (renderButton) return renderButton({ isOpen, toggle: toggleDropdown });
-    if (trigger) return trigger;
+    if (renderButton)
+      return (
+        <span ref={buttonRef} className="inline-block">
+          {renderButton({ isOpen, toggle: toggleDropdown })}
+        </span>
+      );
+    if (trigger)
+      return (
+        <span ref={buttonRef} className="inline-block">
+          {trigger}
+        </span>
+      );
 
     return (
       <TriggerButton
@@ -257,9 +267,7 @@ const CustomDropdown = ({
 
     return (
       <Tooltip content={tooltipText} placement={tooltipPlacement}>
-        <div ref={buttonRef} className="inline-block">
-          {triggerElement}
-        </div>
+        <div className="inline-block">{triggerElement}</div>
       </Tooltip>
     );
   }, [tooltipEnabled, tooltipText, tooltipPlacement, triggerElement]);
