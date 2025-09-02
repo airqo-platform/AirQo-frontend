@@ -103,7 +103,7 @@ const CustomFields = ({
         ...option,
         name: formatFieldValue(option.name, id, textFormat),
       };
-      
+
       setSelected(single);
       handleOptionSelect(id, single);
     },
@@ -322,7 +322,7 @@ const CustomFields = ({
                     <span
                       className={`
                       flex-1 text-sm
-                      ${checked && multiSelect ? 'font-medium' : 'text-gray-700'}
+                      ${checked && multiSelect ? 'font-medium' : 'text-gray-700 dark:text-gray-100'}
                       ${isOnlySelected ? 'opacity-50' : ''}
                     `}
                     >

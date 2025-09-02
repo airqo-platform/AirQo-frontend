@@ -61,7 +61,7 @@ const SettingsSidebar = ({
       <motion.div className="space-y-4">
         <motion.div variants={formItemVariants}>
           <div className="mb-2">
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="block text-sm font-medium dark:text-gray-100 mb-2">
               Title
             </label>
             <input
