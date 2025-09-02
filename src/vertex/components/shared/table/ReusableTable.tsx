@@ -671,18 +671,15 @@ const getSearchableString = (item: T, key: string): string => {
     }
   }
 
-  // 2) Try direct property access first
   if (key in item) {
     return normalizeToString(item[key as keyof T]);
   }
 
-  // 3) If not found, try nested property access
   const nestedValue = resolvePath(item, key);
   if (nestedValue !== undefined) {
     return normalizeToString(nestedValue);
   }
 
-  // 4) Last resort: try with 'device.' prefix if not already present
   if (!key.startsWith('device.')) {
     const deviceKey = `device.${key}`;
     const deviceValue = resolvePath(item, deviceKey);
@@ -694,7 +691,6 @@ const getSearchableString = (item: T, key: string): string => {
   return "";
 };
 
-      // Prepare the data specifically for Fuse.js
       const fuseData = result.map((item) => {
         const obj: Record<string, string> = {};
         fuseKeys.forEach((key) => {
@@ -703,32 +699,26 @@ const getSearchableString = (item: T, key: string): string => {
         return obj;
       });
 
-      // Configure and execute Fuse.js search
       const fuseOptions = {
         keys: fuseKeys,
-        threshold: 0.3, // Lower threshold for more permissive matching
+        threshold: 0.3,
         ignoreLocation: true,
         minMatchCharLength: 1,
         isCaseSensitive: false,
         includeScore: true,
-        includeMatches: true, // Add this to get match information
+        includeMatches: true,
         shouldSort: true,
-        // Add this to improve partial matching
         findAllMatches: true,
-        // Add this to make the search more permissive
         ignoreFieldNorm: true
       };
       const fuse = new Fuse(fuseData, fuseOptions);
       const fuseResults = fuse.search(searchTerm.trim());
 
-      // Map search results back to ORIGINAL data items
       if (searchTerm.length === 1) {
-        // For single character searches, be more permissive
         result = fuseResults
-          .filter((res) => (res.score ?? 1) <= 0.9) // Increased threshold
+          .filter((res) => (res.score ?? 1) <= 0.9)
           .map((searchResult) => result[searchResult.refIndex]);
       } else {
-        // For longer searches, include all results but sort by score
         result = fuseResults
           .sort((a, b) => (a.score || 0) - (b.score || 0))
           .map((searchResult) => result[searchResult.refIndex]);
@@ -767,12 +757,10 @@ const getSearchableString = (item: T, key: string): string => {
 
   const totalPages = Math.ceil(sortedData.length / currentPageSize);
 
-  // Reset to first page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterValues]);
 
-  // Reset to first page when page size changes
   const handlePageSizeChange = useCallback((newPageSize: number) => {
     setCurrentPageSize(newPageSize);
     setCurrentPage(1);

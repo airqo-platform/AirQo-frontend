@@ -85,8 +85,14 @@ export interface DeviceDetailsResponse {
 export const devices = {
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
+      // Don't include group parameter if group is 'airqo'
+      const queryParams = new URLSearchParams({
+        network: networkId,
+        ...(groupName && groupName !== 'airqo' && { group: groupName })
+      });
+
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
-        `/devices/summary?network=${networkId}&group=${groupName}`,
+        `/devices/summary?${queryParams.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

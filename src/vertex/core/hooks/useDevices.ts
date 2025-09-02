@@ -41,7 +41,7 @@ export const useDevices = () => {
     queryFn: () =>
       devices.getDevicesSummaryApi(
         activeNetwork?.net_name || "",
-        activeGroup?.grp_title || ""
+        activeGroup?.grp_title === "airqo" ? "" : activeGroup?.grp_title || ""
       ),
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
     onSuccess: (data: DevicesSummaryResponse) => {
