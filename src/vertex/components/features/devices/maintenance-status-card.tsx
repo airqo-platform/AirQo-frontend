@@ -77,7 +77,7 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
                 Next Maintenance
               </div>
               <div className="text-base font-normal">
-                {moment(device.nextMaintenance).format("D MMM YYYY, HH:mm A")}
+                {moment(device.nextMaintenance).format("MMM D YYYY, HH:mm A")}
               </div>
             </div>
           )}
@@ -108,7 +108,7 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
                         {log.description || "Maintenance activity"}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {moment(log.date).format("D MMM YYYY, H:mm A")}
+                        {moment(log.date).format("MMM D YYYY, H:mm A")}
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground whitespace-nowrap capitalize">

@@ -84,6 +84,7 @@ export interface DeviceDetailsResponse {
       failurePercentage: number;
       lastUpdate: string;
     };
+    maintenance_status?: string;
   };
 }
 

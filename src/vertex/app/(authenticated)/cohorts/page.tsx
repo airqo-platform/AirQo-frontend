@@ -9,6 +9,7 @@ import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import moment from "moment";
 
 type CohortRow = {
   id: string;
@@ -59,11 +60,7 @@ export default function CohortsPage() {
       sortable: true,
       render: (value) => {
         const date = new Date(value as string);
-        return date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        return moment(date).format("MMM D YYYY, H:mm A");
       }
     }
   ]
