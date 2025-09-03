@@ -164,7 +164,7 @@ export default function DeviceDetailsPage() {
       {isLoading ? (
         <ContentGridSkeleton />
       ) : (
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 mt-6">
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 mt-6">
           <div className="break-inside-avoid mb-6 inline-block w-full">
             <DeviceDetailsCard
               deviceId={deviceId}
