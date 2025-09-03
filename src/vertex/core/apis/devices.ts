@@ -79,6 +79,11 @@ export interface DeviceDetailsResponse {
     longitude?: string;
     generation_version?: string;
     generation_count?: string;
+    onlineStatusAccuracy?: {
+      successPercentage: number;
+      failurePercentage: number;
+      lastUpdate: string;
+    };
   };
 }
 

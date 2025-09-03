@@ -498,6 +498,32 @@ interface ReusableTableProps<T extends TableItem> {
   emptyState?: string | React.ReactNode;
 }
 
+// Normalize any value to a searchable string
+const normalizeToString = (value:unknown): string => {
+    if (value == null) return "";
+    if (Array.isArray(value)) {
+      return value
+        .map((v) => normalizeToString(v))
+        .filter(Boolean)
+        .join(" ");
+    }
+    const t = typeof value;
+    if (t === "string") return value as string;
+    if (t === "number" || t === "boolean") return String(value);
+    if (t === "object") {
+      const obj = value as Record<string, unknown>;
+      if (typeof obj.name === "string") return obj.name as string;
+      if (typeof obj.long_name === "string") return obj.long_name as string;
+      if (typeof obj.label === "string") return obj.label as string;
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return "";
+      }
+    }
+    return "";
+};
+
 const ReusableTable = <T extends TableItem>({
   title = "Table",
   data = [],
@@ -523,9 +549,6 @@ const ReusableTable = <T extends TableItem>({
     key: null,
     direction: "asc",
   });
-  const [filterValues, setFilterValues] = useState<Record<string, FilterValue>>(
-    {}
-  );
   const [currentPageSize, setCurrentPageSize] = useState<number>(pageSize);
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
@@ -533,40 +556,28 @@ const ReusableTable = <T extends TableItem>({
   // Ref for header checkbox to control indeterminate state
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
-  // Initialize filter values
-  useEffect(() => {
-    const initialFilters: Record<string, FilterValue> = {};
-    filters.forEach((filter) => {
-      initialFilters[filter.key] = filter.isMulti ? [] : "";
-    });
-    setFilterValues(initialFilters);
-  }, [filters]);
+  const initialFilters = useMemo(
+    () =>
+      filters.reduce<Record<string, FilterValue>>((acc, filter) => {
+        acc[filter.key] = filter.isMulti ? [] : "";
+        return acc;
+      }, {}),
+    [filters] // Deep comparison of filters
+  );
 
-  // Normalize any value to a searchable string
-  const normalizeToString = useCallback((value: unknown): string => {
-    if (value == null) return "";
-    if (Array.isArray(value)) {
-      return value
-        .map((v) => normalizeToString(v))
-        .filter(Boolean)
-        .join(" ");
+  const [filterValues, setFilterValues] = useState(initialFilters);
+
+  useEffect(() => {
+    const hasChanged = Object.keys(initialFilters).some(
+      key => !(key in filterValues) || 
+            (Array.isArray(initialFilters[key]) !== Array.isArray(filterValues[key]))
+    );
+    
+    if (hasChanged) {
+      setFilterValues(initialFilters);
     }
-    const t = typeof value;
-    if (t === "string") return value as string;
-    if (t === "number" || t === "boolean") return String(value);
-    if (t === "object") {
-      const obj = value as Record<string, unknown>;
-      if (typeof obj.name === "string") return obj.name as string;
-      if (typeof obj.long_name === "string") return obj.long_name as string;
-      if (typeof obj.label === "string") return obj.label as string;
-      try {
-        return JSON.stringify(value);
-      } catch {
-        return "";
-      }
-    }
-    return "";
-  }, []);
+  }, [filterValues, initialFilters]);
+
 
   // Resolve nested values using dot-notation, supporting arrays at any level
   const resolvePath = (obj: unknown, path: string): unknown => {
@@ -736,14 +747,7 @@ const ReusableTable = <T extends TableItem>({
     }
 
     return result;
-  }, [
-    data,
-    filterValues,
-    searchableColumns,
-    searchTerm,
-    columns,
-    normalizeToString,
-  ]);
+  }, [data, filterValues, searchableColumns, searchTerm, columns]);
 
   // Sort data
   const sortedData = useMemo(() => {

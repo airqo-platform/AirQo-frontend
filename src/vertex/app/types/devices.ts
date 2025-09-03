@@ -84,6 +84,11 @@ export interface Device {
   claimed_at?: string;
   site_name?: string; // Optional site name for display purposes
   [key: string]: unknown;
+  onlineStatusAccuracy?: {
+    successPercentage: number;
+    failurePercentage: number;
+    lastUpdate: string;
+  };
 }
 
 export interface DevicesSummaryResponse {
