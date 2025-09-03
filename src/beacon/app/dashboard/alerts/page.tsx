@@ -27,6 +27,7 @@ import {
   X
 } from "lucide-react"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 // Types
 type AlertType = "critical" | "warning" | "success"
@@ -117,7 +118,12 @@ export default function AlertsPage() {
       setIsLoading(true)
       
       // Using the devices-detail endpoint to get maintenance history
-      const response = await fetch(`${config.apiUrl}/devices-detail`)
+      const response = await fetch(`${config.apiUrl}/api/v1/beacon/devices`, {
+        headers: {
+          'Authorization': authService.getToken() || '',
+          'Content-Type': 'application/json'
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)
