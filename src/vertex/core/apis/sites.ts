@@ -42,9 +42,14 @@ interface UpdateSiteRequest {
 export const sites = {
   getSitesSummary: async (networkId: string, groupName: string) => {
     try {
+      const queryParams = new URLSearchParams({
+        network: networkId,
+        ...(groupName && groupName !== "airqo" && { group: groupName }),
+      });
+
       const response = await createSecureApiClient().get(
-        `/sites/summary?group=${groupName}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        `/devices/sites/summary?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
@@ -57,8 +62,8 @@ export const sites = {
   getSitesApi: async (networkId: string) => {
     try {
       const response = await createSecureApiClient().get(
-        `/sites/summary?network=${networkId}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        `/devices/sites/summary?network=${networkId}`,
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
@@ -75,8 +80,8 @@ export const sites = {
     network: string;
   }) => {
     try {
-      const response = await createSecureApiClient().post(`/sites`, data, {
-        headers: { 'X-Auth-Type': 'JWT' }
+      const response = await createSecureApiClient().post(`/devices/sites`, data, {
+        headers: { "X-Auth-Type": "JWT" },
       });
       return response.data;
     } catch (error) {
@@ -92,10 +97,11 @@ export const sites = {
     longitude: string
   ): Promise<ApproximateCoordinatesResponse> => {
     try {
-      const response = await createSecureApiClient().get<ApproximateCoordinatesResponse>(
-        `/sites/approximate?latitude=${latitude}&longitude=${longitude}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
-      );
+      const response =
+        await createSecureApiClient().get<ApproximateCoordinatesResponse>(
+          `/devices/sites/approximate?latitude=${latitude}&longitude=${longitude}`,
+          { headers: { "X-Auth-Type": "JWT" } }
+        );
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -109,8 +115,8 @@ export const sites = {
   getSiteDetails: async (siteId: string): Promise<SiteDetailsResponse> => {
     try {
       const response = await createSecureApiClient().get<SiteDetailsResponse>(
-        `/sites/${siteId}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        `/devices/sites/${siteId}`,
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
@@ -121,12 +127,15 @@ export const sites = {
     }
   },
 
-  updateSiteDetails: async (siteId: string, data: UpdateSiteRequest): Promise<SiteDetailsResponse> => {
+  updateSiteDetails: async (
+    siteId: string,
+    data: UpdateSiteRequest
+  ): Promise<SiteDetailsResponse> => {
     try {
       const response = await createSecureApiClient().put<SiteDetailsResponse>(
-        `/sites?id=${siteId}`,
+        `/devices/sites?id=${siteId}`,
         data,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
