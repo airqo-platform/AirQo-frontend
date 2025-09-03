@@ -310,7 +310,7 @@ export default function CountryAnalysis({ timeRange }: CountryAnalysisProps) {
     const fetchRegions = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${config.apiUrl}/network-analysis/regional`)
+        const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis`)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
@@ -339,7 +339,7 @@ export default function CountryAnalysis({ timeRange }: CountryAnalysisProps) {
     const fetchCountriesInRegion = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${config.apiUrl}/network-analysis/countries`)
+        const response = await fetch(`${config.apiUrl}/api/v1/sites/regions/list`)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
@@ -376,7 +376,7 @@ export default function CountryAnalysis({ timeRange }: CountryAnalysisProps) {
     const fetchCountryData = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${config.apiUrl}/network-analysis/countries/${encodeURIComponent(selectedCountry)}`)
+        const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis?region=${encodeURIComponent(selectedCountry)}`)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
@@ -404,7 +404,7 @@ export default function CountryAnalysis({ timeRange }: CountryAnalysisProps) {
     const fetchCountryTimeSeriesData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${config.apiUrl}/network-analysis/countries/${encodeURIComponent(selectedCountry)}/time-series?days=14`);
+        const response = await fetch(`${config.apiUrl}/api/v1/analytics/data-transmission/summary?days=14&region=${encodeURIComponent(selectedCountry)}`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -435,7 +435,7 @@ export default function CountryAnalysis({ timeRange }: CountryAnalysisProps) {
   // Fetch districts in selected country
   const fetchDistrictsInCountry = async (country: string) => {
     try {
-      const response = await fetch(`${config.apiUrl}/network-analysis/districts`)
+      const response = await fetch(`${config.apiUrl}/api/v1/sites/districts/list`)
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`)
       }
@@ -458,7 +458,7 @@ export default function CountryAnalysis({ timeRange }: CountryAnalysisProps) {
       const fetchCountryData = async () => {
         try {
           setLoading(true);
-          const response = await fetch(`${config.apiUrl}/network-analysis/countries/${encodeURIComponent(selectedCountry)}`);
+          const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis?region=${encodeURIComponent(selectedCountry)}`);
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
