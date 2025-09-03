@@ -164,18 +164,28 @@ export default function DeviceDetailsPage() {
       {isLoading ? (
         <ContentGridSkeleton />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
-          <DeviceDetailsCard
-            deviceId={deviceId}
-            onShowDetailsModal={() => setShowDetailsModal(true)}
-          />
-          <DeviceLocationCard device={device} />
-          <OnlineStatusCard deviceId={deviceId} />
-          <RunDeviceTestCard
-            deviceNumber={Number(device.device_number)}
-            getElapsedDurationMapper={getElapsedDurationMapper}
-          />
-          <DeviceMeasurementsApiCard deviceId={deviceId} />{" "}
+        <div className="columns-1 md:columns-2 lg:columns-3 gap-6 mt-6">
+          <div className="break-inside-avoid mb-6 inline-block w-full">
+            <DeviceDetailsCard
+              deviceId={deviceId}
+              onShowDetailsModal={() => setShowDetailsModal(true)}
+            />
+          </div>
+          <div className="break-inside-avoid mb-6 inline-block w-full">
+            <DeviceLocationCard device={device} />
+          </div>
+          <div className="break-inside-avoid mb-6 inline-block w-full">
+            <OnlineStatusCard deviceId={deviceId} />
+          </div>
+          <div className="break-inside-avoid mb-6 inline-block w-full">
+            <RunDeviceTestCard
+              deviceNumber={Number(device.device_number)}
+              getElapsedDurationMapper={getElapsedDurationMapper}
+            />
+          </div>
+          <div className="break-inside-avoid mb-6 inline-block w-full">
+            <DeviceMeasurementsApiCard deviceId={deviceId} />
+          </div>
         </div>
       )}
 
