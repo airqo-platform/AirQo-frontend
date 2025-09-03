@@ -1,3 +1,8 @@
+/**
+ * Authentication Service
+ * Handles all authentication operations for the AirQo platform
+ */
+
 interface LoginCredentials {
   userName: string
   password: string
@@ -30,7 +35,7 @@ class AuthService {
   
   constructor() {
     // Initialize base URL from environment or use default
-    this.baseUrl = process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL || 'https://platform.airqo.net'
+    this.baseUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 'https://staging-platform.airqo.net'
     
     // Restore token from storage if available
     if (typeof window !== 'undefined') {
@@ -42,6 +47,11 @@ class AuthService {
    * Gets token from various storage locations
    */
   private getStoredToken(): string | null {
+    // Check if we're in the browser
+    if (typeof window === 'undefined') {
+      return null
+    }
+
     // Check localStorage first
     const localToken = localStorage.getItem(this.TOKEN_KEY)
     if (localToken) return localToken
@@ -273,6 +283,11 @@ class AuthService {
    * Checks if user is currently authenticated
    */
   isAuthenticated(): boolean {
+    // Check if we're in the browser
+    if (typeof window === 'undefined') {
+      return false
+    }
+
     // Check multiple sources for token
     const token = this.getStoredToken()
     
@@ -376,14 +391,14 @@ class AuthService {
   }
 }
 
-
+// Export singleton instance
 const authService = new AuthService()
 
-
+// Add event listener for storage changes (logout from other tabs)
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (e) => {
     if (e.key === 'authToken' && !e.newValue) {
-     
+      // Token was removed in another tab, logout here too
       authService.logout()
     }
   })

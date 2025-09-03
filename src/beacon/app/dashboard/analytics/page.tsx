@@ -33,13 +33,11 @@ import {
   Wind,
   Search,
 } from "lucide-react"
+import { getSites, getSiteAnalytics, getCountryAnalytics, getRegionalAnalytics, getDistrictAnalytics } from "@/services/device-api.service"
+import { config } from "@/lib/config"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import SiteAnalyticsPage from "./site_analysis"
-import RegionalAnalysis from "./RegionalAnalysisPage"
-import CountryAnalysisPage from "./CountryAnalysisPage"
-import DistrictAnalysisPage from "./DistrictAnalysisPage"
 
 // TypeScript interfaces
 interface Device {
@@ -170,8 +168,6 @@ interface EntityWithAqi {
   aqiHazardous?: number;
 }
 
-// API endpoint base URL
-const API_BASE_URL = "http://srv828289.hstgr.cloud:8000";
 
 // AQI color mapping - keeping this as it's configuration, not static data
 const aqiColors = {
@@ -196,20 +192,17 @@ export default function AnalyticsPage() {
   // State variables
   const [timeRange, setTimeRange] = useState<string>("month")
   const [activeTab, setActiveTab] = useState<string>("network")
-  const [selectedSite, setSelectedSite] = useState<string>("")
-  const [selectedRegion, setSelectedRegion] = useState<string>("")
-  const [selectedRegionForCountry, setSelectedRegionForCountry] = useState<string>("")
-  const [selectedCountry, setSelectedCountry] = useState<string>("")
-  const [selectedRegionForDistrict, setSelectedRegionForDistrict] = useState<string>("")
-  const [selectedCountryForDistrict, setSelectedCountryForDistrict] = useState<string>("")
-  const [selectedDistrict, setSelectedDistrict] = useState<string>("")
-  const [selectedLocation, setSelectedLocation] = useState<string>("")
-  const [searchTerm, setSearchTerm] = useState<string>("")
-  const [statusFilter, setStatusFilter] = useState<string>("all")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [hasError, setHasError] = useState<boolean>(false)
   
-  // Data states - replace static data with these states
+  // Data states
+  const [siteStats, setSiteStats] = useState(null)
+  const [selectedCity, setSelectedCity] = useState<string>("")
+  const [cityData, setCityData] = useState(null)
+  const [citySites, setCitySites] = useState([])
+  const [selectedSite, setSelectedSite] = useState<string>("")
+  const [siteDevices, setSiteDevices] = useState(null)
+  const [cityMetrics, setCityMetrics] = useState([])
   const [regionalSummaryData, setRegionalSummaryData] = useState<RegionalSummaryData>({
     regions: 6,
     totalDevices: 243,
@@ -224,24 +217,25 @@ export default function AnalyticsPage() {
     averagePM10: 25,
   })
   
-  const [regionalComparisonData, setRegionalComparisonData] = useState<RegionalData[]>([])
-  const [countryData, setCountryData] = useState<CountryData[]>([])
-  const [districtData, setDistrictData] = useState<DistrictData[]>([])
-  const [villageData, setVillageData] = useState<VillageData[]>([])
-  const [sitesList, setSitesList] = useState<Site[]>([])
-  const [siteAirQualityData, setSiteAirQualityData] = useState<AirQualityData>({})
-  const [sitePerformanceData, setSitePerformanceData] = useState<PerformanceData>({})
 
   // Fetch data when component mounts or when dependencies change
   useEffect(() => {
-    // Call your API endpoints here to fetch real data
     fetchSummaryData()
-    fetchRegionalData()
-    fetchCountryData()
-    fetchDistrictData()
-    fetchVillageData()
-    fetchSitesData()
   }, [])
+  
+  // Fetch city data when selected city changes
+  useEffect(() => {
+    if (selectedCity) {
+      fetchCityData(selectedCity)
+    }
+  }, [selectedCity])
+
+  // Fetch site devices when selected site changes
+  useEffect(() => {
+    if (selectedSite) {
+      fetchSiteDevices(selectedSite)
+    }
+  }, [selectedSite])
 
   // When time range changes, refetch time-dependent data
   useEffect(() => {
@@ -253,58 +247,50 @@ export default function AnalyticsPage() {
       setIsLoading(true);
       setHasError(false);
       
-      // Use the network summary endpoint with the full URL
-      const response = await fetch(`${API_BASE_URL}/network-analysis/summary`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      // Fetch site statistics from the new endpoints
+      const countEndpoint = config.isLocalhost ? `${config.apiUrl}/sites/count` : `${config.apiUrl}/api/v1/sites/count`;
+      const statsEndpoint = config.isLocalhost ? `${config.apiUrl}/sites/statistics` : `${config.apiUrl}/api/v1/sites/statistics`;
+      
+      const [countResponse, statsResponse] = await Promise.all([
+        fetch(countEndpoint),
+        fetch(statsEndpoint)
+      ]);
+      
+      if (!countResponse.ok || !statsResponse.ok) {
+        throw new Error('Failed to fetch site data');
       }
       
-      const data = await response.json();
-      console.log('Summary data from API:', data);
+      const [countData, statsData] = await Promise.all([
+        countResponse.json(),
+        statsResponse.json()
+      ]);
       
-      // Map the API response directly to our state structure
+      setSiteStats(statsData);
+      
+      // Fetch metrics for all cities
+      if (statsData.by_city) {
+        await fetchAllCityMetrics(Object.keys(statsData.by_city));
+      }
+      
+      // Update regional summary data with the statistics
       setRegionalSummaryData({
-        regions: data.regions || 0,
-        totalDevices: data.totalDevices || 0,
-        countries: data.countries || 0,
-        countriesDevices: data.totalDevices || 0, // Using totalDevices since there's no specific countriesDevices field
-        districts: data.districts || 0,
-        districtsWithDevices: data.districts || 0, // Assuming all districts have devices
-        onlineDevices: data.onlineDevices || 0,
-        offlineDevices: data.offlineDevices || 0,
-        dataCompleteness: data.dataCompleteness || 0,
-        averagePM25: data.averagePM25 || 0,
-        averagePM10: data.averagePM10 || 0,
+        regions: Object.keys(statsData.by_district || {}).length,
+        totalDevices: statsData.device_distribution?.total_device_count || countData.total || 0,
+        countries: Object.keys(statsData.by_city || {}).length,
+        countriesDevices: statsData.device_distribution?.total_device_count || countData.total || 0,
+        districts: Object.keys(statsData.by_district || {}).length,
+        districtsWithDevices: Object.keys(statsData.by_district || {}).length,
+        onlineDevices: countData.active || 0,
+        offlineDevices: countData.inactive || 0,
+        dataCompleteness: Math.round(statsData.percentages?.active_rate || 0),
+        averagePM25: 20.6,
+        averagePM10: 25,
       });
-      
-      // You can also store the regionsData for more detailed analysis
-      if (data.regionsData) {
-        setRegionalComparisonData(data.regionsData.map((region: any) => ({
-          region: region.region,
-          deviceCount: region.deviceCount || 0,
-          onlineDevices: region.onlineDevices || 0,
-          offlineDevices: region.offlineDevices || 0,
-          dataTransmissionRate: region.dataTransmissionRate || 0,
-          dataCompleteness: region.dataCompleteness || 0,
-          pm25: region.pm25 || 0,
-          pm10: region.pm10 || 0,
-          // AQI distribution data
-          aqiGood: region.aqiGood || 0,
-          aqiModerate: region.aqiModerate || 0,
-          aqiUhfsg: region.aqiUhfsg || 0,
-          aqiUnhealthy: region.aqiUnhealthy || 0,
-          aqiVeryUnhealthy: region.aqiVeryUnhealthy || 0,
-          aqiHazardous: region.aqiHazardous || 0,
-          // Additional data
-          countries: region.countries || 0,
-          districts: region.districts || 0,
-        })));
-      }
     } catch (error) {
       console.error("Error fetching summary data:", error);
       setHasError(true);
       
-      // If we can't fetch data from the API, use hard-coded data from the image for demo purposes
+      // Fallback data
       setRegionalSummaryData({
         regions: 6,
         totalDevices: 243,
@@ -323,399 +309,109 @@ export default function AnalyticsPage() {
     }
   };
 
-  const fetchRegionalData = async (): Promise<void> => {
+  const fetchCityData = async (city: string): Promise<void> => {
+    if (!city) return;
+    
     try {
-      // Actual API call to the regional data endpoint
-      const response = await fetch(`${API_BASE_URL}/network-analysis/regional`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      setIsLoading(true);
+      
+      // Fetch city summary and sites in that city
+      const summaryEndpoint = config.isLocalhost ? `${config.apiUrl}/cities/${encodeURIComponent(city)}/summary` : `${config.apiUrl}/api/v1/cities/${encodeURIComponent(city)}/summary`;
+      const sitesEndpoint = config.isLocalhost ? `${config.apiUrl}/sites?city=${encodeURIComponent(city)}` : `${config.apiUrl}/api/v1/sites?city=${encodeURIComponent(city)}`;
+      
+      const [summaryResponse, sitesResponse] = await Promise.all([
+        fetch(summaryEndpoint),
+        fetch(sitesEndpoint)
+      ]);
+      
+      if (summaryResponse.ok) {
+        const summary = await summaryResponse.json();
+        setCityData(summary);
       }
       
-      const result = await response.json();
-      
-      // Process the regions data 
-      if (result.regions && Array.isArray(result.regions)) {
-        const regionsData: RegionalData[] = result.regions.map((region: any) => {
-          // Extract relevant data from the region.data object
-          const regionData = region.data || {};
-          
-          return {
-            region: region.region,
-            deviceCount: regionData.deviceCount || 0,
-            onlineDevices: regionData.onlineDevices || 0,
-            offlineDevices: regionData.offlineDevices || 0,
-            dataTransmissionRate: regionData.dataTransmissionRate || 0,
-            dataCompleteness: regionData.dataCompleteness || 0,
-            pm25: regionData.pm25 || 0,
-            pm10: regionData.pm10 || 0,
-            // Add AQI distribution data
-            aqiGood: regionData.aqiGood || 0,
-            aqiModerate: regionData.aqiModerate || 0,
-            aqiUhfsg: regionData.aqiUhfsg || 0,
-            aqiUnhealthy: regionData.aqiUnhealthy || 0,
-            aqiVeryUnhealthy: regionData.aqiVeryUnhealthy || 0,
-            aqiHazardous: regionData.aqiHazardous || 0,
-            // Add more fields
-            countries: regionData.countries || 0,
-            districts: regionData.districts || 0,
-          };
-        });
+      if (sitesResponse.ok) {
+        const sites = await sitesResponse.json();
+        setCitySites(sites);
         
-        setRegionalComparisonData(regionsData);
-        
-        // Set default selected region if we have data
-        if (regionsData.length > 0 && !selectedRegion) {
-          setSelectedRegion(regionsData[0].region);
-          setSelectedRegionForCountry(regionsData[0].region);
-          setSelectedRegionForDistrict(regionsData[0].region);
+        // Auto-select first site if none selected
+        if (sites.length > 0 && !selectedSite) {
+          setSelectedSite(sites[0].site_id);
         }
       }
     } catch (error) {
-      console.error("Error fetching regional data:", error);
-      // Keep existing regional data if error occurs
+      console.error("Error fetching city data:", error);
+    } finally {
+      setIsLoading(false);
     }
-  }
+  };
 
-  const fetchCountryData = async (): Promise<void> => {
+  const fetchSiteDevices = async (siteId: string): Promise<void> => {
+    if (!siteId) return;
+    
     try {
-      const response = await fetch(`${API_BASE_URL}/network-analysis/countries`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      setIsLoading(true);
+      
+      // Use the detailed endpoint for comprehensive metrics
+      const endpoint = config.isLocalhost ? 
+        `${config.apiUrl}/sites/${encodeURIComponent(siteId)}/devices/detailed?include_metrics=true&hours=24` : 
+        `${config.apiUrl}/api/v1/sites/${encodeURIComponent(siteId)}/devices/detailed?include_metrics=true&hours=24`;
+      
+      const response = await fetch(endpoint);
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSiteDevices(data);
       }
-      
-      const result = await response.json();
-      
-      // Process the countries data
-      if (result.countries && Array.isArray(result.countries)) {
-        const countriesData: CountryData[] = result.countries.map((country: any) => {
-          // Extract relevant data from the country.data object
-          const countryData = country.data || {};
+    } catch (error) {
+      console.error("Error fetching site devices:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchAllCityMetrics = async (cities: string[]): Promise<void> => {
+    try {
+      // Fetch device summary for each city in parallel
+      const metricsPromises = cities.slice(0, 20).map(async (city) => {
+        try {
+          const endpoint = config.isLocalhost ? 
+            `${config.apiUrl}/devices/summary/by-location?city=${encodeURIComponent(city)}&hours=24` : 
+            `${config.apiUrl}/api/v1/devices/summary/by-location?city=${encodeURIComponent(city)}&hours=24`;
           
-          return {
-            name: country.country,
-            region: countryData.region || 'Unknown',
-            deviceCount: countryData.deviceCount || 0,
-            onlineDevices: countryData.onlineDevices || 0,
-            offlineDevices: countryData.offlineDevices || 0,
-            dataTransmissionRate: countryData.dataTransmissionRate || 0,
-            dataCompleteness: countryData.dataCompleteness || 0,
-            pm25: countryData.pm25 || 0,
-            pm10: countryData.pm10 || 0,
-            // Add AQI distribution data
-            aqiGood: countryData.aqiGood || 0,
-            aqiModerate: countryData.aqiModerate || 0,
-            aqiUhfsg: countryData.aqiUhfsg || 0,
-            aqiUnhealthy: countryData.aqiUnhealthy || 0,
-            aqiVeryUnhealthy: countryData.aqiVeryUnhealthy || 0,
-            aqiHazardous: countryData.aqiHazardous || 0,
-            // Map devicesList if available
-            devicesList: countryData.devicesList || []
-          };
-        });
-        
-        setCountryData(countriesData);
-        
-        // Set default selected country if we have data
-        if (countriesData.length > 0 && !selectedCountry) {
-          setSelectedCountry(countriesData[0].name);
-          setSelectedCountryForDistrict(countriesData[0].name);
+          const response = await fetch(endpoint);
+          if (response.ok) {
+            const data = await response.json();
+            return {
+              city,
+              siteCount: (siteStats as any)?.by_city?.[city] || 0,
+              ...data
+            };
+          }
+        } catch (error) {
+          console.error(`Error fetching metrics for ${city}:`, error);
         }
-      }
-    } catch (error) {
-      console.error("Error fetching country data:", error);
-      setCountryData([]);
-    }
-  }
+        return null;
+      });
 
-  const fetchDistrictData = async (): Promise<void> => {
-    try {
-      // If we have a selected country, filter by it
-      const url = selectedCountryForDistrict 
-        ? `${API_BASE_URL}/network-analysis/districts?country=${encodeURIComponent(selectedCountryForDistrict)}`
-        : `${API_BASE_URL}/network-analysis/districts`;
-        
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      
-      if (result.districts && Array.isArray(result.districts)) {
-        // Process the districts data
-        const districtsData: DistrictData[] = result.districts.map((district: any) => {
-          // Extract relevant data from the district.data object
-          const districtData = district.data || {};
-          
-          return {
-            name: district.district,
-            country: district.country,
-            deviceCount: districtData.devices || 0,
-            onlineDevices: districtData.onlineDevices || 0,
-            offlineDevices: districtData.offlineDevices || 0,
-            dataTransmissionRate: districtData.dataTransmissionRate || 0,
-            dataCompleteness: districtData.dataCompleteness || 0,
-            pm25: districtData.pm25 || 0,
-            pm10: districtData.pm10 || 0,
-            // Add AQI distribution data
-            aqiGood: districtData.aqiGood || 0,
-            aqiModerate: districtData.aqiModerate || 0,
-            aqiUhfsg: districtData.aqiUhfsg || 0,
-            aqiUnhealthy: districtData.aqiUnhealthy || 0,
-            aqiVeryUnhealthy: districtData.aqiVeryUnhealthy || 0,
-            aqiHazardous: districtData.aqiHazardous || 0,
-            // Map devicesList if available
-            devicesList: districtData.devicesList || []
-          };
-        });
-        
-        setDistrictData(districtsData);
-        
-        // Set default selected district if we have data
-        if (districtsData.length > 0 && !selectedDistrict) {
-          setSelectedDistrict(districtsData[0].name);
-        }
-      }
+      const results = await Promise.all(metricsPromises);
+      const validResults = results.filter(result => result !== null);
+      setCityMetrics(validResults);
     } catch (error) {
-      console.error("Error fetching district data:", error);
-      setDistrictData([]);
+      console.error("Error fetching city metrics:", error);
     }
-  }
-
-  const fetchVillageData = async (): Promise<void> => {
-    // This function would need to be implemented when there's an API endpoint for village data
-    try {
-      // For now, this is a placeholder
-      setVillageData([]);
-      
-      // Set default selected location if we have data
-      if (villageData.length > 0 && !selectedLocation) {
-        setSelectedLocation(villageData[0].name);
-      }
-    } catch (error) {
-      console.error("Error fetching village data:", error);
-      setVillageData([]);
-    }
-  }
-
-  const fetchSitesData = async (): Promise<void> => {
-    // This function would need to be implemented when there's an API endpoint for sites data
-    try {
-      // For now, these are placeholders
-      setSitesList([]);
-      setSiteAirQualityData({});
-      setSitePerformanceData({});
-      
-      // Set default selected site if we have data
-      if (sitesList.length > 0 && !selectedSite) {
-        setSelectedSite(sitesList[0].id);
-      }
-    } catch (error) {
-      console.error("Error fetching sites data:", error);
-    }
-  }
+  };
 
   const fetchTimeRangeData = async (): Promise<void> => {
-    // This would be implemented to fetch time-dependent data based on the selected range
     try {
-      // For now, this is a placeholder
       console.log(`Fetching time range data for: ${timeRange}`);
     } catch (error) {
       console.error("Error fetching time range data:", error);
     }
   }
 
-  // The rest of your component's code (data processing functions, memoization, etc.) remains the same
-  
-  // Get the current site data
-  const currentSite = useMemo(() => {
-    return sitesList.find((site) => site.id === selectedSite) || null
-  }, [sitesList, selectedSite])
-  
-  const currentSiteAirQuality = useMemo(() => {
-    return siteAirQualityData[selectedSite] || null
-  }, [siteAirQualityData, selectedSite])
-  
-  const currentSitePerformance = useMemo(() => {
-    return sitePerformanceData[selectedSite] || []
-  }, [sitePerformanceData, selectedSite])
-
-  // Get the selected region data
-  const currentRegion = useMemo(() => {
-    return regionalComparisonData.find((region) => region.region === selectedRegion) || null
-  }, [regionalComparisonData, selectedRegion])
-
-  // Get the selected country data
-  const currentCountry = useMemo(() => {
-    return countryData.find((country) => country.name === selectedCountry) || null
-  }, [countryData, selectedCountry])
-
-  // Get the selected district data
-  const currentDistrict = useMemo(() => {
-    return districtData.find((district) => district.name === selectedDistrict) || null
-  }, [districtData, selectedDistrict])
-
-  // Filter countries based on selected region
-  const countriesInSelectedRegion = useMemo(() => {
-    return countryData.filter((country) => country.region === selectedRegionForCountry)
-  }, [countryData, selectedRegionForCountry])
-
-  // Filter districts based on selected country
-  const districtsInSelectedCountry = useMemo(() => {
-    return districtData.filter((district) => district.country === selectedCountryForDistrict)
-  }, [districtData, selectedCountryForDistrict])
-
-  // Filter locations based on selected district
-  const locationsInSelectedDistrict = useMemo(() => {
-    return villageData.filter((village) => village.district === selectedDistrict)
-  }, [villageData, selectedDistrict])
-
-  // Get the selected location data
-  const currentLocation = useMemo(() => {
-    return villageData.find((village) => village.name === selectedLocation) || null
-  }, [villageData, selectedLocation])
-
-  // Filter countries for the regional analysis view
-  const countriesInRegion = useMemo(() => {
-    return countryData.filter((country) => country.region === selectedRegion)
-  }, [countryData, selectedRegion])
-
-  // Filter districts for the country analysis view
-  const districtsInCountry = useMemo(() => {
-    return districtData.filter((district) => district.country === selectedCountry)
-  }, [districtData, selectedCountry])
-
-  // Find regions with highest and lowest offline devices
-  const regionWithMostOfflineDevices = useMemo(() => {
-    if (!regionalComparisonData.length) return null
-    return regionalComparisonData.reduce((prev, current) => 
-      (prev.offlineDevices > current.offlineDevices) ? prev : current
-    )
-  }, [regionalComparisonData])
-
-  const regionWithLeastOfflineDevices = useMemo(() => {
-    if (!regionalComparisonData.length) return null
-    return regionalComparisonData.reduce((prev, current) => 
-      (prev.offlineDevices < current.offlineDevices) ? prev : current
-    )
-  }, [regionalComparisonData])
-
-  // Find countries with highest and lowest offline devices
-  const countryWithMostOfflineDevices = useMemo(() => {
-    if (!countryData.length) return null
-    return countryData.reduce((prev, current) => 
-      (prev.offlineDevices > current.offlineDevices) ? prev : current
-    )
-  }, [countryData])
-
-  const countryWithLeastOfflineDevices = useMemo(() => {
-    if (!countryData.length) return null
-    return countryData.reduce((prev, current) => 
-      (prev.offlineDevices < current.offlineDevices && current.offlineDevices > 0) ? prev : current
-    )
-  }, [countryData])
-
-  // Find districts with highest and lowest offline devices
-  const districtWithMostOfflineDevices = useMemo(() => {
-    if (!districtData.length) return null
-    return districtData.reduce((prev, current) => 
-      (prev.offlineDevices > current.offlineDevices) ? prev : current
-    )
-  }, [districtData])
-
-  const districtWithLeastOfflineDevices = useMemo(() => {
-    if (!districtData.length) return null
-    return districtData.reduce((prev, current) => 
-      (prev.offlineDevices < current.offlineDevices && current.offlineDevices > 0) ? prev : current
-    )
-  }, [districtData])
-
-  // Find locations with highest and lowest offline devices
-  const locationWithMostOfflineDevices = useMemo(() => {
-    if (!villageData.length) return null
-    return villageData.reduce((prev, current) => 
-      (prev.offlineDevices > current.offlineDevices) ? prev : current
-    )
-  }, [villageData])
-
-  const locationWithLeastOfflineDevices = useMemo(() => {
-    if (!villageData.length) return null
-    return villageData.reduce((prev, current) => 
-      (prev.offlineDevices < current.offlineDevices && current.offlineDevices > 0) ? prev : current
-    )
-  }, [villageData])
-
-  // Find entities with best and worst data transmission rates
-  const regionWithBestDataTransmission = useMemo(() => {
-    if (!regionalComparisonData.length) return null
-    return regionalComparisonData.reduce((prev, current) => 
-      (prev.dataTransmissionRate > current.dataTransmissionRate) ? prev : current
-    )
-  }, [regionalComparisonData])
-
-  const regionWithWorstDataTransmission = useMemo(() => {
-    if (!regionalComparisonData.length) return null
-    return regionalComparisonData.reduce((prev, current) => 
-      (prev.dataTransmissionRate < current.dataTransmissionRate) ? prev : current
-    )
-  }, [regionalComparisonData])
-
-  // Prepare AQI distribution data for pie chart
-  const getAqiDistributionData = (entity: EntityWithAqi | null): AqiDistributionItem[] => {
-    if (!entity) return []
-    
-    return [
-      { name: "Good", value: entity.aqiGood || 0, color: aqiColors.good },
-      { name: "Moderate", value: entity.aqiModerate || 0, color: aqiColors.moderate },
-      { name: "UHFSG", value: entity.aqiUhfsg || 0, color: aqiColors.unhealthySensitive },
-      { name: "Unhealthy", value: entity.aqiUnhealthy || 0, color: aqiColors.unhealthy },
-      { name: "V.Unhealthy", value: entity.aqiVeryUnhealthy || 0, color: aqiColors.veryUnhealthy },
-      { name: "Hazardous", value: entity.aqiHazardous || 0, color: aqiColors.hazardous },
-    ]
-  }
-
-  // Get AQI distribution data for current selections
-  const regionAqiData = useMemo(() => getAqiDistributionData(currentRegion), [currentRegion])
-  const countryAqiData = useMemo(() => getAqiDistributionData(currentCountry), [currentCountry])
-  const districtAqiData = useMemo(() => getAqiDistributionData(currentDistrict), [currentDistrict])
-  const locationAqiData = useMemo(() => getAqiDistributionData(currentLocation), [currentLocation])
-
-  // Filter devices based on search term and status filter
-  const filterDevices = (devices: Device[]): Device[] => {
-    if (!devices) return []
-    
-    return devices.filter((device) => {
-      const matchesSearch = 
-        device.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        device.name.toLowerCase().includes(searchTerm.toLowerCase())
-      
-      const matchesStatus = statusFilter === "all" || device.status === statusFilter
-      
-      return matchesSearch && matchesStatus
-    })
-  }
-
-  const filteredCountryDevices = useMemo(() => {
-    return currentCountry?.devicesList ? filterDevices(currentCountry.devicesList) : []
-  }, [currentCountry, searchTerm, statusFilter])
-  
-  const filteredDistrictDevices = useMemo(() => {
-    return currentDistrict?.devicesList ? filterDevices(currentDistrict.devicesList) : []
-  }, [currentDistrict, searchTerm, statusFilter])
-  
-  const filteredLocationDevices = useMemo(() => {
-    return currentLocation?.devicesList ? filterDevices(currentLocation.devicesList) : []
-  }, [currentLocation, searchTerm, statusFilter])
-
   // Handlers for data refresh and export
   const handleRefresh = (): void => {
-    // Refetch all data
     fetchSummaryData()
-    fetchRegionalData()
-    fetchCountryData()
-    fetchDistrictData()
-    fetchVillageData()
-    fetchSitesData()
     fetchTimeRangeData()
   }
 
@@ -754,39 +450,52 @@ export default function AnalyticsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 mb-4 w-[400px]">
-          <TabsTrigger value="network">Network Analytics</TabsTrigger>
-          <TabsTrigger value="site">Site Analytics</TabsTrigger>
+        <TabsList className="grid grid-cols-1 mb-4 w-[400px]">
+          <TabsTrigger value="network">Site Analytics</TabsTrigger>
         </TabsList>
 
         <TabsContent value="network" className="space-y-6">
-          {/* Regional Analysis Summary Cards */}
+          {/* Site Analytics Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center">
-                  <Globe className="mr-2 h-5 w-5 text-primary" />
-                  Regions & Devices
+                  <Map className="mr-2 h-5 w-5 text-primary" />
+                  Total Sites
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{regionalSummaryData.regions} Regions</div>
+                <div className="text-2xl font-bold">{siteStats?.summary?.total || regionalSummaryData.totalDevices}</div>
                 <p className="text-sm text-muted-foreground">
-                  {regionalSummaryData.totalDevices} devices across all regions
+                  Monitoring sites across the network
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center">
-                  <Map className="mr-2 h-5 w-5 text-primary" />
+                  <Activity className="mr-2 h-5 w-5 text-primary" />
+                  Active Sites
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {siteStats?.summary?.active || regionalSummaryData.onlineDevices}
+                </div>
+                <p className="text-sm text-muted-foreground">Sites currently operational</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center">
+                  <Globe className="mr-2 h-5 w-5 text-primary" />
                   Countries
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{regionalSummaryData.countries} Countries</div>
+                <div className="text-2xl font-bold">{Object.keys(siteStats?.by_city || {}).length || regionalSummaryData.countries}</div>
                 <p className="text-sm text-muted-foreground">
-                  {regionalSummaryData.totalDevices} devices across all countries
+                  Countries with monitoring sites
                 </p>
               </CardContent>
             </Card>
@@ -794,55 +503,467 @@ export default function AnalyticsPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium flex items-center">
                   <Layers className="mr-2 h-5 w-5 text-primary" />
-                  Districts
+                  Data Coverage
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {regionalSummaryData.districts}/{regionalSummaryData.districts}
-                </div>
-                <p className="text-sm text-muted-foreground">Districts with active monitoring devices</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center">
-                  <Activity className="mr-2 h-5 w-5 text-primary" />
-                  Device Status
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {regionalSummaryData.onlineDevices}/{regionalSummaryData.totalDevices}
-                </div>
-                <p className="text-sm text-muted-foreground">Devices currently online</p>
+                <div className="text-2xl font-bold">{Math.round(siteStats?.percentages?.active_rate || regionalSummaryData.dataCompleteness)}%</div>
+                <p className="text-sm text-muted-foreground">Overall data completeness</p>
               </CardContent>
             </Card>
           </div>
-          <Tabs defaultValue="regional" className="w-full">
+          <Tabs defaultValue="city" className="w-full">
           <TabsList className="grid grid-cols-3 mb-4">
-            <TabsTrigger value="regional">Regional Analysis</TabsTrigger>
-            <TabsTrigger value="country">Country Analysis</TabsTrigger>
+            <TabsTrigger value="city">City Analysis</TabsTrigger>
             <TabsTrigger value="district">District Analysis</TabsTrigger>
+            <TabsTrigger value="category">Category Analysis</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="regional" className="space-y-4">
-            <RegionalAnalysis timeRange={timeRange} />
-          </TabsContent>
+          <TabsContent value="city" className="space-y-4">
+            {!selectedCity ? (
+              <div className="space-y-6">
+                {/* Key Metrics Table */}
+                {cityMetrics.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Activity className="mr-2 h-5 w-5 text-primary" />
+                        📊 Key Metrics Across Cities
+                      </CardTitle>
+                      <CardDescription>
+                        Comprehensive device performance and data quality metrics across all cities
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b bg-gray-50">
+                              <th className="text-left py-3 px-3 font-medium">City</th>
+                              <th className="text-left py-3 px-3 font-medium">Sites</th>
+                              <th className="text-left py-3 px-3 font-medium">Devices Off/On</th>
+                              <th className="text-left py-3 px-3 font-medium">Uptime (%)</th>
+                              <th className="text-left py-3 px-3 font-medium">Avg Sensor Error</th>
+                              <th className="text-left py-3 px-3 font-medium">Avg Hourly Entries</th>
+                              <th className="text-left py-3 px-3 font-medium">Optimal (%)</th>
+                              <th className="text-left py-3 px-3 font-medium">Good (%)</th>
+                              <th className="text-left py-3 px-3 font-medium">Fair (%)</th>
+                              <th className="text-left py-3 px-3 font-medium">Poor (%)</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {cityMetrics
+                              .sort((a: any, b: any) => (b.performance_metrics?.uptime_percentage || 0) - (a.performance_metrics?.uptime_percentage || 0))
+                              .map((city: any, index: number) => (
+                              <tr key={city.city} className={`border-b hover:bg-gray-50 cursor-pointer ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}
+                                  onClick={() => setSelectedCity(city.city)}>
+                                <td className="py-3 px-3 font-medium text-blue-600 hover:underline">{city.city}</td>
+                                <td className="py-3 px-3">{city.siteCount}</td>
+                                <td className="py-3 px-3">
+                                  <div className="flex items-center space-x-1">
+                                    <span className="text-red-600 font-medium">{city.device_counts?.offline || 0}</span>
+                                    <span>/</span>
+                                    <span className="text-green-600 font-medium">{city.device_counts?.online || 0}</span>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <div className="flex items-center">
+                                    <span className={`font-medium ${
+                                      (city.performance_metrics?.uptime_percentage || 0) > 60 ? 'text-green-600' :
+                                      (city.performance_metrics?.uptime_percentage || 0) > 30 ? 'text-yellow-600' : 'text-red-600'
+                                    }`}>
+                                      {city.performance_metrics?.uptime_percentage?.toFixed(2) || '0.00'}%
+                                    </span>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span className={`font-medium ${
+                                    (city.performance_metrics?.avg_sensor_error_rate || 0) < 10 ? 'text-green-600' :
+                                    (city.performance_metrics?.avg_sensor_error_rate || 0) < 20 ? 'text-yellow-600' : 'text-red-600'
+                                  }`}>
+                                    {city.performance_metrics?.avg_sensor_error_rate?.toFixed(2) || '0.00'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 font-medium">{city.average_hourly_entries?.toFixed(2) || '0.00'}</td>
+                                <td className="py-3 px-3">
+                                  <span className="text-green-600 font-medium">
+                                    {city.completeness_percentages?.optimal?.toFixed(2) || '0.00'}%
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span className="text-blue-600 font-medium">
+                                    {city.completeness_percentages?.good?.toFixed(2) || '0.00'}%
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span className="text-yellow-600 font-medium">
+                                    {city.completeness_percentages?.fair?.toFixed(2) || '0.00'}%
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3">
+                                  <span className="text-red-600 font-medium">
+                                    {city.completeness_percentages?.poor?.toFixed(2) || '0.00'}%
+                                  </span>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
 
-          <TabsContent value="country" className="space-y-4">
-            <CountryAnalysisPage timeRange={timeRange} />
+                      {/* Performance Insights */}
+                      {cityMetrics.length > 0 && (
+                        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Card className="border-green-200 bg-green-50">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm font-medium text-green-800">🚀 Best Performing</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              {(() => {
+                                const best = cityMetrics
+                                  .filter((city: any) => (city.performance_metrics?.uptime_percentage || 0) > 50)
+                                  .sort((a: any, b: any) => (b.performance_metrics?.uptime_percentage || 0) - (a.performance_metrics?.uptime_percentage || 0))
+                                  .slice(0, 3);
+                                
+                                return best.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {best.map((city: any) => (
+                                      <div key={city.city} className="flex justify-between items-center">
+                                        <span className="font-medium text-green-700">{city.city}</span>
+                                        <span className="text-sm text-green-600">
+                                          {city.performance_metrics?.uptime_percentage?.toFixed(1)}% uptime
+                                        </span>
+                                      </div>
+                                    ))}
+                                    <p className="text-xs text-green-600 mt-2">High uptime, low error rates, strong completeness</p>
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-green-600">No cities with &gt;50% uptime</p>
+                                );
+                              })()}
+                            </CardContent>
+                          </Card>
+
+                          <Card className="border-red-200 bg-red-50">
+                            <CardHeader className="pb-3">
+                              <CardTitle className="text-sm font-medium text-red-800">🔴 Needs Attention</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              {(() => {
+                                const worst = cityMetrics
+                                  .filter((city: any) => (city.completeness_percentages?.poor || 0) > 50)
+                                  .sort((a: any, b: any) => (b.completeness_percentages?.poor || 0) - (a.completeness_percentages?.poor || 0))
+                                  .slice(0, 3);
+                                
+                                return worst.length > 0 ? (
+                                  <div className="space-y-2">
+                                    {worst.map((city: any) => (
+                                      <div key={city.city} className="flex justify-between items-center">
+                                        <span className="font-medium text-red-700">{city.city}</span>
+                                        <span className="text-sm text-red-600">
+                                          {city.completeness_percentages?.poor?.toFixed(1)}% poor completeness
+                                        </span>
+                                      </div>
+                                    ))}
+                                    <p className="text-xs text-red-600 mt-2">High poor completeness rates, low data quality</p>
+                                  </div>
+                                ) : (
+                                  <p className="text-sm text-red-600">No cities with &gt;50% poor completeness</p>
+                                );
+                              })()}
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* City Selector Grid */}
+                <div>
+                  <h2 className="text-xl font-semibold mb-4">Select a City for Detailed Analysis</h2>
+                  {siteStats?.by_city && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {Object.entries(siteStats.by_city)
+                        .sort(([,a], [,b]) => (b as number) - (a as number))
+                        .map(([city, count]) => (
+                        <Card key={city} className="cursor-pointer transition-colors hover:bg-gray-50 hover:shadow-md"
+                              onClick={() => setSelectedCity(city)}>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg font-medium">{city}</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-3xl font-bold text-primary">{count as number}</div>
+                            <p className="text-sm text-muted-foreground">monitoring sites</p>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : (
+              /* Selected City Analysis */
+              <div className="space-y-6">
+                {/* City Header with Back Button */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold">{selectedCity} Analysis</h2>
+                    <p className="text-muted-foreground">Detailed analysis of devices and sites</p>
+                  </div>
+                  <Button variant="outline" onClick={() => {setSelectedCity(""); setSelectedSite(""); setSiteDevices(null)}}>
+                    ← Back to Cities
+                  </Button>
+                </div>
+
+                {/* City Summary Cards */}
+                {cityData && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center">
+                          <Activity className="mr-2 h-5 w-5 text-blue-500" />
+                          Total Devices
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{cityData.device_counts?.total || 0}</div>
+                        <p className="text-xs text-muted-foreground">devices in {selectedCity}</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center">
+                          <Signal className="mr-2 h-5 w-5 text-green-500" />
+                          Online Devices
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-green-600">{cityData.device_counts?.online || 0}</div>
+                        <p className="text-xs text-muted-foreground">currently online</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center">
+                          <SignalZero className="mr-2 h-5 w-5 text-red-500" />
+                          Offline Devices
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-red-600">{cityData.device_counts?.offline || 0}</div>
+                        <p className="text-xs text-muted-foreground">currently offline</p>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium flex items-center">
+                          <Percent className="mr-2 h-5 w-5 text-primary" />
+                          Uptime Rate
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">
+                          {cityData.device_counts?.total ? 
+                            Math.round((cityData.device_counts.online / cityData.device_counts.total) * 100) 
+                            : 0}%
+                        </div>
+                        <p className="text-xs text-muted-foreground">devices operational</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+
+                {/* Sites in Selected City */}
+                {citySites && citySites.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Map className="mr-2 h-5 w-5 text-primary" />
+                        Sites in {selectedCity}
+                      </CardTitle>
+                      <CardDescription>Select a site for detailed device analysis</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        {citySites.map((site: any) => (
+                          <Card key={site.site_id} 
+                                className={`cursor-pointer transition-colors ${selectedSite === site.site_id ? 'ring-2 ring-primary bg-primary/5' : 'hover:bg-gray-50'}`}
+                                onClick={() => setSelectedSite(site.site_id)}>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-sm font-medium">{site.site_name}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-xs text-muted-foreground">District:</span>
+                                  <span className="text-xs font-medium">{site.district}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-xs text-muted-foreground">Devices:</span>
+                                  <span className="text-xs font-medium">{site.device_count || 0}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-xs text-muted-foreground">Category:</span>
+                                  <span className="text-xs font-medium">{site.site_category || 'N/A'}</span>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Selected Site Device Details */}
+                {siteDevices && selectedSite && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <Activity className="mr-2 h-5 w-5 text-primary" />
+                        Device Details - {siteDevices.site?.site_name}
+                      </CardTitle>
+                      <CardDescription>
+                        Performance metrics and status for devices at this site
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      {/* Site Summary */}
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">{siteDevices.summary?.total_devices || 0}</div>
+                          <p className="text-sm text-muted-foreground">Total Devices</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{siteDevices.summary?.online || 0}</div>
+                          <p className="text-sm text-muted-foreground">Online</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-600">{siteDevices.summary?.offline || 0}</div>
+                          <p className="text-sm text-muted-foreground">Offline</p>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{siteDevices.summary?.active || 0}</div>
+                          <p className="text-sm text-muted-foreground">Active</p>
+                        </div>
+                      </div>
+
+                      {/* Device Details Table */}
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b bg-gray-50">
+                              <th className="text-left py-3 px-4 font-medium">Device ID</th>
+                              <th className="text-left py-3 px-4 font-medium">Status</th>
+                              <th className="text-left py-3 px-4 font-medium">Online</th>
+                              <th className="text-left py-3 px-4 font-medium">Completeness</th>
+                              <th className="text-left py-3 px-4 font-medium">Uptime</th>
+                              <th className="text-left py-3 px-4 font-medium">Last Reading</th>
+                              <th className="text-left py-3 px-4 font-medium">PM2.5</th>
+                              <th className="text-left py-3 px-4 font-medium">PM10</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {siteDevices.devices?.map((device: any, index: number) => (
+                              <tr key={device.device_key || index} className="border-b hover:bg-gray-50">
+                                <td className="py-3 px-4 font-mono text-sm">{device.device_key}</td>
+                                <td className="py-3 px-4">
+                                  <Badge variant={device.is_active ? "default" : "secondary"}>
+                                    {device.is_active ? "Active" : "Inactive"}
+                                  </Badge>
+                                </td>
+                                <td className="py-3 px-4">
+                                  <Badge variant={device.is_online ? "default" : "destructive"}>
+                                    {device.is_online ? "Online" : "Offline"}
+                                  </Badge>
+                                </td>
+                                <td className="py-3 px-4">
+                                  {device.metrics?.completeness_percentage ? (
+                                    <div className="flex items-center">
+                                      <div className="text-sm font-medium">{device.metrics.completeness_percentage.toFixed(1)}%</div>
+                                      <Badge variant={
+                                        device.metrics.completeness_category === 'optimal' ? 'default' :
+                                        device.metrics.completeness_category === 'good' ? 'secondary' :
+                                        device.metrics.completeness_category === 'fair' ? 'outline' : 'destructive'
+                                      } className="ml-2 text-xs">
+                                        {device.metrics.completeness_category}
+                                      </Badge>
+                                    </div>
+                                  ) : 'N/A'}
+                                </td>
+                                <td className="py-3 px-4">
+                                  {device.metrics?.uptime_percentage ? 
+                                    `${device.metrics.uptime_percentage.toFixed(1)}%` : 'N/A'}
+                                </td>
+                                <td className="py-3 px-4 text-xs">
+                                  {device.metrics?.last_reading ? 
+                                    new Date(device.metrics.last_reading).toLocaleString() : 'N/A'}
+                                </td>
+                                <td className="py-3 px-4">
+                                  {device.metrics?.last_pm2_5 ? 
+                                    `${device.metrics.last_pm2_5.toFixed(1)} μg/m³` : 'N/A'}
+                                </td>
+                                <td className="py-3 px-4">
+                                  {device.metrics?.last_pm10 ? 
+                                    `${device.metrics.last_pm10.toFixed(1)} μg/m³` : 'N/A'}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="district" className="space-y-4">
-            <DistrictAnalysisPage timeRange={timeRange} />
+            {siteStats?.by_district && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(siteStats.by_district)
+                  .sort(([,a], [,b]) => b - a)
+                  .slice(0, 12)
+                  .map(([district, count]) => (
+                  <Card key={district}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">{district}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{count}</div>
+                      <p className="text-xs text-muted-foreground">monitoring sites</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="category" className="space-y-4">
+            {siteStats?.by_category && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries(siteStats.by_category).map(([category, count]) => (
+                  <Card key={category}>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm font-medium">{category}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{count}</div>
+                      <p className="text-xs text-muted-foreground">monitoring sites</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
           </Tabs>
         </TabsContent>
 
-        <TabsContent value="site" className="space-y-6">
-          <SiteAnalyticsPage />
-        </TabsContent>
       </Tabs>
     </div>
   )

@@ -29,6 +29,7 @@ import {
 } from "recharts"
 import { AlertTriangle, Download, RefreshCw, WifiOff, CheckCircle, XCircle, Wifi } from "lucide-react"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 // TypeScript interfaces
 interface HourlyData {
@@ -152,7 +153,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }: DataTr
 
       // Get hourly network transmission data
       const hourlyResponse = await fetch(
-        `${config.apiUrl}/api/analytics/hourly-transmission?date=${datePicker}&timeRange=${timeRange || dateFilter}&device=${deviceFilter}`,
+        `${config.apiUrl}/api/v1/analytics/data-transmission/hourly?days=${timeRange || dateFilter}`,
       )
       if (!hourlyResponse.ok) throw new Error("Failed to fetch hourly transmission data")
       const hourlyData = await hourlyResponse.json()
@@ -164,7 +165,13 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }: DataTr
       let deviceStatsData: DeviceStats[] = []
       try {
         const deviceStatsResponse = await fetch(
-          `${config.apiUrl}/api/analytics/device-failures?timeRange=${timeRange || dateFilter}`,
+          `${config.apiUrl}/api/v1/beacon/devices/offline/list?hours=${(timeRange || dateFilter) * 24}`,
+          {
+            headers: {
+              'Authorization': authService.getToken() || '',
+              'Content-Type': 'application/json'
+            }
+          }
         )
         if (deviceStatsResponse.ok) {
           const deviceFailures = await deviceStatsResponse.json()
@@ -220,7 +227,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }: DataTr
       setDeviceHourlyData(mockDeviceHourly)
 
       // Get hourly trends over time - use all-devices-transmission which has similar data
-      const trendsResponse = await fetch(`${config.apiUrl}/api/analytics/all-devices-transmission?date=${datePicker}`)
+      const trendsResponse = await fetch(`${config.apiUrl}/api/v1/analytics/data-transmission/summary?days=${timeRange || 7}`)
       if (!trendsResponse.ok) throw new Error("Failed to fetch hourly trends data")
 
       // Extract aggregate stats from the all-devices-transmission endpoint

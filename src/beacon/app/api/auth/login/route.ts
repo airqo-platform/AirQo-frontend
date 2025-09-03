@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 
-const AIRQO_API_BASE_URL = process.env.AIRQO_API_BASE_URL || process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL || 'https://platform.airqo.net'
+const AIRQO_API_BASE_URL = process.env.AIRQO_STAGING_API_BASE_URL || process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 'https://staging-platform.airqo.net'
 const API_VERSION = process.env.AIRQO_API_VERSION || 'v2'
 const LOGIN_ENDPOINT = process.env.LOGIN_ENDPOINT || 'users/loginUser'
 const AIRQO_API_URL = `${AIRQO_API_BASE_URL}/api/${API_VERSION}/${LOGIN_ENDPOINT}`
