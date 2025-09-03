@@ -60,15 +60,22 @@ class AuthImpl extends AuthRepository {
     if (registerResponse.statusCode == 200 || registerResponse.statusCode == 201) {
       return;
     } else if (registerResponse.statusCode == 409) {
-      String message = data['message'] ?? data['errors']?['message'] ?? 'User already exists';
-      if (message.toLowerCase().contains('verification') || 
-          message.toLowerCase().contains('email') ||
-          message.toLowerCase().contains('confirm')) {
+      final errors = data['errors'] as Map<String, dynamic>?;
+      String message = data['message'] ?? errors?['message'] ?? 'User already exists';
+      
+      String messageLower = message.toLowerCase();
+      if (messageLower.contains('verification sent') ||
+          messageLower.contains('verify your email') ||
+          messageLower.contains('account unverified') ||
+          messageLower.contains('verification required') ||
+          messageLower.contains('email verification') ||
+          messageLower.contains('confirmation sent')) {
         return;
       }
       throw Exception(message);
     } else {
-      String errorMessage = data['errors']?['message'] ?? data['message'] ?? 'Registration failed';
+      final errors = data['errors'] as Map<String, dynamic>?;
+      String errorMessage = data['message'] ?? errors?['message'] ?? 'Registration failed';
       throw Exception(errorMessage);
     }
   }
