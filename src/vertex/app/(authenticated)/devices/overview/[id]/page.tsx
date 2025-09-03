@@ -165,25 +165,25 @@ export default function DeviceDetailsPage() {
         <ContentGridSkeleton />
       ) : (
         <div className="columns-1 md:columns-2 lg:columns-3 gap-4 mt-6">
-          <div className="break-inside-avoid mb-6 inline-block w-full">
+          <div className="break-inside-avoid mb-4 inline-block w-full">
             <DeviceDetailsCard
               deviceId={deviceId}
               onShowDetailsModal={() => setShowDetailsModal(true)}
             />
           </div>
-          <div className="break-inside-avoid mb-6 inline-block w-full">
+          <div className="break-inside-avoid mb-4 inline-block w-full">
             <DeviceLocationCard device={device} />
           </div>
-          <div className="break-inside-avoid mb-6 inline-block w-full">
+          <div className="break-inside-avoid mb-4 inline-block w-full">
             <OnlineStatusCard deviceId={deviceId} />
           </div>
-          <div className="break-inside-avoid mb-6 inline-block w-full">
+          <div className="break-inside-avoid mb-4 inline-block w-full">
             <RunDeviceTestCard
               deviceNumber={Number(device.device_number)}
               getElapsedDurationMapper={getElapsedDurationMapper}
             />
           </div>
-          <div className="break-inside-avoid mb-6 inline-block w-full">
+          <div className="break-inside-avoid mb-4 inline-block w-full">
             <DeviceMeasurementsApiCard deviceId={deviceId} />
           </div>
         </div>
