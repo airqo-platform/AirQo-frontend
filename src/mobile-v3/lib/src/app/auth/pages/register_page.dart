@@ -62,6 +62,21 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
               ),
             ),
           );
+        } else if (state is AuthLoadedWithWarning && state.authPurpose == AuthPurpose.REGISTER) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => EmailVerificationScreen(
+                email: emailController.text.trim(),
+              ),
+            ),
+          );
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.warning),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 2),
+            ),
+          );
         } else if (state is AuthLoadingError) {
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(state.message)));

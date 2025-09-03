@@ -57,8 +57,19 @@ class AuthImpl extends AuthRepository {
 
     Map<String, dynamic> data = json.decode(registerResponse.body);
 
-    if (registerResponse.statusCode != 200) {
-      throw Exception(data['errors']['message'] ?? data['message']);
+    if (registerResponse.statusCode == 200 || registerResponse.statusCode == 201) {
+      return;
+    } else if (registerResponse.statusCode == 409) {
+      String message = data['message'] ?? data['errors']?['message'] ?? 'User already exists';
+      if (message.toLowerCase().contains('verification') || 
+          message.toLowerCase().contains('email') ||
+          message.toLowerCase().contains('confirm')) {
+        return;
+      }
+      throw Exception(message);
+    } else {
+      String errorMessage = data['errors']?['message'] ?? data['message'] ?? 'Registration failed';
+      throw Exception(errorMessage);
     }
   }
 

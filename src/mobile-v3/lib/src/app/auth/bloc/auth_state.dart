@@ -29,6 +29,15 @@ final class GuestUser extends AuthState {}
 
 final class AuthVerified extends AuthState {}
 
+final class AuthLoadedWithWarning extends AuthState {
+  final AuthPurpose authPurpose;
+  final String warning;
+
+  const AuthLoadedWithWarning(this.authPurpose, this.warning);
+  
+  @override
+  List<Object> get props => [authPurpose, warning];
+}
 
 final class EmailUnverifiedError extends AuthLoadingError {
   final String email;
