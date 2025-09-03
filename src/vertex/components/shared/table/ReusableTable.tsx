@@ -1063,7 +1063,7 @@ const ReusableTable = <T extends TableItem>({
                       selectedItems.includes(item.id)
                         ? "bg-primary/10 dark:bg-primary/20"
                         : "hover:bg-primary/5 dark:hover:bg-primary/20"
-                    } ${onRowClick && "cursor-pointer"}`}
+                    } ${onRowClick ? "cursor-pointer" : ""}`}
                   >
                     {displayColumns.map((column) => (
                       <td
