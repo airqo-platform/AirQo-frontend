@@ -255,14 +255,14 @@ class ApiService {
 
   // Dashboard Summary API (analytics prefix)
   async getDashboardSummary(): Promise<any> {
-    const endpoint = config.isLocalhost ? '/analytics/dashboard' : `${this.apiPrefix}/analytics/dashboard`
+    const endpoint = config.isLocalhost ? '/analytics/dashboard' : `${this.apiPrefix}/beacon/analytics/dashboard`
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
   }
 
   // System Health API (analytics prefix)
   async getSystemHealth(): Promise<any> {
-    const endpoint = config.isLocalhost ? '/analytics/system-health' : `${this.apiPrefix}/analytics/system-health`
+    const endpoint = config.isLocalhost ? '/analytics/system-health' : `${this.apiPrefix}/beacon/analytics/system-health`
     const url = `${this.baseUrl}${endpoint}`
     return this.fetchWithRetry<any>(url)
   }
@@ -270,7 +270,7 @@ class ApiService {
   // Data Transmission Summary API (analytics prefix)
   async getDataTransmissionSummary(params?: { days?: number }): Promise<any> {
     const queryString = this.buildQueryString({ days: params?.days || 7 })
-    const endpoint = config.isLocalhost ? '/analytics/data-transmission/summary' : `${this.apiPrefix}/analytics/data-transmission/summary`
+    const endpoint = config.isLocalhost ? '/analytics/data-transmission/summary' : `${this.apiPrefix}/beacon/analytics/data-transmission/summary`
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -278,7 +278,7 @@ class ApiService {
   // Network Performance API (analytics prefix)
   async getNetworkPerformance(params?: { days?: number }): Promise<any> {
     const queryString = this.buildQueryString({ days: params?.days || 7 })
-    const endpoint = config.isLocalhost ? '/analytics/network-performance' : `${this.apiPrefix}/analytics/network-performance`
+    const endpoint = config.isLocalhost ? '/analytics/network-performance' : `${this.apiPrefix}/beacon/analytics/network-performance`
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -304,13 +304,13 @@ class ApiService {
   // Site Analytics APIs
   async getSites(params?: { limit?: number; skip?: number }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/analytics/sites/`
+    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/beacon/sites/`
     const url = `${this.baseUrl}${endpoint}${queryString}`
     return this.fetchWithRetry<any>(url)
   }
 
   async getSiteById(siteId: string): Promise<any> {
-    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/analytics/sites/`
+    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/beacon/sites/`
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(siteId)}`
     return this.fetchWithRetry<any>(url)
   }
@@ -321,7 +321,7 @@ class ApiService {
     frequency?: string 
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/analytics/sites/`
+    const endpoint = config.isLocalhost ? '/sites/' : `${this.apiPrefix}/beacon/sites/`
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(siteId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -331,7 +331,7 @@ class ApiService {
     end_date?: string 
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/locations/countries/' : `${this.apiPrefix}/analytics/locations/countries/`
+    const endpoint = config.isLocalhost ? '/locations/countries/' : `${this.apiPrefix}/beacon/analytics/locations/countries/`
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(countryId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -341,7 +341,7 @@ class ApiService {
     end_date?: string 
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/locations/regions/' : `${this.apiPrefix}/analytics/locations/regions/`
+    const endpoint = config.isLocalhost ? '/locations/regions/' : `${this.apiPrefix}/beacon/analytics/locations/regions/`
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(regionId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
@@ -351,7 +351,7 @@ class ApiService {
     end_date?: string 
   }): Promise<any> {
     const queryString = this.buildQueryString(params || {})
-    const endpoint = config.isLocalhost ? '/locations/districts/' : `${this.apiPrefix}/analytics/locations/districts/`
+    const endpoint = config.isLocalhost ? '/locations/districts/' : `${this.apiPrefix}/beacon/analytics/locations/districts/`
     const url = `${this.baseUrl}${endpoint}${encodeURIComponent(districtId)}/analytics${queryString}`
     return this.fetchWithRetry<any>(url)
   }
