@@ -87,6 +87,27 @@ export interface DeviceDetailsResponse {
   };
 }
 
+// Response for device maintenance activities
+export interface MaintenanceActivity {
+  _id: string;
+  activity_codes?: string[];
+  tags: string[];
+  device: string;
+  date: string;
+  description?: string;
+  activityType: "maintenance";
+  nextMaintenance?: string;
+  createdAt: string;
+  updatedAt: string;
+  network?: string;
+}
+
+export interface MaintenanceActivitiesResponse {
+  success: boolean;
+  message: string;
+  site_activities: MaintenanceActivity[];
+}
+
 export const devices = {
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
@@ -418,6 +439,27 @@ export const devices = {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
         axiosError.response?.data?.message || "Failed to add maintenance log"
+      );
+    }
+  },
+
+  getDeviceMaintenanceLogs: async (
+    deviceName: string
+  ): Promise<MaintenanceActivitiesResponse> => {
+    try {
+      const params = new URLSearchParams({
+        device: deviceName,
+        activity_type: "maintenance",
+      });
+      const response = await jwtApiClient.get<MaintenanceActivitiesResponse>(
+        `/devices/activities?${params.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device maintenance logs"
       );
     }
   },

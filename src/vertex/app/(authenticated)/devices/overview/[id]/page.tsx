@@ -19,6 +19,7 @@ import AddMaintenanceLogModal from "@/components/features/devices/add-maintenanc
 import { Device } from "@/app/types/devices";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
+import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
 
 // Loading skeleton for action buttons
 const ActionButtonsSkeleton = () => (
@@ -185,6 +186,9 @@ export default function DeviceDetailsPage() {
           </div>
           <div className="break-inside-avoid mb-4 inline-block w-full order-4">
             <DeviceMeasurementsApiCard deviceId={deviceId} />
+          </div>
+          <div className="break-inside-avoid mb-4 inline-block w-full order-4">
+            <MaintenanceStatusCard deviceId={deviceId} />
           </div>
         </div>
       )}

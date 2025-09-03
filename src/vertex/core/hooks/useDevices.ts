@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { DeviceDetailsResponse, devices } from "../apis/devices";
+import { DeviceDetailsResponse, devices, type MaintenanceActivitiesResponse } from "../apis/devices";
 import { setDevices, setError } from "../redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -454,7 +454,7 @@ export const useAddMaintenanceLog = () => {
   return useMutation({
     mutationFn: ({ deviceName, logData }: {
       deviceName: string;
-      logData: MaintenanceLogData; // Update type to MaintenanceLogData
+      logData: MaintenanceLogData;
     }) => devices.addMaintenanceLog(deviceName, logData),
     onSuccess: (data, variables) => {
       toast("Maintenance Log Added Successfully!", {
@@ -470,5 +470,14 @@ export const useAddMaintenanceLog = () => {
         description: error.message,
       });
     },
+  });
+};
+
+export const useDeviceMaintenanceLogs = (deviceName: string) => {
+  return useQuery<MaintenanceActivitiesResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["deviceMaintenanceLogs", deviceName],
+    queryFn: () => devices.getDeviceMaintenanceLogs(deviceName),
+    enabled: !!deviceName,
+    staleTime: 60_000,
   });
 };
