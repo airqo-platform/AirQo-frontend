@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import WarningCircleIcon from '@/icons/Common/warning_circle';
-import InfoCircleIcon from '@/icons/Common/info_circle.svg';
+import { useState, useEffect, useCallback } from 'react';
+import { AqAlertCircle, AqAnnotationInfo } from '@airqo/icons-react';
 import Button from '@/common/components/Button';
 
 const Toast = ({
@@ -42,9 +41,9 @@ const Toast = ({
   const getIcon = () => {
     switch (type) {
       case 'error':
-        return <WarningCircleIcon fillcolor="#FFF" />;
+        return <AqAlertCircle color="#FFF" />;
       case 'info':
-        return <InfoCircleIcon fill="#FFF" className="w-6 h-6" />;
+        return <AqAnnotationInfo color="#FFF" className="w-6 h-6" />;
       default:
         return null;
     }

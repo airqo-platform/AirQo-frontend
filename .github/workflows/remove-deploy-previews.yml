@@ -29,6 +29,7 @@ jobs:
       remove_inventory: ${{ steps.check_files.outputs.remove_inventory }} # inventory
       remove_reports: ${{ steps.check_files.outputs.remove_reports }} # reports
       remove_vertex: ${{ steps.check_files.outputs.remove_vertex }} # vertex
+      remove_beacon: ${{ steps.check_files.outputs.remove_beacon }} # remove beacon
 
 
     runs-on: ubuntu-latest
@@ -235,3 +236,25 @@ jobs:
           gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-vertex-preview \
             --region=${{ secrets.REGION }} \
             --quiet             
+
+
+  ### remove beacon deploy preview ###
+  remove-beacon-preview:
+    name: remove-beacon-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.remove_beacon == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
+
+      - name: Setup Cloud SDK
+        uses: "google-github-actions/setup-gcloud@v1"
+
+      - name: Delete PR deploy preview
+        run: |-
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-beacon-preview \
+            --region=${{ secrets.REGION }} \
+            --quiet

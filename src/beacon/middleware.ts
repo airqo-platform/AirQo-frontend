@@ -1,10 +1,8 @@
-/**
- * Middleware
- * Handles authentication and route protection for the application
- */
+
 
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
 
 // Routes that don't require authentication
 const PUBLIC_ROUTES = [
@@ -33,7 +31,7 @@ export async function middleware(request: NextRequest) {
   if (SKIP_PATHS.some(path => pathname.startsWith(path))) {
     return NextResponse.next()
   }
-  
+
   // Check authentication token
   const token = request.cookies.get('token')?.value
   const isAuthenticated = !!token
@@ -47,6 +45,7 @@ export async function middleware(request: NextRequest) {
     // Preserve the original destination for redirect after login
     loginUrl.searchParams.set('from', pathname)
     return NextResponse.redirect(loginUrl)
+
   }
   
   // Redirect authenticated users away from auth pages
@@ -62,6 +61,7 @@ export async function middleware(request: NextRequest) {
  * Specifies which routes the middleware should run on
  */
 export const config = {
+
   matcher: [
     /*
      * Match all request paths except:
@@ -75,3 +75,4 @@ export const config = {
     '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|public|.*\\.).*)',
   ]
 }
+

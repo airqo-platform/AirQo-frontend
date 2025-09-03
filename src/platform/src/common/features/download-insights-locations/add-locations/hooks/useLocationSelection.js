@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+/* eslint-disable no-console */
 import { MAX_LOCATIONS } from '../constants';
 
 /**

@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import GoogleLogo from '@/icons/Common/google_logo.svg';
 import { getGoogleAuthDetails } from '@/core/apis/Account';
 import CheckComponent from '@/components/Account/CheckComponent';
 
@@ -105,9 +104,7 @@ const _GoogleAccountCreation = () => (
         <span style={{ color: '#000000', fontWeight: '400', opacity: '0.5' }}>
           Sign up with
         </span>
-        <span className="pl-2">
-          <GoogleLogo />
-        </span>
+        <span className="pl-2">{/* <GoogleLogo /> */}</span>
       </button>
     </div>
   </div>

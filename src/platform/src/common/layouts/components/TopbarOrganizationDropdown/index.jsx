@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 import { isEmpty } from 'underscore';
-import { HiSquares2X2 } from 'react-icons/hi2';
+import { AqGrid01 } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
-
-// Components
 import OrganizationSelectModal from './OrganizationSelectModal';
-
-// Hooks
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
-
-// Utils
 import { ORGANIZATION_LABEL } from '@/lib/constants';
 
 /**
@@ -106,7 +100,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
           </span>
         )}
         {/* Grid Icon - Google style */}
-        <HiSquares2X2 className="h-4 w-4" />
+        <AqGrid01 className="h-4 w-4" />
       </button>
 
       {/* Organization Select Modal */}

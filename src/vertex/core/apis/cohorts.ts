@@ -1,13 +1,11 @@
-import createAxiosInstance from "./axiosConfig";
-import { DEVICES_MGT_URL } from "../urls";
-
-const axiosInstance = createAxiosInstance();
+import createSecureApiClient from "../utils/secureApiProxyClient";
 
 export const cohorts = {
   getCohortsSummary: async (networkId: string) => { 
     try {
-      const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/cohorts/summary?network=${networkId}`
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts/summary?network=${networkId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error: any) {
@@ -19,8 +17,9 @@ export const cohorts = {
 
   getCohortsApi: async (networkId: string) => {
     try {
-      const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/cohorts&network=${networkId}`
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts&network=${networkId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error: any) {

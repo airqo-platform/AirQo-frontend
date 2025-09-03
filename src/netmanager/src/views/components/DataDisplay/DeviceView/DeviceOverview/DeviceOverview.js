@@ -103,10 +103,6 @@ const DeviceOverview = ({ deviceData }) => {
 
       {deviceData.latitude ? <DeviceLocation deviceData={deviceData} /> : <span />}
 
-      <DeviceOverviewCharts deviceName={deviceData.name} />
-
-      <DeviceMaintenanceLogs deviceName={deviceData.name} />
-
       <DeviceQRCode deviceData={deviceData} />
     </div>
   );

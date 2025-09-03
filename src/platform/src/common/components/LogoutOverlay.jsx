@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 import { THEME_MODES } from '@/common/features/theme-customizer/constants/themeConstants';
 

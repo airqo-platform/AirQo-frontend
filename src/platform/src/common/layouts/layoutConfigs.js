@@ -23,23 +23,9 @@ export const LAYOUT_CONFIGS = {
       showSearch: false,
       noTopNav: false,
     },
-    '/user/collocation': {
-      pageTitle: 'Collocation - AirQo Analytics',
-      topbarTitle: 'Collocation',
-      noBorderBottom: false,
-      showSearch: false,
-      noTopNav: false,
-    },
-    '/user/collocation/overview': {
-      pageTitle: 'Collocation Overview - AirQo Analytics',
-      topbarTitle: 'Collocation Overview',
-      noBorderBottom: false,
-      showSearch: false,
-      noTopNav: false,
-    },
-    '/user/collocation/collocate': {
-      pageTitle: 'Collocate Devices - AirQo Analytics',
-      topbarTitle: 'Collocate Devices',
+    '/user/data-export': {
+      pageTitle: 'Data Download - AirQo Analytics',
+      topbarTitle: 'Data Download',
       noBorderBottom: false,
       showSearch: false,
       noTopNav: false,
@@ -93,6 +79,13 @@ export const LAYOUT_CONFIGS = {
       topbarTitle: 'Data Insights',
       noBorderBottom: false,
       showSearch: true,
+      noTopNav: false,
+    },
+    '/org/[org_slug]/data-export': {
+      pageTitle: 'Data Download - Organization Analytics',
+      topbarTitle: 'Data Download',
+      noBorderBottom: false,
+      showSearch: false,
       noTopNav: false,
     },
     '/org/[org_slug]/profile': {

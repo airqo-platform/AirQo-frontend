@@ -1,22 +1,26 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Layout from "@/components/layout";
+import Layout from "@/components/layout/layout";
+import { ForbiddenGuard } from "@/components/layout/accessConfig/forbidden-guard";
+import { useForbiddenHandler } from "@/core/hooks/useForbiddenHandler";
+import { useContextAwareRouting } from "@/core/hooks/useContextAwareRouting";
 
 export default function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  const isNetworkMapRoute = pathname === "/network-map";
+  // Listen for forbidden events
+  useForbiddenHandler();
+  
+  // Handle context-aware routing
+  useContextAwareRouting();
 
   return (
-    <Layout 
-      hideTopbar={isNetworkMapRoute}
-      defaultCollapsed={isNetworkMapRoute}
-    >
-      {children}
-    </Layout>
+    <ForbiddenGuard>
+      <Layout>
+        {children}
+      </Layout>
+    </ForbiddenGuard>
   );
 }

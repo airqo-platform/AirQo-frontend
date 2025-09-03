@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
-import { CreateCohortDialog } from "@/components/cohorts/create-cohort";
+import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 
 // Sample data
 const cohorts = [
@@ -70,59 +71,61 @@ export default function CohortsPage() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Cohort Registry</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage and organize your device cohorts
-          </p>
+    <RouteGuard permission="DEVICE_VIEW">
+      <div className="p-6">
+        <div className="flex justify-between items-center mb-6">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">Cohort Registry</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage and organize your device cohorts
+            </p>
+          </div>
+          <CreateCohortDialog />
         </div>
-        <CreateCohortDialog />
-      </div>
 
-      <div className="flex items-center justify-between mb-4">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search cohorts..."
-            className="pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search cohorts..."
+              className="pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cohort Name</TableHead>
-              <TableHead>Number of devices</TableHead>
-              <TableHead>Visibility</TableHead>
-              <TableHead>Date created</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredCohorts.map((cohort) => (
-              <TableRow
-                key={cohort.name}
-                className="cursor-pointer"
-                onClick={() => router.push(`/cohorts/${cohort.name}`)}
-              >
-                <TableCell className="font-medium">{cohort.name}</TableCell>
-                <TableCell>{cohort.numberOfDevices}</TableCell>
-                <TableCell>
-                  <Badge variant={cohort.visibility ? "default" : "secondary"}>
-                    {cohort.visibility ? "Visible" : "Hidden"}
-                  </Badge>
-                </TableCell>
-                <TableCell>{formatDate(cohort.dateCreated)}</TableCell>
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Cohort Name</TableHead>
+                <TableHead>Number of devices</TableHead>
+                <TableHead>Visibility</TableHead>
+                <TableHead>Date created</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredCohorts.map((cohort) => (
+                <TableRow
+                  key={cohort.name}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/cohorts/${cohort.name}`)}
+                >
+                  <TableCell className="font-medium">{cohort.name}</TableCell>
+                  <TableCell>{cohort.numberOfDevices}</TableCell>
+                  <TableCell>
+                    <Badge variant={cohort.visibility ? "default" : "secondary"}>
+                      {cohort.visibility ? "Visible" : "Hidden"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{formatDate(cohort.dateCreated)}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
-    </div>
+    </RouteGuard>
   );
 }

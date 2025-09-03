@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
-
 import CustomToast from '@/common/components/Toast/CustomToast';
 import { createGroupRoleApi } from '@/core/apis/Account';
 

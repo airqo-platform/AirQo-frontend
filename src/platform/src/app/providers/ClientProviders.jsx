@@ -16,8 +16,9 @@ import NextAuthProvider from './NextAuthProvider';
 import SWRProvider from './SWRProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 import UnifiedGroupProvider from './UnifiedGroupProvider';
-import LogoutProvider from './LogoutProvider';
+// import LogoutProvider from './LogoutProvider'; // Removed - no logout overlay needed
 import { useThemeInitialization } from '@/core/hooks';
+import { TourProvider } from '@/features/tours/contexts/TourProvider';
 // Import environment validation
 import { validateEnvironment } from '@/lib/envConstants';
 
@@ -100,6 +101,14 @@ function ClientProvidersInner({ children }) {
 
   useEffect(() => {
     const handleGlobalError = (event) => {
+      // Ignore ResizeObserver loop errors - they're benign
+      if (
+        event.error?.message?.includes('ResizeObserver loop') ||
+        event.message?.includes('ResizeObserver loop')
+      ) {
+        return;
+      }
+
       event.preventDefault();
       logger.error('Uncaught error', event.error || new Error(event.message), {
         source: event.filename,
@@ -109,13 +118,24 @@ function ClientProvidersInner({ children }) {
     };
 
     const handlePromiseRejection = (event) => {
-      event.preventDefault();
-      logger.error(
-        'Unhandled promise rejection',
+      const reason =
         event.reason instanceof Error
           ? event.reason
-          : new Error(String(event.reason)),
-      );
+          : new Error(String(event.reason));
+
+      // Filter known benign or noisy sources (minified vendor helpers)
+      const msg = String(reason.stack || reason.message || '');
+      const isNoisyVendor = /isFeatureBroken|updateFeaturesInner/i.test(msg);
+
+      event.preventDefault();
+      if (isNoisyVendor) {
+        // Downgrade to info to avoid noisy error logs while still recording
+        logger.info('Filtered unhandled rejection from vendor helper', {
+          message: reason.message,
+        });
+        return;
+      }
+      logger.error('Unhandled promise rejection', reason);
     };
 
     const manageDevTools = () => {
@@ -170,9 +190,10 @@ export default function ClientProviders({ children }) {
         <ReduxProviders>
           <ThemeProvider>
             <ThemeInitializer />
-            <LogoutProvider>
-              <UnifiedGroupProvider>{children}</UnifiedGroupProvider>
-            </LogoutProvider>
+            {/* LogoutProvider removed - no logout overlay needed */}
+            <UnifiedGroupProvider>
+              <TourProvider>{children}</TourProvider>
+            </UnifiedGroupProvider>
           </ThemeProvider>
         </ReduxProviders>
       </SWRProvider>

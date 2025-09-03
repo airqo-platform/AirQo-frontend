@@ -28,7 +28,7 @@ export const createSteps = (handleStepClick) => [
     description:
       'Customize your profile settings for a personalized experience',
     time: '4 min',
-    link: '/user/settings',
+    link: '/user/profile',
     func: () => handleStepClick(3),
     icon: 'profile',
   },
@@ -54,6 +54,7 @@ export const createSteps = (handleStepClick) => [
 export const mergeStepsWithChecklist = (steps, checklistItems) => {
   // Safety check for invalid inputs
   if (!Array.isArray(steps)) {
+    /* eslint-disable no-console */
     console.error('Invalid steps provided to mergeStepsWithChecklist');
     return [];
   }

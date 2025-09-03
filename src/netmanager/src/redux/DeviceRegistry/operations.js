@@ -15,10 +15,12 @@ import {
   LOAD_DEVICE_BATTERY_VOLTAGE_SUCCESS,
   LOAD_DEVICE_BATTERY_VOLTAGE_FAILURE,
   LOAD_DEVICE_SENSOR_CORRELATION_SUCCESS,
-  LOAD_DEVICE_SENSOR_CORRELATION_FAILURE
+  LOAD_DEVICE_SENSOR_CORRELATION_FAILURE,
+  ASSIGN_DEVICE_TO_GROUP_SUCCESS,
+  ASSIGN_DEVICE_TO_GROUP_FAILURE
 } from './actions';
 import { transformArray } from '../utils';
-import { getAllDevicesApi, getActivitiesApi, deleteDeviceApi } from 'views/apis/deviceRegistry';
+import { getAllDevicesApi, getActivitiesApi, deleteDeviceApi, bulkUpdateDevicesApi } from 'views/apis/deviceRegistry';
 import {
   getDeviceUptimeApi,
   getDeviceBatteryVoltageApi,
@@ -200,4 +202,57 @@ export const deleteDevice = (deviceName) => async (dispatch, getState) => {
         })
       );
     });
+};
+
+export const assignDeviceToGroup = (deviceId, groupTitles) => async (dispatch, getState) => {
+  try {
+    const updateData = {
+      groups: groupTitles
+    };
+    
+    await bulkUpdateDevicesApi([deviceId], updateData);
+    
+    // Update the device in the local state
+    const state = getState();
+    const devices = { ...state.deviceRegistry.devices };
+    
+    // Find and update the device
+    const deviceKey = Object.keys(devices).find(key => devices[key]._id === deviceId);
+    if (deviceKey && devices[deviceKey]) {
+      devices[deviceKey] = {
+        ...devices[deviceKey],
+        groups: groupTitles
+      };
+    }
+    
+    dispatch({
+      type: ASSIGN_DEVICE_TO_GROUP_SUCCESS,
+      payload: devices
+    });
+    
+    dispatch(
+      updateMainAlert({
+        show: true,
+        message: 'Device assigned to group successfully',
+        severity: 'success'
+      })
+    );
+    
+    return { success: true };
+  } catch (error) {
+    dispatch({
+      type: ASSIGN_DEVICE_TO_GROUP_FAILURE,
+      payload: error.message
+    });
+    
+    dispatch(
+      updateMainAlert({
+        show: true,
+        message: 'Failed to assign device to group',
+        severity: 'error'
+      })
+    );
+    
+    return { success: false, error: error.message };
+  }
 };

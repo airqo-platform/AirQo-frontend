@@ -1,5 +1,4 @@
-import KeyboardArrowLeftIcon from '@/icons/keyboard_arrow_left.svg';
-import KeyboardArrowRightIcon from '@/icons/keyboard_arrow_right.svg';
+import { AqChevronLeft, AqChevronRight } from '@airqo/icons-react';
 
 const Pagination = ({
   currentPage,
@@ -86,7 +85,7 @@ const Pagination = ({
         disabled={isPrevDisabled}
       >
         <div className="w-[16.8px] h-[16.8px] flex justify-center items-center">
-          <KeyboardArrowLeftIcon />
+          <AqChevronLeft />
         </div>
       </button>
       {renderPageNumbers()}
@@ -96,7 +95,7 @@ const Pagination = ({
         disabled={isNextDisabled}
       >
         <div className="w-[16.8px] h-[16.8px] flex justify-center items-center">
-          <KeyboardArrowRightIcon />
+          <AqChevronRight />
         </div>
       </button>
     </div>

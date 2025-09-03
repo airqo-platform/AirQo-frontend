@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Button from '@/common/components/Button';
-import { FaTimes } from 'react-icons/fa';
+import { AqXClose } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 import Card from '@/common/components/CardWrapper';
 
@@ -161,7 +161,7 @@ const ReusableDialog = ({
             className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200 flex-shrink-0"
             aria-label="Close dialog"
           >
-            <FaTimes className="w-4 h-4" />
+            <AqXClose className="w-4 h-4" />
           </button>
         )}
       </div>

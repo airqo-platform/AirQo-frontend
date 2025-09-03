@@ -1,13 +1,12 @@
-import PersonIcon from '@/icons/Settings/person.svg';
-import { useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { AqUser02, AqPlus } from '@airqo/icons-react';
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ReusableDialog from '@/components/Modal/ReusableDialog';
 import CustomToast from '@/common/components/Toast/CustomToast';
 import { createClientApi } from '@/core/apis/Settings';
 import { addClients, performRefresh } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
-import PlusIcon from '@/icons/Actions/PlusIcon';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 import InputField from '@/common/components/InputField';
 
@@ -101,7 +100,7 @@ const AddClientForm = ({ open, closeModal }) => {
       isOpen={open}
       onClose={closeModal}
       title="Create new client"
-      icon={PersonIcon}
+      icon={AqUser02}
       showFooter={true}
       primaryAction={{
         label: 'Create Client',
@@ -198,7 +197,7 @@ const AddClientForm = ({ open, closeModal }) => {
             onClick={handleAddIpAddress}
             className="flex items-center justify-center w-full py-2 px-4 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 border border-dashed border-blue-300 dark:border-blue-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
           >
-            <PlusIcon size={16} className="mr-2" fill="currentColor" />
+            <AqPlus size={16} className="mr-2" color="currentColor" />
             Add IP Address
           </button>
 

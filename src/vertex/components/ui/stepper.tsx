@@ -16,58 +16,71 @@ const Stepper = React.forwardRef<
       className={cn("flex items-center w-4/5", className)}
       {...props}
     >
-      {steps.map((step, i) => (
-        <React.Fragment key={i}>
-          {i > 0 && (
-            <div className="w-full h-[2px] bg-muted-foreground/20">
-              <div
-                className="h-full bg-primary transition-all"
-                style={{
-                  width: i <= index ? "100%" : "0%",
-                }}
-              />
-            </div>
-          )}
-          <div
-            className={cn(
-              "relative flex flex-col items-center",
-              i <= index && "text-primary"
+      {steps.map((step, i) => {
+        let title = null;
+        let description = null;
+        if (React.isValidElement(step)) {
+          const children = React.Children.toArray(step.props.children);
+          title = children[0] || null;
+          description = children[1] || null;
+        }
+        return (
+          <React.Fragment key={i}>
+            {i > 0 && (
+              <div className="w-full h-[2px] bg-muted-foreground/20">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{
+                    width: i <= index ? "100%" : "0%",
+                  }}
+                />
+              </div>
             )}
-          >
             <div
               className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
-                i <= index ? "border-primary" : "border-muted-foreground/20",
-                i < index && "bg-primary text-primary-foreground"
+                "relative flex flex-col items-center",
+                i <= index && "text-primary"
               )}
             >
-              {i < index ? (
-                <Check className="h-4 w-4" />
-              ) : (
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-              )}
-            </div>
-            <div className="absolute top-10 w-max text-center">
-              <StepTitle
+              <div
                 className={cn(
-                  i <= index ? "text-foreground" : "text-muted-foreground"
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                  i <= index ? "border-primary" : "border-muted-foreground/20",
+                  i < index && "bg-primary text-primary-foreground"
                 )}
               >
-                {React.isValidElement(step) && step.props.children[0]}
-              </StepTitle>
-              <StepDescription
-                className={cn(
-                  i <= index
-                    ? "text-muted-foreground"
-                    : "text-muted-foreground/60"
+                {i < index ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
                 )}
-              >
-                {React.isValidElement(step) && step.props.children[1]}
-              </StepDescription>
+              </div>
+              <div className="absolute top-10 w-max text-center">
+                {title && (
+                  <StepTitle
+                    className={cn(
+                      i <= index ? "text-foreground" : "text-muted-foreground"
+                    )}
+                  >
+                    {title}
+                  </StepTitle>
+                )}
+                {description && (
+                  <StepDescription
+                    className={cn(
+                      i <= index
+                        ? "text-muted-foreground"
+                        : "text-muted-foreground/60"
+                    )}
+                  >
+                    {description}
+                  </StepDescription>
+                )}
+              </div>
             </div>
-          </div>
-        </React.Fragment>
-      ))}
+          </React.Fragment>
+        );
+      })}
     </div>
   );
 });

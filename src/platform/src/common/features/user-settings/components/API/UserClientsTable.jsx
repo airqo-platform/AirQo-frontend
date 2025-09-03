@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
-import EditIcon from '@/icons/Common/edit-pencil.svg';
+import { AqEdit05 } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
 import CustomToast from '@/common/components/Toast/CustomToast';
 import {
@@ -18,12 +18,10 @@ import {
 } from '@/core/apis/Settings';
 import Button from '@/components/Button';
 import { isEmpty } from 'underscore';
-import CopyIcon from '@/icons/Common/copy.svg';
+import { AqCopy03, AqInfoCircle, AqPlus } from '@airqo/icons-react';
 import ReusableDialog from '@/components/Modal/ReusableDialog';
 import AddClientForm from './AddClientForm';
-import InfoCircleIcon from '@/icons/Common/info_circle.svg';
 import ReusableTable from '@/common/components/Table/ReusableTable';
-import AddIcon from '@/icons/Actions/plus.svg';
 
 const UserClientsTable = () => {
   const { data: session } = useSession();
@@ -242,7 +240,7 @@ const UserClientsTable = () => {
                 setErrorState('Token copied to clipboard!', 'success');
               }}
             >
-              <CopyIcon />
+              <AqCopy03 size={16} />
             </div>
           </span>
         ) : (
@@ -294,7 +292,7 @@ const UserClientsTable = () => {
             setSelectedClient(client);
           }}
         >
-          <EditIcon className="w-4 h-4" />
+          <AqEdit05 className="w-4 h-4" />
         </div>
       ),
       sortable: false,
@@ -357,7 +355,7 @@ const UserClientsTable = () => {
               onClick={() => setOpenAddForm(true)}
               className="w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 text-sm font-medium"
             >
-              <AddIcon /> Create client
+              <AqPlus /> Create client
             </Button>
           </div>
         }
@@ -376,7 +374,7 @@ const UserClientsTable = () => {
         isOpen={showInfoModal}
         onClose={() => setShowInfoModal(false)}
         title="Activation Required"
-        icon={InfoCircleIcon}
+        icon={AqInfoCircle}
         showFooter={true}
         primaryAction={{
           label: 'Send activation request',

@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import PropTypes from 'prop-types';
 import CustomDropdown from '@/common/components/Button/CustomDropdown';
 import LogoutUser from '@/core/HOC/LogoutUser';
-import UserIcon from '@/icons/Topbar/userIcon';
+import { AqUser02 } from '@airqo/icons-react';
 
 /**
  * My Profile Dropdown Component
@@ -32,10 +32,9 @@ const MyProfileDropdown = ({
       return {};
     }
   });
-  const sessionUser = session?.user || {};
   const userInfo = useMemo(
-    () => ({ ...sessionUser, ...reduxUserInfo }),
-    [sessionUser, reduxUserInfo],
+    () => ({ ...(session?.user || {}), ...reduxUserInfo }),
+    [session, reduxUserInfo],
   );
 
   // Hydration guard
@@ -93,8 +92,21 @@ const MyProfileDropdown = ({
     [router],
   );
 
-  const renderTrigger = () => (
-    <div className="cursor-pointer">
+  // renderButton receives toggle and isOpen so clicks and keyboard toggle the dropdown
+  const renderTriggerButton = ({ toggle, isOpen }) => (
+    <button
+      type="button"
+      className="cursor-pointer rounded-full p-0 bg-transparent"
+      onClick={toggle}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
+      }}
+      aria-haspopup="menu"
+      aria-expanded={Boolean(isOpen)}
+    >
       <img
         className="w-8 h-8 rounded-full object-cover"
         src={
@@ -105,7 +117,7 @@ const MyProfileDropdown = ({
         }
         alt="Avatar"
       />
-    </div>
+    </button>
   );
 
   if (!mounted) {
@@ -115,7 +127,7 @@ const MyProfileDropdown = ({
   return (
     <div className={className}>
       <CustomDropdown
-        trigger={renderTrigger()}
+        renderButton={renderTriggerButton}
         dropdownAlign={dropdownAlign}
         dropdownWidth="220px"
       >
@@ -132,13 +144,13 @@ const MyProfileDropdown = ({
               }
               alt="User Avatar"
             />
-            <div className="font-medium dark:text-white overflow-hidden">
+            <div className="font-medium dark:text-gray-100 overflow-hidden">
               <div className="capitalize truncate max-w-[14ch]">
                 {userInfo.firstName && userInfo.lastName
                   ? `${userInfo.firstName} ${userInfo.lastName}`
                   : userInfo.name || 'User'}
               </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[21ch]">
+              <div className="text-xs text-gray-500 dark:text-gray-100 truncate max-w-[21ch]">
                 {userInfo.email || 'No email'}
               </div>
             </div>
@@ -153,9 +165,9 @@ const MyProfileDropdown = ({
             className="flex items-center cursor-pointer p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
           >
             <span className="mr-3">
-              <UserIcon
+              <AqUser02
                 size={16}
-                className="text-gray-500 dark:text-gray-400"
+                className="text-gray-500 dark:text-gray-100"
               />
             </span>
             My Profile

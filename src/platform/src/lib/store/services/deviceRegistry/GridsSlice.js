@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   getSiteSummaryDetails,
   getGridLocationDetails,
-  getGirdsSummaryDetails,
+  getGridsSummaryDetails,
 } from '@/core/apis/DeviceRegistry';
 
 const initialState = {
@@ -32,7 +32,7 @@ export const getSitesSummary = createAsyncThunk(
 export const getGridsDataSummary = createAsyncThunk(
   '/get/grids-data-summary',
   async () => {
-    const response = await getGirdsSummaryDetails();
+    const response = await getGridsSummaryDetails();
     return response;
   },
 );

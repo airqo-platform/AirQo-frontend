@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getUserChecklists, upsertUserChecklists } from '@/core/apis/Account';
 
+/* eslint-disable no-console */
+
 const initialState = {
   checklist: [],
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'

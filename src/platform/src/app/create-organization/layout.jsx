@@ -4,6 +4,7 @@ import Head from 'next/head';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import { UnifiedSideBarDrawer } from '@/common/layouts/SideBar';
+import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -63,7 +64,7 @@ function CreateOrganizationLayout({ children }) {
         showBreadcrumb={false}
       />
       {/* Main Content - Full width without sidebar */}
-      <main className="flex-1 transition-all duration-300 pt-36 lg:pt-16 bg-background overflow-y-auto">
+      <main className="flex-1 transition-all pb-20 mb-[84px] md:mb-0 md:pb-0 duration-300 pt-36 lg:pt-16 bg-background overflow-y-auto">
         <div className={`h-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
@@ -74,9 +75,14 @@ function CreateOrganizationLayout({ children }) {
           </div>
         </div>
       </main>
+
+      {/* Mobile Bottom Navigation - Show user navigation for create-organization */}
+      <MobileBottomNavigation userType="user" />
+
+      {/* Drawer - Show user navigation items for create-organization */}
       <UnifiedSideBarDrawer userType="user" />
       <GlobalSideBarDrawer />
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
     </div>
   );
 }

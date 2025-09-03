@@ -1,7 +1,13 @@
-import CalibrateIcon from '@/icons/Analytics/calibrateIcon';
-import FileTypeIcon from '@/icons/Analytics/fileTypeIcon';
-import FrequencyIcon from '@/icons/Analytics/frequencyIcon';
-import WindIcon from '@/icons/Analytics/windIcon';
+import {
+  AqSliders02,
+  AqWind01,
+  AqClockFastForward,
+  AqFileCheck02,
+  AqMonitor01,
+} from '@airqo/icons-react';
+
+import SelectionMessage from '../../components/SelectionMessage';
+
 import CustomFields from './CustomFields';
 import { motion } from 'framer-motion';
 
@@ -9,6 +15,7 @@ import {
   POLLUTANT_OPTIONS,
   FREQUENCY_OPTIONS,
   FILE_TYPE_OPTIONS,
+  DEVICE_CATEGORY_OPTIONS,
 } from '../constants';
 
 /**
@@ -19,10 +26,11 @@ const SettingsSidebar = ({
   handleOptionSelect,
   edit,
   filteredDataTypeOptions,
+  filteredFrequencyOptions = FREQUENCY_OPTIONS, // Default fallback
   durationGuidance,
-  handleSubmit,
   handleTitleChange,
   sidebarBg = '#f6f6f7',
+  activeFilterKey, // Add this prop to determine current filter
 }) => {
   // Animation variants for sidebar
   const sidebarVariants = {
@@ -42,19 +50,18 @@ const SettingsSidebar = ({
   };
 
   return (
-    <motion.form
+    <motion.div
       className="w-[240px] h-full relative space-y-3 px-5 pt-5 pb-14 border-r border-gray-200 dark:border-gray-700 flex-shrink-0 overflow-y-auto overflow-x-hidden"
       style={{ backgroundColor: sidebarBg }}
-      onSubmit={handleSubmit}
       variants={sidebarVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Form Fields */}
+      {/* Form Fields - Remove form wrapper to prevent auto-submission */}
       <motion.div className="space-y-4">
         <motion.div variants={formItemVariants}>
           <div className="mb-2">
-            <label className="block text-sm font-medium dark:text-white mb-2">
+            <label className="block text-sm font-medium dark:text-gray-100 mb-2">
               Title
             </label>
             <input
@@ -64,8 +71,28 @@ const SettingsSidebar = ({
               onChange={handleTitleChange}
               autoFocus
               disabled={edit}
+              onKeyDown={(e) => {
+                // Prevent Enter key from triggering form submission
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }
+              }}
             />
           </div>
+        </motion.div>
+
+        <motion.div variants={formItemVariants}>
+          <CustomFields
+            title="Device categories"
+            options={DEVICE_CATEGORY_OPTIONS}
+            id="deviceCategory"
+            icon={<AqMonitor01 size={16} />}
+            defaultOption={formData.deviceCategory}
+            handleOptionSelect={handleOptionSelect}
+            disabled={activeFilterKey !== 'devices'} // Disable unless devices filter is active
+            edit={activeFilterKey === 'devices'} // Only allow editing when devices filter is active
+          />
         </motion.div>
 
         <motion.div variants={formItemVariants}>
@@ -73,7 +100,7 @@ const SettingsSidebar = ({
             title="Data type"
             options={filteredDataTypeOptions}
             id="dataType"
-            icon={<CalibrateIcon />}
+            icon={<AqSliders02 size={16} />}
             defaultOption={formData.dataType}
             handleOptionSelect={handleOptionSelect}
           />
@@ -84,7 +111,7 @@ const SettingsSidebar = ({
             title="Pollutants (multi-select)"
             options={POLLUTANT_OPTIONS}
             id="pollutant"
-            icon={<WindIcon />}
+            icon={<AqWind01 size={16} />}
             defaultOption={formData.pollutant}
             multiSelect={true}
             textFormat="capitalize"
@@ -104,18 +131,31 @@ const SettingsSidebar = ({
           />
 
           {durationGuidance && (
-            <div className="text-xs text-blue-600 -mt-2 ml-1">
+            <div className="text-xs text-blue-600 mt-2 ">
               {durationGuidance}
             </div>
           )}
+
+          {/* Warning Banner for Large Data Downloads - use SelectionMessage for consistency */}
+          <div className="mt-3">
+            <SelectionMessage type="warning">
+              <div className="text-xs">
+                <p className="font-medium mb-1">Download Limit Notice</p>
+                <p>
+                  Annual data downloads must be done in batches. Please select
+                  shorter date ranges for optimal performance.
+                </p>
+              </div>
+            </SelectionMessage>
+          </div>
         </motion.div>
 
         <motion.div variants={formItemVariants}>
           <CustomFields
             title="Frequency"
-            options={FREQUENCY_OPTIONS}
+            options={filteredFrequencyOptions}
             id="frequency"
-            icon={<FrequencyIcon />}
+            icon={<AqClockFastForward size={16} />}
             defaultOption={formData.frequency}
             handleOptionSelect={handleOptionSelect}
           />
@@ -126,13 +166,13 @@ const SettingsSidebar = ({
             title="File type"
             options={FILE_TYPE_OPTIONS}
             id="fileType"
-            icon={<FileTypeIcon />}
+            icon={<AqFileCheck02 size={16} />}
             defaultOption={formData.fileType}
             handleOptionSelect={handleOptionSelect}
           />
         </motion.div>
       </motion.div>
-    </motion.form>
+    </motion.div>
   );
 };
 

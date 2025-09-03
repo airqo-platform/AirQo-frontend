@@ -9,7 +9,9 @@ import { MAX_CARDS } from './constants';
 import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import Toast from '@/components/Toast';
+import CustomToast, {
+  TOAST_TYPES,
+} from '@/common/components/Toast/CustomToast';
 
 /**
  * Validates MongoDB ObjectId format
@@ -27,8 +29,8 @@ const AQNumberCard = () => {
   const dispatch = useDispatch();
   const { width: windowWidth } = useWindowSize();
   const [error, setError] = useState(null);
-  // Remove organization loading hook as it's no longer needed
 
+  // Remove organization loading hook as it's no longer needed
   // Fetch group and pollutant data from Redux state
   const { loading: isFetchingActiveGroup } = useGetActiveGroup();
   const pollutantType = useSelector((state) => state.chart.pollutionType);
@@ -37,7 +39,6 @@ const AQNumberCard = () => {
   const preferences = useSelector(
     (state) => state.defaults.individual_preferences?.[0],
   );
-
   // Get chart sites from Redux (used for organizations)
   const chartSites = useSelector((state) => state.chart.chartSites);
 
@@ -49,25 +50,21 @@ const AQNumberCard = () => {
         .map((site) => site._id)
         .filter(isValidObjectId);
     }
-
     // For organizations or when no user preferences, use chart sites
     if (chartSites?.length) {
       return chartSites.filter(isValidObjectId);
     }
-
     return [];
   }, [preferences, chartSites]);
+
   // Improved fetch logic to handle view transitions
   const shouldFetch = useMemo(() => {
     // Don't fetch if no site IDs
     if (selectedSiteIds.length === 0) return false;
-
     // For user view with preferences - always fetch
     if (preferences?.selected_sites?.length) return true;
-
     // For organization view - fetch if we have chart sites
     if (chartSites?.length) return true;
-
     return false;
   }, [selectedSiteIds, preferences, chartSites]);
 
@@ -84,7 +81,7 @@ const AQNumberCard = () => {
       revalidateOnMount: true,
       // Standard deduplication interval
       dedupingInterval: 30000,
-      onError: (_err) => {
+      onError: () => {
         setError('Failed to fetch air quality data. Please try again later.');
       },
     },
@@ -97,7 +94,6 @@ const AQNumberCard = () => {
         .filter((site) => isValidObjectId(site._id))
         .slice(0, MAX_CARDS);
     }
-
     // For organizations, create site objects from measurements data
     if (chartSites?.length && measurements?.length) {
       return chartSites
@@ -113,7 +109,6 @@ const AQNumberCard = () => {
               ) {
                 return measurement.site.name;
               }
-
               // Try to get from siteDetails (common in recent measurements)
               if (
                 measurement.siteDetails?.name &&
@@ -121,27 +116,22 @@ const AQNumberCard = () => {
               ) {
                 return measurement.siteDetails.name;
               }
-
               // Try search_name or location_name
               if (measurement.siteDetails?.search_name) {
                 return measurement.siteDetails.search_name;
               }
-
               if (measurement.siteDetails?.location_name) {
                 return measurement.siteDetails.location_name;
               }
-
               // Try formatted name
               if (measurement.siteDetails?.formatted_name) {
                 return measurement.siteDetails.formatted_name;
               }
-
               // Fallback to abbreviated site_id
               return measurement.site_id?.substring(0, 8)
                 ? `Site ${measurement.site_id.substring(0, 8)}...`
-                : 'Unknown Location';
+                : '--';
             };
-
             // Extract country information
             const extractCountry = (measurement) => {
               if (measurement.site?.country) return measurement.site.country;
@@ -151,9 +141,8 @@ const AQNumberCard = () => {
                 return measurement.siteDetails.city;
               if (measurement.siteDetails?.region)
                 return measurement.siteDetails.region;
-              return 'Unknown Location';
+              return '--';
             };
-
             return {
               _id: siteId,
               name: extractLocationName(measurement),
@@ -174,7 +163,6 @@ const AQNumberCard = () => {
         .filter(Boolean)
         .slice(0, MAX_CARDS);
     }
-
     return [];
   }, [preferences, chartSites, measurements]);
 
@@ -185,6 +173,7 @@ const AQNumberCard = () => {
       return () => clearTimeout(timer);
     }
   }, [error, measurementsError]);
+
   // Force refresh when switching between organization and user contexts
   useEffect(() => {
     // If we have site IDs but no data
@@ -212,13 +201,12 @@ const AQNumberCard = () => {
     },
     [dispatch],
   );
+
   const isLoadingData = useMemo(() => {
     // Show loading only when actively fetching or transitioning
     if (isFetchingActiveGroup) return true;
-
     // Show loading when we expect data but don't have it yet
     if (isLoading && shouldFetch) return true;
-
     // If we have site IDs but no selected sites or measurements, show loading
     if (
       selectedSiteIds.length > 0 &&
@@ -227,7 +215,6 @@ const AQNumberCard = () => {
     ) {
       return true;
     }
-
     return false;
   }, [
     isLoading,
@@ -246,24 +233,28 @@ const AQNumberCard = () => {
     [measurements],
   );
 
+  // Use CustomToast for errors
+  useEffect(() => {
+    if (error || measurementsError) {
+      CustomToast({
+        message: error || measurementsError,
+        type: TOAST_TYPES.ERROR,
+        duration: 5000,
+      });
+      // Clear the local error state after showing the toast
+      const timer = setTimeout(() => setError(null), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [error, measurementsError]);
+
   // Responsive grid classes: adjust columns for different screen sizes.
   const gridClasses =
-    'w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4';
+    'w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4';
 
   return (
     <ErrorBoundary name="AQNumberCard" feature="Air Quality Card">
-      {error && (
-        <Toast
-          message={error}
-          clearData={() => setError(null)}
-          type="error"
-          timeout={5000}
-          position="top"
-        />
-      )}
-
       <div
-        className={gridClasses}
+        className={`${gridClasses}`}
         aria-busy={isLoadingData ? 'true' : 'false'}
         aria-label="Air quality data grid"
         data-testid="aq-number-card-grid"

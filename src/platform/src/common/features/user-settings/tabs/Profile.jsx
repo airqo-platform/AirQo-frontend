@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
-import { FaSpinner } from 'react-icons/fa';
+import Spinner from '@/common/components/Spinner';
 import * as Yup from 'yup';
 import AlertBox from '@/components/AlertBox';
 import Button from '@/components/Button';
@@ -300,21 +300,14 @@ export default function Profile() {
     try {
       await updateUserCreationDetails(fieldsToUpdate, userID);
 
-      // Successfully updated on the backend. Now, update client-side state directly
-      // and refresh session and Redux store with the *newly saved* data.
-      // Do NOT refetch user details unless absolutely necessary, as it can be redundant
-      // and sometimes cause a re-render glitch.
-      // Instead, create the `updatedSessionUser` object from `userData` and `localImagePreview`
-      // and update the session and Redux store.
-
       const updatedProfilePictureFinal =
         localImagePreview || userData.profilePicture;
 
       // Prepare the updated user object for session and Redux
       const updatedUserForClient = {
-        ...session.user, // Keep existing session user properties
-        ...userData, // Apply all current userData (since we've successfully saved them)
-        profilePicture: updatedProfilePictureFinal, // Use the new or existing profile picture
+        ...session.user,
+        ...userData,
+        profilePicture: updatedProfilePictureFinal,
       };
 
       // Update NextAuth session
@@ -459,8 +452,8 @@ export default function Profile() {
                     <div className="flex items-center justify-between mt-1">
                       {profileUploading && (
                         <div className="flex items-center text-sm text-gray-600">
-                          <FaSpinner className="animate-spin mr-1" />
-                          Uploading…
+                          <Spinner size={16} />
+                          <span className="ml-1">Uploading…</span>
                         </div>
                       )}
                       {/* Reset button: only show if user has changed/uploaded a new image before saving */}
@@ -546,7 +539,8 @@ export default function Profile() {
                   <Button type="submit" disabled={isSaving || !hasChanges}>
                     {isSaving ? (
                       <>
-                        <FaSpinner className="animate-spin mr-2" /> Saving…
+                        <Spinner size={16} />
+                        <span className="ml-2">Saving…</span>
                       </>
                     ) : (
                       'Save'

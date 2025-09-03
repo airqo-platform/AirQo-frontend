@@ -257,7 +257,11 @@ export const createProxyHandler = (options = {}) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 second timeout to prevent hanging requests
+        timeout: 60000, // Increased to 60 seconds for heavy endpoints like map readings
+        // Add connection pooling and retry configurations
+        maxRedirects: 3,
+        // Better error handling for timeouts and connection issues
+        validateStatus: (status) => status < 500,
       };
 
       // Handle request body for POST, PUT, PATCH
@@ -338,12 +342,55 @@ export const createProxyHandler = (options = {}) => {
         return res.status(response.status).json(response.data);
       }
     } catch (error) {
-      // Forward error status code and message or fallback to generic error
-      const statusCode = error.response?.status || 500;
-      const errorMessage = error.response?.data || {
+      // Enhanced error handling with better logging and categorization
+      let statusCode = error.response?.status || 500;
+      let errorMessage = error.response?.data || {
         success: false,
         message: 'An error occurred while processing the request',
       };
+
+      // Handle specific error types
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        statusCode = 408; // Request Timeout
+        errorMessage = {
+          success: false,
+          message: 'Request timeout - the server took too long to respond',
+          error: 'TIMEOUT',
+        };
+        logger.warn('Proxy request timeout:', {
+          url: `${targetPath}`,
+          timeout: config.timeout,
+          method: req.method,
+        });
+      } else if (error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {
+        statusCode = 503; // Service Unavailable
+        errorMessage = {
+          success: false,
+          message: 'Service temporarily unavailable - connection issue',
+          error: 'CONNECTION_ERROR',
+        };
+        logger.error('Proxy connection error:', {
+          url: `${targetPath}`,
+          code: error.code,
+          message: error.message,
+        });
+      } else if (error.name === 'AbortError') {
+        statusCode = 499; // Client Closed Request
+        errorMessage = {
+          success: false,
+          message: 'Request was cancelled',
+          error: 'ABORTED',
+        };
+      } else {
+        // Log unexpected errors
+        logger.error('Proxy request error:', {
+          url: `${targetPath}`,
+          method: req.method,
+          status: error.response?.status,
+          message: error.message,
+          code: error.code,
+        });
+      }
 
       if (context && context.params) {
         // App Router - return Response object

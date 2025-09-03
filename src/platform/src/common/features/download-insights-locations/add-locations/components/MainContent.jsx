@@ -1,25 +1,21 @@
-import React from 'react';
 import { motion } from 'framer-motion';
 import DataTable from '../../components/DataTable';
 import InfoMessage from '@/components/Messages/InfoMessage';
 import { itemVariants } from '../animations';
 import { getFieldWithFallback } from '../utils/getFieldWithFallback';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
+import { AqMarkerPin01 } from '@airqo/icons-react';
 
 const columns = [
   {
-    key: 'name',
+    key: 'search_name',
     label: 'Location',
     render: (item) => (
       <div className="flex items-center">
         <span className="p-2 rounded-full bg-[#F6F6F7] dark:bg-gray-700 mr-3">
-          <LocationIcon width={16} height={16} />
+          <AqMarkerPin01 size={16} />
         </span>
         <span className="ml-2">
-          {item.search_name ||
-            item.name ||
-            item.location_name ||
-            'Unknown Location'}
+          {item.search_name || item.location_name || item.name || '--'}
         </span>
       </div>
     ),
@@ -112,6 +108,9 @@ export const MainContent = ({
           'owner',
           'organization',
         ]}
+        enableColumnFilters={true}
+        defaultSortColumn="name"
+        defaultSortDirection="asc"
       />
     </motion.div>
   );

@@ -6,8 +6,7 @@ import { useDispatch } from 'react-redux';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import PropTypes from 'prop-types';
 import Button from '@/common/components/Button';
-import MenuBarIcon from '@/icons/menu_bar';
-import MenuIcon from '@/icons/Actions/menu';
+import { AqMenu02, AqMenu04 } from '@airqo/icons-react';
 import MyProfileDropdown from '../components/UserProfileDropdown';
 import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
 import AppDropdown from '../components/AppDropdown';
@@ -31,6 +30,8 @@ const GlobalTopbar = ({
   onLogoClick,
   homeNavPath = '/user/Home',
   customActions,
+  hideMobileNav = false, // Hide mobile nav when bottom navigation is present
+  hideMenuButton = false, // Hide menu button when no drawer items
 }) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -144,18 +145,14 @@ const GlobalTopbar = ({
         <span
           className={
             isMobile
-              ? 'p-1 inline-flex items-center justify-center'
-              : 'p-2 m-0 inline-flex items-center justify-center'
+              ? 'p-1 inline-flex items-center focus:outline-none justify-center'
+              : 'p-2 m-0 inline-flex items-center focus:outline-none justify-center'
           }
         >
           {isMobile ? (
-            <MenuBarIcon
-              fill={isDarkMode ? '#fff' : '#1C1D20'}
-              width={18}
-              height={18}
-            />
+            <AqMenu04 color={isDarkMode ? '#fff' : '#1C1D20'} size={20} />
           ) : (
-            <MenuIcon width={20} height={20} />
+            <AqMenu02 size={20} />
           )}
         </span>
       </Button>
@@ -206,80 +203,78 @@ const GlobalTopbar = ({
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[999]">
+    <div className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-0 left-0 right-0 z-[999]">
       {/* Main Topbar */}
-      <div className="px-2 py-1">
-        <CardWrapper
-          className={`w-full ${styles.background}`}
-          padding="py-1 px-4"
+      <CardWrapper
+        className={`w-full ${styles.background}`}
+        padding="py-1 px-4"
+      >
+        <div
+          id="global-topbar-nav"
+          className="flex justify-between items-center min-h-[48px] h-full"
         >
-          <div
-            id="global-topbar-nav"
-            className="flex justify-between items-center min-h-[48px] h-full"
-          >
-            {/* Mobile Logo */}
-            <div className="lg:hidden flex items-center justify-start flex-shrink-0">
-              <LogoComponent className="flex-shrink-0" />
-            </div>
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center justify-start flex-shrink-0">
+            <LogoComponent className="flex-shrink-0" />
+          </div>
 
-            {/* Desktop Left: Menu + Logo + Title */}
-            <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
-              <div className="flex items-center gap-[10px]">
-                <MenuButton isMobile={false} />
-                <LogoComponent
-                  className={`flex items-center justify-center ${styles.text}`}
-                />
-                {topbarTitle && (
-                  <div className={`ml-4 ${styles.text} flex items-center`}>
-                    {topbarTitle}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Desktop Right: Org dropdown, app dropdown, custom actions, profile */}
-            <div className="hidden lg:flex gap-2 items-center justify-center h-full">
-              {!isCreateOrganizationRoute && !isAdminRoute && (
-                <TopbarOrganizationDropdown className="mr-2" />
-              )}
-              <AppDropdown />
-              {customActions && (
-                <div className="flex items-center">{customActions}</div>
-              )}
-              <MyProfileDropdown
-                dropdownAlign="right"
-                showUserInfo={true}
-                isOrganization={isOrganization}
-                isCreateOrganizationRoute={isCreateOrganizationRoute}
-                isAdminRoute={isAdminRoute}
+          {/* Desktop Left: Menu + Logo + Title */}
+          <div className="font-medium hidden lg:flex items-center text-2xl text-neutral-light-800">
+            <div className="flex items-center gap-[10px]">
+              <MenuButton isMobile={false} />
+              <LogoComponent
+                className={`flex items-center justify-center ${styles.text}`}
               />
-            </div>
-
-            {/* Mobile Profile */}
-            <div className="lg:hidden flex items-center justify-center h-full">
-              <MyProfileDropdown
-                dropdownAlign="right"
-                showUserInfo={true}
-                isOrganization={isOrganization}
-                isCreateOrganizationRoute={isCreateOrganizationRoute}
-                isAdminRoute={isAdminRoute}
-              />
+              {topbarTitle && (
+                <div className={`ml-4 ${styles.text} flex items-center`}>
+                  {topbarTitle}
+                </div>
+              )}
             </div>
           </div>
-        </CardWrapper>
-      </div>
+
+          {/* Desktop Right: Org dropdown, app dropdown, custom actions, profile */}
+          <div className="hidden lg:flex gap-2 items-center justify-center h-full">
+            {!isCreateOrganizationRoute && !isAdminRoute && (
+              <TopbarOrganizationDropdown className="topBarOrganizationSelector" />
+            )}
+            <AppDropdown className="topBarAppDropdown" />
+            {customActions && (
+              <div className="flex items-center">{customActions}</div>
+            )}
+            <MyProfileDropdown
+              dropdownAlign="right"
+              showUserInfo={true}
+              isOrganization={isOrganization}
+              isCreateOrganizationRoute={isCreateOrganizationRoute}
+              isAdminRoute={isAdminRoute}
+            />
+          </div>
+
+          {/* Mobile Profile */}
+          <div className="lg:hidden flex items-center justify-center h-full">
+            <MyProfileDropdown
+              dropdownAlign="right"
+              showUserInfo={true}
+              isOrganization={isOrganization}
+              isCreateOrganizationRoute={isCreateOrganizationRoute}
+              isAdminRoute={isAdminRoute}
+            />
+          </div>
+        </div>
+      </CardWrapper>
 
       {/* Mobile Nav Bar */}
-      <div className="lg:hidden p-1">
+      {!hideMobileNav && (
         <CardWrapper
-          className={`w-full ${styles.background} ${styles.border} border-t`}
+          className={`w-full md:block lg:hidden ${styles.background} ${styles.border} border-t`}
           padding="py-1 px-2"
         >
           <div className="flex justify-between items-center min-h-[40px] h-full">
-            <MenuButton isMobile={true} />
+            {!hideMenuButton && <MenuButton isMobile={true} />}
             {topbarTitle && (
               <div
-                className={`ml-3 text-sm font-medium ${styles.text} flex-1 truncate flex items-center`}
+                className={`${!hideMenuButton ? 'ml-3' : ''} text-sm font-medium ${styles.text} flex-1 truncate flex items-center`}
               >
                 {topbarTitle}
               </div>
@@ -290,7 +285,7 @@ const GlobalTopbar = ({
             {customActions && <div className="flex gap-1">{customActions}</div>}
           </div>
         </CardWrapper>
-      </div>
+      )}
     </div>
   );
 };
@@ -300,6 +295,8 @@ GlobalTopbar.propTypes = {
   onLogoClick: PropTypes.func,
   homeNavPath: PropTypes.string,
   customActions: PropTypes.node,
+  hideMobileNav: PropTypes.bool,
+  hideMenuButton: PropTypes.bool,
 };
 
 export default React.memo(GlobalTopbar);

@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo } from 'react';
-import { FaGlobe } from 'react-icons/fa';
+import { useState, useCallback, useMemo } from 'react';
+import { AqGlobe02Maps_Travel } from '@airqo/icons-react';
 import Image from 'next/image';
 import InputField from '@/common/components/InputField';
 import TextField from '@/common/components/TextInputField';
@@ -191,9 +191,7 @@ const OrganizationInformationForm = ({
         .map((word) => word.charAt(0))
         .join('')
         .toUpperCase();
-    } // Debug: Check if grp_status is in formData
-    // console.log('formData:', formData);
-    // console.log('grp_status:', formData.grp_status);
+    }
 
     // Generate consistent color based on organization name
     const generateColor = (str) => {
@@ -285,7 +283,7 @@ const OrganizationInformationForm = ({
       <div className="space-y-6">
         <div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-            <FaGlobe className="mr-2 text-primary" />
+            <AqGlobe02Maps_Travel className="mr-2 text-primary" />
             Organization Information
           </h2>{' '}
         </div>{' '}

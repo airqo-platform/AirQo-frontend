@@ -1,11 +1,16 @@
 'use client';
-import React, { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import Close from '@/icons/close_icon';
+import { AqXClose } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 import DataDownload, { DownloadDataHeader } from './data-download/DataDownload';
-import { AddLocations, AddLocationHeader } from './add-locations/AddLocations';
+import { AddLocations } from './add-locations/AddLocations';
+import AddLocationHeader from './add-locations/components/AddLocationHeader';
+import AddFavorites, { AddFavoritesHeader } from './add-favorites';
+import AddLocationsForMoreInsights, {
+  AddLocationsForMoreInsightsHeader,
+} from './add-locations-more-insights';
 import MoreInsights, { InSightsHeader } from './more-insights';
 import PlantTree, { AddPlantTreeHeader } from './modules/PlantTree';
 import BuyDevice, { AddBuyDeviceHeader } from './modules/BuyDevice';
@@ -17,6 +22,11 @@ import './styles/modal-responsive.css';
 const MODAL_CONFIGURATIONS = {
   download: { header: DownloadDataHeader, body: DataDownload },
   addLocation: { header: AddLocationHeader, body: AddLocations },
+  addFavorites: { header: AddFavoritesHeader, body: AddFavorites },
+  addLocationForMoreInsights: {
+    header: AddLocationsForMoreInsightsHeader,
+    body: AddLocationsForMoreInsights,
+  },
   inSights: { header: InSightsHeader, body: MoreInsights },
   moreSights: { header: SelectMoreHeader, body: SelectMore },
   plant_tree: { header: AddPlantTreeHeader, body: PlantTree },
@@ -72,21 +82,28 @@ const Modal = ({ isOpen, onClose }) => {
       transition: { duration: 0.2 },
     },
   };
+
+  const backdropAnimationConfig = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 },
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black bg-opacity-50">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 dark:bg-black/80 transition-opacity duration-200"
-            onClick={onClose}
-            aria-label="Close organization selection modal"
-          />
+        <motion.div
+          {...backdropAnimationConfig}
+          className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-black/80"
+          onClick={onClose}
+          aria-label="Close modal backdrop"
+        >
           <motion.div
             {...modalAnimationConfig}
             className="modal-container w-full max-w-6xl bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative 
                        h-[85vh] max-h-[800px] min-h-[500px]
                        flex flex-col"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Fixed Header */}
             <div className="flex items-center justify-between py-3 sm:py-4 px-4 sm:px-5 border-b border-gray-300 dark:border-gray-700 flex-shrink-0">
@@ -97,17 +114,18 @@ const Modal = ({ isOpen, onClose }) => {
                 className="focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 hover:bg-gray-100 dark:hover:bg-gray-700 p-1.5 rounded-full transition-colors duration-150"
                 aria-label="Close Modal"
               >
-                <Close fill={`${isDarkMode ? '#fff' : '#000'}`} />
+                <AqXClose color={`${isDarkMode ? '#fff' : '#000'}`} />
                 <span className="sr-only">Close Modal</span>
               </button>
             </div>
 
             {/* Scrollable Content */}
             <div className="modal-content flex-1 overflow-hidden dark:text-white">
-              <ModalBody onClose={onClose} />
+              {/* Only render modal body when modal is open to prevent unnecessary API calls */}
+              {isOpen && <ModalBody onClose={onClose} />}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );

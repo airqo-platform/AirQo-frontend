@@ -17,6 +17,7 @@ import { getSitesSummaryApi } from 'views/apis/deviceRegistry';
 import 'assets/css/location-registry.css';
 import { clearSiteDetails } from '../../../redux/SiteRegistry/operations';
 import { setLoading as loadStatus, setRefresh } from 'redux/HorizontalLoader/index';
+import { createAlertBarExtraContentFromObject } from '../../../utils/objectManipulators';
 
 const BLANK_SPACE_HOLDER = '-';
 const renderCell = (field) => (rowData) => <span>{rowData[field] || BLANK_SPACE_HOLDER}</span>;
@@ -75,7 +76,8 @@ const SitesTable = () => {
             (error.response && error.response.data && error.response.data.message) ||
             'An error occurred',
           show: true,
-          severity: 'error'
+          severity: 'error',
+          extra: createAlertBarExtraContentFromObject((error.response && error.response.data && error.response.data.errors) || {})
         })
       );
     } finally {

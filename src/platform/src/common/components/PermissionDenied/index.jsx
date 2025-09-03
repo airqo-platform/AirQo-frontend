@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import OopsIcon from '@/icons/Errors/OopsIcon';
 
 const PermissionDenied = () => (

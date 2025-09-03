@@ -1,12 +1,12 @@
 'use client';
 
-import React, { memo } from 'react';
-import { FaCog } from 'react-icons/fa';
+import { memo } from 'react';
+import { AqSettings02 } from '@airqo/icons-react';
 import { useTheme } from '../hooks/useTheme';
 import { ThemeSheet } from './ThemeSheet';
 import { usePathname } from 'next/navigation';
 
-export const ThemeCustomizer = memo(() => {
+export const ThemeCustomizer = memo(({ className = '' }) => {
   const { openThemeSheet } = useTheme();
   const pathname = usePathname();
 
@@ -23,11 +23,11 @@ export const ThemeCustomizer = memo(() => {
     <>
       <button
         onClick={openThemeSheet}
-        className="fixed right-0 top-1/2 transform -translate-y-1/2 
+        className={`fixed right-0 top-1/2 transform -translate-y-1/2 
           text-white p-3 
           shadow-md hover:opacity-70 
           transition-all duration-300 z-50 
-          flex items-center justify-center rounded-l-lg"
+          flex items-center justify-center rounded-l-lg ${className}`}
         aria-label="Open Theme Settings"
         type="button"
         style={{
@@ -35,7 +35,7 @@ export const ThemeCustomizer = memo(() => {
           backgroundColor: 'var(--color-primary)',
         }}
       >
-        <FaCog size={16} />
+        <AqSettings02 size={16} />
       </button>
       <ThemeSheet />
     </>

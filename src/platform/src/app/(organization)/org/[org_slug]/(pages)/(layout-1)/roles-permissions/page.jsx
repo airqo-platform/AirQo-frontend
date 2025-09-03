@@ -9,9 +9,15 @@ import EmptyState from '@/common/components/EmptyState';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
 import { getGroupRolesApi } from '@/core/apis/Account';
-
-import { FaPlus, FaShieldAlt, FaUsers, FaCheck, FaTimes } from 'react-icons/fa';
+import {
+  AqPlus,
+  AqShield03,
+  AqUsers03,
+  AqCheck,
+  AqXClose,
+} from '@airqo/icons-react';
 import Dropdown from '@/common/components/Dropdowns/Dropdown';
+import { usePermissions } from '@/core/HOC/authUtils';
 import logger from '@/lib/logger';
 import CustomToast from '@/common/components/Toast/CustomToast';
 import AddRoleDialog from '@/common/components/roles-permissions/AddRoleDialog';
@@ -53,6 +59,13 @@ const RolesPermissionsPage = () => {
     [organization, activeGroup],
   );
 
+  // Permissions
+  const { hasPermission, isLoading: permLoading } = usePermissions();
+  const canView = hasPermission('ROLE_VIEW', getGroupId());
+  const canCreate = hasPermission('ROLE_CREATE', getGroupId());
+  const canEdit = hasPermission('ROLE_EDIT', getGroupId());
+  const canDelete = hasPermission('ROLE_DELETE', getGroupId());
+
   const fetchRoles = useCallback(async () => {
     const groupId = getGroupId();
     if (!groupId) {
@@ -93,7 +106,7 @@ const RolesPermissionsPage = () => {
       }
       logger.error('Fetch roles error', e);
       setError(e.message);
-      CustomToast({ message: e.message, type: 'error' });
+      // CustomToast({ message: e.message, type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -140,9 +153,9 @@ const RolesPermissionsPage = () => {
         }`}
       >
         {isActive ? (
-          <FaCheck className="w-3 h-3 mr-1" />
+          <AqCheck className="w-3 h-3 mr-1" />
         ) : (
-          <FaTimes className="w-3 h-3 mr-1" />
+          <AqXClose className="w-3 h-3 mr-1" />
         )}
         {status || 'Unknown'}
       </span>
@@ -152,6 +165,18 @@ const RolesPermissionsPage = () => {
   // Table columns configuration
   const handleRoleAction = useCallback(
     (action, role) => {
+      // Prevent actions if user lacks permissions
+      if (
+        (action === 'edit_role' || action === 'edit_permissions') &&
+        !canEdit
+      ) {
+        CustomToast({
+          message: 'You do not have permission to edit roles',
+          type: 'warning',
+        });
+        return;
+      }
+
       if (action === 'edit_role') {
         setSelectedRole(role);
         setShowEditDialog(true);
@@ -173,11 +198,18 @@ const RolesPermissionsPage = () => {
           });
         }
       } else if (action === 'delete_role') {
+        if (!canDelete) {
+          CustomToast({
+            message: 'You do not have permission to delete roles',
+            type: 'warning',
+          });
+          return;
+        }
         setSelectedRole(role);
         setShowDeleteDialog(true);
       }
     },
-    [organization, router],
+    [organization, router, canEdit, canDelete],
   );
 
   const columns = useMemo(
@@ -214,7 +246,7 @@ const RolesPermissionsPage = () => {
         label: 'Permissions',
         render: (value) => (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-            <FaShieldAlt className="w-3 h-3 mr-1" />
+            <AqShield03 className="w-3 h-3 mr-1" />
             {Array.isArray(value) ? value.length : 0}
           </span>
         ),
@@ -224,7 +256,7 @@ const RolesPermissionsPage = () => {
         label: 'Users',
         render: (value) => (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-            <FaUsers className="w-3 h-3 mr-1" />
+            <AqUsers03 className="w-3 h-3 mr-1" />
             {Array.isArray(value) ? value.length : 0}
           </span>
         ),
@@ -235,7 +267,7 @@ const RolesPermissionsPage = () => {
         render: (_value, item) => (
           <Dropdown
             menu={[
-              { id: 'edit_role', name: 'Edit Role' },
+              { id: 'edit_role', name: 'Edit Role', disabled: !canEdit },
               { id: 'edit_permissions', name: 'Edit Permissions' },
               { id: 'delete_role', name: 'Delete Role' },
             ]}
@@ -245,7 +277,7 @@ const RolesPermissionsPage = () => {
         ),
       },
     ],
-    [handleRoleAction],
+    [handleRoleAction, canEdit],
   );
 
   // Status filter options
@@ -276,6 +308,11 @@ const RolesPermissionsPage = () => {
     return <RolesPermissionsPageSkeleton />;
   }
 
+  // Wait for permissions to load and enforce view permission
+  if (permLoading) return <RolesPermissionsPageSkeleton />;
+
+  if (!canView) return <PermissionDenied />;
+
   if (error && !loading) {
     return (
       <ErrorState
@@ -299,13 +336,21 @@ const RolesPermissionsPage = () => {
   }
 
   if (roles.length === 0 && !loading && !error) {
-    return (
+    return canCreate ? (
       <EmptyState
-        icon={FaShieldAlt}
+        icon={AqShield03}
         title="No roles created yet"
         description="Create your first role to manage permissions and access control for your organization members."
         actionLabel="Add Role"
         onAction={handleAddRole}
+        size="medium"
+        variant="card"
+      />
+    ) : (
+      <EmptyState
+        icon={AqShield03}
+        title="No roles created yet"
+        description="You do not have permission to create roles."
         size="medium"
         variant="card"
       />
@@ -324,9 +369,11 @@ const RolesPermissionsPage = () => {
               Manage roles and permissions for your organization
             </p>
           </div>
-          <Button onClick={handleAddRole} variant="filled">
-            <FaPlus className="mr-2" /> Add Role
-          </Button>
+          {canCreate && (
+            <Button onClick={handleAddRole} variant="filled">
+              <AqPlus className="mr-2" /> Add Role
+            </Button>
+          )}
         </div>
 
         <ReusableTable

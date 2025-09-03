@@ -26,6 +26,18 @@ export const createAlertBarExtraContent = (arr, callback) => {
 
 export const createAlertBarExtraContentFromObject = (obj) => {
   const extra = [];
-  Object.keys(obj).map((key) => extra.push(`${key} - ${obj[key]}`));
+
+  Object.entries(obj).forEach(([key, value]) => {
+    if (typeof value === 'string') {
+      extra.push(`${key} - ${value}`);
+    } else if (typeof value === 'object' && value !== null) {
+      const message = value.msg || value.message || JSON.stringify(value);
+      extra.push(`${key} - ${message}`);
+    } else {
+      extra.push(`${key} - ${String(value)}`);
+    }
+  });
+
   return extra;
 };
+

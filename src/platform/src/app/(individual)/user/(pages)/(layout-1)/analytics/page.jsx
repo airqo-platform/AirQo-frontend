@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 import AQNumberCard from '@/features/airQuality-cards';

@@ -46,6 +46,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   String? currentUserId;
   UserPreferencesModel? userPreferences;
   bool isHtmlError = false;
+  bool _isUserSelecting = false;
 
   @override
   void initState() {
@@ -71,21 +72,26 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
   }
 
   void _syncSelectedLocations(DashboardLoaded state) {
-    if (state.userPreferences != null &&
-        state.userPreferences!.selectedSites.isNotEmpty) {
-      final existingIds =
-          state.userPreferences!.selectedSites.map((site) => site.id).toSet();
-      loggy.info(
-          'Syncing selected locations: ${existingIds.length} found - $existingIds');
-      setState(() {
-        selectedLocations = existingIds;
-      });
+    // Only sync if user isn't actively making selections to prevent overwrites
+    if (!_isUserSelecting) {
+      if (state.userPreferences != null &&
+          state.userPreferences!.selectedSites.isNotEmpty) {
+        final existingIds =
+            state.userPreferences!.selectedSites.map((site) => site.id).toSet();
+        loggy.info(
+            'Syncing selected locations: ${existingIds.length} found - $existingIds');
+        setState(() {
+          selectedLocations = existingIds;
+        });
+      } else {
+        loggy.info(
+            'No user preferences or empty selected sites, resetting to empty');
+        setState(() {
+          selectedLocations = {};
+        });
+      }
     } else {
-      loggy.info(
-          'No user preferences or empty selected sites, resetting to empty');
-      setState(() {
-        selectedLocations = {};
-      });
+      loggy.info('Skipping sync - user is actively selecting locations');
     }
   }
 
@@ -207,6 +213,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
     setState(() {
       isSaving = true;
+      _isUserSelecting = false; // Reset selection flag when saving
     });
 
     try {
@@ -342,6 +349,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
 
     if (siteId != null) {
       setState(() {
+        _isUserSelecting = true; // Mark that user is actively selecting
         if (selected) {
           if (selectedLocations.length >= maxLocations) {
             showLocationLimitError = true;

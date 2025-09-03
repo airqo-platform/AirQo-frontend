@@ -479,7 +479,7 @@ export const LoadingOverlay = () => {
       <div
         className={`bg-white w-70 h-70 flex justify-center items-center rounded-md shadow-md p-3`}
       >
-        <Loader />
+        <Loader size={24} />
       </div>
     </div>
   );

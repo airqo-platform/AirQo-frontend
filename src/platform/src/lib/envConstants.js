@@ -137,7 +137,7 @@ export { getApiBaseUrl as getEnvVar };
 export { isValidUrl };
 
 // Default export
-export default {
+const envConstants = {
   getApiBaseUrl,
   getApiToken,
   getNextAuthUrl,
@@ -159,3 +159,5 @@ export default {
   NEXTAUTH_SECRET,
   NEXTAUTH_URL,
 };
+
+export default envConstants;

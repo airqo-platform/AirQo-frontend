@@ -1,10 +1,104 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import { Transition } from '@headlessui/react';
 import { usePopper } from 'react-popper';
-import { FiChevronDown } from 'react-icons/fi';
+import { Tooltip } from 'flowbite-react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 
+const TriggerButton = React.forwardRef(
+  (
+    {
+      toggle,
+      disabled,
+      loading,
+      icon,
+      iconPosition,
+      text,
+      isCollapsed,
+      collapseMobile,
+      hideArrow,
+      isButton,
+      showArrowWithButton,
+      // explicit open state for rotation/aria
+      isOpen,
+      className,
+      style,
+    },
+    ref,
+  ) => {
+    const defaultBtn =
+      'flex items-center justify-between rounded-lg px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm transition active:scale-95';
+    const collapsedBtn =
+      'flex items-center justify-center rounded-lg px-4 py-3 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
+
+    const classes = clsx(
+      isCollapsed ? collapsedBtn : defaultBtn,
+      (disabled || loading) && 'opacity-60 cursor-not-allowed',
+      className,
+    );
+
+    const arrowVisible =
+      !isCollapsed &&
+      !hideArrow &&
+      (!isButton || (isButton && showArrowWithButton));
+
+    return (
+      <button
+        ref={ref}
+        type="button"
+        disabled={disabled || loading}
+        onClick={toggle}
+        aria-expanded={Boolean(isOpen)}
+        aria-haspopup="menu"
+        className={classes}
+        style={style}
+      >
+        {isCollapsed ? (
+          <span>{icon}</span>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+              {icon && iconPosition === 'left' && <span>{icon}</span>}
+              {!collapseMobile && text && (
+                <span className="truncate">{text}</span>
+              )}
+              {icon && iconPosition === 'right' && <span>{icon}</span>}
+            </div>
+
+            {!collapseMobile && arrowVisible && !loading && (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                className={clsx(
+                  'ml-2 transition-transform duration-200',
+                  isOpen && 'rotate-180',
+                )}
+              >
+                <path
+                  d="M4 6L8 10L12 6"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            )}
+          </>
+        )}
+      </button>
+    );
+  },
+);
+
+TriggerButton.displayName = 'TriggerButton';
 const CustomDropdown = ({
   text = '',
   icon,
@@ -25,28 +119,31 @@ const CustomDropdown = ({
   dropdownAlign = 'left',
   onClick,
   dropdownWidth,
-  // mobile-specific props
   disableMobileCollapse = false,
   mobileMinWidth = 120,
   mobileMaxWidth = 300,
-  loading = false, // new prop for loading state
+  loading = false,
+  tooltipEnabled = false,
+  tooltipText = '',
+  tooltipPlacement = 'top',
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth < 640 : false,
   );
+
   const buttonRef = useRef(null);
   const popperRef = useRef(null);
   const containerRef = useRef(null);
 
-  // detect mobile viewport
+  /* responsive check ------------------------------------------------------- */
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 640);
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // setup popper
+  /* popper ----------------------------------------------------------------- */
   const { styles, attributes, update } = usePopper(
     buttonRef.current,
     popperRef.current,
@@ -66,126 +163,123 @@ const CustomDropdown = ({
     },
   );
 
-  // close on outside click
+  /* click-outside ---------------------------------------------------------- */
   useEffect(() => {
-    const handleClickOutside = (e) => {
+    if (!isOpen) return;
+
+    const onOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
         setIsOpen(false);
       }
     };
-    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', onOutside);
+    return () => document.removeEventListener('mousedown', onOutside);
   }, [isOpen]);
 
-  // update popper position on open
   useEffect(() => {
     if (isOpen && update) update();
   }, [isOpen, update]);
 
-  const toggleDropdown = () => {
-    if (!disabled && !loading) {
-      if (!isButton) setIsOpen((prev) => !prev);
-      onClick?.();
-    }
-  };
+  /* handlers --------------------------------------------------------------- */
+  const toggleDropdown = useCallback(() => {
+    if (disabled || loading) return;
+    if (!isButton) setIsOpen((o) => !o);
+    onClick?.();
+  }, [disabled, loading, isButton, onClick]);
 
-  // determine collapse conditions for mobile
+  /* derived state ---------------------------------------------------------- */
   const collapseMobile = isMobile && icon && !disableMobileCollapse;
 
-  // button class definitions
-  const defaultBtnClasses =
-    'flex items-center justify-between rounded-lg px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm transition active:scale-95';
-  const collapsedBtnClasses =
-    'flex items-center justify-center rounded-lg px-4 py-3 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm';
-
-  const mergedBtnClasses = clsx(
-    isCollapsed ? collapsedBtnClasses : defaultBtnClasses,
-    (disabled || loading) && 'opacity-60 cursor-not-allowed',
-    buttonClassName,
+  const popperStyle = useMemo(
+    () => ({
+      ...styles.popper,
+      ...(dropdownWidth
+        ? { width: dropdownWidth }
+        : collapseMobile
+          ? { minWidth: mobileMinWidth, maxWidth: mobileMaxWidth }
+          : { minWidth: buttonRef.current?.offsetWidth }),
+    }),
+    [
+      styles.popper,
+      dropdownWidth,
+      collapseMobile,
+      mobileMinWidth,
+      mobileMaxWidth,
+    ],
   );
 
-  const showArrow =
-    !isCollapsed &&
-    !hideArrow &&
-    (!isButton || (isButton && showArrowWithButton));
-
-  const renderTrigger = () => {
-    if (renderButton) {
+  /* trigger element -------------------------------------------------------- */
+  const triggerElement = useMemo(() => {
+    if (renderButton)
       return (
-        <div
-          ref={buttonRef}
-          onClick={toggleDropdown}
-          className={disabled ? 'opacity-60 cursor-not-allowed' : ''}
-        >
-          {renderButton({ isOpen, toggleDropdown, disabled, isCollapsed })}
-        </div>
+        <span ref={buttonRef} className="inline-block">
+          {renderButton({ isOpen, toggle: toggleDropdown })}
+        </span>
       );
-    }
-    if (trigger) {
+    if (trigger)
       return (
-        <div
-          ref={buttonRef}
-          onClick={toggleDropdown}
-          className={disabled ? 'opacity-60 cursor-not-allowed' : ''}
-        >
+        <span ref={buttonRef} className="inline-block">
           {trigger}
-        </div>
+        </span>
       );
-    }
+
     return (
-      <button
+      <TriggerButton
         ref={buttonRef}
-        onClick={toggleDropdown}
-        type="button"
-        aria-haspopup="true"
-        aria-expanded={isOpen}
-        disabled={disabled || loading}
-        className={mergedBtnClasses}
+        toggle={toggleDropdown}
+        disabled={disabled}
+        loading={loading}
+        icon={icon}
+        iconPosition={iconPosition}
+        text={text}
+        isCollapsed={isCollapsed}
+        collapseMobile={collapseMobile}
+        hideArrow={hideArrow}
+        isButton={isButton}
+        showArrowWithButton={showArrowWithButton}
+        isOpen={isOpen}
+        className={buttonClassName}
         style={buttonStyle}
-      >
-        {isCollapsed ? (
-          <span>{icon}</span>
-        ) : (
-          <>
-            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
-              {icon && iconPosition === 'left' && <span>{icon}</span>}
-              {!collapseMobile && text && (
-                <span className="truncate">{text}</span>
-              )}
-              {icon && iconPosition === 'right' && <span>{icon}</span>}
-              {/* Spinner removed per user request: do not show spinner if loading is true */}
-            </div>
-            {!collapseMobile && showArrow && !loading && (
-              <FiChevronDown
-                size={16}
-                className={clsx(
-                  'ml-2 transition-transform duration-200',
-                  isOpen && 'rotate-180',
-                )}
-              />
-            )}
-          </>
-        )}
-      </button>
+      />
     );
-  };
+  }, [
+    renderButton,
+    trigger,
+    buttonRef,
+    toggleDropdown,
+    disabled,
+    loading,
+    icon,
+    iconPosition,
+    text,
+    isCollapsed,
+    collapseMobile,
+    hideArrow,
+    isButton,
+    showArrowWithButton,
+    buttonClassName,
+    buttonStyle,
+    isOpen,
+  ]);
 
-  // compute popper style for width
-  const popperStyle = {
-    ...styles.popper,
-    ...(dropdownWidth
-      ? { width: dropdownWidth }
-      : collapseMobile
-        ? { minWidth: mobileMinWidth, maxWidth: mobileMaxWidth }
-        : { minWidth: buttonRef.current?.offsetWidth }),
-  };
+  const wrappedTrigger = useMemo(() => {
+    if (!tooltipEnabled || !tooltipText) return triggerElement;
 
+    return (
+      <Tooltip content={tooltipText} placement={tooltipPlacement}>
+        <div className="inline-block">{triggerElement}</div>
+      </Tooltip>
+    );
+  }, [tooltipEnabled, tooltipText, tooltipPlacement, triggerElement]);
+
+  /* ----------------------------------------------------------------------- */
   return (
     <div
       ref={containerRef}
       className={clsx('relative inline-block', className)}
     >
-      {renderTrigger()}
+      {wrappedTrigger}
+
       {!isButton && !disabled && !loading && (
         <div
           ref={popperRef}
@@ -208,7 +302,6 @@ const CustomDropdown = ({
                 'w-full sm:min-w-[200px]',
                 menuClassName,
               )}
-              style={{ minWidth: buttonRef.current?.offsetWidth }}
             >
               {React.Children.map(children, (child) =>
                 child
@@ -252,6 +345,9 @@ CustomDropdown.propTypes = {
   mobileMinWidth: PropTypes.number,
   mobileMaxWidth: PropTypes.number,
   loading: PropTypes.bool,
+  tooltipEnabled: PropTypes.bool,
+  tooltipText: PropTypes.string,
+  tooltipPlacement: PropTypes.oneOf(['top', 'right', 'bottom', 'left', 'auto']),
 };
 
 export const DropdownItem = ({
@@ -266,7 +362,6 @@ export const DropdownItem = ({
       height="16"
       viewBox="0 0 16 16"
       fill="none"
-      xmlns="http://www.w3.org/2000/svg"
       className="text-primary dark:text-blue-300"
     >
       <path

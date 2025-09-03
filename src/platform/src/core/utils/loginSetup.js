@@ -147,9 +147,10 @@ export const setupUserSession = async (
     });
 
     // Step 3b: Determine active group and redirect path based on login context
-    // SPECIAL CASE: If we're coming from the root page ("/") or this is a new tab opening,
+    // SPECIAL CASE: If we're coming from the root page ("/") explicitly,
     // ALWAYS use AirQo group and redirect to /user/Home regardless of organization context
-    const isRootPageRedirect = pathname === '/' || !pathname;
+    // Note: Only apply this when pathname is explicitly "/" not when undefined/empty during session setup
+    const isRootPageRedirect = pathname === '/';
 
     if (isRootPageRedirect) {
       // Force user flow with AirQo group for root page access
@@ -180,6 +181,24 @@ export const setupUserSession = async (
         );
       }
       redirectPath = '/user/Home';
+    } else if (typeof pathname === 'string' && pathname.startsWith('/admin')) {
+      // ADMIN ROUTES: Set AirQo group and stay on current admin path
+      logger.info('Admin route detected, setting up admin session...');
+
+      // Find AirQo group for admin context
+      const airqoGroup = user.groups.find(isAirQoGroup) || user.groups[0];
+      if (airqoGroup) {
+        activeGroup = airqoGroup;
+        logger.info('Admin session: Set active group', {
+          groupId: activeGroup._id,
+          groupName: activeGroup.grp_title || activeGroup.grp_name,
+          loginContext: 'admin',
+          pathname,
+        });
+      }
+
+      // Don't set redirectPath for admin routes - let them stay on the current path
+      redirectPath = null;
     } else if (pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
@@ -482,7 +501,8 @@ export const setupUserSession = async (
     dispatch(setSuccess(true));
 
     // Step 6: Fetch organization theme preferences for the active group
-    if (activeGroup && activeGroup._id) {
+    // Skip theme fetching for auth routes to avoid unnecessary API calls
+    if (activeGroup && activeGroup._id && routeType !== ROUTE_TYPES.AUTH) {
       try {
         dispatch(setOrganizationThemeLoading(true));
         logger.info('Fetching organization theme preferences...', {
@@ -517,23 +537,48 @@ export const setupUserSession = async (
         dispatch(setOrganizationThemeLoading(false));
       }
     } else {
-      // No active group, clear organization theme
+      // No active group or auth route, clear organization theme
       dispatch(clearOrganizationTheme());
+      if (routeType === ROUTE_TYPES.AUTH) {
+        logger.info('Skipping organization theme fetch for auth route');
+      }
     }
 
     // Step Final: Fetch user theme preferences after successful authentication
-    logger.info('Fetching user theme preferences...');
+    // Skip theme fetching for auth routes, invalid sessions, or missing user ID
     let userTheme = null;
-    try {
-      const themeRes = await getUserThemeApi(session.user.id);
-      if (themeRes?.success && themeRes?.data) {
-        userTheme = themeRes.data;
-        logger.info('User theme loaded successfully:', userTheme);
-      } else {
-        logger.info('No user theme found, will use defaults');
+    if (
+      routeType !== ROUTE_TYPES.AUTH &&
+      session?.user?.id &&
+      session.user.id !== 'undefined' &&
+      typeof session.user.id === 'string' &&
+      session.user.id.length > 0
+    ) {
+      logger.info('Fetching user theme preferences...');
+      try {
+        const themeRes = await getUserThemeApi(session.user.id);
+        if (themeRes?.success && themeRes?.data) {
+          userTheme = themeRes.data;
+          logger.info('User theme loaded successfully:', userTheme);
+        } else {
+          logger.info('No user theme found, will use defaults');
+        }
+      } catch (error) {
+        // Only log as warning for actual errors, not 404s which are expected for new users
+        if (error?.response?.status === 404 || error?.status === 404) {
+          logger.info('No user theme configured yet, will use defaults');
+        } else {
+          logger.warn('Failed to fetch user theme, will use defaults:', error);
+        }
       }
-    } catch (error) {
-      logger.warn('Failed to fetch user theme, will use defaults:', error);
+    } else {
+      if (routeType === ROUTE_TYPES.AUTH) {
+        logger.info('Skipping theme fetch for auth route, will use defaults');
+      } else if (!session?.user?.id) {
+        logger.info(
+          'Skipping theme fetch - no valid user session, will use defaults',
+        );
+      }
     }
 
     // Store theme in global context for immediate access by theme hooks

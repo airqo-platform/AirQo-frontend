@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { store } from "@/core/redux/store";
 import { Provider } from "react-redux";
 import { useAuth } from "@/core/hooks/users";
+import { AuthProvider } from "@/core/auth/authProvider";
 
 // Create a separate component for session restoration
 function SessionRestorer({ children }: { children: React.ReactNode }) {
@@ -33,8 +34,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <SessionRestorer>{children}</SessionRestorer>
-        <ReactQueryDevtools initialIsOpen={false} />
+        <AuthProvider>
+          <SessionRestorer>{children}</SessionRestorer>
+          <ReactQueryDevtools initialIsOpen={false} />
+        </AuthProvider>
       </QueryClientProvider>
     </Provider>
   );

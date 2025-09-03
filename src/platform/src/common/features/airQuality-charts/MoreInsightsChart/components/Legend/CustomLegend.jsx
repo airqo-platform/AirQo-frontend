@@ -1,14 +1,7 @@
 import PropTypes from 'prop-types';
 import { Tooltip } from 'flowbite-react';
 
-const brightness = (hex) => {
-  if (!hex) return 0;
-  const color = hex.replace('#', '');
-  const r = parseInt(color.substring(0, 2), 16);
-  const g = parseInt(color.substring(2, 4), 16);
-  const b = parseInt(color.substring(4, 6), 16);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-};
+// ...existing code...
 
 const CustomLegend = ({
   payload,
@@ -17,20 +10,18 @@ const CustomLegend = ({
   onClick,
   activeIndex,
 }) => {
-  const truncateLegend = payload.length > 3;
-
-  const sorted = [...payload].sort(
-    (a, b) => brightness(a.color) - brightness(b.color),
-  );
+  // Keep legend order matching the series order so colors map consistently.
+  const entries = Array.isArray(payload) ? payload : [];
+  const truncateLegend = entries.length > 3;
 
   return (
     <div className="flex flex-wrap relative justify-end gap-2 w-full">
-      {sorted.map((entry, idx) => {
+      {entries.map((entry, idx) => {
         const isActive = activeIndex === null || activeIndex === idx;
         return (
           <div
-            key={`legend-${idx}`}
-            className={`flex items-center gap-1 text-xs dark:text-gray-300 whitespace-nowrap cursor-pointer transition-opacity duration-200 ${
+            key={`legend-${entry.dataKey || idx}`}
+            className={`flex items-center gap-1.5 text-xs cursor-pointer transition-opacity duration-200 ${
               !isActive ? 'opacity-50' : 'opacity-100'
             }`}
             onMouseEnter={() => onMouseEnter(idx)}
@@ -38,22 +29,21 @@ const CustomLegend = ({
             onClick={() => onClick(idx)}
           >
             <span
-              className="w-3 h-3 rounded-full transition-transform duration-200"
+              className="w-2 h-2 rounded-full transition-transform duration-200"
               style={{
                 backgroundColor: entry.color || 'var(--color-primary)',
-                transform: isActive ? 'scale(1.2)' : 'scale(1)',
+                transform: isActive ? 'scale(1.1)' : 'scale(1)',
+                // Add a thin border for contrast on light colors
+                border: '1px solid rgba(0,0,0,0.12)',
+                boxSizing: 'border-box',
               }}
             />
             {truncateLegend ? (
               <Tooltip content={entry.value} className="w-auto">
-                <div className="truncate max-w-[100px] text-gray-700 dark:text-gray-200">
-                  {entry.value}
-                </div>
+                <div className="truncate max-w-[80px]">{entry.value}</div>
               </Tooltip>
             ) : (
-              <div className="text-gray-700 dark:text-gray-200">
-                {entry.value}
-              </div>
+              <div>{entry.value}</div>
             )}
           </div>
         );
@@ -63,11 +53,21 @@ const CustomLegend = ({
 };
 
 CustomLegend.propTypes = {
-  payload: PropTypes.array.isRequired,
+  payload: PropTypes.arrayOf(
+    PropTypes.shape({
+      dataKey: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      value: PropTypes.string.isRequired,
+      color: PropTypes.string,
+    }),
+  ).isRequired,
   onMouseEnter: PropTypes.func.isRequired,
   onMouseLeave: PropTypes.func.isRequired,
   onClick: PropTypes.func.isRequired,
   activeIndex: PropTypes.number,
+};
+
+CustomLegend.defaultProps = {
+  activeIndex: null,
 };
 
 export default CustomLegend;

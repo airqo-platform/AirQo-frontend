@@ -7,9 +7,8 @@ import CustomToast from '@/common/components/Toast/CustomToast';
 import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
 import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
-import PlusIcon from '@/icons/Actions/PlusIcon';
+import { AqUser02, AqPlus } from '@airqo/icons-react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
-import PersonIcon from '@/icons/Settings/person.svg';
 import InputField from '@/common/components/InputField';
 
 const EditClientForm = ({ open, closeModal, data }) => {
@@ -136,7 +135,7 @@ const EditClientForm = ({ open, closeModal, data }) => {
       isOpen={open}
       onClose={closeModal}
       title="Edit client"
-      icon={PersonIcon}
+      icon={AqUser02}
       showFooter={true}
       primaryAction={{
         label: hasChanges() ? 'Update Client' : 'No Changes',
@@ -232,7 +231,7 @@ const EditClientForm = ({ open, closeModal, data }) => {
             onClick={handleAddIpAddress}
             className="flex items-center justify-center w-full py-2 px-4 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 border border-dashed border-blue-300 dark:border-blue-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
           >
-            <PlusIcon size={16} className="mr-2" fill="currentColor" />
+            <AqPlus size={16} className="mr-2" color="currentColor" />
             Add IP Address
           </button>
 

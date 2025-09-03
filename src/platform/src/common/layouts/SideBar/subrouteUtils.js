@@ -125,10 +125,12 @@ export const getAllEnhancedSidebarProps = (
     .map((item) => transformDropdownToSidebarProps(item));
 };
 
-export default {
+const subrouteUtils = {
   getSubroutesFromConfig,
   hasSubroutesInConfig,
   getParentItemsWithSubroutes,
   transformDropdownToSidebarProps,
   getAllEnhancedSidebarProps,
 };
+
+export default subrouteUtils;

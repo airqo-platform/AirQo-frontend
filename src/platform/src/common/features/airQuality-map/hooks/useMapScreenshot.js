@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { useCallback } from 'react';
 import html2canvas from 'html2canvas';
 

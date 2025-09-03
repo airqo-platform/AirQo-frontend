@@ -1,4 +1,5 @@
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
+import logger from '@/lib/logger';
 import {
   DATA_EXPORT_URL,
   SHARE_REPORT_URL,
@@ -27,10 +28,12 @@ export const shareReportApi = async (body) => {
 };
 
 // Get sites summary data
-export const getSitesSummaryApi = async ({ group }) => {
+export const getSitesSummaryApi = async ({ group = undefined } = {}) => {
+  const params =
+    group !== undefined && group !== null && group !== '' ? { group } : {};
   return secureApiProxy
     .get(SITES_SUMMARY_URL, {
-      params: { group },
+      params,
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
@@ -39,7 +42,10 @@ export const getSitesSummaryApi = async ({ group }) => {
 
 // Get device summary data
 export const getDeviceSummaryApi = async ({ group = null }) => {
-  const params = group ? { group } : {};
+  const params = {
+    status: 'deployed',
+    ...(group ? { group } : {}),
+  };
 
   return secureApiProxy
     .get(DEVICE_SUMMARY_URL, {
@@ -65,18 +71,58 @@ export const getGridSummaryApi = async ({ admin_level = null }) => {
 
 // Fetch analytics data
 export const getAnalyticsDataApi = async ({ body }) => {
-  return secureApiProxy
-    .post(ANALYTICS_URL, body, {
-      authType: AUTH_TYPES.JWT,
-    })
-    .then((response) => {
-      if (response?.data?.status === 'success') return response.data.data || [];
-      if (response?.status === 'success' && Array.isArray(response.data))
-        return response.data;
-      if (Array.isArray(response?.data)) return response.data;
+  try {
+    // Validate input parameters
+    if (
+      !body ||
+      !body.sites ||
+      !Array.isArray(body.sites) ||
+      body.sites.length === 0
+    ) {
+      logger.warn('Invalid or empty sites provided to analytics API');
       return [];
-    })
-    .catch(() => []);
+    }
+
+    // Validate date range
+    if (!body.startDate || !body.endDate) {
+      logger.warn('Invalid date range provided to analytics API');
+      return [];
+    }
+
+    // Check if dates are valid
+    const startDate = new Date(body.startDate);
+    const endDate = new Date(body.endDate);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      logger.warn('Invalid date format provided to analytics API');
+      return [];
+    }
+
+    return secureApiProxy
+      .post(ANALYTICS_URL, body, {
+        authType: AUTH_TYPES.JWT,
+        timeout: 30000, // 30 second timeout
+      })
+      .then((response) => {
+        if (response?.data?.status === 'success')
+          return response.data.data || [];
+        if (response?.status === 'success' && Array.isArray(response.data))
+          return response.data;
+        if (Array.isArray(response?.data)) return response.data;
+        return [];
+      })
+      .catch((error) => {
+        logger.error('Analytics API error:', error);
+        // Log detailed error information for debugging
+        if (error.response) {
+          logger.error('Analytics API Response status:', error.response.status);
+          logger.error('Analytics API Response data:', error.response.data);
+        }
+        return [];
+      });
+  } catch (error) {
+    logger.error('Analytics API validation error:', error);
+    return [];
+  }
 };
 
 // Get recent device measurements
@@ -99,7 +145,16 @@ export const generateSiteAndDeviceIds = async (grid_id) => {
   return secureApiProxy
     .get(`${GENERATE_SITE_AND_DEVICE_IDS}/${grid_id}/generate`, {
       authType: AUTH_TYPES.JWT,
+      timeout: 30000, // 30 second timeout for grid generation
     })
     .then((response) => response.data)
-    .catch(() => ({}));
+    .catch((error) => {
+      logger.error('Grid generation API error:', error);
+      // Log detailed error information for debugging
+      if (error.response) {
+        logger.error('Grid API Response status:', error.response.status);
+        logger.error('Grid API Response data:', error.response.data);
+      }
+      return {}; // Return empty object to prevent breaks
+    });
 };

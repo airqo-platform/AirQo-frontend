@@ -32,6 +32,7 @@ import { formatDateString, isDateInPast } from 'utils/dateTime';
 import { purple } from '@material-ui/core/colors';
 import { setLoading } from 'redux/HorizontalLoader/index';
 import 'assets/css/dropdown.css';
+import { createAlertBarExtraContentFromObject } from '../../../../utils/objectManipulators';
 
 const customStyles = {
   control: (baseStyles, state) => ({
@@ -317,7 +318,6 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
         setSelectVisible(false);
         setrecallLoading(true);
         await handleRecall(selectedRecallType);
-        window.location.reload();
         setrecallLoading(false);
         setSelectedRecallType('');
       }
@@ -499,14 +499,16 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
           window.location.reload();
         }, 2000);
       })
-      .catch((err) => {
-        const errors = (err.response && err.response.data && err.response.data.errors) || {};
+      .catch((error) => {
+        const errorResponse = error.response && error.response.data;
+      const errorMessage = errorResponse && errorResponse.errors && errorResponse.errors.message;
         setErrors(errors);
         dispatch(
           updateMainAlert({
-            message: err.response.data.message,
+            message: errorMessage || errorResponse.message || 'An error occurred while deploying the device',
             show: true,
-            severity: 'error'
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject((errorResponse && errorResponse.errors) || {})
           })
         );
       });
@@ -531,7 +533,8 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
       userName: parsedData.email,
       email: parsedData.email,
       firstName: parsedData.firstName,
-      lastName: parsedData.lastName
+      lastName: parsedData.lastName,
+      date: new Date().toISOString()
     };
 
     // Add user_id only if it exists
@@ -552,12 +555,15 @@ export default function DeviceDeployStatus({ deviceData, handleRecall, siteOptio
           window.location.reload();
         }, 2000);
       })
-      .catch((err) => {
+      .catch((error) => {
+        const errorResponse = error.response && error.response.data;
+      const errorMessage = errorResponse && errorResponse.errors && errorResponse.errors.message;
         dispatch(
           updateMainAlert({
-            message: err.response && err.response.data && err.response.data.message,
+            message: errorMessage || errorResponse.message || 'An error occurred while recalling the device',
             show: true,
-            severity: 'error'
+            severity: 'error',
+            extra: createAlertBarExtraContentFromObject((errorResponse && errorResponse.errors) || {})
           })
         );
       });

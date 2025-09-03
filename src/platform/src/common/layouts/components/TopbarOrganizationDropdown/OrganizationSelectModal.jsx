@@ -1,7 +1,7 @@
 import React from 'react';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import { useRouter } from 'next/navigation';
-import { HiPlus } from 'react-icons/hi2';
+import { AqPlus } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
 
@@ -55,6 +55,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       to: group.grp_title,
     });
     try {
+      // Show loading immediately for smooth transition
       const result = await switchToGroup(group, { navigate: true });
       if (result.success) onClose();
       else logger.error('Switch failed:', result.error);
@@ -105,7 +106,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
           </div>
           <Button
             onClick={handleCreateOrganization}
-            Icon={HiPlus}
+            Icon={AqPlus}
             className="text-xs"
             padding="px-3 py-2"
           >
@@ -129,6 +130,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       {/* Search via reusable component */}
       <div className="border-gray-200 px-2 dark:border-gray-700">
         <SearchField
+          placeholder="Search organizations..."
           onSearch={() => {}}
           onClearSearch={() => dispatch(addSearchTerm(''))}
           focus={false}
@@ -201,7 +203,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
             <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3">
-              <HiPlus className="w-6 h-6 text-gray-400" />
+              <AqPlus className="w-6 h-6 text-gray-400" />
             </div>
             <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
               {searchTerm

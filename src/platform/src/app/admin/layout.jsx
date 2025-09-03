@@ -7,6 +7,7 @@ import {
   UnifiedSideBarDrawer,
 } from '@/common/layouts/SideBar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
+import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
 import MaintenanceBanner from '@/components/MaintenanceBanner';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
@@ -18,28 +19,41 @@ import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/theme
 import { useSelector } from 'react-redux';
 import Head from 'next/head';
 import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
+import { useMemo } from 'react';
 
 /**
  * Admin Layout Component
  * Layout specifically for admin routes with admin-specific sidebar content
+ * Optimized to prevent unnecessary re-renders and memory leaks
  */
 function AdminLayout({ children }) {
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
 
-  // Initialize hooks
+  // Initialize hooks only once with proper cleanup
   useUserPreferences();
   useInactivityLogout(userID);
 
-  // Get current layout (compact or wide)
+  // Get current layout (compact or wide) - memoized to prevent recalculation
   const { layout } = useTheme();
 
-  // Determine container classes based on layout preference
-  const containerClasses =
-    layout === THEME_LAYOUT.COMPACT
-      ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
-      : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
+  // Memoize container classes to prevent recalculation on every render
+  const containerClasses = useMemo(
+    () =>
+      layout === THEME_LAYOUT.COMPACT
+        ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
+        : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8',
+    [layout],
+  );
+
+  // Memoize main content class to prevent recalculation
+  const mainContentClass = useMemo(
+    () =>
+      `flex-1 transition-all duration-300 pt-36 lg:pt-16 overflow-y-auto pb-20 md:pb-0
+    ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`,
+    [isCollapsed],
+  );
 
   return (
     <div
@@ -70,10 +84,7 @@ function AdminLayout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <main
-        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 overflow-y-auto 
-          ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
-      >
+      <main className={mainContentClass}>
         <div className={`overflow-hidden ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
@@ -85,8 +96,11 @@ function AdminLayout({ children }) {
         </div>
       </main>
 
+      {/* Mobile Bottom Navigation - Show admin navigation for mobile */}
+      <MobileBottomNavigation userType="admin" />
+
       {/* Theme Customizer */}
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
 
       {/* Admin SideBar Drawer */}
       <UnifiedSideBarDrawer userType="admin" />

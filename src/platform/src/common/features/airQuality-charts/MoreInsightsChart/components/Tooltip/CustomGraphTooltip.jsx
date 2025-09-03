@@ -57,7 +57,7 @@ const CustomGraphTooltip = ({
                       : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
-                  {truncate(pt.name)}
+                  {truncate(pt.name || '--')}
                 </span>
               </div>
               <span className="text-xs text-gray-600 dark:text-gray-400">

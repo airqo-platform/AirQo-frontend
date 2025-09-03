@@ -9,9 +9,6 @@ import { removeTrailingSlash } from '@/utils';
 // Define the base URL for the API
 const API_BASE_URL = `${removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
 
-// Retrieve the API token from environment variables
-const API_TOKEN = process.env.NEXT_PUBLIC_API_TOKEN || '';
-
 // Create an Axios instance with default configurations
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -24,23 +21,7 @@ const apiClient: AxiosInstance = axios.create({
 // Generic Request Handlers
 // ----------------------
 
-/**
- * Generic GET request handler.
- */
-const getRequest = async (
-  endpoint: string,
-  params?: any,
-): Promise<any | null> => {
-  try {
-    const response: AxiosResponse<any> = await apiClient.get(endpoint, {
-      params,
-    });
-    return response.data;
-  } catch (error) {
-    handleError(error, `GET ${endpoint}`);
-    return null;
-  }
-};
+// (removed unused generic GET helper to avoid lint warnings)
 
 /**
  * Generic POST request handler.
@@ -92,7 +73,19 @@ export const postContactUs = async (body: any): Promise<any | null> => {
  * Fetch maintenance data for the website.
  */
 export const getMaintenances = async (): Promise<any | null> => {
-  return getRequest('/users/maintenances/website');
+  try {
+    const response: AxiosResponse<any> = await apiClient.get(
+      '/users/maintenances/website',
+      {
+        // keep timeout short during build to avoid long blocking delays
+        timeout: 3000,
+      },
+    );
+    return response.data;
+  } catch {
+    // Avoid noisy error logs during static generation/builds; caller handles nulls.
+    return null;
+  }
 };
 
 // ----------------------
@@ -104,15 +97,33 @@ export const getMaintenances = async (): Promise<any | null> => {
  */
 export const getGridsSummary = async (): Promise<any | null> => {
   try {
-    const response: AxiosResponse<any> = await apiClient.get(
-      '/devices/grids/summary',
-      {
-        params: {
-          token: API_TOKEN,
-        },
-      },
-    );
-    return response.data;
+    // Use server-side proxy without exposing tokens; support both SSR and CSR
+    const isServer = typeof window === 'undefined';
+    let url = '/api/proxy?endpoint=devices/grids/summary';
+    if (isServer) {
+      const origin =
+        process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '';
+      if (!origin) {
+        throw new Error(
+          'SITE_URL or NEXT_PUBLIC_SITE_URL must be set for server-side calls to /api/proxy',
+        );
+      }
+      url = `${origin.replace(/\/$/, '')}/api/proxy?endpoint=devices/grids/summary`;
+    }
+
+    // Add a timeout for server-side requests to avoid hanging SSG/SSR
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const proxyResponse = await fetch(url, { signal: controller.signal });
+      if (!proxyResponse.ok) {
+        throw new Error(`Proxy request failed: ${proxyResponse.statusText}`);
+      }
+      const data = await proxyResponse.json();
+      return data;
+    } finally {
+      clearTimeout(timeout);
+    }
   } catch (error) {
     handleError(error, 'GET /devices/grids/summary');
     return null;

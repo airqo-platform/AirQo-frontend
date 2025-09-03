@@ -1,9 +1,9 @@
 'use client';
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PropTypes from 'prop-types';
-import Spinner from '@/components/Spinner';
-import Button from '@/components/Button';
+import Spinner from '@/common/components/Spinner';
+import Button from '@/common/components/Button';
 
 export const MESSAGE_TYPES = {
   ERROR: 'error',
@@ -127,9 +127,11 @@ const EnhancedFooter = ({
           {loading ? (
             <span className="flex items-center justify-center">
               <span className="mr-2">
-                <Spinner width={12} height={12} />
+                <Spinner size={12} />
               </span>
-              {btnText}
+              {btnText.includes('Preview')
+                ? 'Loading Preview...'
+                : 'Loading...'}
             </span>
           ) : (
             btnText

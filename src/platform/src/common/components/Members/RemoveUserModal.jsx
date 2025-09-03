@@ -1,4 +1,4 @@
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { AqAlertTriangle } from '@airqo/icons-react';
 import PropTypes from 'prop-types';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 
@@ -21,7 +21,7 @@ const RemoveUserModal = ({
       onClose={onClose}
       title="Remove Team Member"
       subtitle="This action cannot be undone"
-      icon={FaExclamationTriangle}
+      icon={AqAlertTriangle}
       iconColor="text-red-600 dark:text-red-400"
       iconBgColor="bg-red-100 dark:bg-red-900/20"
       size="max-w-md"

@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SettingsTabNavigation } from '@/common/components/Tabs';
-import { FaGlobe, FaPalette, FaLink } from 'react-icons/fa';
+import { AqGlobe02Maps_Travel, AqPalette, AqLink03 } from '@airqo/icons-react';
 import OrganizationInformationForm from './OrganizationInformationForm';
 import AppearanceSettingsForm from './AppearanceSettingsForm';
 import DomainSettingsForm from './DomainSettingsForm';
@@ -38,19 +38,19 @@ const OrganizationSettingsContainer = ({
     {
       id: 'organization',
       name: 'Organization',
-      icon: FaGlobe,
+      icon: AqGlobe02Maps_Travel,
       description: 'Basic organization information and settings',
     },
     {
       id: 'domain',
       name: 'Domain',
-      icon: FaLink,
+      icon: AqLink03,
       description: 'Customize your organization URL',
     },
     {
       id: 'appearance',
       name: 'Appearance',
-      icon: FaPalette,
+      icon: AqPalette,
       description: 'Customize the look and feel',
     },
   ];

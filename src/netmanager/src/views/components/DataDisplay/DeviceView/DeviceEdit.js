@@ -19,6 +19,8 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
+import AssignGroupModal from './AssignGroupModal';
+import { createAlertBarExtraContentFromObject } from '../../../../utils/objectManipulators';
 
 const gridItemStyle = {
   padding: '5px'
@@ -66,6 +68,7 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
 
   const [open, setConfirmOpen] = useState(false);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [assignGroupModalOpen, setAssignGroupModalOpen] = useState(false);
 
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
 
@@ -104,19 +107,47 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
     setSaveModalOpen(false);
   };
 
+  const getModifiedFields = (original, updated) => {
+    const modified = {};
+    for (const key in updated) {
+      if (updated[key] !== original[key]) {
+        modified[key] = updated[key];
+      }
+    }
+    return modified;
+  };
+
+
   const handleSave = async (isSoftUpdate) => {
     setSaveModalOpen(false);
     setEditLoading(true);
     dispatch(setLoading(true));
 
-    if (editData.deployment_date)
-      editData.deployment_date = new Date(editData.deployment_date).toISOString();
+    let modifiedData = getModifiedFields(deviceData, editData);
+
+    // Special case formatting (if field was changed)
+    if (modifiedData.deployment_date) {
+      modifiedData.deployment_date = new Date(modifiedData.deployment_date).toISOString();
+    }
+
+    if (isEmpty(modifiedData)) {
+      dispatch(
+        updateMainAlert({
+          message: 'No changes to save.',
+          show: true,
+          severity: 'info'
+        })
+      );
+      setEditLoading(false);
+      dispatch(setLoading(false));
+      return;
+    }
 
     const updateFunction = isSoftUpdate ? softUpdateDeviceDetails : updateDeviceDetails;
     const updateTarget = isSoftUpdate ? 'Platform' : 'ThingSpeak';
 
     try {
-      const responseData = await updateFunction(deviceData._id, editData);
+      const responseData = await updateFunction(deviceData._id, modifiedData);
       if (!isEmpty(activeNetwork)) {
         dispatch(loadDevicesData(activeNetwork.net_name));
       }
@@ -140,7 +171,8 @@ const EditDeviceForm = ({ deviceData, siteOptions }) => {
             err.message ||
             'An error occurred during update',
           show: true,
-          severity: 'error'
+          severity: 'error',
+          extra: createAlertBarExtraContentFromObject((errorResponse && errorResponse.errors) || {})
         })
       );
     }
@@ -471,6 +503,7 @@ export default function DeviceEdit({ deviceData }) {
   const dispatch = useDispatch();
   const siteOptions = useSiteOptionsData();
   const activeNetwork = useSelector((state) => state.accessControl.activeNetwork);
+  const [assignGroupModalOpen, setAssignGroupModalOpen] = useState(false);
 
   useEffect(() => {
     if (!activeNetwork) return;
@@ -478,10 +511,38 @@ export default function DeviceEdit({ deviceData }) {
       dispatch(loadSitesData(activeNetwork.net_name));
     }
   }, []);
+
+  const handleAssignGroupModalClose = () => {
+    setAssignGroupModalOpen(false);
+  };
+
+  const handleAssignGroupClick = () => {
+    setAssignGroupModalOpen(true);
+  };
+
   return (
     <div style={{ marginTop: '20px' }}>
+      {/* Assign to Group Button */}
+      <Box mb={2} display="flex" justifyContent="flex-end">
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={handleAssignGroupClick}
+          style={{ marginBottom: '16px' }}
+        >
+          Assign Device to Group
+        </Button>
+      </Box>
+
       <EditDeviceForm deviceData={deviceData} siteOptions={siteOptions} />
       <DeviceDeployStatus deviceData={deviceData} siteOptions={siteOptions} />
+      
+      {/* Assign Group Modal */}
+      <AssignGroupModal
+        open={assignGroupModalOpen}
+        onClose={handleAssignGroupModalClose}
+        device={deviceData}
+      />
     </div>
   );
 }

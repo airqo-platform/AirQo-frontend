@@ -93,7 +93,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
 
       for (final site in widget.userPreferences!.selectedSites) {
         if (measurementsBySiteId.containsKey(site.id)) {
-          loggy.info('Found match for site: ${site.name} (ID: ${site.id})');
           matched.add(measurementsBySiteId[site.id]!);
         } else {
           final cachedMeasurement = await _getCachedMeasurement(site.id);
@@ -229,7 +228,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     for (var m in selectedMeasurements) {
       if (m.siteId == id) {
         locationName =
-            m.siteDetails?.searchName ?? m.siteDetails?.name ?? "Location";
+            m.siteDetails?.searchName ?? m.siteDetails?.name ?? "---";
         break;
       }
     }
@@ -284,11 +283,34 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     );
 
     if (result != null && mounted) {
-      loggy.info('Returned from location selection with result');
+      final expectedLocationIds = (result as List<String>);
+      final expectedCount = expectedLocationIds.length;
+      loggy.info('Returned from location selection with ${expectedCount} locations: $expectedLocationIds');
+      
       setState(() {
         isLoading = true;
       });
+      
       context.read<DashboardBloc>().add(LoadDashboard());
+      
+      // Verify the result after giving time for state to update
+      Future.delayed(Duration(seconds: 2), () {
+        if (mounted) {
+          final actualCount = selectedMeasurements.length + unmatchedSites.length;
+          loggy.info('Expected: $expectedCount locations, Actual: $actualCount locations');
+          
+          if (actualCount != expectedCount) {
+            loggy.warning('Location count mismatch detected');
+            NotificationManager().showNotification(
+              context,
+              message: 'Some locations may not have been saved properly. Please verify your selections.',
+              isSuccess: false,
+            );
+          } else {
+            loggy.info('Location count verification passed');
+          }
+        }
+      });
     }
   }
 
@@ -314,13 +336,26 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
                       unmatchedSites.isEmpty)
                     _buildEmptyState()
                   else ...[
-                    ...selectedMeasurements.map((measurement) => Padding(
-                          padding: const EdgeInsets.only(bottom: 16),
-                          child: SwipeableAnalyticsCard(
-                            measurement: measurement,
-                            onRemove: _removeLocation,
-                          ),
-                        )),
+                    ...selectedMeasurements.map((measurement) {
+                      String? preferenceLocationName;
+                      if (widget.userPreferences != null) {
+                        for (var site in widget.userPreferences!.selectedSites) {
+                          if (site.id == measurement.siteId) {
+                            preferenceLocationName = site.name;
+                            break;
+                          }
+                        }
+                      }
+                      
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: SwipeableAnalyticsCard(
+                          measurement: measurement,
+                          onRemove: _removeLocation,
+                          fallbackLocationName: preferenceLocationName,
+                        ),
+                      );
+                    }),
                     ...unmatchedSites.map((site) => Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: UnmatchedSiteCard(

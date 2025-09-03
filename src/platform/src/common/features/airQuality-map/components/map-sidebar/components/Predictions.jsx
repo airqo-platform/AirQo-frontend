@@ -36,7 +36,7 @@ const DayCell = ({ day, date, isActive, imageSrc, loading }) => {
         className={`w-10 h-10 rounded-full flex items-center justify-center `}
       >
         {loading ? (
-          <Spinner width={6} height={6} />
+          <Spinner size={6} />
         ) : (
           <Image
             src={imageSrc}

@@ -1,4 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react';
+'use client';
+
+import { useEffect, useMemo, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector, useDispatch } from 'react-redux';
 import Card from '@/components/CardWrapper';
@@ -18,7 +20,12 @@ import {
 } from '@/lib/store/services/map/MapSlice';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 
-const MapSidebar = ({ siteDetails = [], isAdmin = false, children }) => {
+const MapSidebar = ({
+  siteDetails = [],
+  isLoading,
+  isAdmin = false,
+  children,
+}) => {
   const { width } = useWindowSize();
   const dispatch = useDispatch();
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -92,6 +99,7 @@ const MapSidebar = ({ siteDetails = [], isAdmin = false, children }) => {
               onAll={() => {
                 setSelectedCountry(null);
               }}
+              isLoading={isLoading}
               siteDetails={siteDetails}
             />
           </>
@@ -127,14 +135,14 @@ const MapSidebar = ({ siteDetails = [], isAdmin = false, children }) => {
             />
           )}
           {/* Loading */}
-          {!selectedLocation && !isSearchFocused && !siteDetails.length && (
+          {!selectedLocation && !isSearchFocused && isLoading && (
             <LoadingSkeleton />
           )}
           {/* Empty */}
           {!selectedLocation &&
           !isSearchFocused &&
           !displaySites.length &&
-          siteDetails.length ? (
+          !isLoading ? (
             <p className="text-center text-gray-500 dark:text-gray-400 mt-4">
               No locations available
             </p>
@@ -143,7 +151,7 @@ const MapSidebar = ({ siteDetails = [], isAdmin = false, children }) => {
           {!selectedLocation && !isSearchFocused && displaySites.length > 0 && (
             <LocationCards
               searchResults={displaySites}
-              isLoading={false}
+              isLoading={isLoading}
               handleLocationSelect={(data) =>
                 handleLocationSelect(data, 'suggested')
               }

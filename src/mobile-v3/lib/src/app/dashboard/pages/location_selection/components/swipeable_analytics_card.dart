@@ -10,10 +10,12 @@ import 'dart:async';
 class SwipeableAnalyticsCard extends StatefulWidget {
   final Measurement measurement;
   final Function(String) onRemove;
+  final String? fallbackLocationName;
 
   const SwipeableAnalyticsCard({
     required this.measurement,
     required this.onRemove,
+    this.fallbackLocationName,
     super.key,
   });
 
@@ -171,6 +173,7 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
         builder: (context) {
           return AnalyticsDetails(
             measurement: widget.measurement,
+            fallbackLocationName: widget.fallbackLocationName,
           );
         });
   }
@@ -369,7 +372,9 @@ class _SwipeableAnalyticsCardState extends State<SwipeableAnalyticsCard>
                                     children: [
                                       Text(
                                         widget.measurement.siteDetails?.searchName ??
-                                            "Unknown Location",
+                                            widget.measurement.siteDetails?.name ??
+                                            widget.fallbackLocationName ??
+                                            "---",
                                         style: TextStyle(
                                           fontSize: 22,
                                           fontWeight: FontWeight.w700,

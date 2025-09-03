@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /**
  * Centralized error handling for map operations
  */

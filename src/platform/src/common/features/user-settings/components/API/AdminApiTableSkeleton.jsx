@@ -1,5 +1,3 @@
-import React from 'react';
-
 const AdminApiTableSkeleton = ({ rows = 8 }) => {
   return (
     <tbody>

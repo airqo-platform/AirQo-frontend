@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { Transition } from '@headlessui/react';
 import {
@@ -15,7 +15,7 @@ import {
   format,
   getYear,
 } from 'date-fns';
-import CalendarIcon from '@/icons/Analytics/calendarIcon';
+import { AqCalendar as CalendarIcon } from '@airqo/icons-react';
 import CustomDropdown from '../Button/CustomDropdown';
 import Calendar from './Calendar';
 import { useOutsideClick } from '@/core/hooks';
@@ -39,6 +39,8 @@ const CustomCalendar = ({
   horizontalOffset = 0,
   verticalOffset = 0,
   dropdownStyle = {},
+  showTimePickerToggle = false,
+  enableTimePicker = false,
 }) => {
   const containerRef = useRef(null);
   const [openDatePicker, setOpenDatePicker] = useState(false);
@@ -155,7 +157,7 @@ const CustomCalendar = ({
     <div ref={containerRef} className={`relative ${className}`}>
       <CustomDropdown
         text={value.label || 'Select Date Range'}
-        icon={<CalendarIcon fill="#536A87" />}
+        icon={<CalendarIcon size={16} />}
         iconPosition="left"
         onClick={handleToggle}
         isButton
@@ -188,6 +190,8 @@ const CustomCalendar = ({
             handleValueChange={handleValueChange}
             closeDatePicker={() => setOpenDatePicker(false)}
             showTwoCalendars={!isMobile}
+            enableTimePicker={enableTimePicker}
+            showTimePickerToggle={showTimePickerToggle}
           />
         </div>
       </Transition>
@@ -211,6 +215,8 @@ CustomCalendar.propTypes = {
   horizontalOffset: PropTypes.number,
   verticalOffset: PropTypes.number,
   dropdownStyle: PropTypes.object,
+  showTimePickerToggle: PropTypes.bool,
+  enableTimePicker: PropTypes.bool,
 };
 
 export default CustomCalendar;

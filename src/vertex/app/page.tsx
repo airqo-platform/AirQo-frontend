@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/core/redux/hooks";
-import { Loader2 } from "lucide-react";
+import SessionLoadingState from "@/components/layout/loading/session-loading";
 
 export default function Page() {
   const router = useRouter();
@@ -13,14 +13,10 @@ export default function Page() {
     if (!isAuthenticated) {
       router.push("/login");
     } else {
-      router.push("/analytics"); // or whatever your main authenticated route is
+      router.push("/home"); // or whatever your main authenticated route is
     }
   }, [isAuthenticated, router]);
 
   // Show loading state while redirecting
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Loader2 className="w-8 h-8 animate-spin" />
-    </div>
-  );
+  return <SessionLoadingState />;
 }
