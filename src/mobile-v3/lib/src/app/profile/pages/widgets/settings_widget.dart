@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/profile/pages/location_privacy_screen.dart';
+import 'package:airqo/src/app/profile/pages/research_settings_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -169,6 +170,22 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => LocationPrivacyScreen()),
+                );
+              },
+            ),
+
+            SizedBox(height: screenHeight * 0.02),
+
+            SettingsTile(
+              iconPath: "assets/images/shared/research_icon.svg",
+              title: "Research Participation",
+              description: "Manage your research consent and contribution to air quality studies",
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ResearchSettingsScreen(),
+                  ),
                 );
               },
             ),
