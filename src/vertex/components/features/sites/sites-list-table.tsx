@@ -42,7 +42,6 @@ export default function SitesTable({
     }
   };
 
-  // Ensure table items include an 'id' field as required by ReusableTable
   const sitesWithId: TableSite[] = sites
     .filter(
       (s): s is Site & { _id: string } => typeof s._id === "string" && s._id.trim() !== ""
