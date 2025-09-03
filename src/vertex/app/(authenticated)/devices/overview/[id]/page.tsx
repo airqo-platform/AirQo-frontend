@@ -43,7 +43,7 @@ export default function DeviceDetailsPage() {
   const params = useParams();
   const deviceId = params?.id as string;
   const { data: deviceResponse, isLoading, error } = useDeviceDetails(deviceId);
-  const device = deviceResponse?.data as Device;
+  const device = (deviceResponse?.data as Device | undefined) ?? undefined;
   const router = useRouter();
 
   // Real permission checks
@@ -164,6 +164,10 @@ export default function DeviceDetailsPage() {
 
       {isLoading ? (
         <ContentGridSkeleton />
+      ) : !device ? (
+        <div className="mt-8 text-center text-sm text-muted-foreground">
+          Device not found.
+        </div>
       ) : (
         <div className="columns-1 md:columns-2 lg:columns-3 gap-4 mt-6">
           <div className="break-inside-avoid mb-4 inline-block w-full order-1">
