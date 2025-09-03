@@ -74,8 +74,16 @@ class AuthImpl extends AuthRepository {
       }
       throw Exception(message);
     } else {
-      final errors = data['errors'] as Map<String, dynamic>?;
-      String errorMessage = data['message'] ?? errors?['message'] ?? 'Registration failed';
+      String errorMessage;
+      
+      if (registerResponse.statusCode >= 400 && registerResponse.statusCode <= 499) {
+        errorMessage = "There was an issue with your request. Please check your input and try again.";
+      } else if (registerResponse.statusCode >= 500 && registerResponse.statusCode <= 599) {
+        errorMessage = "We're experiencing technical difficulties. Please try again later.";
+      } else {
+        errorMessage = "Registration failed. Please try again.";
+      }
+      
       throw Exception(errorMessage);
     }
   }
