@@ -89,6 +89,7 @@ export default function CohortsPage() {
           filterable={false}
           sortable
           loading={isLoading}
+          searchableColumns={["name"]}
           onRowClick={(item: unknown) => {
             const row = item as CohortRow;
             if (row?.id) router.push(`/cohorts/${row.id}`)
