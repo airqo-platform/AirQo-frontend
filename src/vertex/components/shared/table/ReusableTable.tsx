@@ -7,7 +7,6 @@ import React, {
   useEffect,
   useCallback,
   ReactNode,
-  ReactElement,
 } from "react";
 import Fuse from "fuse.js";
 import {
@@ -544,10 +543,13 @@ const ReusableTable = <T extends TableItem>({
   }, [filters]);
 
   // Normalize any value to a searchable string
-  const normalizeToString = (value: unknown): string => {
+  const normalizeToString = useCallback((value: unknown): string => {
     if (value == null) return "";
     if (Array.isArray(value)) {
-      return value.map((v) => normalizeToString(v)).filter(Boolean).join(" ");
+      return value
+        .map((v) => normalizeToString(v))
+        .filter(Boolean)
+        .join(" ");
     }
     const t = typeof value;
     if (t === "string") return value as string;
@@ -564,7 +566,7 @@ const ReusableTable = <T extends TableItem>({
       }
     }
     return "";
-  };
+  }, []);
 
   // Resolve nested values using dot-notation, supporting arrays at any level
   const resolvePath = (obj: unknown, path: string): unknown => {
@@ -573,9 +575,9 @@ const ReusableTable = <T extends TableItem>({
       if (current == null) return undefined;
       if (idx >= parts.length) return current;
       if (Array.isArray(current)) {
-        return (current
+        return current
           .map((el) => walk(el, idx))
-          .filter((v) => v != null && v !== "")) as unknown[];
+          .filter((v) => v != null && v !== "") as unknown[];
       }
       if (typeof current === "object") {
         const next = (current as Record<string, unknown>)[parts[idx]];
@@ -646,50 +648,58 @@ const ReusableTable = <T extends TableItem>({
     // Process data for Fuse.js search ONLY if there's a search term
     if (searchTerm && searchTerm.trim() && fuseKeys.length > 0) {
       // In ReusableTable.tsx, around line 646
-const getSearchableString = (item: T, key: string): string => {
-  // 1) If key corresponds to a defined column with a render, extract visible text
-  const col = columns.find((c) => c.key === key);
-  if (col && typeof col.render === "function") {
-    try {
-      const ckey = col.key as string;
-      const cval = item[ckey as keyof T] as T[keyof T];
-      const rendered = col.render(cval, item);
-      if (typeof rendered === "string") return rendered;
-      if (typeof rendered === "number") return String(rendered);
-      if (React.isValidElement(rendered)) {
-        const props = (rendered as ReactElement).props;
-        if (typeof props.children === "string") return props.children;
-        if (Array.isArray(props.children)) {
-          return props.children
-            .map((child: unknown) => (typeof child === "string" ? child : ""))
-            .join(" ");
+      const getSearchableString = (item: T, key: string): string => {
+        // 1) If key corresponds to a defined column with a render, extract visible text
+        const col = columns.find((c) => c.key === key);
+        if (col && typeof col.render === "function") {
+          try {
+            const ckey = col.key as string;
+            const cval = item[ckey as keyof T] as T[keyof T];
+            const rendered = col.render(cval, item);
+
+            // Handle React elements by extracting text content
+            if (typeof rendered === "string") return rendered;
+            if (typeof rendered === "number") return String(rendered);
+            if (React.isValidElement(rendered)) {
+              const extractText = (element: unknown): string => {
+                if (
+                  typeof element === "string" ||
+                  typeof element === "number"
+                ) {
+                  return String(element);
+                }
+                if (React.isValidElement(element)) {
+                  const props = element.props as { children?: unknown };
+                  if (props.children) {
+                    if (Array.isArray(props.children)) {
+                      return props.children.map(extractText).join(" ");
+                    }
+                    return extractText(props.children);
+                  }
+                }
+                return "";
+              };
+              const extractedText = extractText(rendered);
+              if (extractedText) return extractedText;
+            }
+          } catch {
+            // fall through to raw/nested resolution
+          }
         }
-        return normalizeToString(item[ckey as keyof T]);
-      }
-    } catch {
-      // fall through to raw/nested resolution
-    }
-  }
 
-  if (key in item) {
-    return normalizeToString(item[key as keyof T]);
-  }
+        // 2) Try direct field access
+        if (key in item) {
+          return normalizeToString(item[key as keyof T]);
+        }
 
-  const nestedValue = resolvePath(item, key);
-  if (nestedValue !== undefined) {
-    return normalizeToString(nestedValue);
-  }
+        // 3) Try nested path resolution
+        const nestedValue = resolvePath(item, key);
+        if (nestedValue !== undefined) {
+          return normalizeToString(nestedValue);
+        }
 
-  if (!key.startsWith('device.')) {
-    const deviceKey = `device.${key}`;
-    const deviceValue = resolvePath(item, deviceKey);
-    if (deviceValue !== undefined) {
-      return normalizeToString(deviceValue);
-    }
-  }
-
-  return "";
-};
+        return "";
+      };
 
       const fuseData = result.map((item) => {
         const obj: Record<string, string> = {};
@@ -709,7 +719,7 @@ const getSearchableString = (item: T, key: string): string => {
         includeMatches: true,
         shouldSort: true,
         findAllMatches: true,
-        ignoreFieldNorm: true
+        ignoreFieldNorm: true,
       };
       const fuse = new Fuse(fuseData, fuseOptions);
       const fuseResults = fuse.search(searchTerm.trim());
@@ -726,7 +736,14 @@ const getSearchableString = (item: T, key: string): string => {
     }
 
     return result;
-  }, [data, filterValues, searchableColumns, searchTerm, columns, normalizeToString]);
+  }, [
+    data,
+    filterValues,
+    searchableColumns,
+    searchTerm,
+    columns,
+    normalizeToString,
+  ]);
 
   // Sort data
   const sortedData = useMemo(() => {
@@ -938,7 +955,14 @@ const getSearchableString = (item: T, key: string): string => {
       });
     }
     return cols;
-  }, [columns, multiSelect, isAllSelectedOnPage, selectedItems, handleSelectAll, handleSelectItem]);
+  }, [
+    columns,
+    multiSelect,
+    isAllSelectedOnPage,
+    selectedItems,
+    handleSelectAll,
+    handleSelectItem,
+  ]);
 
   return (
     <div className="overflow-hidden shadow p-0 rounded-lg w-full bg-[#E9F7EF]">
@@ -984,11 +1008,13 @@ const getSearchableString = (item: T, key: string): string => {
                   <th
                     key={String(column.key)}
                     className={`${
-                      column.key === "checkbox" 
-                        ? "w-4 p-4" 
+                      column.key === "checkbox"
+                        ? "w-4 p-4"
                         : "px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                     } ${
-                      sortable && column.sortable !== false && column.key !== "checkbox"
+                      sortable &&
+                      column.sortable !== false &&
+                      column.key !== "checkbox"
                         ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         : ""
                     }`}
@@ -1019,7 +1045,10 @@ const getSearchableString = (item: T, key: string): string => {
                   <tr
                     key={item.id ?? index}
                     onClick={(e) => {
-                      if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+                      if (
+                        e.target instanceof HTMLInputElement &&
+                        e.target.type === "checkbox"
+                      ) {
                         return;
                       }
                       if (onRowClick) {
@@ -1030,16 +1059,14 @@ const getSearchableString = (item: T, key: string): string => {
                       selectedItems.includes(item.id)
                         ? "bg-primary/10 dark:bg-primary/20"
                         : "hover:bg-primary/5 dark:hover:bg-primary/20"
-                    } ${
-                      onRowClick && "cursor-pointer"
-                    }`}
+                    } ${onRowClick && "cursor-pointer"}`}
                   >
                     {displayColumns.map((column) => (
                       <td
                         key={String(column.key)}
                         className={`${
-                          column.key === "checkbox" 
-                            ? "w-4 p-4" 
+                          column.key === "checkbox"
+                            ? "w-4 p-4"
                             : "px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
                         }`}
                       >
