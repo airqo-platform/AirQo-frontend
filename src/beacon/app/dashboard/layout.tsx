@@ -13,7 +13,6 @@ import {
   Menu,
   X,
   Home,
-  Users,
   LogOut,
   Loader2,
 } from "lucide-react"
@@ -49,19 +48,28 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false) // Start with collapsed sidebar
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
   const router = useRouter()
 
   // Initialize user data
   useEffect(() => {
     const initializeUser = async () => {
       try {
+        // Only check authentication on client side
+        if (typeof window === 'undefined') {
+          return
+        }
+
         // Check if user is authenticated
-        if (!authService.isAuthenticated()) {
+        const authStatus = authService.isAuthenticated()
+        setIsAuthenticated(authStatus)
+        
+        if (!authStatus) {
           // Clear any stale data and redirect to login
           authService.clearAllAuthData()
           router.push("/login")
@@ -94,8 +102,10 @@ export default function DashboardLayout({
       } catch (error) {
         console.error("Error initializing user:", error)
         // On error, redirect to login
-        authService.clearAllAuthData()
-        router.push("/login")
+        if (typeof window !== 'undefined') {
+          authService.clearAllAuthData()
+          router.push("/login")
+        }
       } finally {
         setLoading(false)
       }
@@ -207,7 +217,10 @@ export default function DashboardLayout({
   // Check authentication status periodically
   useEffect(() => {
     const checkAuth = () => {
-      if (!authService.isAuthenticated()) {
+      const authStatus = authService.isAuthenticated()
+      setIsAuthenticated(authStatus)
+      
+      if (!authStatus) {
         authService.clearAllAuthData()
         router.push("/login")
       }
@@ -227,14 +240,14 @@ export default function DashboardLayout({
   }, [router])
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`bg-primary text-white transition-all duration-300 ${
-          sidebarOpen ? "w-64" : "w-20"
-        }`}
+        className={`bg-primary text-white transition-all duration-300 flex-shrink-0 ${
+          sidebarOpen ? "w-56" : "w-16"
+        } relative`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-primary-foreground/10">
+        <div className="flex items-center justify-between h-14 px-3 border-b border-primary-foreground/10">
           <div
             className={`flex items-center ${
               !sidebarOpen && "justify-center w-full"
@@ -243,8 +256,8 @@ export default function DashboardLayout({
             <Image
               src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-8ystA7fUvSxUyn8lJlJplrEDq9D64a.png"
               alt="AirQo Logo"
-              width={sidebarOpen ? 100 : 40}
-              height={35}
+              width={sidebarOpen ? 90 : 35}
+              height={30}
               className="object-contain"
               priority
             />
@@ -252,98 +265,135 @@ export default function DashboardLayout({
           {sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="text-white p-1 rounded-md hover:bg-primary-foreground/10"
+              className="text-white p-1 rounded-md hover:bg-primary-foreground/10 transition-colors"
               aria-label="Close sidebar"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           )}
         </div>
-        <nav className="p-4">
-          <ul className="space-y-2">
+        <nav className="px-2 py-3">
+          <ul className="space-y-1">
             <li>
               <Link
                 href="/dashboard"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+                className={`flex items-center rounded-md hover:bg-primary-foreground/10 transition-colors group relative ${
+                  sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+                title={!sidebarOpen ? "Overview" : ""}
               >
-                <Home className="h-5 w-5" />
-                {sidebarOpen && <span className="ml-3">Overview</span>}
+                <Home className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Overview</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Overview
+                  </span>
+                )}
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/analytics"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+                className={`flex items-center rounded-md hover:bg-primary-foreground/10 transition-colors group relative ${
+                  sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+                title={!sidebarOpen ? "Site Analytics" : ""}
               >
-                <BarChart3 className="h-5 w-5" />
-                {sidebarOpen && <span className="ml-3">Analytics</span>}
+                <BarChart3 className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Site Analytics</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Site Analytics
+                  </span>
+                )}
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/devices"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+                className={`flex items-center rounded-md hover:bg-primary-foreground/10 transition-colors group relative ${
+                  sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+                title={!sidebarOpen ? "Devices" : ""}
               >
-                <MapPin className="h-5 w-5" />
-                {sidebarOpen && <span className="ml-3">Devices</span>}
+                <MapPin className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Devices</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Devices
+                  </span>
+                )}
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/alerts"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+                className={`flex items-center rounded-md hover:bg-primary-foreground/10 transition-colors group relative ${
+                  sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+                title={!sidebarOpen ? "Alerts" : ""}
               >
-                <Bell className="h-5 w-5" />
-                {sidebarOpen && <span className="ml-3">Alerts</span>}
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/dashboard/users"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
-              >
-                <Users className="h-5 w-5" />
-                {sidebarOpen && <span className="ml-3">Users</span>}
+                <Bell className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Alerts</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Alerts
+                  </span>
+                )}
               </Link>
             </li>
             <li>
               <Link
                 href="/dashboard/settings"
-                className="flex items-center p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
+                className={`flex items-center rounded-md hover:bg-primary-foreground/10 transition-colors group relative ${
+                  sidebarOpen ? "px-3 py-2" : "p-2 justify-center"
+                }`}
+                title={!sidebarOpen ? "Settings" : ""}
               >
-                <Settings className="h-5 w-5" />
-                {sidebarOpen && <span className="ml-3">Settings</span>}
+                <Settings className="h-5 w-5 flex-shrink-0" />
+                {sidebarOpen && <span className="ml-3 text-sm">Settings</span>}
+                {!sidebarOpen && (
+                  <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                    Settings
+                  </span>
+                )}
               </Link>
             </li>
           </ul>
         </nav>
 
-        {/* Logout button in sidebar (optional) */}
-        {sidebarOpen && (
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-primary-foreground/10">
-            <button
-              onClick={() => setShowLogoutDialog(true)}
-              className="flex items-center w-full p-2 rounded-md hover:bg-primary-foreground/10 transition-colors"
-              disabled={isLoggingOut}
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="ml-3">Logout</span>
-            </button>
-          </div>
-        )}
+        {/* Logout button in sidebar */}
+        <div className={`absolute bottom-0 left-0 right-0 ${sidebarOpen ? "p-3" : "p-2"} border-t border-primary-foreground/10`}>
+          <button
+            onClick={() => setShowLogoutDialog(true)}
+            className={`flex items-center rounded-md hover:bg-primary-foreground/10 transition-colors group relative ${
+              sidebarOpen ? "w-full px-3 py-2" : "p-2 justify-center w-full"
+            }`}
+            disabled={isLoggingOut}
+            type="button"
+            title={!sidebarOpen ? "Logout" : ""}
+          >
+            <LogOut className="h-5 w-5 flex-shrink-0" />
+            {sidebarOpen && <span className="ml-3 text-sm">Logout</span>}
+            {!sidebarOpen && (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded-md whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50">
+                Logout
+              </span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Main content */}
-      <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm p-4 flex justify-between items-center">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="bg-white shadow-sm h-14 flex items-center justify-between px-4 flex-shrink-0">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={`p-2 rounded-md hover:bg-gray-100 transition-colors ${
-              sidebarOpen && "hidden md:block"
-            }`}
+            className="p-2 rounded-md hover:bg-gray-100 transition-colors"
             aria-label="Toggle sidebar"
+            type="button"
           >
-            <Menu size={20} />
+            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
           <div className="flex items-center space-x-4">
             <Bell className="h-5 w-5 text-gray-500 cursor-pointer hover:text-primary transition-colors" />
@@ -384,7 +434,7 @@ export default function DashboardLayout({
             </div>
           </div>
         </header>
-        <main className="p-4">{children}</main>
+        <main className="flex-1 overflow-auto p-4">{children}</main>
       </div>
 
       {/* Logout Confirmation Dialog */}
@@ -415,19 +465,6 @@ export default function DashboardLayout({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Debug Info - Remove in production */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed bottom-4 right-4 p-2 bg-gray-900 text-white text-xs rounded-md opacity-50 hover:opacity-100 transition-opacity">
-          <p>Auth: {authService.isAuthenticated() ? '✓' : '✗'}</p>
-          <p>User: {user?.email || 'None'}</p>
-          <button 
-            onClick={() => authService.forceLogout()}
-            className="text-red-400 underline mt-1"
-          >
-            Force Logout
-          </button>
-        </div>
-      )}
     </div>
   )
 }
