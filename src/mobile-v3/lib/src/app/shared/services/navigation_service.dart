@@ -65,6 +65,8 @@ class NavigationService with UiLoggy {
     required String category,
     required double pollutionLevel,
     VoidCallback? onDismiss,
+    Function(bool followed)? onBehaviorResponse,
+    String? alertId,
   }) {
     if (!canNavigate) {
       loggy.warning('Cannot show air quality alert: Context not available');
@@ -76,6 +78,8 @@ class NavigationService with UiLoggy {
       message: message,
       category: category,
       pollutionLevel: pollutionLevel,
+      alertId: alertId,
+      onBehaviorResponse: onBehaviorResponse,
       onDismiss: () {
         onDismiss?.call();
         loggy.info('User dismissed air quality alert: $category');

@@ -8,6 +8,9 @@ import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_trigger_model.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/shared/services/navigation_service.dart';
+import 'package:airqo/src/app/surveys/models/alert_response_model.dart';
+import 'package:airqo/src/app/surveys/repository/alert_response_repository.dart';
+import 'package:airqo/src/app/surveys/widgets/alert_response_dialog.dart';
 
 class SurveyTriggerService with UiLoggy {
   static final SurveyTriggerService _instance = SurveyTriggerService._internal();
@@ -25,6 +28,7 @@ class SurveyTriggerService with UiLoggy {
   Map<String, dynamic>? _lastAirQualityData;
 
   final NavigationService _navigationService = NavigationService();
+  final AlertResponseRepository _alertResponseRepository = AlertResponseRepository();
   static const Duration _defaultCooldownPeriod = Duration(hours: 6);
   static const Duration _checkInterval = Duration(minutes: 5);
 
@@ -408,14 +412,58 @@ class SurveyTriggerService with UiLoggy {
         message = 'Air quality alert for $normalizedLocation';
     }
 
+    final alertId = 'alert_${DateTime.now().millisecondsSinceEpoch}';
+    final alertContext = {
+      'category': normalizedCategory,
+      'pollutionLevel': pollutionLevel,
+      'pollutant': pollutant,
+      'location': normalizedLocation,
+      'timestamp': DateTime.now().toIso8601String(),
+    };
+
     _navigationService.showAirQualityAlert(
       message: message,
       category: normalizedCategory,
       pollutionLevel: pollutionLevel,
+      alertId: alertId,
+      onBehaviorResponse: (followed) => _handleBehaviorResponse(alertId, followed, alertContext),
       onDismiss: () {
         loggy.info('User dismissed air quality alert: $normalizedCategory');
+        _handleAlertDismissed(alertId, alertContext);
       },
     );
+  }
+
+  void _handleBehaviorResponse(String alertId, bool followed, Map<String, dynamic> alertContext) {
+    final context = _navigationService.currentContext;
+    if (context == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertResponseDialog(
+        followedAdvice: followed,
+        alertId: alertId,
+        userId: 'current_user_id', // TODO: Get from auth service
+        alertContext: alertContext,
+        onResponseSubmitted: (response) async {
+          await _alertResponseRepository.saveAlertResponse(response);
+          loggy.info('Saved behavioral response for alert $alertId: ${response.responseType}');
+        },
+      ),
+    );
+  }
+
+  void _handleAlertDismissed(String alertId, Map<String, dynamic> alertContext) async {
+    final response = AlertResponse(
+      id: '${alertId}_dismissed',
+      alertId: alertId,
+      userId: 'current_user_id', // TODO: Get from auth service
+      responseType: AlertResponseType.dismissed,
+      respondedAt: DateTime.now(),
+      alertContext: alertContext,
+    );
+    
+    await _alertResponseRepository.saveAlertResponse(response);
   }
 
   String _normalizeStringValue(dynamic value, String defaultValue) {

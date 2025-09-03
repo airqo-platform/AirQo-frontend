@@ -6,6 +6,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/profile/pages/location_data_view_screen.dart';
 import 'package:airqo/src/app/profile/pages/data_sharing_screen.dart';
+import 'package:airqo/src/app/surveys/repository/alert_response_repository.dart';
 import 'package:geolocator/geolocator.dart';
 
 class LocationPrivacyScreen extends StatefulWidget {
@@ -18,11 +19,13 @@ class LocationPrivacyScreen extends StatefulWidget {
 class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   final EnhancedLocationServiceManager _locationManager =
       EnhancedLocationServiceManager();
+  final AlertResponseRepository _alertResponseRepository = AlertResponseRepository();
   bool _isTrackingActive = false;
   bool _isTrackingPaused = false;
   bool _locationEnabled = false;
   bool _isProcessing = false;
   StreamSubscription? _trackingSubscription;
+  Map<String, dynamic> _responseStats = {};
 
   @override
   void initState() {
@@ -30,6 +33,16 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     _initializeLocationManager();
     _setupTrackingListener();
     _checkLocationStatus();
+    _loadResponseStats();
+  }
+
+  Future<void> _loadResponseStats() async {
+    final stats = await _alertResponseRepository.getResponseStats();
+    if (mounted) {
+      setState(() {
+        _responseStats = stats;
+      });
+    }
   }
 
   Future<void> _initializeLocationManager() async {
@@ -121,6 +134,111 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     );
   }
 
+  Widget _buildResearchContributionSection() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final totalResponses = _responseStats['totalResponses'] ?? 0;
+    final followedPercentage = _responseStats['followedPercentage']?.toDouble() ?? 0.0;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      decoration: BoxDecoration(
+        color: Theme.of(context).highlightColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDarkMode
+              ? AppColors.dividerColordark
+              : AppColors.dividerColorlight,
+          width: 0.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.insights,
+                  color: Colors.blue,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Research Contribution',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDarkMode
+                            ? Colors.white
+                            : AppColors.boldHeadlineColor4,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      totalResponses > 0 
+                          ? 'You\'ve responded to $totalResponses alerts'
+                          : 'No alert responses yet',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDarkMode
+                            ? AppColors.secondaryHeadlineColor2
+                            : AppColors.secondaryHeadlineColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (totalResponses > 0) ...[
+            const SizedBox(height: 12),
+            Text(
+              'Your responses help researchers understand how effective air quality alerts are at changing behavior.',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDarkMode
+                    ? AppColors.secondaryHeadlineColor2
+                    : AppColors.secondaryHeadlineColor,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${followedPercentage.toStringAsFixed(0)}% follow rate',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -159,6 +277,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
             _buildLocationServicesSection(),
             SizedBox(height: screenHeight * 0.03),
             _buildTrackingControlSection(),
+            SizedBox(height: screenHeight * 0.03),
+            _buildResearchContributionSection(),
             SizedBox(height: screenHeight * 0.03),
             _buildPrivacyZonesSection(),
             SizedBox(height: screenHeight * 0.03),

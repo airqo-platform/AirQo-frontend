@@ -219,6 +219,8 @@ class NotificationManager {
     double? pollutionLevel,
     String? hexColor,
     VoidCallback? onDismiss,
+    Function(bool followed)? onBehaviorResponse,
+    String? alertId,
   }) {
     final theme = Theme.of(context);
     hideCurrentNotification(); // Remove any existing notification
@@ -305,6 +307,64 @@ class NotificationManager {
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                           ),
+                        ),
+                      ],
+                      if (onBehaviorResponse != null) ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  hideCurrentNotification();
+                                  onBehaviorResponse(true);
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.green,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: const Text(
+                                  'Followed advice',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  hideCurrentNotification();
+                                  onBehaviorResponse(false);
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: AppColors.secondaryHeadlineColor,
+                                  padding: const EdgeInsets.symmetric(vertical: 8),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  side: BorderSide(
+                                    color: AppColors.secondaryHeadlineColor.withValues(alpha: 0.3),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Didn\'t follow',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ],
