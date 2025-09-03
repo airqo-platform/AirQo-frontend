@@ -124,7 +124,7 @@ export default function RegionalAnalysis({ timeRange }) {
     const fetchRegions = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${config.apiUrl}/network-analysis/regional`);
+        const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -145,7 +145,7 @@ export default function RegionalAnalysis({ timeRange }) {
 
     const fetchSummary = async () => {
       try {
-        const response = await fetch(`${config.apiUrl}/network-analysis/summary`);
+        const response = await fetch(`${config.apiUrl}/api/v1/analytics/summary`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -168,7 +168,7 @@ export default function RegionalAnalysis({ timeRange }) {
     const fetchRegionData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${config.apiUrl}/network-analysis/regional/${encodeURIComponent(selectedRegion)}`);
+        const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis?region=${encodeURIComponent(selectedRegion)}`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -213,7 +213,7 @@ export default function RegionalAnalysis({ timeRange }) {
   // Fetch countries in selected region
   const fetchCountriesInRegion = async (region) => {
     try {
-      const response = await fetch(`${config.apiUrl}/network-analysis/countries`);
+      const response = await fetch(`${config.apiUrl}/api/v1/sites/regions/list`);
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -237,7 +237,7 @@ export default function RegionalAnalysis({ timeRange }) {
       const fetchRegionData = async () => {
         try {
           setLoading(true);
-          const response = await fetch(`${config.apiUrl}/network-analysis/regional/${encodeURIComponent(selectedRegion)}`);
+          const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis?region=${encodeURIComponent(selectedRegion)}`);
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
