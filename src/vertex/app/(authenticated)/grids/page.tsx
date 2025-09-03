@@ -60,7 +60,7 @@ export default function GridsPage() {
       label: "Date created",
       render: (v) =>
         v
-          ? moment(v).format("MMM D YYYY, H:mm A")
+          ? moment(v).format("MMM D YYYY, h:mm A")
           : "",
       sortable: true,
     },
