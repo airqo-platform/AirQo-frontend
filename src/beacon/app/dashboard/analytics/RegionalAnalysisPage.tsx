@@ -33,6 +33,7 @@ import {
   Settings,
 } from "lucide-react"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 // AQI color mapping
 const aqiColors = {
@@ -124,7 +125,7 @@ export default function RegionalAnalysis({ timeRange }) {
     const fetchRegions = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis`);
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/analytics/regional-analysis`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -145,7 +146,7 @@ export default function RegionalAnalysis({ timeRange }) {
 
     const fetchSummary = async () => {
       try {
-        const response = await fetch(`${config.apiUrl}/api/v1/analytics/summary`);
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/analytics/summary`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -168,7 +169,7 @@ export default function RegionalAnalysis({ timeRange }) {
     const fetchRegionData = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis?region=${encodeURIComponent(selectedRegion)}`);
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/analytics/regional-analysis?region=${encodeURIComponent(selectedRegion)}`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
@@ -213,7 +214,12 @@ export default function RegionalAnalysis({ timeRange }) {
   // Fetch countries in selected region
   const fetchCountriesInRegion = async (region) => {
     try {
-      const response = await fetch(`${config.apiUrl}/api/v1/sites/regions/list`);
+      const response = await fetch(`${config.apiUrl}/api/v1/beacon/sites/regions/list`, {
+        headers: {
+          'Authorization': authService.getToken() || '',
+          'Content-Type': 'application/json'
+        }
+      });
       if (!response.ok) {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
@@ -237,7 +243,7 @@ export default function RegionalAnalysis({ timeRange }) {
       const fetchRegionData = async () => {
         try {
           setLoading(true);
-          const response = await fetch(`${config.apiUrl}/api/v1/analytics/regional-analysis?region=${encodeURIComponent(selectedRegion)}`);
+          const response = await fetch(`${config.apiUrl}/api/v1/beacon/analytics/regional-analysis?region=${encodeURIComponent(selectedRegion)}`);
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }

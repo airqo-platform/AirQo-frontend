@@ -35,6 +35,7 @@ import {
 } from "lucide-react"
 import { getSites, getSiteAnalytics, getCountryAnalytics, getRegionalAnalytics, getDistrictAnalytics } from "@/services/device-api.service"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -248,12 +249,22 @@ export default function AnalyticsPage() {
       setHasError(false);
       
       // Fetch site statistics from the new endpoints
-      const countEndpoint = config.isLocalhost ? `${config.apiUrl}/sites/count` : `${config.apiUrl}/api/v1/sites/count`;
-      const statsEndpoint = config.isLocalhost ? `${config.apiUrl}/sites/statistics` : `${config.apiUrl}/api/v1/sites/statistics`;
+      const countEndpoint = config.isLocalhost ? `${config.apiUrl}/sites/count` : `${config.apiUrl}/api/v1/beacon/sites/count`;
+      const statsEndpoint = config.isLocalhost ? `${config.apiUrl}/sites/statistics` : `${config.apiUrl}/api/v1/beacon/sites/statistics`;
       
       const [countResponse, statsResponse] = await Promise.all([
-        fetch(countEndpoint),
-        fetch(statsEndpoint)
+        fetch(countEndpoint, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        }),
+        fetch(statsEndpoint, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
       ]);
       
       if (!countResponse.ok || !statsResponse.ok) {
@@ -316,12 +327,22 @@ export default function AnalyticsPage() {
       setIsLoading(true);
       
       // Fetch city summary and sites in that city
-      const summaryEndpoint = config.isLocalhost ? `${config.apiUrl}/cities/${encodeURIComponent(city)}/summary` : `${config.apiUrl}/api/v1/cities/${encodeURIComponent(city)}/summary`;
-      const sitesEndpoint = config.isLocalhost ? `${config.apiUrl}/sites?city=${encodeURIComponent(city)}` : `${config.apiUrl}/api/v1/sites?city=${encodeURIComponent(city)}`;
+      const summaryEndpoint = config.isLocalhost ? `${config.apiUrl}/cities/${encodeURIComponent(city)}/summary` : `${config.apiUrl}/api/v1/beacon/cities/${encodeURIComponent(city)}/summary`;
+      const sitesEndpoint = config.isLocalhost ? `${config.apiUrl}/sites?city=${encodeURIComponent(city)}` : `${config.apiUrl}/api/v1/beacon/sites?city=${encodeURIComponent(city)}`;
       
       const [summaryResponse, sitesResponse] = await Promise.all([
-        fetch(summaryEndpoint),
-        fetch(sitesEndpoint)
+        fetch(summaryEndpoint, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        }),
+        fetch(sitesEndpoint, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
       ]);
       
       if (summaryResponse.ok) {
@@ -354,9 +375,14 @@ export default function AnalyticsPage() {
       // Use the detailed endpoint for comprehensive metrics
       const endpoint = config.isLocalhost ? 
         `${config.apiUrl}/sites/${encodeURIComponent(siteId)}/devices/detailed?include_metrics=true&hours=24` : 
-        `${config.apiUrl}/api/v1/sites/${encodeURIComponent(siteId)}/devices/detailed?include_metrics=true&hours=24`;
+        `${config.apiUrl}/api/v1/beacon/sites/${encodeURIComponent(siteId)}/devices/detailed?include_metrics=true&hours=24`;
       
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+        headers: {
+          'Authorization': authService.getToken() || '',
+          'Content-Type': 'application/json'
+        }
+      });
       
       if (response.ok) {
         const data = await response.json();
@@ -376,7 +402,7 @@ export default function AnalyticsPage() {
         try {
           const endpoint = config.isLocalhost ? 
             `${config.apiUrl}/devices/summary/by-location?city=${encodeURIComponent(city)}&hours=24` : 
-            `${config.apiUrl}/api/v1/devices/summary/by-location?city=${encodeURIComponent(city)}&hours=24`;
+            `${config.apiUrl}/api/v1/beacon/devices/summary/by-location?city=${encodeURIComponent(city)}&hours=24`;
           
           const response = await fetch(endpoint);
           if (response.ok) {

@@ -37,6 +37,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 
 
@@ -76,8 +77,18 @@ export default function SiteAnalyticsPage() {
         
         // Fetch locations and statistics in parallel
         const [locationsResponse, statsResponse] = await Promise.all([
-          fetch(`${config.apiUrl}/api/v1/sites`),
-          fetch(`${config.apiUrl}/api/v1/sites/statistics`)
+          fetch(`${config.apiUrl}/api/v1/beacon/sites`, {
+            headers: {
+              'Authorization': authService.getToken() || '',
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch(`${config.apiUrl}/api/v1/beacon/sites/statistics`, {
+            headers: {
+              'Authorization': authService.getToken() || '',
+              'Content-Type': 'application/json'
+            }
+          })
         ])
         
         if (!locationsResponse.ok) {
@@ -133,7 +144,12 @@ export default function SiteAnalyticsPage() {
       
       try {
         // Make sure to include both the location ID and time range in the request
-        const response = await fetch(`${config.apiUrl}/api/v1/sites/${selectedLocation}/performance?days=${timeRange}`)
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/sites/${selectedLocation}/performance?days=${timeRange}`, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
         if (!response.ok) {
           throw new Error('Failed to fetch location data')
         }
@@ -157,7 +173,12 @@ export default function SiteAnalyticsPage() {
         setError(null)
         
         try {
-          const response = await fetch(`${config.apiUrl}/api/v1/sites/${selectedLocation}/performance?days=${timeRange}`)
+          const response = await fetch(`${config.apiUrl}/api/v1/beacon/sites/${selectedLocation}/performance?days=${timeRange}`, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
           if (!response.ok) {
             throw new Error('Failed to fetch location data')
           }

@@ -153,7 +153,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }: DataTr
 
       // Get hourly network transmission data
       const hourlyResponse = await fetch(
-        `${config.apiUrl}/api/v1/analytics/data-transmission/hourly?days=${timeRange || dateFilter}`,
+        `${config.apiUrl}/api/v1/beacon/analytics/data-transmission/hourly?days=${timeRange || dateFilter}`,
       )
       if (!hourlyResponse.ok) throw new Error("Failed to fetch hourly transmission data")
       const hourlyData = await hourlyResponse.json()
@@ -227,7 +227,7 @@ export default function DataTransmissionAnalysis({ timeRange = "today" }: DataTr
       setDeviceHourlyData(mockDeviceHourly)
 
       // Get hourly trends over time - use all-devices-transmission which has similar data
-      const trendsResponse = await fetch(`${config.apiUrl}/api/v1/analytics/data-transmission/summary?days=${timeRange || 7}`)
+      const trendsResponse = await fetch(`${config.apiUrl}/api/v1/beacon/analytics/data-transmission/summary?days=${timeRange || 7}`)
       if (!trendsResponse.ok) throw new Error("Failed to fetch hourly trends data")
 
       // Extract aggregate stats from the all-devices-transmission endpoint
