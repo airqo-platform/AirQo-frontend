@@ -58,7 +58,7 @@ const HomePage = () => {
           description="We deploy a high-resolution air quality monitoring network in target urban areas across Africa to increase awareness and understanding of air quality management, provide actionable information, and derive actions against air pollution."
           buttonText="Learn more"
           buttonLink="/products/monitor"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175985/website/photos/monitorHome_dmmrsk.png"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1757020397/website/photos/monitorHome_dmmrsk_tof2wo.webp"
           reverse={false}
           backgroundColor="bg-transparent"
         />
@@ -131,16 +131,17 @@ const HomePage = () => {
       {/* The clean air network */}
       <MotionSection>
         <ReversibleContentSection
-          title="The CLEAN-Air Network"
-          subtitle="Air Quality Network"
+          title="Africa Clean Air Network"
+          subtitle="CLEAN-Air Network"
           description={
             <div>
               <span className="text-blue-700 font-medium">
-                An African-led, multi-regional network
+                An African-led, multi-regional community of practice
               </span>
               <br />
-              bringing together a community of practice for air quality
-              solutions and air quality management across Africa.
+              uniting stakeholders to co-develop scalable, evidence-driven air
+              quality solutions and advance air quality monitoring, modelling,
+              and management across African cities.
             </div>
           }
           buttonText="Join the Network"
