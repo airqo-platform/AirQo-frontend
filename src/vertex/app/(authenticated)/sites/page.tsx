@@ -5,8 +5,6 @@ import { useSites } from "@/core/hooks/useSites";
 import { CreateSiteForm } from "./create-site-form";
 import SitesTable from "@/components/features/sites/sites-list-table";
 
-const ITEMS_PER_PAGE = 8;
-
 export default function SitesPage() {
   const { sites, isLoading, error } = useSites();
 
@@ -28,7 +26,6 @@ export default function SitesPage() {
             sites={sites}
             isLoading={isLoading}
             error={error}
-            itemsPerPage={ITEMS_PER_PAGE}
           />
         </div>
       </div>

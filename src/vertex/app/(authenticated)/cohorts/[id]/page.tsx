@@ -11,7 +11,6 @@ import DevicesTable from "@/components/features/devices/device-list-table";
 import CohortDetailsCard from "@/components/features/cohorts/cohort-detail-card";
 import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-details-modal";
 
-const ITEMS_PER_PAGE = 8;
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -85,7 +84,6 @@ export default function CohortDetailsPage() {
                 devices={devices}
                 isLoading={isLoading}
                 error={error}
-                itemsPerPage={ITEMS_PER_PAGE}
               />
             </div>
             <CohortDetailsModal
