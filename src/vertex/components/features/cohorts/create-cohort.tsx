@@ -28,12 +28,8 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
 
-    if (name.length < 2) {
+    if (name.trim().length < 2) {
       newErrors.name = "Cohort name must be at least 2 characters.";
-    }
-
-    if (!network) {
-      newErrors.network = "Please select a network.";
     }
 
     if (selectedDevices.length === 0) {
