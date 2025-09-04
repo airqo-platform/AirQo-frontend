@@ -47,7 +47,7 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
   }, [slug, selectedEvent, eventTitles]);
 
   // Handle loading states
-  if (!detailsLoading || !titlesLoading) {
+  if (detailsLoading || titlesLoading) {
     return (
       <div className="min-h-screen w-full flex flex-col">
         <header className="sticky top-0 z-50">
@@ -56,21 +56,24 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
         <main className="flex-1">
           <ForumLoading message="Loading Clean Air Forum..." />
         </main>
+        <footer>
+          <Footer />
+        </footer>
       </div>
     );
   }
 
   // Handle errors
   if (detailsError || titlesError) {
-    logger.error(
-      'Error loading forum data',
-      new Error('Forum data loading failed'),
-      {
-        slug,
-        detailsError: !!detailsError,
-        titlesError: !!titlesError,
-      },
-    );
+    const err =
+      (detailsError as Error) ??
+      (titlesError as Error) ??
+      new Error('Forum data loading failed');
+    logger.error('Error loading forum data', err, {
+      slug,
+      detailsError: detailsError ?? null,
+      titlesError: titlesError ?? null,
+    });
 
     return (
       <div className="min-h-screen w-full flex flex-col">

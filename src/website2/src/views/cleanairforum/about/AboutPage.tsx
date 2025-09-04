@@ -77,7 +77,11 @@ const AboutPage = () => {
           <div className="divide-y divide-gray-200">
             {validObjectives.map((objective: any) => (
               <SectionRow key={objective.id} title={objective.title}>
-                {objective.details}
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(objective.details),
+                  }}
+                />
               </SectionRow>
             ))}
           </div>

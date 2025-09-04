@@ -110,15 +110,29 @@ class Logger {
     }
 
     try {
+      // Validate Slack webhook URL
+      const url = new URL(this.slackWebhookUrl);
+      if (!url.hostname.includes('hooks.slack.com')) {
+        console.warn('Invalid Slack webhook URL domain');
+        return;
+      }
+
       const payload = this.formatSlackMessage(data);
 
-      await fetch(this.slackWebhookUrl, {
+      const response = await fetch(this.slackWebhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
       });
+
+      if (!response.ok) {
+        console.error(
+          'Failed to send Slack notification:',
+          response.statusText,
+        );
+      }
     } catch (slackError) {
       console.error('Failed to send log to Slack:', slackError);
     }
