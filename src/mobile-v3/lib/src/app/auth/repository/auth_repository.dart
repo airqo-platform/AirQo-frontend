@@ -55,24 +55,8 @@ class AuthImpl extends AuthRepository {
         body: registerInputModelToJson(model),
         headers: {"Accept": "*/*", "Content-Type": "application/json"});
 
-    Map<String, dynamic> data = json.decode(registerResponse.body);
-
-    if (registerResponse.statusCode == 200 || registerResponse.statusCode == 201) {
+    if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
       return;
-    } else if (registerResponse.statusCode == 409) {
-      final errors = data['errors'] as Map<String, dynamic>?;
-      String message = data['message'] ?? errors?['message'] ?? 'User already exists';
-      
-      String messageLower = message.toLowerCase();
-      if (messageLower.contains('verification sent') ||
-          messageLower.contains('verify your email') ||
-          messageLower.contains('account unverified') ||
-          messageLower.contains('verification required') ||
-          messageLower.contains('email verification') ||
-          messageLower.contains('confirmation sent')) {
-        throw Exception(message);
-      }
-      throw Exception(message);
     } else {
       String errorMessage;
       
