@@ -11,7 +11,6 @@ import DevicesTable from "@/components/features/devices/device-list-table";
 import CohortDetailsCard from "@/components/features/cohorts/cohort-detail-card";
 import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-details-modal";
 
-
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -27,7 +26,11 @@ export default function CohortDetailsPage() {
   const cohortId = params?.id as string;
 
   const { data: cohort, isLoading, error } = useCohortDetails(cohortId);
-  const [cohortDetails, setCohortDetails] = useState<{ name: string; id: string; visibility: boolean }>({
+  const [cohortDetails, setCohortDetails] = useState<{
+    name: string;
+    id: string;
+    visibility: boolean;
+  }>({
     name: "",
     id: "",
     visibility: true,
@@ -60,9 +63,13 @@ export default function CohortDetailsPage() {
           <AddDevicesDialog />
         </div>
 
-        {/* Loading / Error states */}
         {isLoading ? (
           <ContentGridSkeleton />
+        ) : error ? (
+          <div className="mt-6 text-sm text-muted-foreground">
+            Unable to load cohort details:{" "}
+            {String((error as Error)?.message || "Unknown error")}
+          </div>
         ) : (
           <div className="flex flex-col gap-6">
             {/* Cohort basic info card */}
