@@ -10,6 +10,15 @@ interface DeviceLocationCardProps {
 export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
   const router = useRouter();
 
+  const toNumberOrNull = (v: unknown) => {
+    if (v === null || v === undefined || v === '') return null;
+    const n = Number(String(v));
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const lat = toNumberOrNull(device.latitude);
+  const lon = toNumberOrNull(device.longitude);
+
   const handleEditLocation = () => {
     if (device.site_id) {
       router.push(`/sites/${device.site_id}`);
@@ -40,7 +49,7 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
               Latitude
             </div>
             <div className="text-base font-mono">
-              {device.latitude ? Number(device.latitude).toFixed(6) : "N/A"}
+              {lat ? lat.toFixed(6) : "N/A"}
             </div>
           </div>
           <div>
@@ -48,7 +57,7 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
               Longitude
             </div>
             <div className="text-base font-mono">
-              {device.longitude ? Number(device.longitude).toFixed(6) : "N/A"}
+              {lon ? lon.toFixed(6) : "N/A"}
             </div>
           </div>
         </div>
