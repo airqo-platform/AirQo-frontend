@@ -1,30 +1,34 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { X, PlusCircle } from "lucide-react"
+import * as React from "react";
+import { X, PlusCircle } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 import {
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
   CommandInput,
-} from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export interface Option {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 interface MultiSelectComboboxProps {
-  options: Option[]
-  placeholder?: string
-  value: string[]
-  onValueChange: (values: string[]) => void
+  options: Option[];
+  placeholder?: string;
+  value: string[];
+  onValueChange: (values: string[]) => void;
 }
 
 export function MultiSelectCombobox({
@@ -33,52 +37,45 @@ export function MultiSelectCombobox({
   value,
   onValueChange,
 }: MultiSelectComboboxProps) {
-  const [open, setOpen] = React.useState(false)
-  const [inputValue, setInputValue] = React.useState("")
-  const inputRef = React.useRef<HTMLInputElement | null>(null)
+  const [open, setOpen] = React.useState(false);
+  const [inputValue, setInputValue] = React.useState("");
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
 
-  React.useEffect(() => {
-    if (open) {
-      const id = setTimeout(() => inputRef.current?.focus(), 0)
-      return () => clearTimeout(id)
-    }
-  }, [open])
-
-  const selectedValues = new Set(value)
+  const selectedValues = new Set(value);
 
   const handleSelect = (itemValue: string) => {
-    const newSet = new Set(value)
+    const newSet = new Set(value);
     if (newSet.has(itemValue)) {
-      newSet.delete(itemValue)
+      newSet.delete(itemValue);
     } else {
-      newSet.add(itemValue)
+      newSet.add(itemValue);
     }
-    onValueChange(Array.from(newSet).sort())
-    setInputValue("")
-  }
+    onValueChange(Array.from(newSet).sort());
+    setInputValue("");
+  };
 
   const handleRemove = (itemValue: string) => {
-    const newSet = new Set(value)
-    newSet.delete(itemValue)
-    onValueChange(Array.from(newSet).sort())
-  }
+    const newSet = new Set(value);
+    newSet.delete(itemValue);
+    onValueChange(Array.from(newSet).sort());
+  };
 
   const handleCreateNew = () => {
-    const normalized = inputValue.trim().toLowerCase()
-    if (!normalized) return
+    const normalized = inputValue.trim().toLowerCase();
+    if (!normalized) return;
 
-    const newSet = new Set(value)
-    newSet.add(normalized)
-    onValueChange(Array.from(newSet).sort())
-    setInputValue("")
-    setOpen(false)
-  }
+    const newSet = new Set(value);
+    newSet.add(normalized);
+    onValueChange(Array.from(newSet).sort());
+    setInputValue("");
+    setOpen(false);
+  };
 
   const filteredOptions = options.filter(
     (option) =>
       option.label.toLowerCase().includes(inputValue.toLowerCase()) &&
       !selectedValues.has(option.value)
-  )
+  );
 
   const canCreateNew =
     inputValue.trim() !== "" &&
@@ -87,7 +84,7 @@ export function MultiSelectCombobox({
         option.label.toLowerCase() === inputValue.toLowerCase() ||
         option.value === inputValue.toLowerCase()
     ) &&
-    !selectedValues.has(inputValue.toLowerCase())
+    !selectedValues.has(inputValue.toLowerCase());
 
   return (
     <Popover open={open} onOpenChange={setOpen} modal>
@@ -104,10 +101,14 @@ export function MultiSelectCombobox({
               <span className="text-muted-foreground">{placeholder}</span>
             ) : (
               value.map((val) => {
-                const option = options.find((o) => o.value === val)
-                const label = option ? option.label : val
+                const option = options.find((o) => o.value === val);
+                const label = option ? option.label : val;
                 return (
-                  <Badge key={val} variant="secondary" className="flex items-center gap-1">
+                  <Badge
+                    key={val}
+                    variant="secondary"
+                    className="flex items-center gap-1"
+                  >
                     {label}
                     <button
                       type="button"
@@ -119,14 +120,17 @@ export function MultiSelectCombobox({
                       <span className="sr-only">Remove {label}</span>
                     </button>
                   </Badge>
-                )
+                );
               })
             )}
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent 
-        onOpenAutoFocus={(e) => { e.preventDefault(); inputRef.current?.focus(); }}
+      <PopoverContent
+        onOpenAutoFocus={(e) => {
+          e.preventDefault();
+          inputRef.current?.focus();
+        }}
         className="w-[var(--radix-popover-trigger-width)] p-0"
       >
         <Command shouldFilter={false}>
@@ -135,11 +139,10 @@ export function MultiSelectCombobox({
             placeholder="Search or add new tag..."
             value={inputValue}
             onValueChange={(value) => setInputValue(value)}
-            autoFocus
             onKeyDown={(e) => {
               if (e.key === "Enter" && canCreateNew) {
-                e.preventDefault()
-                handleCreateNew()
+                e.preventDefault();
+                handleCreateNew();
               }
             }}
             className="h-9"
@@ -175,5 +178,5 @@ export function MultiSelectCombobox({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
