@@ -553,7 +553,6 @@ const ReusableTable = <T extends TableItem>({
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
 
-  // Ref for header checkbox to control indeterminate state
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
   const initialFilters = useMemo(
@@ -562,7 +561,7 @@ const ReusableTable = <T extends TableItem>({
         acc[filter.key] = filter.isMulti ? [] : "";
         return acc;
       }, {}),
-    [filters] // Deep comparison of filters
+    [filters]
   );
 
   const [filterValues, setFilterValues] = useState(initialFilters);
@@ -636,7 +635,6 @@ const ReusableTable = <T extends TableItem>({
       }
     });
 
-    // Determine searchable keys AFTER filtering
     let fuseKeys: string[];
     if (Array.isArray(searchableColumns) && searchableColumns.length > 0) {
       fuseKeys = searchableColumns;
@@ -656,11 +654,8 @@ const ReusableTable = <T extends TableItem>({
       >[];
     }
 
-    // Process data for Fuse.js search ONLY if there's a search term
     if (searchTerm && searchTerm.trim() && fuseKeys.length > 0) {
-      // In ReusableTable.tsx, around line 646
       const getSearchableString = (item: T, key: string): string => {
-        // 1) If key corresponds to a defined column with a render, extract visible text
         const col = columns.find((c) => c.key === key);
         if (col && typeof col.render === "function") {
           try {
@@ -668,7 +663,6 @@ const ReusableTable = <T extends TableItem>({
             const cval = item[ckey as keyof T] as T[keyof T];
             const rendered = col.render(cval, item);
 
-            // Handle React elements by extracting text content
             if (typeof rendered === "string") return rendered;
             if (typeof rendered === "number") return String(rendered);
             if (React.isValidElement(rendered)) {
@@ -698,12 +692,9 @@ const ReusableTable = <T extends TableItem>({
           }
         }
 
-        // 2) Try direct field access
         if (key in item) {
           return normalizeToString(item[key as keyof T]);
         }
-
-        // 3) Try nested path resolution
         const nestedValue = resolvePath(item, key);
         if (nestedValue !== undefined) {
           return normalizeToString(nestedValue);
@@ -749,7 +740,6 @@ const ReusableTable = <T extends TableItem>({
     return result;
   }, [data, filterValues, searchableColumns, searchTerm, columns]);
 
-  // Sort data
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
     return [...filteredData].sort((a, b) => {
@@ -769,7 +759,6 @@ const ReusableTable = <T extends TableItem>({
     });
   }, [filteredData, sortConfig]);
 
-  // Paginate data
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * currentPageSize;
     const end = start + currentPageSize;
@@ -922,12 +911,10 @@ const ReusableTable = <T extends TableItem>({
     setSelectedAction("");
   }, [selectedAction, actions, selectedItems]);
 
-  // Clear search
   const handleClearSearch = useCallback(() => {
     setSearchTerm("");
   }, []);
-
-  // Determine columns to display
+  
   const displayColumns = useMemo((): TableColumn<T>[] => {
     const cols = [...columns];
     if (multiSelect) {
