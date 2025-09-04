@@ -70,7 +70,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
                   <span className={`font-bold ${colorClass}`}>
                     {relativeString}
                   </span>{" "}
-                  ago.
+                  {parts.length ? " ago." : "."}
                 </>
               );
             })()}
