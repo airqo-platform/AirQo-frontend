@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
 import { setActiveGroup, setUserContext, setOrganizationSwitching } from "@/core/redux/slices/userSlice";
@@ -19,6 +20,7 @@ const formatTitle = (title: string) => {
 const OrganizationPicker: React.FC = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const userContext = useAppSelector((state) => state.user.userContext);
@@ -27,13 +29,11 @@ const OrganizationPicker: React.FC = () => {
   const { isPersonalContext } = useUserContext();
 
   const handleOrganizationChange = async (group: Group | "private") => {
-    // Dispatch global loading state to Redux
     dispatch(setOrganizationSwitching({ 
       isSwitching: true, 
       switchingTo: group === "private" ? "Private Mode" : group.grp_title 
     }));
 
-    // Validate context change before allowing it
     let newContext: UserContext;
     if (group === "private") {
       newContext = "personal";
@@ -44,7 +44,6 @@ const OrganizationPicker: React.FC = () => {
           : "external-org";
     }
 
-    // Validate context change
     if (newContext === "airqo-internal" && !isAirQoStaff) {
       console.error("Unauthorized context change attempt");
       dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
@@ -52,7 +51,12 @@ const OrganizationPicker: React.FC = () => {
     }
 
     try {
-      // Update Redux state immediately
+      await queryClient.cancelQueries();
+      queryClient.removeQueries();
+      router.replace("/");
+      router.refresh();
+
+      // 4) Now update Redux state and localStorage for the new org/context
       if (group === "private") {
         const airqoGroup = userGroups.find(
           (g) => g.grp_title.toLowerCase() === "airqo"
@@ -78,13 +82,10 @@ const OrganizationPicker: React.FC = () => {
         localStorage.setItem("activeGroup", JSON.stringify(group));
       }
 
-      router.replace("/");
-      
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error switching organization:", error);
     } finally {
-      // Clear loading state after a brief delay to ensure smooth transition
       setTimeout(() => {
         dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
       }, 3000);
