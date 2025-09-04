@@ -16,12 +16,13 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
       <div className="flex items-center justify-between px-3 py-2">
         <h2 className="text-lg font-semibold">Run Device Test</h2>
         <button
-          className="ml-2 p-2 rounded hover:bg-muted"
+          className="ml-2 p-2 rounded hover:bg-muted disabled:opacity-50"
           onClick={() => statusFeed.refetch()}
-          disabled={statusFeed.isLoading}
+          disabled={statusFeed.isFetching}
+          aria-busy={statusFeed.isFetching}
           title="Refresh"
         >
-          <RotateCw className={statusFeed.isLoading ? "animate-spin" : ""} />
+          <RotateCw className={statusFeed.isFetching ? "animate-spin" : ""} />
         </button>
       </div>
       {statusFeed.isLoading ? (
@@ -32,7 +33,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
         <div className="text-red-500">{statusFeed.error.message || "Failed to load status."}</div>
       ) : statusFeed.data ? (
         <>
-          <div className="text-sm text-muted-foreground mb-4 px-3 py-2">
+          <div className="text-sm text-muted-foreground mb-1 px-3 py-2">
             {(() => {
               if (!statusFeed.data.created_at) return null;
               const [, elapsedUntyped] = getElapsedDurationMapper(statusFeed.data.created_at);
@@ -54,21 +55,33 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
                 if (parts.length === 2) break;
               }
               const relativeString = parts.length ? parts.join(", ") : "just now";
+              const daysOffline =
+                (elapsed.year ?? 0) * 365 +
+                (elapsed.month ?? 0) * 30 +
+                (elapsed.week ?? 0) * 7 +
+                (elapsed.day ?? 0);
+              let colorClass = "text-green-600";
+              if (daysOffline >= 5 && daysOffline <= 10) colorClass = "text-yellow-600";
+              else if (daysOffline >= 11 && daysOffline <= 20) colorClass = "text-orange-600";
+              else if (daysOffline > 20) colorClass = "text-red-600";
               return (
                 <>
                   Device last pushed data{" "}
-                  <span className="font-bold text-green-600">{relativeString}</span> ago.
+                  <span className={`font-bold ${colorClass}`}>
+                    {relativeString}
+                  </span>{" "}
+                  {parts.length ? " ago." : "."}
                 </>
               );
             })()}
           </div>
-          <div className="grid grid-cols-2 gap-4 px-3 py-2">
+          <div className="px-3">
             {Object.entries(statusFeed.data)
               .filter(([key]) => !["created_at", "isCache", "satellites", "DeviceType", "undefined"].includes(key))
               .map(([key, value]) => {
-                const displayKey = key.length > 12 ? key.slice(0, 12) + "..." : key;
+                const displayKey = key.length > 20 ? key.slice(0, 20) + "..." : key;
                 return (
-                  <div key={key} className="flex gap-4 items-center">
+                  <div key={key} className="flex gap-4 items-center justify-between">
                     <span className="text-xs text-muted-foreground uppercase font-medium tracking-wide" title={key}>{displayKey}</span>
                     <span className="text-base font-normal break-all">{String(value)}</span>
                   </div>

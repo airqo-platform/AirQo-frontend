@@ -15,8 +15,6 @@ import DevicesTable from "@/components/features/devices/device-list-table";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { Device } from "@/app/types/devices";
 
-const ITEMS_PER_PAGE = 8;
-
 export default function DevicesPage() {
   const { devices, isLoading, error } = useDevices();
   const { isAirQoInternal, isExternalOrg } = useUserContext();
@@ -104,7 +102,6 @@ export default function DevicesPage() {
           devices={devices}
           isLoading={isLoading}
           error={error}
-          itemsPerPage={ITEMS_PER_PAGE}
           multiSelect={true}
           onSelectedDevicesChange={handleSelectedDevicesChange}
         />
