@@ -55,6 +55,9 @@ export default function DeviceDetailsPage() {
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [showMaintenanceLogModal, setShowMaintenanceLogModal] = useState(false);
 
+  const deviceNum = Number(device?.device_number); 
+  if (!Number.isFinite(deviceNum)) return null;
+
   if (!isLoading && error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-2">
@@ -177,7 +180,7 @@ export default function DeviceDetailsPage() {
           </div>
           <div className="break-inside-avoid mb-4 inline-block w-full order-5">
             <RunDeviceTestCard
-              deviceNumber={Number(device.device_number)}
+              deviceNumber={deviceNum}
               getElapsedDurationMapper={getElapsedDurationMapper}
             />
           </div>
