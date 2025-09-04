@@ -56,7 +56,6 @@ const OrganizationPicker: React.FC = () => {
       router.replace("/");
       router.refresh();
 
-      // 4) Now update Redux state and localStorage for the new org/context
       if (group === "private") {
         const airqoGroup = userGroups.find(
           (g) => g.grp_title.toLowerCase() === "airqo"
