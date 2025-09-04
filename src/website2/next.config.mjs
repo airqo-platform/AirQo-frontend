@@ -1,20 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Performance optimizations
-  experimental: {
-    optimizePackageImports: [
-      '@radix-ui/react-accordion',
-      '@radix-ui/react-dialog',
-      '@radix-ui/react-dropdown-menu',
-      '@radix-ui/react-navigation-menu',
-      '@radix-ui/react-slot',
-      'lucide-react',
-      'react-icons',
-      'framer-motion',
-    ],
-    webpackBuildWorker: true,
-  },
-
   // Image optimization settings
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -90,6 +75,23 @@ const nextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
           },
+          // Add CORS headers for development
+          ...(process.env.NODE_ENV === 'development'
+            ? [
+                {
+                  key: 'Access-Control-Allow-Origin',
+                  value: '*',
+                },
+                {
+                  key: 'Access-Control-Allow-Methods',
+                  value: 'GET, POST, PUT, DELETE, OPTIONS',
+                },
+                {
+                  key: 'Access-Control-Allow-Headers',
+                  value: 'Content-Type, Authorization',
+                },
+              ]
+            : []),
         ],
       },
       // Ensure HTML pages are not aggressively cached by proxies/CDNs so users
