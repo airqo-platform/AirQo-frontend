@@ -55,10 +55,19 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
                 if (parts.length === 2) break;
               }
               const relativeString = parts.length ? parts.join(", ") : "just now";
+              const isStale =
+                (elapsed.year ?? 0) > 0 ||
+                (elapsed.month ?? 0) > 0 ||
+                (elapsed.week ?? 0) > 0 ||
+                (elapsed.day ?? 0) > 0 ||
+                (elapsed.hour ?? 0) >= 5;
               return (
                 <>
                   Device last pushed data{" "}
-                  <span className="font-bold text-green-600">{relativeString}</span> ago.
+                  <span className={`font-bold ${isStale ? "text-red-600" : "text-green-600"}`}>
+                    {relativeString}
+                  </span>{" "}
+                  ago.
                 </>
               );
             })()}
