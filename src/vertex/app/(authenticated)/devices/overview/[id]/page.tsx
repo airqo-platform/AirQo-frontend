@@ -21,7 +21,6 @@ import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
 
-// Loading skeleton for action buttons
 const ActionButtonsSkeleton = () => (
   <div className="flex gap-1">
     <div className="h-9 w-24 bg-gray-200 rounded animate-pulse" />
@@ -30,7 +29,6 @@ const ActionButtonsSkeleton = () => (
   </div>
 );
 
-// Loading skeleton for content grid
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
     {[...Array(4)].map((_, i) => (
@@ -46,12 +44,10 @@ export default function DeviceDetailsPage() {
   const device = (deviceResponse?.data as Device | undefined) ?? undefined;
   const router = useRouter();
 
-  // Real permission checks
   const canRecall = usePermission(PERMISSIONS.DEVICE.RECALL);
   const canDeploy = usePermission(PERMISSIONS.DEVICE.DEPLOY);
   const canAddLog = usePermission(PERMISSIONS.DEVICE.MAINTAIN);
 
-  // Determine deployment status
   const deploymentStatus = device?.status || "unknown";
 
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -59,7 +55,6 @@ export default function DeviceDetailsPage() {
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [showMaintenanceLogModal, setShowMaintenanceLogModal] = useState(false);
 
-  // Show error state if there's an error and we're not loading
   if (!isLoading && error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-2">
@@ -80,12 +75,10 @@ export default function DeviceDetailsPage() {
           Back to Devices
         </Button>
 
-        {/* Action buttons - show skeleton while loading */}
         {isLoading ? (
           <ActionButtonsSkeleton />
-        ) : (
+        ) : !device ? null : (
           <div className="flex gap-1">
-            {/* Action buttons */}
             {deploymentStatus === "deployed" &&
               (canRecall ? (
                 <Button
