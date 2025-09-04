@@ -4,6 +4,8 @@ import { useEffect, useRef, useCallback, useState } from "react"
 import { useRouter } from "next/navigation"
 import L from "leaflet"
 import "leaflet/dist/leaflet.css"
+import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 interface Device {
   id: string
@@ -50,7 +52,16 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       setIsLoading(true)
       console.log("Fetching device data from API...")
       
-      const response = await fetch('/api/valid-device-locations')
+      const apiPath = config.isLocalhost ? 
+        `/devices/map-data` :
+        `/api/v1/beacon/devices/map-data`
+      
+      const response = await fetch(`${config.apiUrl}${apiPath}`, {
+        headers: {
+          'Authorization': authService.getToken() || '',
+          'Content-Type': 'application/json'
+        }
+      })
       
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`)
@@ -61,15 +72,15 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
       
       // Transform API data to match the component's expected format
       const transformedDevices = data.map(device => ({
-        id: device.id,
-        name: device.name,
-        status: device.status === "ACTIVE" ? "active" : "offline",
+        id: device.device_name,
+        name: device.device_name,
+        status: device.is_online ? "active" : "offline",
         lat: parseFloat(device.latitude),
         lng: parseFloat(device.longitude),
-        lastUpdate: device.reading_timestamp ? new Date(device.reading_timestamp).toLocaleString() : "Unknown",
-        pm25: device.pm2_5,
-        pm10: device.pm10,
-        location: device.location?.name
+        lastUpdate: device.recent_reading?.timestamp ? new Date(device.recent_reading.timestamp).toLocaleString() : "Unknown",
+        pm25: device.recent_reading?.pm2_5,
+        pm10: device.recent_reading?.pm10,
+        location: device.site_name
       }))
       
       console.log("Transformed", transformedDevices.length, "devices for display")
@@ -107,8 +118,11 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
     // Filter out devices with invalid coordinates
     return device.lat !== undefined && 
            device.lng !== undefined && 
+           device.lat !== null &&
+           device.lng !== null &&
            !isNaN(device.lat) && 
-           !isNaN(device.lng)
+           !isNaN(device.lng) &&
+           !(device.lat === 0 && device.lng === 0) // Filter out 0,0 coordinates
   })
 
   // Define createCustomIcon outside useEffect to avoid recreating it on every render
@@ -337,12 +351,26 @@ export default function AfricaMap({ devices = [], onDeviceSelect, selectedDevice
         </div>
       )}
       
+      <div className="absolute bottom-2 left-2 bg-white rounded-md shadow-md px-3 py-2 z-[1000]">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center">
+            <div className="h-3 w-3 rounded-full bg-green-500 mr-1"></div>
+            <span className="text-xs">Online ({normalizedDevices.filter(d => d.status === "active" || d.status === "ACTIVE").length})</span>
+          </div>
+          <div className="flex items-center">
+            <div className="h-3 w-3 rounded-full bg-red-500 mr-1"></div>
+            <span className="text-xs">Offline ({normalizedDevices.filter(d => d.status === "offline" || d.status === "INACTIVE").length})</span>
+          </div>
+        </div>
+      </div>
+
       <div className="absolute bottom-2 right-2 bg-white rounded-md shadow-md px-2 py-1 z-[1000]">
         <div className="flex items-center">
-          <span className="text-xs mr-2">{normalizedDevices.length} valid device locations</span>
+          <span className="text-xs mr-2">{normalizedDevices.length} locations</span>
           <button 
             onClick={handleRefresh}
             className="text-xs bg-blue-500 text-white rounded px-2 py-0.5"
+            type="button"
           >
             Refresh
           </button>

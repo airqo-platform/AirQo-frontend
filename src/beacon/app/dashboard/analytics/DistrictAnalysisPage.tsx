@@ -37,6 +37,7 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 // TypeScript interfaces
 interface Device {
@@ -365,7 +366,13 @@ export default function DistrictAnalysis({ timeRange }: DistrictAnalysisProps) {
 
     try {
       const response = await fetch(
-        `${config.apiUrl}/network-analysis/districts/${encodeURIComponent(district)}?country=${encodeURIComponent(country)}`
+        `${config.apiUrl}/api/v1/beacon/sites/districts/list?district=${encodeURIComponent(district)}&region=${encodeURIComponent(country)}`,
+        {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        }
       )
       
       // Check if this call was cancelled
@@ -429,7 +436,13 @@ export default function DistrictAnalysis({ timeRange }: DistrictAnalysisProps) {
       console.log(`Fetching district data: ${district} in ${country}`)
       
       const response = await fetch(
-        `${config.apiUrl}/network-analysis/districts/${encodeURIComponent(district)}?country=${encodeURIComponent(country)}`
+        `${config.apiUrl}/api/v1/beacon/sites/districts/list?district=${encodeURIComponent(district)}&region=${encodeURIComponent(country)}`,
+        {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        }
       )
 
       // Check if this call was cancelled
@@ -466,7 +479,7 @@ export default function DistrictAnalysis({ timeRange }: DistrictAnalysisProps) {
     const fetchRegions = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${config.apiUrl}/network-analysis/regional`)
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/analytics/regional-analysis`)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
@@ -501,7 +514,12 @@ export default function DistrictAnalysis({ timeRange }: DistrictAnalysisProps) {
     const fetchCountriesInRegion = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${config.apiUrl}/network-analysis/countries`)
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/sites/regions/list`, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
@@ -542,7 +560,13 @@ export default function DistrictAnalysis({ timeRange }: DistrictAnalysisProps) {
       try {
         setLoading(true)
         const response = await fetch(
-          `${config.apiUrl}/network-analysis/districts?country=${encodeURIComponent(selectedCountry)}`
+          `${config.apiUrl}/api/v1/beacon/sites/districts/list?region=${encodeURIComponent(selectedCountry)}`,
+          {
+            headers: {
+              'Authorization': authService.getToken() || '',
+              'Content-Type': 'application/json'
+            }
+          }
         )
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)

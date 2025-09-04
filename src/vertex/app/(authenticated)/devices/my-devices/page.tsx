@@ -18,8 +18,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const ITEMS_PER_PAGE = 8;
-
 const MyDevicesPage = () => {
   const router = useRouter();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
@@ -124,7 +122,6 @@ const MyDevicesPage = () => {
           devices={devicesData?.devices || []}
           isLoading={isLoading}
           error={error}
-          itemsPerPage={ITEMS_PER_PAGE}
         />
 
         {/* Device Assignment Modal */}

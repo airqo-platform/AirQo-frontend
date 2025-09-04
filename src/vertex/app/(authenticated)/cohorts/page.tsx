@@ -1,74 +1,69 @@
 "use client";
 
-import { useState } from "react";
-import { Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
+import { useCohorts } from "@/core/hooks/useCohorts";
+import { Cohort } from "@/app/types/cohorts";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import moment from "moment";
 
-// Sample data
-const cohorts = [
-  {
-    name: "victoria_sugar",
-    numberOfDevices: 5,
-    visibility: true,
-    dateCreated: "2024-12-13T06:29:54.490Z",
-  },
-  {
-    name: "nairobi_mobile",
-    numberOfDevices: 4,
-    visibility: false,
-    dateCreated: "2024-10-27T18:10:41.672Z",
-  },
-  {
-    name: "car_free_day_demo",
-    numberOfDevices: 3,
-    visibility: true,
-    dateCreated: "2024-09-07T07:00:00.956Z",
-  },
-  {
-    name: "nimr",
-    numberOfDevices: 4,
-    visibility: false,
-    dateCreated: "2024-01-31T05:32:52.642Z",
-  },
-  {
-    name: "map",
-    numberOfDevices: 10,
-    visibility: true,
-    dateCreated: "2024-01-23T09:42:50.735Z",
-  },
-];
+type CohortRow = {
+  id: string;
+  name: string;
+  numberOfDevices: number;
+  visibility: boolean;
+  dateCreated?: string;
+}
 
 export default function CohortsPage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
+  const { cohorts, isLoading, error } = useCohorts();
 
-  const filteredCohorts = cohorts.filter((cohort) =>
-    cohort.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [showCreateCohortModal, setShowCreateCohortModal] = useState(false);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
-  };
+  const rows: CohortRow[] = (cohorts || []).map((c: Cohort) => ({
+    id: c._id,
+    name: c.name,
+    numberOfDevices: c.numberOfDevices ?? 0,
+    visibility: c.visibility,
+    dateCreated: c.createdAt
+  }));
+
+  const columns: TableColumn<CohortRow>[] = [
+    {
+      key: "name",
+      label: "Cohort Name",
+      sortable: true,
+      render: (v) => v ?? "-"
+    },
+    {
+      key: "numberOfDevices",
+      label: "Number of devices",
+      sortable: true,
+      render: (v) => (v ?? 0)
+    },
+    {
+      key: "visibility",
+      label: "Visibility",
+      sortable: true,
+      render: (v) => (
+        <Badge variant={v ? "default" : "secondary"}>{v ? "Public" : "Private"}</Badge>
+      )
+    },
+    {
+      key: "dateCreated",
+      label: "Date created",
+      sortable: true,
+      render: (value) => {
+        const date = new Date(value as string);
+        return moment(date).format("MMM D YYYY, H:mm A");
+      }
+    }
+  ]
 
   return (
     <RouteGuard permission="DEVICE_VIEW">
@@ -80,51 +75,25 @@ export default function CohortsPage() {
               Manage and organize your device cohorts
             </p>
           </div>
-          <CreateCohortDialog />
+          <Button onClick={() => setShowCreateCohortModal(true)}>Create Cohort</Button>
         </div>
 
-        <div className="flex items-center justify-between mb-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search cohorts..."
-              className="pl-8"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cohort Name</TableHead>
-                <TableHead>Number of devices</TableHead>
-                <TableHead>Visibility</TableHead>
-                <TableHead>Date created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredCohorts.map((cohort) => (
-                <TableRow
-                  key={cohort.name}
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/cohorts/${cohort.name}`)}
-                >
-                  <TableCell className="font-medium">{cohort.name}</TableCell>
-                  <TableCell>{cohort.numberOfDevices}</TableCell>
-                  <TableCell>
-                    <Badge variant={cohort.visibility ? "default" : "secondary"}>
-                      {cohort.visibility ? "Visible" : "Hidden"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{formatDate(cohort.dateCreated)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <ReusableTable
+          title="Cohorts"
+          data={rows}
+          columns={columns}
+          searchable
+          filterable={false}
+          sortable
+          loading={isLoading}
+          searchableColumns={["name"]}
+          onRowClick={(item: unknown) => {
+            const row = item as CohortRow;
+            if (row?.id) router.push(`/cohorts/${row.id}`)
+          }}
+          emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
+        />
+        <CreateCohortDialog open={showCreateCohortModal} onOpenChange={setShowCreateCohortModal} />
       </div>
     </RouteGuard>
   );

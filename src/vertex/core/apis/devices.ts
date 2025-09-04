@@ -79,14 +79,46 @@ export interface DeviceDetailsResponse {
     longitude?: string;
     generation_version?: string;
     generation_count?: string;
+    onlineStatusAccuracy?: {
+      successPercentage: number;
+      failurePercentage: number;
+      lastUpdate: string;
+    };
+    maintenance_status?: string;
   };
+}
+
+// Response for device maintenance activities
+export interface MaintenanceActivity {
+  _id: string;
+  activity_codes?: string[];
+  tags: string[];
+  device: string;
+  date: string;
+  description?: string;
+  activityType: "maintenance";
+  nextMaintenance?: string;
+  createdAt: string;
+  updatedAt: string;
+  network?: string;
+}
+
+export interface MaintenanceActivitiesResponse {
+  success: boolean;
+  message: string;
+  site_activities: MaintenanceActivity[];
 }
 
 export const devices = {
   getDevicesSummaryApi: async (networkId: string, groupName: string) => {
     try {
+      const queryParams = new URLSearchParams({
+        network: networkId,
+        ...(groupName && groupName !== 'airqo' && { group: groupName })
+      });
+
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
-        `/devices/summary?network=${networkId}&group=${groupName}`,
+        `/devices/summary?${queryParams.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
@@ -407,6 +439,27 @@ export const devices = {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
         axiosError.response?.data?.message || "Failed to add maintenance log"
+      );
+    }
+  },
+
+  getDeviceMaintenanceLogs: async (
+    deviceName: string
+  ): Promise<MaintenanceActivitiesResponse> => {
+    try {
+      const params = new URLSearchParams({
+        device: deviceName,
+        activity_type: "maintenance",
+      });
+      const response = await jwtApiClient.get<MaintenanceActivitiesResponse>(
+        `/devices/activities?${params.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to fetch device maintenance logs"
       );
     }
   },

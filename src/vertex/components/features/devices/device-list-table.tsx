@@ -5,6 +5,7 @@ import ReusableTable, {
   TableColumn,
   TableItem,
 } from "@/components/shared/table/ReusableTable";
+import moment from "moment";
 
 interface DevicesTableProps {
   devices: Device[];
@@ -145,11 +146,7 @@ export default function DevicesTable({
       label: "Created On",
       render: (value) => {
         const date = new Date(value as string);
-        return date.toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        });
+        return moment(date).format("MMM D YYYY, h:mm A");
       },
     },
   ];
@@ -188,6 +185,7 @@ export default function DevicesTable({
             "No devices available"
           )
         }
+        searchableColumns={["long_name", "site.name", "description"]}
       />
     </div>
   );

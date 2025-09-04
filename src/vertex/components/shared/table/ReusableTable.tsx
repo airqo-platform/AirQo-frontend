@@ -7,7 +7,6 @@ import React, {
   useEffect,
   useCallback,
   ReactNode,
-  ReactElement,
 } from "react";
 import Fuse from "fuse.js";
 import {
@@ -499,6 +498,32 @@ interface ReusableTableProps<T extends TableItem> {
   emptyState?: string | React.ReactNode;
 }
 
+// Normalize any value to a searchable string
+const normalizeToString = (value: unknown): string => {
+  if (value == null) return "";
+  if (Array.isArray(value)) {
+    return value
+      .map((v) => normalizeToString(v))
+      .filter(Boolean)
+      .join(" ");
+  }
+  const t = typeof value;
+  if (t === "string") return value as string;
+  if (t === "number" || t === "boolean") return String(value);
+  if (t === "object") {
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.name === "string") return obj.name as string;
+    if (typeof obj.long_name === "string") return obj.long_name as string;
+    if (typeof obj.label === "string") return obj.label as string;
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return "";
+    }
+  }
+  return "";
+};
+
 const ReusableTable = <T extends TableItem>({
   title = "Table",
   data = [],
@@ -524,30 +549,60 @@ const ReusableTable = <T extends TableItem>({
     key: null,
     direction: "asc",
   });
-  const [filterValues, setFilterValues] = useState<Record<string, FilterValue>>(
-    {}
-  );
   const [currentPageSize, setCurrentPageSize] = useState<number>(pageSize);
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
 
-  // Ref for header checkbox to control indeterminate state
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
-  // Initialize filter values
-  useEffect(() => {
-    const initialFilters: Record<string, FilterValue> = {};
-    filters.forEach((filter) => {
-      initialFilters[filter.key] = filter.isMulti ? [] : "";
-    });
-    setFilterValues(initialFilters);
-  }, [filters]);
+  const initialFilters = useMemo(
+    () =>
+      filters.reduce<Record<string, FilterValue>>((acc, filter) => {
+        acc[filter.key] = filter.isMulti ? [] : "";
+        return acc;
+      }, {}),
+    [filters]
+  );
 
-  // Filter and search data with improved Fuse.js
+  const [filterValues, setFilterValues] = useState(initialFilters);
+
+  useEffect(() => {
+    const addedOrShapeChanged = Object.keys(initialFilters).some(
+      (key) =>
+        !(key in filterValues) ||
+        Array.isArray(initialFilters[key]) !== Array.isArray(filterValues[key])
+    );
+    const removedKeys = Object.keys(filterValues).some(
+      (key) => !(key in initialFilters)
+    );
+
+    if (addedOrShapeChanged || removedKeys) {
+      setFilterValues(initialFilters);
+    }
+  }, [filterValues, initialFilters]);
+
+  const resolvePath = (obj: unknown, path: string): unknown => {
+    const parts = path.split(".");
+    const walk = (current: unknown, idx: number): unknown => {
+      if (current == null) return undefined;
+      if (idx >= parts.length) return current;
+      if (Array.isArray(current)) {
+        return current
+          .map((el) => walk(el, idx))
+          .filter((v) => v != null && v !== "") as unknown[];
+      }
+      if (typeof current === "object") {
+        const next = (current as Record<string, unknown>)[parts[idx]];
+        return walk(next, idx + 1);
+      }
+      return undefined;
+    };
+    return walk(obj, 0);
+  };
+
   const filteredData = useMemo(() => {
     let result = [...data];
 
-    // Apply filters FIRST
     Object.entries(filterValues).forEach(([key, value]) => {
       if (
         value !== undefined &&
@@ -565,7 +620,7 @@ const ReusableTable = <T extends TableItem>({
             ) {
               return value.includes(itemValue);
             }
-            return false; // fallback if itemValue is not a primitive
+            return false;
           }
 
           if (
@@ -580,7 +635,6 @@ const ReusableTable = <T extends TableItem>({
       }
     });
 
-    // Determine searchable keys AFTER filtering
     let fuseKeys: string[];
     if (Array.isArray(searchableColumns) && searchableColumns.length > 0) {
       fuseKeys = searchableColumns;
@@ -600,51 +654,55 @@ const ReusableTable = <T extends TableItem>({
       >[];
     }
 
-    // Process data for Fuse.js search ONLY if there's a search term
     if (searchTerm && searchTerm.trim() && fuseKeys.length > 0) {
       const getSearchableString = (item: T, key: string): string => {
         const col = columns.find((c) => c.key === key);
-        const value = item[key];
-
-        // If column has a render function, attempt to get a searchable string from it
         if (col && typeof col.render === "function") {
           try {
-            const key = col.key;
-            const value = item[key as typeof col.key] as T[typeof col.key];
-            const rendered = col.render(value, item);
+            const ckey = col.key as string;
+            const cval = item[ckey as keyof T] as T[keyof T];
+            const rendered = col.render(cval, item);
 
-            // If render returns a simple string or number, use it
             if (typeof rendered === "string") return rendered;
             if (typeof rendered === "number") return String(rendered);
-            // If it returns JSX, try to extract text content
             if (React.isValidElement(rendered)) {
-              const props = (rendered as ReactElement).props;
-              if (typeof props.children === "string") {
-                return props.children;
-              }
-              if (Array.isArray(props.children)) {
-                return props.children
-                  .map((child: unknown) =>
-                    typeof child === "string" ? child : ""
-                  )
-                  .join(" ");
-              }
-              // Fallback to raw value if complex JSX
-              return value === null || value === undefined ? "" : String(value);
+              const extractText = (element: unknown): string => {
+                if (
+                  typeof element === "string" ||
+                  typeof element === "number"
+                ) {
+                  return String(element);
+                }
+                if (React.isValidElement(element)) {
+                  const props = element.props as { children?: unknown };
+                  if (props.children) {
+                    if (Array.isArray(props.children)) {
+                      return props.children.map(extractText).join(" ");
+                    }
+                    return extractText(props.children);
+                  }
+                }
+                return "";
+              };
+              const extractedText = extractText(rendered);
+              if (extractedText) return extractedText;
             }
           } catch {
-            // If render throws or is complex, fallback to raw value stringification
+            // fall through to raw/nested resolution
           }
         }
 
-        // Default stringification for non-rendered or failed render cases
-        if (value && typeof value === "object") {
-          return JSON.stringify(value);
+        if (key in item) {
+          return normalizeToString(item[key as keyof T]);
         }
-        return value === null || value === undefined ? "" : String(value);
+        const nestedValue = resolvePath(item, key);
+        if (nestedValue !== undefined) {
+          return normalizeToString(nestedValue);
+        }
+
+        return "";
       };
 
-      // Prepare the data specifically for Fuse.js
       const fuseData = result.map((item) => {
         const obj: Record<string, string> = {};
         fuseKeys.forEach((key) => {
@@ -653,34 +711,35 @@ const ReusableTable = <T extends TableItem>({
         return obj;
       });
 
-      // Configure and execute Fuse.js search
       const fuseOptions = {
         keys: fuseKeys,
-        threshold: searchTerm.length === 1 ? 0.8 : 0.4,
+        threshold: 0.3,
         ignoreLocation: true,
         minMatchCharLength: 1,
         isCaseSensitive: false,
         includeScore: true,
+        includeMatches: true,
+        shouldSort: true,
+        findAllMatches: true,
+        ignoreFieldNorm: true,
       };
       const fuse = new Fuse(fuseData, fuseOptions);
       const fuseResults = fuse.search(searchTerm.trim());
 
-      // Map search results back to ORIGINAL data items
       if (searchTerm.length === 1) {
         result = fuseResults
-          .filter((res) => (res.score ?? 1) <= 0.8)
+          .filter((res) => (res.score ?? 1) <= 0.9)
           .map((searchResult) => result[searchResult.refIndex]);
       } else {
-        result = fuseResults.map(
-          (searchResult) => result[searchResult.refIndex]
-        );
+        result = fuseResults
+          .sort((a, b) => (a.score || 0) - (b.score || 0))
+          .map((searchResult) => result[searchResult.refIndex]);
       }
     }
 
     return result;
-  }, [data, searchTerm, filterValues, columns, searchableColumns]);
+  }, [data, filterValues, searchableColumns, searchTerm, columns]);
 
-  // Sort data
   const sortedData = useMemo(() => {
     if (!sortConfig.key) return filteredData;
     return [...filteredData].sort((a, b) => {
@@ -700,7 +759,6 @@ const ReusableTable = <T extends TableItem>({
     });
   }, [filteredData, sortConfig]);
 
-  // Paginate data
   const paginatedData = useMemo(() => {
     const start = (currentPage - 1) * currentPageSize;
     const end = start + currentPageSize;
@@ -709,12 +767,10 @@ const ReusableTable = <T extends TableItem>({
 
   const totalPages = Math.ceil(sortedData.length / currentPageSize);
 
-  // Reset to first page when search or filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, filterValues]);
 
-  // Reset to first page when page size changes
   const handlePageSizeChange = useCallback((newPageSize: number) => {
     setCurrentPageSize(newPageSize);
     setCurrentPage(1);
@@ -855,12 +911,10 @@ const ReusableTable = <T extends TableItem>({
     setSelectedAction("");
   }, [selectedAction, actions, selectedItems]);
 
-  // Clear search
   const handleClearSearch = useCallback(() => {
     setSearchTerm("");
   }, []);
-
-  // Determine columns to display
+  
   const displayColumns = useMemo((): TableColumn<T>[] => {
     const cols = [...columns];
     if (multiSelect) {
@@ -896,7 +950,6 @@ const ReusableTable = <T extends TableItem>({
     columns,
     multiSelect,
     isAllSelectedOnPage,
-    isIndeterminate,
     selectedItems,
     handleSelectAll,
     handleSelectItem,
@@ -946,11 +999,13 @@ const ReusableTable = <T extends TableItem>({
                   <th
                     key={String(column.key)}
                     className={`${
-                      column.key === "checkbox" 
-                        ? "w-4 p-4" 
+                      column.key === "checkbox"
+                        ? "w-4 p-4"
                         : "px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
                     } ${
-                      sortable && column.sortable !== false && column.key !== "checkbox"
+                      sortable &&
+                      column.sortable !== false &&
+                      column.key !== "checkbox"
                         ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         : ""
                     }`}
@@ -981,7 +1036,15 @@ const ReusableTable = <T extends TableItem>({
                   <tr
                     key={item.id ?? index}
                     onClick={(e) => {
-                      if (e.target instanceof HTMLInputElement && e.target.type === 'checkbox') {
+                      const target = e.target as HTMLElement | null;
+                      if (
+                        (target &&
+                          target.closest(
+                            'input, button, a, [role="button"], [data-no-rowclick]'
+                          )) ||
+                        (target instanceof HTMLInputElement &&
+                          target.type === "checkbox")
+                      ) {
                         return;
                       }
                       if (onRowClick) {
@@ -992,16 +1055,14 @@ const ReusableTable = <T extends TableItem>({
                       selectedItems.includes(item.id)
                         ? "bg-primary/10 dark:bg-primary/20"
                         : "hover:bg-primary/5 dark:hover:bg-primary/20"
-                    } ${
-                      onRowClick && "cursor-pointer"
-                    }`}
+                    } ${onRowClick ? "cursor-pointer" : ""}`}
                   >
                     {displayColumns.map((column) => (
                       <td
                         key={String(column.key)}
                         className={`${
-                          column.key === "checkbox" 
-                            ? "w-4 p-4" 
+                          column.key === "checkbox"
+                            ? "w-4 p-4"
                             : "px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
                         }`}
                       >
