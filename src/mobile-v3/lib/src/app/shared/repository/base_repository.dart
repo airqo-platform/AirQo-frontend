@@ -63,7 +63,7 @@ class BaseRepository {
         headers: {
           "Authorization": "JWT ${token}",
           "Accept": "*/*",
-          "contentType": "application/json"
+          "Content-Type": "application/json"
         });
 
     print(response.statusCode);

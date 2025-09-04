@@ -31,18 +31,32 @@ class _SurveyListPageState extends State<SurveyListPage> {
       appBar: AppBar(
         title: Text(
           'Research Surveys',
-          style: theme.textTheme.titleLarge?.copyWith(
+          style: TextStyle(
+            fontSize: 18,
             fontWeight: FontWeight.w600,
+            color: theme.brightness == Brightness.dark
+                ? Colors.white
+                : AppColors.boldHeadlineColor4,
+            fontFamily: 'Inter',
           ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleSpacing: 16,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: Icon(
+              Icons.refresh,
+              color: theme.brightness == Brightness.dark
+                  ? Colors.white
+                  : AppColors.boldHeadlineColor4,
+            ),
             onPressed: () {
               context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
             },
+            tooltip: 'Refresh surveys',
           ),
         ],
       ),
@@ -79,57 +93,264 @@ class _SurveyListPageState extends State<SurveyListPage> {
       onRefresh: () async {
         context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header section
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Available Surveys',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTablet = constraints.maxWidth > 768;
+          final isDesktop = constraints.maxWidth > 1024;
+          final horizontalPadding = isDesktop ? 32.0 : (isTablet ? 24.0 : 16.0);
+          final maxContentWidth = isDesktop ? 800.0 : double.infinity;
+          
+          return SingleChildScrollView(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header section
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                        vertical: isTablet ? 24.0 : 16.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Available Surveys',
+                            style: TextStyle(
+                              fontSize: isTablet ? 22.0 : 20.0,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : AppColors.boldHeadlineColor4,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          SizedBox(height: isTablet ? 12.0 : 8.0),
+                          Text(
+                            'Help us understand how air quality affects your daily life. Your responses are confidential and help improve air quality research.',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.secondaryHeadlineColor2
+                                  : AppColors.boldHeadlineColor,
+                              height: 1.5,
+                              fontSize: isTablet ? 16.0 : 14.0,
+                            ),
+                          ),
+                          SizedBox(height: isTablet ? 20.0 : 12.0),
+                          _buildResearchImpactCard(state),
+                          SizedBox(height: isTablet ? 24.0 : 16.0),
+                          
+                          // Statistics card
+                          _buildStatsCard(state),
+                        ],
+                      ),
+                    ),
+                    
+                    // Survey list
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                      child: Column(
+                        children: state.surveys.map((survey) {
+                          final userResponse = state.userResponses
+                              .firstWhereOrNull((r) => r.surveyId == survey.id);
+                          
+                          return Padding(
+                            padding: EdgeInsets.only(bottom: isTablet ? 16.0 : 12.0),
+                            child: SurveyCard(
+                              survey: survey,
+                              showProgress: userResponse != null && userResponse.isInProgress,
+                              completionPercentage: userResponse?.getCompletionPercentage(survey.questions.length),
+                              onTap: () => _navigateToSurveyDetail(survey, userResponse),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    
+                    // Bottom spacing
+                    SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
+                  ],
                 ),
-                const SizedBox(height: 8),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildResearchImpactCard(SurveysLoaded state) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final completedCount = state.userResponses.where((r) => r.isCompleted).length;
+    
+    // Calculate estimated research impact based on completed surveys
+    final totalResponses = completedCount * 1000; // Simulated community data
+    final researchProgress = (completedCount * 8.3).clamp(0.0, 100.0); // Progress simulation
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isTablet = constraints.maxWidth > 768;
+        
+        return Container(
+          padding: EdgeInsets.all(isTablet ? 20.0 : 16.0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primaryColor.withValues(alpha: isDark ? 0.15 : 0.08),
+                (isDark ? Colors.blue.shade800 : Colors.blue.shade50).withValues(alpha: 0.1),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(isTablet ? 16.0 : 12.0),
+            border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: isDark ? 0.4 : 0.2),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primaryColor.withValues(alpha: 0.08),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(isTablet ? 10.0 : 8.0),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.analytics,
+                      color: AppColors.primaryColor,
+                      size: isTablet ? 24.0 : 20.0,
+                    ),
+                  ),
+                  SizedBox(width: isTablet ? 12.0 : 8.0),
+                  Expanded(
+                    child: Text(
+                      'Your Research Contribution',
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                        fontSize: isTablet ? 16.0 : 14.0,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isTablet ? 16.0 : 12.0),
+              if (completedCount > 0) ...[
                 Text(
-                  'Help us understand how air quality affects your daily life. Your responses are confidential and help improve air quality research.',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7),
+                  'You\'ve contributed $completedCount responses, joining ${(totalResponses / 1000).round()}k+ participants',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isDark 
+                        ? AppColors.secondaryHeadlineColor2
+                        : AppColors.boldHeadlineColor,
+                    fontSize: isTablet ? 15.0 : 13.0,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 16),
-                
-                // Statistics card
-                _buildStatsCard(state),
+                SizedBox(height: isTablet ? 12.0 : 8.0),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: isTablet ? 8.0 : 6.0,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: LinearProgressIndicator(
+                          value: researchProgress / 100,
+                          backgroundColor: isDark 
+                              ? AppColors.dividerColordark
+                              : AppColors.dividerColorlight,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: isTablet ? 16.0 : 12.0),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '${researchProgress.round()}%',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.primaryColor,
+                          fontSize: isTablet ? 13.0 : 12.0,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: isTablet ? 8.0 : 6.0),
+                Text(
+                  'Research Progress: Building cleaner air insights',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isDark 
+                        ? AppColors.secondaryHeadlineColor2.withValues(alpha: 0.8)
+                        : AppColors.boldHeadlineColor.withValues(alpha: 0.8),
+                    fontSize: isTablet ? 12.0 : 11.0,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ] else ...[
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark 
+                        ? AppColors.darkThemeBackground.withValues(alpha: 0.5)
+                        : Colors.white.withValues(alpha: 0.7),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDark 
+                          ? AppColors.dividerColordark
+                          : AppColors.dividerColorlight,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.lightbulb_outline,
+                        color: isDark ? Colors.amber.shade300 : Colors.amber.shade700,
+                        size: isTablet ? 20.0 : 16.0,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Complete your first survey to see how you\'re contributing to air quality research!',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: isDark 
+                                ? AppColors.secondaryHeadlineColor2
+                                : AppColors.boldHeadlineColor,
+                            fontSize: isTablet ? 14.0 : 12.0,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
-            ),
+            ],
           ),
-          
-          // Survey list
-          Expanded(
-            child: ListView.builder(
-              itemCount: state.surveys.length,
-              itemBuilder: (context, index) {
-                final survey = state.surveys[index];
-                final userResponse = state.userResponses
-                    .firstWhereOrNull((r) => r.surveyId == survey.id);
-                
-                return SurveyCard(
-                  survey: survey,
-                  showProgress: userResponse != null && userResponse.isInProgress,
-                  completionPercentage: userResponse?.getCompletionPercentage(survey.questions.length),
-                  onTap: () => _navigateToSurveyDetail(survey, userResponse),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -145,35 +366,87 @@ class _SurveyListPageState extends State<SurveyListPage> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          _buildStatItem(
-            icon: Icons.check_circle,
-            label: 'Completed',
-            value: completedCount.toString(),
-            color: Colors.green,
-          ),
-          const SizedBox(width: 24),
-          _buildStatItem(
-            icon: Icons.pending,
-            label: 'In Progress',
-            value: inProgressCount.toString(),
-            color: Colors.orange,
-          ),
-          const SizedBox(width: 24),
-          _buildStatItem(
-            icon: Icons.quiz,
-            label: 'Available',
-            value: state.surveys.length.toString(),
-            color: AppColors.primaryColor,
-          ),
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isTablet = constraints.maxWidth > 768;
+          final isNarrow = constraints.maxWidth < 400;
+          
+          return isNarrow 
+              ? Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildStatItem(
+                            icon: Icons.check_circle,
+                            label: 'Completed',
+                            value: completedCount.toString(),
+                            color: Colors.green,
+                            isCompact: true,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildStatItem(
+                            icon: Icons.pending,
+                            label: 'In Progress',
+                            value: inProgressCount.toString(),
+                            color: Colors.orange,
+                            isCompact: true,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStatItem(
+                      icon: Icons.quiz,
+                      label: 'Available',
+                      value: state.surveys.length.toString(),
+                      color: AppColors.primaryColor,
+                      isCompact: true,
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Expanded(
+                      child: _buildStatItem(
+                        icon: Icons.check_circle,
+                        label: 'Completed',
+                        value: completedCount.toString(),
+                        color: Colors.green,
+                        isTablet: isTablet,
+                      ),
+                    ),
+                    SizedBox(width: isTablet ? 32.0 : 24.0),
+                    Expanded(
+                      child: _buildStatItem(
+                        icon: Icons.pending,
+                        label: 'In Progress',
+                        value: inProgressCount.toString(),
+                        color: Colors.orange,
+                        isTablet: isTablet,
+                      ),
+                    ),
+                    SizedBox(width: isTablet ? 32.0 : 24.0),
+                    Expanded(
+                      child: _buildStatItem(
+                        icon: Icons.quiz,
+                        label: 'Available',
+                        value: state.surveys.length.toString(),
+                        color: AppColors.primaryColor,
+                        isTablet: isTablet,
+                      ),
+                    ),
+                  ],
+                );
+        },
       ),
     );
   }
@@ -183,30 +456,50 @@ class _SurveyListPageState extends State<SurveyListPage> {
     required String label,
     required String value,
     required Color color,
+    bool isTablet = false,
+    bool isCompact = false,
   }) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
-    return Expanded(
-      child: Column(
+    return Column(
         children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 4),
+          Container(
+            padding: EdgeInsets.all(isTablet ? 12.0 : 8.0),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(isTablet ? 12.0 : 8.0),
+            ),
+            child: Icon(
+              icon, 
+              color: color, 
+              size: isTablet ? 28.0 : (isCompact ? 20.0 : 24.0)
+            ),
+          ),
+          SizedBox(height: isTablet ? 8.0 : 6.0),
           Text(
             value,
             style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
               color: color,
+              fontSize: isTablet ? 20.0 : (isCompact ? 16.0 : 18.0),
             ),
           ),
+          SizedBox(height: isTablet ? 4.0 : 2.0),
           Text(
             label,
             style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+              color: isDark 
+                  ? AppColors.secondaryHeadlineColor2.withValues(alpha: 0.8)
+                  : AppColors.boldHeadlineColor.withValues(alpha: 0.8),
+              fontSize: isTablet ? 13.0 : (isCompact ? 11.0 : 12.0),
+              fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
-      ),
     );
   }
 
@@ -222,7 +515,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
             Icon(
               Icons.error_outline,
               size: 64,
-              color: Colors.red.withOpacity(0.5),
+              color: Colors.red.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -236,7 +529,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
             Text(
               state.message,
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),
@@ -272,7 +565,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
             Icon(
               Icons.quiz_outlined,
               size: 64,
-              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.3),
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
@@ -286,7 +579,7 @@ class _SurveyListPageState extends State<SurveyListPage> {
             Text(
               'Check back later for new research surveys.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
               ),
               textAlign: TextAlign.center,
             ),

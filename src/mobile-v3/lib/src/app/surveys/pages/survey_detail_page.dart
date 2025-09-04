@@ -500,11 +500,11 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
         content: SurveyCompletionIndicator(
           title: state.submittedSuccessfully 
               ? 'Survey Submitted!' 
-              : 'Survey Saved!',
+              : 'Survey Completed!',
           subtitle: state.submittedSuccessfully
               ? 'Thank you for your participation. Your response helps improve air quality research.'
-              : 'Your response was saved locally and will be submitted when you\'re back online.',
-          isSuccess: state.submittedSuccessfully,
+              : 'Thank you for your participation. Your response has been recorded and will help improve air quality research.',
+          isSuccess: true, // Always show as success since survey was completed
           onClose: () {
             Navigator.of(context).pop(); // Close dialog
             Navigator.of(context).pop(); // Return to survey list

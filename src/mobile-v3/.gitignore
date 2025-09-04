@@ -61,6 +61,7 @@ app.*.map.json
 /android/gradlew.bat
 /android/local.properties
 /android/gradle-wrapper.jar
+/android/app/.cxx/Debug/2h2f1o5r
 
 # Android secrets and properties
 /android/secrets.properties
