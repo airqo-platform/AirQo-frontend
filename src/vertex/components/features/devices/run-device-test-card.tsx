@@ -55,16 +55,19 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
                 if (parts.length === 2) break;
               }
               const relativeString = parts.length ? parts.join(", ") : "just now";
-              const isStale =
-                (elapsed.year ?? 0) > 0 ||
-                (elapsed.month ?? 0) > 0 ||
-                (elapsed.week ?? 0) > 0 ||
-                (elapsed.day ?? 0) > 0 ||
-                (elapsed.hour ?? 0) >= 5;
+              const daysOffline =
+                (elapsed.year ?? 0) * 365 +
+                (elapsed.month ?? 0) * 30 +
+                (elapsed.week ?? 0) * 7 +
+                (elapsed.day ?? 0);
+              let colorClass = "text-green-600";
+              if (daysOffline >= 5 && daysOffline <= 10) colorClass = "text-yellow-600";
+              else if (daysOffline >= 11 && daysOffline <= 20) colorClass = "text-orange-600";
+              else if (daysOffline > 20) colorClass = "text-red-600";
               return (
                 <>
                   Device last pushed data{" "}
-                  <span className={`font-bold ${isStale ? "text-red-600" : "text-green-600"}`}>
+                  <span className={`font-bold ${colorClass}`}>
                     {relativeString}
                   </span>{" "}
                   ago.
