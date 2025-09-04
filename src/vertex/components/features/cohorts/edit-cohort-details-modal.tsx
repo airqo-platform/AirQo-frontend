@@ -35,6 +35,12 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
         setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
     }, [cohortDetails]);
 
+    useEffect(() => {
+        if (!open) {
+            setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
+        }
+    }, [open, cohortDetails]);
+
     const handleCancel = () => {
         setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
         onClose();
