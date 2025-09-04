@@ -568,18 +568,20 @@ const ReusableTable = <T extends TableItem>({
   const [filterValues, setFilterValues] = useState(initialFilters);
 
   useEffect(() => {
-    const hasChanged = Object.keys(initialFilters).some(
+    const addedOrShapeChanged = Object.keys(initialFilters).some(
       (key) =>
         !(key in filterValues) ||
         Array.isArray(initialFilters[key]) !== Array.isArray(filterValues[key])
     );
+    const removedKeys = Object.keys(filterValues).some(
+      (key) => !(key in initialFilters)
+    );
 
-    if (hasChanged) {
+    if (addedOrShapeChanged || removedKeys) {
       setFilterValues(initialFilters);
     }
   }, [filterValues, initialFilters]);
 
-  // Resolve nested values using dot-notation, supporting arrays at any level
   const resolvePath = (obj: unknown, path: string): unknown => {
     const parts = path.split(".");
     const walk = (current: unknown, idx: number): unknown => {
@@ -599,11 +601,9 @@ const ReusableTable = <T extends TableItem>({
     return walk(obj, 0);
   };
 
-  // Filter and search data with improved Fuse.js
   const filteredData = useMemo(() => {
     let result = [...data];
 
-    // Apply filters FIRST
     Object.entries(filterValues).forEach(([key, value]) => {
       if (
         value !== undefined &&
@@ -621,7 +621,7 @@ const ReusableTable = <T extends TableItem>({
             ) {
               return value.includes(itemValue);
             }
-            return false; // fallback if itemValue is not a primitive
+            return false;
           }
 
           if (
