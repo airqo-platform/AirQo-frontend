@@ -100,3 +100,23 @@ export const useCreateCohortWithDevices = () => {
     },
   });
 };
+
+export const useCreateCohortFromCohorts = () => {
+  const queryClient = useQueryClient();
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+
+  return useMutation({
+    mutationFn: ({ name, description, cohort_ids }: { name: string; description?: string; cohort_ids: string[] }) =>
+      cohortsApi.createCohortFromCohorts({ name, description, cohort_ids }),
+    onSuccess: (_resp) => {
+      toast("Cohort created from cohorts", {
+        description: "The new cohort has been created successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
+    },
+    onError: (error: AxiosError<ErrorResponse> | Error) => {
+      const message = (error as AxiosError<ErrorResponse>)?.response?.data?.message || (error as Error).message;
+      toast.error("Failed to create from cohorts", { description: message });
+    },
+  });
+};

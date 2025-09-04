@@ -83,5 +83,24 @@ export const cohorts = {
         axiosError.response?.data?.message || "Failed to update cohort information"
       );
     }
+  },
+  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[] }) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/devices/cohorts/from-cohorts`,
+        payload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data as {
+        success: boolean;
+        message: string;
+        cohort: Cohort & { _id: string };
+      };
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to create cohort from cohorts"
+      );
+    }
   }
 };
