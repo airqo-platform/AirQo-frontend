@@ -48,7 +48,9 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
 
     const handleSave = async () => {
         const updates: Partial<{ name: string; visibility: boolean }> = {};
-        if (form.name !== cohortDetails.name) updates.name = form.name;
+        const trimmedName = form.name.trim();
+        if (trimmedName.length === 0) return;
+        if (trimmedName !== cohortDetails.name) updates.name = trimmedName;
         if (form.visibility !== cohortDetails.visibility) updates.visibility = form.visibility;
 
         if (Object.keys(updates).length === 0) return onClose();
