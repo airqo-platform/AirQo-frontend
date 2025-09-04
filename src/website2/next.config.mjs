@@ -92,6 +92,20 @@ const nextConfig = {
           },
         ],
       },
+      // Ensure HTML pages are not aggressively cached by proxies/CDNs so users
+      // always receive a fresh HTML that references current JS chunks. Static
+      // assets under /_next/static remain long-lived and immutable.
+      {
+        // match everything except _next/static, _next/image, api, and static assets
+        // use a negative lookahead to avoid interfering with hashed static files
+        source: '/((?!_next/static|_next/image|api|fonts).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, must-revalidate',
+          },
+        ],
+      },
       {
         source: '/fonts/(.*)',
         headers: [

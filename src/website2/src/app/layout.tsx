@@ -5,6 +5,7 @@ import localFont from 'next/font/local';
 import Script from 'next/script';
 import { ReactNode, Suspense } from 'react';
 
+import ClientChunkReload from '@/components/ClientChunkReload';
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import Loading from '@/components/loading';
@@ -217,6 +218,8 @@ export default async function RootLayout({
       </head>
       <body>
         <ExternalLinkDecorator />
+        {/* ensures clients recover automatically from stale chunk references */}
+        <ClientChunkReload />
         <ErrorBoundary>
           <ReduxDataProvider>
             <Suspense fallback={<Loading />}>
