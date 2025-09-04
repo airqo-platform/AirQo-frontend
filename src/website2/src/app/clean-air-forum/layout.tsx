@@ -10,7 +10,7 @@ import { ForumLoading, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { useForumEventDetails, useForumEventTitles } from '@/hooks/useApiHooks';
-import logger from '@/utils/logger';
+import { logger } from '@/utils/logger';
 
 import BannerSection from '../../views/cleanairforum/BannerSection';
 
@@ -65,14 +65,19 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
 
   // Handle errors
   if (detailsError || titlesError) {
-    const err =
-      (detailsError as Error) ??
-      (titlesError as Error) ??
-      new Error('Forum data loading failed');
+    let err: Error | undefined;
+    if (detailsError instanceof Error) {
+      err = detailsError;
+    } else if (titlesError instanceof Error) {
+      err = titlesError;
+    } else {
+      err = undefined;
+    }
+
     logger.error('Error loading forum data', err, {
       slug,
-      detailsError: detailsError ?? null,
-      titlesError: titlesError ?? null,
+      detailsError,
+      titlesError,
     });
 
     return (
