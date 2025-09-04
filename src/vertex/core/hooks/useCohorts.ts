@@ -73,3 +73,30 @@ export const useUpdateCohortDetails = () => {
     }
   });
 }; 
+
+export const useCreateCohortWithDevices = () => {
+  const queryClient = useQueryClient();
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+
+  return useMutation({
+    mutationFn: async ({ name, network, deviceIds }: { name: string; network: string; deviceIds: string[] }) => {
+      const createResp = await cohortsApi.createCohort({ name, network });
+      const cohortId = createResp?.cohort?._id;
+      if (!cohortId) throw new Error("Cohort created but missing id");
+      if (Array.isArray(deviceIds) && deviceIds.length > 0) {
+        await cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
+      }
+      return createResp;
+    },
+    onSuccess: (_resp, variables) => {
+      toast("Cohort created", {
+        description: `${variables.name} created${variables.deviceIds?.length ? " and devices assigned" : ""}.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
+    },
+    onError: (error: AxiosError<ErrorResponse> | Error) => {
+      const message = (error as AxiosError<ErrorResponse>)?.response?.data?.message || (error as Error).message;
+      toast.error("Failed to create cohort", { description: message });
+    },
+  });
+};

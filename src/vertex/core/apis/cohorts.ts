@@ -31,6 +31,44 @@ export const cohorts = {
       );
     }
   },
+  createCohort: async (payload: { name: string; network: string }) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/devices/cohorts`,
+        payload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data as {
+        success: boolean;
+        message: string;
+        cohort: Cohort & { _id: string; network: string };
+      };
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to create cohort"
+      );
+    }
+  },
+  assignDevicesToCohort: async (cohortId: string, deviceIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/devices/cohorts/${cohortId}/assign-devices`,
+        { device_ids: deviceIds },
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data as {
+        message: string;
+        updated_cohort: Cohort & { _id: string };
+        success: boolean;
+      };
+    } catch (error: unknown) {
+      const axiosError = error as AxiosError<{ message?: string }>;
+      throw new Error(
+        axiosError.response?.data?.message || "Failed to assign devices to cohort"
+      );
+    }
+  },
   updateCohortDetailsApi: async (cohortId: string, cohortData: Partial<Cohort>) => {
     try {
       const response = await createSecureApiClient().put(

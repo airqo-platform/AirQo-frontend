@@ -11,19 +11,29 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
-
-const devices = [
-  { value: "aq_29", label: "Aq_29" },
-  { value: "aq_34", label: "Aq_34" },
-  { value: "aq_35", label: "Aq_35" },
-  { value: "airqo_g5363", label: "Airqo_g5363" },
-];
+import { useDevices } from "@/core/hooks/useDevices";
+import { useCreateCohortWithDevices } from "@/core/hooks/useCohorts";
+import { useAppSelector } from "@/core/redux/hooks";
+import type { Device } from "@/app/types/devices";
 
 export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenChange: (open: boolean) => void;}) {
   const [name, setName] = useState("");
-  const [network, setNetwork] = useState("airqo");
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+
+  const { devices, isLoading, error } = useDevices();
+  const deviceOptions = (devices || [])
+    .map((d: Device) => {
+      const id = d?._id as string | undefined;
+      const label = (d?.long_name as string) ?? (d?.name as string) ?? id ?? "";
+      return id ? { value: id, label: String(label) } : null;
+    })
+    .filter(Boolean) as { value: string; label: string }[];
+
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const network = activeNetwork?.net_name || "";
+
+  const { mutate: createCohort, isPending } = useCreateCohortWithDevices();
 
   const validateForm = () => {
     const newErrors: {[key: string]: string} = {};
@@ -36,13 +46,16 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
       newErrors.devices = "Please select at least one device.";
     }
 
+    if (!network) {
+      newErrors.network = "Active network not found.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleCancel = () => {
     setName("");
-    setNetwork("airqo");
     setSelectedDevices([]);
     setErrors({});
     onOpenChange(false);
@@ -52,25 +65,22 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
     e.preventDefault();
     
     if (validateForm()) {
-      const values = {
-        name,
-        network,
-        devices: selectedDevices,
-      };
-      console.log(values);
-      
-      // Reset form after successful submission
-      setName("");
-      setNetwork("airqo");
-      setSelectedDevices([]);
-      setErrors({});
-      onOpenChange(false);
+      createCohort(
+        { name, network, deviceIds: selectedDevices },
+        {
+          onSuccess: () => {
+            setName("");
+            setSelectedDevices([]);
+            setErrors({});
+            onOpenChange(false);
+          },
+        }
+      );
     }
   };
 
   const handleDevicesChange = (devices: string[]) => {
     setSelectedDevices(devices);
-    // Clear error when devices are selected
     if (devices.length > 0 && errors.devices) {
       setErrors(prev => ({...prev, devices: ""}));
     }
@@ -95,7 +105,6 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
-                // Clear error when user starts typing
                 if (errors.name && e.target.value.length >= 2) {
                   setErrors(prev => ({...prev, name: ""}));
                 }
@@ -113,7 +122,7 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
             <Input 
               disabled 
               value={network}
-              onChange={(e) => setNetwork(e.target.value)}
+              onChange={() => {}}
             />
             {errors.network && (
               <p className="text-sm font-medium text-destructive">{errors.network}</p>
@@ -126,12 +135,18 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
             </label>
             <div className="space-y-2">
               <MultiSelectCombobox
-                options={devices.map((d) => ({ value: d.value, label: d.label }))}
+                options={deviceOptions}
                 placeholder="Select or add devices..."
                 onValueChange={handleDevicesChange}
                 value={selectedDevices}
                 allowCreate={false}
               />
+              {isLoading && (
+                <p className="text-xs text-muted-foreground">Loading devices…</p>
+              )}
+              {error && (
+                <p className="text-xs text-destructive">Failed to load devices. Please try again.</p>
+              )}
               <div className="text-xs text-muted-foreground">
                 {selectedDevices.length > 0
                   ? `${selectedDevices.length} device(s) selected`
@@ -148,10 +163,13 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
               type="button"
               variant="outline"
               onClick={handleCancel}
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button type="submit">Submit</Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Creating…" : "Submit"}
+            </Button>
           </div>
         </form>
       </DialogContent>

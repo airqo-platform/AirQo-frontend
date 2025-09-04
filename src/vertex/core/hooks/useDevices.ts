@@ -15,7 +15,7 @@ import type {
   DeviceCreationResponse,
   DeviceUpdateGroupResponse,
   MyDevicesResponse,
-  MaintenanceLogData, // Add MaintenanceLogData type
+  MaintenanceLogData,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
@@ -44,8 +44,9 @@ export const useDevices = () => {
         activeGroup?.grp_title === "airqo" ? "" : activeGroup?.grp_title || ""
       ),
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+    staleTime: 120_000,
+    refetchOnWindowFocus: false,
     onSuccess: (data: DevicesSummaryResponse) => {
-      // Convert Device[] to DeviceStatus[]
       const devicesWithStatus = data.devices.map(device => ({
         ...device,
         device_number: 0,
@@ -75,7 +76,7 @@ export function useDeviceStatus() {
   const { data, isLoading, error } = useQuery({
     queryKey: ["deviceStatus"],
     queryFn: devices.getDevicesStatus,
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 30000,
   });
 
   const summary = useMemo(() => data?.data[0], [data]);
@@ -139,27 +140,24 @@ export const useMapReadings = () => {
   };
 };
 
-// New hooks for device claiming and management
 export const useDeviceAvailability = (deviceName: string) => {
   return useQuery<DeviceAvailabilityResponse, AxiosError<ErrorResponse>>({
     queryKey: ["deviceAvailability", deviceName],
     queryFn: () => devices.checkDeviceAvailability(deviceName),
     enabled: !!deviceName && deviceName.length > 0,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
   });
 };
 
 export const useClaimDevice = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation<DeviceClaimResponse, AxiosError<ErrorResponse>, DeviceClaimRequest>({
     mutationFn: devices.claimDevice,
     onSuccess: () => {
       toast("Device Claimed Successfully!");
-      // Invalidate and refetch user devices
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error) => {
       toast.error("Claim Failed", {
@@ -190,9 +188,8 @@ export const useAssignDeviceToOrganization = () => {
       toast("Device Assigned Successfully!", {
         description: `${data.device.name} has been assigned to the organization.`,
       });
-      // Invalidate and refetch relevant queries
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error) => {
       toast.error("Assignment Failed", {
@@ -204,7 +201,6 @@ export const useAssignDeviceToOrganization = () => {
 
 export const useUnassignDeviceFromOrganization = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation<DeviceAssignmentResponse, AxiosError<ErrorResponse>, { deviceName: string; userId: string }>({
     mutationFn: ({ deviceName, userId }) => devices.unassignDeviceFromOrganization(deviceName, userId),
@@ -212,9 +208,8 @@ export const useUnassignDeviceFromOrganization = () => {
       toast("Device Unassigned Successfully!", {
         description: `${data.device.name} is now personal only.`,
       });
-      // Invalidate and refetch relevant queries
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error) => {
       toast.error("Unassignment Failed", {
@@ -234,7 +229,6 @@ export const useDeviceDetails = (deviceId: string) => {
 
 export const useUpdateDeviceLocal = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation({
     mutationFn: ({ deviceId, deviceData }: {
@@ -245,9 +239,8 @@ export const useUpdateDeviceLocal = () => {
       toast("Device Updated Successfully!", {
         description: "Device information has been updated locally.",
       });
-      // Invalidate and refetch device details
       queryClient.invalidateQueries({ queryKey: ["device-details", variables.deviceId] });
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast.error("Update Failed", {
@@ -259,7 +252,6 @@ export const useUpdateDeviceLocal = () => {
 
 export const useUpdateDeviceGlobal = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation({
     mutationFn: ({ deviceId, deviceData }: {
@@ -270,9 +262,8 @@ export const useUpdateDeviceGlobal = () => {
       toast("Device Synced Successfully!", {
         description: "Device information has been updated globally.",
       });
-      // Invalidate and refetch device details
       queryClient.invalidateQueries({ queryKey: ["device-details", variables.deviceId] });
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast.error("Sync Failed", {
@@ -335,7 +326,7 @@ export const useCreateDevice = () => {
           groupName: activeGroup.grp_title,
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       const errorMessage = error.response?.data?.errors?.message || "Failed to create device";
@@ -372,7 +363,7 @@ export const useImportDevice = () => {
           groupName: activeGroup.grp_title,
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       toast.error("Import Failed", {
@@ -384,7 +375,6 @@ export const useImportDevice = () => {
 
 export const useDeployDevice = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation({
     mutationFn: (deviceData: {
@@ -403,8 +393,7 @@ export const useDeployDevice = () => {
       toast("Device Deployed Successfully!", {
         description: `${variables.deviceName} has been deployed.`,
       });
-      // Invalidate and refetch devices
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["claimedDevices"] });
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
@@ -419,7 +408,6 @@ export const useDeployDevice = () => {
 
 export const useRecallDevice = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation({
     mutationFn: ({ deviceName, recallData }: {
@@ -434,8 +422,7 @@ export const useRecallDevice = () => {
       toast("Device Recalled Successfully!", {
         description: `${variables.deviceName} has been recalled.`,
       });
-      // Invalidate and refetch devices
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
@@ -449,7 +436,6 @@ export const useRecallDevice = () => {
 
 export const useAddMaintenanceLog = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation({
     mutationFn: ({ deviceName, logData }: {
@@ -460,8 +446,7 @@ export const useAddMaintenanceLog = () => {
       toast("Maintenance Log Added Successfully!", {
         description: `Maintenance log has been added for ${variables.deviceName}.`,
       });
-      // Invalidate and refetch devices to update maintenance status
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["deviceStatus"] });
     },
