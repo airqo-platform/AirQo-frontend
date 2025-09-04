@@ -130,6 +130,7 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
                 placeholder="Select or add devices..."
                 onValueChange={handleDevicesChange}
                 value={selectedDevices}
+                allowCreate={false}
               />
               <div className="text-xs text-muted-foreground">
                 {selectedDevices.length > 0

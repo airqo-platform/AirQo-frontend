@@ -29,6 +29,7 @@ interface MultiSelectComboboxProps {
   placeholder?: string;
   value: string[];
   onValueChange: (values: string[]) => void;
+  allowCreate?: boolean;
 }
 
 export function MultiSelectCombobox({
@@ -36,6 +37,7 @@ export function MultiSelectCombobox({
   placeholder = "Select tags...",
   value,
   onValueChange,
+  allowCreate = true,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
@@ -78,7 +80,7 @@ export function MultiSelectCombobox({
   );
 
   const canCreateNew =
-    inputValue.trim() !== "" &&
+    allowCreate && inputValue.trim() !== "" &&
     !options.some(
       (option) =>
         option.label.toLowerCase() === inputValue.toLowerCase() ||
