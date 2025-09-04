@@ -70,7 +70,7 @@ class AuthImpl extends AuthRepository {
           messageLower.contains('verification required') ||
           messageLower.contains('email verification') ||
           messageLower.contains('confirmation sent')) {
-        return;
+        throw Exception(message);
       }
       throw Exception(message);
     } else {
