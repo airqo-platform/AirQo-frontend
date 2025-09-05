@@ -116,7 +116,7 @@ export const METADATA_CONFIGS = {
       'AirQo, about AirQo, air quality Africa, AirQo team, AirQo mission, air pollution monitoring, African environmental initiative, clean air Africa, AirQo partners, AirQo impact, air quality research Africa',
     url: '/about-us',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
       alt: 'AirQo Team Working on Air Quality Monitoring in Africa',
     },
   },
@@ -188,7 +188,7 @@ export const METADATA_CONFIGS = {
       'contact AirQo, air quality support, AirQo partnerships, air quality consultation, AirQo team contact, environmental monitoring support, air quality solutions inquiry',
     url: '/contact',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
       alt: 'Contact AirQo Team - Air Quality Experts',
     },
   },
@@ -347,7 +347,7 @@ export const METADATA_CONFIGS = {
       'AirQo press, media coverage, press releases, environmental journalism, air quality news Africa',
     url: '/press',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
       alt: 'AirQo Press and Media',
     },
   },
@@ -372,7 +372,7 @@ export const METADATA_CONFIGS = {
       'AirQo partners, air quality partnerships, environmental collaboration, African partnerships, Google.org partnership, World Bank partnership',
     url: '/partners',
     image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
       alt: 'AirQo Partners',
     },
   },

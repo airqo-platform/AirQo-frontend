@@ -40,6 +40,7 @@ export {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as ForumLoading } from './ForumLoading';
 export { Input } from './input';
 export { default as MediaContentSection } from './MediaContentSection';
 export { default as MemberCard } from './MemberCard';

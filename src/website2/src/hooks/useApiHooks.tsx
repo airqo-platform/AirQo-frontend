@@ -38,7 +38,14 @@ const useFetch = (
   fetcher: () => Promise<any>,
   initialData: any = [],
 ) => {
-  const { data, error, mutate } = useSWR(key, fetcher, swrOptions);
+  const { data, error, mutate } = useSWR(key, fetcher, {
+    ...swrOptions,
+    onError: (error) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Failed to fetch ${key}:`, error.message);
+      }
+    },
+  });
   const isLoading = !data && !error;
 
   return {

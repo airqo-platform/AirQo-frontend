@@ -56,7 +56,9 @@ const CountrySelectorDialog: React.FC = () => {
       try {
         const response = await fetch(
           `https://restcountries.com/v3.1/name/${encodeURIComponent(countryName.replace('_', ' '))}`,
-          { signal: abortSignal },
+          {
+            signal: abortSignal,
+          },
         );
         if (!response.ok) {
           throw new Error(`Failed to fetch flag for ${countryName}`);
@@ -66,36 +68,29 @@ const CountrySelectorDialog: React.FC = () => {
         flagCache.set(countryName, flag);
         return flag;
       } catch (error) {
-        console.error('Error fetching flag for country:', countryName, error);
+        if ((error as any)?.name !== 'AbortError') {
+          console.error('Error fetching flag for country:', countryName, error);
+        }
         return '';
       }
     },
     [flagCache],
   );
 
-  // Fetch airqloud summary using the proxy route or production service
+  // Fetch airqloud summary using the direct API service
   const fetchAirqloudSummary = useCallback(
     async (abortSignal: AbortSignal) => {
       try {
-        let data;
-        if (process.env.NODE_ENV === 'development') {
-          const response = await fetch(
-            `/api/proxy?endpoint=devices/grids/summary`,
-            {
-              method: 'GET',
-              headers: { 'Content-Type': 'application/json' },
-              signal: abortSignal,
-            },
-          );
-          if (!response.ok) throw new Error(`Error: ${response.statusText}`);
-          data = await response.json();
-        } else {
-          data = await getGridsSummary();
+        const data = await getGridsSummary();
+        if (!data || !data.grids) {
+          return;
         }
+
         // Filter data to only include grids where admin_level is "country"
         const countryLevelData: AirqloudCountry[] = data.grids.filter(
           (grid: any) => grid.admin_level === 'country',
         );
+
         // Dynamically fetch flags
         const countriesWithFlags = await Promise.all(
           countryLevelData.map(async (country: AirqloudCountry) => {
@@ -105,7 +100,7 @@ const CountrySelectorDialog: React.FC = () => {
         );
         setAirqloudData(countriesWithFlags);
       } catch (error) {
-        if ((error as any).name !== 'AbortError') {
+        if ((error as any)?.name !== 'AbortError') {
           console.error('Error fetching airqloud summary:', error);
         }
       }
@@ -128,10 +123,11 @@ const CountrySelectorDialog: React.FC = () => {
 
   // Function to get the user's country based on coordinates using reverse geocoding
   const fetchUserCountry = useCallback(
-    async (latitude: number, longitude: number) => {
+    async (latitude: number, longitude: number, abortSignal?: AbortSignal) => {
       try {
         const response = await fetch(
           `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${process.env.NEXT_PUBLIC_OPENCAGE_API_KEY}`,
+          { signal: abortSignal },
         );
         if (!response.ok) {
           throw new Error(
@@ -142,7 +138,9 @@ const CountrySelectorDialog: React.FC = () => {
         const country = data.results[0]?.components?.country || null;
         setUserCountry(country);
       } catch (error) {
-        console.error('Error fetching user country:', error);
+        if ((error as any)?.name !== 'AbortError') {
+          console.error('Error fetching user country:', error);
+        }
         setUserCountry(null);
       }
     },
@@ -158,22 +156,28 @@ const CountrySelectorDialog: React.FC = () => {
   // Effect: Get the user's coordinates and fetch the corresponding country
   useEffect(() => {
     let isMounted = true;
+    const controller = new AbortController();
+
     (async () => {
       try {
         const position = await getCurrentPositionAsync({ timeout: 10000 });
-        if (isMounted) {
+        if (isMounted && !controller.signal.aborted) {
           const { latitude, longitude } = position.coords;
-          fetchUserCountry(latitude, longitude);
+          fetchUserCountry(latitude, longitude, controller.signal);
         }
       } catch (error) {
-        console.error('Error getting location:', error);
+        if ((error as any)?.name !== 'AbortError') {
+          console.error('Error getting location:', error);
+        }
         if (isMounted) {
           setUserCountry(null);
         }
       }
     })();
+
     return () => {
       isMounted = false;
+      controller.abort();
     };
   }, [fetchUserCountry]);
 

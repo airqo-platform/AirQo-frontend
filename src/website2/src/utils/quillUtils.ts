@@ -1,5 +1,7 @@
 import { QuillDeltaToHtmlConverter } from 'quill-delta-to-html';
 
+import logger from './logger';
+
 /**
  * Checks if a string is valid HTML.
  * @param {string} str - The string to check.
@@ -21,6 +23,11 @@ const isHtml = (str: string): boolean => {
  * @returns {string} The HTML string.
  */
 export const convertDeltaToHtml = (deltaInput: string | object): string => {
+  // Handle null, undefined, or empty inputs
+  if (!deltaInput) {
+    return '';
+  }
+
   // Return the input directly if it's already a valid HTML string
   if (typeof deltaInput === 'string' && isHtml(deltaInput)) {
     return deltaInput;
@@ -30,21 +37,46 @@ export const convertDeltaToHtml = (deltaInput: string | object): string => {
 
   // If the input is a string, try to parse it as JSON
   if (typeof deltaInput === 'string') {
+    const trimmedInput = deltaInput.trim();
+
+    // Handle empty strings
+    if (!trimmedInput) {
+      return '';
+    }
+
     try {
-      delta = JSON.parse(deltaInput);
+      delta = JSON.parse(trimmedInput);
     } catch (error) {
-      console.error('Failed to parse JSON string:', error);
+      logger.error(
+        'Failed to parse JSON string in convertDeltaToHtml',
+        error as Error,
+        {
+          deltaInput: trimmedInput,
+          inputType: typeof deltaInput,
+          inputLength: trimmedInput.length,
+        },
+      );
       return ''; // Return an empty string if the input is not valid JSON
     }
   } else if (typeof deltaInput === 'object') {
     delta = deltaInput; // If the input is already an object, use it directly
   } else {
+    logger.warn('Invalid input type for convertDeltaToHtml', {
+      inputType: typeof deltaInput,
+      deltaInput,
+    });
     return ''; // Return an empty string if the input is neither a string nor an object
   }
 
   // Ensure the delta object contains an 'ops' array
   if (!delta || !delta.ops) {
-    console.error('Invalid Delta object: Missing "ops" array.');
+    logger.warn(
+      'Invalid Delta object: Missing "ops" array in convertDeltaToHtml',
+      {
+        delta,
+        hasOps: !!delta?.ops,
+      },
+    );
     return ''; // Return an empty string if 'ops' is missing
   }
 
@@ -59,7 +91,14 @@ export const convertDeltaToHtml = (deltaInput: string | object): string => {
 
     return converter.convert();
   } catch (error) {
-    console.error('Error converting Delta to HTML:', error);
+    logger.error(
+      'Error converting Delta to HTML in convertDeltaToHtml',
+      error as Error,
+      {
+        delta,
+        opsLength: delta.ops?.length,
+      },
+    );
     return ''; // Return an empty string if conversion fails
   }
 };

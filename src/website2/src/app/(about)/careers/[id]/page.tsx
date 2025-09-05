@@ -26,7 +26,7 @@ export async function generateMetadata({
         'Explore this exciting career opportunity at AirQo. Join our mission to improve air quality across African cities.',
       images: [
         {
-          url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png',
+          url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
           width: 1200,
           height: 630,
           alt: 'AirQo Career Opportunity',
