@@ -6,22 +6,59 @@ import { removeTrailingSlash } from '@/utils';
 // Configuration
 // ----------------------
 
-// Define the base URL for the API
-const API_BASE_URL = `${removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '')}/api/v2`;
+// Define the base URL for the API with proper fallback
+const getApiBaseUrl = () => {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (!baseUrl) {
+    console.warn('NEXT_PUBLIC_API_URL is not defined. Using fallback URL.');
+    return 'https://platform.airqo.net';
+  }
+  return removeTrailingSlash(baseUrl);
+};
+
+const API_BASE_URL = `${getApiBaseUrl()}/api/v2`;
 
 // Create an Axios instance with default configurations
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  timeout: process.env.NODE_ENV === 'development' ? 15000 : 10000, // Longer timeout in dev
+  validateStatus: (status: number) => {
+    return status >= 200 && status < 300;
   },
 });
+
+// Add request interceptor for development debugging
+if (process.env.NODE_ENV === 'development') {
+  apiClient.interceptors.request.use(
+    (config) => {
+      console.log(`Making API request to: ${config.baseURL}${config.url}`);
+      return config;
+    },
+    (error) => {
+      console.error('Request interceptor error:', error);
+      return Promise.reject(error);
+    },
+  );
+
+  apiClient.interceptors.response.use(
+    (response) => {
+      console.log(`API response from: ${response.config.url}`, response.status);
+      return response;
+    },
+    (error) => {
+      console.error(`API error from: ${error.config?.url}`, error.message);
+      return Promise.reject(error);
+    },
+  );
+}
 
 // ----------------------
 // Generic Request Handlers
 // ----------------------
-
-// (removed unused generic GET helper to avoid lint warnings)
 
 /**
  * Generic POST request handler.
@@ -49,6 +86,9 @@ const handleError = (error: unknown, context: string) => {
     if (axiosError.response) {
       console.error('Response data:', axiosError.response.data);
       console.error('Response status:', axiosError.response.status);
+    } else if (axiosError.request) {
+      console.error('Network error - no response received');
+      console.error('Request config:', axiosError.config);
     }
   } else {
     console.error(`Unexpected error in ${context}:`, error);
@@ -69,25 +109,6 @@ export const postContactUs = async (body: any): Promise<any | null> => {
   return postRequest('/users/inquiries/register', body);
 };
 
-/**
- * Fetch maintenance data for the website.
- */
-export const getMaintenances = async (): Promise<any | null> => {
-  try {
-    const response: AxiosResponse<any> = await apiClient.get(
-      '/users/maintenances/website',
-      {
-        // keep timeout short during build to avoid long blocking delays
-        timeout: 3000,
-      },
-    );
-    return response.data;
-  } catch {
-    // Avoid noisy error logs during static generation/builds; caller handles nulls.
-    return null;
-  }
-};
-
 // ----------------------
 // Device Services
 // ----------------------
@@ -97,35 +118,22 @@ export const getMaintenances = async (): Promise<any | null> => {
  */
 export const getGridsSummary = async (): Promise<any | null> => {
   try {
-    // Use server-side proxy without exposing tokens; support both SSR and CSR
-    const isServer = typeof window === 'undefined';
-    let url = '/api/proxy?endpoint=devices/grids/summary';
-    if (isServer) {
-      const origin =
-        process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || '';
-      if (!origin) {
-        throw new Error(
-          'SITE_URL or NEXT_PUBLIC_SITE_URL must be set for server-side calls to /api/proxy',
-        );
-      }
-      url = `${origin.replace(/\/$/, '')}/api/proxy?endpoint=devices/grids/summary`;
-    }
+    // Call the external API directly via the configured Axios client.
+    // Include the API token as a query parameter when available (keeps parity with previous proxy behavior).
+    // Only use the public token as requested
+    const token = process.env.NEXT_PUBLIC_API_TOKEN || '';
 
-    // Add a timeout for server-side requests to avoid hanging SSG/SSR
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-    try {
-      const proxyResponse = await fetch(url, { signal: controller.signal });
-      if (!proxyResponse.ok) {
-        throw new Error(`Proxy request failed: ${proxyResponse.statusText}`);
-      }
-      const data = await proxyResponse.json();
-      return data;
-    } finally {
-      clearTimeout(timeout);
-    }
+    const response: AxiosResponse<any> = await apiClient.get(
+      '/devices/grids/summary',
+      {
+        params: token ? { token } : undefined,
+        timeout: 8000,
+      },
+    );
+    return response.data;
   } catch (error) {
     handleError(error, 'GET /devices/grids/summary');
-    return null;
+    console.warn('Failed to fetch grids summary from API');
+    return null; // Return null so components can show "no data" message
   }
 };

@@ -10,11 +10,7 @@ import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
-import { checkMaintenance } from '@/lib/maintenance';
 import { generateViewport } from '@/lib/metadata';
-
-import PerformanceMonitorClient from '../components/PerformanceMonitor.client';
-import MaintenancePage from './MaintenancePage';
 
 const interFont = localFont({
   src: [
@@ -126,7 +122,7 @@ export default async function RootLayout({
   const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net/';
   const siteUrl = rawSiteUrl.replace(/\/$/, '') + '/';
 
-  const maintenance = await checkMaintenance();
+  // Maintenance check removed to avoid hydration and chunk loading issues
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -220,15 +216,8 @@ export default async function RootLayout({
         <ErrorBoundary>
           <ReduxDataProvider>
             <Suspense fallback={<Loading />}>
-              {maintenance.isActive ? (
-                <MaintenancePage message={maintenance.message} />
-              ) : (
-                <>
-                  <EngagementDialog />
-                  <PerformanceMonitorClient />
-                  {children}
-                </>
-              )}
+              <EngagementDialog />
+              {children}
             </Suspense>
           </ReduxDataProvider>
         </ErrorBoundary>

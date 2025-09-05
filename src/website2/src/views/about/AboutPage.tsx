@@ -191,7 +191,7 @@ const AboutPage: React.FC = () => {
         >
           <div className="flex flex-col-reverse relative transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer">
             <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728295735/website/photos/about/teamImage_ganc1y.png"
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp"
               alt="Abstract Outline"
               width={1024}
               height={480}

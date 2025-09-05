@@ -1,20 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Performance optimizations
-  experimental: {
-    optimizePackageImports: [
-      '@radix-ui/react-accordion',
-      '@radix-ui/react-dialog',
-      '@radix-ui/react-dropdown-menu',
-      '@radix-ui/react-navigation-menu',
-      '@radix-ui/react-slot',
-      'lucide-react',
-      'react-icons',
-      'framer-motion',
-    ],
-    webpackBuildWorker: true,
-  },
-
   // Image optimization settings
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -89,6 +74,37 @@ const nextConfig = {
             // Enforce HSTS for one year, include subdomains and preload where supported
             key: 'Strict-Transport-Security',
             value: 'max-age=31536000; includeSubDomains; preload',
+          },
+          // Add CORS headers for development
+          ...(process.env.NODE_ENV === 'development'
+            ? [
+                {
+                  key: 'Access-Control-Allow-Origin',
+                  value: '*',
+                },
+                {
+                  key: 'Access-Control-Allow-Methods',
+                  value: 'GET, POST, PUT, DELETE, OPTIONS',
+                },
+                {
+                  key: 'Access-Control-Allow-Headers',
+                  value: 'Content-Type, Authorization',
+                },
+              ]
+            : []),
+        ],
+      },
+      // Ensure HTML pages are not aggressively cached by proxies/CDNs so users
+      // always receive a fresh HTML that references current JS chunks. Static
+      // assets under /_next/static remain long-lived and immutable.
+      {
+        // match everything except _next/static, _next/image, api, and static assets
+        // use a negative lookahead to avoid interfering with hashed static files
+        source: '/((?!_next/static|_next/image|api|fonts).*)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'no-store, must-revalidate',
           },
         ],
       },
