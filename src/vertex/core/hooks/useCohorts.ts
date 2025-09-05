@@ -123,3 +123,38 @@ export const useCreateCohortFromCohorts = () => {
     },
   });
 };
+
+export const useAssignDevicesToCohort = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      cohortId, 
+      deviceIds 
+    }: { 
+      cohortId: string; 
+      deviceIds: string[] 
+    }) => {
+      if (!cohortId || !deviceIds?.length) {
+        throw new Error("Cohort ID and at least one device ID are required");
+      }
+      return cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
+    },
+    onSuccess: (_, variables) => {
+      toast("Success", {
+        description: `${variables.deviceIds.length} device(s) assigned to cohort successfully`,
+      });
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"] });
+    },
+    onError: (error: AxiosError<ErrorResponse>) => {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      const message = axiosError.response?.data?.errors?.message || 
+                     axiosError.response?.data?.message || 
+                     (error as Error).message;
+      toast("Failed to assign devices to cohort", {
+        description: message,
+      });
+    },
+  });
+};

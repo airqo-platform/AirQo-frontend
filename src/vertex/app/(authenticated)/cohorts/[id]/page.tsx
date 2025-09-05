@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AddDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
+import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useCohortDetails } from "@/core/hooks/useCohorts";
 import DevicesTable from "@/components/features/devices/device-list-table";
@@ -36,6 +36,8 @@ export default function CohortDetailsPage() {
     visibility: true,
   });
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
 
   const handleOpenDetails = () => setShowDetailsModal(true);
   const handleCloseDetails = () => setShowDetailsModal(false);
@@ -52,6 +54,11 @@ export default function CohortDetailsPage() {
 
   const devices = useMemo(() => cohort?.devices || [], [cohort]);
 
+  const handleAssignSuccess = () => {
+    setSelectedDevices([]);
+    setShowAssignDialog(false);
+  };
+
   return (
     <RouteGuard permission="DEVICE_VIEW">
       <div>
@@ -60,7 +67,12 @@ export default function CohortDetailsPage() {
             <ArrowLeft className="w-4 h-4" />
             Back to Cohorts
           </Button>
-          <AddDevicesDialog />
+          <AssignCohortDevicesDialog
+            open={showAssignDialog}
+            onOpenChange={setShowAssignDialog}
+            selectedDevices={selectedDevices}
+            onSuccess={handleAssignSuccess}
+          />
         </div>
 
         {isLoading ? (
