@@ -533,7 +533,7 @@ class _MapScreenState extends State<MapScreen>
           height: MediaQuery.of(context).size.height,
           width: MediaQuery.of(context).size.width,
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               if (!isModalFull || showDetails)
@@ -627,16 +627,19 @@ class _MapScreenState extends State<MapScreen>
 
               // Bottom panel with details or list
               Expanded(
-                child: Builder(
-                  builder: (context) {
-                    if (showDetails && currentDetailsName == null) {
-                      return _buildMeasurementDetailsPanel();
-                    } else if (showDetails && currentDetailsName != null) {
-                      return _buildPlaceDetailsPanel();
-                    } else {
-                      return _buildSearchAndListPanel(countries);
-                    }
-                  },
+                child: SafeArea(
+                  bottom: true,
+                  child: Builder(
+                    builder: (context) {
+                      if (showDetails && currentDetailsName == null) {
+                        return _buildMeasurementDetailsPanel();
+                      } else if (showDetails && currentDetailsName != null) {
+                        return _buildPlaceDetailsPanel();
+                      } else {
+                        return _buildSearchAndListPanel(countries);
+                      }
+                    },
+                  ),
                 ),
               )
             ],
@@ -649,9 +652,7 @@ class _MapScreenState extends State<MapScreen>
   Widget _buildMeasurementDetailsPanel() {
     if (currentDetails == null) return SizedBox.shrink();
 
-    return SizedBox(
-        width: double.infinity,
-        child: ModalWrapper(
+    return ModalWrapper(
           child: Padding(
               padding: const EdgeInsets.only(top: 16),
               child: Column(
@@ -700,8 +701,7 @@ class _MapScreenState extends State<MapScreen>
                     child: AnalyticsCard(currentDetails!),
                   ),
                 ],
-              )),
-        ));
+              )));
   }
 
   Widget _buildPlaceDetailsPanel() {
@@ -709,9 +709,7 @@ class _MapScreenState extends State<MapScreen>
       builder: (context, state) {
         if (state is PlaceDetailsLoaded) {
           Measurement measurement = state.response.measurements[0];
-          return SizedBox(
-            width: double.infinity,
-            child: ModalWrapper(
+          return ModalWrapper(
               child: Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Column(
@@ -791,13 +789,9 @@ class _MapScreenState extends State<MapScreen>
                         child: AnalyticsCard(measurement),
                       ),
                     ],
-                  )),
-            ),
-          );
+                  )));
         } else if (state is PlaceDetailsLoading) {
-          return SizedBox(
-            width: double.infinity,
-            child: ModalWrapper(
+          return ModalWrapper(
               child: Padding(
                   padding: const EdgeInsets.only(top: 16),
                   child: Column(
@@ -872,9 +866,7 @@ class _MapScreenState extends State<MapScreen>
                         child: AnalyticsCardLoader(),
                       ),
                     ],
-                  )),
-            ),
-          );
+                  )));
         }
 
         return SizedBox();
@@ -883,11 +875,7 @@ class _MapScreenState extends State<MapScreen>
   }
 
   Widget _buildSearchAndListPanel(List<CountryModel> countries) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
-      height: isModalFull ? MediaQuery.of(context).size.height : 350,
-      width: double.infinity,
-      child: ModalWrapper(
+    return ModalWrapper(
         child: Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, top: 28),
           child: Column(
@@ -1167,9 +1155,7 @@ class _MapScreenState extends State<MapScreen>
               ),
             ],
           ),
-        ),
-      ),
-    );
+        ));
   }
 
   @override
