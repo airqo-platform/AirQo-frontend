@@ -8,6 +8,7 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -40,17 +41,17 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_isLoading) return;
-    
+
     final currentForm = formKey.currentState;
     if (currentForm != null && currentForm.validate()) {
       setState(() {
         _isLoading = true;
         error = null;
       });
-      
+
       authBloc.add(LoginUser(
         emailController.text.trim(),
-        passwordController.text.trim()
+        passwordController.text.trim(),
       ));
     }
   }
@@ -59,92 +60,112 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isSmallScreen = screenSize.height < 600;
-    
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthLoaded) {
-          Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
-            builder: (context) => NavPage(),
-          ), (_) => false);
-        } else if (state is EmailUnverifiedError) {
-          setState(() {
-            error = state.message;
-            _isLoading = false;
-          });
-          
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => AlertDialog(
-              title: Text(
-                'Email Verification Required',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).textTheme.headlineLarge?.color,
+
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<AuthBloc, AuthState>(
+          listener: (context, state) {
+            if (state is AuthLoaded) {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                  builder: (context) => NavPage(),
                 ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Your account has not been verified yet.',
+                (_) => false,
+              );
+            } else if (state is EmailUnverifiedError) {
+              setState(() {
+                error = state.message;
+                _isLoading = false;
+              });
+
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => AlertDialog(
+                  title: Text(
+                    'Email Verification Required',
                     style: TextStyle(
-                      fontSize: 16,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).textTheme.headlineLarge?.color,
                     ),
                   ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Please check your email for a verification code or request a new one.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context, 
-                      MaterialPageRoute(
-                        builder: (context) => EmailVerificationScreen(
-                          email: state.email,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your account has not been verified yet.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
-                    );
-                  },
-                  child: Text('Verify Now'),
+                      SizedBox(height: 8),
+                      Text(
+                        'Please check your email for a verification code or request a new one.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).textTheme.bodyMedium?.color,
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EmailVerificationScreen(
+                              email: state.email,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text('Verify Now'),
+                    ),
+                  ],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-              ],
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-        } else if (state is AuthLoadingError) {
-          setState(() {
-            error = state.message;
-            _isLoading = false;
-          });
-        }
-      },
+              );
+            } else if (state is AuthLoadingError) {
+              setState(() {
+                error = state.message;
+                _isLoading = false;
+              });
+            }
+          },
+        ),
+        BlocListener<ConnectivityBloc, ConnectivityState>(
+          listener: (context, state) {
+            if (state is ConnectivityOffline) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                      'No Internet Connection. Please check your network.'),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -161,7 +182,6 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () => Navigator.pop(context),
           ),
         ),
-
         body: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
@@ -182,7 +202,6 @@ class _LoginPageState extends State<LoginPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           SizedBox(height: isSmallScreen ? 8 : 16),
-
                           FormFieldWidget(
                             prefixIcon: Container(
                               padding: const EdgeInsets.all(13.5),
@@ -199,11 +218,10 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             hintText: "Enter your email",
                             label: "Email*",
-                            controller: emailController, onChanged: (value) {  },
+                            controller: emailController,
+                            onChanged: (value) {},
                           ),
-                          
                           SizedBox(height: isSmallScreen ? 12 : 16),
-                          
                           FormFieldWidget(
                             prefixIcon: Container(
                               padding: const EdgeInsets.all(13.5),
@@ -234,9 +252,9 @@ class _LoginPageState extends State<LoginPage> {
                             hintText: "Enter your password",
                             label: "Password",
                             isPassword: !_isPasswordVisible,
-                            controller: passwordController, onChanged: (value) {  },
+                            controller: passwordController,
+                            onChanged: (value) {},
                           ),
-                          
                           if (error != null)
                             Padding(
                               padding: const EdgeInsets.only(top: 16.0),
@@ -256,15 +274,13 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                             ),
-                          
                           SizedBox(height: isSmallScreen ? 20 : 24),
-                          
                           InkWell(
                             onTap: _isLoading ? null : _login,
                             child: Container(
                               height: 56,
                               decoration: BoxDecoration(
-                                color: _isLoading 
+                                color: _isLoading
                                     ? AppColors.primaryColor.withOpacity(0.7)
                                     : AppColors.primaryColor,
                                 borderRadius: BorderRadius.circular(4),
@@ -289,9 +305,7 @@ class _LoginPageState extends State<LoginPage> {
                               ),
                             ),
                           ),
-                          
                           SizedBox(height: isSmallScreen ? 12 : 16),
-                          
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -299,7 +313,10 @@ class _LoginPageState extends State<LoginPage> {
                                 child: Text(
                                   "Don't have an account?",
                                   style: TextStyle(
-                                    color: Theme.of(context).textTheme.headlineLarge?.color,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge
+                                        ?.color,
                                     fontWeight: FontWeight.w500,
                                     fontSize: isSmallScreen ? 13 : 14,
                                   ),
@@ -323,9 +340,7 @@ class _LoginPageState extends State<LoginPage> {
                               )
                             ],
                           ),
-                          
                           SizedBox(height: isSmallScreen ? 12 : 16),
-                          
                           Center(
                             child: Wrap(
                               alignment: WrapAlignment.center,
@@ -335,7 +350,8 @@ class _LoginPageState extends State<LoginPage> {
                                 InkWell(
                                   onTap: () => Navigator.of(context).push(
                                     MaterialPageRoute(
-                                      builder: (context) => ForgotPasswordPage(),
+                                      builder: (context) =>
+                                          ForgotPasswordPage(),
                                     ),
                                   ),
                                   child: Text(
@@ -347,7 +363,6 @@ class _LoginPageState extends State<LoginPage> {
                                     ),
                                   ),
                                 ),
-                                
                                 Text(
                                   " • ",
                                   style: TextStyle(
@@ -355,7 +370,6 @@ class _LoginPageState extends State<LoginPage> {
                                     fontSize: isSmallScreen ? 13 : 14,
                                   ),
                                 ),
-                                
                                 VerificationOption(
                                   emailController: emailController,
                                   isSmallScreen: isSmallScreen,
@@ -363,7 +377,6 @@ class _LoginPageState extends State<LoginPage> {
                               ],
                             ),
                           ),
-
                           Spacer(),
                         ],
                       ),
@@ -382,7 +395,7 @@ class _LoginPageState extends State<LoginPage> {
 class VerificationOption extends StatelessWidget {
   final TextEditingController emailController;
   final bool isSmallScreen;
-  
+
   const VerificationOption({
     super.key,
     required this.emailController,
@@ -403,7 +416,7 @@ class VerificationOption extends StatelessWidget {
           );
           return;
         }
-        
+
         Navigator.push(
           context,
           MaterialPageRoute(
