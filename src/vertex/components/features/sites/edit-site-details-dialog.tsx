@@ -84,12 +84,16 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
       location_name: "location_name",
     };
 
+    const numericFields = new Set(["latitude", "longitude", "altitude"]);
     const transformedData = Object.entries(fieldMapping).reduce((acc, [formField, apiField]) => {
       if (dirtyFields[formField as keyof typeof dirtyFields]) {
-        acc[apiField] = values[formField as keyof SiteFormValues];
+        const v = values[formField as keyof SiteFormValues];
+        acc[apiField] = numericFields.has(formField)
+          ? (v ? Number(v as string) : undefined)
+          : (v as string | undefined);
       }
       return acc;
-    }, {} as Record<string, string | undefined>);
+    }, {} as Record<string, string | number | undefined>);
 
     if (Object.keys(transformedData).length === 0) {
       toast.error("No fields have been modified");

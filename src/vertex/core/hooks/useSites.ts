@@ -103,9 +103,9 @@ export const useUpdateSiteDetails = () => {
   return useMutation<
     any,
     AxiosError<ErrorResponse>,
-    { siteId: string; data: Record<string, string | undefined> }
+    { siteId: string; data: Record<string, string | number | undefined> }
   >({
-    mutationFn: async ({ siteId, data }: { siteId: string; data: Record<string, string | undefined> }) => {
+    mutationFn: async ({ siteId, data }: { siteId: string; data: Record<string, string | number | undefined> }) => {
       const cleanedData = Object.fromEntries(
         Object.entries(data).filter(([, value]) => value !== undefined)
       );
