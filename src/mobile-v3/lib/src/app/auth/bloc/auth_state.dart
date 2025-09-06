@@ -29,7 +29,6 @@ final class GuestUser extends AuthState {}
 
 final class AuthVerified extends AuthState {}
 
-
 final class EmailUnverifiedError extends AuthLoadingError {
   final String email;
 
