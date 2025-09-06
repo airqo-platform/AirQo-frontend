@@ -26,6 +26,7 @@ interface ComboBoxProps {
   allowCustomInput?: boolean
   onCustomAction?: () => void
   customActionLabel?: string
+  customActionIcon?: React.ComponentType<{ className?: string }>
 }
 
 export function ComboBox({
@@ -40,6 +41,7 @@ export function ComboBox({
   allowCustomInput = true,
   onCustomAction,
   customActionLabel,
+  customActionIcon: CustomActionIcon,
 }: ComboBoxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState("")
@@ -98,7 +100,7 @@ export function ComboBox({
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-0 z-[12000] overflow-hidden max-h-80"
+        className="w-[--radix-popover-trigger-width] p-0 z-[12000] overflow-hidden max-h-80"
         align="start"
       >
         <Command>
@@ -108,7 +110,7 @@ export function ComboBox({
             onValueChange={handleInputChange}
             onKeyDown={handleKeyDown}
           />
-          <CommandList className="max-h-72">
+          <CommandList className="max-h-56">
             <CommandEmpty>
               {allowCustomInput ? (
                 <div className="py-2 text-center text-sm">
@@ -127,25 +129,29 @@ export function ComboBox({
                     value={option.value}
                     onSelect={handleSelect}
                     disabled={option.disabled}
+                    className="flex items-center justify-between"
                   >
-                    <Check className={cn("mr-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
-                    {option.label}
+                    <span>{option.label}</span>
+                    <Check className={cn("ml-2 h-4 w-4", value === option.value ? "opacity-100" : "opacity-0")} />
                   </CommandItem>
                 ))}
               </CommandGroup>
             )}
-            {customActionLabel && onCustomAction && (
-              <CommandGroup>
-                <CommandItem
-                  value="__custom_action__"
-                  onSelect={handleSelect}
-                  className="text-primary font-semibold border-t mt-1 pt-2"
-                >
-                  {customActionLabel}
-                </CommandItem>
-              </CommandGroup>
-            )}
           </CommandList>
+          {customActionLabel && onCustomAction && (
+            <CommandGroup className="border-t">
+              <CommandItem
+                value="__custom_action__"
+                onSelect={handleSelect}
+                className="text-primary font-semibold"
+              >
+                <div className="flex items-center gap-2">
+                  {CustomActionIcon && <CustomActionIcon className="h-4 w-4" />}
+                  <span>{customActionLabel}</span>
+                </div>
+              </CommandItem>
+            </CommandGroup>
+          )}
         </Command>
       </PopoverContent>
     </Popover>

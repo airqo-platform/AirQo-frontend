@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,10 +17,24 @@ import { useCreateCohortWithDevices } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import type { Device } from "@/app/types/devices";
 
-export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenChange: (open: boolean) => void;}) {
+interface CreateCohortDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSuccess?: (cohortData: { cohort: { _id: string; name: string } }) => void;
+  onError?: (error: unknown) => void;
+  andNavigate?: boolean;
+}
+
+export function CreateCohortDialog({
+  open,
+  onOpenChange,
+  onSuccess,
+  onError,
+  andNavigate = true,
+}: CreateCohortDialogProps) {
   const [name, setName] = useState("");
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const { devices, isLoading, error } = useDevices();
   const deviceOptions = (devices || [])
@@ -31,12 +46,13 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
     .filter(Boolean) as { value: string; label: string }[];
 
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const router = useRouter();
   const network = activeNetwork?.net_name || "";
 
   const { mutate: createCohort, isPending } = useCreateCohortWithDevices();
 
   const validateForm = () => {
-    const newErrors: {[key: string]: string} = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (name.trim().length < 2) {
       newErrors.name = "Cohort name must be at least 2 characters.";
@@ -63,17 +79,31 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (validateForm()) {
       createCohort(
         { name, network, deviceIds: selectedDevices },
         {
-          onSuccess: () => {
+          onSuccess: (response) => {
+            if (onSuccess && response?.cohort) {
+              onSuccess(response);
+            }
+
             setName("");
             setSelectedDevices([]);
             setErrors({});
-            onOpenChange(false);
+
+            if (andNavigate && response?.cohort?._id) {
+              router.push(`/cohorts/${response.cohort._id}`);
+            } else {
+              onOpenChange(false);
+            }
           },
+          onError: (error) => {
+            if (onError) {
+              onError(error);
+            }
+          }
         }
       );
     }
@@ -82,7 +112,7 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
   const handleDevicesChange = (devices: string[]) => {
     setSelectedDevices(devices);
     if (devices.length > 0 && errors.devices) {
-      setErrors(prev => ({...prev, devices: ""}));
+      setErrors(prev => ({ ...prev, devices: "" }));
     }
   };
 
@@ -100,13 +130,13 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Cohort name
             </label>
-            <Input 
-              placeholder="Enter cohort name" 
+            <Input
+              placeholder="Enter cohort name"
               value={name}
               onChange={(e) => {
                 setName(e.target.value);
                 if (errors.name && e.target.value.length >= 2) {
-                  setErrors(prev => ({...prev, name: ""}));
+                  setErrors(prev => ({ ...prev, name: "" }));
                 }
               }}
             />
@@ -119,10 +149,10 @@ export function CreateCohortDialog({open, onOpenChange}: {open:boolean; onOpenCh
             <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Network
             </label>
-            <Input 
-              disabled 
+            <Input
+              disabled
               value={network}
-              onChange={() => {}}
+              onChange={() => { }}
             />
             {errors.network && (
               <p className="text-sm font-medium text-destructive">{errors.network}</p>

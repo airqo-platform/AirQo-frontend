@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -15,7 +15,9 @@ import {
 import { useCohorts, useAssignDevicesToCohort } from "@/core/hooks/useCohorts";
 import { useDevices } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
+import { AqPlus } from "@airqo/icons-react";
 import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
+import { CreateCohortDialog } from "./create-cohort";
 import { toast } from "sonner";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
@@ -36,15 +38,17 @@ const formSchema = z.object({
   }),
 });
 
-export function AssignCohortDevicesDialog({ 
+export function AssignCohortDevicesDialog({
   open,
   onOpenChange,
-  selectedDevices, 
+  selectedDevices,
   onSuccess
 }: AssignCohortDevicesDialogProps) {
   const { cohorts } = useCohorts();
-  const { devices: allDevices, isLoading: isLoadingDevices } = useDevices();
+  const { devices: allDevices } = useDevices();
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
+
+  const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -74,6 +78,34 @@ export function AssignCohortDevicesDialog({
     }
   }, [open, selectedDevices, form]);
 
+  const handleCreateCohortSuccess = (cohortData: { cohort: { _id: string; name: string } }) => {
+    setCreateCohortModalOpen(false);
+    toast.success("Cohort created successfully", {
+      description: `"${cohortData.cohort.name}" has been created.`,
+    });
+    onOpenChange(false);
+  };
+
+  const handleCreateCohortError = (error: Error | unknown) => {
+    console.error("Error creating cohort:", error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred while creating the cohort.";
+    toast.error("Failed to create cohort", {
+      description: errorMessage,
+    });
+  };
+
+  const handleCreateCohortClose = (open: boolean) => {
+    if (!open) {
+      setCreateCohortModalOpen(false);
+    }
+  };
+
+  const handleCreateCohortAction = () => {
+    onOpenChange(false);
+
+    setCreateCohortModalOpen(true);
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     assignDevices(
       {
@@ -99,81 +131,95 @@ export function AssignCohortDevicesDialog({
     onOpenChange(newOpen);
     if (!newOpen) {
       form.reset();
+      setCreateCohortModalOpen(false);
     }
   };
 
   return (
-    <ReusableDialog
-      isOpen={open}
-      onClose={() => handleOpenChange(false)}
-      title="Assign devices to cohort"
-      subtitle={`${selectedDevices.length} device(s) selected`}
-      size="lg"
-      maxHeight="max-h-[70vh]"
-      primaryAction={{
-        label: "Assign",
-        onClick: () => form.handleSubmit(onSubmit)(),
-        disabled: !form.watch("cohortId") || !form.watch("devices")?.length || isAssigning,
-      }}
-      secondaryAction={{
-        label: "Cancel",
-        onClick: () => onOpenChange(false),
-        variant: "outline",
-        disabled: isAssigning
-      }}
-    >
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="cohortId"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  Cohort <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <ComboBox
-                    options={cohorts.map((cohort: Cohort) => ({
-                      value: cohort._id,
-                      label: cohort.name,
-                    }))}
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    placeholder="Select a cohort"
-                    searchPlaceholder="Search cohorts..."
-                    emptyMessage="No cohorts found"
-                    className="w-full"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-            
-          <FormField
-            control={form.control}
-            name="devices"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  Devices <span className="text-red-500">*</span>
-                </FormLabel>
-                <FormControl>
-                  <MultiSelectCombobox
-                    options={deviceOptions}
-                    value={field.value || []}
-                    onValueChange={field.onChange}
-                    placeholder="Select devices..."
-                    allowCreate={false}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </form>
-      </Form>
-    </ReusableDialog>
+    <>
+      <ReusableDialog
+        isOpen={open}
+        onClose={() => handleOpenChange(false)}
+        title="Assign devices to cohort"
+        subtitle={`${selectedDevices.length} device(s) selected`}
+        size="lg"
+        maxHeight="max-h-[70vh]"
+        primaryAction={{
+          label: "Assign",
+          onClick: form.handleSubmit(onSubmit),
+          disabled: !form.watch("cohortId") || !form.watch("devices")?.length || isAssigning,
+        }}
+        secondaryAction={{
+          label: "Cancel",
+          onClick: () => onOpenChange(false),
+          variant: "outline",
+          disabled: isAssigning,
+        }}
+      >
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="cohortId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Cohort <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <ComboBox
+                      options={cohorts.map((cohort: Cohort) => ({
+                        value: cohort._id,
+                        label: cohort.name,
+                      }))}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select a cohort"
+                      searchPlaceholder="Search cohorts..."
+                      emptyMessage="No cohorts found"
+                      className="w-full"
+                      customActionLabel="Create New Cohort"
+                      customActionIcon={AqPlus}
+                      onCustomAction={handleCreateCohortAction}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="devices"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Devices <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <MultiSelectCombobox
+                      options={deviceOptions}
+                      value={field.value || []}
+                      onValueChange={field.onChange}
+                      placeholder="Select devices..."
+                      allowCreate={false}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+      </ReusableDialog>
+
+      <CreateCohortDialog
+        open={createCohortModalOpen}
+        onOpenChange={handleCreateCohortClose}
+        onSuccess={handleCreateCohortSuccess}
+        onError={handleCreateCohortError}
+        andNavigate={true}
+      />
+    </>
   );
 }
