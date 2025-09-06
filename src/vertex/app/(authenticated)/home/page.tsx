@@ -1,16 +1,15 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
 import { PlusSquare, Loader2, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { DashboardStatsCards } from "@/components/features/dashboard/stats-cards";
 import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 const WelcomePage = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
@@ -20,7 +19,7 @@ const WelcomePage = () => {
   const allActions = [
     {
       href: "/devices/claim",
-      label: "Claim a Device",
+      label: "Claim Device",
       permission: PERMISSIONS.DEVICE.UPDATE,
       showInPersonal: true,
       showInAirQoInternal: true,
@@ -28,7 +27,7 @@ const WelcomePage = () => {
     },
     {
       href: "/devices/deploy",
-      label: "Deploy a Device",
+      label: "Deploy Device",
       permission: PERMISSIONS.DEVICE.DEPLOY,
       showInPersonal: true,
       showInAirQoInternal: true,
@@ -36,7 +35,7 @@ const WelcomePage = () => {
     },
     {
       href: "/sites",
-      label: "Create a Site",
+      label: "Create Site",
       permission: PERMISSIONS.SITE.CREATE,
       showInPersonal: false,
       showInAirQoInternal: true,
@@ -149,37 +148,23 @@ const WelcomePage = () => {
       {actions.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
             {actions.map((action) => {
               const hasPermission = permissionsMap[action.permission];
-              const button = (
-                <Button
+              return (
+                <ReusableButton
                   key={action.href}
-                  variant="outline"
-                  className="w-full gap-2 p-3 border-primary text-primary text-sm font-semibold hover:bg-primary/10 hover:text-primary focus:ring-primary"
+                  variant="outlined"
+                  className="w-full"
+                  padding="p-3"
                   disabled={!hasPermission}
-                  onClick={() => {
-                    if (hasPermission) router.push(action.href);
-                  }}
+                  permission={action.permission}
+                  onClick={() => router.push(action.href)}
+                  Icon={PlusSquare}
                 >
-                  <PlusSquare className="h-7 w-7 text-primary" />
-                  <span>{action.label}</span>
-                </Button>
+                  {action.label}
+                </ReusableButton>
               );
-              if (hasPermission) {
-                return button;
-              } else {
-                return (
-                  <PermissionTooltip
-                    key={action.href}
-                    permission={action.permission}
-                  >
-                    <span className="inline-block w-auto" tabIndex={0}>
-                      {button}
-                    </span>
-                  </PermissionTooltip>
-                );
-              }
             })}
           </div>
         </div>
