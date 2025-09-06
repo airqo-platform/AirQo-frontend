@@ -12,6 +12,7 @@ import GridDetailsCard from "@/components/features/grids/grid-details-card";
 import GridMeasurementsApiCard from "@/components/features/grids/grid-measurements-api-card";
 import EditGridDetailsDialog from "@/components/features/grids/edit-grid-details-dialog";
 import SitesTable from "@/components/features/sites/sites-list-table";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -41,7 +42,7 @@ export default function GridDetailsPage() {
   }
 
   return (
-    <RouteGuard permission="SITE_VIEW">
+    <RouteGuard permission={PERMISSIONS.SITE.VIEW}>
       <div className="flex flex-col gap-4">
         {/* Header */}
         <div className="flex justify-between items-center">
