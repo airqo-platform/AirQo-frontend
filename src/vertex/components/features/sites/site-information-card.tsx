@@ -24,7 +24,9 @@ interface SiteInformationCardProps {
 const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
   <div>
     <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">{label}</div>
-    <div className="text-base font-normal break-words">{value || "N/A"}</div>
+    <div className="text-base font-normal break-words">
+      {value !== null && value !== undefined && !(typeof value === "string" && value.trim() === "") ? value : "N/A"}
+    </div>
   </div>
 );
 
@@ -49,9 +51,8 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }
             <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Status</div>
             <div className="text-base font-normal">
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  site.isOnline ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                }`}
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${site.isOnline ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                  }`}
               >
                 {site.isOnline ? "Online" : "Offline"}
               </span>
