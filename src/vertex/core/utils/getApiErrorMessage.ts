@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 
-// This interface covers the various error shapes we've seen from the API
+// This interface covers the various error shapes
 interface ApiErrorResponse {
   message?: string;
   errors?:

@@ -6,6 +6,7 @@ import { useAppSelector } from "../redux/hooks";
 import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";
+import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 interface ErrorResponse {
   message: string;
@@ -60,9 +61,7 @@ export const useApproximateCoordinates = () => {
       sites.getApproximateCoordinates(latitude, longitude),
     onError: (error) => {
       ReusableToast({
-        message: `Unable to get approximate coordinates: ${
-          error.response?.data?.message || error.message
-        }`,
+        message: `Unable to get approximate coordinates: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -121,7 +120,7 @@ export const useUpdateSiteDetails = () => {
     },
     onError: (error) => {
       ReusableToast({
-        message: `Failed to update site: ${error.response?.data?.message || error.message}`,
+        message: `Failed to update site: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -152,7 +151,7 @@ export const useCreateSite = () => {
     },
     onError: (error) => {
       ReusableToast({
-        message: `Failed to create site: ${error.response?.data?.message || error.message}`,
+        message: `Failed to create site: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },

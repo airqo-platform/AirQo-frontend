@@ -19,6 +19,7 @@ import type {
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 interface ErrorResponse {
   message: string;
@@ -163,7 +164,7 @@ export const useClaimDevice = () => {
     },
     onError: (error) => {
       ReusableToast({
-        message: `Claim Failed: ${error.response?.data?.message || error.message}`,
+        message: `Claim Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -185,7 +186,7 @@ export const useAssignDeviceToOrganization = () => {
     },
     onError: (error) => {
       ReusableToast({
-        message: `Assignment Failed: ${error.response?.data?.message || error.message}`,
+        message: `Assignment Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -207,7 +208,7 @@ export const useUnassignDeviceFromOrganization = () => {
     },
     onError: (error) => {
       ReusableToast({
-        message: `Unassignment Failed: ${error.response?.data?.message || "Failed to update device group"}`,
+        message: `Unassignment Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -240,7 +241,7 @@ export const useUpdateDeviceLocal = () => {
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       ReusableToast({
-        message: `Update Failed: ${error.response?.data?.message || "Failed to update device locally"}`,
+        message: `Update Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -265,7 +266,7 @@ export const useUpdateDeviceGlobal = () => {
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       ReusableToast({
-        message: `Sync Failed: ${error.response?.data?.message || "Failed to update device globally"}`,
+        message: `Sync Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -298,7 +299,7 @@ export const useUpdateDeviceGroup = () => {
     },
     onError: (error) => {
       ReusableToast({
-        message: `Group Update Failed: ${error.response?.data?.message || "Failed to update device group"}`,
+        message: `Group Update Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -330,18 +331,9 @@ export const useCreateDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
-    onError: (error: unknown) => {
-      let errorMessage = "Failed to create device";
-      if (error instanceof AxiosError && error.response?.data) {
-        errorMessage =
-          error.response.data.errors?.message ||
-          error.response.data.message ||
-          error.message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
+    onError: (error) => {
       ReusableToast({
-        message: `Creation Failed: ${errorMessage}`,
+        message: `Creation Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -377,13 +369,9 @@ export const useImportDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      const errorMessage =
-        error.response?.data?.errors?.message ||
-        error.response?.data?.message ||
-        error.message || "Failed to import device";
+    onError: (error) => {
       ReusableToast({
-        message: `Import Failed: ${errorMessage}`,
+        message: `Import Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -416,13 +404,9 @@ export const useDeployDevice = () => {
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      const errorMessage =
-        error.response?.data?.errors?.message ||
-        error.response?.data?.message ||
-        "Failed to deploy device";
+    onError: (error) => {
       ReusableToast({
-        message: `Deployment Failed: ${errorMessage}`,
+        message: `Deployment Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -450,13 +434,9 @@ export const useRecallDevice = () => {
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      const errorMessage =
-        error.response?.data?.errors?.message ||
-        error.response?.data?.message ||
-        "Failed to recall device";
+    onError: (error) => {
       ReusableToast({
-        message: `Recall Failed: ${errorMessage}`,
+        message: `Recall Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -480,13 +460,9 @@ export const useAddMaintenanceLog = () => {
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["deviceStatus"] });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      const errorMessage =
-        error.response?.data?.errors?.message ||
-        error.response?.data?.message ||
-        "Failed to add maintenance log";
+    onError: (error) => {
       ReusableToast({
-        message: `Failed to Add Maintenance Log: ${errorMessage}`,
+        message: `Failed to Add Maintenance Log: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },

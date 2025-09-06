@@ -27,7 +27,7 @@ export const grids = {
   },
   updateGridDetailsApi: async (
     gridId: string,
-    updatePayload: { name?: string; visibility?: boolean }
+    updatePayload: { name?: string; visibility?: boolean; admin_level?: string }
   ) => {
     try {
       const response = await createSecureApiClient().put(

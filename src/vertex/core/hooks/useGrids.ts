@@ -76,8 +76,8 @@ export const useUpdateGridDetails = (gridId: string) => {
     mutateAsync: updateGridDetails,
     isPending: isLoading,
     error,
-  } = useMutation<Grid, AxiosError<ErrorResponse>, { name?: string; visibility?: boolean }>({
-    mutationFn: (updatedFields: { name?: string; visibility?: boolean }) =>
+  } = useMutation<Grid, AxiosError<ErrorResponse>, { name?: string; visibility?: boolean; admin_level?: string }>({
+    mutationFn: (updatedFields: { name?: string; visibility?: boolean; admin_level?: string }) =>
       grids.updateGridDetailsApi(gridId, updatedFields),
     onSuccess: () => {
       ReusableToast({
