@@ -1,3 +1,5 @@
+import {Device as DeviceType} from "./devices";
+
 export interface Site {
   _id: string;
   nearest_tahmo_station: {
@@ -8,7 +10,7 @@ export interface Site {
     timezone: string | null;
   };
   images: unknown[];
-  groups: unknown[];
+  groups: string[];
   site_codes: string[];
   site_tags: string[];
   isOnline: boolean;
@@ -54,32 +56,7 @@ export interface Site {
     admin_level: string;
     visibility: boolean;
   }>;
-  devices: Array<{
-    _id: string;
-    visibility: boolean;
-    mobility: boolean;
-    status: string;
-    isPrimaryInLocation: boolean;
-    category: string;
-    isActive: boolean;
-    device_number: number;
-    name: string;
-    createdAt: string;
-    device_codes: string[];
-    network: string;
-    approximate_distance_in_km: number;
-    bearing_in_radians: number;
-    latitude: number;
-    longitude: number;
-    ISP: string;
-    previous_sites: string[];
-    groups: string[];
-    host_id: string | null;
-    cohorts: unknown[];
-    serial_number: string;
-    isOnline: boolean;
-    lastActive: string;
-  }>;
+  devices: DeviceType[];
   airqlouds: unknown[];
   site_category?: {
     tags: string[];

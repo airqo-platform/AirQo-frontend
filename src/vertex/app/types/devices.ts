@@ -42,7 +42,7 @@ export interface Device {
   alias?: string;
   mobility?: boolean;
   network: string;
-  groups: string[];
+  groups?: string[];
   serial_number: string;
   authRequired?: boolean;
   long_name?: string;
@@ -91,6 +91,7 @@ export interface Device {
     failurePercentage: number;
     lastUpdate: string;
   };
+  api_code?: string;
 }
 
 export interface DevicesSummaryResponse {

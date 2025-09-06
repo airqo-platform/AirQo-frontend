@@ -6,7 +6,7 @@ import {
 import { AxiosError } from "axios";
 import { grids } from "../apis/grids";
 import { CreateGrid, Grid } from "@/app/types/grids";
-import {  setError, setGrids } from "../redux/slices/gridsSlice";
+import { setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
 import React from "react";
@@ -49,7 +49,7 @@ export const useGrids = () => {
 // Hook to get grid details by gridId
 export const useGridDetails = (gridId: string) => {
   const dispatch = useDispatch();
-  const { data, isLoading, error } = useQuery<Grid, AxiosError<ErrorResponse>>({
+  const { data, isLoading, error } = useQuery<{ message: string, grids: Grid[] }, AxiosError<ErrorResponse>>({
     queryKey: ["gridDetails", gridId],
     queryFn: () => grids.getGridDetailsApi(gridId),
     enabled: !!gridId,
@@ -62,7 +62,7 @@ export const useGridDetails = (gridId: string) => {
   }, [error, dispatch]);
 
   return {
-    gridDetails: data ?? ({} as Grid),
+    gridDetails: data?.grids[0],
     isLoading,
     error,
   };

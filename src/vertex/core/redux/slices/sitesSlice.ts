@@ -1,3 +1,4 @@
+import { Device } from "@/app/types/devices";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
@@ -14,14 +15,14 @@ interface SiteCategory {
   waterway: string;
 }
 
-interface Device {
-  _id: string;
-  group: string;
-  authRequired: boolean;
-  serial_number: string;
-  api_code: string;
-  groups: string[];
-}
+// interface Device {
+//   _id?: string;
+//   group?: string;
+//   authRequired?: boolean;
+//   serial_number?: string;
+//   api_code?: string;
+//   groups?: string[];
+// }
 
 interface Grid {
   _id: string;
