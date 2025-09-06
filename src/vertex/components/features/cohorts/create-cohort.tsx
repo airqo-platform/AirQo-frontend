@@ -107,7 +107,7 @@ export function CreateCohortDialog({
     <ReusableDialog
       isOpen={open}
       onClose={handleCancel}
-      title="Add New Cohort"
+      title="Create Cohort"
       subtitle={`Network: ${network}`}
       size="lg"
       primaryAction={{
