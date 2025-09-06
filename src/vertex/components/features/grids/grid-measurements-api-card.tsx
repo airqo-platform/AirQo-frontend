@@ -24,8 +24,9 @@ const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid,
         }
     };
 
-    const recentApiUrl = `https://api.airqo.net/api/v2/devices/measurements/${grid._id}`;
-    const historicalApiUrl = `https://api.airqo.net/api/v2/devices/measurements/grids/${grid._id}`;
+    const apiBase = (process.env.NEXT_PUBLIC_API_BASE_URL || "https://api.airqo.net").replace(/\/$/, "");
+    const recentApiUrl = `${apiBase}/api/v2/devices/measurements/${grid._id}`;
+    const historicalApiUrl = `${apiBase}/api/v2/devices/measurements/grids/${grid._id}`;
 
     return (
         <Card className="w-full rounded-lg bg-white flex flex-col gap-4 px-3 py-2">
