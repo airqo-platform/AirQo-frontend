@@ -11,12 +11,13 @@ import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
 import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 interface ErrorResponse {
   message: string;
-  errors?: {
-    message: string;
-  };
+  errors?:
+    | { [key: string]: { msg: string } }
+    | { message: string };
 }
 
 // Hook to get the grid summary
@@ -88,7 +89,7 @@ export const useUpdateGridDetails = (gridId: string) => {
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       ReusableToast({
-        message: `Failed to update grid: ${error.response?.data?.message || error.message}`,
+        message: `Failed to update grid: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },
@@ -116,7 +117,7 @@ export const useCreateGrid = () => {
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       ReusableToast({
-        message: `Failed to create grid: ${error.response?.data?.errors?.message || error.response?.data?.message || error.message}`,
+        message: `Failed to create grid: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },

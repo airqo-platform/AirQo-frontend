@@ -23,8 +23,6 @@ export default function GridDetailsPage() {
   const { gridDetails, isLoading, error } = useGridDetails(gridId);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  console.log(gridDetails)
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
