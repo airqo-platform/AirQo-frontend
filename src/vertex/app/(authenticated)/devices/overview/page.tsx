@@ -26,8 +26,11 @@ export default function DevicesPage() {
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div>
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-semibold">Devices Overview</h1>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-semibold">Devices</h1>
+            <p className="text-sm text-muted-foreground">
+              Manage and organize your devices.
+            </p>
           </div>
           <div className="flex gap-2">
             {isAirQoInternal && (
@@ -36,7 +39,7 @@ export default function DevicesPage() {
                   disabled={isLoading || !!error || !canUpdateDevice}
                   onClick={() => setCreateDeviceOpen(true)}
                   Icon={Plus}
-                  permission={canUpdateDevice}
+                  permission={PERMISSIONS.DEVICE.UPDATE}
                 >
                   Add AirQo Device
                 </ReusableButton>
@@ -46,7 +49,7 @@ export default function DevicesPage() {
                   disabled={isLoading || !!error || !canUpdateDevice}
                   onClick={() => setImportDeviceOpen(true)}
                   Icon={Upload}
-                  permission={canUpdateDevice}
+                  permission={PERMISSIONS.DEVICE.UPDATE}
                 >
                   Import Existing Device
                 </ReusableButton>

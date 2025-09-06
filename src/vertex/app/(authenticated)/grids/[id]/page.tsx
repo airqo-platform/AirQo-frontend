@@ -2,9 +2,6 @@
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DateRangePicker } from "@/components/features/grids/date-range-picker";
 import { useGridDetails } from "@/core/hooks/useGrids";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
@@ -16,20 +13,20 @@ import GridMeasurementsApiCard from "@/components/features/grids/grid-measuremen
 import EditGridDetailsDialog from "@/components/features/grids/edit-grid-details-dialog";
 import SitesTable from "@/components/features/sites/sites-list-table";
 
+const ContentGridSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="h-48 bg-gray-200 rounded-lg animate-pulse" />
+    ))}
+  </div>
+);
+
 export default function GridDetailsPage() {
   const router = useRouter();
   const { id } = useParams();
   const gridId = id.toString();
   const { gridDetails, isLoading, error } = useGridDetails(gridId);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
 
   if (error) {
     return (
@@ -38,18 +35,6 @@ export default function GridDetailsPage() {
           <ExclamationTriangleIcon className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>{error?.message}</AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
-  if (!gridDetails) {
-    return (
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <Alert variant="destructive" className="max-w-md">
-          <ExclamationTriangleIcon className="h-4 w-4" />
-          <AlertTitle>Not Found</AlertTitle>
-          <AlertDescription>Grid with ID {gridId} not found.</AlertDescription>
         </Alert>
       </div>
     );
@@ -65,22 +50,23 @@ export default function GridDetailsPage() {
           </ReusableButton>
         </div>
 
-        {/* Grid Details Cards */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="lg:col-span-1">
-            <GridDetailsCard grid={gridDetails} onEdit={() => setIsEditDialogOpen(true)} loading={isLoading} />
-          </div>
-          <div className="lg:col-span-1">
-            <GridMeasurementsApiCard grid={gridDetails} loading={isLoading} />
-          </div>
-        </div>
-        {/* Grid Sites */}
-        <SitesTable sites={gridDetails.sites} isLoading={isLoading} error={error} />
+        {isLoading ? (
+          <ContentGridSkeleton />
+        ) : !gridDetails ? null :
+          <>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <GridDetailsCard grid={gridDetails} onEdit={() => setIsEditDialogOpen(true)} loading={isLoading} />
+              </div>
+              <div className="lg:col-span-1">
+                <GridMeasurementsApiCard grid={gridDetails} loading={isLoading} />
+              </div>
+            </div>
+            <SitesTable sites={gridDetails.sites} isLoading={isLoading} error={error} />
 
-          {/* Reports Section */}
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Data Summary Report */}
-            <Card>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Data Summary Report */}
+              {/* <Card>
               <CardHeader>
                 <CardTitle>Generate Grid Data Summary Report</CardTitle>
               </CardHeader>
@@ -99,10 +85,10 @@ export default function GridDetailsPage() {
                   </p>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
-            {/* Uptime Report */}
-            <Card>
+              {/* Uptime Report */}
+              {/* <Card>
               <CardHeader>
                 <CardTitle>Generate Grid Uptime Report</CardTitle>
               </CardHeader>
@@ -121,9 +107,11 @@ export default function GridDetailsPage() {
                   </p>
                 </div>
               </CardContent>
-            </Card>
-          </div>
-        <EditGridDetailsDialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} grid={gridDetails} />
+            </Card> */}
+            </div>
+            <EditGridDetailsDialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} grid={gridDetails} />
+          </>
+        }
       </div>
     </RouteGuard>
   );
