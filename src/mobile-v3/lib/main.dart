@@ -7,6 +7,7 @@ import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
+import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
 import 'package:airqo/src/app/learn/repository/kya_repository.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -27,6 +28,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
+import 'package:airqo/src/app/shared/services/navigation_service.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
@@ -34,9 +36,16 @@ import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> navigatorKey = NavigationService.navigatorKey;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await EnhancedLocationServiceManager().initialize();
+  } catch (error, stackTrace) {
+    debugPrint('Location service initialization failed: $error');
+    debugPrint('Stack trace: $stackTrace');
+  }
 
   await CacheManager().initialize();
 

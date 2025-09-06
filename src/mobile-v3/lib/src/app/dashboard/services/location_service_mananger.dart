@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
+import 'package:airqo/src/app/surveys/services/survey_trigger_service.dart';
 
 /// LocationResult containing the position and status information
 class LocationResult {
@@ -39,6 +40,12 @@ class LocationServiceManager with UiLoggy {
 
   // The last known user position
   Position? _lastKnownPosition;
+  
+  // Survey trigger service for location-based surveys
+  final SurveyTriggerService _surveyTriggerService = SurveyTriggerService();
+  
+  // Tracking state
+  bool _isTracking = false;
   
   // Getters
   Position? get lastKnownPosition => _lastKnownPosition;
@@ -158,6 +165,9 @@ class LocationServiceManager with UiLoggy {
       // Store as last known position
       _lastKnownPosition = position;
       
+      // Notify survey trigger service about location update
+      _surveyTriggerService.updateLocation(position);
+      
       return LocationResult(
         position: position,
         status: LocationStatus.success,
@@ -190,5 +200,75 @@ class LocationServiceManager with UiLoggy {
   /// Opens the application settings page (for permission settings)
   Future<bool> openAppSettings() async {
     return await Geolocator.openAppSettings();
+  }
+
+  /// Starts continuous location tracking for survey triggers
+  /// This should be called when user grants location permission for research
+  StreamSubscription<Position>? _positionStreamSubscription;
+  
+  Future<void> startLocationTracking() async {
+    try {
+      // Prevent duplicate subscriptions
+      if (_positionStreamSubscription != null) {
+        await _positionStreamSubscription!.cancel();
+        _positionStreamSubscription = null;
+      }
+      
+      final permissionResult = await checkLocationPermission();
+      if (!permissionResult.isSuccess) {
+        loggy.warning('Cannot start location tracking: ${permissionResult.error}');
+        return;
+      }
+
+      const LocationSettings locationSettings = LocationSettings(
+        accuracy: LocationAccuracy.medium,
+        distanceFilter: 50, // Only update if moved 50 meters
+      );
+
+      _positionStreamSubscription = Geolocator.getPositionStream(
+        locationSettings: locationSettings,
+      ).listen(
+        (Position? position) {
+          if (position != null) {
+            loggy.debug('Position update: ${position.latitude}, ${position.longitude}');
+            
+            // Store as last known position
+            _lastKnownPosition = position;
+            
+            // Notify survey trigger service about location update
+            _surveyTriggerService.updateLocation(position);
+          }
+        },
+        onError: (error) {
+          loggy.error('Location stream error: $error');
+          _isTracking = false;
+        },
+        onDone: () {
+          loggy.info('Location stream completed');
+          _isTracking = false;
+          _positionStreamSubscription = null;
+        },
+      );
+      
+      _isTracking = true;
+      loggy.info('Started location tracking for survey triggers');
+    } catch (e) {
+      loggy.error('Error starting location tracking: $e');
+      _isTracking = false;
+    }
+  }
+
+  /// Stops continuous location tracking
+  void stopLocationTracking() {
+    _positionStreamSubscription?.cancel();
+    _positionStreamSubscription = null;
+    _isTracking = false;
+    _positionStreamSubscription = null;
+    loggy.info('Stopped location tracking');
+  }
+
+  /// Dispose resources
+  void dispose() {
+    stopLocationTracking();
   }
 }
