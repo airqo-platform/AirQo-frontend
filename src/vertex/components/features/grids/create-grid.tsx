@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Form, FormField } from "@/components/ui/form";
 import { Plus } from "lucide-react";
-import PolygonMap from "./polymap";
+import MiniMap from "@/components/features/mini-map/mini-map";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useCreateGrid } from "@/core/hooks/useGrids";
 import { Position } from "@/core/redux/slices/gridsSlice";
@@ -26,7 +26,7 @@ const gridFormSchema = z.object({
       try {
         const parsed = JSON.parse(val);
         return parsed && parsed.coordinates && parsed.coordinates.length > 0;
-      } catch (e) {
+      } catch {
         return false;
       }
     },
@@ -154,7 +154,7 @@ export function CreateGridForm() {
               />
             </form>
           </Form>
-          <PolygonMap />
+          <MiniMap mapMode="polygon" height="h-[400px]" scrollZoom={false} />
         </div>
       </ReusableDialog>
     </>
