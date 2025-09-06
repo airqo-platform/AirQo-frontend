@@ -19,6 +19,8 @@ import {
   AqXClose,
 } from "@airqo/icons-react";
 import { Loader2 } from "lucide-react";
+import SelectField from "@/components/ui/select-field";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 // --- Type Definitions ---
 interface FilterOption {
@@ -330,30 +332,25 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
         {selectedCount} item(s) selected
       </div>
       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <select
+        <SelectField
           value={selectedAction}
-          onChange={(e) => onActionChange(e.target.value)}
-          className="border border-primary/30 dark:border-primary/40 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm"
+          onChange={(e) => onActionChange(String(e.target.value))}
+          placeholder="Select Action"
+          className="min-w-[12rem]"
         >
-          <option value="">Select Action</option>
           {actions.map((action) => (
             <option key={action.value} value={action.value}>
               {action.label}
             </option>
           ))}
-        </select>
-        <button
+        </SelectField>
+        <ReusableButton
           onClick={onActionSubmit}
           disabled={!selectedAction}
-          className={`px-3 py-1 text-sm rounded-md border transition-colors ${
-            selectedAction
-              ? "bg-primary text-white border-primary hover:bg-primary/90"
-              : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed"
-          }`}
-          type="button"
+          variant="filled"
         >
           Apply
-        </button>
+        </ReusableButton>
       </div>
     </div>
   );

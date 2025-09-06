@@ -1,16 +1,16 @@
 "use client";
 
 import React from "react";
-import { Button } from "@/components/ui/button";
-import { PlusSquare, Loader2, AlertTriangle } from "lucide-react";
+import { PlusSquare, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { DashboardStatsCards } from "@/components/features/dashboard/stats-cards";
 import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const WelcomePage = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
@@ -20,7 +20,7 @@ const WelcomePage = () => {
   const allActions = [
     {
       href: "/devices/claim",
-      label: "Claim a Device",
+      label: "Claim Device",
       permission: PERMISSIONS.DEVICE.UPDATE,
       showInPersonal: true,
       showInAirQoInternal: true,
@@ -28,7 +28,7 @@ const WelcomePage = () => {
     },
     {
       href: "/devices/deploy",
-      label: "Deploy a Device",
+      label: "Deploy Device",
       permission: PERMISSIONS.DEVICE.DEPLOY,
       showInPersonal: true,
       showInAirQoInternal: true,
@@ -36,7 +36,7 @@ const WelcomePage = () => {
     },
     {
       href: "/sites",
-      label: "Create a Site",
+      label: "Create Site",
       permission: PERMISSIONS.SITE.CREATE,
       showInPersonal: false,
       showInAirQoInternal: true,
@@ -55,17 +55,6 @@ const WelcomePage = () => {
   // Get all permissions at once - THIS HOOK MUST BE CALLED BEFORE CONDITIONAL RETURNS
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
-
-  // NOW WE CAN HAVE CONDITIONAL RETURNS
-  // Loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        <span className="ml-3 text-lg text-primary">Loading dashboard...</span>
-      </div>
-    );
-  }
 
   // Error state
   if (hasError) {
@@ -128,16 +117,25 @@ const WelcomePage = () => {
       <DashboardWelcomeBanner />
 
       {/* Context Header */}
-      <div className="mb-8 relative overflow-hidden md:p-16 rounded-lg mx-auto bg-[#E9F7EF] border-0 bg-gradient-to-r from-primary to-primary/80 text-white p-8">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
-            You&apos;re in{" "}
-            <span className="capitalize">{getContextTitle()}! 👋</span>
-          </h1>
-        </div>
-        <p className="mt-2 text-lg text-white/90 max-w-2xl">
-          {getContextDescription()}
-        </p>
+      <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-gradient-to-r from-primary to-primary/80 text-white p-8">
+        {isLoading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-3/4 bg-white/20" />
+            <Skeleton className="h-6 w-1/2 bg-white/20" />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
+                You&apos;re in{" "}
+                <span className="capitalize">{getContextTitle()}! 👋</span>
+              </h1>
+            </div>
+            <p className="mt-2 text-lg text-white/90 max-w-2xl">
+              {getContextDescription()}
+            </p>
+          </>
+        )}
       </div>
 
       {/* Stats Cards */}
@@ -146,41 +144,31 @@ const WelcomePage = () => {
       </div>
 
       {/* Quick Access Buttons */}
-      {actions.length > 0 && (
+      {(isLoading || actions.length > 0) && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
-            {actions.map((action) => {
-              const hasPermission = permissionsMap[action.permission];
-              const button = (
-                <Button
-                  key={action.href}
-                  variant="outline"
-                  className="w-full gap-2 p-3 border-primary text-primary text-sm font-semibold hover:bg-primary/10 hover:text-primary focus:ring-primary"
-                  disabled={!hasPermission}
-                  onClick={() => {
-                    if (hasPermission) router.push(action.href);
-                  }}
-                >
-                  <PlusSquare className="h-7 w-7 text-primary" />
-                  <span>{action.label}</span>
-                </Button>
-              );
-              if (hasPermission) {
-                return button;
-              } else {
-                return (
-                  <PermissionTooltip
-                    key={action.href}
-                    permission={action.permission}
-                  >
-                    <span className="inline-block w-auto" tabIndex={0}>
-                      {button}
-                    </span>
-                  </PermissionTooltip>
-                );
-              }
-            })}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
+            {isLoading
+              ? getContextActions().map((action) => (
+                  <Skeleton key={action.href} className="h-12 w-full" />
+                ))
+              : actions.map((action) => {
+                  const hasPermission = permissionsMap[action.permission];
+                  return (
+                    <ReusableButton
+                      key={action.href}
+                      variant="outlined"
+                      className="w-full"
+                      padding="p-3"
+                      disabled={!hasPermission}
+                      permission={action.permission}
+                      onClick={() => router.push(action.href)}
+                      Icon={PlusSquare}
+                    >
+                      {action.label}
+                    </ReusableButton>
+                  );
+                })}
           </div>
         </div>
       )}

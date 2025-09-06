@@ -1,8 +1,8 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useDeviceDetails } from "@/core/hooks/useDevices";
 import { Loader2 } from "lucide-react";
 import React from "react";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface DeviceDetailsCardProps {
   deviceId: string;
@@ -17,7 +17,7 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
     return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
   }
   if (error || !device) {
-    return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8 text-red-500">Error loading device details.</Card>;
+    return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8 text-sm text-center text-muted-foreground">Error loading device details.</Card>;
   }
 
   return (
@@ -34,9 +34,9 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
         </div>
       </div>
       <div className="border-t px-2 flex justify-end">
-        <Button variant="ghost" onClick={onShowDetailsModal} className="hover:bg-transparent">
+        <ReusableButton variant="text" className="p-1 text-xs m-1" onClick={onShowDetailsModal}>
           View more details
-        </Button>
+        </ReusableButton>
       </div>
     </Card>
   );

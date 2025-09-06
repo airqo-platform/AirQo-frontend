@@ -16,7 +16,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
       <div className="flex items-center justify-between px-3 py-2">
         <h2 className="text-lg font-semibold">Run Device Test</h2>
         <button
-          className="ml-2 p-2 rounded hover:bg-muted disabled:opacity-50"
+          className="ml-2 p-2 rounded-full hover:rounded-full hover:bg-muted disabled:opacity-50"
           onClick={() => statusFeed.refetch()}
           disabled={statusFeed.isFetching}
           aria-busy={statusFeed.isFetching}
@@ -30,7 +30,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
           <Loader2 className="w-6 h-6 animate-spin" />
         </div>
       ) : statusFeed.error ? (
-        <div className="text-red-500">{statusFeed.error.message || "Failed to load status."}</div>
+        <div className="p-6 text-sm text-center text-muted-foreground">{statusFeed.error.message || "Failed to load status."}</div>
       ) : statusFeed.data ? (
         <>
           <div className="text-sm text-muted-foreground mb-1 px-3 py-2">

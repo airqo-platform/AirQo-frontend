@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useDeviceDetails } from "@/core/hooks/useDevices";
-import { Button } from "@/components/ui/button";
-import { XCircle, ArrowLeft } from "lucide-react";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { XCircle } from "lucide-react";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { getElapsedDurationMapper } from "@/lib/utils";
@@ -20,6 +20,7 @@ import { Device } from "@/app/types/devices";
 import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
+import { AqArrowLeft, AqSignal02, AqTool01 } from "@airqo/icons-react";
 
 const ActionButtonsSkeleton = () => (
   <div className="flex gap-1">
@@ -73,10 +74,9 @@ export default function DeviceDetailsPage() {
   return (
     <div>
       <div className="flex gap-2 mb-6 justify-between items-center">
-        <Button variant="ghost" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4" />
-          Back to Devices
-        </Button>
+        <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
+          Back
+        </ReusableButton>
 
         {isLoading ? (
           <ActionButtonsSkeleton />
@@ -84,73 +84,78 @@ export default function DeviceDetailsPage() {
           <div className="flex gap-1">
             {deploymentStatus === "deployed" &&
               (canRecall ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-yellow-800 hover:bg-yellow-700"
+                <ReusableButton
+                  variant="filled"
+                  padding="px-3 py-1.5"
+                  className="bg-yellow-800 hover:bg-yellow-700 text-sm font-medium"
                   onClick={() => setShowRecallDialog(true)}
                 >
                   Recall Device
-                </Button>
+                </ReusableButton>
               ) : (
                 <PermissionTooltip permission={PERMISSIONS.DEVICE.RECALL}>
                   <span>
-                    <Button
-                      variant="default"
+                    <ReusableButton
+                      variant="filled"
                       disabled
-                      size="sm"
-                      className="bg-yellow-800 hover:bg-yellow-700 opacity-50"
+                      padding="px-3 py-1.5"
+                      className="bg-yellow-800 hover:bg-yellow-700 text-sm font-medium"
                     >
                       Recall Device
-                    </Button>
+                    </ReusableButton>
                   </span>
                 </PermissionTooltip>
               ))}
 
             {deploymentStatus !== "deployed" &&
               (canDeploy ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-green-900 hover:bg-green-700"
+                <ReusableButton
+                  variant="filled"
+                  padding="px-3 py-1.5"
+                  className="bg-green-900 hover:bg-green-700 text-sm font-medium"
                   onClick={() => setShowDeployModal(true)}
+                  Icon={AqSignal02}
                 >
                   Deploy Device
-                </Button>
+                </ReusableButton>
               ) : (
                 <PermissionTooltip permission={PERMISSIONS.DEVICE.DEPLOY}>
                   <span>
-                    <Button
-                      variant="default"
+                    <ReusableButton
+                      variant="filled"
                       disabled
-                      size="sm"
-                      className="bg-green-900 hover:bg-green-700 opacity-50"
+                      padding="px-3 py-1.5"
+                      className="bg-green-900 hover:bg-green-700 text-sm font-medium"
+                      Icon={AqSignal02}
                     >
                       Deploy Device
-                    </Button>
+                    </ReusableButton>
                   </span>
                 </PermissionTooltip>
               ))}
 
             {canAddLog ? (
-              <Button
-                variant="outline"
-                size="sm"
+              <ReusableButton
+                variant="outlined"
+                padding="px-3 py-1.5"
+                className="text-sm font-medium"
                 onClick={() => setShowMaintenanceLogModal(true)}
+                Icon={AqTool01}
               >
                 Add Maintenance Log
-              </Button>
+              </ReusableButton>
             ) : (
               <PermissionTooltip permission={PERMISSIONS.DEVICE.MAINTAIN}>
                 <span>
-                  <Button
-                    variant="outline"
+                  <ReusableButton
+                    variant="outlined"
                     disabled
-                    size="sm"
-                    className="opacity-50"
+                    padding="px-3 py-1.5"
+                    className="text-sm font-medium"
+                    Icon={AqTool01}
                   >
                     Add Maintenance Log
-                  </Button>
+                  </ReusableButton>
                 </span>
               </PermissionTooltip>
             )}
@@ -197,7 +202,6 @@ export default function DeviceDetailsPage() {
         <>
           <DeviceDetailsModal
             open={showDetailsModal}
-            onOpenChange={setShowDetailsModal}
             device={device}
             onClose={() => setShowDetailsModal(false)}
           />

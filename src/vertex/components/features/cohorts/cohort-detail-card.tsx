@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Copy, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { AqCopy01, AqEye } from "@airqo/icons-react";
 
 interface CohortDetailsCardProps {
   name: string;
@@ -42,27 +43,25 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
             >
               {id || "-"}
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hover:bg-transparent"
+            <ReusableButton
+              variant="text"
               onClick={() => {
                 if (id) {
                   navigator.clipboard.writeText(id);
                   toast.success("Cohort ID copied!");
                 }
               }}
-            >
-              <Copy className="w-4 h-4" />
-            </Button>
+              className="p-1"
+              Icon={AqCopy01}
+            />
           </div>
         </div>
       </div>
 
       <div className="border-t px-2 flex justify-end">
-        <Button variant="ghost" onClick={onShowDetailsModal} className="hover:bg-transparent">
+        <ReusableButton variant="text" onClick={onShowDetailsModal} Icon={AqEye} className="p-1 text-xs m-1">
           View more details
-        </Button>
+        </ReusableButton>
       </div>
     </Card>
   );

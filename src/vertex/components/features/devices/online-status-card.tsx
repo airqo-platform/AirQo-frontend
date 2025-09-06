@@ -21,7 +21,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
   }
   if (error || !device) {
     return (
-      <Card className="w-full rounded-lg overflow-hidden flex flex-col items-center p-8 text-red-500">
+      <Card className="w-full rounded-lg overflow-hidden flex flex-col items-center p-8 text-sm text-center text-muted-foreground">
         Error loading online status.
       </Card>
     );
@@ -54,7 +54,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
       <div className="border-t py-2 px-2">
         <div className="space-y-1">
           <div className="flex items-center justify-center text-xs text-muted-foreground gap-1">
-            Accuracy Rate is
+            Accuracy Score is
             <span>{successPercentage}%</span>
           </div>
           {lastUpdate && (

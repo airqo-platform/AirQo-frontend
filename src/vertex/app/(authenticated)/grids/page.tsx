@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { CreateGridForm } from "@/components/features/grids/create-grid";
 import { useGrids } from "@/core/hooks/useGrids";
 import { Grid } from "@/app/types/grids";
@@ -11,20 +10,14 @@ import ReusableTable, {
   TableItem,
 } from "@/components/shared/table/ReusableTable";
 import moment from "moment";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 type TableGrid = TableItem<unknown> & Grid;
 
+
 export default function GridsPage() {
   const router = useRouter();
-  const { grids, isLoading: isGridsLoading } = useGrids();
-
-  if (isGridsLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
+  const { grids, isLoading: isGridsLoading, error } = useGrids();
 
   const data: TableGrid[] = (grids || [])
   .filter((g: Grid): g is Grid & { _id: string } => typeof g._id === "string" && g._id.trim() !== "")
@@ -73,10 +66,10 @@ export default function GridsPage() {
 
   return (
     <RouteGuard permission="SITE_VIEW">
-      <div className="p-6">
+      <div>
         <div className="flex justify-between items-center mb-6">
           <div className="space-y-1">
-            <h1 className="text-2xl font-semibold">Grid Registry</h1>
+            <h1 className="text-2xl font-semibold">Grids</h1>
             <p className="text-sm text-muted-foreground">
               Manage and organize your monitoring grids
             </p>
@@ -94,6 +87,17 @@ export default function GridsPage() {
           pageSize={8}
           onRowClick={handleRowClick}
           searchableColumns={["name", "admin_level"]}
+          emptyState={
+            error ? (
+              <div className="flex flex-col items-center gap-2">
+                <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
+                <p className="text-muted-foreground">Unable to load grids</p>
+                <p className="text-sm text-muted-foreground">{error.message}</p>
+              </div>
+            ) : (
+              "No devices available"
+            )
+          }
         />
       </div>
     </RouteGuard>

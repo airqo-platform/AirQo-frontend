@@ -17,7 +17,7 @@ const DeviceMeasurementsApiCard: React.FC<DeviceMeasurementsApiCardProps> = ({ d
     return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
   }
   if (error || !device) {
-    return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8 text-red-500">Error loading device info.</Card>;
+    return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8 text-sm text-center text-muted-foreground">Error loading device info.</Card>;
   }
 
   return (

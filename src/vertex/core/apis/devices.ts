@@ -1,6 +1,5 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
-import { AxiosError } from "axios";
-import type { 
+import type {
   DevicesSummaryResponse,
   DeviceAvailabilityResponse,
   DeviceClaimRequest,
@@ -123,10 +122,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch devices summary"
-      );
+      throw error;
     }
   },
   getMapReadingsApi: async () => {
@@ -137,10 +133,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch events"
-      );
+      throw error;
     }
   },
 
@@ -152,10 +145,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch devices summary"
-      );
+      throw error;
     }
   },
 
@@ -164,15 +154,17 @@ export const devices = {
     const endDate = new Date().toISOString();
     const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const limit = 1;
-
-    const response = await jwtApiClient.get(
-      `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
-      { headers: { 'X-Auth-Type': 'JWT' } }
-    );
-    return response.data;
+    try {
+      const response = await jwtApiClient.get(
+        `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
 
-  // New API methods for device claiming and management
   checkDeviceAvailability: async (deviceName: string): Promise<DeviceAvailabilityResponse> => {
     try {
       const response = await jwtApiClient.get<DeviceAvailabilityResponse>(
@@ -181,10 +173,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to check device availability"
-      );
+      throw error;
     }
   },
 
@@ -197,27 +186,21 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to claim device"
-      );
+      throw error;
     }
   },
 
   getMyDevices: async (userId: string): Promise<MyDevicesResponse> => {
     try {
       const params = new URLSearchParams({ user_id: userId });
-      
+
       const response = await jwtApiClient.get<MyDevicesResponse>(
         `/devices/my-devices?${params.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch user devices"
-      );
+      throw error;
     }
   },
 
@@ -230,10 +213,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to assign device to organization"
-      );
+      throw error;
     }
   },
 
@@ -246,10 +226,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to unassign device from organization"
-      );
+      throw error;
     }
   },
 
@@ -261,10 +238,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch device details"
-      );
+      throw error;
     }
   },
 
@@ -276,10 +250,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch device status feed"
-      );
+      throw error;
     }
   },
 
@@ -296,7 +267,6 @@ export const devices = {
     user_id: string;
   }) => {
     try {
-      // Transform data to match expected API format
       const deploymentPayload = [{
         date: new Date().toISOString(),
         mountType: deviceData.mountType,
@@ -318,10 +288,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to deploy device"
-      );
+      throw error;
     }
   },
 
@@ -338,10 +305,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to recall device"
-      );
+      throw error;
     }
   },
 
@@ -359,10 +323,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to create device"
-      );
+      throw error;
     }
   },
 
@@ -384,10 +345,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to import device"
-      );
+      throw error;
     }
   },
 
@@ -402,10 +360,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to update device locally"
-      );
+      throw error;
     }
   },
 
@@ -420,10 +375,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to update device globally"
-      );
+      throw error;
     }
   },
 
@@ -436,10 +388,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to add maintenance log"
-      );
+      throw error;
     }
   },
 
@@ -457,10 +406,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch device maintenance logs"
-      );
+      throw error;
     }
   },
 
@@ -482,10 +428,7 @@ export const devices = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to update device group"
-      );
+      throw error;
     }
   },
 };

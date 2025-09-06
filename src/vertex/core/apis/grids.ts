@@ -1,10 +1,6 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
-import { AxiosError } from "axios";
 import { CreateGrid } from "@/app/types/grids";
 
-interface ErrorResponse {
-  message: string;
-}
 
 export const grids = {
   getGridsApi: async (networkId: string) => {
@@ -15,10 +11,7 @@ export const grids = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grids summary"
-      );
+      throw error;
     }
   },
   getGridDetailsApi: async (gridId: string) => {
@@ -29,15 +22,12 @@ export const grids = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grid details"
-      );
+      throw error;
     }
   },
   updateGridDetailsApi: async (
     gridId: string,
-    updatePayload: { name?: string; visibility?: boolean }
+    updatePayload: { name?: string; visibility?: boolean; admin_level?: string }
   ) => {
     try {
       const response = await createSecureApiClient().put(
@@ -47,10 +37,7 @@ export const grids = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to update grid details"
-      );
+      throw error;
     }
   },
   createGridApi: async (data: CreateGrid) => {
@@ -62,10 +49,7 @@ export const grids = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to create grid"
-      );
+      throw error;
     }
   },
 };

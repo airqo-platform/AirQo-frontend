@@ -1,10 +1,7 @@
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
 import React from "react";
 import DeployDeviceComponent from "./deploy-device-component";
 import { Device } from "@/app/types/devices";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 
 interface DeployDeviceModalProps {
   open: boolean;
@@ -18,18 +15,18 @@ const DeployDeviceModal: React.FC<DeployDeviceModalProps> = ({ open, onOpenChang
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-screen w-screen max-w-none max-h-none m-0 p-0 rounded-none">
-        <div className="h-full overflow-y-auto p-6">
-          <DeployDeviceComponent 
-            prefilledDevice={device} 
-            onClose={handleClose}
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ReusableDialog
+      isOpen={open}
+      onClose={handleClose}
+      title="Deploy device"
+      className="w-screen h-[90vh] max-w-none max-h-none m-0 p-0"
+      contentAreaClassName="p-6"
+      maxHeight="h-full"
+      showFooter={false}
+    >
+      <DeployDeviceComponent prefilledDevice={device} onClose={handleClose} />
+    </ReusableDialog>
   );
 };
 
 export default DeployDeviceModal;
-
