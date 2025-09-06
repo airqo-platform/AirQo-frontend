@@ -63,7 +63,7 @@ export default function CohortDetailsPage() {
   };
 
   return (
-    <RouteGuard permission="DEVICE_VIEW">
+    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div>
         <div className="flex">
           <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
