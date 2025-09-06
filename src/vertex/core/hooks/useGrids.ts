@@ -10,9 +10,13 @@ import {  setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
 import React from "react";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface ErrorResponse {
   message: string;
+  errors?: {
+    message: string;
+  };
 }
 
 // Hook to get the grid summary
@@ -67,46 +71,60 @@ export const useGridDetails = (gridId: string) => {
 // Hook to update grid details
 export const useUpdateGridDetails = (gridId: string) => {
   const queryClient = useQueryClient();
-  const mutation = useMutation({
+  const {
+    mutateAsync: updateGridDetails,
+    isPending: isLoading,
+    error,
+  } = useMutation<Grid, AxiosError<ErrorResponse>, { name?: string; visibility?: boolean }>({
     mutationFn: (updatedFields: { name?: string; visibility?: boolean }) =>
       grids.updateGridDetailsApi(gridId, updatedFields),
     onSuccess: () => {
-      // Invalidate and refetch the grid details
+      ReusableToast({
+        message: "Grid details updated successfully",
+        type: "SUCCESS",
+      });
       queryClient.invalidateQueries({ queryKey: ["gridDetails", gridId] });
+      queryClient.invalidateQueries({ queryKey: ["grids"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      console.error(
-        "Failed to update grid details:",
-        error.response?.data?.message
-      );
+      ReusableToast({
+        message: `Failed to update grid: ${error.response?.data?.message || error.message}`,
+        type: "ERROR",
+      });
     },
   });
 
   return {
-    updateGridDetails: mutation.mutateAsync,
-    isLoading: mutation.isPending,
-    error: mutation.error,
+    updateGridDetails,
+    isLoading,
+    error,
   };
 };
 
 // Hook to create a new grid
 export const useCreateGrid = () => {
   const queryClient = useQueryClient();
-  const mutation = useMutation({
+  const { mutate: createGrid, isPending: isLoading, error } = useMutation<Grid, AxiosError<ErrorResponse>, CreateGrid>({
     mutationFn: async (newGrid: CreateGrid) =>
       await grids.createGridApi(newGrid),
-    onSuccess: () => {
-      // Invalidate and refetch the grid summary after creating a new grid
+    onSuccess: (data) => {
+      ReusableToast({
+        message: `Grid '${data.name}' created successfully`,
+        type: "SUCCESS",
+      });
       queryClient.invalidateQueries({ queryKey: ["grids"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      console.error("Failed to create grid:", error.response?.data?.message);
+      ReusableToast({
+        message: `Failed to create grid: ${error.response?.data?.errors?.message || error.response?.data?.message || error.message}`,
+        type: "ERROR",
+      });
     },
   });
 
   return {
-    createGrid: mutation.mutateAsync,
-    isLoading: mutation.isPending,
-    error: mutation.error,
+    createGrid,
+    isLoading,
+    error,
   };
 };
