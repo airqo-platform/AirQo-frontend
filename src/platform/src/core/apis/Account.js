@@ -18,6 +18,7 @@ import {
   getGroupSlugUrl,
   COMBINED_USERS_URL,
   GROUP_ROLES_URL,
+  GROUP_ROLES_SUMMARY_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
 import { openApiMethods } from '../utils/openApiClient';
@@ -592,6 +593,19 @@ export const getAllPermissionsApi = () =>
         error.response?.data?.message || 'Failed to fetch permissions';
       throw new Error(errorMessage);
     });
+
+// Get roles summary for groups
+export const getGroupRolesSummaryApi = (groupId = null) => {
+  const params = groupId ? { group_id: groupId } : {};
+  return secureApiProxy
+    .get(GROUP_ROLES_SUMMARY_URL, { params, authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch group roles summary';
+      throw new Error(errorMessage);
+    });
+};
 
 // Get role details by ID
 export const getRoleDetailsApi = (roleId) => {

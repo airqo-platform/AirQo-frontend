@@ -16,11 +16,18 @@ import RuntimeErrorBoundary from '@/common/components/ErrorBoundary/RuntimeError
 
 // Import logger
 import logger from '@/lib/logger';
+import { usePermissions } from '@/core/HOC/authUtils';
+import PermissionDenied from '@/common/components/PermissionDenied';
+import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
 
 const UsersPageContent = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const { hasPermission, isLoading: permLoading } = usePermissions();
+  // Admin-level user management permission (no group id)
+  const canView = hasPermission('USER_MANAGEMENT', null);
 
   // Fetch users data
   useEffect(() => {
@@ -59,8 +66,15 @@ const UsersPageContent = () => {
       }
     };
 
+    // Only fetch when permissions have loaded and user can view
+    if (permLoading) return;
+    if (!canView) {
+      setUsers([]);
+      setLoading(false);
+      return;
+    }
     fetchUsers();
-  }, []);
+  }, [permLoading, canView]);
 
   // Table columns configuration
   const columns = useMemo(
@@ -233,6 +247,12 @@ const UsersPageContent = () => {
 
   // Note: table handles its own loading state; show header skeleton while data loads
   // Render header with loading skeleton if data is still loading
+
+  // Permission loading
+  if (permLoading) return <RolesPermissionsPageSkeleton />;
+
+  // Permission denied
+  if (!canView) return <PermissionDenied />;
 
   // Error state
   if (error) {

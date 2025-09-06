@@ -21,6 +21,8 @@ export const MAINTENANCE_STATUS_URL = `${AUTH_URL}/maintenances/analytics`;
 
 // Group roles URL
 export const GROUP_ROLES_URL = `${AUTH_URL}/roles`;
+// Group roles summary URL
+export const GROUP_ROLES_SUMMARY_URL = `${GROUP_ROLES_URL}/summary`;
 
 // Group slug management URL
 export const getGroupSlugUrl = (groupId) => `${GROUPS_URL}/${groupId}/slug`;
