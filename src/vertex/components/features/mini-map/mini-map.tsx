@@ -178,7 +178,7 @@ function MiniMap({
   return (
     <div className="space-y-4">
       
-      <div ref={mapContainerRef} className="w-full h-64 rounded-md shadow-md" />
+      <div ref={mapContainerRef} className="w-full h-72 rounded-md shadow-md" />
       
       {isGeocoding && (
         <div className="text-sm text-muted-foreground text-center">

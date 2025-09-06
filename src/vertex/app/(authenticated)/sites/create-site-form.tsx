@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -49,8 +50,10 @@ interface CreateSiteFormProps {
 
 export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const [inputMode, setInputMode] = useState<"siteName" | "coordinates">("siteName");
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const { getApproximateCoordinates, isPending: isOptimizing } = useApproximateCoordinates();
   const { mutate: createSite, isPending: isCreating } = useCreateSite();
 
@@ -74,11 +77,15 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
         {
           ...values,
           network: activeNetwork?.net_name || "",
+          group: activeGroup?.grp_title || "",
         },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             ReusableToast({ type: "SUCCESS", message: "Site created successfully" });
             handleClose();
+            if (data?.site?._id) {
+              router.push(`/sites/${data.site._id}`);
+            }
           },
           onError: (error) => {
             ReusableToast({
@@ -88,7 +95,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
           },
         }
       );
-    }, [createSite, activeNetwork, handleClose]);
+    }, [createSite, activeNetwork?.net_name, activeGroup?.grp_title, handleClose, router]);
 
   const handleCoordinateChange = useCallback((lat: string, lng: string) => {
     form.setValue("latitude", lat, { shouldValidate: true });
@@ -137,7 +144,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
         onClose={handleClose}
         title="Create Site"
         subtitle={`Network: ${activeNetwork?.net_name || "No active network"}`}
-        size="2xl"
+        size="4xl"
         primaryAction={{
           label: isCreating ? "Creating..." : "Create Site",
           onClick: form.handleSubmit(onSubmit),
@@ -153,9 +160,9 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-6">
-              <div className="space-y-4 rounded-lg border p-4">
+              <div>
                 <div className="flex justify-between items-center">
-                  <h3 className="font-medium">Location</h3>
+                  <h3 className="font-medium">Location Details</h3>
                   <ReusableButton
                     onClick={toggleInputMode}
                     variant="text"
@@ -197,7 +204,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
                       name="name"
                       render={({ field, fieldState: { error } }) => (
                         <ReusableInputField
-                          label="Custom Site Name"
+                          label="Site Name"
                           placeholder="Enter custom site name"
                           error={error?.message}
                           required
@@ -238,7 +245,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
 
                 <ReusableButton
                   type="button"
-                  className="text-sm p-1"
+                  className="text-sm p-1 mt-1"
                   variant="outlined"
                   onClick={handleOptimizeCoordinates}
                   disabled={!form.watch("latitude") || !form.watch("longitude") || isOptimizing}
@@ -249,7 +256,6 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
               </div>
 
               <div className="space-y-2">
-                <Label>Interactive Map</Label>
                 <p className="text-sm text-muted-foreground">
                   Click on the map to set location or drag the marker.
                 </p>
