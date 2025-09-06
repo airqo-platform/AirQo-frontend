@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
-import { QueryClient, useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
-import { AqChevronDown, AqChevronUp } from '@airqo/icons-react';
+import { AqChevronDown, AqChevronUp } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import {
   Card,
@@ -13,24 +13,18 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Device } from "@/app/types/devices";
-import { toast } from "sonner";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
-import MiniMap from "../mini-map/mini-map";
+const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
 
 interface MountTypeOption {
   value: string;
@@ -96,7 +90,7 @@ const powerTypeOptions: PowerTypeOption[] = [
 ];
 
 const fetchClaimedDevices = async () => {
-  const res = await fetch('/api/v2/devices/my-devices?claim_status=claimed');
+  const res = await fetch("/api/v2/devices/my-devices?claim_status=claimed");
   if (!res.ok) throw new Error('Failed to fetch devices');
   const data = await res.json();
   return data.devices || [];
@@ -114,81 +108,69 @@ const DeviceDetailsStep = ({
 }: DeviceDetailsStepProps) => {
   return (
     <div className="space-y-4">
-        <div className="grid gap-2">
-          <Label htmlFor="deviceName">Device to Deploy</Label>
-          <ComboBox
-            options={availableDevices.map((dev) => ({
-              value: dev.long_name || dev.name,
-              label: dev.long_name || dev.name
-            }))}
-            value={deviceData.deviceName}
-            onValueChange={onDeviceSelect}
-            placeholder={isLoadingDevices ? 'Loading devices...' : 'Select or type device name'}
-            searchPlaceholder="Search or type device name..."
-            emptyMessage="No devices found"
-            disabled={isLoadingDevices}
-            allowCustomInput={true}
-            onCustomAction={onClaimDevice}
-            customActionLabel="Device not listed? Claim a new device"
-            className="w-full"
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="height">Height (meters)</Label>
-          <Input
-            id="height"
-            name="height"
-            type="number"
-            placeholder="Enter height"
-            value={deviceData.height}
-            onChange={onInputChange}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="mountType">Mount Type</Label>
-          <Select
-            onValueChange={onSelectChange("mountType")}
-            value={deviceData.mountType}
-          >
-            <SelectTrigger id="mountType">
-              <SelectValue placeholder="Select mount type" />
-            </SelectTrigger>
-            <SelectContent>
-              {mountTypeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="powerType">Power Type</Label>
-          <Select
-            onValueChange={onSelectChange("powerType")}
-            value={deviceData.powerType}
-          >
-            <SelectTrigger id="powerType">
-              <SelectValue placeholder="Select power type" />
-            </SelectTrigger>
-            <SelectContent>
-              {powerTypeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="primarySite"
-            checked={deviceData.isPrimarySite}
-            onCheckedChange={onCheckboxChange}
-          />
-          <Label htmlFor="primarySite">Primary Site</Label>
-        </div>
+      <div className="grid gap-2">
+        <Label htmlFor="deviceName">Device to Deploy</Label>
+        <ComboBox
+          options={availableDevices.map((dev) => ({
+            value: dev.long_name || dev.name,
+            label: dev.long_name || dev.name,
+          }))}
+          value={deviceData.deviceName}
+          onValueChange={onDeviceSelect}
+          placeholder={isLoadingDevices ? "Loading devices..." : "Select or type device name"}
+          searchPlaceholder="Search or type device name..."
+          emptyMessage="No devices found"
+          disabled={isLoadingDevices}
+          allowCustomInput={true}
+          onCustomAction={onClaimDevice}
+          customActionLabel="Device not listed? Claim a new device"
+          className="w-full"
+        />
       </div>
+      <ReusableInputField
+        label="Height (meters)"
+        id="height"
+        name="height"
+        type="number"
+        placeholder="Enter height"
+        value={deviceData.height}
+        onChange={onInputChange}
+      />
+      <ReusableSelectInput
+        label="Mount Type"
+        id="mountType"
+        value={deviceData.mountType}
+        onChange={(e) => onSelectChange("mountType")(e.target.value)}
+        placeholder="Select mount type"
+      >
+        {mountTypeOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </ReusableSelectInput>
+      <ReusableSelectInput
+        label="Power Type"
+        id="powerType"
+        value={deviceData.powerType}
+        onChange={(e) => onSelectChange("powerType")(e.target.value)}
+        placeholder="Select power type"
+      >
+        {powerTypeOptions.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </ReusableSelectInput>
+      <div className="flex items-center space-x-2 pt-2">
+        <Checkbox
+          id="primarySite"
+          checked={deviceData.isPrimarySite}
+          onCheckedChange={onCheckboxChange}
+        />
+        <Label htmlFor="primarySite">Primary Site</Label>
+      </div>
+    </div>
   );
 };
 
@@ -199,6 +181,7 @@ const LocationStep = ({
   inputMode, 
   onToggleInputMode 
 }: LocationStepProps) => {
+  
   return (
     <div>
       <div className="space-y-4">
@@ -232,40 +215,32 @@ const LocationStep = ({
         ) : (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="latitude">Latitude</Label>
-                <Input
-                  id="latitude"
-                  name="latitude"
-                  placeholder="Enter latitude"
-                  value={deviceData.latitude}
-                  onChange={(e) => onCoordinateChange(e.target.value, deviceData.longitude)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="longitude">Longitude</Label>
-                <Input
-                  id="longitude"
-                  name="longitude"
-                  placeholder="Enter longitude"
-                  value={deviceData.longitude}
-                  onChange={(e) => onCoordinateChange(deviceData.latitude, e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="customSiteName">Custom Site Name</Label>
-              <Input
-                id="customSiteName"
-                name="customSiteName"
-                placeholder="Enter custom site name"
-                value={deviceData.siteName}
-                onChange={(e) => onSiteNameChange(e.target.value)}
+              <ReusableInputField
+                label="Latitude"
+                id="latitude"
+                name="latitude"
+                placeholder="Enter latitude"
+                value={deviceData.latitude}
+                onChange={(e) => onCoordinateChange(e.target.value, deviceData.longitude)}
               />
-              <p className="text-xs text-muted-foreground">
-                Enter a custom name for this site location. This will be used as a fallback if the map cannot determine a location name automatically.
-              </p>
+              <ReusableInputField
+                label="Longitude"
+                id="longitude"
+                name="longitude"
+                placeholder="Enter longitude"
+                value={deviceData.longitude}
+                onChange={(e) => onCoordinateChange(deviceData.latitude, e.target.value)}
+              />
             </div>
+            <ReusableInputField
+              label="Custom Site Name"
+              id="customSiteName"
+              name="customSiteName"
+              placeholder="Enter custom site name"
+              value={deviceData.siteName}
+              onChange={(e) => onSiteNameChange(e.target.value)}
+              description="Enter a custom name for this site location. This will be used as a fallback if the map cannot determine a location name automatically."
+            />
           </div>
         )}
       </div>
@@ -279,14 +254,16 @@ const LocationStep = ({
             ? ' You can also search for locations by name.' 
             : ' Switch to Site Name mode to search by location name.'}
         </p>
-        <MiniMap
-          latitude={deviceData.latitude}
-          longitude={deviceData.longitude}
-          onCoordinateChange={onCoordinateChange}
-          onSiteNameChange={onSiteNameChange}
-          inputMode={inputMode}
-          customSiteName={inputMode === 'coordinates' ? deviceData.siteName : undefined}
-        />
+        <React.Suspense fallback={<div className="w-full h-72 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse" />}>
+          <MiniMap
+            latitude={deviceData.latitude}
+            longitude={deviceData.longitude}
+            onCoordinateChange={onCoordinateChange}
+            onSiteNameChange={onSiteNameChange}
+            inputMode={inputMode}
+            customSiteName={inputMode === 'coordinates' ? deviceData.siteName : undefined}
+          />
+        </React.Suspense>
       </div>
     </div>
   );
@@ -319,8 +296,6 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
     </Collapsible>
   </Card>
 );
-
-const queryClient = new QueryClient();
 
 const DeployDeviceComponent = ({ 
   prefilledDevice, 
@@ -416,8 +391,9 @@ const DeployDeviceComponent = ({
 
   const handleNext = (): void => {
     if (currentStep === 0 && !validateDeviceDetails()) {
-      toast.error("Incomplete Details", {
-        description: "Please fill in all required device details.",
+      ReusableToast({
+        type: "ERROR",
+        message: "Incomplete Details: Please fill in all required device details.",
       });
       return;
     }
@@ -443,14 +419,17 @@ const DeployDeviceComponent = ({
 
   const deployDevice = useDeployDevice();
 
-  const handleDeploy = async (): Promise<void> => {
+  const handleDeploy = (): void => {
     if (!userDetails?._id) {
-      toast.error("User information not available. Please reload the page.");
+      ReusableToast({
+        type: "ERROR",
+        message: "User information not available. Please reload the page.",
+      });
       return;
     }
 
-    try {
-      await deployDevice.mutateAsync({
+    deployDevice.mutate(
+      {
         deviceName: deviceData.deviceName,
         height: deviceData.height,
         mountType: deviceData.mountType,
@@ -461,46 +440,33 @@ const DeployDeviceComponent = ({
         site_name: deviceData.siteName || `${deviceData.deviceName} Site`,
         network: activeNetwork?.net_name || "airqo",
         user_id: userDetails._id,
-      });
+      },
+      {
+        onSuccess: () => {
+          // On successful deployment, reset form fields
+          setDeviceData({
+            deviceName: "",
+            height: "",
+            mountType: "",
+            powerType: "",
+            isPrimarySite: false,
+            latitude: "",
+            longitude: "",
+            siteName: "",
+            network: activeNetwork?.net_name || "-",
+          });
 
-      toast("Deployment Successful", {
-        description: "Device has been successfully deployed.",
-      });
+          setCurrentStep(0);
+          setInputMode("siteName");
 
-      // Invalidate device queries
-      await queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice?._id] });
-
-      // On successful deployment, reset form fields
-      setDeviceData({
-        deviceName: "",
-        height: "",
-        mountType: "",
-        powerType: "",
-        isPrimarySite: false,
-        latitude: "",
-        longitude: "",
-        siteName: "",
-        network: activeNetwork?.net_name || "-",
-      });
-
-      setCurrentStep(0);
-      setInputMode('siteName');
-
-      // Call success callback if provided
-      onDeploymentSuccess?.();
-      
-      // Close modal if in modal context
-      if (onClose) {
-        onClose();
+          onDeploymentSuccess?.();
+          if (onClose) onClose();
+        },
+        onError: (error) => {
+          onDeploymentError?.(error instanceof Error ? error : new Error("Unknown error"));
+        },
       }
-      
-    } catch (error) {
-      toast.error("Deployment Failed", {
-        description: "An error occurred while deploying the device. Please try again.",
-      });
-      // Call error callback if provided
-      onDeploymentError?.(error instanceof Error ? error : new Error('Unknown error'));
-    }
+    );
   };
 
   // Update handleSectionClick to toggle open/close

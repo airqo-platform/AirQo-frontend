@@ -44,10 +44,11 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   ...props
 }) => {
   const Component = props.as === "textarea" ? "textarea" : "input"
-  const { as, ...inputProps } = props
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { as: _, ...inputProps } = props
 
   const handleCopy = () => {
-    const valueToCopy = (inputProps as any).value
+    const valueToCopy = (inputProps as { value?: string | number }).value
     if (valueToCopy) {
       navigator.clipboard.writeText(String(valueToCopy))
       toast.success("Copied to clipboard")
@@ -86,7 +87,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
           }
           disabled={disabled || readOnly}
           required={required}
-          {...(inputProps as any)}
+          {...(inputProps as React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
         />
         {canShowCopyButton && (
           <button
