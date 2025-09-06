@@ -181,6 +181,7 @@ export function AssignCohortDevicesDialog({
                       emptyMessage="No cohorts found"
                       disabled={!!cohortId}
                       className="w-full"
+                      allowCustomInput={false}
                       customActionLabel="Create New Cohort"
                       customActionIcon={AqPlus}
                       onCustomAction={handleCreateCohortAction}
