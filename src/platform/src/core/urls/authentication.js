@@ -9,6 +9,7 @@ export const USER_DEFAULTS_URL = `${AUTH_URL}/defaults`;
 export const VERIFY_USER_URL = `${AUTH_URL}/verify`;
 export const USER_PREFERENCES_URL = `${AUTH_URL}/preferences`;
 export const USER_CHECKLISTS_URL = `${AUTH_URL}/checklist`;
+export const COMBINED_USERS_URL = `${AUTH_URL}/combined`;
 export const USER_CHECKLISTS_UPSERT_URL = `${AUTH_URL}/checklist/upsert`;
 export const FORGOT_PWD_URL = `${AUTH_URL}/forgotPassword`;
 export const RESET_PWD_URL = `${AUTH_URL}/updatePasswordViaEmail`;

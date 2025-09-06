@@ -16,6 +16,7 @@ import {
   getUserThemeUrl,
   updateUserThemeUrl,
   getGroupSlugUrl,
+  COMBINED_USERS_URL,
   GROUP_ROLES_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
@@ -33,6 +34,17 @@ export const getUsersAnalyticsApi = () =>
   secureApiProxy
     .get(`${USERS_URL}/stats`, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data);
+
+// Get combined users (all users across the system)
+export const getCombinedUsersApi = () =>
+  secureApiProxy
+    .get(COMBINED_USERS_URL, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch combined users';
+      throw new Error(errorMessage);
+    });
 
 // Password Management
 export const forgotPasswordApi = (data) =>

@@ -8,6 +8,7 @@ import {
   rejectOrganisationRequestApi,
 } from '@/core/apis/Account';
 import logger from '@/lib/logger';
+import { PageHeader } from '@/common/components/Header';
 import CustomToast from '@/components/Toast/CustomToast';
 import ReusableTable from '@/common/components/Table';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
@@ -384,7 +385,11 @@ export default function OrgRequestsPage() {
   );
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-5">
+      <PageHeader
+        title="Organization Requests"
+        subtitle="Manage organization join requests"
+      />
       <SettingsTabNavigation
         tabs={tabs}
         activeTab={activeTab}
