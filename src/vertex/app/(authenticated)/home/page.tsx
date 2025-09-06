@@ -128,7 +128,7 @@ const WelcomePage = () => {
       <DashboardWelcomeBanner />
 
       {/* Context Header */}
-      <div className="mb-8 relative overflow-hidden md:p-16 rounded-lg mx-auto bg-[#E9F7EF] border-0 bg-gradient-to-r from-primary to-primary/80 text-white p-8">
+      <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-[#E9F7EF] border-0 bg-gradient-to-r from-primary to-primary/80 text-white p-8">
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
             You&apos;re in{" "}

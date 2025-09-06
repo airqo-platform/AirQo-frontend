@@ -15,6 +15,7 @@ import type {
   DeviceCreationResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
+  MyDevicesResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
@@ -68,6 +69,17 @@ export const useDevices = () => {
     isLoading: devicesQuery.isLoading,
     error: devicesQuery.error,
   };
+};
+
+export const useMyDevices = (userId: string, organizationId?: string) => {
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  
+  return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["myDevices", userId, organizationId || activeGroup?._id],
+    queryFn: () => devices.getMyDevices(userId),
+    enabled: !!userId,
+    staleTime: 60000, // 1 minute
+  });
 };
 
 export function useDeviceStatus() {
