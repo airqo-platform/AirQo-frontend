@@ -14,13 +14,22 @@ import { Site } from "@/app/types/sites";
 const siteFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   description: z.string().optional(),
-  latitude: z.string().refine((val) => !isNaN(parseFloat(val)), { message: "Please enter a valid latitude" }),
-  longitude: z.string().refine((val) => !isNaN(parseFloat(val)), { message: "Please enter a valid longitude" }),
+  latitude: z.string().refine((val) => {
+    const n = Number(val);
+    return Number.isFinite(n) && n >= -90 && n <= 90;
+  }, { message: "Latitude must be between -90 and 90." }),
+  longitude: z.string().refine((val) => {
+    const n = Number(val);
+    return Number.isFinite(n) && n >= -180 && n <= 180;
+  }, { message: "Longitude must be between -180 and 180." }),
   parish: z.string().optional(),
   subCounty: z.string().optional(),
   district: z.string().optional(),
   region: z.string().optional(),
-  altitude: z.string().optional(),
+  altitude: z.string().optional().refine((val) => {
+    if (val === undefined || val === "") return true;
+    return Number.isFinite(Number(val));
+  }, { message: "Please enter a valid altitude" }),
   search_name: z.string().optional(),
   location_name: z.string().optional(),
 });
