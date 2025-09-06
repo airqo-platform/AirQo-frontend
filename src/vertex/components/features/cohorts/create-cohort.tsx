@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import { Input } from "@/components/ui/input";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { useDevices } from "@/core/hooks/useDevices";
 import { useCreateCohortWithDevices } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import type { Device } from "@/app/types/devices";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 
 interface CreateCohortDialogProps {
   open: boolean;
@@ -123,24 +123,19 @@ export function CreateCohortDialog({
       }}
     >
       <div className="space-y-4">
-        <div className="space-y-2">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Cohort name
-          </label>
-          <Input
-            placeholder="Cohort name"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              if (errors.name && e.target.value.length >= 2) {
-                setErrors(prev => ({ ...prev, name: "" }));
-              }
-            }}
-          />
-          {errors.name && (
-            <p className="text-sm font-medium text-destructive">{errors.name}</p>
-          )}
-        </div>
+        <ReusableInputField
+          label="Cohort name"
+          placeholder="Cohort name"
+          value={name}
+          onChange={(e) => {
+            setName(e.target.value);
+            if (errors.name && e.target.value.length >= 2) {
+              setErrors((prev) => ({ ...prev, name: "" }));
+            }
+          }}
+          error={errors.name}
+          required
+        />
 
         <div className="space-y-2">
           <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
