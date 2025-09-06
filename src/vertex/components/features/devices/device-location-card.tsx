@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { Device } from "@/app/types/devices";
@@ -9,6 +8,7 @@ interface DeviceLocationCardProps {
 }
 
 export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
+  console.log(device)
   const router = useRouter();
 
   const toNumberOrNull = (v: unknown) => {
@@ -38,7 +38,10 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
             Site
           </div>
           <div className="text-base font-normal break-all">
-              {device.description || 'N/A'}
+              {device?.site ? 
+                (Array.isArray(device.site) ? device.site[0]?.name : device.site.name) || 
+                (Array.isArray(device.site) ? device.site[0]?.description : device.site.description) || 
+                (Array.isArray(device.site) ? device.site[0]?.location_name : device.site.location_name) || "N/A" : "N/A"}
             </div>
         </div>
 

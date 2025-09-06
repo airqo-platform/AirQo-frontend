@@ -23,6 +23,8 @@ export interface DeviceSite {
     waterway: string;
   };
   groups: string[];
+  description?: string;
+  createdAt?: string;
 }
 
 export interface DeviceGrid {
@@ -72,7 +74,7 @@ export interface Device {
   generation_count?: number | undefined | string;
   previous_sites?: string[];
   grids?: DeviceGrid[];
-  site?: DeviceSite;
+  site?: DeviceSite[] | DeviceSite;
   status?: "not deployed" | "deployed" | "recalled" | "online" | "offline";
   maintenance_status?: "good" | "due" | "overdue" | -1;
   powerType?: "solar" | "alternator" | "mains";
