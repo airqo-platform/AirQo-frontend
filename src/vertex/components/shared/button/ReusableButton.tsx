@@ -96,18 +96,25 @@ const ReusableButton = React.forwardRef<HTMLButtonElement | HTMLAnchorElement, R
 
     if ("path" in rest) {
       const { path, ...anchorProps } = rest as AnchorNativeProps
-      const anchorButton = (
-        <a
-          ref={ref as React.Ref<HTMLAnchorElement>}
+      const anchorButton = (disabled || loading) ? (
+        <span
+          ref={ref as React.Ref<HTMLSpanElement>}
+          className={btnClass}
+          data-testid={dataTestId}
+          aria-disabled="true"
+        >
+          {ButtonContent}
+        </span>
+      ) : (
+        <a ref={ref as React.Ref<HTMLAnchorElement>}
           href={path}
           className={btnClass}
           data-testid={dataTestId}
-          aria-disabled={disabled}
-          {...anchorProps}
-        >
-          {ButtonContent}
-        </a>
+          aria-disabled={false}
+          {...anchorProps}>
+          {ButtonContent}</a>
       )
+
       if (disabled && permission) {
         return <PermissionTooltip permission={permission}><span>{anchorButton}</span></PermissionTooltip>
       }
