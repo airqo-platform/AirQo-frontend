@@ -80,10 +80,7 @@ export default function SiteDetailsPage() {
           </div>
           <div className="mt-6">
             <DevicesTable
-              devices={site.devices?.map(device => ({
-                ...device,
-                status: device.status as "not deployed" | "deployed" | "recalled" | "online" | "offline" | undefined
-              })) || []}
+              devices={site.devices || []}
               isLoading={isLoading}
               error={error}
               multiSelect={true}
