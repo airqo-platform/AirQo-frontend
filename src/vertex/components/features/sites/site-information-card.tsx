@@ -46,7 +46,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }
           <DetailItem label="District" value={site.district} />
           <DetailItem label="Region" value={site.region} />
           <DetailItem label="Altitude" value={`${site.altitude} m`} />
-          <DetailItem label="Nearest Road" value={site.distance_to_nearest_road ? `${site.distance_to_nearest_road.toFixed(2)} m` : "N/A"} />
+          <DetailItem label="Nearest Road" value={site.distance_to_nearest_road != null ? `${site.distance_to_nearest_road.toFixed(2)} m` : "N/A"} />
           <div>
             <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Status</div>
             <div className="text-base font-normal">
