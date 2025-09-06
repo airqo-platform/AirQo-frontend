@@ -9,7 +9,6 @@ import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { useAppSelector } from "@/core/redux/hooks";
 import "leaflet/dist/leaflet.css";
 import { useApproximateCoordinates, useCreateSite } from "@/core/hooks/useSites";
@@ -81,17 +80,10 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
         },
         {
           onSuccess: (data) => {
-            ReusableToast({ type: "SUCCESS", message: "Site created successfully" });
             handleClose();
             if (data?.site?._id) {
               router.push(`/sites/${data.site._id}`);
             }
-          },
-          onError: (error) => {
-            ReusableToast({
-              type: "ERROR",
-              message: error instanceof Error ? error.message : "An error occurred while creating the site.",
-            });
           },
         }
       );
@@ -117,13 +109,6 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
             const { approximate_latitude, approximate_longitude } = data.approximate_coordinates;
             form.setValue("latitude", approximate_latitude.toString());
             form.setValue("longitude", approximate_longitude.toString());
-            ReusableToast({ type: "SUCCESS", message: "Coordinates optimized successfully." });
-          },
-          onError: (error) => {
-            ReusableToast({
-              type: "ERROR",
-              message: error instanceof Error ? error.message : "Failed to optimize coordinates.",
-            });
           },
         }
       );

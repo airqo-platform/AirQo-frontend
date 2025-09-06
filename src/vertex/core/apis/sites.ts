@@ -53,10 +53,7 @@ export const sites = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch sites summary"
-      );
+      throw error;
     }
   },
   getSitesApi: async (networkId: string) => {
@@ -67,10 +64,7 @@ export const sites = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch sites summary"
-      );
+      throw error;
     }
   },
   createSite: async (data: {
@@ -85,10 +79,7 @@ export const sites = {
       });
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to create site"
-      );
+      throw error;
     }
   },
 
@@ -104,11 +95,7 @@ export const sites = {
         );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message ||
-          "Failed to get approximate coordinates"
-      );
+      throw error;
     }
   },
 
@@ -120,10 +107,7 @@ export const sites = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch site details"
-      );
+      throw error;
     }
   },
 
@@ -139,10 +123,7 @@ export const sites = {
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to update site details"
-      );
+      throw error;
     }
   },
 };
