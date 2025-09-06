@@ -101,10 +101,7 @@ export default function LoginPage() {
               />
               <ReusableButton type="submit" className="max-w-xs w-full mx-auto" disabled={isLoading} loading={isLoading} variant="filled">
                 {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Logging in...
-                  </>
+                  "Logging in..."
                 ) : (
                   "Login"
                 )}
