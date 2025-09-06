@@ -70,7 +70,7 @@ export default function CohortDetailsPage() {
       disabled={!canUpdateDevice}
       Icon={AqPlus}
     >
-      Choose Devices
+      Add Devices
     </ReusableButton>
   );
 

@@ -142,12 +142,12 @@ export function AssignCohortDevicesDialog({
       <ReusableDialog
         isOpen={open}
         onClose={() => handleOpenChange(false)}
-        title="Assign devices to cohort"
+        title="Add devices to cohort"
         subtitle={`${selectedDevices.length} device(s) selected`}
         size="lg"
         maxHeight="max-h-[70vh]"
         primaryAction={{
-          label: "Assign",
+          label: "Add",
           onClick: form.handleSubmit(onSubmit),
           disabled: !form.watch("cohortId") || !form.watch("devices")?.length || isAssigning,
         }}
