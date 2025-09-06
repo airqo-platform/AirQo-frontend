@@ -328,8 +328,16 @@ export const useCreateDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      const errorMessage = error.response?.data?.errors?.message || "Failed to create device";
+    onError: (error: unknown) => {
+      let errorMessage = "Failed to create device";
+      if (error instanceof AxiosError && error.response?.data) {
+        errorMessage =
+          error.response.data.errors?.message ||
+          error.response.data.message ||
+          error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
       toast.error("Creation Failed", {
         description: errorMessage,
       });
@@ -365,10 +373,17 @@ export const useImportDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error("Import Failed", {
-        description: error.message,
-      });
+    onError: (error: unknown) => {
+      let errorMessage = "Failed to import device";
+      if (error instanceof AxiosError && error.response?.data) {
+        errorMessage =
+          error.response.data.errors?.message ||
+          error.response.data.message ||
+          error.message;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error("Import Failed", { description: errorMessage });
     },
   });
 }
@@ -399,9 +414,11 @@ export const useDeployDevice = () => {
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error("Deployment Failed", {
-        description: error.message,
-      });
+      const errorMessage =
+        error.response?.data?.errors?.message ||
+        error.response?.data?.message ||
+        "Failed to deploy device";
+      toast.error("Deployment Failed", { description: errorMessage });
     },
   });
 }
@@ -427,9 +444,11 @@ export const useRecallDevice = () => {
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error("Recall Failed", {
-        description: error.message,
-      });
+      const errorMessage =
+        error.response?.data?.errors?.message ||
+        error.response?.data?.message ||
+        "Failed to recall device";
+      toast.error("Recall Failed", { description: errorMessage });
     },
   });
 }
@@ -451,9 +470,11 @@ export const useAddMaintenanceLog = () => {
       queryClient.invalidateQueries({ queryKey: ["deviceStatus"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error("Failed to Add Maintenance Log", {
-        description: error.message,
-      });
+      const errorMessage =
+        error.response?.data?.errors?.message ||
+        error.response?.data?.message ||
+        "Failed to add maintenance log";
+      toast.error("Failed to Add Maintenance Log", { description: errorMessage });
     },
   });
 };

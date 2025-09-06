@@ -1,27 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { useCreateDevice } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 
 interface CreateDeviceModalProps {
   open: boolean;
@@ -57,9 +42,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     if (!validateForm()) {
       return;
     }
@@ -117,96 +100,66 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Create New Device</DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {errors.general && (
-            <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-              {errors.general}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="long_name">
-              Device Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="long_name"
-              value={formData.long_name}
-              onChange={(e) => handleInputChange("long_name", e.target.value)}
-              placeholder="Enter device name"
-              className={errors.long_name ? "border-red-500" : ""}
-            />
-            {errors.long_name && (
-              <p className="text-sm text-red-600">{errors.long_name}</p>
-            )}
+    <ReusableDialog
+      isOpen={open}
+      onClose={handleClose}
+      title="Add AirQo Device"
+      subtitle={`Network: ${activeNetwork?.net_name}`}
+      size="md"
+      primaryAction={{
+        label: createDevice.isPending ? "Adding..." : "Add Device",
+        onClick: handleSubmit,
+        disabled: createDevice.isPending,
+        className: "min-w-[100px]",
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: handleClose,
+        disabled: createDevice.isPending,
+        variant: "outline",
+      }}
+    >
+      <div className="space-y-4">
+        {errors.general && (
+          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+            {errors.general}
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category">
-              Category <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) => handleInputChange("category", value)}
-            >
-              <SelectTrigger className={errors.category ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select device category" />
-              </SelectTrigger>
-              <SelectContent>
-                {DEVICE_CATEGORIES.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.category && (
-              <p className="text-sm text-red-600">{errors.category}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter device description"
-              rows={3}
-            />
-          </div>
-
-          <div className="text-sm text-gray-600">
-            <p>
-              <strong>Network:</strong> {activeNetwork?.net_name || "No active network"}
-            </p>
-          </div>
-        </form>
-
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleClose}
-            disabled={createDevice.isPending}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSubmit}
-            disabled={createDevice.isPending}
-            className="min-w-[100px]"
-          >
-            {createDevice.isPending ? "Creating..." : "Create Device"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        )}
+        <ReusableInputField
+          label="Device Name"
+          id="long_name"
+          value={formData.long_name}
+          onChange={(e) => handleInputChange("long_name", e.target.value)}
+          placeholder="Enter device name"
+          error={errors.long_name}
+          required
+        />
+        <ReusableSelectInput
+          label="Category"
+          id="category"
+          value={formData.category}
+          onChange={(e) => handleInputChange("category", e.target.value)}
+          placeholder="Select device category"
+          error={errors.category}
+          required
+        >
+          {DEVICE_CATEGORIES.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
+            </option>
+          ))}
+        </ReusableSelectInput>
+        <ReusableInputField
+          as="textarea"
+          label="Description (Optional)"
+          id="description"
+          value={formData.description}
+          onChange={(e) => handleInputChange("description", e.target.value)}
+          placeholder="Enter device description"
+          rows={3}
+        />
+      </div>
+    </ReusableDialog>
   );
 };
 
