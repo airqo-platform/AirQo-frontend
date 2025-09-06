@@ -94,7 +94,7 @@ export const cohorts = {
       return response.data as {
         success: boolean;
         message: string;
-        cohort: Cohort & { _id: string };
+        data: Cohort & { _id: string };
       };
     } catch (error: unknown) {
       const axiosError = error as AxiosError<{ message?: string }>;

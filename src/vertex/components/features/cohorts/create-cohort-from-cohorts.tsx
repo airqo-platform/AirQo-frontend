@@ -11,6 +11,7 @@ interface CreateCohortFromSelectionDialogProps {
   onOpenChange: (open: boolean) => void;
   selectedCohortIds: string[];
   onSuccess?: () => void;
+  andNavigate?: boolean;
 }
 
 export function CreateCohortFromSelectionDialog({
@@ -18,6 +19,7 @@ export function CreateCohortFromSelectionDialog({
   onOpenChange,
   selectedCohortIds,
   onSuccess,
+  andNavigate = true,
 }: CreateCohortFromSelectionDialogProps) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -53,9 +55,10 @@ export function CreateCohortFromSelectionDialog({
       {
         onSuccess: (response) => {
           onSuccess?.();
-          handleClose();
-          if (response?.cohort?._id) {
-            router.push(`/cohorts/${response.cohort._id}`);
+          if (andNavigate && response?.data?._id) {
+            router.push(`/cohorts/${response.data._id}`);
+          } else {
+            handleClose();
           }
         },
       }

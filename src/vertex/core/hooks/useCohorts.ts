@@ -4,8 +4,8 @@ import { cohorts as cohortsApi } from "../apis/cohorts";
 import { setCohorts, setError } from "../redux/slices/cohortsSlice";
 import { useAppSelector } from "../redux/hooks";
 import React from "react";
-import { toast } from "sonner";
 import { AxiosError } from "axios";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface ErrorResponse {
   message: string;
@@ -61,14 +61,18 @@ export const useUpdateCohortDetails = () => {
   return useMutation({
     mutationFn: ({ cohortId, data }: { cohortId: string; data: Partial<{ name: string; visibility: boolean }> }) =>
       cohortsApi.updateCohortDetailsApi(cohortId, data),
-    onSuccess: (_data, variables) => {
-      toast("Cohort Details Updated Successfully!");
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: "Cohort details updated successfully",
+        type: "SUCCESS",
+      });
       queryClient.invalidateQueries({ queryKey: ["cohort-details", variables.cohortId] });
       queryClient.invalidateQueries({ queryKey: ["cohorts"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error("Update Failed", {
-        description: error.response?.data?.message || "Failed to update cohort details",
+      ReusableToast({
+        message: `Failed to update cohort: ${error.response?.data?.message || "An error occurred"}`,
+        type: "ERROR",
       });
     }
   });
@@ -88,15 +92,19 @@ export const useCreateCohortWithDevices = () => {
       }
       return createResp;
     },
-    onSuccess: (_resp, variables) => {
-      toast("Cohort created", {
-        description: `${variables.name} created${variables.deviceIds?.length ? " and devices assigned" : ""}.`,
+    onSuccess: (resp, variables) => {
+      ReusableToast({
+        message: `${variables.name} created${variables.deviceIds?.length ? " and devices assigned" : ""}.`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
     },
     onError: (error: AxiosError<ErrorResponse> | Error) => {
       const message = (error as AxiosError<ErrorResponse>)?.response?.data?.message || (error as Error).message;
-      toast.error("Failed to create cohort", { description: message });
+      ReusableToast({
+        message: `Failed to create cohort: ${message}`,
+        type: "ERROR",
+      });
     },
   });
 };
@@ -108,9 +116,10 @@ export const useCreateCohortFromCohorts = () => {
   return useMutation({
     mutationFn: ({ name, description, cohort_ids }: { name: string; description?: string; cohort_ids: string[] }) =>
       cohortsApi.createCohortFromCohorts({ name, description, cohort_ids }),
-    onSuccess: () => {
-      toast("Cohort created from cohorts", {
-        description: "The new cohort has been created successfully.",
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: `Cohort '${variables.name}' created successfully.`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
     },
@@ -119,7 +128,10 @@ export const useCreateCohortFromCohorts = () => {
       const message = axiosError.response?.data?.errors?.message || 
                      axiosError.response?.data?.message || 
                      (error as Error).message;
-      toast.error("Failed to create from cohorts", { description: message });
+      ReusableToast({
+        message: `Failed to create from cohorts: ${message}`,
+        type: "ERROR",
+      });
     },
   });
 };
@@ -140,20 +152,23 @@ export const useAssignDevicesToCohort = () => {
       }
       return cohortsApi.assignDevicesToCohort(cohortId, deviceIds);
     },
-    onSuccess: (_, variables) => {
-      toast("Success", {
-        description: `${variables.deviceIds.length} device(s) assigned to cohort successfully`,
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: `${variables.deviceIds.length} device(s) assigned to cohort successfully`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["cohorts"] });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
+      queryClient.invalidateQueries({ queryKey: ["cohort-details", variables.cohortId] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
       const axiosError = error as AxiosError<ErrorResponse>;
       const message = axiosError.response?.data?.errors?.message || 
                      axiosError.response?.data?.message || 
                      (error as Error).message;
-      toast("Failed to assign devices to cohort", {
-        description: message,
+      ReusableToast({
+        message: `Failed to assign devices: ${message}`,
+        type: "ERROR",
       });
     },
   });
