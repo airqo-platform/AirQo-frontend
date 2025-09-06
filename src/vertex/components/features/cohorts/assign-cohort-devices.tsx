@@ -27,6 +27,7 @@ interface AssignCohortDevicesDialogProps {
   onOpenChange: (open: boolean) => void;
   selectedDevices: string[];
   onSuccess?: () => void;
+  cohortId?: string;
 }
 
 const formSchema = z.object({
@@ -42,7 +43,8 @@ export function AssignCohortDevicesDialog({
   open,
   onOpenChange,
   selectedDevices,
-  onSuccess
+  onSuccess,
+  cohortId,
 }: AssignCohortDevicesDialogProps) {
   const { cohorts } = useCohorts();
   const { devices: allDevices } = useDevices();
@@ -53,7 +55,7 @@ export function AssignCohortDevicesDialog({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      cohortId: "",
+      cohortId: cohortId || "",
       devices: selectedDevices,
     },
   });
@@ -72,11 +74,11 @@ export function AssignCohortDevicesDialog({
   useEffect(() => {
     if (open) {
       form.reset({
-        cohortId: "",
+        cohortId: cohortId || "",
         devices: selectedDevices,
       });
     }
-  }, [open, selectedDevices, form]);
+  }, [open, selectedDevices, form, cohortId]);
 
   const handleCreateCohortSuccess = (cohortData: { cohort: { _id: string; name: string } }) => {
     setCreateCohortModalOpen(false);
@@ -177,6 +179,7 @@ export function AssignCohortDevicesDialog({
                       placeholder="Select a cohort"
                       searchPlaceholder="Search cohorts..."
                       emptyMessage="No cohorts found"
+                      disabled={!!cohortId}
                       className="w-full"
                       customActionLabel="Create New Cohort"
                       customActionIcon={AqPlus}

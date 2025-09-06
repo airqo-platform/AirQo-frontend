@@ -5,7 +5,7 @@ import { QueryClient, useQuery } from '@tanstack/react-query';
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 import { AqChevronDown, AqChevronUp } from '@airqo/icons-react';
-import { Button } from "@/components/ui/button";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 import {
   Card,
   CardContent,
@@ -113,8 +113,7 @@ const DeviceDetailsStep = ({
   isLoadingDevices
 }: DeviceDetailsStepProps) => {
   return (
-    <div className="space-y-6">
-      <div className="space-y-4">
+    <div className="space-y-4">
         <div className="grid gap-2">
           <Label htmlFor="deviceName">Device to Deploy</Label>
           <ComboBox
@@ -190,7 +189,6 @@ const DeviceDetailsStep = ({
           <Label htmlFor="primarySite">Primary Site</Label>
         </div>
       </div>
-    </div>
   );
 };
 
@@ -202,17 +200,17 @@ const LocationStep = ({
   onToggleInputMode 
 }: LocationStepProps) => {
   return (
-    <div className="space-y-6">
+    <div>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <Label className="text-sm font-medium">Location Input Mode</Label>
-          <button
-            type="button"
+          <ReusableButton
             onClick={onToggleInputMode}
-            className="text-sm text-blue-600 hover:text-blue-800 underline"
+            variant="text"
+            className="text-sm underline h-auto p-0"
           >
             Switch to {inputMode === 'siteName' ? 'Coordinates' : 'Site Name'}
-          </button>
+          </ReusableButton>
         </div>
 
         {inputMode === 'siteName' ? (
@@ -527,7 +525,7 @@ const DeployDeviceComponent = ({
         />
       ),
       footer: (
-        <Button onClick={handleNext} className="w-32">Next</Button>
+        <ReusableButton onClick={handleNext} className="w-32">Next</ReusableButton>
       ),
     },
     {
@@ -543,24 +541,24 @@ const DeployDeviceComponent = ({
       ),
       footer: (
         <>
-          <Button variant="outline" onClick={handleBack} className="w-32 mr-3">Back</Button>
-          <Button 
+          <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
+          <ReusableButton
             onClick={handleDeploy} 
             className="w-32" 
-            disabled={!(validateDeviceDetails() && validateLocation()) || deployDevice.isPending}
+            disabled={!(validateDeviceDetails() && validateLocation())}
+            loading={deployDevice.isPending}
           >
             {deployDevice.isPending ? "Deploying..." : "Deploy"}
-          </Button>
+          </ReusableButton>
         </>
       ),
     },
   ];
 
   return (
-    <div className="flex flex-col md:flex-row gap-8 h-full">
+    <div className="flex flex-col md:flex-row h-full">
       {/* Main Steps Column */}
       <div className="flex-1 min-w-0">
-        <h1 className="text-2xl font-semibold mb-4">Deploy Device</h1>
         {steps.map((step, idx) => (
           <StepCard
             key={step.title}

@@ -17,6 +17,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useCreateCohortFromCohorts } from "@/core/hooks/useCohorts";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { AqPlus } from "@airqo/icons-react";
 
 type CohortRow = {
   id: string;
@@ -105,16 +107,18 @@ export default function CohortsPage() {
               Manage and organize your device cohorts
             </p>
           </div>
-          <Button
+          <ReusableButton
+            variant="filled"
             onMouseEnter={prefetchDevices}
             onFocus={prefetchDevices}
             onClick={() => {
               prefetchDevices();
               setShowCreateCohortModal(true);
             }}
+            Icon={AqPlus}
           >
             Create Cohort
-          </Button>
+          </ReusableButton>
         </div>
 
         <ReusableTable

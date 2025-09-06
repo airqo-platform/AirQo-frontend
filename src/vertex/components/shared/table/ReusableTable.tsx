@@ -20,7 +20,7 @@ import {
 } from "@airqo/icons-react";
 import { Loader2 } from "lucide-react";
 import SelectField from "@/components/ui/select-field";
-import { Button } from "@/components/ui/button";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 // --- Type Definitions ---
 interface FilterOption {
@@ -344,14 +344,13 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
             </option>
           ))}
         </SelectField>
-        <Button
+        <ReusableButton
           onClick={onActionSubmit}
           disabled={!selectedAction}
-          variant="default"
-          type="button"
+          variant="filled"
         >
           Apply
-        </Button>
+        </ReusableButton>
       </div>
     </div>
   );

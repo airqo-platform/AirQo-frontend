@@ -2,8 +2,8 @@
 
 import type React from "react"
 import { useEffect, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
+import { AnimatePresence, motion } from "framer-motion"
+import ReusableButton from "@/components/shared/button/ReusableButton"
 import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -173,9 +173,9 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
           )}
         </div>
         {showCloseButton && (
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0" aria-label="Close dialog">
+          <ReusableButton variant="text" onClick={onClose} padding="p-0" className="h-8 w-8" aria-label="Close dialog">
             <X className="w-4 h-4" />
-          </Button>
+          </ReusableButton>
         )}
       </div>
     )
@@ -193,20 +193,36 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
 
     return (
       <div className="flex items-center justify-end gap-3 w-full px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-        {secondaryAction && (
-          <Button
-            onClick={secondaryAction.onClick}
-            variant={secondaryAction.variant || "outline"}
-            disabled={secondaryAction.disabled}
-            className={secondaryAction.className}
-          >
-            {secondaryAction.label}
-          </Button>
-        )}
+        {secondaryAction && (() => {
+          const shadcnVariant = secondaryAction.variant || "outline"
+          let reusableVariant: "filled" | "outlined" | "text"
+          switch (shadcnVariant) {
+            case "outline":
+            case "secondary":
+              reusableVariant = "outlined"
+              break
+            case "ghost":
+            case "link":
+              reusableVariant = "text"
+              break
+            default:
+              reusableVariant = "filled"
+          }
+          return (
+            <ReusableButton
+              onClick={secondaryAction.onClick}
+              variant={reusableVariant}
+              disabled={secondaryAction.disabled}
+              className={secondaryAction.className}
+            >
+              {secondaryAction.label}
+            </ReusableButton>
+          )
+        })()}
         {primaryAction && (
-          <Button onClick={primaryAction.onClick} disabled={primaryAction.disabled} className={primaryAction.className}>
+          <ReusableButton onClick={primaryAction.onClick} disabled={primaryAction.disabled} className={primaryAction.className} variant="filled">
             {primaryAction.label}
-          </Button>
+          </ReusableButton>
         )}
       </div>
     )

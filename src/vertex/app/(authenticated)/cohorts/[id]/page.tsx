@@ -2,14 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AqArrowLeft, AqPlus } from "@airqo/icons-react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useCohortDetails } from "@/core/hooks/useCohorts";
 import DevicesTable from "@/components/features/devices/device-list-table";
 import CohortDetailsCard from "@/components/features/cohorts/cohort-detail-card";
 import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-details-modal";
+import { usePermission } from "@/core/hooks/usePermissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
+import PermissionTooltip from "@/components/ui/permission-tooltip";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -26,6 +29,7 @@ export default function CohortDetailsPage() {
   const cohortId = params?.id as string;
 
   const { data: cohort, isLoading, error } = useCohortDetails(cohortId);
+  const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
   const [cohortDetails, setCohortDetails] = useState<{
     name: string;
     id: string;
@@ -59,21 +63,33 @@ export default function CohortDetailsPage() {
     setShowAssignDialog(false);
   };
 
+  const assignButton = (
+    <ReusableButton
+      variant="outlined"
+      onClick={() => setShowAssignDialog(true)}
+      disabled={!canUpdateDevice}
+      Icon={AqPlus}
+    >
+      Choose Devices
+    </ReusableButton>
+  );
+
   return (
     <RouteGuard permission="DEVICE_VIEW">
       <div>
-        <div className="flex justify-between items-center">
-          <Button variant="ghost" onClick={() => router.back()}>
-            <ArrowLeft className="w-4 h-4" />
-            Back to Cohorts
-          </Button>
-          <AssignCohortDevicesDialog
-            open={showAssignDialog}
-            onOpenChange={setShowAssignDialog}
-            selectedDevices={selectedDevices}
-            onSuccess={handleAssignSuccess}
-          />
+        <div className="flex">
+          <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
+            Back
+          </ReusableButton>
+          
         </div>
+        <AssignCohortDevicesDialog
+          open={showAssignDialog}
+          onOpenChange={setShowAssignDialog}
+          selectedDevices={selectedDevices}
+          onSuccess={handleAssignSuccess}
+          cohortId={cohortId}
+        />
 
         {isLoading ? (
           <ContentGridSkeleton />
@@ -97,8 +113,18 @@ export default function CohortDetailsPage() {
 
             {/* Devices list */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Cohort devices</h2>
-
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Cohort devices</h2>
+                <div className="flex gap-2">
+                  {canUpdateDevice ? (
+                    assignButton
+                  ) : (
+                    <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
+                      <span>{assignButton}</span>
+                    </PermissionTooltip>
+                  )}
+                </div>
+              </div>
               <DevicesTable
                 devices={devices}
                 isLoading={isLoading}
@@ -107,7 +133,6 @@ export default function CohortDetailsPage() {
             </div>
             <CohortDetailsModal
               open={showDetailsModal}
-              onOpenChange={setShowDetailsModal}
               cohortDetails={cohortDetails}
               onClose={handleCloseDetails}
             />

@@ -21,7 +21,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
   }
   if (error || !device) {
     return (
-      <Card className="w-full rounded-lg overflow-hidden flex flex-col items-center p-8 text-red-500">
+      <Card className="w-full rounded-lg overflow-hidden flex flex-col items-center p-8 text-sm text-center text-muted-foreground">
         Error loading online status.
       </Card>
     );
