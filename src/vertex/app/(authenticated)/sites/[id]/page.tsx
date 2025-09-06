@@ -6,13 +6,6 @@ import { Button } from "@/components/ui/button";
 import { SiteForm } from "../site-form";
 import { SiteDevices } from "./devices";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -26,6 +19,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useParams } from "next/navigation";
 import { Device } from "@/app/types/sites";
+import { SiteInformationCard } from "@/components/features/sites/site-information-card";
+import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-card";
 
 export default function SiteDetailsPage() {
   const params = useParams();
@@ -129,112 +124,16 @@ export default function SiteDetailsPage() {
         </div>
       </div>
 
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Site Information</CardTitle>
-            <CardDescription>Details about the monitoring site</CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold">Name</h3>
-              <p>{site.name}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Description</h3>
-              <p>{site.description}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Network</h3>
-              <p>{site.network}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Latitude</h3>
-              <p>{site.latitude}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Longitude</h3>
-              <p>{site.longitude}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Parish</h3>
-              <p>{site.parish}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Sub County</h3>
-              <p>{site.sub_county}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">District</h3>
-              <p>{site.district}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Region</h3>
-              <p>{site.region}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Altitude</h3>
-              <p>{site.altitude} m</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Nearest Road</h3>
-              <p>
-                {site.distance_to_nearest_road ? `${site.distance_to_nearest_road} m` : "N/A"}
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Status</h3>
-              <p>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    site.isOnline
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {site.isOnline ? "Online" : "Offline"}
-                </span>
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Mobile App Site Details</CardTitle>
-            <CardDescription>
-              Information about the site location
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="grid grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold">Editable Name</h3>
-              <p>{site.search_name}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Editable Description</h3>
-              <p>{site.location_name}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">City</h3>
-              <p>{site.city}</p>
-            </div>
-            <div>
-              <h3 className="font-semibold">Country</h3>
-              <p>{site.country}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Site Devices</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SiteDevices devices={transformedDevices} />
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+        <div className="lg:col-span-2">
+          <SiteInformationCard site={site} />
+        </div>
+        <div className="lg:col-span-1">
+          <SiteMobileAppCard site={site} />
+        </div>
       </div>
+
+      <SiteDevices devices={transformedDevices} />
     </div>
   );
 }
