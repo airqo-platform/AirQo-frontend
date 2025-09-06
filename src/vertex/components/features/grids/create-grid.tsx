@@ -32,9 +32,6 @@ const gridFormSchema = z.object({
     },
     { message: "A polygon must be drawn on the map." }
   ),
-  network: z.string().min(2, {
-    message: "Network is required.",
-  }),
 });
 
 type GridFormValues = z.infer<typeof gridFormSchema>;
@@ -51,7 +48,6 @@ export function CreateGridForm() {
       name: "",
       administrativeLevel: "",
       shapefile: '{"type":"","coordinates":[]}',
-      network: activeNetwork?.net_name || "",
     },
   });
 
