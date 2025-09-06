@@ -14,12 +14,11 @@ import type {
   Device,
   DeviceCreationResponse,
   DeviceUpdateGroupResponse,
-  MyDevicesResponse,
   MaintenanceLogData,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useEffect, useMemo } from "react";
-import { toast } from "sonner";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface ErrorResponse {
   message: string;
@@ -155,45 +154,39 @@ export const useClaimDevice = () => {
   return useMutation<DeviceClaimResponse, AxiosError<ErrorResponse>, DeviceClaimRequest>({
     mutationFn: devices.claimDevice,
     onSuccess: () => {
-      toast("Device Claimed Successfully!");
+      ReusableToast({
+        message: "Device Claimed Successfully!",
+        type: "SUCCESS",
+      });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error) => {
-      toast.error("Claim Failed", {
-        description: error.message,
+      ReusableToast({
+        message: `Claim Failed: ${error.response?.data?.message || error.message}`,
+        type: "ERROR",
       });
     },
-  });
-};
-
-export const useMyDevices = (userId: string, organizationId?: string) => {
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  
-  return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["myDevices", userId, organizationId || activeGroup?._id],
-    queryFn: () => devices.getMyDevices(userId),
-    enabled: !!userId,
-    staleTime: 60000, // 1 minute
   });
 };
 
 export const useAssignDeviceToOrganization = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation<DeviceAssignmentResponse, AxiosError<ErrorResponse>, DeviceAssignmentRequest>({
     mutationFn: devices.assignDeviceToOrganization,
     onSuccess: (data) => {
-      toast("Device Assigned Successfully!", {
-        description: `${data.device.name} has been assigned to the organization.`,
+      ReusableToast({
+        message: `${data.device.name} has been assigned to the organization.`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error) => {
-      toast.error("Assignment Failed", {
-        description: error.message,
+      ReusableToast({
+        message: `Assignment Failed: ${error.response?.data?.message || error.message}`,
+        type: "ERROR",
       });
     },
   });
@@ -205,15 +198,17 @@ export const useUnassignDeviceFromOrganization = () => {
   return useMutation<DeviceAssignmentResponse, AxiosError<ErrorResponse>, { deviceName: string; userId: string }>({
     mutationFn: ({ deviceName, userId }) => devices.unassignDeviceFromOrganization(deviceName, userId),
     onSuccess: (data) => {
-      toast("Device Unassigned Successfully!", {
-        description: `${data.device.name} is now personal only.`,
+      ReusableToast({
+        message: `${data.device.name} is now personal only.`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error) => {
-      toast.error("Unassignment Failed", {
-        description: error.response?.data?.message || "Failed to update device group",
+      ReusableToast({
+        message: `Unassignment Failed: ${error.response?.data?.message || "Failed to update device group"}`,
+        type: "ERROR",
       });
     },
   });
@@ -236,15 +231,17 @@ export const useUpdateDeviceLocal = () => {
       deviceData: Partial<Device>;
     }) => devices.updateDeviceLocal(deviceId, deviceData),
     onSuccess: (data, variables) => {
-      toast("Device Updated Successfully!", {
-        description: "Device information has been updated locally.",
+      ReusableToast({
+        message: "Device information has been updated locally.",
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["device-details", variables.deviceId] });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error("Update Failed", {
-        description: error.response?.data?.message || "Failed to update device locally",
+      ReusableToast({
+        message: `Update Failed: ${error.response?.data?.message || "Failed to update device locally"}`,
+        type: "ERROR",
       });
     },
   });
@@ -259,15 +256,17 @@ export const useUpdateDeviceGlobal = () => {
       deviceData: Partial<Device>;
     }) => devices.updateDeviceGlobal(deviceId, deviceData),
     onSuccess: (data, variables) => {
-      toast("Device Synced Successfully!", {
-        description: "Device information has been updated globally.",
+      ReusableToast({
+        message: "Device information has been updated globally.",
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["device-details", variables.deviceId] });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
     onError: (error: AxiosError<ErrorResponse>) => {
-      toast.error("Sync Failed", {
-        description: error.response?.data?.message || "Failed to update device globally",
+      ReusableToast({
+        message: `Sync Failed: ${error.response?.data?.message || "Failed to update device globally"}`,
+        type: "ERROR",
       });
     },
   });
@@ -292,13 +291,15 @@ export const useUpdateDeviceGroup = () => {
     mutationFn: ({ deviceId, groupName }) =>
       devices.updateDeviceGroup(deviceId, groupName),
     onSuccess: () => {
-      toast("Device Group Updated", {
-        description: "Device has been successfully added to the group.",
+      ReusableToast({
+        message: "Device has been successfully added to the group.",
+        type: "SUCCESS",
       });
     },
     onError: (error) => {
-      toast.error("Group Update Failed", {
-        description: error.response?.data?.message || "Failed to update device group",
+      ReusableToast({
+        message: `Group Update Failed: ${error.response?.data?.message || "Failed to update device group"}`,
+        type: "ERROR",
       });
     },
   });
@@ -317,8 +318,9 @@ export const useCreateDevice = () => {
   }>({ 
     mutationFn: devices.createDevice,
     onSuccess: (data, variables) => {
-      toast("Device Created Successfully!", {
-        description: `${variables.long_name} has been created.`,
+      ReusableToast({
+        message: `${variables.long_name} has been created.`,
+        type: "SUCCESS",
       });
       if (data.created_device && activeGroup?.grp_title) {
         updateDeviceGroup.mutate({
@@ -338,8 +340,9 @@ export const useCreateDevice = () => {
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
-      toast.error("Creation Failed", {
-        description: errorMessage,
+      ReusableToast({
+        message: `Creation Failed: ${errorMessage}`,
+        type: "ERROR",
       });
     },
   });
@@ -362,8 +365,9 @@ export const useImportDevice = () => {
   }>({ 
     mutationFn: devices.importDevice,
     onSuccess: (data, variables) => {
-      toast("Device Imported Successfully!", {
-        description: `${variables.long_name} has been imported.`,
+      ReusableToast({
+        message: `${variables.long_name} has been imported.`,
+        type: "SUCCESS",
       });
       if (data.created_device && activeGroup?.grp_title) {
         updateDeviceGroup.mutate({
@@ -373,17 +377,15 @@ export const useImportDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ["devices"] });
     },
-    onError: (error: unknown) => {
-      let errorMessage = "Failed to import device";
-      if (error instanceof AxiosError && error.response?.data) {
-        errorMessage =
-          error.response.data.errors?.message ||
-          error.response.data.message ||
-          error.message;
-      } else if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast.error("Import Failed", { description: errorMessage });
+    onError: (error: AxiosError<ErrorResponse>) => {
+      const errorMessage =
+        error.response?.data?.errors?.message ||
+        error.response?.data?.message ||
+        error.message || "Failed to import device";
+      ReusableToast({
+        message: `Import Failed: ${errorMessage}`,
+        type: "ERROR",
+      });
     },
   });
 }
@@ -405,8 +407,9 @@ export const useDeployDevice = () => {
       user_id: string;
     }) => devices.deployDevice(deviceData),
     onSuccess: (data, variables) => {
-      toast("Device Deployed Successfully!", {
-        description: `${variables.deviceName} has been deployed.`,
+      ReusableToast({
+        message: `${variables.deviceName} has been deployed.`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["claimedDevices"] });
@@ -418,7 +421,10 @@ export const useDeployDevice = () => {
         error.response?.data?.errors?.message ||
         error.response?.data?.message ||
         "Failed to deploy device";
-      toast.error("Deployment Failed", { description: errorMessage });
+      ReusableToast({
+        message: `Deployment Failed: ${errorMessage}`,
+        type: "ERROR",
+      });
     },
   });
 }
@@ -436,8 +442,9 @@ export const useRecallDevice = () => {
       }
     }) => devices.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {
-      toast("Device Recalled Successfully!", {
-        description: `${variables.deviceName} has been recalled.`,
+      ReusableToast({
+        message: `${variables.deviceName} has been recalled.`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
@@ -448,7 +455,10 @@ export const useRecallDevice = () => {
         error.response?.data?.errors?.message ||
         error.response?.data?.message ||
         "Failed to recall device";
-      toast.error("Recall Failed", { description: errorMessage });
+      ReusableToast({
+        message: `Recall Failed: ${errorMessage}`,
+        type: "ERROR",
+      });
     },
   });
 }
@@ -462,8 +472,9 @@ export const useAddMaintenanceLog = () => {
       logData: MaintenanceLogData;
     }) => devices.addMaintenanceLog(deviceName, logData),
     onSuccess: (data, variables) => {
-      toast("Maintenance Log Added Successfully!", {
-        description: `Maintenance log has been added for ${variables.deviceName}.`,
+      ReusableToast({
+        message: `Maintenance log has been added for ${variables.deviceName}.`,
+        type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["device-details"] });
@@ -474,7 +485,10 @@ export const useAddMaintenanceLog = () => {
         error.response?.data?.errors?.message ||
         error.response?.data?.message ||
         "Failed to add maintenance log";
-      toast.error("Failed to Add Maintenance Log", { description: errorMessage });
+      ReusableToast({
+        message: `Failed to Add Maintenance Log: ${errorMessage}`,
+        type: "ERROR",
+      });
     },
   });
 };

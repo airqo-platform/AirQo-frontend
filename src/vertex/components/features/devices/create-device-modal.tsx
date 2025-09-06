@@ -90,14 +90,19 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   };
 
   const handleClose = () => {
-    setFormData({
-      long_name: "",
-      category: "",
-      description: "",
-    });
-    setErrors({});
     onOpenChange(false);
   };
+
+  React.useEffect(() => {
+    if (!open) {
+      setFormData({
+        long_name: "",
+        category: "",
+        description: "",
+      });
+      setErrors({});
+    }
+  }, [open]);
 
   return (
     <ReusableDialog
