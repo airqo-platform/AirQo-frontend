@@ -29,6 +29,8 @@ export const useGrids = () => {
     queryKey: ["grids", activeNetwork?.net_name],
     queryFn: () => grids.getGridsApi(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
   React.useEffect(() => {

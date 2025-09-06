@@ -42,7 +42,7 @@ export default function CohortsPage() {
     return queryClient.prefetchQuery({
       queryKey: ["devices", net, activeGroup?.grp_title],
       queryFn: () => devicesApi.getDevicesSummaryApi(net, grp),
-      staleTime: 120_000,
+      staleTime: 300_000,
     });
   }, [queryClient, activeNetwork?.net_name, activeGroup?.grp_title]);
 

@@ -28,6 +28,8 @@ export const useSites = () => {
         activeGroup?.grp_title || ""
       ),
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
   React.useEffect(() => {

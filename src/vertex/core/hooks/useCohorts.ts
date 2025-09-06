@@ -15,6 +15,8 @@ export const useCohorts = () => {
     queryKey: ["cohorts", activeNetwork?.net_name],
     queryFn: () => cohortsApi.getCohortsSummary(activeNetwork?.net_name || ""),
     enabled: !!activeNetwork?.net_name,
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
   });
 
   React.useEffect(() => {

@@ -45,7 +45,7 @@ export const useDevices = () => {
         activeGroup?.grp_title === "airqo" ? "" : activeGroup?.grp_title || ""
       ),
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
-    staleTime: 120_000,
+    staleTime: 300_000,
     refetchOnWindowFocus: false,
     onSuccess: (data: DevicesSummaryResponse) => {
       const devicesWithStatus = data.devices.map(device => ({
