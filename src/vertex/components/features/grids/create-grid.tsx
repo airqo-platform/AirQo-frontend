@@ -1,35 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Form, FormField } from "@/components/ui/form";
 import { Plus } from "lucide-react";
 import PolygonMap from "./polymap";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useCreateGrid } from "@/core/hooks/useGrids";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Position } from "@/core/redux/slices/gridsSlice";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 
 const gridFormSchema = z.object({
   name: z.string().min(2, {
@@ -38,11 +21,19 @@ const gridFormSchema = z.object({
   administrativeLevel: z.string().min(2, {
     message: "Administrative level is required.",
   }),
-  shapefile: z.string().min(2, {
-    message: "Shapefile data is required.",
-  }),
+  shapefile: z.string().refine(
+    (val) => {
+      try {
+        const parsed = JSON.parse(val);
+        return parsed && parsed.coordinates && parsed.coordinates.length > 0;
+      } catch (e) {
+        return false;
+      }
+    },
+    { message: "A polygon must be drawn on the map." }
+  ),
   network: z.string().min(2, {
-    message: "Grid name must be at least 2 characters.",
+    message: "Network is required.",
   }),
 });
 
@@ -50,7 +41,6 @@ type GridFormValues = z.infer<typeof gridFormSchema>;
 
 export function CreateGridForm() {
   const [open, setOpen] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const polygon = useAppSelector((state) => state.grids.polygon);
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const { createGrid, isLoading } = useCreateGrid();
@@ -61,128 +51,112 @@ export function CreateGridForm() {
       name: "",
       administrativeLevel: "",
       shapefile: '{"type":"","coordinates":[]}',
-      network: activeNetwork?.net_name,
+      network: activeNetwork?.net_name || "",
     },
   });
 
-  const onSubmit = async (data: GridFormValues) => {
-    try {
-      if (!polygon || !polygon.coordinates) {
-        setError("Shapefile is required");
-        return;
-      }
-      const gridData = {
-        name: data.name,
-        admin_level: data.administrativeLevel,
-        shape: polygon as { type: "MultiPolygon" | "Polygon"; coordinates: Position[][] | Position[][][] },
-        network: activeNetwork?.net_name || "",
-      };
-
-      await createGrid(gridData);
-
-      setTimeout(() => {
-        if (!isLoading) {
-          setOpen(false);
-        }
-      }, 3000);
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred while creating the site.");
+  useEffect(() => {
+    if (polygon) {
+      form.setValue("shapefile", JSON.stringify(polygon), { shouldValidate: true });
+    } else {
+      form.setValue("shapefile", '{"type":"","coordinates":[]}', { shouldValidate: true });
     }
+  }, [polygon, form]);
+
+  const handleClose = () => {
+    setOpen(false);
+    form.reset();
+  };
+
+  const onSubmit = (data: GridFormValues) => {
+    const gridData = {
+      name: data.name,
+      admin_level: data.administrativeLevel,
+      shape: JSON.parse(data.shapefile) as { type: "MultiPolygon" | "Polygon"; coordinates: Position[][] | Position[][][] },
+      network: activeNetwork?.net_name || "",
+    };
+
+    createGrid(gridData, {
+      onSuccess: () => {
+        handleClose();
+      },
+    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Grid
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[1000px]">
-        <DialogHeader>
-          <DialogTitle>Add New Grid</DialogTitle>
-          <DialogDescription>
-            Create a new monitoring grid by providing the details below.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid grid-cols-2 gap-6">
+    <>
+      <ReusableButton onClick={() => setOpen(true)} Icon={Plus}>
+        Create Grid
+      </ReusableButton>
+      <ReusableDialog
+        isOpen={open}
+        onClose={handleClose}
+        title="Create Grid"
+        size="5xl"
+        primaryAction={{
+          label: isLoading ? "Submitting..." : "Submit",
+          onClick: form.handleSubmit(onSubmit),
+          disabled: isLoading,
+        }}
+        secondaryAction={{
+          label: "Cancel",
+          onClick: handleClose,
+          disabled: isLoading,
+          variant: "outline",
+        }}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Grid name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter grid name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Grid name"
+                    placeholder="Enter grid name"
+                    error={fieldState.error?.message}
+                    required
+                    {...field}
+                  />
                 )}
               />
               <FormField
                 control={form.control}
                 name="administrativeLevel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Administrative level</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="eg province, state, village, county, etc"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Administrative level"
+                    placeholder="eg province, state, village, county, etc"
+                    error={fieldState.error?.message}
+                    required
+                    {...field}
+                  />
                 )}
               />
               <FormField
                 control={form.control}
                 name="shapefile"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Shapefile</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder='{"type":"","coordinates":[]}'
-                        className="font-mono"
-                        disabled
-                        {...field}
-                        value={JSON.stringify(polygon)}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Select polygon icon on map to generate a polygon
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    as="textarea"
+                    label="Shapefile"
+                    className="font-mono"
+                    readOnly
+                    {...field}
+                    value={polygon ? JSON.stringify(polygon, null, 2) : ""}
+                    description="Select polygon icon on map to generate a polygon"
+                    error={fieldState.error?.message}
+                    rows={5}
+                    showCopyButton
+                  />
                 )}
               />
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                  disabled={isLoading}
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  Submit
-                </Button>
-              </div>
-              {error && (
-                <Alert variant="destructive">
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
             </form>
           </Form>
           <PolygonMap />
         </div>
-      </DialogContent>
-    </Dialog>
+      </ReusableDialog>
+    </>
   );
 }

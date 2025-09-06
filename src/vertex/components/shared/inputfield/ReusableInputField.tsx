@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { AqCopy01 } from "@airqo/icons-react"
+import ReusableToast from "../toast/ReusableToast"
 
 interface CommonProps {
   label?: string
@@ -51,7 +51,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
     const valueToCopy = (inputProps as { value?: string | number }).value
     if (valueToCopy) {
       navigator.clipboard.writeText(String(valueToCopy))
-      toast.success("Copied to clipboard")
+      ReusableToast({ message: "Copied", type: "SUCCESS" })
     }
   }
 
