@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Input } from "@/components/ui/input";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { useDevices } from "@/core/hooks/useDevices";
@@ -62,10 +55,6 @@ export function CreateCohortDialog({
       newErrors.devices = "Please select at least one device.";
     }
 
-    if (!network) {
-      newErrors.network = "Active network not found.";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -77,9 +66,7 @@ export function CreateCohortDialog({
     onOpenChange(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = () => {
     if (validateForm()) {
       createCohort(
         { name, network, deviceIds: selectedDevices },
@@ -117,92 +104,73 @@ export function CreateCohortDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add New Cohort</DialogTitle>
-          <DialogDescription>
-            Create a new cohort by providing the details below.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Cohort name
-            </label>
-            <Input
-              placeholder="Enter cohort name"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                if (errors.name && e.target.value.length >= 2) {
-                  setErrors(prev => ({ ...prev, name: "" }));
-                }
-              }}
-            />
-            {errors.name && (
-              <p className="text-sm font-medium text-destructive">{errors.name}</p>
-            )}
-          </div>
+    <ReusableDialog
+      isOpen={open}
+      onClose={handleCancel}
+      title="Add New Cohort"
+      subtitle={`Network: ${network}`}
+      size="lg"
+      primaryAction={{
+        label: isPending ? "Creating…" : "Submit",
+        onClick: handleSubmit,
+        disabled: isPending,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: handleCancel,
+        disabled: isPending,
+        variant: "outline",
+      }}
+    >
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Cohort name
+          </label>
+          <Input
+            placeholder="Cohort name"
+            value={name}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (errors.name && e.target.value.length >= 2) {
+                setErrors(prev => ({ ...prev, name: "" }));
+              }
+            }}
+          />
+          {errors.name && (
+            <p className="text-sm font-medium text-destructive">{errors.name}</p>
+          )}
+        </div>
 
+        <div className="space-y-2">
+          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            Select Device(s)
+          </label>
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Network
-            </label>
-            <Input
-              disabled
-              value={network}
-              onChange={() => { }}
+            <MultiSelectCombobox
+              options={deviceOptions}
+              placeholder="Select or add devices..."
+              onValueChange={handleDevicesChange}
+              value={selectedDevices}
+              allowCreate={false}
             />
-            {errors.network && (
-              <p className="text-sm font-medium text-destructive">{errors.network}</p>
+            {isLoading && (
+              <p className="text-xs text-muted-foreground">Loading devices…</p>
             )}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              Select Device(s)
-            </label>
-            <div className="space-y-2">
-              <MultiSelectCombobox
-                options={deviceOptions}
-                placeholder="Select or add devices..."
-                onValueChange={handleDevicesChange}
-                value={selectedDevices}
-                allowCreate={false}
-              />
-              {isLoading && (
-                <p className="text-xs text-muted-foreground">Loading devices…</p>
-              )}
-              {error && (
-                <p className="text-xs text-destructive">Failed to load devices. Please try again.</p>
-              )}
-              <div className="text-xs text-muted-foreground">
-                {selectedDevices.length > 0
-                  ? `${selectedDevices.length} device(s) selected`
-                  : "No devices selected"}
-              </div>
+            {error && (
+              <p className="text-xs text-destructive">Failed to load devices. Please try again.</p>
+            )}
+            <div className="text-xs text-muted-foreground">
+              {selectedDevices.length > 0
+                ? `${selectedDevices.length} device(s) selected`
+                : "No devices selected"}
             </div>
-            {errors.devices && (
-              <p className="text-sm font-medium text-destructive">{errors.devices}</p>
-            )}
           </div>
-
-          <div className="flex justify-end gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-              disabled={isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Creating…" : "Submit"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+          {errors.devices && (
+            <p className="text-sm font-medium text-destructive">{errors.devices}</p>
+          )}
+        </div>
+      </div>
+    </ReusableDialog>
   );
 }
