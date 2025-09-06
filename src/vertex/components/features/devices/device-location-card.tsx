@@ -8,7 +8,6 @@ interface DeviceLocationCardProps {
 }
 
 export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
-  console.log(device)
   const router = useRouter();
 
   const toNumberOrNull = (v: unknown) => {
