@@ -111,12 +111,12 @@ export default function DevicesTable({
     {
       key: "site",
       label: "Site",
-      render: (siteData) => {
-        const site = (siteData as Site)?.name;
+      render: (siteData, device) => {
+        const site = (siteData as Site)?.name || device?.description;
 
         return (
           <span className="uppercase max-w-40 w-full">
-            {site || "Not assigned"}
+            {typeof site === 'string' ? site : "Not assigned"}
           </span>
         );
       },

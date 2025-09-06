@@ -44,8 +44,8 @@ export interface Device {
   network: string;
   groups: string[];
   serial_number: string;
-  authRequired: boolean;
-  long_name: string;
+  authRequired?: boolean;
+  long_name?: string;
   latitude?: number | undefined | null | string;
   longitude?: number | undefined | null | string;
   approximate_distance_in_km?: number;

@@ -2,7 +2,7 @@
 
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useSites } from "@/core/hooks/useSites";
-import { CreateSiteForm } from "./create-site-form";
+import { CreateSiteForm } from "@/components/features/sites/create-site-form";
 import SitesTable from "@/components/features/sites/sites-list-table";
 
 export default function SitesPage() {

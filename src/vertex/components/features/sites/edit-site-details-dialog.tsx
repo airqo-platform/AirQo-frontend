@@ -6,10 +6,10 @@ import * as z from "zod";
 import { Form, FormField } from "@/components/ui/form";
 import { useUpdateSiteDetails } from "@/core/hooks/useSites";
 import { toast } from "sonner";
-import { Site } from "@/core/redux/slices/sitesSlice";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { useEffect } from "react";
+import { Site } from "@/app/types/sites";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -91,12 +91,8 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
       { siteId: site._id, data: transformedData },
       {
         onSuccess: () => {
-          toast.success("Site details updated successfully");
           onOpenChange(false);
-        },
-        onError: (error) => {
-          toast.error(error.message || "Failed to update site details");
-        },
+        }
       }
     );
   }
@@ -105,8 +101,7 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
     <ReusableDialog
       isOpen={open}
       onClose={() => onOpenChange(false)}
-      title="Edit Site"
-      subtitle="Make changes to the site details here. Click save when you're done."
+      title="Edit Site Details"
       size="3xl"
       primaryAction={{
         label: isPending ? "Saving..." : "Save Changes",
@@ -121,12 +116,10 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
       }}
     >
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-h-[70vh] overflow-y-auto p-1">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4  p-1">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField control={form.control} name="name" render={({ field, fieldState }) => (<ReusableInputField label="Site Name *" {...field} error={fieldState.error?.message} />)} />
             <FormField control={form.control} name="description" render={({ field, fieldState }) => (<ReusableInputField label="Description" {...field} error={fieldState.error?.message} />)} />
-            <ReusableInputField label="Network" value={site.network} readOnly />
-            <ReusableInputField label="Organization" value={site.network} readOnly />
             <FormField control={form.control} name="latitude" render={({ field, fieldState }) => (<ReusableInputField label="Latitude *" {...field} error={fieldState.error?.message} />)} />
             <FormField control={form.control} name="longitude" render={({ field, fieldState }) => (<ReusableInputField label="Longitude *" {...field} error={fieldState.error?.message} />)} />
             <FormField control={form.control} name="parish" render={({ field, fieldState }) => (<ReusableInputField label="Parish" {...field} error={fieldState.error?.message} />)} />

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AqArrowLeft, AqEdit01 } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { SiteDevices } from "./devices";
 import { useSiteDetails } from "@/core/hooks/useSites";
 import { Loader2 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -13,7 +12,7 @@ import { useParams } from "next/navigation";
 import { SiteInformationCard } from "@/components/features/sites/site-information-card";
 import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-card";
 import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-details-dialog";
-import { Device } from "@/app/types/sites";
+import DevicesTable from "@/components/features/devices/device-list-table";
 
 export default function SiteDetailsPage() {
   const params = useParams();
@@ -54,33 +53,15 @@ export default function SiteDetailsPage() {
     );
   }
 
-  // Transform devices data for SiteDevices
-  const transformedDevices: Device[] = site.devices?.map(device => ({
-    name: device.name,
-    description: "",
-    site: site.name,
-    isPrimary: device.isPrimaryInLocation,
-    isCoLocated: false,
-    registrationDate: new Date(device.createdAt).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    }),
-    deploymentStatus: device.isActive ? "Deployed" : "Removed",
-  })) || [];
-
   return (
     <div className="p-6">
-      <div className="mb-6">
+      <div className="mb-6 flex justify-between items-center">
         <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
-          Back to Sites
+          Back
         </ReusableButton>
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-semibold">Site Details</h1>
-          <ReusableButton onClick={() => setIsEditDialogOpen(true)} Icon={AqEdit01}>
+        <ReusableButton onClick={() => setIsEditDialogOpen(true)} Icon={AqEdit01}>
             Edit Site
           </ReusableButton>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
@@ -92,7 +73,15 @@ export default function SiteDetailsPage() {
         </div>
       </div>
       <div className="mt-6">
-      <SiteDevices devices={transformedDevices} />
+        <DevicesTable
+          devices={site.devices?.map(device => ({
+            ...device,
+            status: device.status as "not deployed" | "deployed" | "recalled" | "online" | "offline" | undefined
+          })) || []}
+          isLoading={isLoading}
+          error={error}
+          multiSelect={true}
+        />
       </div>
 
       <EditSiteDetailsDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} site={site} />
