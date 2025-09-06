@@ -11,7 +11,6 @@ import CohortDetailsCard from "@/components/features/cohorts/cohort-detail-card"
 import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-details-modal";
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import PermissionTooltip from "@/components/ui/permission-tooltip";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
 // Loading skeleton for content grid
@@ -63,17 +62,6 @@ export default function CohortDetailsPage() {
     setShowAssignDialog(false);
   };
 
-  const assignButton = (
-    <ReusableButton
-      variant="outlined"
-      onClick={() => setShowAssignDialog(true)}
-      disabled={!canUpdateDevice}
-      Icon={AqPlus}
-    >
-      Add Devices
-    </ReusableButton>
-  );
-
   return (
     <RouteGuard permission="DEVICE_VIEW">
       <div>
@@ -116,13 +104,15 @@ export default function CohortDetailsPage() {
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold">Cohort devices</h2>
                 <div className="flex gap-2">
-                  {canUpdateDevice ? (
-                    assignButton
-                  ) : (
-                    <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
-                      <span>{assignButton}</span>
-                    </PermissionTooltip>
-                  )}
+                  <ReusableButton
+                    variant="outlined"
+                    onClick={() => setShowAssignDialog(true)}
+                    disabled={!canUpdateDevice}
+                    permission={PERMISSIONS.DEVICE.UPDATE}
+                    Icon={AqPlus}
+                  >
+                    Add Devices
+                  </ReusableButton>
                 </div>
               </div>
               <DevicesTable

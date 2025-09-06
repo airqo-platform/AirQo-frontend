@@ -15,7 +15,7 @@ interface ReusableButtonBaseProps {
   children?: React.ReactNode
   showTextOnMobile?: boolean
   loading?: boolean
-  permission?: boolean
+  permission?: string
 }
 
 type ButtonNativeProps = ReusableButtonBaseProps &

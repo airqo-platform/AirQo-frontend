@@ -8,17 +8,13 @@ import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTa
 import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import moment from "moment";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppSelector } from "@/core/redux/hooks";
 import { devices as devicesApi } from "@/core/apis/devices";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useCreateCohortFromCohorts } from "@/core/hooks/useCohorts";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqPlus } from "@airqo/icons-react";
+import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/create-cohort-from-cohorts";
 
 type CohortRow = {
   id: string;
@@ -35,12 +31,9 @@ export default function CohortsPage() {
   const [showCreateCohortModal, setShowCreateCohortModal] = useState(false);
   const [showCreateFromCohorts, setShowCreateFromCohorts] = useState(false);
   const [selectedCohortIds, setSelectedCohortIds] = useState<string[]>([]);
-  const [newCohortName, setNewCohortName] = useState("");
-  const [newCohortDescription, setNewCohortDescription] = useState("");
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const { mutate: createFromCohorts, isPending: isCreatingFromCohorts } = useCreateCohortFromCohorts();
 
   const prefetchDevices = useCallback(() => {
     const net = activeNetwork?.net_name || "";
@@ -148,74 +141,11 @@ export default function CohortsPage() {
           }}
           emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
         />
-        <CreateCohortDialog open={showCreateCohortModal} onOpenChange={setShowCreateCohortModal} />
 
+        <CreateCohortDialog open={showCreateCohortModal} onOpenChange={setShowCreateCohortModal} />
         {/* Create From Cohorts Dialog */}
-        <Dialog open={showCreateFromCohorts} onOpenChange={(open) => {
-          setShowCreateFromCohorts(open);
-          if (!open) {
-            setNewCohortName("");
-            setNewCohortDescription("");
-          }
-        }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Cohort from Selected Cohorts</DialogTitle>
-              <DialogDescription>
-                Provide a name and optional description for the new cohort. {selectedCohortIds.length} cohort(s) selected.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Name</label>
-                <Input
-                  placeholder="Enter new cohort name"
-                  value={newCohortName}
-                  onChange={(e) => setNewCohortName(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium leading-none">Description</label>
-                <Textarea
-                  placeholder="Describe this combined cohort (optional)"
-                  value={newCohortDescription}
-                  onChange={(e) => setNewCohortDescription(e.target.value)}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowCreateFromCohorts(false)}
-                  disabled={isCreatingFromCohorts}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  disabled={isCreatingFromCohorts || newCohortName.trim().length < 2 || selectedCohortIds.length === 0}
-                  onClick={() => {
-                    if (newCohortName.trim() && selectedCohortIds.length > 0) {
-                      createFromCohorts(
-                        { name: newCohortName.trim(), description: newCohortDescription.trim() || undefined, cohort_ids: selectedCohortIds },
-                        {
-                          onSuccess: () => {
-                            setShowCreateFromCohorts(false);
-                            setNewCohortName("");
-                            setNewCohortDescription("");
-                            setSelectedCohortIds([]);
-                          },
-                        }
-                      );
-                    }
-                  }}
-                >
-                  {isCreatingFromCohorts ? "Creating…" : "Create"}
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <CreateCohortFromSelectionDialog open={showCreateFromCohorts} onOpenChange={setShowCreateFromCohorts} selectedCohortIds={selectedCohortIds} />
+
       </div>
     </RouteGuard>
   );
