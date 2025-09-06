@@ -92,7 +92,7 @@ export interface Site {
   share_links?: Record<string, unknown>;
 }
 
-export interface Device {
+export interface SiteDevice {
   name: string;
   description?: string;
   site?: string;
