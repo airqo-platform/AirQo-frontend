@@ -126,6 +126,17 @@ export const sites = {
       throw error;
     }
   },
+  bulkUpdate: async (data: { siteIds: string[]; updateData: { groups?: string[] } }) => {
+    try {
+      const response = await createSecureApiClient().put(
+        `/devices/sites/bulk`,
+        data
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export type { ApproximateCoordinatesResponse };

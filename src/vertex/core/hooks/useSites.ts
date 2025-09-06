@@ -107,7 +107,7 @@ export const useUpdateSiteDetails = () => {
       const cleanedData = Object.fromEntries(
         Object.entries(data).filter(([, value]) => value !== undefined)
       );
-      
+
       return sites.updateSiteDetails(siteId, cleanedData);
     },
     onSuccess: (data, { siteId }) => {
@@ -137,10 +137,25 @@ interface CreateSiteRequest {
 
 export const useCreateSite = () => {
   const queryClient = useQueryClient();
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation<any, AxiosError<ErrorResponse>, CreateSiteRequest>({
     mutationFn: async (data: CreateSiteRequest) => {
-      return sites.createSite(data);
+      const createdSite = await sites.createSite(data);
+      const siteId = createdSite?.site?._id;
+
+      if (siteId && activeGroup?.grp_title) {
+        await sites.bulkUpdate({
+          siteIds: [siteId],
+          updateData: {
+            groups: [activeGroup.grp_title],
+          },
+        });
+      } else if (!siteId) {
+        throw new Error("Site created but its ID was not found in the response.");
+      }
+
+      return createdSite;
     },
     onSuccess: (data, variables) => {
       ReusableToast({
