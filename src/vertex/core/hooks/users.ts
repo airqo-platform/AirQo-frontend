@@ -22,6 +22,8 @@ import type {
   UserDetailsResponse,
 } from "@/app/types/users";
 import { useRouter } from "next/navigation";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -124,6 +126,10 @@ export const useAuth = () => {
     },
     onError: (error) => {
       console.error("Login failed:", error);
+      ReusableToast({
+        message: `Login Failed: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
       localStorage.removeItem("token");
       localStorage.removeItem("userDetails");
       localStorage.removeItem("activeNetwork");

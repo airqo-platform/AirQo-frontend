@@ -1,8 +1,9 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { AqCopy01 } from "@airqo/icons-react"
+import { AqCopy01, AqEye, AqEyeOff } from "@airqo/icons-react"
 import ReusableToast from "../toast/ReusableToast"
 
 interface CommonProps {
@@ -43,6 +44,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   showCopyButton,
   ...props
 }) => {
+  const [showPassword, setShowPassword] = useState(false)
   const Component = props.as === "textarea" ? "textarea" : "input"
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { as: _, ...inputProps } = props
@@ -58,6 +60,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   const commonClasses =
     "w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 border-gray-300 transition-colors duration-150 ease-in-out dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-500 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:border-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-400"
 
+  const isPasswordInput = props.as !== "textarea" && (inputProps as React.InputHTMLAttributes<HTMLInputElement>).type === "password"
   const canShowCopyButton = showCopyButton && readOnly
 
   return (
@@ -74,7 +77,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
       )}
       <div className="relative w-full">
         <Component
-          className={cn(commonClasses, canShowCopyButton && "pr-10", className)}
+          className={cn(commonClasses, (canShowCopyButton || isPasswordInput) && "pr-10", className)}
           style={
             primaryColor
               ? {
@@ -87,7 +90,9 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
           }
           disabled={disabled || readOnly}
           required={required}
-          {...(inputProps as React.InputHTMLAttributes<HTMLInputElement> & React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
+          {...(inputProps as React.InputHTMLAttributes<HTMLInputElement> &
+            React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
+          type={isPasswordInput ? (showPassword ? "text" : "password") : (inputProps as React.InputHTMLAttributes<HTMLInputElement>).type}
         />
         {canShowCopyButton && (
           <button
@@ -97,6 +102,20 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
             aria-label="Copy to clipboard"
           >
             <AqCopy01 className="h-4 w-4" />
+          </button>
+        )}
+        {isPasswordInput && (
+          <button
+            type="button"
+            onClick={() => setShowPassword((prev) => !prev)}
+            className="absolute inset-y-0 top-2 right-0 flex items-center pr-3 text-gray-500 hover:text-primary focus:outline-none"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? (
+              <AqEyeOff className="h-4 w-4" />
+            ) : (
+              <AqEye className="h-4 w-4" />
+            )}
           </button>
         )}
       </div>
