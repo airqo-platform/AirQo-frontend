@@ -26,7 +26,7 @@ export function AssignCohortsToGroupDialog({
   const [selectedCohortIds, setSelectedCohortIds] = useState<string[]>(initialSelectedCohortIds);
   const [errors, setErrors] = useState<{ group?: string; cohorts?: string }>({});
 
-  const { cohorts: allCohorts, isLoading: isLoadingCohorts } = useCohorts();
+  const { cohorts: allCohorts } = useCohorts();
   const { groups: allGroups, isLoading: isLoadingGroups } = useGroups();
   const { mutate: assignToGroup, isPending } = useAssignCohortsToGroup();
 
@@ -135,7 +135,6 @@ export function AssignCohortsToGroupDialog({
               if (errors.cohorts) setErrors(e => ({...e, cohorts: undefined}));
             }}
             placeholder="Select cohorts..."
-            // disabled={isPending || isLoadingCohorts}
             allowCreate={false}
           />
           {errors.cohorts && <p className="text-sm text-destructive mt-1">{errors.cohorts}</p>}

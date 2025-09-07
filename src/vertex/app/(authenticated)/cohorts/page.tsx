@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
-import { useCohorts, useAssignCohortsToGroup } from "@/core/hooks/useCohorts";
+import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useState, useEffect, useCallback } from "react";
 import moment from "moment";
