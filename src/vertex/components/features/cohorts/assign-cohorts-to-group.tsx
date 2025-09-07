@@ -109,7 +109,7 @@ export function AssignCohortsToGroupDialog({
       }}
     >
       <div className="space-y-6 py-2">
-        <div>
+        <div className="grid gap-2">
           <label className="text-sm font-medium">Group <span className="text-red-500">*</span></label>
           <ComboBox
             options={groupOptions}
@@ -125,7 +125,7 @@ export function AssignCohortsToGroupDialog({
           />
           {errors.group && <p className="text-sm text-destructive mt-1">{errors.group}</p>}
         </div>
-        <div>
+        <div className="grid gap-2">
           <label className="text-sm font-medium">Cohorts <span className="text-red-500">*</span></label>
           <MultiSelectCombobox
             options={cohortOptions}
