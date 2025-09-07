@@ -10,6 +10,14 @@ export const users = {
       throw error;
     }
   },
+  loginWithDetails: async (data: LoginCredentials) => {
+    try {
+      const response = await createSecureApiClient().post(`/users/login-with-details`, data);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   getUserDetails: async (userID: string) => {
     try {
       const response = await createSecureApiClient().get(`/users/${userID}`, {

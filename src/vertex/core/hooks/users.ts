@@ -1,6 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { jwtDecode } from "jwt-decode";
 import { users } from "../apis/users";
 import {
   setUserDetails,
@@ -14,12 +13,9 @@ import {
 } from "../redux/slices/userSlice";
 import type {
   LoginCredentials,
-  DecodedToken,
   UserDetails,
   Network,
   Group,
-  LoginResponse,
-  UserDetailsResponse,
 } from "@/app/types/users";
 import { useRouter } from "next/navigation";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
@@ -31,62 +27,31 @@ export const useAuth = () => {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      // 1. Login and get token
-      const loginResponse = (await users.loginUser(
+      // 1. Login and get token and user details in one go
+      const loginResponse = (await users.loginWithDetails(
         credentials
-      )) as LoginResponse;
-      const token = loginResponse.token;
+      )) as { token: string; details: UserDetails };
+      const { token, details: userInfo } = loginResponse;
 
-      // 2. Store token
-      localStorage.setItem("token", token);
-
-      // 3. Decode token
-      const decoded = jwtDecode<DecodedToken>(token);
-
-      // 4. Create userDetails from decoded token
-      const userDetails: UserDetails = {
-        _id: decoded._id,
-        firstName: decoded.firstName,
-        lastName: decoded.lastName,
-        userName: decoded.userName,
-        email: decoded.email,
-        organization: decoded.organization,
-        long_organization: decoded.long_organization,
-        privilege: decoded.privilege,
-        country: decoded.country,
-        profilePicture: decoded.profilePicture,
-        description: decoded.description,
-        timezone: decoded.timezone,
-        phoneNumber: decoded.phoneNumber,
-        createdAt: decoded.createdAt,
-        updatedAt: decoded.updatedAt,
-        rateLimit: decoded.rateLimit,
-        lastLogin: decoded.lastLogin,
-        iat: decoded.iat,
-      };
-
-      // 5. Store user details
-      localStorage.setItem("userDetails", JSON.stringify(userDetails));
-
-      // 6. Get user info and store in redux
-      const userDetailsResponse = (await users.getUserDetails(
-        loginResponse._id
-      )) as UserDetailsResponse;
-      const userInfo = userDetailsResponse.users[0];
-
-      // 7. Store networks and groups
       if (!userInfo) {
-        throw new Error('User info not found in response');
+        throw new Error("User info not found in response");
       }
-      dispatch(setUserDetails(userInfo));
-      dispatch(setUserGroups(userInfo.groups || []));
+
+      // 2. Store token and user details in localStorage
+      localStorage.setItem("token", token);
+      localStorage.setItem("userDetails", JSON.stringify(userInfo));
       localStorage.setItem(
         "availableNetworks",
-        JSON.stringify(userInfo.networks)
+        JSON.stringify(userInfo.networks || [])
       );
-      localStorage.setItem("userGroups", JSON.stringify(userInfo.groups));
+      localStorage.setItem("userGroups", JSON.stringify(userInfo.groups || []));
 
-      // 8. Set AirQo as default network and group if available
+      // 3. Dispatch to Redux
+      dispatch(setUserDetails(userInfo));
+      dispatch(setUserGroups(userInfo.groups || []));
+      dispatch(setAvailableNetworks(userInfo.networks || []));
+
+      // 4. Set AirQo as default network and group if available
       const airqoNetwork = userInfo.networks?.find(
         (network: Network) => network.net_name.toLowerCase() === "airqo"
       );
@@ -95,7 +60,6 @@ export const useAuth = () => {
         dispatch(setActiveNetwork(airqoNetwork));
         localStorage.setItem("activeNetwork", JSON.stringify(airqoNetwork));
 
-        // Find and set AirQo group if it exists
         const airqoGroup = userInfo.groups?.find(
           (group: Group) => group.grp_title.toLowerCase() === "airqo"
         );
@@ -104,15 +68,13 @@ export const useAuth = () => {
           dispatch(setActiveGroup(airqoGroup));
           localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
         }
-      } else if (userInfo?.networks && userInfo.networks.length > 0) {
-        // If AirQo network not found, set first available network
+      } else if (userInfo.networks && userInfo.networks.length > 0) {
         dispatch(setActiveNetwork(userInfo.networks[0]));
         localStorage.setItem(
           "activeNetwork",
           JSON.stringify(userInfo.networks[0])
         );
 
-        // Set first available group in that network if any
         if (userInfo.groups && userInfo.groups.length > 0) {
           dispatch(setActiveGroup(userInfo.groups[0]));
           localStorage.setItem(
