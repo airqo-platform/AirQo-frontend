@@ -66,6 +66,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
 
   const isPasswordInput = props.as !== "textarea" && (inputProps as React.InputHTMLAttributes<HTMLInputElement>).type === "password"
   const canShowCopyButton = showCopyButton && readOnly
+  const showPasswordToggle = isPasswordInput && !readOnly
 
   return (
     <div className={`flex flex-col ${containerClassName}`}>
@@ -81,7 +82,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
       )}
       <div className="relative w-full">
         <Component
-          className={cn(commonClasses, (canShowCopyButton || isPasswordInput) && "pr-10", className)}
+          className={cn(commonClasses, (canShowCopyButton || showPasswordToggle) && "pr-10", className)}
           style={
             primaryColor
               ? {
@@ -109,11 +110,11 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
             <AqCopy01 className="h-4 w-4" />
           </button>
         )}
-        {isPasswordInput && (
+        {showPasswordToggle && (
           <button
             type="button"
             onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute inset-y-0 top-2 right-0 flex items-center pr-3 text-gray-500 hover:text-primary focus:outline-none"
+            className="absolute inset-y-0 right-0 top-2 flex items-center pr-3 text-gray-500 hover:text-primary focus:outline-none"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? (
