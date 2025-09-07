@@ -101,11 +101,11 @@ export const useUpdateSiteDetails = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
-    any,
+    unknown,
     AxiosError<ErrorResponse>,
-    { siteId: string; data: Record<string, string | number | undefined> }
+    { siteId: string; data: Record<string, string | number | boolean | undefined> }
   >({
-    mutationFn: async ({ siteId, data }: { siteId: string; data: Record<string, string | number | undefined> }) => {
+    mutationFn: async ({ siteId, data }: { siteId: string; data: Record<string, string | number | boolean | undefined> }) => {
       const cleanedData = Object.fromEntries(
         Object.entries(data).filter(([, value]) => value !== undefined)
       );
