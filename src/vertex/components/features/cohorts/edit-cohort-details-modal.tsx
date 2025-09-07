@@ -72,19 +72,9 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
             customFooter={
                 <div className="flex items-center justify-end gap-3 w-full px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                     <ReusableButton variant="outlined" onClick={handleCancel} disabled={updateCohort.isPending}>Cancel</ReusableButton>
-                    {canUpdate ? (
-                        <ReusableButton onClick={handleSave} disabled={updateCohort.isPending} variant="filled">
-                            {updateCohort.isPending ? "Saving..." : "Save"}
-                        </ReusableButton>
-                    ) : (
-                        <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
-                            <span>
-                                <ReusableButton disabled variant="filled">
-                                    Save
-                                </ReusableButton>
-                            </span>
-                        </PermissionTooltip>
-                    )}
+                    <ReusableButton onClick={handleSave} disabled={updateCohort.isPending} variant="filled" permission={PERMISSIONS.DEVICE.UPDATE}>
+                        {updateCohort.isPending ? "Saving..." : "Save"}
+                    </ReusableButton>
                 </div>
             }
         >

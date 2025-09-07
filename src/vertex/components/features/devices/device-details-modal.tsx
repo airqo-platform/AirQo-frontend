@@ -7,7 +7,6 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useUpdateDeviceLocal, useUpdateDeviceGlobal } from "@/core/hooks/useDevices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
-import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { Device } from "@/app/types/devices";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
@@ -57,10 +56,6 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
   const [isEditMode, setIsEditMode] = useState(false);
   const updateLocal = useUpdateDeviceLocal();
   const updateGlobal = useUpdateDeviceGlobal();
-  
-  // Permission checks
-  const canEdit = usePermission(PERMISSIONS.DEVICE.UPDATE);
-  const canSync = usePermission(PERMISSIONS.DEVICE.UPDATE);
   
   const form = useForm<DeviceUpdateFormData>({
     resolver: zodResolver(deviceUpdateSchema),
@@ -197,7 +192,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                   disabled={isLoading}
                   Icon={updateGlobal.isPending ? Loader2 : RefreshCw}
                   loading={updateGlobal.isPending}
-                  permission={canSync}
+                  permission={PERMISSIONS.DEVICE.UPDATE}
                 >
                   Sync Global
                 </ReusableButton>
@@ -207,7 +202,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                   disabled={isLoading}
                   Icon={updateLocal.isPending ? Loader2 : Save}
                   loading={updateLocal.isPending}
-                  permission={canEdit}
+                  permission={PERMISSIONS.DEVICE.UPDATE}
                 >
                   Save Local
                 </ReusableButton>
@@ -217,7 +212,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
               <ReusableButton variant="outlined" onClick={onClose}>
                 Close
               </ReusableButton>
-              <ReusableButton onClick={() => setIsEditMode(true)} Icon={AqEdit} permission={canEdit}>
+              <ReusableButton onClick={() => setIsEditMode(true)} Icon={AqEdit} permission={PERMISSIONS.DEVICE.UPDATE}>
                 Edit
               </ReusableButton>
             </>
