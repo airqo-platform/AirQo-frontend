@@ -8,6 +8,7 @@ import ReusableTable, {
 import moment from "moment";
 import { useState } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
+import { useUserContext } from "@/core/hooks/useUserContext";
 
 interface DevicesTableProps {
   devices: Device[];
@@ -36,6 +37,8 @@ export default function DevicesTable({
   const router = useRouter();
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const { userContext } = useUserContext();
+  const isInternalView = userContext === "airqo-internal";
 
   const handleDeviceClick = (item: unknown) => {
     const device = item as Device;
@@ -152,6 +155,40 @@ export default function DevicesTable({
       },
     },
   ];
+
+  if (isInternalView) {
+    const groupsColumn: TableColumn<TableDevice, string> = {
+      key: "groups",
+      label: "Groups",
+      render: (value, item) => {
+        const device = item as Device;
+        const groups = device.groups as string[] | undefined;
+
+        if (!groups || groups.length === 0) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {groups.map((groupName) => {
+              const formattedName = groupName.replace(/_/g, " ");
+              return (
+                <span
+                  key={groupName}
+                  title={formattedName}
+                  className="bg-gray-200 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full truncate capitalize"
+                >
+                  {formattedName}
+                </span>
+              );
+            })}
+          </div>
+        );
+      },
+    };
+    // Insert "Groups" column after "Site"
+    columns.splice(3, 0, groupsColumn);
+  }
 
   return (
     <div className="space-y-4">
