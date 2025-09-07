@@ -138,7 +138,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       return;
     }
 
-    const processedData: { [key: string]: any } = { ...dirtyData };
+    const processedData: Record<string, string | number | boolean | undefined> = { ...dirtyData };
     if (typeof processedData.device_number === "string") {
       processedData.device_number = processedData.device_number ? parseInt(processedData.device_number, 10) : undefined;
     }
@@ -178,8 +178,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       return;
     }
 
-    // Convert string numbers back to numbers where needed, only for fields that exist in dirtyData
-    const processedData: { [key: string]: any } = { ...dirtyData };
+    const processedData: Record<string, string | number | boolean | undefined> = { ...dirtyData };
     if (typeof processedData.device_number === "string") {
       processedData.device_number = processedData.device_number ? parseInt(processedData.device_number, 10) : undefined;
     }
