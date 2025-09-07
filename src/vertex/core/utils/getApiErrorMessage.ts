@@ -24,8 +24,10 @@ export const getApiErrorMessage = (error: unknown): string => {
             const errorValues = Object.values(data.errors);
             if (errorValues.length > 0) {
                 const firstError = errorValues[0];
-                if (typeof firstError === 'object' && firstError?.msg) {
-                    return firstError.msg;
+                if (Array.isArray(firstError) && firstError[0]) return String(firstError[0]);
+                if (typeof firstError === 'object') {
+                    const maybeMsg = (firstError as { msg?: string; message?: string }).msg ?? (firstError as { message?: string }).message;
+                    if (maybeMsg) return maybeMsg;
                 }
             }
         }
