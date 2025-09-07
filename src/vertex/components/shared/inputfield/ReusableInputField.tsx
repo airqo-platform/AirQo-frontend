@@ -88,7 +88,8 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
                 ? { borderColor: "red", boxShadow: "0 0 0 1px red" }
                 : undefined
           }
-          disabled={disabled || readOnly}
+          disabled={disabled}
+          readOnly={readOnly}
           required={required}
           {...(inputProps as React.InputHTMLAttributes<HTMLInputElement> &
             React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
