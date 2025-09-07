@@ -80,13 +80,15 @@ export default function LoginPage() {
                 render={({ field, fieldState }) => (
                   <div>
                     <div className="flex items-center justify-between">
-                      <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+                      <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
                       <Link href={forgotPasswordUrl} className="text-xs text-primary hover:underline">
                         Forgot password?
                       </Link>
                     </div>
                     <ReusableInputField
                       type={"password"}
+                      id="password"
+                      autoComplete="current-password"
                       placeholder="••••••••"
                       required
                       error={fieldState.error?.message}
