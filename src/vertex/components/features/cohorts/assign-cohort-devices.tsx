@@ -18,7 +18,6 @@ import { ComboBox } from "@/components/ui/combobox";
 import { AqPlus } from "@airqo/icons-react";
 import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
 import { CreateCohortDialog } from "./create-cohort";
-import { toast } from "sonner";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 
@@ -82,18 +81,7 @@ export function AssignCohortDevicesDialog({
 
   const handleCreateCohortSuccess = (cohortData: { cohort: { _id: string; name: string } }) => {
     setCreateCohortModalOpen(false);
-    toast.success("Cohort created successfully", {
-      description: `"${cohortData.cohort.name}" has been created.`,
-    });
     onOpenChange(false);
-  };
-
-  const handleCreateCohortError = (error: Error | unknown) => {
-    console.error("Error creating cohort:", error);
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred while creating the cohort.";
-    toast.error("Failed to create cohort", {
-      description: errorMessage,
-    });
   };
 
   const handleCreateCohortClose = (open: boolean) => {
@@ -116,14 +104,9 @@ export function AssignCohortDevicesDialog({
       },
       {
         onSuccess: () => {
-          toast.success("Devices assigned to cohort successfully");
           onOpenChange(false);
           form.reset();
           onSuccess?.();
-        },
-        onError: (error) => {
-          toast.error("Failed to assign devices to cohort");
-          console.error("Error assigning devices:", error);
         },
       }
     );
@@ -221,7 +204,6 @@ export function AssignCohortDevicesDialog({
         open={createCohortModalOpen}
         onOpenChange={handleCreateCohortClose}
         onSuccess={handleCreateCohortSuccess}
-        onError={handleCreateCohortError}
         andNavigate={true}
       />
     </>

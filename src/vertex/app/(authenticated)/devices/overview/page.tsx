@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Plus, Upload } from "lucide-react";
 import { useDevices } from "@/core/hooks/useDevices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
-import { toast } from "sonner";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermission } from "@/core/hooks/usePermissions";
@@ -12,12 +11,14 @@ import ImportDeviceModal from "@/components/features/devices/import-device-modal
 import CreateDeviceModal from "@/components/features/devices/create-device-modal";
 import DevicesTable from "@/components/features/devices/device-list-table";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import { useRouter } from "next/navigation";
 
 export default function DevicesPage() {
   const { devices, isLoading, error } = useDevices();
   const { isAirQoInternal, isExternalOrg } = useUserContext();
   const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
+  const router = useRouter();
 
   // Permission checks
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
@@ -58,7 +59,7 @@ export default function DevicesPage() {
             {isExternalOrg && (
               <ReusableButton
                 disabled={isLoading || !!error}
-                onClick={() => toast.error("This feature is not available yet for external organizations.")}
+                onClick={() => router.push("/devices/claim")}
               >
                 Claim Device
               </ReusableButton>

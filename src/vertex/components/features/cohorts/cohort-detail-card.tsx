@@ -1,9 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
-import { toast } from "sonner";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01, AqEye } from "@airqo/icons-react";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface CohortDetailsCardProps {
   name: string;
@@ -48,7 +48,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
               onClick={() => {
                 if (id) {
                   navigator.clipboard.writeText(id);
-                  toast.success("Cohort ID copied!");
+                  ReusableToast({message: "Copied", type: "SUCCESS"})
                 }
               }}
               className="p-1"

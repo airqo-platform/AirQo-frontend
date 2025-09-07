@@ -8,8 +8,8 @@ import { useAddMaintenanceLog } from "@/core/hooks/useDevices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface AddMaintenanceLogModalProps {
   open: boolean;
@@ -65,8 +65,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
 
   const handleSubmit = async () => {
     if (!date || selectedTags.length === 0) {
-      // Basic validation
-      toast("Please fill all fields");
+      ReusableToast({message: "Please fill all fields", type:"ERROR"})
       return;
     }
 
