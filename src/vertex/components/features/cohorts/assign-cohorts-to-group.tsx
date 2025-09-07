@@ -122,6 +122,7 @@ export function AssignCohortsToGroupDialog({
             searchPlaceholder="Search groups..."
             emptyMessage={isLoadingGroups ? "Loading groups..." : "No groups found."}
             disabled={isPending || isLoadingGroups}
+            allowCustomInput={false}
           />
           {errors.group && <p className="text-sm text-destructive mt-1">{errors.group}</p>}
         </div>
