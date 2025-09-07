@@ -22,6 +22,7 @@ This guide provides clear, step-by-step instructions to help you set up your loc
   - [Contributing](#contributing)
   - [Learn More](#learn-more)
   - [Deployment](#deployment)
+  - [Running with Docker](#running-with-docker)
 
 ---
 
@@ -178,6 +179,57 @@ To expand your knowledge about Next.js and modern web development, consider expl
 The simplest way to deploy the website is via the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme). For more detailed deployment instructions, refer to the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying).
 
 ---
+
+## Running with Docker
+
+This repository includes a `docker-compose.yml` that provides two services:
+
+- `web` - development service which bind-mounts the source and runs `npm run dev` with hot-reload on port 3000.
+- `web-prod` - production-like service that builds the standalone Next.js app using the provided `Dockerfile` and serves it on port 8080.
+
+Usage (run these from the project root: `d:/projects/AirQo-frontend/src/website2`):
+
+- Start dev (hot-reload, port 3000):
+
+```bash
+docker compose up web
+# or detached
+docker compose up -d web
+```
+
+- Build and run production-like container (port 8080):
+
+```bash
+docker compose up --build web-prod
+# or detached
+docker compose up -d --build web-prod
+```
+
+- Stop and remove containers (and anonymous volumes):
+
+```bash
+docker compose down -v
+```
+
+- Clean/rebuild the production image:
+
+```bash
+docker compose build --no-cache web-prod
+```
+
+Notes on environment variables
+
+- The compose services read `.env.compose` in the project root. Do not commit secrets into the repository. Instead create and commit `.env.compose.example` with placeholders and add `.env.compose` to `.gitignore`.
+
+Troubleshooting
+
+- If the browser cannot reach the site but `curl` shows responses, try using `http://127.0.0.1:8080` instead of `http://localhost:8080` (IPv4 vs IPv6 / proxy differences can cause issues).
+- If Docker Desktop or your Docker daemon is not running, start it first.
+- If the application build fails inside the container, ensure `npm ci` and `next build` complete locally first and check build logs with:
+
+```bash
+docker compose logs web-prod --tail 200
+```
 
 Thank you for your interest in contributing to our website. Your support and contributions are vital to the ongoing success and improvement of the project!
 

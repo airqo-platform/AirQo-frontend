@@ -3,7 +3,10 @@ FROM node:18-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci --omit=dev --ignore-scripts --prefer-offline
+# Install all dependencies (including dev) in the deps stage so the builder
+# has the toolchain (TypeScript, build tooling) required to run `next build`.
+# The final runner remains small because it only copies the standalone output.
+RUN npm ci --ignore-scripts --prefer-offline
 
 # ------- Stage 2 : builder -------
 FROM node:18-alpine AS builder
