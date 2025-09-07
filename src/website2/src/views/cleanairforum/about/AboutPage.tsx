@@ -6,7 +6,7 @@ import React from 'react';
 import { Divider, ForumLoading, NoData } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { isValidHTMLContent } from '@/utils/htmlValidator';
-import { logger } from '@/utils/logger';
+import logger from '@/utils/logger';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
 

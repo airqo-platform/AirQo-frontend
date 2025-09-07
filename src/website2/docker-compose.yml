@@ -21,18 +21,27 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        NEXT_PUBLIC_OPENCAGE_API_KEY: ${NEXT_PUBLIC_OPENCAGE_API_KEY}
+        # Server-side variables
+        API_URL: ${API_URL}
+        OPENCAGE_API_KEY: ${OPENCAGE_API_KEY}
+        API_TOKEN: ${API_TOKEN}
+        SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL}
+        SLACK_CHANNEL: ${SLACK_CHANNEL}
+        # Client-side variables
         NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
-        NEXT_PUBLIC_API_TOKEN: ${NEXT_PUBLIC_API_TOKEN}
-        NEXT_PUBLIC_SLACK_WEBHOOK_URL: ${NEXT_PUBLIC_SLACK_WEBHOOK_URL}
-        NEXT_PUBLIC_SLACK_CHANNEL: ${NEXT_PUBLIC_SLACK_CHANNEL}
     image: airqo-website:prod
     container_name: airqo-website-prod
     env_file:
       - .env
     environment:
       - NODE_ENV=production
+      # Runtime environment variables for server-side access
+      - API_URL=${API_URL}
+      - OPENCAGE_API_KEY=${OPENCAGE_API_KEY}
+      - API_TOKEN=${API_TOKEN}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - SLACK_CHANNEL=${SLACK_CHANNEL}
+      - NEXT_PUBLIC_GA_MEASUREMENT_ID=${NEXT_PUBLIC_GA_MEASUREMENT_ID}
       - PORT=8080
     ports:
       - '8080:8080'

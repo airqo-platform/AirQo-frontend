@@ -96,8 +96,10 @@ When adding new environment variables to the project, ensure that the CI/CD work
 For example, if you add new variables, update your workflow YAML files as follows:
 
 ```bash
-echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
-echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
+echo "  OPENCAGE_API_KEY: ${{ secrets.WEBSITE_OPENCAGE_API_KEY }}" >> .env.yaml
+echo "  API_TOKEN: ${{ secrets.WEBSITE_API_TOKEN }}" >> .env.yaml
+echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_SLACK_WEBHOOK_URL }}" >> .env.yaml
+echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_SLACK_CHANNEL }}" >> .env.yaml
 ```
 
 **Important Notes:**
@@ -219,14 +221,17 @@ docker compose build --no-cache web-prod
 
 Environment variables and build args
 
-The project now inlines client-visible environment variables at build time. The `Dockerfile` and `docker-compose.yml` expect the following NEXT*PUBLIC*\* variables to be available when building `web-prod`:
+**SECURITY UPDATE:** The project has been refactored to use server-side environment variables for sensitive data, improving security by not exposing credentials to the client.
 
-- NEXT_PUBLIC_API_URL
-- NEXT_PUBLIC_OPENCAGE_API_KEY
-- NEXT_PUBLIC_GA_MEASUREMENT_ID
-- NEXT_PUBLIC_API_TOKEN
-- NEXT_PUBLIC_SLACK_WEBHOOK_URL
-- NEXT_PUBLIC_SLACK_CHANNEL
+### Server-side Variables (Secure - not exposed to client):
+- API_URL (AirQo platform API base URL)
+- OPENCAGE_API_KEY (OpenCage geocoding API key) 
+- API_TOKEN (AirQo API authentication token)
+- SLACK_WEBHOOK_URL (Slack webhook for logging)
+- SLACK_CHANNEL (Slack channel for notifications)
+
+### Client-side Variables (Public - bundled with client code):
+- NEXT_PUBLIC_GA_MEASUREMENT_ID (Google Analytics tracking ID)
 
 How to provide them:
 
@@ -240,7 +245,7 @@ How to provide them:
 - Alternative: pass build args on the command line during build:
 
 ```bash
-docker compose build --build-arg NEXT_PUBLIC_API_URL="https://api.example.com" web-prod
+docker compose build --build-arg API_URL="https://api.example.com" web-prod
 ```
 
 Notes and safety

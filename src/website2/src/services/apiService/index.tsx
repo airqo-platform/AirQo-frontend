@@ -1,18 +1,11 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
-import { removeTrailingSlash } from '@/utils';
-
-// Define the base URL for the API with proper fallback
+// Define the base URL for the API using our proxy route
 const getApiBaseUrl = () => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!baseUrl) {
-    console.warn('NEXT_PUBLIC_API_URL is not defined. Using fallback URL.');
-    return 'https://platform.airqo.net';
-  }
-  return removeTrailingSlash(baseUrl);
+  return '/api/proxy';
 };
 
-const API_BASE_URL = `${getApiBaseUrl()}/website`;
+const API_BASE_URL = getApiBaseUrl();
 
 // Create an Axios instance with default configurations
 const apiClient: AxiosInstance = axios.create({
@@ -55,7 +48,11 @@ if (process.env.NODE_ENV === 'development') {
 // Generic GET request handler
 const getRequest = async (endpoint: string): Promise<any> => {
   try {
-    const response = await apiClient.get(endpoint);
+    // Use our proxy route with the /website prefix
+    const response = await apiClient.post('', {
+      endpoint: `/website${endpoint}`,
+      method: 'GET',
+    });
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
