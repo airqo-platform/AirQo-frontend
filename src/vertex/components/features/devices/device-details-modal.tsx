@@ -127,7 +127,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
   const onSubmitLocal = async (data: DeviceUpdateFormData) => {
     if (!device?._id) {
-      ReusableToast({message: "Cannot update device: missing device ID", type:"WARNING"});
+      ReusableToast({ message: "Cannot update device: missing device ID", type: "WARNING" });
       return;
     }
 
@@ -143,16 +143,20 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
     const processedData: Record<string, string | number | boolean | undefined> = { ...dirtyData };
     if (typeof processedData.device_number === "string") {
-      processedData.device_number = processedData.device_number ? parseInt(processedData.device_number, 10) : undefined;
+      processedData.device_number =
+        processedData.device_number.trim() === "" ? undefined : parseInt(processedData.device_number, 10);
     }
     if (typeof processedData.latitude === "string") {
-      processedData.latitude = processedData.latitude ? parseFloat(processedData.latitude) : undefined;
+      processedData.latitude =
+        processedData.latitude.trim() === "" ? undefined : parseFloat(processedData.latitude);
     }
     if (typeof processedData.longitude === "string") {
-      processedData.longitude = processedData.longitude ? parseFloat(processedData.longitude) : undefined;
+      processedData.longitude =
+        processedData.longitude.trim() === "" ? undefined : parseFloat(processedData.longitude);
     }
     if (typeof processedData.generation_count === "string") {
-      processedData.generation_count = processedData.generation_count ? parseInt(processedData.generation_count, 10) : undefined;
+      processedData.generation_count =
+        processedData.generation_count.trim() === "" ? undefined : parseInt(processedData.generation_count, 10);
     }
 
     updateLocal.mutate(
@@ -168,7 +172,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
   const onSubmitGlobal = async (data: DeviceUpdateFormData) => {
     if (!device?._id) {
-      ReusableToast({message: "Cannot update device: missing device ID", type:"WARNING"});
+      ReusableToast({ message: "Cannot update device: missing device ID", type: "WARNING" });
       return;
     }
 
@@ -184,18 +188,21 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
     const processedData: Record<string, string | number | boolean | undefined> = { ...dirtyData };
     if (typeof processedData.device_number === "string") {
-      processedData.device_number = processedData.device_number ? parseInt(processedData.device_number, 10) : undefined;
+      processedData.device_number =
+        processedData.device_number.trim() === "" ? undefined : parseInt(processedData.device_number, 10);
     }
     if (typeof processedData.latitude === "string") {
-      processedData.latitude = processedData.latitude ? parseFloat(processedData.latitude) : undefined;
+      processedData.latitude =
+        processedData.latitude.trim() === "" ? undefined : parseFloat(processedData.latitude);
     }
     if (typeof processedData.longitude === "string") {
-      processedData.longitude = processedData.longitude ? parseFloat(processedData.longitude) : undefined;
+      processedData.longitude =
+        processedData.longitude.trim() === "" ? undefined : parseFloat(processedData.longitude);
     }
     if (typeof processedData.generation_count === "string") {
-      processedData.generation_count = processedData.generation_count ? parseInt(processedData.generation_count, 10) : undefined;
+      processedData.generation_count =
+        processedData.generation_count.trim() === "" ? undefined : parseInt(processedData.generation_count, 10);
     }
-
 
     updateGlobal.mutate(
       { deviceId: device._id, deviceData: processedData },
