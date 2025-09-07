@@ -50,36 +50,45 @@ export const useAuth = () => {
       dispatch(setUserGroups(userInfo.groups || []));
       dispatch(setAvailableNetworks(userInfo.networks || []));
 
+      const isAirQoStaff = !!userInfo.email?.endsWith("@airqo.net");
       const airqoNetwork = userInfo.networks?.find(
         (network: Network) => network.net_name.toLowerCase() === "airqo"
       );
+      const airqoGroup = userInfo.groups?.find(
+        (group: Group) => group.grp_title.toLowerCase() === "airqo"
+      );
 
-      if (airqoNetwork) {
-        dispatch(setActiveNetwork(airqoNetwork));
-        localStorage.setItem("activeNetwork", JSON.stringify(airqoNetwork));
+      let defaultNetwork = userInfo.networks?.[0];
+      let defaultGroup = userInfo.groups?.[0];
 
-        const airqoGroup = userInfo.groups?.find(
-          (group: Group) => group.grp_title.toLowerCase() === "airqo"
-        );
-
+      if (isAirQoStaff && airqoNetwork) {
+        defaultNetwork = airqoNetwork;
         if (airqoGroup) {
-          dispatch(setActiveGroup(airqoGroup));
-          localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
+          defaultGroup = airqoGroup;
         }
-      } else if (userInfo.networks && userInfo.networks.length > 0) {
-        dispatch(setActiveNetwork(userInfo.networks[0]));
-        localStorage.setItem(
-          "activeNetwork",
-          JSON.stringify(userInfo.networks[0])
+      } else {
+        // For non-staff, find the first non-airqo group/network if possible
+        const nonAirqoNetwork = userInfo.networks?.find(
+          (n) => n.net_name.toLowerCase() !== "airqo"
         );
-
-        if (userInfo.groups && userInfo.groups.length > 0) {
-          dispatch(setActiveGroup(userInfo.groups[0]));
-          localStorage.setItem(
-            "activeGroup",
-            JSON.stringify(userInfo.groups[0])
-          );
+        const nonAirqoGroup = userInfo.groups?.find(
+          (g) => g.grp_title.toLowerCase() !== "airqo"
+        );
+        if (nonAirqoNetwork) {
+          defaultNetwork = nonAirqoNetwork;
         }
+        if (nonAirqoGroup) {
+          defaultGroup = nonAirqoGroup;
+        }
+      }
+
+      if (defaultNetwork) {
+        dispatch(setActiveNetwork(defaultNetwork));
+        localStorage.setItem("activeNetwork", JSON.stringify(defaultNetwork));
+      }
+      if (defaultGroup) {
+        dispatch(setActiveGroup(defaultGroup));
+        localStorage.setItem("activeGroup", JSON.stringify(defaultGroup));
       }
 
       return userInfo;

@@ -161,3 +161,33 @@ export const useAssignDevicesToCohort = () => {
     },
   });
 };
+
+export const useAssignCohortsToGroup = () => {
+  const queryClient = useQueryClient();
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+
+  return useMutation({
+    mutationFn: async ({ groupId, cohortIds }: { groupId: string; cohortIds: string[] }) => {
+      if (!groupId) {
+        throw new Error("Group ID is required");
+      }
+      if (!cohortIds?.length) {
+        throw new Error("At least one cohort ID is required");
+      }
+      return cohortsApi.assignCohortsToGroup(groupId, cohortIds);
+    },
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: `${variables.cohortIds.length} cohort(s) assigned to group successfully`,
+        type: "SUCCESS",
+      });
+      queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Failed to assign cohorts to group: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+};

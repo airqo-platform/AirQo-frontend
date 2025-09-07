@@ -184,7 +184,7 @@ export const useUserContext = (): UserContextState => {
           title: activeGroup?.grp_title || 'Organization',
           showContextSwitcher: false,
           showNetworkMap: false,
-          showSites: canViewSites,
+          showSites: false,
           showGrids: false,
           showCohorts: false,
           showUserManagement: canViewUserManagement,

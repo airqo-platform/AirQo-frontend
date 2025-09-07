@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
-import { useCohorts } from "@/core/hooks/useCohorts";
+import { useCohorts, useAssignCohortsToGroup } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useState, useEffect, useCallback } from "react";
 import moment from "moment";
@@ -15,6 +15,7 @@ import { devices as devicesApi } from "@/core/apis/devices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqPlus } from "@airqo/icons-react";
 import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/create-cohort-from-cohorts";
+import { AssignCohortsToGroupDialog } from "@/components/features/cohorts/assign-cohorts-to-group";
 
 type CohortRow = {
   id: string;
@@ -30,6 +31,7 @@ export default function CohortsPage() {
 
   const [showCreateCohortModal, setShowCreateCohortModal] = useState(false);
   const [showCreateFromCohorts, setShowCreateFromCohorts] = useState(false);
+  const [showAssignToGroup, setShowAssignToGroup] = useState(false);
   const [selectedCohortIds, setSelectedCohortIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
@@ -90,6 +92,25 @@ export default function CohortsPage() {
     }
   ]
 
+  const tableActions = [
+    {
+      label: "Create cohort from selection",
+      value: "create-from-cohorts",
+      handler: (ids: (string | number)[]) => {
+        setSelectedCohortIds(ids.map(String));
+        setShowCreateFromCohorts(true);
+      },
+    },
+    {
+      label: "Assign to group",
+      value: "assign-to-group",
+      handler: (ids: (string | number)[]) => {
+        setSelectedCohortIds(ids.map(String));
+        setShowAssignToGroup(true);
+      },
+    },
+  ];
+
   return (
     <RouteGuard permission="DEVICE_VIEW">
       <div>
@@ -124,17 +145,8 @@ export default function CohortsPage() {
           loading={isLoading}
           searchableColumns={["name"]}
           multiSelect
-          onSelectedItemsChange={(ids) => setSelectedCohortIds(ids as string[])}
-          actions={[
-            {
-              label: "Create cohort from selection",
-              value: "create-from-cohorts",
-              handler: (ids) => {
-                setSelectedCohortIds(ids as string[]);
-                setShowCreateFromCohorts(true);
-              },
-            },
-          ]}
+          onSelectedItemsChange={(ids: (string | number)[]) => setSelectedCohortIds(ids.map(String))}
+          actions={tableActions}
           onRowClick={(item: unknown) => {
             const row = item as CohortRow;
             if (row?.id) router.push(`/cohorts/${row.id}`)
@@ -143,8 +155,12 @@ export default function CohortsPage() {
         />
 
         <CreateCohortDialog open={showCreateCohortModal} onOpenChange={setShowCreateCohortModal} />
-        {/* Create From Cohorts Dialog */}
         <CreateCohortFromSelectionDialog open={showCreateFromCohorts} onOpenChange={setShowCreateFromCohorts} selectedCohortIds={selectedCohortIds} />
+        <AssignCohortsToGroupDialog
+          open={showAssignToGroup}
+          onOpenChange={setShowAssignToGroup}
+          initialSelectedCohortIds={selectedCohortIds}
+        />
 
       </div>
     </RouteGuard>
