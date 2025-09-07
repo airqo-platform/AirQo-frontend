@@ -125,7 +125,6 @@ export const useAuth = () => {
       return userInfo;
     },
     onError: (error) => {
-      console.error("Login failed:", error);
       ReusableToast({
         message: `Login Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
