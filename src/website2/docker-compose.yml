@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
-  # Development: bind-mounts source, runs `npm run dev` so you get hot-reload
+  # Development: bind-mounts source, runs `npm run dev` with hot-reload
   web:
-    image: node:18-alpine
+    image: node:20-alpine
     container_name: airqo-website-dev
     working_dir: /app
     volumes:
@@ -12,27 +10,29 @@ services:
     ports:
       - '3000:3000'
     env_file:
-      - .env.compose
+      - .env
     environment:
-      # Useful for file watchers inside containers
       - CHOKIDAR_USEPOLLING=true
     command: sh -c "npm ci && npm run dev -- -H 0.0.0.0 -p 3000"
 
-  # Production-like image: builds using the repository Dockerfile and runs the
-  # standalone Next.js production server (port 8080 as per Dockerfile).
+  # Production: builds and runs standalone Next.js server
   web-prod:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_BUILD_YEAR: ${NEXT_PUBLIC_BUILD_YEAR:-2025}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_OPENCAGE_API_KEY: ${NEXT_PUBLIC_OPENCAGE_API_KEY}
+        NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID}
+        NEXT_PUBLIC_API_TOKEN: ${NEXT_PUBLIC_API_TOKEN}
+        NEXT_PUBLIC_SLACK_WEBHOOK_URL: ${NEXT_PUBLIC_SLACK_WEBHOOK_URL}
+        NEXT_PUBLIC_SLACK_CHANNEL: ${NEXT_PUBLIC_SLACK_CHANNEL}
     image: airqo-website:prod
     container_name: airqo-website-prod
     env_file:
-      - .env.compose
+      - .env
     environment:
       - NODE_ENV=production
       - PORT=8080
     ports:
-      # Ensure host 8080 maps to container 8080 where the server is listening.
       - '8080:8080'

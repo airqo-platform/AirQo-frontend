@@ -54,7 +54,7 @@ The folder structure is consistent across all operating systems. Use your termin
 
 ### 3. Install Dependencies
 
-This project requires **Node.js version 18 or above**. Ensure you have Node.js and npm installed on your system by running:
+This project targets **Node.js 20 (LTS) or newer**. Ensure you have Node.js and npm installed on your system by running:
 
 ```bash
 node -v
@@ -184,10 +184,10 @@ The simplest way to deploy the website is via the [Vercel Platform](https://verc
 
 This repository includes a `docker-compose.yml` that provides two services:
 
-- `web` - development service which bind-mounts the source and runs `npm run dev` with hot-reload on port 3000.
-- `web-prod` - production-like service that builds the standalone Next.js app using the provided `Dockerfile` and serves it on port 8080.
+- `web` - development service which bind-mounts the source and runs `npm run dev` with hot-reload on port 3000 (uses Node 20 image).
+- `web-prod` - production-like service that builds the standalone Next.js app using the provided `Dockerfile` (Node 20) and serves it on port 8080.
 
-Usage (run these from the project root: `d:/projects/AirQo-frontend/src/website2`):
+Usage (run these from the website folder: `d:/projects/AirQo-frontend/src/website2`):
 
 - Start dev (hot-reload, port 3000):
 
@@ -217,19 +217,50 @@ docker compose down -v
 docker compose build --no-cache web-prod
 ```
 
-Notes on environment variables
+Environment variables and build args
 
-- The compose services read `.env.compose` in the project root. Do not commit secrets into the repository. Instead create and commit `.env.compose.example` with placeholders and add `.env.compose` to `.gitignore`.
+The project now inlines client-visible environment variables at build time. The `Dockerfile` and `docker-compose.yml` expect the following NEXT*PUBLIC*\* variables to be available when building `web-prod`:
+
+- NEXT_PUBLIC_API_URL
+- NEXT_PUBLIC_OPENCAGE_API_KEY
+- NEXT_PUBLIC_GA_MEASUREMENT_ID
+- NEXT_PUBLIC_API_TOKEN
+- NEXT_PUBLIC_SLACK_WEBHOOK_URL
+- NEXT_PUBLIC_SLACK_CHANNEL
+
+How to provide them:
+
+- Preferred: use the `.env` file in the project root. The `web` and `web-prod` services load `.env` via `env_file` in `docker-compose.yml`.
+
+```bash
+# Edit .env and fill in the values (do NOT commit secrets)
+# The .env file is already in .gitignore
+```
+
+- Alternative: pass build args on the command line during build:
+
+```bash
+docker compose build --build-arg NEXT_PUBLIC_API_URL="https://api.example.com" web-prod
+```
+
+Notes and safety
+
+- The Dockerfile uses Node 20 (LTS) and is optimized for production with minimal layers
+- Do NOT commit files that contain secrets (`.env` is already in `.gitignore`)
+- Docker Compose (v2) prefers the `docker compose` subcommand (without a hyphen)
+- Do NOT commit files that contain secrets (for example `.env`, `.env.compose`). The repository now also includes `.env` in `.gitignore` for extra safety.
+- Docker Compose (v2) prefers the `docker compose` subcommand (without a hyphen). Depending on your setup you may still have `docker-compose` available; both may work but `docker compose` is the recommended form for Compose v2.
 
 Troubleshooting
 
-- If the browser cannot reach the site but `curl` shows responses, try using `http://127.0.0.1:8080` instead of `http://localhost:8080` (IPv4 vs IPv6 / proxy differences can cause issues).
-- If Docker Desktop or your Docker daemon is not running, start it first.
-- If the application build fails inside the container, ensure `npm ci` and `next build` complete locally first and check build logs with:
+- If the browser cannot reach the site but `curl` shows responses, try `http://127.0.0.1:8080` instead of `http://localhost:8080` (IPv4 vs IPv6 / proxy differences can cause issues).
+- If a build inside Docker fails, first ensure the app builds locally with `npm ci` and `npm run build` and check the logs:
 
 ```bash
 docker compose logs web-prod --tail 200
 ```
+
+If you need to debug the build environment, you can run an interactive build container and inspect environment variables before running `npm run build`.
 
 Thank you for your interest in contributing to our website. Your support and contributions are vital to the ongoing success and improvement of the project!
 

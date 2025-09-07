@@ -1,18 +1,12 @@
-# ------- Stage 1 : dependencies -------
-FROM node:18-alpine AS deps
+# Optimized multi-stage build for minimal size
+FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package*.json ./
-# Install all dependencies (including dev) in the deps stage so the builder
-# has the toolchain (TypeScript, build tooling) required to run `next build`.
-# The final runner remains small because it only copies the standalone output.
-RUN npm ci --ignore-scripts --prefer-offline
 
-# ------- Stage 2 : builder -------
-FROM node:18-alpine AS builder
-WORKDIR /app
+# Build stage
+FROM base AS builder
 
-# -----  ALL  NEXT_PUBLIC_  ARGS  (add below if you ever need more) -----
+# Build args for client environment variables
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_OPENCAGE_API_KEY
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
@@ -20,23 +14,29 @@ ARG NEXT_PUBLIC_API_TOKEN
 ARG NEXT_PUBLIC_SLACK_WEBHOOK_URL
 ARG NEXT_PUBLIC_SLACK_CHANNEL
 
-# Bring in prod deps + source
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Set environment variables for build
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_OPENCAGE_API_KEY=$NEXT_PUBLIC_OPENCAGE_API_KEY \
+    NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
+    NEXT_PUBLIC_API_TOKEN=$NEXT_PUBLIC_API_TOKEN \
+    NEXT_PUBLIC_SLACK_WEBHOOK_URL=$NEXT_PUBLIC_SLACK_WEBHOOK_URL \
+    NEXT_PUBLIC_SLACK_CHANNEL=$NEXT_PUBLIC_SLACK_CHANNEL
 
-# Build standalone bundle (env-vars are inlined at this point)
+# Install dependencies and build
+COPY package*.json ./
+RUN npm ci --ignore-scripts
+COPY . .
 RUN npm run build
 
-# ------- Stage 3 : runner  (tiny) -------
-FROM node:18-alpine AS runner
+# Ultra-minimal runtime - ONLY standalone output
+FROM node:20-alpine AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Non-root user (App Engine likes it)
-RUN addgroup -g 1001 -S nodejs \
- && adduser -S nextjs -u 1001
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
-# Copy only the standalone artefact
+# Copy ONLY the standalone build (includes minimal runtime dependencies)
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
