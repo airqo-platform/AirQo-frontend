@@ -93,8 +93,8 @@ const reverseGeocode = async (lng: number, lat: number): Promise<string> => {
 };
 
 function MiniMap({
-  latitude = '0',
-  longitude = '0',
+  latitude,
+  longitude,
   onCoordinateChange,
   onSiteNameChange,
   customSiteName,
@@ -146,9 +146,10 @@ function MiniMap({
   useEffect(() => {
     if (!mapContainerRef.current || !mapboxgl.accessToken) return;
 
-    const currentCenter: [number, number] = (latitude && longitude && parseFloat(latitude) !== 0 && parseFloat(longitude) !== 0)
-      ? [parseFloat(longitude), parseFloat(latitude)]
-      : center;
+    const latNum = latitude?.trim() === '' ? NaN : Number(latitude);
+    const lngNum = longitude?.trim() === '' ? NaN : Number(longitude);
+    const hasLatLng = Number.isFinite(latNum) && Number.isFinite(lngNum);
+    const currentCenter: [number, number] = hasLatLng ? [lngNum, latNum] : center;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
@@ -233,13 +234,12 @@ function MiniMap({
   }, [mapMode]);
 
   useEffect(() => {
-    if (mapMode === 'marker' && latitude && longitude) {
-      const lat = parseFloat(latitude);
-      const lng = parseFloat(longitude);
-      if (markerRef.current && mapInstance && !isNaN(lat) && !isNaN(lng)) {
-        markerRef.current.setLngLat([lng, lat]);
-        mapInstance.setCenter([lng, lat]);
-      }
+    if (mapMode !== 'marker') return;
+    const latNum = latitude?.trim() === '' ? NaN : Number(latitude);
+    const lngNum = longitude?.trim() === '' ? NaN : Number(longitude);
+    if (markerRef.current && mapInstance && Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+      markerRef.current.setLngLat([lngNum, latNum]);
+      mapInstance.setCenter([lngNum, latNum]);
     }
   }, [latitude, longitude, mapInstance, mapMode]);
 
