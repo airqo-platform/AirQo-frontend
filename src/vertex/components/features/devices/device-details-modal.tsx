@@ -14,6 +14,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { AqEdit01 as AqEdit } from "@airqo/icons-react";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface DeviceDetailsModalProps {
   open: boolean;
@@ -126,6 +127,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
   const onSubmitLocal = async (data: DeviceUpdateFormData) => {
     if (!device?._id) {
+      ReusableToast({message: "Cannot update device: missing device ID", type:"WARNING"});
       return;
     }
 
@@ -166,6 +168,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
   const onSubmitGlobal = async (data: DeviceUpdateFormData) => {
     if (!device?._id) {
+      ReusableToast({message: "Cannot update device: missing device ID", type:"WARNING"});
       return;
     }
 
