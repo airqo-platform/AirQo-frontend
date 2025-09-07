@@ -7,21 +7,19 @@ WORKDIR /app
 FROM base AS builder
 
 # Build args for server-side environment variables (build time only)
+# Keep only non-sensitive values here. Do NOT bake secrets into the image.
+# Pass secrets at runtime (docker run -e ... or via your orchestrator) or
+# use Docker BuildKit secrets if you need them during build.
 ARG API_URL
-ARG OPENCAGE_API_KEY
-ARG API_TOKEN
-ARG SLACK_WEBHOOK_URL
-ARG SLACK_CHANNEL
 
 # Build args for client-side environment variables (build time only)
+# Public (NEXT_PUBLIC_) variables may be embedded in the client bundle.
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 # Set environment variables for build (server-side variables)
+# Only set non-sensitive values. Do not store secrets in ENV here.
+# Provide secrets at runtime instead.
 ENV API_URL=$API_URL \
-    OPENCAGE_API_KEY=$OPENCAGE_API_KEY \
-    API_TOKEN=$API_TOKEN \
-    SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL \
-    SLACK_CHANNEL=$SLACK_CHANNEL \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 # Install dependencies and build
@@ -36,19 +34,14 @@ ENV NODE_ENV=production
 WORKDIR /app
 
 # Runtime args for server-side environment variables
+# Runtime secrets must be supplied by the platform (docker run -e ...) or
+# via your orchestrator/secret manager. Do NOT bake them into the image.
 ARG API_URL
-ARG OPENCAGE_API_KEY
-ARG API_TOKEN
-ARG SLACK_WEBHOOK_URL
-ARG SLACK_CHANNEL
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 # Set environment variables for runtime (server-side variables)
+# Only set non-sensitive defaults here. Supply sensitive values at runtime.
 ENV API_URL=$API_URL \
-    OPENCAGE_API_KEY=$OPENCAGE_API_KEY \
-    API_TOKEN=$API_TOKEN \
-    SLACK_WEBHOOK_URL=$SLACK_WEBHOOK_URL \
-    SLACK_CHANNEL=$SLACK_CHANNEL \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 # Create non-root user
