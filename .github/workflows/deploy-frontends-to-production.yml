@@ -291,6 +291,9 @@ jobs:
           echo "  max_num_instances: 10" >> app.yaml
           echo "  cpu_utilization:" >> app.yaml
           echo "    target_utilization: 0.8" >> app.yaml
+          echo "resources:" >> app.yaml 
+          echo "  cpu: 1" >> app.yaml
+          echo "  memory_gb: 2.0" >> app.yaml 
           echo "runtime_config:" >> app.yaml
           echo "  operating_system: \"ubuntu22\"" >> app.yaml
           echo "  runtime_version: \"3.12\"" >> app.yaml
