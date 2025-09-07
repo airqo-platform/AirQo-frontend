@@ -111,8 +111,9 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
   useEffect(() => {
     if (!open) {
       setIsEditMode(false);
+      form.reset();
     }
-  }, [open]);
+  }, [open, form]);
 
   const handleCancel = () => {
     if (isEditMode) {
