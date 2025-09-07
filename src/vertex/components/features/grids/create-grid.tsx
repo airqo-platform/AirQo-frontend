@@ -21,17 +21,21 @@ const gridFormSchema = z.object({
   administrativeLevel: z.string().min(2, {
     message: "Administrative level is required.",
   }),
-  shapefile: z.string().refine(
-    (val) => {
-      try {
-        const parsed = JSON.parse(val);
-        return parsed && parsed.coordinates && parsed.coordinates.length > 0;
-      } catch {
-        return false;
-      }
-    },
-    { message: "A polygon must be drawn on the map." }
-  ),
+  shapefile: z.string().refine((val) => {
+    try {
+      const parsed = JSON.parse(val);
+      const t = parsed?.type;
+      const c = parsed?.coordinates;
+      if ((t !== "Polygon" && t !== "MultiPolygon") || !Array.isArray(c)) return false;
+      const isPair = (p: unknown) => Array.isArray(p) && p.length === 2 && p.every((n) => typeof n === "number");
+      const isRing = (r: unknown) => Array.isArray(r) && r.length >= 4 && r.every(isPair);
+      if (t === "Polygon") return Array.isArray(c) && c.length > 0 && c.every(isRing);
+      // MultiPolygon
+      return Array.isArray(c) && c.length > 0 && c.every((poly: unknown) => Array.isArray(poly) && poly.length > 0 && poly.every(isRing));
+    } catch {
+      return false;
+    }
+  }, { message: "A polygon must be drawn on the map." }),
 });
 
 type GridFormValues = z.infer<typeof gridFormSchema>;
