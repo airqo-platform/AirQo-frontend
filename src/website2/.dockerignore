@@ -1,6 +1,48 @@
+# dependencies
 node_modules
+npm-debug.log*
+yarn-debug.log*
+.pnpm-debug.log*
+
+# next.js
 .next
-Dockerfile*
-README.md
+out
+dist
+
+# testing
+coverage
+*.test.*
+__tests__
+jest.config.*
+
+# env & secrets
+.env*
+!.env.example
+*.pem
+*.key
+
+# dev tools
 .git
 .gitignore
+README.md
+Dockerfile*
+docker-compose*
+.wait-for-it.sh
+*.md
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# misc
+*.log
+logs
+tmp
+temp
+.cache
+.eslintcache

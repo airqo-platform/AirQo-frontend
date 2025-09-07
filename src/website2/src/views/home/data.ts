@@ -1,14 +1,18 @@
+/* eslint-disable simple-import-sort/imports */
 import Enabel from '@public/assets/images/partners/enabel.svg';
 import Google from '@public/assets/images/partners/google.svg';
 import UN from '@public/assets/images/partners/UN.svg';
 import UsMission from '@public/assets/images/partners/usmissionuganda.svg';
 import WorldBank from '@public/assets/images/partners/worldbankgroup.svg';
-import Community from '@public/assets/svgs/ImpactNumbers/Community.svg';
-import Monitor from '@public/assets/svgs/ImpactNumbers/Monitor.svg';
-import Network from '@public/assets/svgs/ImpactNumbers/Network.svg';
-import Partners from '@public/assets/svgs/ImpactNumbers/Partners.svg';
-import Publications from '@public/assets/svgs/ImpactNumbers/Publications.svg';
-import Records from '@public/assets/svgs/ImpactNumbers/Records.svg';
+import {
+  AqData,
+  AqFile02,
+  AqGlobe05,
+  AqMonitor,
+  AqStar06,
+  AqCoinsHand,
+} from '@airqo/icons-react';
+/* eslint-enable simple-import-sort/imports */
 
 export const partnerLogos = [Google, UsMission, Enabel, WorldBank, UN];
 
@@ -53,31 +57,37 @@ export const statItems = [
   {
     label: 'African Cities',
     key: 'african_cities',
-    icon: Network,
+    icon: AqGlobe05,
+    color: '#145DFF',
   },
   {
     label: 'Community Champions',
     key: 'champions',
-    icon: Community,
+    icon: AqStar06,
+    color: '#10B981',
   },
   {
     label: 'Monitor Installations',
     key: 'deployed_monitors',
-    icon: Monitor,
+    icon: AqMonitor,
+    color: '#F59E0B',
   },
   {
     label: 'Data records',
     key: 'data_records',
-    icon: Records,
+    icon: AqData,
+    color: '#EF4444',
   },
   {
     label: 'Research papers',
     key: 'research_papers',
-    icon: Publications,
+    icon: AqFile02,
+    color: '#8B5CF6',
   },
   {
     label: 'Partners',
     key: 'partners',
-    icon: Partners,
+    icon: AqCoinsHand,
+    color: '#06B6D4',
   },
 ];

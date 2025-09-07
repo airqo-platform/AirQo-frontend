@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 import SpeakersPage from '@/views/cleanairforum/speakers/SpeakersPage';
 
-const currentYear = new Date().getFullYear();
+const currentYear = 2025;
 export const metadata: Metadata = {
   title: `Speakers & Presenters | CLEAN-Air Forum ${currentYear} Nairobi`,
   description: `Meet our distinguished speakers and presenters at the CLEAN-Air Forum ${currentYear} in Nairobi. Leading experts in air quality, environmental science, and policy sharing insights on partnerships for clean air solutions in Africa.`,
