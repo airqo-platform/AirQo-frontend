@@ -224,13 +224,15 @@ Environment variables and build args
 **SECURITY UPDATE:** The project has been refactored to use server-side environment variables for sensitive data, improving security by not exposing credentials to the client.
 
 ### Server-side Variables (Secure - not exposed to client):
+
 - API_URL (AirQo platform API base URL)
-- OPENCAGE_API_KEY (OpenCage geocoding API key) 
+- OPENCAGE_API_KEY (OpenCage geocoding API key)
 - API_TOKEN (AirQo API authentication token)
 - SLACK_WEBHOOK_URL (Slack webhook for logging)
 - SLACK_CHANNEL (Slack channel for notifications)
 
 ### Client-side Variables (Public - bundled with client code):
+
 - NEXT_PUBLIC_GA_MEASUREMENT_ID (Google Analytics tracking ID)
 
 How to provide them:

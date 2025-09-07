@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Ensure this route is always treated as dynamic at runtime
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    // Use NextRequest.nextUrl to avoid reading request.url which triggers
+    // dynamic server usage during static build.
+    const { searchParams } = request.nextUrl || new URL(request.url);
     const latitude = searchParams.get('lat');
     const longitude = searchParams.get('lng');
 

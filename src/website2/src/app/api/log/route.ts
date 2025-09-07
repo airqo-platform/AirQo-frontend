@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Ensure this route is always treated as dynamic at runtime
+export const dynamic = 'force-dynamic';
+
 export interface LogData {
   level: 'error' | 'warn' | 'info' | 'debug';
   message: string;
