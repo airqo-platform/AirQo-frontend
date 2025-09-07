@@ -56,7 +56,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
   const [isEditMode, setIsEditMode] = useState(false);
   const updateLocal = useUpdateDeviceLocal();
   const updateGlobal = useUpdateDeviceGlobal();
-  
+
   const form = useForm<DeviceUpdateFormData>({
     resolver: zodResolver(deviceUpdateSchema),
     defaultValues: {
@@ -116,52 +116,90 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
 
   const handleCancel = () => {
     if (isEditMode) {
-      form.reset(); // Revert changes to original device data
-      setIsEditMode(false); // Switch back to view mode
+      form.reset();
+      setIsEditMode(false);
     } else {
-      onClose(); // Close the dialog if in view mode
+      onClose();
     }
   };
 
   const onSubmitLocal = async (data: DeviceUpdateFormData) => {
-    if (!device?.id) return;
-    
-    // Convert string numbers back to numbers where needed
-    const processedData = {
-      ...data,
-      device_number: data.device_number ? parseInt(data.device_number) : undefined,
-      latitude: data.latitude ? parseFloat(data.latitude) : undefined,
-      longitude: data.longitude ? parseFloat(data.longitude) : undefined,
-      generation_count: data.generation_count ? parseInt(data.generation_count) : undefined,
-    };
-    
+    if (!device?._id) {
+      return;
+    }
+
+    const { dirtyFields } = form.formState;
+    const dirtyData = Object.fromEntries(
+      (Object.keys(dirtyFields) as Array<keyof DeviceUpdateFormData>).map((key) => [key, data[key]]),
+    );
+
+    if (Object.keys(dirtyData).length === 0) {
+      setIsEditMode(false);
+      return;
+    }
+
+    const processedData: { [key: string]: any } = { ...dirtyData };
+    if (typeof processedData.device_number === "string") {
+      processedData.device_number = processedData.device_number ? parseInt(processedData.device_number, 10) : undefined;
+    }
+    if (typeof processedData.latitude === "string") {
+      processedData.latitude = processedData.latitude ? parseFloat(processedData.latitude) : undefined;
+    }
+    if (typeof processedData.longitude === "string") {
+      processedData.longitude = processedData.longitude ? parseFloat(processedData.longitude) : undefined;
+    }
+    if (typeof processedData.generation_count === "string") {
+      processedData.generation_count = processedData.generation_count ? parseInt(processedData.generation_count, 10) : undefined;
+    }
+
     updateLocal.mutate(
-      { deviceId: device.id, deviceData: processedData },
+      { deviceId: device._id, deviceData: processedData },
       {
         onSuccess: () => {
           setIsEditMode(false);
+          form.reset(data);
         },
       }
     );
   };
 
   const onSubmitGlobal = async (data: DeviceUpdateFormData) => {
-    if (!device?.id) return;
-    
-    // Convert string numbers back to numbers where needed
-    const processedData = {
-      ...data,
-      device_number: data.device_number ? parseInt(data.device_number) : undefined,
-      latitude: data.latitude ? parseFloat(data.latitude) : undefined,
-      longitude: data.longitude ? parseFloat(data.longitude) : undefined,
-      generation_count: data.generation_count ? parseInt(data.generation_count) : undefined,
-    };
-    
+    if (!device?._id) {
+      return;
+    }
+
+    const { dirtyFields } = form.formState;
+    const dirtyData = Object.fromEntries(
+      (Object.keys(dirtyFields) as Array<keyof DeviceUpdateFormData>).map((key) => [key, data[key]]),
+    );
+
+    if (Object.keys(dirtyData).length === 0) {
+      setIsEditMode(false);
+      return;
+    }
+
+    // Convert string numbers back to numbers where needed, only for fields that exist in dirtyData
+    const processedData: { [key: string]: any } = { ...dirtyData };
+    if (typeof processedData.device_number === "string") {
+      processedData.device_number = processedData.device_number ? parseInt(processedData.device_number, 10) : undefined;
+    }
+    if (typeof processedData.latitude === "string") {
+      processedData.latitude = processedData.latitude ? parseFloat(processedData.latitude) : undefined;
+    }
+    if (typeof processedData.longitude === "string") {
+      processedData.longitude = processedData.longitude ? parseFloat(processedData.longitude) : undefined;
+    }
+    if (typeof processedData.generation_count === "string") {
+      processedData.generation_count = processedData.generation_count ? parseInt(processedData.generation_count, 10) : undefined;
+    }
+
+
     updateGlobal.mutate(
-      { deviceId: device.id, deviceData: processedData },
+      { deviceId: device._id, deviceData: processedData },
       {
         onSuccess: () => {
           setIsEditMode(false);
+          form.reset(data);
         },
       }
     );
@@ -187,25 +225,25 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
               </ReusableButton>
 
               <ReusableButton
-                  variant="outlined"
-                  onClick={form.handleSubmit(onSubmitGlobal)}
-                  disabled={isLoading}
-                  Icon={updateGlobal.isPending ? Loader2 : RefreshCw}
-                  loading={updateGlobal.isPending}
-                  permission={PERMISSIONS.DEVICE.UPDATE}
-                >
-                  Sync Global
-                </ReusableButton>
+                variant="outlined"
+                onClick={form.handleSubmit(onSubmitGlobal)}
+                disabled={isLoading}
+                Icon={updateGlobal.isPending ? Loader2 : RefreshCw}
+                loading={updateGlobal.isPending}
+                permission={PERMISSIONS.DEVICE.UPDATE}
+              >
+                Sync Global
+              </ReusableButton>
 
-                <ReusableButton
-                  onClick={form.handleSubmit(onSubmitLocal)}
-                  disabled={isLoading}
-                  Icon={updateLocal.isPending ? Loader2 : Save}
-                  loading={updateLocal.isPending}
-                  permission={PERMISSIONS.DEVICE.UPDATE}
-                >
-                  Save Local
-                </ReusableButton>
+              <ReusableButton
+                onClick={form.handleSubmit(onSubmitLocal)}
+                disabled={isLoading}
+                Icon={updateLocal.isPending ? Loader2 : Save}
+                loading={updateLocal.isPending}
+                permission={PERMISSIONS.DEVICE.UPDATE}
+              >
+                Save Local
+              </ReusableButton>
             </>
           ) : (
             <>

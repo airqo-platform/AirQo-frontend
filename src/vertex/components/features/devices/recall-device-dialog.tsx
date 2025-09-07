@@ -61,6 +61,7 @@ export default function RecallDeviceDialog({
       title="Recall Device"
       subtitle={`Selected device: ${deviceDisplayName || deviceName}`}
       size="md"
+      className="h-[55vh]"
       primaryAction={{
         label: recallDevice.isPending ? "Recalling..." : "Recall Device",
         onClick: handleRecall,
