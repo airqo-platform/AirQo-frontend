@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
 import { users } from "../apis/users";
 import {
@@ -20,14 +20,15 @@ import type {
 import { useRouter } from "next/navigation";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
+import { devices } from "../apis/devices";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
-      // 1. Login and get token and user details in one go
       const loginResponse = (await users.loginWithDetails(
         credentials
       )) as { token: string; details: UserDetails };
@@ -37,7 +38,6 @@ export const useAuth = () => {
         throw new Error("User info not found in response");
       }
 
-      // 2. Store token and user details in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("userDetails", JSON.stringify(userInfo));
       localStorage.setItem(
@@ -46,12 +46,10 @@ export const useAuth = () => {
       );
       localStorage.setItem("userGroups", JSON.stringify(userInfo.groups || []));
 
-      // 3. Dispatch to Redux
       dispatch(setUserDetails(userInfo));
       dispatch(setUserGroups(userInfo.groups || []));
       dispatch(setAvailableNetworks(userInfo.networks || []));
 
-      // 4. Set AirQo as default network and group if available
       const airqoNetwork = userInfo.networks?.find(
         (network: Network) => network.net_name.toLowerCase() === "airqo"
       );
@@ -85,6 +83,59 @@ export const useAuth = () => {
       }
 
       return userInfo;
+    },
+    onSuccess: (userInfo) => {
+      const isAirQoStaff = !!userInfo.email?.endsWith("@airqo.net");
+      let initialUserContext: "personal" | "airqo-internal" | "external-org";
+      let activeGroup: Group | undefined;
+
+      const airqoNetwork = userInfo.networks?.find(
+        (network: Network) => network.net_name.toLowerCase() === "airqo"
+      );
+
+      if (airqoNetwork) {
+        const airqoGroup = userInfo.groups?.find(
+          (group: Group) => group.grp_title.toLowerCase() === "airqo"
+        );
+        if (airqoGroup) {
+          activeGroup = airqoGroup;
+        }
+      } else if (userInfo.groups && userInfo.groups.length > 0) {
+        activeGroup = userInfo.groups[0];
+      }
+
+      if (activeGroup) {
+        if (activeGroup.grp_title.toLowerCase() === "airqo" && isAirQoStaff) {
+          initialUserContext = "airqo-internal";
+        } else {
+          initialUserContext = "external-org";
+        }
+      } else {
+        initialUserContext = "personal";
+      }
+
+      dispatch(setUserContext(initialUserContext));
+      localStorage.setItem("userContext", initialUserContext);
+
+      if (initialUserContext === "personal") {
+        queryClient.prefetchQuery({
+          queryKey: ["my-devices", userInfo._id, activeGroup?._id],
+          queryFn: () => devices.getMyDevices(userInfo._id),
+          staleTime: 300_000,
+        });
+      } else if (activeGroup) {
+        const resolvedNetworkName =
+          airqoNetwork?.net_name || userInfo.networks?.[0]?.net_name || "";
+        const resolvedGroupName = activeGroup?.grp_title || "";
+
+        queryClient.prefetchQuery({
+          queryKey: ["devices", resolvedNetworkName, resolvedGroupName],
+          queryFn: () =>
+            devices.getDevicesSummaryApi(resolvedNetworkName, resolvedGroupName),
+          staleTime: 300_000,
+        });
+      }
+
     },
     onError: (error) => {
       ReusableToast({
@@ -125,14 +176,13 @@ export const useAuth = () => {
 
       if (token && storedUserDetails) {
         const userDetails = JSON.parse(storedUserDetails) as UserDetails;
-        
-        // Ensure userDetails has required properties for setUserDetails
+
         const safeUserDetails: UserDetails = {
           ...userDetails,
           networks: userDetails.networks || [],
           groups: userDetails.groups || [],
         };
-        
+
         dispatch(setUserDetails(safeUserDetails));
 
         if (storedActiveNetwork) {
@@ -155,11 +205,10 @@ export const useAuth = () => {
         }
         if (storedUserContext) {
           const userContext = storedUserContext as 'personal' | 'airqo-internal' | 'external-org';
-          
-          // Validate stored context against user permissions
+
           const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
           if (userContext === 'airqo-internal' && !isAirQoStaff) {
-            // Reset to safe default if unauthorized context is stored
+
             console.warn('Unauthorized context found in localStorage, resetting to personal');
             dispatch(setUserContext('personal'));
             localStorage.setItem("userContext", 'personal');
