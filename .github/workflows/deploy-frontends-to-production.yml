@@ -306,11 +306,11 @@ jobs:
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_API_URL: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_URL }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_SLACK_WEBHOOK_URL }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_SLACK_CHANNEL: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_SLACK_CHANNEL }}" >> .env.yaml
+          echo "  API_URL: ${{ secrets.WEBSITE_PROD_API_URL }}" >> .env.yaml
+          echo "  OPENCAGE_API_KEY: ${{ secrets.WEBSITE_PROD_OPENCAGE_API_KEY }}" >> .env.yaml
+          echo "  API_TOKEN: ${{ secrets.WEBSITE_PROD_API_TOKEN }}" >> .env.yaml
+          echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_PROD_SLACK_WEBHOOK_URL }}" >> .env.yaml
+          echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_PROD_SLACK_CHANNEL }}" >> .env.yaml
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env.yaml
@@ -319,11 +319,12 @@ jobs:
         run: |
           cd src/website2/
           docker build . \
-          --build-arg NEXT_PUBLIC_API_URL=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_URL }} \
-          --build-arg NEXT_PUBLIC_OPENCAGE_API_KEY=${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }} \
-          --build-arg NEXT_PUBLIC_API_TOKEN=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_TOKEN }} \
-          --build-arg NEXT_PUBLIC_SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_SLACK_WEBHOOK_URL }} \
-          --build-arg NEXT_PUBLIC_SLACK_CHANNEL=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_SLACK_CHANNEL }} \
+          --build-arg API_URL=${{ secrets.WEBSITE_PROD_API_URL }} \
+          --build-arg OPENCAGE_API_KEY=${{ secrets.WEBSITE_PROD_OPENCAGE_API_KEY }} \
+          --build-arg API_TOKEN=${{ secrets.WEBSITE_PROD_API_TOKEN }} \
+          --build-arg SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_PROD_SLACK_WEBHOOK_URL }} \
+          --build-arg SLACK_CHANNEL=${{ secrets.WEBSITE_PROD_SLACK_CHANNEL }} \
+          --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:latest
