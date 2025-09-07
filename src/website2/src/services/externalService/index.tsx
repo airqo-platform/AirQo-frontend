@@ -117,9 +117,11 @@ export const postContactUs = async (body: any): Promise<any | null> => {
 export const getGridsSummary = async (): Promise<any | null> => {
   try {
     // Use our proxy route that handles authentication server-side
-    const response: AxiosResponse<any> = await axios.get('/api/proxy', {
-      timeout: 8000,
-    });
+    const response: AxiosResponse<any> = await axios.post(
+      '/api/proxy',
+      { endpoint: '/api/v2/devices/grids/summary', method: 'GET' },
+      { timeout: 8000 },
+    );
     return response.data;
   } catch (error) {
     handleError(error, 'GET /devices/grids/summary');
