@@ -375,10 +375,6 @@ jobs:
           cd src/website2/
           docker build . \
           --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
-          --build-arg OPENCAGE_API_KEY=${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }} \
-          --build-arg API_TOKEN=${{ secrets.WEBSITE_STAGE_API_TOKEN }} \
-          --build-arg SLACK_WEBHOOK_URL=${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }} \
-          --build-arg SLACK_CHANNEL=${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }} \
           --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
