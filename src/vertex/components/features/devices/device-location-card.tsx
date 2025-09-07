@@ -37,10 +37,10 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
             Site
           </div>
           <div className="text-base font-normal break-all">
-              {device?.site ? 
-                (Array.isArray(device.site) ? device.site[0]?.name : device.site.name) || 
-                (Array.isArray(device.site) ? device.site[0]?.description : device.site.description) || 
-                (Array.isArray(device.site) ? device.site[0]?.location_name : device.site.location_name) || "N/A" : "N/A"}
+              {device?.site && Array.isArray(device.site) && device.site.length > 0 ? 
+                device.site[0]?.name || 
+                device.site[0]?.description || 
+                device.site[0]?.location_name || "N/A" : "N/A"}
             </div>
         </div>
 
