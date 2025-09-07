@@ -1,10 +1,10 @@
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 
 // This interface covers the various error shapes
 interface ApiErrorResponse {
-  message?: string;
-  errors?:
-    | { [key: string]: { msg?: string; message?: string } } // For validation errors like { errors: { field: { msg: "..." } } }
+    message?: string;
+    errors?:
+    | { [key: string]: { msg?: string; message?: string } | string[] } // Also supports arrays like { field: ["..."] }
     | { message?: string } // For errors like { errors: { message: "..." } }
     | string; // For errors like { errors: "..." }
 }
@@ -16,41 +16,41 @@ interface ApiErrorResponse {
  * @returns A user-friendly error message string.
  */
 export const getApiErrorMessage = (error: unknown): string => {
-  if (error instanceof AxiosError && error.response?.data) {
-    const data = error.response.data as ApiErrorResponse;
+    if (axios.isAxiosError(error) && error.response?.data) {
+        const data = error.response.data as ApiErrorResponse;
 
-    // 1. Nested validation errors: { "errors": { "field": { "msg": "..." } } }
-    if (typeof data.errors === 'object' && data.errors !== null && !('message' in data.errors)) {
-      const errorValues = Object.values(data.errors);
-      if (errorValues.length > 0) {
-        const firstError = errorValues[0];
-        if (typeof firstError === 'object' && firstError?.msg) {
-          return firstError.msg;
+        // 1. Nested validation errors: { "errors": { "field": { "msg": "..." } } }
+        if (typeof data.errors === 'object' && data.errors !== null && !('message' in data.errors as any)) {
+            const errorValues = Object.values(data.errors);
+            if (errorValues.length > 0) {
+                const firstError = errorValues[0];
+                if (typeof firstError === 'object' && firstError?.msg) {
+                    return firstError.msg;
+                }
+            }
         }
-      }
+
+        // 2. Simple errors object: { "errors": { "message": "..." } }
+        if (typeof data.errors === 'object' && data.errors !== null && (data.errors as { message: string }).message) {
+            return (data.errors as { message: string }).message;
+        }
+
+        // 3. String inside errors: { "errors": "..." }
+        if (typeof data.errors === 'string') {
+            return data.errors;
+        }
+
+        // 4. Top-level message: { "message": "..." }
+        if (data.message) {
+            return data.message;
+        }
     }
 
-    // 2. Simple errors object: { "errors": { "message": "..." } }
-    if (typeof data.errors === 'object' && data.errors !== null && (data.errors as { message: string }).message) {
-      return (data.errors as { message: string }).message;
+    // 5. Fallback to standard Error message
+    if (error instanceof Error) {
+        return error.message;
     }
 
-    // 3. String inside errors: { "errors": "..." }
-    if (typeof data.errors === 'string') {
-      return data.errors;
-    }
-
-    // 4. Top-level message: { "message": "..." }
-    if (data.message) {
-      return data.message;
-    }
-  }
-
-  // 5. Fallback to standard Error message
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  // 6. Generic fallback
-  return 'An unexpected error occurred. Please try again.';
+    // 6. Generic fallback
+    return 'An unexpected error occurred. Please try again.';
 };
