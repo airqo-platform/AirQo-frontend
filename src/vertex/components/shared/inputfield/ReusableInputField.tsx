@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useId, useState } from "react"
 import { cn } from "@/lib/utils"
 import { AqCopy01, AqEye, AqEyeOff } from "@airqo/icons-react"
 import ReusableToast from "../toast/ReusableToast"
@@ -48,6 +48,10 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   const Component = props.as === "textarea" ? "textarea" : "input"
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { as: _, ...inputProps } = props
+  const generatedId = useId()
+  const inputId = (inputProps as { id?: string }).id ?? `rif-${generatedId}`
+  const errorId = `${inputId}-error`
+  const descId = `${inputId}-desc`
 
   const handleCopy = async () => {
     const valueToCopy = (inputProps as { value?: string | number }).value
@@ -71,7 +75,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   return (
     <div className={`flex flex-col ${containerClassName}`}>
       {label && (
-        <label className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
+        <label htmlFor={inputId} className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center">
           {label}
           {required && !readOnly && (
             <span style={{ color: primaryColor || "hsl(var(--primary))" }} className="ml-1">
@@ -82,6 +86,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
       )}
       <div className="relative w-full">
         <Component
+          id={inputId}
           className={cn(commonClasses, (canShowCopyButton || showPasswordToggle) && "pr-10", className)}
           style={
             primaryColor
@@ -95,6 +100,9 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
           }
           disabled={disabled}
           readOnly={readOnly}
+          aria-readonly={readOnly || undefined}
+          aria-invalid={!!error || undefined}
+          aria-describedby={error ? errorId : description ? descId : undefined}
           required={required}
           {...(inputProps as React.InputHTMLAttributes<HTMLInputElement> &
             React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
@@ -126,7 +134,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
         )}
       </div>
       {error && !readOnly && (
-        <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
+        <div id={errorId} className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
           <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
@@ -137,7 +145,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
           {error}
         </div>
       )}
-      {!error && description && <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{description}</div>}
+      {!error && description && <div id={descId} className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">{description}</div>}
     </div>
   )
 }
