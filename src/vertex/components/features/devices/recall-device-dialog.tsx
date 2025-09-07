@@ -2,14 +2,7 @@
 
 import { useState } from "react";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useRecallDevice } from "@/core/hooks/useDevices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 
@@ -80,21 +73,15 @@ export default function RecallDeviceDialog({
         variant: "outline",
       }}
     >
-      <div className="grid gap-2">
-        <Label htmlFor="recallType">Set Recall Type *</Label>
-        <Select value={recallType} onValueChange={setRecallType}>
-          <SelectTrigger id="recallType">
-            <SelectValue placeholder="Select recall type" />
-          </SelectTrigger>
-          <SelectContent position="popper" sideOffset={5}>
-            {recallTypes.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <ReusableSelectInput
+        label="Set Recall Type"
+        required
+        value={recallType}
+        onChange={(e) => setRecallType(e.target.value)}
+        placeholder="Select recall type"
+      >
+        {recallTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+      </ReusableSelectInput>
     </ReusableDialog>
   );
 }
