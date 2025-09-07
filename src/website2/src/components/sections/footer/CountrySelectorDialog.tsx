@@ -126,7 +126,7 @@ const CountrySelectorDialog: React.FC = () => {
     async (latitude: number, longitude: number, abortSignal?: AbortSignal) => {
       try {
         const response = await fetch(
-          `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=${process.env.NEXT_PUBLIC_OPENCAGE_API_KEY}`,
+          `/api/geocode?lat=${latitude}&lng=${longitude}`,
           { signal: abortSignal },
         );
         if (!response.ok) {

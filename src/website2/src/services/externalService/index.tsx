@@ -1,22 +1,16 @@
 import axios, { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
-import { removeTrailingSlash } from '@/utils';
-
 // ----------------------
 // Configuration
 // ----------------------
 
 // Define the base URL for the API with proper fallback
 const getApiBaseUrl = () => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!baseUrl) {
-    console.warn('NEXT_PUBLIC_API_URL is not defined. Using fallback URL.');
-    return 'https://platform.airqo.net';
-  }
-  return removeTrailingSlash(baseUrl);
+  // Use our API proxy route instead of direct external API calls
+  return '/api/proxy';
 };
 
-const API_BASE_URL = `${getApiBaseUrl()}/api/v2`;
+const API_BASE_URL = getApiBaseUrl();
 
 // Create an Axios instance with default configurations
 const apiClient: AxiosInstance = axios.create({
@@ -68,7 +62,11 @@ const postRequest = async (
   body: any,
 ): Promise<any | null> => {
   try {
-    const response: AxiosResponse<any> = await apiClient.post(endpoint, body);
+    const response: AxiosResponse<any> = await apiClient.post('', {
+      endpoint,
+      method: 'POST',
+      data: body,
+    });
     return response.data;
   } catch (error) {
     handleError(error, `POST ${endpoint}`);
@@ -99,14 +97,14 @@ const handleError = (error: unknown, context: string) => {
  * Subscribe a user to the newsletter.
  */
 export const subscribeToNewsletter = async (body: any): Promise<any | null> => {
-  return postRequest('/users/newsletter/subscribe', body);
+  return postRequest('/api/v2/users/newsletter/subscribe', body);
 };
 
 /**
  * Post user feedback, inquiry, or contact us message.
  */
 export const postContactUs = async (body: any): Promise<any | null> => {
-  return postRequest('/users/inquiries/register', body);
+  return postRequest('/api/v2/users/inquiries/register', body);
 };
 
 // ----------------------
@@ -114,21 +112,15 @@ export const postContactUs = async (body: any): Promise<any | null> => {
 // ----------------------
 
 /**
- * Fetch grids summary data. Requires API token for authentication.
+ * Fetch grids summary data. Uses server-side API token for authentication.
  */
 export const getGridsSummary = async (): Promise<any | null> => {
   try {
-    // Call the external API directly via the configured Axios client.
-    // Include the API token as a query parameter when available (keeps parity with previous proxy behavior).
-    // Only use the public token as requested
-    const token = process.env.NEXT_PUBLIC_API_TOKEN || '';
-
-    const response: AxiosResponse<any> = await apiClient.get(
-      '/devices/grids/summary',
-      {
-        params: token ? { token } : undefined,
-        timeout: 8000,
-      },
+    // Use our proxy route that handles authentication server-side
+    const response: AxiosResponse<any> = await axios.post(
+      '/api/proxy',
+      { endpoint: '/api/v2/devices/grids/summary', method: 'GET' },
+      { timeout: 8000 },
     );
     return response.data;
   } catch (error) {

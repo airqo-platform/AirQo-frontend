@@ -153,7 +153,6 @@ jobs:
 
       - name: Create .env file
         run: gcloud secrets versions access latest --secret="sta-env-netmanager" > src/netmanager/.env
-          
 
       - name: NPM Setup and Build
         uses: actions/setup-node@v3
@@ -239,7 +238,7 @@ jobs:
   #     - name: Create app.yaml and .env.yaml files
   #       run: |
   #         cd src/website/
-  #         echo "========== Creating app.yaml file =========="          
+  #         echo "========== Creating app.yaml file =========="
   #         echo "runtime: python" > app.yaml
   #         echo "env: flex" >> app.yaml
   #         echo "service: staging" >> app.yaml
@@ -251,7 +250,7 @@ jobs:
   #         echo "  max_num_instances: 5" >> app.yaml
   #         echo "  cpu_utilization:" >> app.yaml
   #         echo "    target_utilization: 0.8" >> app.yaml
-  #         echo "========== Creating .env.yaml file =========="  
+  #         echo "========== Creating .env.yaml file =========="
   #         echo "env_variables:" > .env.yaml
   #         echo "runtime_config:" >> app.yaml
   #         echo "  operating_system: \"ubuntu22\"" >> app.yaml
@@ -286,22 +285,22 @@ jobs:
   #         docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
   #         docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest
 
-      # - name: Deploy to App Engine
-      #   run: |-
-      #     cd src/website/
-      #     gcloud app deploy  \
-      #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
-      #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
-      #       --quiet
+  # - name: Deploy to App Engine
+  #   run: |-
+  #     cd src/website/
+  #     gcloud app deploy  \
+  #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website:latest \
+  #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+  #       --quiet
 
-      # - name: Delete Old Versions
-      #   run: |-
-      #     service="staging"
-      #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-      #       for version in $versions; do
-      #         echo "Deleting version: $version for service: $service"
-      #         gcloud app versions delete "$version" --service=$service --quiet
-      #       done
+  # - name: Delete Old Versions
+  #   run: |-
+  #     service="staging"
+  #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+  #       for version in $versions; do
+  #         echo "Deleting version: $version for service: $service"
+  #         gcloud app versions delete "$version" --service=$service --quiet
+  #       done
 
   ### deploy website2 ###
   website2:
@@ -363,9 +362,11 @@ jobs:
           echo "  operating_system: \"ubuntu22\"" >> app.yaml
           echo "  runtime_version: \"3.12\"" >> app.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_API_URL: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
+          echo "  API_URL: ${{ secrets.WEBSITE_STAGE_API_URL }}" >> .env.yaml
+          echo "  OPENCAGE_API_KEY: ${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" >> .env.yaml
+          echo "  API_TOKEN: ${{ secrets.WEBSITE_STAGE_API_TOKEN }}" >> .env.yaml
+          echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" >> .env.yaml
+          echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env.yaml
 
@@ -373,9 +374,8 @@ jobs:
         run: |
           cd src/website2/
           docker build . \
-          --build-arg NEXT_PUBLIC_API_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }} \
-          --build-arg NEXT_PUBLIC_OPENCAGE_API_KEY=${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }} \
-          --build-arg NEXT_PUBLIC_API_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }} \
+          --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
+          --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:latest
@@ -421,8 +421,7 @@ jobs:
               if [ $attempt -gt $max_attempts ]; then
                   echo "Skipping version: $version after $max_attempts failed attempts."
               fi
-          done           
-
+          done
 
   ### build and push calibrate app image ###
   calibrate-app:
@@ -646,7 +645,7 @@ jobs:
         run: |
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/inventory/.env env-inventory-staging | kubectl replace -f - -n staging
-            
+
   ### build and push reports image ###
   reports:
     name: build-push-reports-image
@@ -763,10 +762,9 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/vertex/.env env-vertex-staging | kubectl replace -f - -n staging          
+          --from-env-file=src/vertex/.env env-vertex-staging | kubectl replace -f - -n staging
 
-
-### build and push beacon image ###
+  ### build and push beacon image ###
   beacon:
     name: build-push-beacon-image
     needs: [check, image-tag]
@@ -823,4 +821,4 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/beacon/.env env-beacon-staging | kubectl replace -f - -n staging          
+          --from-env-file=src/beacon/.env env-beacon-staging | kubectl replace -f - -n staging

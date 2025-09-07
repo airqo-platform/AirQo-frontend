@@ -17,190 +17,122 @@ export interface LogData {
 }
 
 class Logger {
-  private slackWebhookUrl: string | null = null;
-  private slackChannel: string | null = null;
   private isProduction: boolean = false;
 
   constructor() {
-    // Only access environment variables in the browser
-    if (typeof window !== 'undefined') {
-      this.slackWebhookUrl = process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL || null;
-      this.slackChannel = process.env.NEXT_PUBLIC_SLACK_CHANNEL || null;
-      this.isProduction = process.env.NODE_ENV === 'production';
-    }
-  }
-
-  private formatSlackMessage(data: LogData): any {
-    const { level, message, error, context, url, userAgent } = data;
-
-    // Ensure channel starts with #
-    const channel = this.slackChannel?.startsWith('#')
-      ? this.slackChannel
-      : `#${this.slackChannel || 'notifs-official-website'}`;
-
-    const timestamp = new Date().toISOString();
-    const environment = this.isProduction ? 'Production' : 'Development';
-
-    let color = '#36a64f'; // good - green
-    if (level === 'error') {
-      color = '#ff0000'; // danger - red
-    } else if (level === 'warn') {
-      color = '#ff9900'; // warning - orange
-    } else if (level === 'info') {
-      color = '#2196F3'; // info - blue
-    }
-
-    const attachment: any = {
-      color,
-      title: `${level.toUpperCase()}: ${message}`,
-      timestamp,
-      fields: [
-        {
-          title: 'Environment',
-          value: environment,
-          short: true,
-        },
-      ],
-    };
-
-    if (url) {
-      attachment.fields.push({
-        title: 'URL',
-        value: url,
-        short: true,
-      });
-    }
-
-    if (userAgent) {
-      attachment.fields.push({
-        title: 'User Agent',
-        value: userAgent,
-        short: false,
-      });
-    }
-
-    if (error) {
-      attachment.fields.push({
-        title: 'Error Details',
-        value: `\`\`\`${error.name}: ${error.message}\n${error.stack}\`\`\``,
-        short: false,
-      });
-    }
-
-    if (context && Object.keys(context).length > 0) {
-      attachment.fields.push({
-        title: 'Context',
-        value: `\`\`\`${JSON.stringify(context, null, 2)}\`\`\``,
-        short: false,
-      });
-    }
-
-    return {
-      channel,
-      username: 'AirQo Website Monitor',
-      icon_emoji: ':warning:',
-      text: `${channel} Website ${level.toUpperCase()}`,
-      attachments: [attachment],
-    };
+    this.isProduction = process.env.NODE_ENV === 'production';
   }
 
   private async sendToSlack(data: LogData): Promise<void> {
-    if (!this.slackWebhookUrl || !this.isProduction) {
-      return;
-    }
-
     try {
-      // Validate Slack webhook URL
-      const url = new URL(this.slackWebhookUrl);
-      if (!url.hostname.includes('hooks.slack.com')) {
-        console.warn('Invalid Slack webhook URL domain');
-        return;
-      }
-
-      const payload = this.formatSlackMessage(data);
-
-      const response = await fetch(this.slackWebhookUrl, {
+      // Use our API route instead of direct Slack webhook
+      const response = await fetch('/api/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        console.error(
-          'Failed to send Slack notification:',
-          response.statusText,
-        );
+        console.error('Failed to send log to Slack:', response.statusText);
       }
-    } catch (slackError) {
-      console.error('Failed to send log to Slack:', slackError);
+    } catch (error) {
+      console.error('Error sending log to Slack:', error);
     }
   }
 
-  private getContext(): Record<string, any> {
-    if (typeof window === 'undefined') return {};
+  private async logToConsoleAndSlack(data: LogData): Promise<void> {
+    const { level, message, error, context } = data;
 
-    return {
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-      timestamp: new Date().toISOString(),
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-      },
-      referrer: document.referrer || 'direct',
-    };
+    // Always log to console
+    switch (level) {
+      case 'error':
+        if (error) {
+          log.error(message, error, context);
+        } else {
+          log.error(message, context);
+        }
+        break;
+      case 'warn':
+        log.warn(message, context);
+        break;
+      case 'info':
+        log.info(message, context);
+        break;
+      case 'debug':
+        log.debug(message, context);
+        break;
+    }
+
+    // Send to Slack in production or for errors
+    if (this.isProduction || level === 'error') {
+      await this.sendToSlack(data);
+    }
   }
 
-  async error(
-    message: string,
-    error?: Error,
-    context?: Record<string, any>,
-  ): Promise<void> {
+  error(message: string, error?: Error, context?: Record<string, any>): void {
     const logData: LogData = {
       level: 'error',
       message,
       error,
-      context: { ...this.getContext(), ...context },
+      context,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      userAgent:
+        typeof window !== 'undefined' ? navigator.userAgent : undefined,
     };
 
-    log.error(message, error, context);
-    await this.sendToSlack(logData);
+    this.logToConsoleAndSlack(logData).catch((err) => {
+      console.error('Failed to log error:', err);
+    });
   }
 
-  async warn(message: string, context?: Record<string, any>): Promise<void> {
+  warn(message: string, context?: Record<string, any>): void {
     const logData: LogData = {
       level: 'warn',
       message,
-      context: { ...this.getContext(), ...context },
+      context,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      userAgent:
+        typeof window !== 'undefined' ? navigator.userAgent : undefined,
     };
 
-    log.warn(message, context);
-    await this.sendToSlack(logData);
+    this.logToConsoleAndSlack(logData).catch((err) => {
+      console.error('Failed to log warning:', err);
+    });
   }
 
-  async info(message: string, context?: Record<string, any>): Promise<void> {
+  info(message: string, context?: Record<string, any>): void {
     const logData: LogData = {
       level: 'info',
       message,
-      context: { ...this.getContext(), ...context },
+      context,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      userAgent:
+        typeof window !== 'undefined' ? navigator.userAgent : undefined,
     };
 
-    log.info(message, context);
-
-    // Only send info logs to Slack in production for important events
-    if (this.isProduction) {
-      await this.sendToSlack(logData);
-    }
+    this.logToConsoleAndSlack(logData).catch((err) => {
+      console.error('Failed to log info:', err);
+    });
   }
 
-  async debug(message: string, context?: Record<string, any>): Promise<void> {
-    log.debug(message, context);
-    // Debug logs are not sent to Slack
+  debug(message: string, context?: Record<string, any>): void {
+    const logData: LogData = {
+      level: 'debug',
+      message,
+      context,
+      url: typeof window !== 'undefined' ? window.location.href : undefined,
+      userAgent:
+        typeof window !== 'undefined' ? navigator.userAgent : undefined,
+    };
+
+    this.logToConsoleAndSlack(logData).catch((err) => {
+      console.error('Failed to log debug:', err);
+    });
   }
 }
 
-// Export singleton instance
-export const logger = new Logger();
+// Create and export a singleton instance
+const logger = new Logger();
 export default logger;
