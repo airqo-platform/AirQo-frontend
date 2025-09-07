@@ -166,7 +166,7 @@ const DeviceDetailsStep = ({
         <Checkbox
           id="primarySite"
           checked={deviceData.isPrimarySite}
-          onCheckedChange={onCheckboxChange}
+          onCheckedChange={(checked) => onCheckboxChange(checked === true)}
         />
         <Label htmlFor="primarySite">Primary Site</Label>
       </div>
