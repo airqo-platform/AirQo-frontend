@@ -17,10 +17,24 @@ const GridMeasurementsApiCard: React.FC<GridMeasurementsApiCardProps> = ({ grid,
         return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
     }
 
-    const handleCopy = (text: string) => {
-        if (text) {
-            navigator.clipboard.writeText(text);
+    const handleCopy = async (text: string) => {
+        if (!text) return;
+        try {
+            if (navigator?.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                const el = document.createElement("textarea");
+                el.value = text;
+                el.style.position = "fixed";
+                el.style.opacity = "0";
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand("copy");
+                document.body.removeChild(el);
+            }
             ReusableToast({ message: "API URL copied!", type: "SUCCESS" });
+        } catch {
+            ReusableToast({ message: "Failed to copy to clipboard", type: "ERROR" });
         }
     };
 

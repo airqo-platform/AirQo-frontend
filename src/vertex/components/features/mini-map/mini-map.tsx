@@ -198,16 +198,18 @@ function MiniMap({
 
         if (data.features.length > 0) {
           const feature = data.features[0];
-          const geoJson = feature.geometry as { type: string; coordinates: number[][][] };
-          const transformedCoordinates = geoJson.coordinates.map((ring: number[][]) =>
-            ring.map((point: number[]) => [point[1], point[0]] as [number, number])
-          );
-          dispatch(
-            setPolygon({
-              type: geoJson.type as "Polygon" | "MultiPolygon",
-              coordinates: transformedCoordinates,
-            })
-          );
+          const geometry = feature.geometry as GeoJSON.Polygon | GeoJSON.MultiPolygon;
+          if (geometry.type === 'Polygon') {
+            const transformed = geometry.coordinates.map(ring =>
+              ring.map(([lng, lat]) => [lat, lng] as [number, number])
+            );
+            dispatch(setPolygon({ type: 'Polygon', coordinates: transformed }));
+          } else if (geometry.type === 'MultiPolygon') {
+            const transformed = geometry.coordinates.map(polygon =>
+              polygon.map(ring => ring.map(([lng, lat]) => [lat, lng] as [number, number]))
+            );
+            dispatch(setPolygon({ type: 'MultiPolygon', coordinates: transformed }));
+          }
         } else {
           dispatch(setPolygon({ type: "Polygon", coordinates: null }));
         }
