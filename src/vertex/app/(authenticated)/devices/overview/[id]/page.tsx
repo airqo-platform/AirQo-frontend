@@ -51,7 +51,6 @@ export default function DeviceDetailsPage() {
   const [showMaintenanceLogModal, setShowMaintenanceLogModal] = useState(false);
 
   const deviceNum = Number(device?.device_number);
-  if (!Number.isFinite(deviceNum)) return null;
 
   if (!isLoading && error) {
     return (
@@ -134,12 +133,12 @@ export default function DeviceDetailsPage() {
           <div className="break-inside-avoid mb-4 inline-block w-full order-3">
             <OnlineStatusCard deviceId={deviceId} />
           </div>
-          <div className="break-inside-avoid mb-4 inline-block w-full order-5">
+          {Number.isFinite(deviceNum) && <div className="break-inside-avoid mb-4 inline-block w-full order-5">
             <RunDeviceTestCard
               deviceNumber={deviceNum}
               getElapsedDurationMapper={getElapsedDurationMapper}
             />
-          </div>
+          </div>}
           <div className="break-inside-avoid mb-4 inline-block w-full order-4">
             <DeviceMeasurementsApiCard deviceId={deviceId} />
           </div>
