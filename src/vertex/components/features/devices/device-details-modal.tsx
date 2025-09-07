@@ -407,6 +407,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                 render={({ field, fieldState }) => (
                   <ReusableInputField
                     label="Write Key"
+                    type={isEditMode ? "text" : "password"}
                     disabled={isLoading}
                     readOnly={!isEditMode}
                     showCopyButton={true}
@@ -421,6 +422,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                 render={({ field, fieldState }) => (
                   <ReusableInputField
                     label="Read Key"
+                    type={isEditMode ? "text" : "password"}
                     disabled={isLoading}
                     readOnly={!isEditMode}
                     showCopyButton={true}
