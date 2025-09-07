@@ -49,11 +49,15 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { as: _, ...inputProps } = props
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     const valueToCopy = (inputProps as { value?: string | number }).value
-    if (valueToCopy) {
-      navigator.clipboard.writeText(String(valueToCopy))
-      ReusableToast({ message: "Copied", type: "SUCCESS" })
+    if (valueToCopy !== undefined && valueToCopy !== null) {
+      try {
+        await navigator.clipboard?.writeText(String(valueToCopy))
+        ReusableToast({ message: "Copied", type: "SUCCESS" })
+      } catch (err) {
+        ReusableToast({ message: "Failed to copy", type: "ERROR" })
+      }
     }
   }
 
@@ -81,9 +85,9 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
           style={
             primaryColor
               ? {
-                  borderColor: error ? "red" : primaryColor,
-                  boxShadow: error ? "0 0 0 1px red" : `0 0 0 1px ${primaryColor}50`,
-                }
+                borderColor: error ? "red" : primaryColor,
+                boxShadow: error ? "0 0 0 1px red" : `0 0 0 1px ${primaryColor}50`,
+              }
               : error
                 ? { borderColor: "red", boxShadow: "0 0 0 1px red" }
                 : undefined
