@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -9,7 +8,6 @@ import Link from "next/link"
 import Image from "next/image"
 import { Form, FormField } from "@/components/ui/form"
 import { useAuth } from "@/core/hooks/users"
-import { Loader2 } from "lucide-react"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
 import ReusableButton from "@/components/shared/button/ReusableButton"
@@ -21,7 +19,6 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter()
-  const [showPassword, setShowPassword] = useState(false)
   const { login, isLoading } = useAuth()
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -89,7 +86,7 @@ export default function LoginPage() {
                       </Link>
                     </div>
                     <ReusableInputField
-                      type={showPassword ? "text" : "password"}
+                      type={"password"}
                       placeholder="••••••••"
                       required
                       error={fieldState.error?.message}

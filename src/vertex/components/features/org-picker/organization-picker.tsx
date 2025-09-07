@@ -81,7 +81,7 @@ const OrganizationPicker: React.FC = () => {
       }
 
       setIsModalOpen(false);
-    } catch (error) {
+    } catch {
     } finally {
       setTimeout(() => {
         dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));

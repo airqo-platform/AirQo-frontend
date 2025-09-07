@@ -239,7 +239,7 @@ function MiniMap({
         mapInstance.setCenter([lng, lat]);
       }
     }
-  }, [latitude, longitude, mapInstance]);
+  }, [latitude, longitude, mapInstance, mapMode]);
 
   return (
     <div className="space-y-4">

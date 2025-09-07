@@ -56,7 +56,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
         await navigator.clipboard?.writeText(String(valueToCopy))
         ReusableToast({ message: "Copied", type: "SUCCESS" })
       } catch (err) {
-        ReusableToast({ message: "Failed to copy", type: "ERROR" })
+        ReusableToast({ message: `Failed to copy: ${String(err)}`, type: "ERROR" })
       }
     }
   }

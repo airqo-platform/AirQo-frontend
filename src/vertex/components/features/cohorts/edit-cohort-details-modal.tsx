@@ -7,9 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateCohortDetails } from "@/core/hooks/useCohorts";
-import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import PermissionTooltip from "@/components/ui/permission-tooltip";
 import logger from "@/lib/logger";
 
 interface CohortDetailsModalProps {
@@ -29,7 +27,6 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
 }) => {
     const [form, setForm] = useState({ name: cohortDetails.name, visibility: cohortDetails.visibility });
     const updateCohort = useUpdateCohortDetails();
-    const canUpdate = usePermission(PERMISSIONS.DEVICE.UPDATE);
 
     useEffect(() => {
         setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
