@@ -13,7 +13,7 @@ import ReusableInputField from "@/components/shared/inputfield/ReusableInputFiel
 interface CreateCohortDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: (cohortData: { cohort: { _id: string; name: string } }) => void;
+  onSuccess?: (cohortData?: { cohort: { _id: string; name: string } }) => void;
   onError?: (error: unknown) => void;
   andNavigate?: boolean;
 }

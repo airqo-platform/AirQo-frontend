@@ -79,7 +79,7 @@ export function AssignCohortDevicesDialog({
     }
   }, [open, selectedDevices, form, cohortId]);
 
-  const handleCreateCohortSuccess = (cohortData: { cohort: { _id: string; name: string } }) => {
+  const handleCreateCohortSuccess = () => {
     setCreateCohortModalOpen(false);
     onOpenChange(false);
   };
