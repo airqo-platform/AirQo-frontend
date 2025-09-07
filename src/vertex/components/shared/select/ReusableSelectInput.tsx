@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
+import React, { useState, useEffect, useRef, useMemo, useCallback, useId } from "react"
 import { cn } from "@/lib/utils"
 
 interface SelectOption {
@@ -173,13 +173,15 @@ const ReusableSelectInput: React.FC<ReusableSelectInputProps> = ({
     }
   }, [open, highlightedIndex])
 
-  const buttonId = rest.id || `select-field-${Math.random().toString(36).substring(7)}`
+  const reactId = useId()
+  const buttonId = rest.id || `select-field-${reactId}`
   const listId = `${buttonId}-list`
 
   return (
     <div ref={containerRef} className={cn("flex flex-col", containerClassName)}>
       {label && (
         <label
+          id={`${buttonId}-label`}
           htmlFor={buttonId}
           className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
         >
@@ -264,13 +266,13 @@ const ReusableSelectInput: React.FC<ReusableSelectInputProps> = ({
                         ? "opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500"
                         : "text-gray-700 dark:text-gray-200",
                       highlightedIndex === index &&
-                        !item.disabled &&
-                        "bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:bg-opacity-20",
-                      selectedItem &&
-                        selectedItem.value === item.value &&
-                        "bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--color-primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium",
                       !item.disabled &&
-                        "hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20",
+                      "bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:bg-opacity-20",
+                      selectedItem &&
+                      selectedItem.value === item.value &&
+                      "bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--color-primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium",
+                      !item.disabled &&
+                      "hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20",
                     )}
                   >
                     {item.label}
