@@ -4,6 +4,37 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 /**
+ * Helper function to merge multiple abort signals, with fallback for older Node.js versions
+ */
+function mergeAbortSignals(
+  ...signals: (AbortSignal | undefined)[]
+): AbortSignal {
+  const filtered = signals.filter(Boolean) as AbortSignal[];
+
+  // Native fast-path if available (Node.js 20+)
+  if (typeof (AbortSignal as any).any === 'function') {
+    return (AbortSignal as any).any(filtered);
+  }
+
+  // Polyfill: forward the first abort reason
+  if (filtered.some((s) => s.aborted)) {
+    const s = filtered.find((s) => s.aborted)!;
+    return AbortSignal.abort((s as any).reason);
+  }
+
+  const ctrl = new AbortController();
+  const onAbort = (e: any) => {
+    ctrl.abort((e?.target as any)?.reason);
+  };
+
+  for (const s of filtered) {
+    s.addEventListener('abort', onAbort, { once: true });
+  }
+
+  return ctrl.signal;
+}
+
+/**
  * Geocode endpoint that accepts latitude and longitude coordinates
  * and returns location information using OpenCage API.
  *
@@ -55,15 +86,11 @@ export async function GET(request: NextRequest) {
     // Set up timeout and abort controllers
     controller = new AbortController();
     timeout = setTimeout(() => {
-      if (controller && !controller.signal.aborted) {
-        controller.abort();
-      }
-    }, 8000); // 8 second timeout for geocoding
+      controller?.abort(new DOMException('TimeoutError', 'TimeoutError'));
+    }, 8000); // 8s timeout for geocoding
 
-    // Combine client abort signal with our timeout controller
-    const combinedSignal = AbortSignal.any
-      ? AbortSignal.any([request.signal, controller.signal])
-      : controller.signal;
+    // Combine client abort signal with our timeout controller (works on Node 18+)
+    const combinedSignal = mergeAbortSignals(request.signal, controller.signal);
 
     const response = await fetch(
       `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${apiKey}`,
