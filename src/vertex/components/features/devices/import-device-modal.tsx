@@ -1,24 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
@@ -62,9 +48,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const handleSubmit = () => {
     if (!validateForm()) {
       return;
     }
@@ -74,37 +58,22 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       return;
     }
 
-    try {
-      const deviceDataToSend = { ...formData };
+    const deviceDataToSend = { ...formData };
 
-      // Remove fields with empty values
-      (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
-        if (!deviceDataToSend[key]) {
-          delete deviceDataToSend[key];
-        }
-      });
+    // Remove fields with empty values
+    (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
+      if (!deviceDataToSend[key]) {
+        delete deviceDataToSend[key];
+      }
+    });
 
-      await importDevice.mutateAsync({
+    importDevice.mutate(
+      {
         ...deviceDataToSend,
         network: activeNetwork.net_name,
-      });
-
-      // Reset form and close modal
-      setFormData({
-        long_name: "",
-        category: DEVICE_CATEGORIES[0].value,
-        serial_number: "",
-        description: "",
-        device_number: "",
-        writeKey: "",
-        readKey: "",
-      });
-      setErrors({});
-      onOpenChange(false);
-    } catch (error) {
-      // Error handling is done in the hook
-      console.error("Import device failed:", error);
-    }
+      },
+      { onSuccess: () => onOpenChange(false) }
+    );
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -123,149 +92,131 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   };
 
   const handleClose = () => {
-    setFormData({
-      long_name: "",
-      category: DEVICE_CATEGORIES[0].value,
-      serial_number: "",
-      description: "",
-      device_number: "",
-      writeKey: "",
-      readKey: "",
-    });
-    setErrors({});
     onOpenChange(false);
   };
 
+  React.useEffect(() => {
+    if (!open) {
+      setFormData({
+        long_name: "",
+        category: DEVICE_CATEGORIES[0].value,
+        serial_number: "",
+        description: "",
+        device_number: "",
+        writeKey: "",
+        readKey: "",
+      });
+      setErrors({});
+      setShowMore(false);
+    }
+  }, [open]);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle>Import Device</DialogTitle>
-        </DialogHeader>
+    <ReusableDialog
+      isOpen={open}
+      onClose={handleClose}
+      title="Import Device"
+      subtitle={`Network: ${activeNetwork?.net_name || "No active network"}`}
+      size="md"
+      primaryAction={{
+        label: importDevice.isPending ? "Importing..." : "Import Device",
+        onClick: handleSubmit,
+        disabled: importDevice.isPending,
+        className: "min-w-[100px]",
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: handleClose,
+        disabled: importDevice.isPending,
+        variant: "outline",
+      }}
+    >
+      <div className="space-y-4">
+        {errors.general && (
+          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+            {errors.general}
+          </div>
+        )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {errors.general && (
-            <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
-              {errors.general}
-            </div>
-          )}
+        <ReusableInputField
+          label="Device Name"
+          id="long_name"
+          value={formData.long_name}
+          onChange={(e) => handleInputChange("long_name", e.target.value)}
+          placeholder="Enter device name"
+          error={errors.long_name}
+          required
+        />
 
-          <div className="space-y-2">
-            <Label htmlFor="long_name">
-              Device Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="long_name"
-              value={formData.long_name}
-              onChange={(e) => handleInputChange("long_name", e.target.value)}
-              placeholder="Enter device name"
-              className={errors.long_name ? "border-red-500" : ""}
+        <ReusableSelectInput
+          label="Category"
+          id="category"
+          value={formData.category}
+          onChange={(e) => handleInputChange("category", e.target.value)}
+          error={errors.category}
+          required
+        >
+          {DEVICE_CATEGORIES.map((category) => (
+            <option key={category.value} value={category.value}>
+              {category.label}
+            </option>
+          ))}
+        </ReusableSelectInput>
+
+        <ReusableInputField
+          label="Serial Number"
+          id="serial_number"
+          value={formData.serial_number}
+          onChange={(e) => handleInputChange("serial_number", e.target.value)}
+          placeholder="Enter serial number"
+          error={errors.serial_number}
+          required
+        />
+
+        <ReusableInputField
+          as="textarea"
+          label="Description (Optional)"
+          id="description"
+          value={formData.description}
+          onChange={(e) => handleInputChange("description", e.target.value)}
+          placeholder="Enter device description"
+          rows={3}
+        />
+
+        {showMore && (
+          <div className="space-y-4 pt-2 border-t">
+            <ReusableInputField
+              label="Device Number (Optional)"
+              id="device_number"
+              value={formData.device_number}
+              onChange={(e) => handleInputChange("device_number", e.target.value)}
+              placeholder="Enter device number"
             />
-            {errors.long_name && (
-              <p className="text-sm text-red-600">{errors.long_name}</p>
-            )}
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="category">
-              Category <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) => handleInputChange("category", value)}
-            >
-              <SelectTrigger className={errors.category ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select device category" />
-              </SelectTrigger>
-              <SelectContent>
-                {DEVICE_CATEGORIES.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.category && (
-              <p className="text-sm text-red-600">{errors.category}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="serial_number">
-              Serial Number <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="serial_number"
-              value={formData.serial_number}
-              onChange={(e) => handleInputChange("serial_number", e.target.value)}
-              placeholder="Enter serial number"
-              className={errors.serial_number ? "border-red-500" : ""}
+            <ReusableInputField
+              label="Write Key (Optional)"
+              id="writeKey"
+              value={formData.writeKey}
+              onChange={(e) => handleInputChange("writeKey", e.target.value)}
+              placeholder="Enter write key"
             />
-            {errors.serial_number && (
-              <p className="text-sm text-red-600">{errors.serial_number}</p>
-            )}
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description (Optional)</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-              placeholder="Enter device description"
-              rows={3}
+            <ReusableInputField
+              label="Read Key (Optional)"
+              id="readKey"
+              value={formData.readKey}
+              onChange={(e) => handleInputChange("readKey", e.target.value)}
+              placeholder="Enter read key"
             />
           </div>
+        )}
 
-          {showMore && (
-            <div className="space-y-2">
-              <Label htmlFor="device_number">Device Number (Optional)</Label>
-              <Input
-                id="device_number"
-                value={formData.device_number}
-                onChange={(e) => handleInputChange("device_number", e.target.value)}
-                placeholder="Enter device number"
-              />
-
-              <Label htmlFor="writeKey">Write Key (Optional)</Label>
-              <Input
-                id="writeKey"
-                value={formData.writeKey}
-                onChange={(e) => handleInputChange("writeKey", e.target.value)}
-                placeholder="Enter write key"
-              />
-
-              <Label htmlFor="readKey">Read Key (Optional)</Label>
-              <Input
-                id="readKey"
-                value={formData.readKey}
-                onChange={(e) => handleInputChange("readKey", e.target.value)}
-                placeholder="Enter read key"
-              />
-            </div>
-          )}
-
-          <Button type="button" variant="link" onClick={() => setShowMore(!showMore)}>
-            {showMore ? "Show Less" : "Show More Options"}
-          </Button>
-
-          <div className="text-sm text-gray-600">
-            <strong>Network:</strong> {activeNetwork?.net_name || "No active network"}
-          </div>
-        </form>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={handleClose} disabled={importDevice.isPending}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={importDevice.isPending} className="min-w-[100px]">
-            {importDevice.isPending ? "Importing..." : "Import Device"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <ReusableButton variant="text" onClick={() => setShowMore(!showMore)} className="p-0 h-auto">
+          {showMore ? "Show Less" : "Show More Options"}
+        </ReusableButton>
+      </div>
+    </ReusableDialog>
   );
 };
 
 export default ImportDeviceModal;
-

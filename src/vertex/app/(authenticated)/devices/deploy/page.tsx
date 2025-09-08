@@ -29,10 +29,13 @@ const DeployDevicePage = () => {
   }, [deviceIdFromUrl, allDevices]);
 
   return (
-    <DeployDeviceComponent 
-      prefilledDevice={prefilledDevice} 
-      availableDevices={isPersonalContext ? [] : filteredAirQoDevices}
-    />
+    <>
+      <h1 className="text-2xl font-semibold">Deploy Device</h1>
+      <DeployDeviceComponent
+        prefilledDevice={prefilledDevice}
+        availableDevices={isPersonalContext ? [] : filteredAirQoDevices}
+      />
+    </>
   );
 };
 

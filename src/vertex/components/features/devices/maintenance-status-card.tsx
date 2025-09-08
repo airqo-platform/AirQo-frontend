@@ -1,11 +1,11 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import React from "react";
 import moment from "moment";
 import {
   useDeviceDetails,
   useDeviceMaintenanceLogs,
 } from "@/core/hooks/useDevices";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface MaintenanceStatusCardProps {
   deviceId: string;
@@ -122,14 +122,14 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
         </div>
       )}
       <div className="border-t px-2 flex justify-end">
-        <Button
-          variant="ghost"
+        <ReusableButton
+          variant="text"
           onClick={onViewAllLogs}
-          className="hover:bg-transparent"
           disabled={!onViewAllLogs}
+          className="p-1 text-xs m-1"
         >
           View all logs
-        </Button>
+        </ReusableButton>
       </div>
     </Card>
   );

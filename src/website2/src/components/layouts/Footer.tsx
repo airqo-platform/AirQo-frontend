@@ -216,7 +216,7 @@ const Footer = () => {
       <div className="flex flex-col text-sm lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
         {/* Footer Bottom Links */}
         <div className="flex flex-wrap gap-4 text-center lg:text-left text-gray-600">
-          &copy; {new Date().getFullYear()} AirQo
+          &copy; 2025 AirQo
           <Link href="/legal/terms-of-service" className="hover:underline">
             Terms of service
           </Link>

@@ -23,6 +23,8 @@ export interface DeviceSite {
     waterway: string;
   };
   groups: string[];
+  description?: string;
+  createdAt?: string;
 }
 
 export interface DeviceGrid {
@@ -40,10 +42,10 @@ export interface Device {
   alias?: string;
   mobility?: boolean;
   network: string;
-  groups: string[];
+  groups?: string[];
   serial_number: string;
-  authRequired: boolean;
-  long_name: string;
+  authRequired?: boolean;
+  long_name?: string;
   latitude?: number | undefined | null | string;
   longitude?: number | undefined | null | string;
   approximate_distance_in_km?: number;
@@ -72,7 +74,7 @@ export interface Device {
   generation_count?: number | undefined | string;
   previous_sites?: string[];
   grids?: DeviceGrid[];
-  site?: DeviceSite;
+  site?: DeviceSite[];
   status?: "not deployed" | "deployed" | "recalled" | "online" | "offline";
   maintenance_status?: "good" | "due" | "overdue" | -1;
   powerType?: "solar" | "alternator" | "mains";
@@ -89,6 +91,7 @@ export interface Device {
     failurePercentage: number;
     lastUpdate: string;
   };
+  api_code?: string;
 }
 
 export interface DevicesSummaryResponse {

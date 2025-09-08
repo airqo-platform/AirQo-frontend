@@ -1,27 +1,23 @@
-import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
 import { Loader2, Save, RefreshCw } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useUpdateDeviceLocal, useUpdateDeviceGlobal } from "@/core/hooks/useDevices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
-import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { Device } from "@/app/types/devices";
-import PermissionTooltip from "@/components/ui/permission-tooltip";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import { AqEdit01 as AqEdit } from "@airqo/icons-react";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface DeviceDetailsModalProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
   device: Device;
   onClose: () => void;
 }
@@ -57,14 +53,11 @@ const deviceUpdateSchema = z.object({
 
 type DeviceUpdateFormData = z.infer<typeof deviceUpdateSchema>;
 
-const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenChange, device, onClose }) => {
+const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, onClose }) => {
+  const [isEditMode, setIsEditMode] = useState(false);
   const updateLocal = useUpdateDeviceLocal();
   const updateGlobal = useUpdateDeviceGlobal();
-  
-  // Permission checks
-  const canEdit = usePermission(PERMISSIONS.DEVICE.UPDATE);
-  const canSync = usePermission(PERMISSIONS.DEVICE.UPDATE);
-  
+
   const form = useForm<DeviceUpdateFormData>({
     resolver: zodResolver(deviceUpdateSchema),
     defaultValues: {
@@ -115,50 +108,108 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
     }
   }, [device, form]);
 
+  // Reset edit mode when modal is closed
+  useEffect(() => {
+    if (!open) {
+      setIsEditMode(false);
+      form.reset();
+    }
+  }, [open, form]);
+
   const handleCancel = () => {
-    form.reset();
-    onClose();
+    if (isEditMode) {
+      form.reset();
+      setIsEditMode(false);
+    } else {
+      onClose();
+    }
   };
 
   const onSubmitLocal = async (data: DeviceUpdateFormData) => {
-    if (!device?.id) return;
-    
-    // Convert string numbers back to numbers where needed
-    const processedData = {
-      ...data,
-      device_number: data.device_number ? parseInt(data.device_number) : undefined,
-      latitude: data.latitude ? parseFloat(data.latitude) : undefined,
-      longitude: data.longitude ? parseFloat(data.longitude) : undefined,
-      generation_count: data.generation_count ? parseInt(data.generation_count) : undefined,
-    };
-    
+    if (!device?._id) {
+      ReusableToast({ message: "Cannot update device: missing device ID", type: "WARNING" });
+      return;
+    }
+
+    const { dirtyFields } = form.formState;
+    const dirtyData = Object.fromEntries(
+      (Object.keys(dirtyFields) as Array<keyof DeviceUpdateFormData>).map((key) => [key, data[key]]),
+    );
+
+    if (Object.keys(dirtyData).length === 0) {
+      setIsEditMode(false);
+      return;
+    }
+
+    const processedData: Record<string, string | number | boolean | undefined> = { ...dirtyData };
+    if (typeof processedData.device_number === "string") {
+      processedData.device_number =
+        processedData.device_number.trim() === "" ? undefined : parseInt(processedData.device_number, 10);
+    }
+    if (typeof processedData.latitude === "string") {
+      processedData.latitude =
+        processedData.latitude.trim() === "" ? undefined : parseFloat(processedData.latitude);
+    }
+    if (typeof processedData.longitude === "string") {
+      processedData.longitude =
+        processedData.longitude.trim() === "" ? undefined : parseFloat(processedData.longitude);
+    }
+    if (typeof processedData.generation_count === "string") {
+      processedData.generation_count =
+        processedData.generation_count.trim() === "" ? undefined : parseInt(processedData.generation_count, 10);
+    }
+
     updateLocal.mutate(
-      { deviceId: device.id, deviceData: processedData },
+      { deviceId: device._id, deviceData: processedData },
       {
         onSuccess: () => {
-          onClose();
+          setIsEditMode(false);
+          form.reset(data);
         },
       }
     );
   };
 
   const onSubmitGlobal = async (data: DeviceUpdateFormData) => {
-    if (!device?.id) return;
-    
-    // Convert string numbers back to numbers where needed
-    const processedData = {
-      ...data,
-      device_number: data.device_number ? parseInt(data.device_number) : undefined,
-      latitude: data.latitude ? parseFloat(data.latitude) : undefined,
-      longitude: data.longitude ? parseFloat(data.longitude) : undefined,
-      generation_count: data.generation_count ? parseInt(data.generation_count) : undefined,
-    };
-    
+    if (!device?._id) {
+      ReusableToast({ message: "Cannot update device: missing device ID", type: "WARNING" });
+      return;
+    }
+
+    const { dirtyFields } = form.formState;
+    const dirtyData = Object.fromEntries(
+      (Object.keys(dirtyFields) as Array<keyof DeviceUpdateFormData>).map((key) => [key, data[key]]),
+    );
+
+    if (Object.keys(dirtyData).length === 0) {
+      setIsEditMode(false);
+      return;
+    }
+
+    const processedData: Record<string, string | number | boolean | undefined> = { ...dirtyData };
+    if (typeof processedData.device_number === "string") {
+      processedData.device_number =
+        processedData.device_number.trim() === "" ? undefined : parseInt(processedData.device_number, 10);
+    }
+    if (typeof processedData.latitude === "string") {
+      processedData.latitude =
+        processedData.latitude.trim() === "" ? undefined : parseFloat(processedData.latitude);
+    }
+    if (typeof processedData.longitude === "string") {
+      processedData.longitude =
+        processedData.longitude.trim() === "" ? undefined : parseFloat(processedData.longitude);
+    }
+    if (typeof processedData.generation_count === "string") {
+      processedData.generation_count =
+        processedData.generation_count.trim() === "" ? undefined : parseInt(processedData.generation_count, 10);
+    }
+
     updateGlobal.mutate(
-      { deviceId: device.id, deviceData: processedData },
+      { deviceId: device._id, deviceData: processedData },
       {
         onSuccess: () => {
-          onClose();
+          setIsEditMode(false);
+          form.reset(data);
         },
       }
     );
@@ -168,417 +219,366 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, onOpenCha
 
   // Edit-only mode view
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="h-screen w-screen max-w-none max-h-none m-0 p-0 rounded-none">
-        <div className="h-full overflow-y-auto">
-          <div className="container mx-auto p-6 flex flex-col h-full">
-            <DialogHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-              <DialogTitle className="text-xl font-semibold">Edit Device Details</DialogTitle>
-            </DialogHeader>
-
-            <div className="overflow-y-auto pr-2" style={{ maxHeight: 'calc(90vh - 80px)' }}>
-              <Form {...form}>
-                <div className="space-y-6">
-                  {/* Basic Information */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Basic Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="long_name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Device Name *</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="category"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Category *</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              disabled={isLoading}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select category" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {DEVICE_CATEGORIES.map((category) => (
-                                  <SelectItem key={category.value} value={category.value}>
-                                    {category.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="serial_number"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Serial Number</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      {/* Read-only Network field */}
-                      <div className="flex flex-col space-y-2">
-                        <Label className="text-sm font-medium text-muted-foreground">Network</Label>
-                        <Input value={device?.network || "-"} disabled className="bg-muted" />
-                      </div>
-                      
-                      {/* Read-only Status field */}
-                      <div className="flex flex-col space-y-2">
-                        <Label className="text-sm font-medium text-muted-foreground">Status</Label>
-                        <Input value={device?.status || "-"} disabled className="bg-muted" />
-                      </div>
-
-                      <div className="flex flex-col space-y-2">
-                        <Label className="text-sm font-medium text-muted-foreground">Claim Status</Label>
-                        <Input value={device?.claim_status || "-"} disabled className="bg-muted" /> 
-                      </div>
-                    </div>
-                    
-                    <div className="mt-4">
-                      <FormField
-                        control={form.control}
-                        name="description"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Description</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                {...field}
-                                disabled={isLoading}
-                                rows={3}
-                                placeholder="Device description..."
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  {/* Technical Details */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Technical Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="device_number"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Channel ID</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} type="number" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="height"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Height (meters)</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                disabled={isLoading}
-                                type="number"
-                                step="0.1"
-                                onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="writeKey"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Write Key</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="readKey"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Read Key</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="generation_version"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Generation Version</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="generation_count"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Generation Count</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} type="number" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="powerType"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Power Type *</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              disabled={isLoading}
-                            >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select power type" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {[
-                                  { value: "solar", label: "Solar" },
-                                  { value: "alternator", label: "Alternator" },
-                                  { value: "mains", label: "Mains" },
-                                ].map((powerType) => (
-                                  <SelectItem key={powerType.value} value={powerType.value}>
-                                    {powerType.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  {/* Location & Contact */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Location & Contact</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="latitude"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Latitude</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} type="number" step="any" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="longitude"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Longitude</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} type="number" step="any" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="phoneNumber"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Phone Number</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled={isLoading} type="tel" />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                  
-                  <Separator />
-                  
-                  {/* Settings */}
-                  <div>
-                    <h3 className="text-lg font-medium mb-3">Settings</h3>
-                    <div className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="visibility"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-base">Public Data Access</FormLabel>
-                              <div className="text-sm text-muted-foreground">
-                                Allow public access to this device&apos;s data
-                              </div>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                disabled={isLoading}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <FormField
-                        control={form.control}
-                        name="isPrimaryInLocation"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-base">Primary Device in Location</FormLabel>
-                              <div className="text-sm text-muted-foreground">
-                                Mark as the primary device at this location
-                              </div>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                                disabled={isLoading}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </Form>
-            </div>
-
-            <DialogFooter className="mt-4 flex gap-2">
-              <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
+    <ReusableDialog
+      isOpen={open}
+      onClose={onClose}
+      title={isEditMode ? "Edit Device Details" : "Device Details"}
+      className="w-screen h-[90vh] max-w-none max-h-none m-0 p-0"
+      contentAreaClassName="p-4 md:p-6"
+      maxHeight="h-full"
+      customFooter={
+        <div className="flex justify-end gap-2 p-4 border-t">
+          {isEditMode ? (
+            <>
+              <ReusableButton variant="outlined" onClick={handleCancel} disabled={isLoading}>
                 Cancel
-              </Button>
+              </ReusableButton>
 
-              {canSync ? (
-                <Button
-                  variant="secondary"
-                  onClick={form.handleSubmit(onSubmitGlobal)}
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                >
-                  {updateGlobal.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="w-4 h-4" />
-                  )}
-                  Sync Global
-                </Button>
-              ) : (
-                <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
-                  <span>
-                    <Button
-                      variant="secondary"
-                      disabled
-                      className="flex items-center gap-2 opacity-50"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                      Sync Global
-                    </Button>
-                  </span>
-                </PermissionTooltip>
-              )}
+              <ReusableButton
+                variant="outlined"
+                onClick={form.handleSubmit(onSubmitGlobal)}
+                disabled={isLoading}
+                Icon={updateGlobal.isPending ? Loader2 : RefreshCw}
+                loading={updateGlobal.isPending}
+                permission={PERMISSIONS.DEVICE.UPDATE}
+              >
+                Sync Global
+              </ReusableButton>
 
-              {canEdit ? (
-                <Button
-                  onClick={form.handleSubmit(onSubmitLocal)}
-                  disabled={isLoading}
-                  className="flex items-center gap-2"
-                >
-                  {updateLocal.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Save className="w-4 h-4" />
-                  )}
-                  Save Local
-                </Button>
-              ) : (
-                <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
-                  <span>
-                    <Button disabled className="flex items-center gap-2 opacity-50">
-                      <Save className="w-4 h-4" />
-                      Save Local
-                    </Button>
-                  </span>
-                </PermissionTooltip>
-              )}
-            </DialogFooter>
-          </div>
+              <ReusableButton
+                onClick={form.handleSubmit(onSubmitLocal)}
+                disabled={isLoading}
+                Icon={updateLocal.isPending ? Loader2 : Save}
+                loading={updateLocal.isPending}
+                permission={PERMISSIONS.DEVICE.UPDATE}
+              >
+                Save Local
+              </ReusableButton>
+            </>
+          ) : (
+            <>
+              <ReusableButton variant="outlined" onClick={onClose}>
+                Close
+              </ReusableButton>
+              <ReusableButton onClick={() => setIsEditMode(true)} Icon={AqEdit} permission={PERMISSIONS.DEVICE.UPDATE}>
+                Edit
+              </ReusableButton>
+            </>
+          )}
         </div>
-        
-      </DialogContent>
-    </Dialog>
+      }
+    >
+      <Form {...form}>
+        <div className="space-y-4">
+          {/* Basic Information */}
+          <section>
+            <h3 className="text-lg font-medium">Basic Information</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+              <FormField
+                control={form.control}
+                name="long_name"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Device Name"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    showCopyButton={true}
+                    error={fieldState.error?.message}
+                    required
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field, fieldState }) => (
+                  <ReusableSelectInput
+                    label="Category"
+                    placeholder="Select category"
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    disabled={isLoading || !isEditMode}
+                    error={fieldState.error?.message}
+                    required
+                  >
+                    {DEVICE_CATEGORIES.map((category) => (
+                      <option key={category.value} value={category.value}>
+                        {category.label}
+                      </option>
+                    ))}
+                  </ReusableSelectInput>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="serial_number"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Serial Number"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    showCopyButton={true}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <ReusableInputField
+                label="Network"
+                value={device?.network || "-"}
+                readOnly={true}
+                showCopyButton={true}
+                disabled
+              />
+              <ReusableInputField
+                label="Status"
+                value={device?.status || "-"}
+                readOnly={true}
+                showCopyButton={true}
+                disabled
+              />
+              <ReusableInputField
+                label="Claim Status"
+                value={device?.claim_status || "-"}
+                readOnly={true}
+                showCopyButton={true}
+                disabled
+              />
+              <div className="lg:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field, fieldState }) => (
+                    <ReusableInputField
+                      as="textarea"
+                      label="Description"
+                      disabled={isLoading}
+                      readOnly={!isEditMode}
+                      error={fieldState.error?.message}
+                      rows={1}
+                      placeholder="Device description..."
+                      {...field}
+                    />
+                  )}
+                />
+              </div>
+            </div>
+          </section>
+
+          {/* Technical Details */}
+          <section>
+            <h3 className="text-lg font-medium">Technical Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+              <FormField
+                control={form.control}
+                name="device_number"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Channel ID"
+                    type="number"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    showCopyButton={true}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="height"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Height (meters)"
+                    type="number"
+                    step="0.1"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    error={fieldState.error?.message}
+                    {...field}
+                    onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="writeKey"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Write Key"
+                    type={isEditMode ? "text" : "password"}
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    showCopyButton={true}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="readKey"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Read Key"
+                    type={isEditMode ? "text" : "password"}
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    showCopyButton={true}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="generation_version"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Generation Version"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="generation_count"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Generation Count"
+                    type="number"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="powerType"
+                render={({ field, fieldState }) => (
+                  <ReusableSelectInput
+                    label="Power Type"
+                    placeholder="Select power type"
+                    value={field.value}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    disabled={isLoading || !isEditMode}
+                    error={fieldState.error?.message}
+                  >
+                    {[
+                      { value: "solar", label: "Solar" },
+                      { value: "alternator", label: "Alternator" },
+                      { value: "mains", label: "Mains" },
+                    ].map((powerType) => (
+                      <option key={powerType.value} value={powerType.value}>
+                        {powerType.label}
+                      </option>
+                    ))}
+                  </ReusableSelectInput>
+                )}
+              />
+            </div>
+          </section>
+
+          {/* Location & Contact */}
+          <section>
+            <h3 className="text-lg font-medium">Location & Contact</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+              <FormField
+                control={form.control}
+                name="latitude"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Latitude"
+                    type="number"
+                    step="any"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="longitude"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Longitude"
+                    type="number"
+                    step="any"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Phone Number"
+                    type="tel"
+                    disabled={isLoading}
+                    readOnly={!isEditMode}
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
+                )}
+              />
+            </div>
+          </section>
+
+          {/* Settings */}
+          <section>
+            <h3 className="text-lg font-medium">Settings</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <FormField
+                control={form.control}
+                name="visibility"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Public Data Access</FormLabel>
+                      <div className="text-sm text-muted-foreground">
+                        Allow public access to this device&apos;s data
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} disabled={isLoading || !isEditMode} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="isPrimaryInLocation"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Primary Device in Location</FormLabel>
+                      <div className="text-sm text-muted-foreground">
+                        Mark as the primary device at this location
+                      </div>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} disabled={isLoading || !isEditMode} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </section>
+        </div>
+      </Form>
+    </ReusableDialog>
   );
 };
 

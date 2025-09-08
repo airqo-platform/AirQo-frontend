@@ -6,6 +6,9 @@ import ReusableTable, {
   TableItem,
 } from "@/components/shared/table/ReusableTable";
 import moment from "moment";
+import { useState } from "react";
+import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
+import { useUserContext } from "@/core/hooks/useUserContext";
 
 interface DevicesTableProps {
   devices: Device[];
@@ -14,7 +17,6 @@ interface DevicesTableProps {
   itemsPerPage?: number;
   onDeviceClick?: (device: Device) => void;
   multiSelect?: boolean;
-  onSelectedDevicesChange?: (selectedDevices: Device[]) => void;
 }
 
 type TableDevice = TableItem<unknown>;
@@ -30,10 +32,13 @@ export default function DevicesTable({
   error = null,
   itemsPerPage = 10,
   onDeviceClick,
-  multiSelect = false,
-  onSelectedDevicesChange,
+  multiSelect = true,
 }: DevicesTableProps) {
   const router = useRouter();
+  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const { userContext } = useUserContext();
+  const isInternalView = userContext === "airqo-internal";
 
   const handleDeviceClick = (item: unknown) => {
     const device = item as Device;
@@ -41,16 +46,16 @@ export default function DevicesTable({
     else router.push(`/devices/overview/${device._id}`);
   };
 
-  const handleSelectedItemsChange = (selectedIds: (string | number)[]) => {
-    if (onSelectedDevicesChange) {
-      const selectedDevices = devices.filter(device => 
-        device._id && selectedIds.includes(device._id)
-      );
-      onSelectedDevicesChange(selectedDevices);
-    }
+  const handleAssignSuccess = () => {
+    setSelectedDevices([]);
+    setShowAssignDialog(false);
   };
 
-  // Coerce devices to include a required 'id' field
+  const handleActionSubmit = (selectedIds: (string | number)[]) => {
+    setSelectedDevices(selectedIds as string[]);
+    setShowAssignDialog(true);
+  };
+
   const devicesWithId: TableDevice[] = devices
     .filter(
       (device): device is Device & { _id: string } =>
@@ -109,12 +114,12 @@ export default function DevicesTable({
     {
       key: "site",
       label: "Site",
-      render: (siteData) => {
-        const site = (siteData as Site)?.name;
+      render: (siteData, device) => {
+        const site = (siteData as Site)?.name || device?.description;
 
         return (
           <span className="uppercase max-w-40 w-full">
-            {site || "Not assigned"}
+            {typeof site === 'string' ? site : "Not assigned"}
           </span>
         );
       },
@@ -151,6 +156,40 @@ export default function DevicesTable({
     },
   ];
 
+  if (isInternalView) {
+    const groupsColumn: TableColumn<TableDevice, string> = {
+      key: "groups",
+      label: "Groups",
+      render: (value, item) => {
+        const device = item as Device;
+        const groups = device.groups as string[] | undefined;
+
+        if (!groups || groups.length === 0) {
+          return <span className="text-muted-foreground">-</span>;
+        }
+
+        return (
+          <div className="flex flex-wrap gap-1 max-w-[200px]">
+            {groups.map((groupName) => {
+              const formattedName = groupName.replace(/_/g, " ");
+              return (
+                <span
+                  key={groupName}
+                  title={formattedName}
+                  className="bg-gray-200 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full truncate capitalize"
+                >
+                  {formattedName}
+                </span>
+              );
+            })}
+          </div>
+        );
+      },
+    };
+    // Insert "Groups" column after "Site"
+    columns.splice(3, 0, groupsColumn);
+  }
+
   return (
     <div className="space-y-4">
       <ReusableTable
@@ -161,19 +200,18 @@ export default function DevicesTable({
         pageSize={itemsPerPage}
         onRowClick={handleDeviceClick}
         multiSelect={multiSelect}
-        onSelectedItemsChange={handleSelectedItemsChange}
-        actions={multiSelect ? [
-          {
-            label: "Assign to Cohort",
-            value: "assign_cohort",
-            handler: () => {},
-          },
-          {
-            label: "Export Selected",
-            value: "export",
-            handler: () => {},
-          },
-        ] : []}
+        onSelectedItemsChange={(ids) => setSelectedDevices(ids as string[])}
+        actions={
+          multiSelect
+            ? [
+                {
+                  label: "Assign to Cohort",
+                  value: "assign_cohort",
+                  handler: handleActionSubmit,
+                },
+              ]
+            : []
+        }
         emptyState={
           error ? (
             <div className="flex flex-col items-center gap-2">
@@ -186,6 +224,14 @@ export default function DevicesTable({
           )
         }
         searchableColumns={["long_name", "site.name", "description"]}
+      />
+
+      {/* Assign to Cohort Dialog */}
+      <AssignCohortDevicesDialog
+        open={showAssignDialog}
+        onOpenChange={setShowAssignDialog}
+        selectedDevices={selectedDevices}
+        onSuccess={handleAssignSuccess}
       />
     </div>
   );

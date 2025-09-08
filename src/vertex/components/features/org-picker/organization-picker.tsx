@@ -45,7 +45,6 @@ const OrganizationPicker: React.FC = () => {
     }
 
     if (newContext === "airqo-internal" && !isAirQoStaff) {
-      console.error("Unauthorized context change attempt");
       dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
       return;
     }
@@ -82,8 +81,7 @@ const OrganizationPicker: React.FC = () => {
       }
 
       setIsModalOpen(false);
-    } catch (error) {
-      console.error("Error switching organization:", error);
+    } catch {
     } finally {
       setTimeout(() => {
         dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
