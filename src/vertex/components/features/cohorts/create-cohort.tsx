@@ -108,12 +108,12 @@ export function CreateCohortDialog({
       isOpen={open}
       onClose={handleCancel}
       title="Create Cohort"
-      subtitle={`Network: ${network}`}
+      subtitle={network ? `Network: ${network}` : "Network not selected"}
       size="lg"
       primaryAction={{
         label: isPending ? "Creating…" : "Submit",
         onClick: handleSubmit,
-        disabled: isPending,
+        disabled: isPending || !network,
       }}
       secondaryAction={{
         label: "Cancel",
