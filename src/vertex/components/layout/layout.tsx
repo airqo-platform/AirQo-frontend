@@ -1,4 +1,4 @@
-"use client"; // Ensures this runs on the client
+"use client";
 
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,10 +21,8 @@ export default function Layout({ children }: LayoutProps) {
   const router = useRouter();
   const isMapPage = pathname === "/network-map";
   
-  // Get organization switching state from Redux
   const { isSwitching, switchingTo } = useAppSelector((state) => state.user.organizationSwitching);
   
-  // Get session loading state from Redux
   const isInitialized = useAppSelector((state) => state.user.isInitialized);
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
 
@@ -40,7 +38,6 @@ export default function Layout({ children }: LayoutProps) {
     }
   }, [pathname]);
 
-  // Auto-collapse secondary sidebar when on network map page
   useEffect(() => {
     if (isMapPage) {
       setIsSecondarySidebarCollapsed(true);
@@ -61,7 +58,6 @@ export default function Layout({ children }: LayoutProps) {
     setIsSecondarySidebarCollapsed(!isSecondarySidebarCollapsed);
   };
 
-  // Show session loading state when session is not yet initialized
   if (!isInitialized || !isAuthenticated) {
     return (
       <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
@@ -70,7 +66,6 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  // Show loading state when switching organizations
   if (isSwitching) {
     return (
       <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">

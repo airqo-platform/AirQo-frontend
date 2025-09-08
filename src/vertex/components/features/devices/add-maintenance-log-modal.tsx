@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { DatePicker } from "@/components/ui/date-picker";
@@ -10,7 +8,8 @@ import { useAddMaintenanceLog } from "@/core/hooks/useDevices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface AddMaintenanceLogModalProps {
   open: boolean;
@@ -66,8 +65,7 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
 
   const handleSubmit = async () => {
     if (!date || selectedTags.length === 0) {
-      // Basic validation
-      toast("Please fill all fields");
+      ReusableToast({message: "Please fill all fields", type:"ERROR"})
       return;
     }
 
@@ -88,47 +86,52 @@ const AddMaintenanceLogModal: React.FC<AddMaintenanceLogModalProps> = ({ open, o
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Add Maintenance Log for {deviceName}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="flex items-center space-x-2">
-            <Label>Maintenance Type:</Label>
-            <span className={maintenanceType === 'preventive' ? 'font-semibold' : ''}>Preventive</span>
-            <Switch
-              checked={maintenanceType === 'corrective'}
-              onCheckedChange={(checked) => setMaintenanceType(checked ? 'corrective' : 'preventive')}
-            />
-            <span className={maintenanceType === 'corrective' ? 'font-semibold' : ''}>Corrective</span>
-          </div>
-          <div>
-            <Label>Date of Maintenance</Label>
-            <DatePicker value={date} onChange={setDate} />
-          </div>
-          <div>
-            <Label>Tags</Label>
-            <MultiSelectCombobox
-              options={DEFAULT_TAGS}
-              placeholder="Select or add tags..."
-              onValueChange={setSelectedTags}
-              value={selectedTags}
-            />
-          </div>
-          <div>
-            <Label>Description</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
+    <ReusableDialog
+      isOpen={open}
+      onClose={() => onOpenChange(false)}
+      title={`Add Maintenance Log for ${deviceName}`}
+      className="w-[70vw] h-[70vh] max-w-none max-h-none m-0 p-0"
+      primaryAction={{
+        label: addMaintenanceLog.isPending ? "Saving..." : "Save Log",
+        onClick: handleSubmit,
+        disabled: addMaintenanceLog.isPending,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: () => onOpenChange(false),
+        variant: "outline",
+        disabled: addMaintenanceLog.isPending,
+      }}
+    >
+      <div className="space-y-4">
+        <div className="flex items-center space-x-2">
+          <Label>Maintenance Type:</Label>
+          <span className={maintenanceType === 'preventive' ? 'font-semibold' : ''}>Preventive</span>
+          <Switch
+            checked={maintenanceType === 'corrective'}
+            onCheckedChange={(checked) => setMaintenanceType(checked ? 'corrective' : 'preventive')}
+          />
+          <span className={maintenanceType === 'corrective' ? 'font-semibold' : ''}>Corrective</span>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit} disabled={addMaintenanceLog.isPending}>
-            {addMaintenanceLog.isPending ? "Saving..." : "Save Log"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        <div>
+          <Label>Date of Maintenance</Label>
+          <DatePicker value={date} onChange={setDate} />
+        </div>
+        <div>
+          <Label>Tags</Label>
+          <MultiSelectCombobox
+            options={DEFAULT_TAGS}
+            placeholder="Select or add tags..."
+            onValueChange={setSelectedTags}
+            value={selectedTags}
+          />
+        </div>
+        <div>
+          <Label>Description</Label>
+          <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+        </div>
+      </div>
+    </ReusableDialog>
   );
 };
 

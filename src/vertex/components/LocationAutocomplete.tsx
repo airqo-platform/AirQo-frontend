@@ -31,6 +31,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const MAPBOX_ACCESS_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -45,8 +46,13 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
   }, []);
 
   const fetchLocationSuggestions = async (query: string) => {
@@ -77,7 +83,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       logger.error('Error fetching location suggestions:', { error: err instanceof Error ? err.message : String(err) });
       setError('Failed to load suggestions');
       setSuggestions([]);
-      setIsOpen(false);
+      setIsOpen(true);
     } finally {
       setIsLoading(false);
     }
@@ -87,12 +93,13 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     const newValue = e.target.value;
     onChange(newValue);
     
-    // Debounce the API call
-    const timeoutId = setTimeout(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
       fetchLocationSuggestions(newValue);
     }, 300);
-
-    return () => clearTimeout(timeoutId);
   };
 
   const handleSuggestionClick = (suggestion: LocationSuggestion) => {
@@ -108,7 +115,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   };
 
   const handleInputFocus = () => {
-    if (value.trim() && suggestions.length > 0) {
+    if (value.trim() && (suggestions.length > 0 || error)) {
       setIsOpen(true);
     }
   };
@@ -124,7 +131,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           onFocus={handleInputFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className="w-full rounded-xl px-3 py-2 pr-10 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
           {isLoading ? (

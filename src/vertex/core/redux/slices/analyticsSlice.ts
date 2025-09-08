@@ -1,11 +1,11 @@
-import { Device, Site } from "@/app/types/sites";
+import { SiteDevice, Site } from "@/app/types/sites";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
 export interface Airqloud {
   _id: string;
   name: string;
-  devices: Device[];
+  devices: SiteDevice[];
   sites: Site[];
 }
 

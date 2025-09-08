@@ -1,6 +1,5 @@
 import { Cohort } from "@/app/types/cohorts";
 import createSecureApiClient from "../utils/secureApiProxyClient";
-import { AxiosError } from "axios";
 
 export const cohorts = {
   getCohortsSummary: async (networkId: string) => { 
@@ -10,11 +9,8 @@ export const cohorts = {
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch cohorts summary"
-      );
+    } catch (error) {
+      throw error;
     }
   },
   getCohortDetailsApi: async (cohortId: string) => {
@@ -24,11 +20,52 @@ export const cohorts = {
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch cohort information"
+    } catch (error) {
+      throw error;
+    }
+  },
+  createCohort: async (payload: { name: string; network: string }) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/devices/cohorts`,
+        payload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
+      return response.data as {
+        success: boolean;
+        message: string;
+        cohort: Cohort & { _id: string; network: string };
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+  assignDevicesToCohort: async (cohortId: string, deviceIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/devices/cohorts/${cohortId}/assign-devices`,
+        { device_ids: deviceIds },
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data as {
+        message: string;
+        updated_cohort: Cohort & { _id: string };
+        success: boolean;
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+  assignCohortsToGroup: async (groupId: string, cohortIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/users/groups/${groupId}/cohorts/assign`,
+        { cohort_ids: cohortIds },
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
     }
   },
   updateCohortDetailsApi: async (cohortId: string, cohortData: Partial<Cohort>) => {
@@ -39,11 +76,24 @@ export const cohorts = {
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
-    } catch (error: unknown) {
-      const axiosError = error as AxiosError<{ message?: string }>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to update cohort information"
+    } catch (error) {
+      throw error;
+    }
+  },
+  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[] }) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/devices/cohorts/from-cohorts`,
+        payload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
+      return response.data as {
+        success: boolean;
+        message: string;
+        data: Cohort & { _id: string };
+      };
+    } catch (error) {
+      throw error;
     }
   }
 };

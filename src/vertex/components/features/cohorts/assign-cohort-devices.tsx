@@ -1,167 +1,211 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
+  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { usePermission } from "@/core/hooks/usePermissions";
-import { PERMISSIONS } from "@/core/permissions/constants";
-import PermissionTooltip from "@/components/ui/permission-tooltip";
+import { useCohorts, useAssignDevicesToCohort } from "@/core/hooks/useCohorts";
+import { useDevices } from "@/core/hooks/useDevices";
+import { ComboBox } from "@/components/ui/combobox";
+import { AqPlus } from "@airqo/icons-react";
+import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
+import { CreateCohortDialog } from "./create-cohort";
+import { Cohort } from "@/app/types/cohorts";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 
-const devices = [
-  { value: "aq_40", label: "Aq_40" },
-  { value: "aq_41", label: "Aq_41" },
-  { value: "aq_42", label: "Aq_42" },
-  { value: "airqo_g5364", label: "Airqo_g5364" },
-];
+interface AssignCohortDevicesDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedDevices: string[];
+  onSuccess?: () => void;
+  cohortId?: string;
+}
 
 const formSchema = z.object({
+  cohortId: z.string().min(1, {
+    message: "Please select a cohort.",
+  }),
   devices: z.array(z.string()).min(1, {
     message: "Please select at least one device.",
   }),
 });
 
-export function AddDevicesDialog() {
-  const [open, setOpen] = useState(false);
-  const canUpdateDevices = usePermission(PERMISSIONS.DEVICE.UPDATE);
+export function AssignCohortDevicesDialog({
+  open,
+  onOpenChange,
+  selectedDevices,
+  onSuccess,
+  cohortId,
+}: AssignCohortDevicesDialogProps) {
+  const { cohorts } = useCohorts();
+  const { devices: allDevices } = useDevices();
+  const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
+
+  const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      devices: [],
+      cohortId: cohortId || "",
+      devices: selectedDevices,
     },
   });
 
+  const deviceOptions: Option[] = useMemo(() => {
+    return allDevices.map((device) => ({
+      value: device._id || device.id || "",
+      label: device.long_name || device.name || `Device ${device._id}`,
+    })).filter(option => option.value);
+  }, [allDevices]);
+
+  useEffect(() => {
+    form.setValue("devices", selectedDevices);
+  }, [selectedDevices, form]);
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        cohortId: cohortId || "",
+        devices: selectedDevices,
+      });
+    }
+  }, [open, selectedDevices, form, cohortId]);
+
+  const handleCreateCohortSuccess = () => {
+    setCreateCohortModalOpen(false);
+    onOpenChange(false);
+  };
+
+  const handleCreateCohortClose = (open: boolean) => {
+    if (!open) {
+      setCreateCohortModalOpen(false);
+    }
+  };
+
+  const handleCreateCohortAction = () => {
+    onOpenChange(false);
+
+    setCreateCohortModalOpen(true);
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-    setOpen(false);
+    assignDevices(
+      {
+        cohortId: values.cohortId,
+        deviceIds: values.devices,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          form.reset();
+          onSuccess?.();
+        },
+      }
+    );
   }
 
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    if (!newOpen) {
+      form.reset();
+      setCreateCohortModalOpen(false);
+    }
+  };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-      {canUpdateDevices ? (
-        <Button>Add New Devices</Button>
-      ) : (
-        <PermissionTooltip permission={PERMISSIONS.DEVICE.UPDATE}>
-          <span>
-            <Button disabled>Add New Devices</Button>
-          </span>
-        </PermissionTooltip>
-      )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Assign devices to cohort</DialogTitle>
-        </DialogHeader>
+    <>
+      <ReusableDialog
+        isOpen={open}
+        onClose={() => handleOpenChange(false)}
+        title="Add devices to cohort"
+        subtitle={`${selectedDevices.length} device(s) selected`}
+        size="lg"
+        maxHeight="max-h-[70vh]"
+        primaryAction={{
+          label: "Add",
+          onClick: form.handleSubmit(onSubmit),
+          disabled: !form.watch("cohortId") || !form.watch("devices")?.length || isAssigning,
+        }}
+        secondaryAction={{
+          label: "Cancel",
+          onClick: () => onOpenChange(false),
+          variant: "outline",
+          disabled: isAssigning,
+        }}
+      >
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="cohortId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium">
+                    Cohort <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <ComboBox
+                      options={cohorts.map((cohort: Cohort) => ({
+                        value: cohort._id,
+                        label: cohort.name,
+                      }))}
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      placeholder="Select a cohort"
+                      searchPlaceholder="Search cohorts..."
+                      emptyMessage="No cohorts found"
+                      disabled={!!cohortId}
+                      className="w-full"
+                      allowCustomInput={false}
+                      customActionLabel="Create New Cohort"
+                      customActionIcon={AqPlus}
+                      onCustomAction={handleCreateCohortAction}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="devices"
               render={({ field }) => (
                 <FormItem>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant="outline"
-                          role="combobox"
-                          className={cn(
-                            "w-full justify-between",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value?.length > 0
-                            ? `${field.value.length} devices selected`
-                            : "Select devices"}
-                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0">
-                      <Command>
-                        <CommandInput placeholder="Search devices..." />
-                        <CommandList>
-                          <CommandEmpty>No devices found.</CommandEmpty>
-                          <CommandGroup>
-                            {devices.map((device) => (
-                              <CommandItem
-                                value={device.value}
-                                key={device.value}
-                                onSelect={() => {
-                                  const current = new Set(field.value);
-                                  if (current.has(device.value)) {
-                                    current.delete(device.value);
-                                  } else {
-                                    current.add(device.value);
-                                  }
-                                  field.onChange(Array.from(current));
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    field.value?.includes(device.value)
-                                      ? "opacity-100"
-                                      : "opacity-0"
-                                  )}
-                                />
-                                {device.label}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  <FormLabel className="text-sm font-medium">
+                    Devices <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <MultiSelectCombobox
+                      options={deviceOptions}
+                      value={field.value || []}
+                      onValueChange={field.onChange}
+                      placeholder="Select devices..."
+                      allowCreate={false}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit">Save Changes</Button>
-            </div>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </ReusableDialog>
+
+      <CreateCohortDialog
+        open={createCohortModalOpen}
+        onOpenChange={handleCreateCohortClose}
+        onSuccess={handleCreateCohortSuccess}
+        andNavigate={true}
+      />
+    </>
   );
 }
