@@ -128,7 +128,6 @@ export const useCreateCohortFromCohorts = () => {
 
 export const useAssignDevicesToCohort = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
 
   return useMutation({
@@ -150,7 +149,7 @@ export const useAssignDevicesToCohort = () => {
         type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["cohorts"] });
-      queryClient.invalidateQueries({ queryKey: ["devices", activeGroup?.grp_title] });
+      queryClient.invalidateQueries({ queryKey: ["devices"], exact: false });
       queryClient.invalidateQueries({ queryKey: ["cohort-details", variables.cohortId] });
     },
     onError: (error) => {
