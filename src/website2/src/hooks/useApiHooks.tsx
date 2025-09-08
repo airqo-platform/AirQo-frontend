@@ -41,6 +41,14 @@ const useFetch = (
   const { data, error, mutate } = useSWR(key, fetcher, {
     ...swrOptions,
     onError: (error) => {
+      // Don't log cancelled requests as errors
+      if (
+        error?.code === 'ERR_CANCELED' ||
+        error?.message?.includes('aborted')
+      ) {
+        return;
+      }
+
       if (process.env.NODE_ENV === 'development') {
         console.warn(`Failed to fetch ${key}:`, error.message);
       }
