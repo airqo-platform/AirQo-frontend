@@ -60,6 +60,7 @@ export default function DevicesPage() {
               <ReusableButton
                 disabled={isLoading || !!error}
                 onClick={() => router.push("/devices/claim")}
+                permission={PERMISSIONS.DEVICE.CLAIM}
               >
                 Claim Device
               </ReusableButton>
