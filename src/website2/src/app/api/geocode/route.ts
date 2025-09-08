@@ -4,6 +4,37 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 /**
+ * Helper function to merge multiple abort signals, with fallback for older Node.js versions
+ */
+function mergeAbortSignals(
+  ...signals: (AbortSignal | undefined)[]
+): AbortSignal {
+  const filtered = signals.filter(Boolean) as AbortSignal[];
+
+  // Native fast-path if available (Node.js 20+)
+  if (typeof (AbortSignal as any).any === 'function') {
+    return (AbortSignal as any).any(filtered);
+  }
+
+  // Polyfill: forward the first abort reason
+  if (filtered.some((s) => s.aborted)) {
+    const s = filtered.find((s) => s.aborted)!;
+    return AbortSignal.abort((s as any).reason);
+  }
+
+  const ctrl = new AbortController();
+  const onAbort = (e: any) => {
+    ctrl.abort((e?.target as any)?.reason);
+  };
+
+  for (const s of filtered) {
+    s.addEventListener('abort', onAbort, { once: true });
+  }
+
+  return ctrl.signal;
+}
+
+/**
  * Geocode endpoint that accepts latitude and longitude coordinates
  * and returns location information using OpenCage API.
  *
@@ -12,6 +43,14 @@ export const dynamic = 'force-dynamic';
  * - lng: Longitude (-180 to 180)
  */
 export async function GET(request: NextRequest) {
+  // Check if the client disconnected before processing
+  if (request.signal?.aborted) {
+    return new NextResponse(null, { status: 499 }); // Client closed request
+  }
+
+  let controller: AbortController | undefined;
+  let timeout: NodeJS.Timeout | undefined;
+
   try {
     // Use NextRequest.nextUrl to avoid reading request.url which triggers
     // dynamic server usage during static build.
@@ -44,14 +83,30 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Set up timeout and abort controllers
+    controller = new AbortController();
+    timeout = setTimeout(() => {
+      controller?.abort(new DOMException('TimeoutError', 'TimeoutError'));
+    }, 8000); // 8s timeout for geocoding
+
+    // Combine client abort signal with our timeout controller (works on Node 18+)
+    const combinedSignal = mergeAbortSignals(request.signal, controller.signal);
+
     const response = await fetch(
       `https://api.opencagedata.com/geocode/v1/json?q=${lat}+${lng}&key=${apiKey}`,
       {
         headers: {
           'User-Agent': 'AirQo-Website/1.0',
         },
+        signal: combinedSignal,
       },
     );
+
+    // Clear timeout on successful response
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = undefined;
+    }
 
     if (!response.ok) {
       throw new Error(`Geocoding API error: ${response.statusText}`);
@@ -60,7 +115,34 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Geocoding API error:', error);
+    // Clean up timeout if still active
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+
+    // Handle specific error types gracefully
+    if (error instanceof Error) {
+      // Client disconnected or request was aborted
+      if (error.name === 'AbortError' || request.signal?.aborted) {
+        // Don't log client disconnections as errors - they're normal
+        return new NextResponse(null, { status: 499 }); // Client closed request
+      }
+
+      // Handle timeout specifically
+      if (error.message?.includes('timeout') || controller?.signal.aborted) {
+        console.warn('Geocoding API request timeout');
+        return NextResponse.json({ error: 'Request timeout' }, { status: 408 });
+      }
+    }
+
+    console.error('Geocoding API error:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.stack
+          : undefined,
+    });
+
     return NextResponse.json(
       { error: 'Failed to fetch location data' },
       { status: 500 },
