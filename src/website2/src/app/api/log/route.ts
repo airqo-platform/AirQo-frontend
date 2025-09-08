@@ -14,6 +14,14 @@ export interface LogData {
 }
 
 export async function POST(request: NextRequest) {
+  // Check if the client disconnected before processing
+  if (request.signal?.aborted) {
+    return new NextResponse(null, { status: 499 }); // Client closed request
+  }
+
+  let controller: AbortController | undefined;
+  let timeout: NodeJS.Timeout | undefined;
+
   try {
     const logData: LogData = await request.json();
 
@@ -122,13 +130,33 @@ export async function POST(request: NextRequest) {
       ],
     };
 
+    // Set up timeout and abort controllers
+    controller = new AbortController();
+    timeout = setTimeout(() => {
+      if (controller && !controller.signal.aborted) {
+        controller.abort();
+      }
+    }, 5000); // 5 second timeout for logging
+
+    // Combine client abort signal with our timeout controller
+    const combinedSignal = AbortSignal.any
+      ? AbortSignal.any([request.signal, controller.signal])
+      : controller.signal;
+
     const response = await fetch(slackWebhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(slackPayload),
+      signal: combinedSignal,
     });
+
+    // Clear timeout on successful response
+    if (timeout) {
+      clearTimeout(timeout);
+      timeout = undefined;
+    }
 
     if (!response.ok) {
       throw new Error(`Slack API error: ${response.statusText}`);
@@ -136,7 +164,34 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Slack logging error:', error);
+    // Clean up timeout if still active
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+
+    // Handle specific error types gracefully
+    if (error instanceof Error) {
+      // Client disconnected or request was aborted
+      if (error.name === 'AbortError' || request.signal?.aborted) {
+        // Don't log client disconnections as errors - they're normal
+        return new NextResponse(null, { status: 499 }); // Client closed request
+      }
+
+      // Handle timeout specifically
+      if (error.message?.includes('timeout') || controller?.signal.aborted) {
+        console.warn('Slack logging request timeout');
+        return NextResponse.json({ error: 'Request timeout' }, { status: 408 });
+      }
+    }
+
+    console.error('Slack logging error:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack:
+        process.env.NODE_ENV === 'development' && error instanceof Error
+          ? error.stack
+          : undefined,
+    });
+
     return NextResponse.json(
       { error: 'Failed to send log to Slack' },
       { status: 500 },
