@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Close from '@/icons/Actions/close.svg';
+import CloseIcon from '@/common/components/Icons/Actions/CloseIcon';
 import Button from '@/components/Button';
 
 const Modal = ({
@@ -33,7 +33,7 @@ const Modal = ({
             type="button"
             className="absolute top-3 right-2.5 text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center justify-center dark:hover:bg-gray-800 dark:hover:text-white"
           >
-            <Close className="w-5 h-5" />
+            <CloseIcon className="w-5 h-5" />
             <span className="sr-only">Close Modal</span>
           </button>
           <div className="p-6 text-center flex flex-col justify-center items-center">
