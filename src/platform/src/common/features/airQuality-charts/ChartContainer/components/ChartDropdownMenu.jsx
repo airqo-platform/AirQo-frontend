@@ -176,7 +176,6 @@ const ChartDropdownMenu = ({
       isRefreshing,
       localExportState.loading,
       onExport,
-      exportState,
       isDark,
     ],
   );
