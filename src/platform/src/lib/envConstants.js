@@ -38,24 +38,37 @@ const isValidUrl = (string) => {
 const validateEnvironmentVariables = () => {
   const errors = [];
   const warnings = [];
+  const isProduction = process.env.NODE_ENV === 'production';
 
-  // Important environment variables (moved NextAuth vars to warnings instead of errors)
-  const importantEnvVars = {
+  // These are absolutely critical for production.
+  const criticalEnvVars = {
+    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     API_BASE_URL: process.env.API_BASE_URL,
+  };
+
+  if (isProduction) {
+    Object.entries(criticalEnvVars).forEach(([key, value]) => {
+      if (!value || value.trim() === '') {
+        errors.push(`Missing critical environment variable for production: ${key}`);
+      }
+    });
+  }
+
+  // These are important but might have fallbacks, so they are warnings.
+  const warningEnvVars = {
     API_TOKEN: process.env.API_TOKEN,
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     NEXT_PUBLIC_API_TOKEN: process.env.NEXT_PUBLIC_API_TOKEN,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
   };
 
-  // No critical required variables - all moved to warnings
-  // This prevents the app from throwing errors for missing NextAuth variables
+  const varsToCheckForWarnings = isProduction
+    ? warningEnvVars
+    : { ...criticalEnvVars, ...warningEnvVars };
 
-  // Check important variables
-  Object.entries(importantEnvVars).forEach(([key, value]) => {
+  Object.entries(varsToCheckForWarnings).forEach(([key, value]) => {
     if (!value || value.trim() === '') {
-      warnings.push(`Missing important environment variable: ${key}`);
+      warnings.push(`Missing/empty environment variable (Warning): ${key}`);
     }
   });
 
@@ -101,15 +114,12 @@ export const getSiteUrl = () => {
 const initializeEnvironment = () => {
   const { errors, warnings } = validateEnvironmentVariables();
 
-  // Only log errors and warnings without throwing in production
   if (errors.length > 0) {
-    logger.error('Environment configuration errors:', errors);
-    // Only throw in development, not in production
-    if (process.env.NODE_ENV === 'development') {
-      throw new Error(
-        `Critical environment variables missing: ${errors.join(', ')}`,
-      );
-    }
+    const errorMessage = `Critical environment variables missing or invalid: ${errors.join(
+      ', ',
+    )}. The application cannot start.`;
+    logger.error(errorMessage, { errors });
+    throw new Error(errorMessage);
   }
 
   if (warnings.length > 0) {
