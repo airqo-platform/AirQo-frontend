@@ -38,14 +38,6 @@ const createUserObject = (data, decodedToken, credentials) => ({
   iat: decodedToken.iat,
   requestedOrgSlug: credentials.orgSlug || null,
   isOrgLogin: !!credentials.orgSlug,
-  permissions: data.permissions || [],
-  systemPermissions: data.systemPermissions || [],
-  groupPermissions: data.groupPermissions || {},
-  networkPermissions: data.networkPermissions || {},
-  isSuperAdmin: data.isSuperAdmin || false,
-  hasGroupAccess: data.hasGroupAccess || false,
-  hasNetworkAccess: data.hasNetworkAccess || false,
-  defaultGroup: data.defaultGroup || null,
 });
 
 // Centralized token transfer logic - optimized to prevent duplications
