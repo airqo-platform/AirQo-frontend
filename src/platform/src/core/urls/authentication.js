@@ -1,6 +1,6 @@
 export const AUTH_URL = '/users';
 export const GOOGLE_AUTH_URL = '/users/auth/google';
-export const LOGIN_URL = '/users/login-with-details';
+export const LOGIN_URL = `${AUTH_URL}/login-with-details`;
 export const UPDATE_PWD_URL = '/users/updatePassword';
 export const USERS_URL = AUTH_URL;
 export const GROUPS_URL = `${AUTH_URL}/groups`;
