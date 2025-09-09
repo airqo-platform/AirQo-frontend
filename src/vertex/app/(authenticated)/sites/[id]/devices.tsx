@@ -1,6 +1,6 @@
 "use client";
 
-import { Device } from "@/app/types/sites";
+import { SiteDevice } from "@/app/types/sites";
 import {
   Table,
   TableBody,
@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { CircuitBoard } from "lucide-react";
 
 interface SiteDevicesProps {
-  devices: Device[];
+  devices: SiteDevice[];
 }
 
 export function SiteDevices({ devices }: SiteDevicesProps) {

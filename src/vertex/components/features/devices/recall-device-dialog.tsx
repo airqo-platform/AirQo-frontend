@@ -1,23 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { useRecallDevice } from "@/core/hooks/useDevices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 
@@ -70,51 +55,34 @@ export default function RecallDeviceDialog({
   const isFormValid = recallType && userDetails?._id;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Recall Device</DialogTitle>
-          <DialogDescription>
-            Recall {deviceDisplayName || deviceName} from its current deployment.
-            Please specify the recall type.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="recallType">Recall Type *</Label>
-            <Select value={recallType} onValueChange={setRecallType}>
-              <SelectTrigger id="recallType">
-                <SelectValue placeholder="Select recall type" />
-              </SelectTrigger>
-              <SelectContent position="popper" sideOffset={5}>
-                {recallTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
-                    {type.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-            disabled={recallDevice.isPending}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleRecall}
-            disabled={!isFormValid || recallDevice.isPending}
-            className="bg-yellow-600 hover:bg-yellow-700"
-          >
-            {recallDevice.isPending ? "Recalling..." : "Recall Device"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ReusableDialog
+      isOpen={open}
+      onClose={() => onOpenChange(false)}
+      title="Recall Device"
+      subtitle={`Selected device: ${deviceDisplayName || deviceName}`}
+      size="md"
+      className="h-[55vh]"
+      primaryAction={{
+        label: recallDevice.isPending ? "Recalling..." : "Recall Device",
+        onClick: handleRecall,
+        disabled: !isFormValid || recallDevice.isPending,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: () => onOpenChange(false),
+        disabled: recallDevice.isPending,
+        variant: "outline",
+      }}
+    >
+      <ReusableSelectInput
+        label="Set Recall Type"
+        required
+        value={recallType}
+        onChange={(e) => setRecallType(e.target.value)}
+        placeholder="Select recall type"
+      >
+        {recallTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+      </ReusableSelectInput>
+    </ReusableDialog>
   );
 }

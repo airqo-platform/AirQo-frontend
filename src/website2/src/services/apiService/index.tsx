@@ -1,18 +1,11 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
-import { removeTrailingSlash } from '@/utils';
-
-// Define the base URL for the API with proper fallback
+// Define the base URL for the API using our proxy route
 const getApiBaseUrl = () => {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL;
-  if (!baseUrl) {
-    console.warn('NEXT_PUBLIC_API_URL is not defined. Using fallback URL.');
-    return 'https://platform.airqo.net';
-  }
-  return removeTrailingSlash(baseUrl);
+  return '/api/proxy';
 };
 
-const API_BASE_URL = `${getApiBaseUrl()}/website`;
+const API_BASE_URL = getApiBaseUrl();
 
 // Create an Axios instance with default configurations
 const apiClient: AxiosInstance = axios.create({
@@ -46,6 +39,11 @@ if (process.env.NODE_ENV === 'development') {
       return response;
     },
     (error) => {
+      // Don't log client disconnections as errors in development
+      if (error.code === 'ERR_CANCELED' || error.message?.includes('aborted')) {
+        console.log('Request was cancelled (likely page refresh)');
+        return Promise.reject(error);
+      }
       console.error(`API error from: ${error.config?.url}`, error.message);
       return Promise.reject(error);
     },
@@ -55,10 +53,23 @@ if (process.env.NODE_ENV === 'development') {
 // Generic GET request handler
 const getRequest = async (endpoint: string): Promise<any> => {
   try {
-    const response = await apiClient.get(endpoint);
+    // Use our proxy route with the /website prefix
+    const response = await apiClient.post('', {
+      endpoint: `/website${endpoint}`,
+      method: 'GET',
+    });
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
+
+    // Handle cancellation gracefully (don't log as error)
+    if (
+      axiosError.code === 'ERR_CANCELED' ||
+      axiosError.message?.includes('aborted')
+    ) {
+      throw axiosError; // Re-throw but don't log
+    }
+
     console.error(`Error fetching data from ${endpoint}:`, axiosError.message);
 
     // In development, provide more detailed error information
@@ -81,7 +92,14 @@ export const getPressArticles = async (): Promise<any> => {
   try {
     return await getRequest('/press/');
   } catch (error) {
-    console.warn('Failed to fetch press articles:', error);
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn('Failed to fetch press articles:', error);
+    }
     return []; // Return empty array so components can show "no data" message
   }
 };
@@ -91,7 +109,14 @@ export const getImpactNumbers = async (): Promise<any> => {
   try {
     return await getRequest('/impact-number/');
   } catch (error) {
-    console.warn('Failed to fetch impact numbers:', error);
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn('Failed to fetch impact numbers:', error);
+    }
     return {}; // Return empty object so components can show "no data" message
   }
 };
@@ -101,7 +126,14 @@ export const getAirQoEvents = async (): Promise<any> => {
   try {
     return await getRequest('/events/?category=airqo');
   } catch (error) {
-    console.warn('Failed to fetch AirQo events:', error);
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn('Failed to fetch AirQo events:', error);
+    }
     return []; // Return empty array so components can show "no data" message
   }
 };
@@ -110,7 +142,14 @@ export const getCleanAirEvents = async (): Promise<any> => {
   try {
     return await getRequest('/events/?category=cleanair');
   } catch (error) {
-    console.warn('Failed to fetch Clean Air events:', error);
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn('Failed to fetch Clean Air events:', error);
+    }
     return []; // Return empty array so components can show "no data" message
   }
 };
@@ -119,7 +158,14 @@ export const getEventDetails = async (id: string): Promise<any> => {
   try {
     return await getRequest(`/events/${id}/`);
   } catch (error) {
-    console.warn(`Failed to fetch event ${id}:`, error);
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn(`Failed to fetch event ${id}:`, error);
+    }
     return null; // Return null so components can show "not found" message
   }
 };
@@ -129,7 +175,14 @@ export const getHighlights = async (): Promise<any> => {
   try {
     return await getRequest('/highlights/');
   } catch (error) {
-    console.warn('Failed to fetch highlights:', error);
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn('Failed to fetch highlights:', error);
+    }
     return []; // Return empty array so components can show "no data" message
   }
 };

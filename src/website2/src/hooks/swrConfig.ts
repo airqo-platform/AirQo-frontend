@@ -22,7 +22,18 @@ export const swrOptions: SWRConfiguration = {
   onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
     // Skip retries in development mode
     if (process.env.NODE_ENV === 'development') {
-      console.warn(`API call failed in development: ${key}`, error.message);
+      // Don't warn about cancelled requests
+      if (
+        error?.code !== 'ERR_CANCELED' &&
+        !error?.message?.includes('aborted')
+      ) {
+        console.warn(`API call failed in development: ${key}`, error.message);
+      }
+      return;
+    }
+
+    // Don't retry cancelled requests
+    if (error?.code === 'ERR_CANCELED' || error?.message?.includes('aborted')) {
       return;
     }
 

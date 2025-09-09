@@ -14,7 +14,7 @@ on:
       website2:
         description: "Deploy Website2"
         required: false
-        type: boolean        
+        type: boolean
       calibrate_app:
         description: "Deploy Calibrate app"
         required: false
@@ -30,7 +30,7 @@ on:
       inventory:
         description: "Deploy Inventory"
         required: false
-        type: boolean  
+        type: boolean
       reports:
         description: "Deploy Reports"
         required: false
@@ -176,7 +176,7 @@ jobs:
   #     - name: Create app.yaml and .env.yaml files
   #       run: |
   #         cd src/website/
-  #         echo "========== Creating app.yaml file =========="            
+  #         echo "========== Creating app.yaml file =========="
   #         echo "runtime: python" > app.yaml
   #         echo "env: flex" >> app.yaml
   #         echo "service: default" >> app.yaml
@@ -191,7 +191,7 @@ jobs:
   #         echo "runtime_config:" >> app.yaml
   #         echo "  operating_system: \"ubuntu22\"" >> app.yaml
   #         echo "  runtime_version: \"3.12\"" >> app.yaml
-  #         echo "========== Creating .env.yaml file =========="  
+  #         echo "========== Creating .env.yaml file =========="
   #         echo "env_variables:" > .env.yaml
   #         echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
   #         echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
@@ -223,22 +223,22 @@ jobs:
   #         docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
   #         docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest
 
-      # - name: Deploy to App Engine
-      #   run: |-
-      #     cd website/
-      #     gcloud app deploy  \
-      #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest \
-      #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
-      #       --quiet
-        
-      # - name: Delete Old Versions
-      #   run: |-
-      #     service="default"
-      #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-      #       for version in $versions; do
-      #         echo "Deleting version: $version for service: $service"
-      #         gcloud app versions delete "$version" --service=$service --quiet
-      #       done
+  # - name: Deploy to App Engine
+  #   run: |-
+  #     cd website/
+  #     gcloud app deploy  \
+  #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website:latest \
+  #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+  #       --quiet
+
+  # - name: Delete Old Versions
+  #   run: |-
+  #     service="default"
+  #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+  #       for version in $versions; do
+  #         echo "Deleting version: $version for service: $service"
+  #         gcloud app versions delete "$version" --service=$service --quiet
+  #       done
 
   ### deploy website2 ###
   website2:
@@ -291,6 +291,9 @@ jobs:
           echo "  max_num_instances: 10" >> app.yaml
           echo "  cpu_utilization:" >> app.yaml
           echo "    target_utilization: 0.8" >> app.yaml
+          echo "resources:" >> app.yaml 
+          echo "  cpu: 1" >> app.yaml
+          echo "  memory_gb: 2.0" >> app.yaml 
           echo "runtime_config:" >> app.yaml
           echo "  operating_system: \"ubuntu22\"" >> app.yaml
           echo "  runtime_version: \"3.12\"" >> app.yaml
@@ -303,9 +306,11 @@ jobs:
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
           echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_API_URL: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_URL }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
+          echo "  API_URL: ${{ secrets.WEBSITE_PROD_API_URL }}" >> .env.yaml
+          echo "  OPENCAGE_API_KEY: ${{ secrets.WEBSITE_PROD_OPENCAGE_API_KEY }}" >> .env.yaml
+          echo "  API_TOKEN: ${{ secrets.WEBSITE_PROD_API_TOKEN }}" >> .env.yaml
+          echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_PROD_SLACK_WEBHOOK_URL }}" >> .env.yaml
+          echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_PROD_SLACK_CHANNEL }}" >> .env.yaml
           echo "  DEBUG: False" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env.yaml
@@ -314,9 +319,8 @@ jobs:
         run: |
           cd src/website2/
           docker build . \
-          --build-arg NEXT_PUBLIC_API_URL=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_URL }} \
-          --build-arg NEXT_PUBLIC_OPENCAGE_API_KEY=${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }} \
-          --build-arg NEXT_PUBLIC_API_TOKEN=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_API_TOKEN }} \
+          --build-arg API_URL=${{ secrets.WEBSITE_PROD_API_URL }} \
+          --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:latest
@@ -329,7 +333,7 @@ jobs:
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
             --quiet
-     
+
       - name: Delete Old Versions
         run: |-
           service="default"
@@ -585,7 +589,7 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/inventory/.env env-inventory-production | kubectl replace -f - -n production            
+          --from-env-file=src/inventory/.env env-inventory-production | kubectl replace -f - -n production
 
   ### build and push reports image ###
   reports:
@@ -703,8 +707,7 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/vertex/.env env-vertex-production | kubectl replace -f - -n production          
-
+          --from-env-file=src/vertex/.env env-vertex-production | kubectl replace -f - -n production
 
   ### build and push beacon image ###
   beacon:
@@ -763,4 +766,4 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/beacon/.env env-beacon-production | kubectl replace -f - -n production          
+          --from-env-file=src/beacon/.env env-beacon-production | kubectl replace -f - -n production

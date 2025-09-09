@@ -2,9 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useDeviceDetails } from "@/core/hooks/useDevices";
-import { Button } from "@/components/ui/button";
-import { XCircle, ArrowLeft } from "lucide-react";
-import { usePermission } from "@/core/hooks/usePermissions";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { XCircle } from "lucide-react";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { getElapsedDurationMapper } from "@/lib/utils";
 import { useState } from "react";
@@ -17,9 +16,9 @@ import RunDeviceTestCard from "@/components/features/devices/run-device-test-car
 import RecallDeviceDialog from "@/components/features/devices/recall-device-dialog";
 import AddMaintenanceLogModal from "@/components/features/devices/add-maintenance-log-modal";
 import { Device } from "@/app/types/devices";
-import PermissionTooltip from "@/components/ui/permission-tooltip";
 import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
+import { AqArrowLeft, AqSignal02, AqTool01 } from "@airqo/icons-react";
 
 const ActionButtonsSkeleton = () => (
   <div className="flex gap-1">
@@ -44,10 +43,6 @@ export default function DeviceDetailsPage() {
   const device = (deviceResponse?.data as Device | undefined) ?? undefined;
   const router = useRouter();
 
-  const canRecall = usePermission(PERMISSIONS.DEVICE.RECALL);
-  const canDeploy = usePermission(PERMISSIONS.DEVICE.DEPLOY);
-  const canAddLog = usePermission(PERMISSIONS.DEVICE.MAINTAIN);
-
   const deploymentStatus = device?.status || "unknown";
 
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -55,8 +50,7 @@ export default function DeviceDetailsPage() {
   const [showDeployModal, setShowDeployModal] = useState(false);
   const [showMaintenanceLogModal, setShowMaintenanceLogModal] = useState(false);
 
-  const deviceNum = Number(device?.device_number); 
-  if (!Number.isFinite(deviceNum)) return null;
+  const deviceNum = Number(device?.device_number);
 
   if (!isLoading && error) {
     return (
@@ -73,87 +67,48 @@ export default function DeviceDetailsPage() {
   return (
     <div>
       <div className="flex gap-2 mb-6 justify-between items-center">
-        <Button variant="ghost" onClick={() => router.back()}>
-          <ArrowLeft className="w-4 h-4" />
-          Back to Devices
-        </Button>
+        <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
+          Back
+        </ReusableButton>
 
         {isLoading ? (
           <ActionButtonsSkeleton />
         ) : !device ? null : (
           <div className="flex gap-1">
             {deploymentStatus === "deployed" &&
-              (canRecall ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-yellow-800 hover:bg-yellow-700"
-                  onClick={() => setShowRecallDialog(true)}
-                >
-                  Recall Device
-                </Button>
-              ) : (
-                <PermissionTooltip permission={PERMISSIONS.DEVICE.RECALL}>
-                  <span>
-                    <Button
-                      variant="default"
-                      disabled
-                      size="sm"
-                      className="bg-yellow-800 hover:bg-yellow-700 opacity-50"
-                    >
-                      Recall Device
-                    </Button>
-                  </span>
-                </PermissionTooltip>
-              ))}
+              <ReusableButton
+                variant="filled"
+                padding="px-3 py-1.5"
+                className="bg-yellow-800 hover:bg-yellow-700 text-sm font-medium"
+                onClick={() => setShowRecallDialog(true)}
+                permission={PERMISSIONS.DEVICE.RECALL}
+              >
+                Recall Device
+              </ReusableButton>
+            }
 
             {deploymentStatus !== "deployed" &&
-              (canDeploy ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  className="bg-green-900 hover:bg-green-700"
-                  onClick={() => setShowDeployModal(true)}
-                >
-                  Deploy Device
-                </Button>
-              ) : (
-                <PermissionTooltip permission={PERMISSIONS.DEVICE.DEPLOY}>
-                  <span>
-                    <Button
-                      variant="default"
-                      disabled
-                      size="sm"
-                      className="bg-green-900 hover:bg-green-700 opacity-50"
-                    >
-                      Deploy Device
-                    </Button>
-                  </span>
-                </PermissionTooltip>
-              ))}
-
-            {canAddLog ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowMaintenanceLogModal(true)}
+              <ReusableButton
+                variant="filled"
+                padding="px-3 py-1.5"
+                className="bg-green-900 hover:bg-green-700 text-sm font-medium"
+                onClick={() => setShowDeployModal(true)}
+                Icon={AqSignal02}
+                permission={PERMISSIONS.DEVICE.DEPLOY}
               >
-                Add Maintenance Log
-              </Button>
-            ) : (
-              <PermissionTooltip permission={PERMISSIONS.DEVICE.MAINTAIN}>
-                <span>
-                  <Button
-                    variant="outline"
-                    disabled
-                    size="sm"
-                    className="opacity-50"
-                  >
-                    Add Maintenance Log
-                  </Button>
-                </span>
-              </PermissionTooltip>
-            )}
+                Deploy Device
+              </ReusableButton>}
+
+            <ReusableButton
+              variant="outlined"
+              padding="px-3 py-1.5"
+              className="text-sm font-medium"
+              onClick={() => setShowMaintenanceLogModal(true)}
+              Icon={AqTool01}
+              permission={PERMISSIONS.DEVICE.MAINTAIN}
+            >
+              Add Maintenance Log
+            </ReusableButton>
           </div>
         )}
       </div>
@@ -178,12 +133,12 @@ export default function DeviceDetailsPage() {
           <div className="break-inside-avoid mb-4 inline-block w-full order-3">
             <OnlineStatusCard deviceId={deviceId} />
           </div>
-          <div className="break-inside-avoid mb-4 inline-block w-full order-5">
+          {Number.isFinite(deviceNum) && <div className="break-inside-avoid mb-4 inline-block w-full order-5">
             <RunDeviceTestCard
               deviceNumber={deviceNum}
               getElapsedDurationMapper={getElapsedDurationMapper}
             />
-          </div>
+          </div>}
           <div className="break-inside-avoid mb-4 inline-block w-full order-4">
             <DeviceMeasurementsApiCard deviceId={deviceId} />
           </div>
@@ -197,7 +152,6 @@ export default function DeviceDetailsPage() {
         <>
           <DeviceDetailsModal
             open={showDetailsModal}
-            onOpenChange={setShowDetailsModal}
             device={device}
             onClose={() => setShowDetailsModal(false)}
           />

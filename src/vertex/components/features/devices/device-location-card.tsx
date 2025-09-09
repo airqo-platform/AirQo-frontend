@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { Device } from "@/app/types/devices";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface DeviceLocationCardProps {
   device: Device;
@@ -36,11 +36,12 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
           <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">
             Site
           </div>
-          {device.description && (
-            <div className="text-base font-normal break-all">
-              {device.description}
+          <div className="text-base font-normal break-all">
+              {device?.site && Array.isArray(device.site) && device.site.length > 0 ? 
+                device.site[0]?.name || 
+                device.site[0]?.description || 
+                device.site[0]?.location_name || "N/A" : "N/A"}
             </div>
-          )}
         </div>
 
         <div className="space-y-2">
@@ -65,13 +66,13 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
 
       {device.site_id && (
         <div className="border-t px-2 flex justify-end">
-          <Button
-            variant="ghost"
+          <ReusableButton
+            variant="text"
             onClick={handleEditLocation}
-            className="hover:bg-transparent"
+            className="p-1 text-xs m-1"
           >
             View site details
-          </Button>
+          </ReusableButton>
         </div>
       )}
     </Card>

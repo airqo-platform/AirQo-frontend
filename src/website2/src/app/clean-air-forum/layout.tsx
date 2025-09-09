@@ -10,7 +10,7 @@ import { ForumLoading, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { useForumEventDetails, useForumEventTitles } from '@/hooks/useApiHooks';
-import { logger } from '@/utils/logger';
+import logger from '@/utils/logger';
 
 import BannerSection from '../../views/cleanairforum/BannerSection';
 

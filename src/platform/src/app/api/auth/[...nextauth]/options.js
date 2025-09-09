@@ -38,6 +38,14 @@ const createUserObject = (data, decodedToken, credentials) => ({
   iat: decodedToken.iat,
   requestedOrgSlug: credentials.orgSlug || null,
   isOrgLogin: !!credentials.orgSlug,
+  permissions: data.permissions || [],
+  systemPermissions: data.systemPermissions || [],
+  groupPermissions: data.groupPermissions || {},
+  networkPermissions: data.networkPermissions || {},
+  isSuperAdmin: data.isSuperAdmin || false,
+  hasGroupAccess: data.hasGroupAccess || false,
+  hasNetworkAccess: data.hasNetworkAccess || false,
+  defaultGroup: data.defaultGroup || null,
 });
 
 // Centralized token transfer logic - optimized to prevent duplications
@@ -60,6 +68,14 @@ const transferTokenDataToSession = (target, source) => {
     'rateLimit',
     'lastLogin',
     'iat',
+    'permissions',
+    'systemPermissions',
+    'groupPermissions',
+    'networkPermissions',
+    'isSuperAdmin',
+    'hasGroupAccess',
+    'hasNetworkAccess',
+    'defaultGroup',
   ];
 
   // Session-level fields that should be at the root
@@ -112,41 +128,62 @@ export const options = {
           logger.info('[NextAuth] Using optimized API client for login');
 
           const loginData = {
-            userName: credentials.userName,
+            email: credentials.userName,
             password: credentials.password,
           };
 
           logger.info('[NextAuth] Request payload:', {
-            userName: credentials.userName,
+            email: credentials.userName,
             password: '***HIDDEN***',
           });
 
-          const data = await postUserLoginDetails(loginData);
+          const response = await postUserLoginDetails(loginData);
+          const apiResponse = response.data;
+
+          if (!apiResponse.token) {
+            logger.warn('[NextAuth] API response was invalid or missing a token.', {
+              apiResponse: apiResponse ?? null,
+            });
+            throw new Error(apiResponse?.message || 'Login failed');
+          }
+
+          const userData = apiResponse;
 
           logger.info('[NextAuth] API Response data:', {
-            hasToken: !!data.token,
-            userId: data._id,
-            userName: data.userName,
-            email: data.email,
+            hasToken: !!userData.token,
+            userId: userData._id,
+            userName: userData.userName,
+            email: userData.email,
           });
 
-          if (!data?.token) {
+          if (!userData?.token) {
             logger.error('[NextAuth] No token received from API');
             throw new Error('No authentication token received from server');
           }
 
           let decodedToken;
           try {
-            decodedToken = jwtDecode(data.token);
+            decodedToken = jwtDecode(userData.token);
           } catch (jwtError) {
             logger.error('[NextAuth] JWT decode error:', jwtError.message);
             throw new Error('Invalid token received from API');
           }
 
-          return createUserObject(data, decodedToken, credentials);
+          return createUserObject(userData, decodedToken, credentials);
         } catch (error) {
-          logger.error('[NextAuth] Authentication error:', error.message);
-          throw new Error(error.message || 'Authentication failed');
+          logger.error('[NextAuth] Authentication error:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+          });
+
+          const apiErrorMessage = error.response?.data?.message;
+
+          const genericErrorMessage = error.message;
+
+          throw new Error(
+            apiErrorMessage || genericErrorMessage || 'Authentication failed',
+          );
         }
       },
     }),
