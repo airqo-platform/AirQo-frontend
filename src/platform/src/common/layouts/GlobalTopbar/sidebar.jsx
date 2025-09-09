@@ -9,7 +9,7 @@ import {
 } from '@/lib/store/services/sideBar/SideBarSlice';
 import Card from '@/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
-import AirqoLogo from '@/icons/airqo_logo.svg';
+import AirqoLogo from '@/common/components/Icons/AirqoLogo';
 import {
   getNavigationItems,
   USER_TYPES,
@@ -245,7 +245,7 @@ const GlobalSideBarDrawer = () => {
               <SideBarItem
                 label="Admin Panel"
                 Icon={MdAdminPanelSettings}
-                navPath="/admin"
+                navPath="#"
                 onClick={closeDrawer}
                 subroutes={adminSubroutes}
                 onSubrouteClick={handleSubrouteClick}

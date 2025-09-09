@@ -40,6 +40,49 @@ const createUserObject = (data, decodedToken, credentials) => ({
   isOrgLogin: !!credentials.orgSlug,
 });
 
+// Map API error/status to a friendly user-facing message
+const getFriendlyAuthErrorMessage = (error) => {
+  // Axios-style errors
+  const status = error?.response?.status;
+
+  // Detect JSON parse / unexpected HTML errors
+  const message = (error && error.message) || '';
+  if (
+    message.includes('JSON') ||
+    message.includes('Unexpected token') ||
+    message.includes('Unexpected end of JSON input') ||
+    message.includes('<html') ||
+    message.includes('SyntaxError')
+  ) {
+    return 'Authentication service returned an unexpected response. Please try again later.';
+  }
+
+  if (error?.request && !error?.response) {
+    // No response received
+    return 'Network error: please check your internet connection and try again.';
+  }
+
+  switch (status) {
+    case 400:
+      return 'Invalid request. Please check the information you provided and try again.';
+    case 401:
+      return 'Incorrect email or password. Please try again.';
+    case 403:
+      return 'You do not have permission to access this resource.';
+    case 404:
+      return 'User not found. Please check your credentials.';
+    case 422:
+      return 'Provided data is invalid. Please check and try again.';
+    case 502:
+      return 'Authentication service is temporarily unavailable. Please try again in a few minutes.';
+    case 503:
+      return 'Authentication service is temporarily unavailable. Please try again later.';
+    case 500:
+    default:
+      return 'Authentication failed. Please try again or contact support if the problem persists.';
+  }
+};
+
 // Centralized token transfer logic - optimized to prevent duplications
 const transferTokenDataToSession = (target, source) => {
   // Core user fields that should only be in session.user
@@ -60,14 +103,6 @@ const transferTokenDataToSession = (target, source) => {
     'rateLimit',
     'lastLogin',
     'iat',
-    'permissions',
-    'systemPermissions',
-    'groupPermissions',
-    'networkPermissions',
-    'isSuperAdmin',
-    'hasGroupAccess',
-    'hasNetworkAccess',
-    'defaultGroup',
   ];
 
   // Session-level fields that should be at the root
@@ -120,62 +155,49 @@ export const options = {
           logger.info('[NextAuth] Using optimized API client for login');
 
           const loginData = {
-            email: credentials.userName,
+            userName: credentials.userName,
             password: credentials.password,
           };
 
           logger.info('[NextAuth] Request payload:', {
-            email: credentials.userName,
+            userName: credentials.userName,
             password: '***HIDDEN***',
           });
 
-          const response = await postUserLoginDetails(loginData);
-          const apiResponse = response.data;
-
-          if (!apiResponse.token) {
-            logger.warn('[NextAuth] API response was invalid or missing a token.', {
-              apiResponse: apiResponse ?? null,
-            });
-            throw new Error(apiResponse?.message || 'Login failed');
-          }
-
-          const userData = apiResponse;
+          const data = await postUserLoginDetails(loginData);
 
           logger.info('[NextAuth] API Response data:', {
-            hasToken: !!userData.token,
-            userId: userData._id,
-            userName: userData.userName,
-            email: userData.email,
+            hasToken: !!data.token,
+            userId: data._id,
+            userName: data.userName,
+            email: data.email,
           });
 
-          if (!userData?.token) {
+          if (!data?.token) {
             logger.error('[NextAuth] No token received from API');
-            throw new Error('No authentication token received from server');
+            // Provide a friendly message instead of raw API output
+            throw new Error('Authentication failed. Please try again.');
           }
 
           let decodedToken;
           try {
-            decodedToken = jwtDecode(userData.token);
+            decodedToken = jwtDecode(data.token);
           } catch (jwtError) {
             logger.error('[NextAuth] JWT decode error:', jwtError.message);
             throw new Error('Invalid token received from API');
           }
 
-          return createUserObject(userData, decodedToken, credentials);
+          return createUserObject(data, decodedToken, credentials);
         } catch (error) {
-          logger.error('[NextAuth] Authentication error:', {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status,
-          });
-
-          const apiErrorMessage = error.response?.data?.message;
-
-          const genericErrorMessage = error.message;
-
-          throw new Error(
-            apiErrorMessage || genericErrorMessage || 'Authentication failed',
+          // Log full error server-side for diagnostics
+          logger.error(
+            '[NextAuth] Authentication error:',
+            error?.message || error,
           );
+
+          // Translate to a friendly, non-verbose message for the client
+          const friendlyMessage = getFriendlyAuthErrorMessage(error);
+          throw new Error(friendlyMessage);
         }
       },
     }),

@@ -7,6 +7,7 @@ import mapboxgl from 'mapbox-gl';
 import { setSelectedNode } from '@/lib/store/services/map/MapSlice';
 import { FaGlobe } from 'react-icons/fa';
 import Loader from '@/components/Spinner';
+import logger from '@/lib/logger';
 /**
  * GlobeControl
  */
@@ -117,7 +118,7 @@ export class CustomZoomControl {
         try {
           this.map.zoomIn();
         } catch (error) {
-          console.error('Zoom in failed:', error);
+          logger.error('Zoom in failed:', error);
         }
       }
     });
@@ -126,7 +127,7 @@ export class CustomZoomControl {
         try {
           this.map.zoomOut();
         } catch (error) {
-          console.error('Zoom out failed:', error);
+          logger.error('Zoom out failed:', error);
         }
       }
     });
@@ -188,7 +189,7 @@ export class CustomZoomControl {
       url.searchParams.set('zm', zoom.toFixed(2));
       window.history.replaceState({}, '', url);
     } catch (error) {
-      console.error('Error updating URL:', error);
+      logger.error('Error updating URL:', error);
     }
   }
 
@@ -338,7 +339,7 @@ export class CustomGeolocateControl {
         });
       }
     } catch (error) {
-      console.error('Error updating map with geolocation:', error);
+      logger.error('Error updating map with geolocation:', error);
     }
   }
 
@@ -385,7 +386,7 @@ export const useRefreshMap = (
         dispatch(setSelectedNode(null));
       }
     } catch (error) {
-      console.error('Error refreshing the map:', error);
+      logger.error('Error refreshing the map:', error);
       setToastMessage({
         message: 'Failed to refresh the map',
         type: 'error',
@@ -448,7 +449,7 @@ export const useShareLocation = (setToastMessage, mapRef) =>
         document.body.removeChild(textArea);
       }
     } catch (error) {
-      console.error('Error sharing location:', error);
+      logger.error('Error sharing location:', error);
       setToastMessage({
         message: 'Failed to copy location URL',
         type: 'error',

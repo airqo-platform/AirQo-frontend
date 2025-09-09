@@ -248,10 +248,24 @@ export const validateServerSession = async (request) => {
     const routeType = getRouteType(pathname);
 
     // Get token from middleware context
-    const token = await getToken({
-      req: request,
-      secret: getNextAuthSecret(),
-    });
+    let token;
+    try {
+      token = await getToken({
+        req: request,
+        secret: getNextAuthSecret(),
+      });
+    } catch (err) {
+      // Handle decryption / JWE failures gracefully
+      logger.error('getToken failed during server session validation:', err);
+
+      // If the token cannot be decrypted (e.g., NEXTAUTH_SECRET mismatch or rotated),
+      // return an invalid session result so the user is redirected to login.
+      return {
+        isValid: false,
+        redirectPath: '/user/login',
+        reason: 'Session invalid or expired (decryption failed)',
+      };
+    }
 
     const orgSlug = extractOrgSlug(pathname);
 

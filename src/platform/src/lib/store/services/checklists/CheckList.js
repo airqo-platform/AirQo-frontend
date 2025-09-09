@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getUserChecklists, upsertUserChecklists } from '@/core/apis/Account';
-
-/* eslint-disable no-console */
+import logger from '@/lib/logger';
 
 const initialState = {
   checklist: [],
@@ -50,7 +49,7 @@ export const fetchUserChecklists = createAsyncThunk(
 
       return items;
     } catch (error) {
-      console.error('Error in fetchUserChecklists:', error);
+      logger.error('Error in fetchUserChecklists:', error);
       return rejectWithValue(error.message || 'Error fetching checklists');
     }
   },
@@ -107,7 +106,7 @@ export const updateTaskProgress = createAsyncThunk(
 
       return updatedList;
     } catch (error) {
-      console.error('Error in updateTaskProgress:', error);
+      logger.error('Error in updateTaskProgress:', error);
       return rejectWithValue(error.message || 'Failed to update checklist');
     }
   },

@@ -27,7 +27,7 @@ const Carousel = ({ IntroList }) => {
     <div id="default-carousel" className="relative w-full h-full">
       <div className="relative w-full h-full overflow-hidden rounded-lg">
         <div ref={slideRef} className="flex w-full h-full">
-          {IntroList.map((item, index) => (
+          {IntroList.map((item) => (
             <div
               key={item.name}
               className="w-full flex-none text-center"

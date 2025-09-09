@@ -1,11 +1,17 @@
 import Link from 'next/link';
-import CongratsImage from '@/images/EventHandling/congratulations.svg';
+import Image from 'next/image';
 
 const OrgRequestSubmissionConfirmationPage = () => {
   return (
     <div className="relative w-screen h-screen bg-white overflow-x-hidden">
       <div className="">
-        <CongratsImage className="absolute left-0 right-0 top-0 bottom-0 mb-0 mt-36 mx-auto w-auto h-auto" />
+        <Image
+          src="/images/EventHandling/congratulations.svg"
+          alt="Congratulations"
+          width={348}
+          height={224}
+          className="absolute left-0 right-0 top-0 bottom-0 mb-0 mt-36 mx-auto w-auto h-auto"
+        />
       </div>
 
       <div className="flex flex-col justify-center items-center mt-96 w-full md:px-48 px-6 pb-4">

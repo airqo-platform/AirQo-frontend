@@ -17,6 +17,7 @@ import {
 } from '@/lib/store/services/checklists/CheckList';
 import { useRouter } from 'next/navigation';
 import { AqDownload01, AqBuilding07, AqStar05 } from '@airqo/icons-react';
+import logger from '@/lib/logger';
 
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';
@@ -86,7 +87,7 @@ const Home = () => {
         }
       } catch (error) {
         // Handle error silently or with logger
-        console.warn('Error loading user data:', error);
+        logger.warn('Error loading user data:', error);
       }
 
       // Set loading to false when we have data or after a timeout
