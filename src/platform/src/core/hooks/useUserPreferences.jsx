@@ -36,7 +36,7 @@ const useUserPreferences = () => {
 
       // Only proceed if we have valid ObjectIds
       if (!isValidObjectId(userID)) {
-        logger.warn('Invalid user ID format:', userID);
+        logger.warn('Invalid user ID format', { userID });
         return;
       }
 

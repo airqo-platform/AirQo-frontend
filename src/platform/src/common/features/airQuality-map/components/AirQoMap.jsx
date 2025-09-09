@@ -217,8 +217,11 @@ const AirQoMap = forwardRef(
         };
         // Add event listeners with error handling
         map.once('style.load', handleStyleLoad);
-        map.once('error', () => {
-          logger.error('Error loading map style');
+        map.once('error', (e) => {
+          console.error('Error loading map style');
+          logger.error('Error loading map style', e?.error ?? e, {
+            url: styleUrl,
+          });
           isReloadingRef.current = false;
         });
       },

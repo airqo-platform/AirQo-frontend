@@ -67,12 +67,14 @@ const RolesPermissionsPage = () => {
     setPermissionDenied(false);
 
     try {
-      const response = await getGroupRolesSummaryApi();
-      if (response && response.roles) {
-        setRoles(response.roles);
-      } else {
-        throw new Error(response?.message || 'Failed to fetch roles');
-      }
+      const payload = await getGroupRolesSummaryApi(groupId);
+      const list = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload.roles)
+          ? payload.roles
+          : [];
+      if (!list.length) throw new Error('No roles returned');
+      setRoles(list);
     } catch (e) {
       if (e?.status === 403 || e?.response?.status === 403) {
         setPermissionDenied(true);

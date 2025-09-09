@@ -278,7 +278,6 @@ const PrintReportModal = ({
         title={title}
         open={open}
         onClose={() => {
-          onClose();
           handleCancel();
         }}
         downloadDataFunc={shareModel ? handleShareReport : handleDataExport}

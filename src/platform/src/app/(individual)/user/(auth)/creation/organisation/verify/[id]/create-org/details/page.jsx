@@ -538,13 +538,13 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   const handleLocationSelect = (item) => {
-    if (locationArray.includes(item)) {
-      setLocationArray(
-        locationArray.filter((location) => location._id !== item._id),
-      );
-    } else {
-      setLocationArray((locations) => [...locations, item]);
-    }
+    setLocationArray((prev) =>
+      prev.some((l) => l._id === item._id)
+        ? prev.filter((l) => l._id !== item._id)
+        : prev.length >= 4
+          ? prev
+          : [...prev, item],
+    );
     setInputSelect(true);
     setLocation('');
   };
