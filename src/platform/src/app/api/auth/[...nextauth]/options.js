@@ -142,9 +142,9 @@ export const options = {
 
           if (!apiResponse.token) {
             logger.warn('[NextAuth] API response was invalid or missing a token.', {
-              apiResponse,
+              apiResponse: apiResponse ?? null,
             });
-            throw new Error(apiResponse.message || 'Login failed');
+            throw new Error(apiResponse?.message || 'Login failed');
           }
 
           const userData = apiResponse;
