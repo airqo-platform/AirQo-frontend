@@ -68,23 +68,13 @@ const RolesPermissionsPage = () => {
 
     try {
       const response = await getGroupRolesSummaryApi();
-      if (response.status === 403) {
-        setPermissionDenied(true);
-        setLoading(false);
-        return;
-      }
-      if (response.success && response.roles) {
+      if (response && response.roles) {
         setRoles(response.roles);
       } else {
-        if (response.status === 403) {
-          setPermissionDenied(true);
-          setLoading(false);
-          return;
-        }
-        throw new Error(response.message || 'Failed to fetch roles');
+        throw new Error(response?.message || 'Failed to fetch roles');
       }
     } catch (e) {
-      if (e?.response?.status === 403 || e?.status === 403) {
+      if (e?.status === 403 || e?.response?.status === 403) {
         setPermissionDenied(true);
         setLoading(false);
         return;
@@ -100,8 +90,15 @@ const RolesPermissionsPage = () => {
   }, []);
 
   useEffect(() => {
+    // Wait until permission check is ready
+    if (permLoading) return;
+    if (!canView) {
+      setPermissionDenied(true);
+      setLoading(false);
+      return;
+    }
     fetchRoles();
-  }, [fetchRoles]);
+  }, [fetchRoles, permLoading, canView]);
 
   const handleRoleAction = useCallback(
     (action, role) => {

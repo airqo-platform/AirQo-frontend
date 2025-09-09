@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import { AqUsers01, AqCheck, AqX } from '@airqo/icons-react';
 
 // Import API
@@ -42,8 +42,8 @@ const UsersPageContent = () => {
 
         const response = await getCombinedUsersApi();
 
-        if (response.success && response.users) {
-          // Transform data for table
+        if (response?.success && Array.isArray(response?.users)) {
+          // Transform data for table (guard booleans and ensure array)
           const transformedUsers = response.users.map((user) => ({
             id: user._id,
             name:
@@ -52,8 +52,8 @@ const UsersPageContent = () => {
             firstName: user.firstName || 'N/A',
             lastName: user.lastName || 'N/A',
             jobTitle: user.jobTitle || 'N/A',
-            isActive: user.isActive,
-            verified: user.verified,
+            isActive: Boolean(user.isActive),
+            verified: Boolean(user.verified),
             createdAt: user.createdAt,
             accessRequests: user.accessRequests || [],
           }));
@@ -209,7 +209,10 @@ const UsersPageContent = () => {
               />
             </svg>
             <span className="text-gray-900 dark:text-gray-100">
-              {value ? format(new Date(value), 'MMM dd, yyyy') : 'N/A'}
+              {(() => {
+                const d = value ? new Date(value) : null;
+                return d && isValid(d) ? format(d, 'MMM dd, yyyy') : 'N/A';
+              })()}
             </span>
           </div>
         ),

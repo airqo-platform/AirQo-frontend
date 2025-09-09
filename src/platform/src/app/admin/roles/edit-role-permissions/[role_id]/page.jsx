@@ -73,15 +73,12 @@ const RolePermissionsEditor = ({ onRefresh }) => {
     if (!searchTerm) {
       setFilteredPermissions(permissions);
     } else {
-      const filtered = permissions.filter(
-        (permission) =>
-          permission.permission
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()) ||
-          permission.description
-            .toLowerCase()
-            .includes(searchTerm.toLowerCase()),
-      );
+      const term = searchTerm.toLowerCase();
+      const filtered = permissions.filter((p) => {
+        const name = (p.permission || '').toLowerCase();
+        const desc = (p.description || '').toLowerCase();
+        return name.includes(term) || desc.includes(term);
+      });
       setFilteredPermissions(filtered);
     }
   }, [permissions, searchTerm]);

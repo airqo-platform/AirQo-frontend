@@ -11,7 +11,8 @@ import { usePermissions } from '@/core/HOC/authUtils';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import logger from '@/lib/logger';
 import { PageHeader } from '@/common/components/Header';
-import CustomToast from '@/components/Toast/CustomToast';
+import CustomToast from '@/common/components/Toast/CustomToast';
+import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
 import ReusableTable from '@/common/components/Table';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import SettingsTabNavigation from '@/common/components/Tabs/SettingsTabNavigation';
@@ -405,9 +406,9 @@ export default function OrgRequestsPage() {
     [],
   );
 
-  // Permission gating: show PermissionDenied on 403 or when the user lacks view permission
+  // Permission/data loading: show skeleton while permissions or requests are loading
   if (permissionDenied) return <PermissionDenied />;
-  if (permLoading) return null;
+  if (permLoading || requestsLoading) return <RolesPermissionsPageSkeleton />;
   if (!canView) return <PermissionDenied />;
 
   return (

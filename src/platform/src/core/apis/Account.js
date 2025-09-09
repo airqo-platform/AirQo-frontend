@@ -42,9 +42,12 @@ export const getCombinedUsersApi = () =>
     .get(COMBINED_USERS_URL, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to fetch combined users';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to fetch combined users',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 
 // Password Management
@@ -496,9 +499,12 @@ export const getGroupRolesApi = (groupId) => {
     })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to fetch group roles';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to fetch group roles',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 };
 
@@ -518,9 +524,12 @@ export const createGroupRoleApi = (data) => {
     .post(GROUP_ROLES_URL, data, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to create group role';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to create group role',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 };
 
@@ -540,9 +549,12 @@ export const updateGroupRoleApi = (roleId, data) => {
     .put(`${GROUP_ROLES_URL}/${roleId}`, data, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to update group role';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to update group role',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 };
 
@@ -556,9 +568,12 @@ export const deleteGroupRoleApi = (roleId) => {
     .delete(`${GROUP_ROLES_URL}/${roleId}`, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to delete group role';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to delete group role',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 };
 
@@ -577,9 +592,12 @@ export const updateRolePermissionsApi = (roleId, body) => {
     })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to update role permissions';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to update role permissions',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 };
 
@@ -589,9 +607,12 @@ export const getAllPermissionsApi = () =>
     .get(`${USERS_URL}/permissions`, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to fetch permissions';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to fetch permissions',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 
 // Get roles summary for groups
@@ -601,9 +622,12 @@ export const getGroupRolesSummaryApi = (groupId = null) => {
     .get(GROUP_ROLES_SUMMARY_URL, { params, authType: AUTH_TYPES.JWT })
     .then((response) => response.data)
     .catch((error) => {
-      const errorMessage =
-        error.response?.data?.message || 'Failed to fetch group roles summary';
-      throw new Error(errorMessage);
+      const err = new Error(
+        error.response?.data?.message || 'Failed to fetch group roles summary',
+      );
+      err.status = error.response?.status;
+      err.response = error.response;
+      throw err;
     });
 };
 
