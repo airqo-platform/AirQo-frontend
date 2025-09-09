@@ -36,8 +36,6 @@
 	<string>AirQo needs access to your location to show relevant air quality data for your area and help you find nearby air quality monitoring stations.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>AirQo needs photo library access to let you select profile pictures and attach images for feedback.</string>
-	<key>NSUserTrackingUsageDescription</key>
-	<string>This data helps us provide personalized air quality insights and improve app performance.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>GMSApiKey</key>
