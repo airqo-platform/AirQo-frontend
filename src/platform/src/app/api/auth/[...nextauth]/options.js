@@ -23,18 +23,18 @@ const createUserObject = (data, decodedToken, credentials) => ({
   userName: data.userName,
   email: data.email,
   token: data.token,
-  firstName: decodedToken.firstName,
-  lastName: decodedToken.lastName,
-  organization: decodedToken.organization,
-  long_organization: decodedToken.long_organization,
-  privilege: decodedToken.privilege,
-  country: decodedToken.country,
-  profilePicture: decodedToken.profilePicture,
-  phoneNumber: decodedToken.phoneNumber,
-  createdAt: decodedToken.createdAt,
-  updatedAt: decodedToken.updatedAt,
-  rateLimit: decodedToken.rateLimit,
-  lastLogin: decodedToken.lastLogin,
+  firstName: data.details.firstName,
+  lastName: data.details.lastName,
+  organization: data.details.organization,
+  long_organization: data.details.long_organization,
+  privilege: data.details.privilege,
+  country: data.details.country,
+  profilePicture: data.details.profilePicture,
+  phoneNumber: data.details.phoneNumber,
+  createdAt: data.details.createdAt,
+  updatedAt: data.details.updatedAt,
+  rateLimit: data.details.rateLimit,
+  lastLogin: data.details.lastLogin,
   iat: decodedToken.iat,
   requestedOrgSlug: credentials.orgSlug || null,
   isOrgLogin: !!credentials.orgSlug,
@@ -168,13 +168,16 @@ export const options = {
 
           logger.info('[NextAuth] API Response data:', {
             hasToken: !!data.token,
+            hasDetails: !!data.details,
             userId: data._id,
             userName: data.userName,
             email: data.email,
           });
 
-          if (!data?.token) {
-            logger.error('[NextAuth] No token received from API');
+          if (!data?.token || !data.details) {
+            logger.error(
+              '[NextAuth] No token or user details received from API',
+            );
             // Provide a friendly message instead of raw API output
             throw new Error('Authentication failed. Please try again.');
           }
