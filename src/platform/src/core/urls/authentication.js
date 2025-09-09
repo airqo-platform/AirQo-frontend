@@ -1,6 +1,6 @@
 export const AUTH_URL = '/users';
 export const GOOGLE_AUTH_URL = '/users/auth/google';
-export const LOGIN_URL = '/users/login-enhanced';
+export const LOGIN_URL = '/users/loginUser';
 export const UPDATE_PWD_URL = '/users/updatePassword';
 export const USERS_URL = AUTH_URL;
 export const GROUPS_URL = `${AUTH_URL}/groups`;
@@ -9,7 +9,6 @@ export const USER_DEFAULTS_URL = `${AUTH_URL}/defaults`;
 export const VERIFY_USER_URL = `${AUTH_URL}/verify`;
 export const USER_PREFERENCES_URL = `${AUTH_URL}/preferences`;
 export const USER_CHECKLISTS_URL = `${AUTH_URL}/checklist`;
-export const COMBINED_USERS_URL = `${AUTH_URL}/combined`;
 export const USER_CHECKLISTS_UPSERT_URL = `${AUTH_URL}/checklist/upsert`;
 export const FORGOT_PWD_URL = `${AUTH_URL}/forgotPassword`;
 export const RESET_PWD_URL = `${AUTH_URL}/updatePasswordViaEmail`;
@@ -21,8 +20,6 @@ export const MAINTENANCE_STATUS_URL = `${AUTH_URL}/maintenances/analytics`;
 
 // Group roles URL
 export const GROUP_ROLES_URL = `${AUTH_URL}/roles`;
-// Group roles summary URL
-export const GROUP_ROLES_SUMMARY_URL = `${GROUP_ROLES_URL}/summary`;
 
 // Group slug management URL
 export const getGroupSlugUrl = (groupId) => `${GROUPS_URL}/${groupId}/slug`;
