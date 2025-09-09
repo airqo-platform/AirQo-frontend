@@ -83,58 +83,6 @@ const getFriendlyAuthErrorMessage = (error) => {
   }
 };
 
-// Centralized token transfer logic - optimized to prevent duplications
-const transferTokenDataToSession = (target, source) => {
-  // Core user fields that should only be in session.user
-  const userFields = [
-    'id',
-    'userName',
-    'email',
-    'firstName',
-    'lastName',
-    'organization',
-    'long_organization',
-    'privilege',
-    'country',
-    'profilePicture',
-    'phoneNumber',
-    'createdAt',
-    'updatedAt',
-    'rateLimit',
-    'lastLogin',
-    'iat',
-  ];
-
-  // Session-level fields that should be at the root
-  const sessionFields = ['requestedOrgSlug', 'isOrgLogin', 'accessToken'];
-
-  // If target is a user object, only add user fields
-  if (target && typeof target === 'object') {
-    if (target.hasOwnProperty('name') || target.hasOwnProperty('email')) {
-      // This is likely a user object
-      userFields.forEach((field) => {
-        if (source[field] !== undefined) {
-          target[field] = source[field];
-        }
-      });
-    } else {
-      // This is likely a session object, add session fields
-      sessionFields.forEach((field) => {
-        if (source[field] !== undefined) {
-          target[field] = source[field];
-        }
-      });
-
-      // Also set orgSlug for compatibility
-      if (source.requestedOrgSlug !== undefined) {
-        target.orgSlug = source.requestedOrgSlug;
-      }
-    }
-  }
-
-  return target;
-};
-
 export const options = {
   secret: getNextAuthSecret() || 'fallback-secret-for-development',
   providers: [
@@ -214,21 +162,35 @@ export const options = {
 
   callbacks: {
     async jwt({ token, user }) {
+      // On initial sign-in, the `user` object from `authorize` is available.
       if (user) {
-        // Store all user data in the token for persistence
-        Object.assign(token, user);
+        // Persist only the essential data to the token.
         token.accessToken = user.token;
+        token.id = user.id;
+        token.email = user.email;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.organization = user.organization;
+        token.privilege = user.privilege;
+        token.isOrgLogin = user.isOrgLogin;
+        token.requestedOrgSlug = user.requestedOrgSlug;
       }
       return token;
     },
 
     async session({ session, token }) {
+      // The `token` object is the data from the `jwt` callback.
+      // Assign the data to the `session` object to be exposed to the client.
       if (token) {
-        // Only populate user-specific fields in session.user
-        transferTokenDataToSession(session.user, token);
-
-        // Only populate session-level fields at session root
-        transferTokenDataToSession(session, token);
+        session.accessToken = token.accessToken;
+        session.user.id = token.id;
+        session.user.email = token.email;
+        session.user.firstName = token.firstName;
+        session.user.lastName = token.lastName;
+        session.user.organization = token.organization;
+        session.user.privilege = token.privilege;
+        session.isOrgLogin = token.isOrgLogin;
+        session.requestedOrgSlug = token.requestedOrgSlug;
       }
       return session;
     },
