@@ -11,6 +11,7 @@ import InputField from '@/common/components/InputField';
 import Button from '@/common/components/Button';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import logger from '@/lib/logger';
 
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -78,7 +79,7 @@ const ForgotPassword = () => {
       } catch (err) {
         if (!isMountedRef.current) return;
 
-        console.error('Forgot password API error:', err);
+        logger.error('Forgot password API error:', err);
         CustomToast({
           message: 'An unexpected error occurred. Please try again later.',
           type: TOAST_TYPES.ERROR,

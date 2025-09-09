@@ -6,6 +6,7 @@ import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { useSession } from 'next-auth/react';
 import CustomToast from '@/components/Toast/CustomToast';
+import logger from '@/lib/logger';
 
 // Utility functions and constants
 const isValidObjectId = (id) => id && /^[0-9a-fA-F]{24}$/.test(id);
@@ -117,8 +118,7 @@ const useUserTheme = () => {
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to parse session storage theme:', error);
+        logger.warn('Failed to parse session storage theme:', error);
       }
     }
 

@@ -538,11 +538,13 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   const handleLocationSelect = (item) => {
-    locationArray.includes(item)
-      ? setLocationArray(
-          locationArray.filter((location) => location._id !== item._id),
-        )
-      : setLocationArray((locations) => [...locations, item]);
+    setLocationArray((prev) =>
+      prev.some((l) => l._id === item._id)
+        ? prev.filter((l) => l._id !== item._id)
+        : prev.length >= 4
+          ? prev
+          : [...prev, item],
+    );
     setInputSelect(true);
     setLocation('');
   };
@@ -576,7 +578,7 @@ const CreateOrganisationDetailsPageThree = () => {
 
   const toggleInputSelect = () => {
     setFilteredLocations(gridLocationsData);
-    inputSelect ? setInputSelect(false) : setInputSelect(true);
+    setInputSelect(!inputSelect);
   };
 
   useEffect(() => {
@@ -649,7 +651,7 @@ const CreateOrganisationDetailsPageThree = () => {
                 </div>
               )}
               <div className="mt-1 flex space-x-1 text-xs text-grey-350">
-                <InfoCircle />
+                <AqInfoCircle />
                 <span>Select any 4 locations</span>
               </div>
             </div>

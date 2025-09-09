@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getGoogleAuthDetails } from '@/core/apis/Account';
 import CheckComponent from '@/components/Account/CheckComponent';
 
 const userRoles = [
@@ -89,6 +88,8 @@ const UserDesignation = () => {
   );
 };
 
+// Unused component - keeping for future reference
+/*
 const _GoogleAccountCreation = () => (
   <div className="w-full mt-6">
     <div className="grid grid-cols-3 items-center justify-center">
@@ -104,10 +105,11 @@ const _GoogleAccountCreation = () => (
         <span style={{ color: '#000000', fontWeight: '400', opacity: '0.5' }}>
           Sign up with
         </span>
-        <span className="pl-2">{/* <GoogleLogo /> */}</span>
+        <span className="pl-2"></span>
       </button>
     </div>
   </div>
 );
+*/
 
 export default UserDesignation;

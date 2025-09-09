@@ -1,4 +1,5 @@
-/* eslint-disable no-console */
+import logger from '@/lib/logger';
+
 export const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 
 export const event = ({ action, category, label, value }) => {
@@ -11,6 +12,6 @@ export const event = ({ action, category, label, value }) => {
       });
     }
   } catch (error) {
-    console.error('Google Analytics event error:', error);
+    logger.error('Google Analytics event error:', error);
   }
 };

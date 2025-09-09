@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { useSelector } from 'react-redux';
 import Image from 'next/image';
-import AirqoLogoRaw from '@/icons/airqo_logo.svg';
+import AirqoLogoRaw from '@/common/components/Icons/AirqoLogo';
 
 /* ---------- helpers ---------- */
 const SIZES = {

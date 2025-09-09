@@ -59,6 +59,16 @@ const validateEnvironmentVariables = () => {
     }
   });
 
+  // In production, NEXTAUTH_SECRET is critical for session encryption/decryption
+  if (process.env.NODE_ENV === 'production') {
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret || secret.trim() === '') {
+      errors.push(
+        'NEXTAUTH_SECRET is required in production for session encryption',
+      );
+    }
+  }
+
   // Validate URL formats
   const urlVars = ['NEXTAUTH_URL', 'API_BASE_URL', 'NEXT_PUBLIC_API_BASE_URL'];
   urlVars.forEach((varName) => {

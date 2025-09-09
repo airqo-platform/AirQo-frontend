@@ -7,9 +7,9 @@ import {
   AqUsers01,
   AqSettings02,
   AqShieldTick,
-  AqFile02,
+  // AqFile02,
   AqBuilding05,
-  AqHome01,
+  // AqHome01,
   AqDownload01,
   AqFolderShield,
 } from '@airqo/icons-react';
@@ -126,13 +126,13 @@ export const getUserNavigationItems = () => {
  */
 export const getAdminNavigationItems = () => {
   return [
-    {
-      type: 'item',
-      label: 'Dashboard',
-      shortLabel: 'Home',
-      icon: AqHome01,
-      path: '/admin',
-    },
+    // {
+    //   type: 'item',
+    //   label: 'Dashboard',
+    //   shortLabel: 'Home',
+    //   icon: AqHome01,
+    //   path: '/admin',
+    // },
     {
       type: 'divider',
       label: 'Management',
@@ -158,23 +158,23 @@ export const getAdminNavigationItems = () => {
       icon: AqUser03,
       path: '/admin/users',
     },
-    {
-      type: 'divider',
-      label: 'Analytics',
-    },
-    {
-      type: 'item',
-      label: 'My Favorites',
-      icon: AqStar05,
-      path: '/admin/analytics',
-    },
-    {
-      type: 'item',
-      label: 'Activity Logs',
-      shortLabel: 'Logs',
-      icon: AqFile02,
-      path: '/admin/activity-logs',
-    },
+    // {
+    //   type: 'divider',
+    //   label: 'Analytics',
+    // },
+    // {
+    //   type: 'item',
+    //   label: 'My Favorites',
+    //   icon: AqStar05,
+    //   path: '/admin/analytics',
+    // },
+    // {
+    //   type: 'item',
+    //   label: 'Activity Logs',
+    //   shortLabel: 'Logs',
+    //   icon: AqFile02,
+    //   path: '/admin/activity-logs',
+    // },
     {
       type: 'divider',
       label: 'System',
@@ -186,13 +186,13 @@ export const getAdminNavigationItems = () => {
       icon: AqShieldTick,
       path: '/admin/roles',
     },
-    {
-      type: 'item',
-      label: 'Settings',
-      shortLabel: 'Settings',
-      icon: AqSettings02,
-      path: '/admin/settings',
-    },
+    // {
+    //   type: 'item',
+    //   label: 'Settings',
+    //   shortLabel: 'Settings',
+    //   icon: AqSettings02,
+    //   path: '/admin/settings',
+    // },
   ];
 };
 
