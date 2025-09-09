@@ -5,7 +5,7 @@ import { format, isValid } from 'date-fns';
 import { AqUsers01, AqCheck, AqX } from '@airqo/icons-react';
 
 // Import API
-import { getCombinedUsersApi } from '@/core/apis/Account';
+import { getUsersApi as getCombinedUsersApi } from '@/core/apis/Account';
 
 // Import Components
 import { PageHeader } from '@/common/components/Header';

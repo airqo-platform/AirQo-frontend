@@ -69,7 +69,7 @@ const TopBarSearch = React.memo(
       try {
         fuseRef.current = new Fuse(data, fuseOptions);
       } catch (err) {
-        console.warn('Fuse initialization error:', err);
+        logger.warn('Fuse initialization error:', err);
         fuseRef.current = null;
       }
     }, [data, fuseOptions]);
@@ -96,7 +96,7 @@ const TopBarSearch = React.memo(
           // --- CHANGE: Pass an object with results and term ---
           onSearch({ results, term: trimmed });
         } catch (err) {
-          console.warn('Search error:', err);
+          logger.warn('Search error:', err);
           // --- CHANGE: Pass an object with results and term ---
           onSearch({ results: [], term: trimmed });
         }
@@ -218,7 +218,7 @@ const TopBarSearch = React.memo(
 
         return Array.from(uniqueSuggestions).slice(0, 3);
       } catch (e) {
-        console.warn('Error generating dynamic suggestions:', e);
+        logger.warn('Error generating dynamic suggestions:', e);
         return [];
       }
     }, [searchTerm, fuseRef, fuseOptions.keys]);

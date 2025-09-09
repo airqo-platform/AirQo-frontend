@@ -23,6 +23,7 @@ import {
   useMapInitialization,
 } from '../hooks';
 import LayerModal from '@/common/features/airQuality-map/components/LayerModal';
+import logger from '@/lib/logger';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
 import { mapStyles, mapDetails } from '../constants/mapConstants';
 
@@ -210,14 +211,14 @@ const AirQoMap = forwardRef(
             isReloadingRef.current = false;
             prevStyleUrlRef.current = url;
           } catch (error) {
-            console.error('Error handling style load:', error);
+            logger.error('Error handling style load:', error);
             isReloadingRef.current = false;
           }
         };
         // Add event listeners with error handling
         map.once('style.load', handleStyleLoad);
         map.once('error', () => {
-          console.error('Error loading map style');
+          logger.error('Error loading map style');
           isReloadingRef.current = false;
         });
       },
@@ -305,7 +306,7 @@ const AirQoMap = forwardRef(
             mapRef.current.remove();
             mapRef.current = null;
           } catch (error) {
-            console.warn('Error removing map:', error);
+            logger.warn('Error removing map:', error);
           }
         }
         // Reset state

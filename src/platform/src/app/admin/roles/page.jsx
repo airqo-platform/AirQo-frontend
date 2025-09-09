@@ -6,7 +6,7 @@ import Button from '@/common/components/Button';
 import ReusableTable from '@/common/components/Table/ReusableTable';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
-import { getGroupRolesSummaryApi } from '@/core/apis/Account';
+import { getGroupRolesApi as getGroupRolesSummaryApi } from '@/core/apis/Account';
 import {
   AqPlus,
   AqShield03,

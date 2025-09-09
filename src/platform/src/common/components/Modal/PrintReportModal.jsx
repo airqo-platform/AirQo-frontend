@@ -118,7 +118,7 @@ const PrintReportModal = ({
         7000,
       );
       handleCancel();
-    } catch (err) {
+    } catch {
       setAlert({
         type: 'error',
         message: 'An error occurred while exporting data',
@@ -260,7 +260,7 @@ const PrintReportModal = ({
           show: true,
         });
       }
-    } catch (error) {
+    } catch {
       setAlert({
         type: 'error',
         message:
@@ -278,7 +278,7 @@ const PrintReportModal = ({
         title={title}
         open={open}
         onClose={() => {
-          onClose;
+          onClose();
           handleCancel();
         }}
         downloadDataFunc={shareModel ? handleShareReport : handleDataExport}

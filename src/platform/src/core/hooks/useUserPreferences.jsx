@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
+import logger from '@/lib/logger';
 
 /**
  * Validates MongoDB ObjectId format
@@ -29,15 +30,13 @@ const useUserPreferences = () => {
      */
     const fetchPreferences = async () => {
       if (!userID) {
-        // eslint-disable-next-line no-console
-        console.warn('No user ID available to fetch preferences.');
+        logger.warn('No user ID available to fetch preferences.');
         return;
       }
 
       // Only proceed if we have valid ObjectIds
       if (!isValidObjectId(userID)) {
-        // eslint-disable-next-line no-console
-        console.warn('Invalid user ID format:', userID);
+        logger.warn('Invalid user ID format:', userID);
         return;
       }
 
@@ -64,8 +63,7 @@ const useUserPreferences = () => {
         // Nothing else to do; lastFetchedRef already set above
       } catch (error) {
         if (isMounted) {
-          // eslint-disable-next-line no-console
-          console.error('Error fetching user preferences:', error);
+          logger.error('Error fetching user preferences:', error);
           // Reset ref to allow retry after error
           lastFetchedRef.current = { userID: null, activeGroupId: null };
         }
