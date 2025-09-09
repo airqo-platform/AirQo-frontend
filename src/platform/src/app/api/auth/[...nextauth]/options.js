@@ -194,9 +194,9 @@ export const options = {
         session.user.privilege = token.privilege;
         session.isOrgLogin = token.isOrgLogin;
         session.requestedOrgSlug = token.requestedOrgSlug;
-        token.country = user.country;
-        token.profilePicture = user.profilePicture;
-        token.phoneNumber = user.phoneNumber;
+        session.user.country = token.country;
+        session.user.profilePicture = token.profilePicture;
+        session.user.phoneNumber = token.phoneNumber;
       }
       return session;
     },
