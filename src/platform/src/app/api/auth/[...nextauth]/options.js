@@ -140,7 +140,7 @@ export const options = {
           const response = await postUserLoginDetails(loginData);
           const apiResponse = response.data;
 
-          if (!apiResponse || !apiResponse.token) {
+          if (!apiResponse.token) {
             logger.warn('[NextAuth] API response was invalid or missing a token.', {
               apiResponse,
             });
