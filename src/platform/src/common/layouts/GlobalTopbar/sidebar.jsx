@@ -245,7 +245,7 @@ const GlobalSideBarDrawer = () => {
               <SideBarItem
                 label="Admin Panel"
                 Icon={MdAdminPanelSettings}
-                navPath="/admin"
+                navPath="#"
                 onClick={closeDrawer}
                 subroutes={adminSubroutes}
                 onSubrouteClick={handleSubrouteClick}
