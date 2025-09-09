@@ -67,7 +67,7 @@ const RolesPermissionsPage = () => {
     setPermissionDenied(false);
 
     try {
-      const payload = await getGroupRolesSummaryApi(groupId);
+      const payload = await getGroupRolesSummaryApi();
       const list = Array.isArray(payload)
         ? payload
         : Array.isArray(payload.roles)
