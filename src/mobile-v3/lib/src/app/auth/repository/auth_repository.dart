@@ -55,10 +55,20 @@ class AuthImpl extends AuthRepository {
         body: registerInputModelToJson(model),
         headers: {"Accept": "*/*", "Content-Type": "application/json"});
 
-    Map<String, dynamic> data = json.decode(registerResponse.body);
-
-    if (registerResponse.statusCode != 200) {
-      throw Exception(data['errors']['message'] ?? data['message']);
+    if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
+      return;
+    } else {
+      String errorMessage;
+      
+      if (registerResponse.statusCode >= 400 && registerResponse.statusCode <= 499) {
+        errorMessage = "There was an issue with your request. Please check your input and try again.";
+      } else if (registerResponse.statusCode >= 500 && registerResponse.statusCode <= 599) {
+        errorMessage = "We're experiencing technical difficulties. Please try again later.";
+      } else {
+        errorMessage = "Registration failed. Please try again.";
+      }
+      
+      throw Exception(errorMessage);
     }
   }
 
