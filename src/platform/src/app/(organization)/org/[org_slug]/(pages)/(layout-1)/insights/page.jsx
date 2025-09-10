@@ -11,13 +11,13 @@ import {
   OrganizationAnalyticsControls,
   AnalyticsChartsGrid,
 } from '@/features/analytics-overview';
-import AlertBox from '@/components/AlertBox';
+import AlertBox from '@/common/components/AlertBox';
 import EmptyState from '@/common/components/EmptyState';
 import ErrorState from '@/common/components/ErrorState';
 
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useDeviceSummary } from '@/core/hooks/analyticHooks';
-import AirQualityLoadingSkeleton from '@/components/Skeleton/AirQualityLoadingSkeleton';
+import AirQualityLoadingSkeleton from '@/common/components/Skeleton/AirQualityLoadingSkeleton';
 
 const OrganizationInsightsPage = () => {
   const dispatch = useDispatch();

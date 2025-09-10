@@ -86,10 +86,7 @@ window.domainUpdateTestInstructions = function () {
 
 // Auto-run instructions when script loads
 if (typeof window !== 'undefined') {
-  // eslint-disable-next-line no-console
-  console.log('🧪 Domain Update Verification Script Loaded');
-  // eslint-disable-next-line no-console
-  console.log('📋 Run: domainUpdateTestInstructions() for testing guide');
-  // eslint-disable-next-line no-console
-  console.log('🔍 Run: verifyDomainUpdateFix() after domain updates');
+  // Domain Update Verification Script Loaded
+  // Run: domainUpdateTestInstructions() for testing guide
+  // Run: verifyDomainUpdateFix() after domain updates
 }

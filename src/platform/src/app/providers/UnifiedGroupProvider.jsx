@@ -28,8 +28,8 @@ import {
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
+import LoadingSpinner from '@/common/components/LoadingSpinner';
+import OrganizationNotFound from '@/common/components/Organization/OrganizationNotFound';
 import OrganizationSwitchLoader from '@/common/components/Organization/OrganizationSwitchLoader';
 import logger from '@/lib/logger';
 
@@ -151,19 +151,25 @@ export function UnifiedGroupProvider({ children }) {
     if (Array.isArray(_rawUserGroups)) {
       return _rawUserGroups;
     }
+    // Handle case where userGroups might be undefined or null during SSR
+    if (_rawUserGroups === undefined || _rawUserGroups === null) {
+      return [];
+    }
     // Log warning for debugging - userGroups should always be an array from Redux initial state
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.warn(
+      logger.warn(
         'UnifiedGroupProvider: _rawUserGroups is not an array:',
         _rawUserGroups,
       );
     }
-    // Handle case where userGroups might be undefined or null
+    // Fallback to empty array
     return [];
   }, [_rawUserGroups]);
 
-  const userGroupsLength = useMemo(() => userGroups.length, [userGroups]);
+  const userGroupsLength = useMemo(() => {
+    // Extra safety check to prevent length access on undefined
+    return Array.isArray(userGroups) ? userGroups.length : 0;
+  }, [userGroups]);
 
   // Refs for async operations
   const lock = useRef(false);
@@ -408,7 +414,7 @@ export function UnifiedGroupProvider({ children }) {
       target = userGroups.find((g) => g._id === session.user.activeGroup._id);
     }
 
-    if (!target && userGroups.length > 0) {
+    if (!target && Array.isArray(userGroups) && userGroups.length > 0) {
       target = userGroups.find(isAirQoGroup) ?? userGroups[0];
     }
 

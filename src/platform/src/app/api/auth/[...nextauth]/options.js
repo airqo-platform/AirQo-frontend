@@ -215,6 +215,11 @@ export const options = {
         // Store all user data in the token for persistence
         Object.assign(token, user);
         token.accessToken = user.token;
+
+        // Ensure firstName is available for the home page
+        if (user.firstName) {
+          token.firstName = user.firstName;
+        }
       }
       return token;
     },
@@ -226,6 +231,16 @@ export const options = {
 
         // Only populate session-level fields at session root
         transferTokenDataToSession(session, token);
+
+        // Ensure firstName is always available in session.user for home page
+        if (token.firstName) {
+          session.user.firstName = token.firstName;
+        }
+
+        // Fallback to email if firstName is not available
+        if (!session.user.firstName && session.user.email) {
+          session.user.firstName = session.user.email.split('@')[0];
+        }
       }
       return session;
     },

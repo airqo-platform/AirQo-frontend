@@ -10,8 +10,8 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import InputField from '@/common/components/InputField';
-import Toast from '@/components/Toast';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import Toast from '@/common/components/Toast';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
 import logger from '@/lib/logger';
 import { formatOrgSlug } from '@/core/utils/strings';
 

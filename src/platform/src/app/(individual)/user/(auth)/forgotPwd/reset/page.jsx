@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import CustomToast, {
   TOAST_TYPES,
 } from '@/common/components/Toast/CustomToast';
@@ -10,7 +10,7 @@ import { resetPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
 import Button from '@/common/components/Button';
 import * as Yup from 'yup';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
 import logger from '@/lib/logger';
 
 const ResetPasswordSchema = Yup.object().shape({

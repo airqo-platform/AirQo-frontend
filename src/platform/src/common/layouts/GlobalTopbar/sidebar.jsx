@@ -7,7 +7,7 @@ import {
   setGlobalSidebarOpen,
   setGlobalDrawerOpen,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
 import AirqoLogo from '@/common/components/Icons/AirqoLogo';
 import {

@@ -5,7 +5,7 @@ import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import { UnifiedSideBarDrawer } from '@/common/layouts/SideBar';
 import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
-import MaintenanceBanner from '@/components/MaintenanceBanner';
+import MaintenanceBanner from '@/common/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';

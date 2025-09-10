@@ -7,18 +7,16 @@ import PropTypes from 'prop-types';
 import Loading from '../loading';
 import ErrorBoundary from '../../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
-import GoogleAnalytics from '@/components/GoogleAnalytics';
 import logger from '@/lib/logger';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
 import SWRProvider from './SWRProvider';
+import SessionWatchProvider from './SessionWatchProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 import UnifiedGroupProvider from './UnifiedGroupProvider';
-// import LogoutProvider from './LogoutProvider'; // Removed - no logout overlay needed
 import { useThemeInitialization } from '@/core/hooks';
-import { TourProvider } from '@/features/tours/contexts/TourProvider';
 // Import environment validation
 import { validateEnvironment } from '@/lib/envConstants';
 
@@ -34,8 +32,9 @@ function ThemeInitializer() {
 function ReduxProviders({ children }) {
   const [store, setStore] = useState(null);
   const [isClient, setIsClient] = useState(false);
+
   useEffect(() => {
-    // Mark as client-side
+    // Mark as client-side only after first render
     setIsClient(true);
 
     // Initialize environment validation
@@ -65,10 +64,11 @@ function ReduxProviders({ children }) {
     setStore(storeInstance);
   }, []);
 
-  // Don't render anything on server side to prevent hydration mismatch
+  // Show loading on server side and before store is ready
   if (!isClient || !store) {
     return <Loading />;
   }
+
   return (
     <Provider store={store}>
       <PersistGate loading={<Loading />} persistor={store.__persistor}>
@@ -177,7 +177,6 @@ function ClientProvidersInner({ children }) {
   return (
     <ErrorBoundary name="AppRoot" feature="global">
       {children}
-      <GoogleAnalytics />
       <Toaster expand={true} richColors />
     </ErrorBoundary>
   );
@@ -188,13 +187,12 @@ export default function ClientProviders({ children }) {
     <NextAuthProvider>
       <SWRProvider>
         <ReduxProviders>
-          <ThemeProvider>
-            <ThemeInitializer />
-            {/* LogoutProvider removed - no logout overlay needed */}
-            <UnifiedGroupProvider>
-              <TourProvider>{children}</TourProvider>
-            </UnifiedGroupProvider>
-          </ThemeProvider>
+          <SessionWatchProvider>
+            <ThemeProvider>
+              <ThemeInitializer />
+              <UnifiedGroupProvider>{children}</UnifiedGroupProvider>
+            </ThemeProvider>
+          </SessionWatchProvider>
         </ReduxProviders>
       </SWRProvider>
     </NextAuthProvider>

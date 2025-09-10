@@ -1,6 +1,8 @@
 import '../styles/globals.css';
 import PropTypes from 'prop-types';
 import ClientProviders from './providers/ClientProviders';
+import NoSSR from '@/common/components/NoSSR';
+import Loading from './loading';
 import Script from 'next/script';
 
 export const metadata = {
@@ -29,7 +31,9 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="bg-background">
-        <ClientProviders>{children}</ClientProviders>{' '}
+        <NoSSR fallback={<Loading />}>
+          <ClientProviders>{children}</ClientProviders>
+        </NoSSR>
         <Script
           src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places&loading=async`}
           strategy="afterInteractive"

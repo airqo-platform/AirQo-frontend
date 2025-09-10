@@ -10,6 +10,11 @@ module.exports = withVideos({
   swcMinify: true,
   poweredByHeader: false,
 
+  // Experimental features disabled to prevent webpack factory call errors
+  // experimental: {
+  //   esmExternals: true,
+  // },
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'flagsapi.com' },
@@ -23,14 +28,22 @@ module.exports = withVideos({
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  // Keep strict mode off only if you verified it breaks your animations.
-  reactStrictMode: false,
+  // Enable strict mode for better development experience
+  reactStrictMode: true,
 
-  webpack(config) {
+  webpack(config, { isServer }) {
     // Path alias
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, './src'),
+    };
+
+    // Improve webpack module resolution
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      fs: false,
+      net: false,
+      tls: false,
     };
 
     return config;

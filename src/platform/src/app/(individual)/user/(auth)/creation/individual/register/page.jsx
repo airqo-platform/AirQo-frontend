@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Button from '@/common/components/Button';
-import AccountPageLayout from '@/components/Account/Layout';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InputField from '@/common/components/InputField';
 import CustomToast from '@/common/components/Toast/CustomToast';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
 import { postUserCreationDetails } from '@/core/apis/Account';
 import logger from '@/lib/logger';

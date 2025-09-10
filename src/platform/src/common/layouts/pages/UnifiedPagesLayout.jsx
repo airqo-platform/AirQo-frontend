@@ -7,7 +7,7 @@ import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar'
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import { UnifiedSideBarDrawer, UnifiedSidebarContent } from '../SideBar';
-import MaintenanceBanner from '@/components/MaintenanceBanner';
+import MaintenanceBanner from '@/common/components/MaintenanceBanner';
 import Footer from '@/common/layouts/components/Footer';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';

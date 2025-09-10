@@ -1,7 +1,12 @@
 import { signOut } from 'next-auth/react';
-import { resetStore } from '@/lib/store/services/account/LoginSlice';
-import { clearAllGroupData } from '@/lib/store/services/groups';
 import logger from '@/lib/logger';
+import {
+  clearBrowserStorage,
+  clearSWRCache,
+  resetReduxStore,
+  clearIndexedDB,
+  clearAuthCookies,
+} from '@/lib/logoutUtils';
 
 let globalLogoutState = {
   setIsLoggingOut: null,
@@ -15,141 +20,6 @@ export const getLogoutProgress = () => isGlobalLogoutInProgress;
 export const setLogoutContext = (setIsLoggingOut, setLogoutMessage) => {
   globalLogoutState.setIsLoggingOut = setIsLoggingOut;
   globalLogoutState.setLogoutMessage = setLogoutMessage;
-};
-
-// Legacy functions kept for backward compatibility but not used
-// const triggerLogoutOverlay = (message = 'Logging out...') => {
-//   if (globalLogoutState.setIsLoggingOut) {
-//     globalLogoutState.setIsLoggingOut(true);
-//   }
-//   if (globalLogoutState.setLogoutMessage) {
-//     globalLogoutState.setLogoutMessage(message);
-//   }
-// };
-
-// const hideLogoutOverlay = () => {
-//   if (globalLogoutState.setIsLoggingOut) {
-//     globalLogoutState.setIsLoggingOut(false);
-//   }
-// };
-
-const clearTokenCache = () => {
-  try {
-    if (typeof window !== 'undefined') {
-      window.__tokenCache = null;
-      window.__tokenCacheExpiry = 0;
-      window.sessionStorage?.removeItem('nextauth.token');
-      window.sessionStorage?.removeItem('access_token');
-      window.sessionStorage?.removeItem('refresh_token');
-      logger.debug('Token cache cleared');
-    }
-  } catch (error) {
-    logger.warn('Failed to clear token cache:', error);
-  }
-};
-
-const clearSessionCache = () => {
-  try {
-    if (typeof window !== 'undefined') {
-      if (
-        window.__sessionCache &&
-        typeof window.__sessionCache.clear === 'function'
-      ) {
-        window.__sessionCache.clear();
-      }
-      window.sessionStorage?.removeItem('nextauth.session');
-      window.sessionStorage?.removeItem('user_session');
-      logger.debug('Session cache cleared');
-    }
-  } catch (error) {
-    logger.warn('Failed to clear session cache:', error);
-  }
-};
-
-const clearAuthCookies = () => {
-  try {
-    if (typeof window !== 'undefined' && document?.cookie) {
-      const cookies = document.cookie.split(';');
-      const authCookiePatterns = [
-        'next-auth',
-        'nextauth',
-        '__Secure-next-auth',
-        '__Host-next-auth',
-        'csrf',
-        'pkce',
-        'state',
-        'nonce',
-        'access_token',
-        'refresh_token',
-        'session',
-        'auth',
-        'jwt',
-        'token',
-      ];
-
-      cookies.forEach((cookie) => {
-        const eqPos = cookie.indexOf('=');
-        const cookieName =
-          eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
-        if (!cookieName) return;
-
-        const isAuthCookie = authCookiePatterns.some((pattern) =>
-          cookieName.toLowerCase().includes(pattern.toLowerCase()),
-        );
-
-        if (isAuthCookie) {
-          const domainParts = window.location.hostname.split('.');
-          const domainsToTry = [
-            window.location.hostname,
-            ...domainParts
-              .map((_, i) => domainParts.slice(i).join('.'))
-              .filter((d) => d.length > 0),
-          ];
-          const pathsToTry = ['/', '/api/auth'];
-
-          domainsToTry.forEach((domain) => {
-            pathsToTry.forEach((path) => {
-              document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; domain=${domain}`;
-              document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path};`;
-            });
-          });
-          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
-          logger.debug(`Cleared auth cookie: ${cookieName}`);
-        }
-      });
-    }
-  } catch (error) {
-    logger.warn('Failed to clear auth cookies:', error);
-  }
-};
-
-const resetAllReduxSlices = (dispatch) => {
-  try {
-    if (dispatch) {
-      dispatch({ type: 'RESET_APP' });
-      dispatch({ type: 'LOGOUT_USER' });
-      dispatch(resetStore());
-      dispatch(clearAllGroupData());
-    }
-    logger.debug('Redux slices reset');
-  } catch (error) {
-    logger.warn('Failed to reset Redux slices:', error);
-  }
-};
-
-const clearAxiosAuthHeaders = () => {
-  try {
-    if (typeof window !== 'undefined') {
-      const axios = window.axios;
-      if (axios?.defaults?.headers) {
-        delete axios.defaults.headers.common['Authorization'];
-        delete axios.defaults.headers['Authorization'];
-        logger.debug('Axios auth headers cleared');
-      }
-    }
-  } catch (error) {
-    logger.warn('Failed to clear axios auth headers:', error);
-  }
 };
 
 const LogoutUser = async (dispatch) => {
@@ -206,63 +76,12 @@ const LogoutUser = async (dispatch) => {
   }
 
   try {
-    // Remove logout overlay - user requested no dialog during logout
-    // triggerLogoutOverlay('Logging you out...');
-
-    clearTokenCache();
-    clearSessionCache();
-    resetAllReduxSlices(dispatch);
-
-    if (typeof window !== 'undefined') {
-      const preservedSettings = {};
-      const settingsToPreserve = [
-        'theme',
-        'skin',
-        'primaryColor',
-        'layout',
-        'semiDark',
-        'userLocation',
-        'language',
-        'timezone',
-      ];
-
-      // Preserve explicit settings
-      settingsToPreserve.forEach((key) => {
-        const value = localStorage.getItem(key);
-        if (value !== null) preservedSettings[key] = value;
-      });
-
-      // Preserve all keys starting with 'user_tour_status_'
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && key.startsWith('user_tour_status_')) {
-          const value = localStorage.getItem(key);
-          if (value !== null) preservedSettings[key] = value;
-        }
-      }
-
-      localStorage.clear();
-      if (window.sessionStorage) window.sessionStorage.clear();
-
-      Object.entries(preservedSettings).forEach(([key, value]) => {
-        localStorage.setItem(key, value);
-      });
-    }
-
-    clearAxiosAuthHeaders();
+    // Use new comprehensive logout utilities
+    await clearSWRCache();
+    await resetReduxStore(dispatch);
+    await clearBrowserStorage();
     clearAuthCookies();
-
-    try {
-      if (
-        typeof window !== 'undefined' &&
-        window.__NEXT_REDUX_STORE__?.__persistor?.purge
-      ) {
-        await window.__NEXT_REDUX_STORE__.__persistor.purge();
-        logger.debug('Redux persistor purged');
-      }
-    } catch (error) {
-      logger.warn('Failed to purge Redux persistor:', error);
-    }
+    await clearIndexedDB();
 
     logger.debug('Calling NextAuth signOut');
     await signOut({ redirect: false });
@@ -279,8 +98,6 @@ const LogoutUser = async (dispatch) => {
       window.location.href = redirectUrl;
     }
   } finally {
-    // Remove logout overlay hiding - no overlay to hide
-    // hideLogoutOverlay();
     setTimeout(() => {
       isGlobalLogoutInProgress = false;
       logger.debug('Global logout state reset');

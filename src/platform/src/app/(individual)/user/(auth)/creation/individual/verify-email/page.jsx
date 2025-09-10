@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import InputField from '@/common/components/InputField';
 
 const IndividualAccountVerification = () => {

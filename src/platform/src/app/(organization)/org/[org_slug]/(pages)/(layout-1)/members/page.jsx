@@ -12,7 +12,7 @@ import { MembersPageSkeleton } from '@/common/components/Skeleton';
 import { MembersTable, InviteModal } from '@/common/components/Members';
 import { FaUserPlus } from 'react-icons/fa';
 import logger from '@/lib/logger';
-import CustomToast from '@/components/Toast/CustomToast';
+import CustomToast from '@/common/components/Toast/CustomToast';
 
 const OrganizationMembersPage = () => {
   const { organization, primaryColor } = useOrganization();

@@ -11,7 +11,7 @@ import { FaCheckCircle } from 'react-icons/fa';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { forgotPasswordApi } from '@/core/apis/Organizations';
-import Toast from '@/components/Toast';
+import Toast from '@/common/components/Toast';
 import InputField from '@/common/components/InputField';
 import logger from '@/lib/logger';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';

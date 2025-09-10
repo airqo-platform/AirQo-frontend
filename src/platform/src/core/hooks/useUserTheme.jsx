@@ -5,7 +5,7 @@ import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { useSession } from 'next-auth/react';
-import CustomToast from '@/components/Toast/CustomToast';
+import CustomToast from '@/common/components/Toast/CustomToast';
 import logger from '@/lib/logger';
 
 // Utility functions and constants
