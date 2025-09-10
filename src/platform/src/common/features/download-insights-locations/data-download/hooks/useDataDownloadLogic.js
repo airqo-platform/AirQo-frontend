@@ -256,7 +256,8 @@ export const useDataDownloadLogic = () => {
   // Process different file types with improved CSV handling
   const processDownloadResponse = useCallback(
     async (response, formData, selectedColumns = null) => {
-      const fileExtension = formData.fileType.value || formData.fileType.name.toLowerCase();
+      const fileExtension =
+        formData.fileType.value || formData.fileType.name.toLowerCase();
       const mimeType = getMimeType(fileExtension);
       const fileName = `${formData.title.name || 'Air_Quality_Data'}.${fileExtension}`;
 
@@ -509,7 +510,8 @@ export const useDataDownloadLogic = () => {
           metaDataFields: ['latitude', 'longitude'],
           weatherFields: ['temperature', 'humidity'],
           frequency: formData.frequency.name.toLowerCase(),
-          downloadType: formData.fileType.value || formData.fileType.name.toLowerCase(),
+          downloadType:
+            formData.fileType.value || formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
           minimum: true,
         };

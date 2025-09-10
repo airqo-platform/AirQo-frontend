@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { AqCheck } from '@airqo/icons-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
@@ -13,16 +13,19 @@ const UserCreationSuccess = () => {
   const params = useParams();
   const { id, token } = params;
 
-  const verifyOrgManagerEmail = async (userId, userToken) => {
-    try {
-      await verifyUserEmailApi(userId, userToken);
-      router.push(
-        `/user/creation/organisation/verify/${id}/create-org/token-confirmation`,
-      );
-    } catch {
-      // TODO:ADD LATER
-    }
-  };
+  const verifyOrgManagerEmail = useCallback(
+    async (userId, userToken) => {
+      try {
+        await verifyUserEmailApi(userId, userToken);
+        router.push(
+          `/user/creation/organisation/verify/${id}/create-org/token-confirmation`,
+        );
+      } catch {
+        // TODO:ADD LATER
+      }
+    },
+    [router, id],
+  );
 
   useEffect(() => {
     if (id) {
@@ -31,7 +34,7 @@ const UserCreationSuccess = () => {
         verifyOrgManagerEmail(id, token);
       }, 4000);
     }
-  }, [id, token, dispatch, router]);
+  }, [id, token, dispatch, router, verifyOrgManagerEmail]);
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-center">
