@@ -121,7 +121,7 @@ const SelectMore = ({ onClose }) => {
     });
 
     handleOpenModal('inSights', null, selectedSitesData);
-  }, [selectedSites, userID, dispatch, onClose]);
+  }, [selectedSites, userID, handleOpenModal]);
 
   /**
    * Generates the content for the selected sites panel.

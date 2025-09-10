@@ -30,7 +30,7 @@ const AlertBox = ({ message, type, show, hide }) => {
 
       return () => clearTimeout(timer);
     }
-  }, [show]);
+  }, [show, hide]);
 
   if (!isVisible) {
     return null;

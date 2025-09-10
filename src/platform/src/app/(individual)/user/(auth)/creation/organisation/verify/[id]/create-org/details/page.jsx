@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import AccountPageLayout from '@/components/Account/Layout';
 import ProgressComponent from '@/components/Account/ProgressComponent';
 import {
@@ -105,7 +105,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
         `/user/creation/organisation/verify/${id}/create-org/token-confirmation`,
       );
     }
-  }, []);
+  }, [id, router, token]);
 
   return (
     <div className="lg:mb-3 md:mb-5 w-full">
@@ -510,7 +510,10 @@ const CreateOrganisationDetailsPageThree = () => {
   // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
   // const gridLocationsData = [].concat(...gridSitesLocations);
   const gridsData = useSelector((state) => state.grids.sitesSummary);
-  const gridLocationsData = (gridsData && gridsData.sites) || [];
+  const gridLocationsData = useMemo(
+    () => (gridsData && gridsData.sites) || [],
+    [gridsData],
+  );
   const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
@@ -585,7 +588,7 @@ const CreateOrganisationDetailsPageThree = () => {
     if (gridLocationsData && gridLocationsData.length < 1) {
       dispatch(getSitesSummary());
     }
-  }, [gridLocationsData]);
+  }, [gridLocationsData, dispatch]);
 
   return (
     <div className="relative h-[600px] w-full">
