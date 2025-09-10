@@ -9,15 +9,15 @@ class AuthHelper {
   static final _logger = Loggy('AuthHelper');
   
   /// Get the current user ID from the stored auth token
-  static Future<String?> getCurrentUserId() async {
-    _logger.info('getCurrentUserId called');
+  static Future<String?> getCurrentUserId({bool suppressGuestWarning = false}) async {
     
     try {
-      // Get token from Hive
       final token = await HiveRepository.getData('token', HiveBoxNames.authBox);
       
       if (token == null) {
-        _logger.warning('Token is null - not found in Hive storage');
+        if (!suppressGuestWarning) {
+          _logger.info('No authentication token found - user is in guest mode');
+        }
         return null;
       }
       

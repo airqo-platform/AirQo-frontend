@@ -1,7 +1,6 @@
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
-import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
 import 'package:airqo/src/app/dashboard/widgets/location_display_widget.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -50,15 +49,18 @@ class _MapScreenState extends State<MapScreen>
   bool isInitializing = true;
   bool isRetrying = false;
   bool mapControllerInitialized = false;
+  GooglePlacesBloc? googlePlacesBloc;
 
   final LatLng _center = const LatLng(0.347596, 32.582520);
 
   // Map zoom controls
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
-    setState(() {
-      mapControllerInitialized = true;
-    });
+    if (mounted) {
+      setState(() {
+        mapControllerInitialized = true;
+      });
+    }
 
     if (markers.isNotEmpty) {
       _fitMarkersInView();
@@ -119,10 +121,12 @@ class _MapScreenState extends State<MapScreen>
 
   void viewDetails({Measurement? measurement, String? placeName}) {
     if (measurement != null) {
-      setState(() {
-        showDetails = true;
-        currentDetails = measurement;
-      });
+      if (mounted) {
+        setState(() {
+          showDetails = true;
+          currentDetails = measurement;
+        });
+      }
 
       if (mapControllerInitialized &&
           measurement.siteDetails?.approximateLatitude != null &&
@@ -137,10 +141,12 @@ class _MapScreenState extends State<MapScreen>
       }
     } else if (measurement == null && placeName != null) {
       googlePlacesBloc!.add(GetPlaceDetails(placeName));
-      setState(() {
-        showDetails = true;
-        currentDetailsName = placeName;
-      });
+      if (mounted) {
+        setState(() {
+          showDetails = true;
+          currentDetailsName = placeName;
+        });
+      }
     }
   }
 
@@ -154,20 +160,24 @@ class _MapScreenState extends State<MapScreen>
       );
     }
 
-    setState(() {
-      showDetails = false;
-      currentDetails = null;
-      currentDetailsName = null;
-    });
+    if (mounted) {
+      setState(() {
+        showDetails = false;
+        currentDetails = null;
+        currentDetailsName = null;
+      });
+    }
   }
 
   // Search handling
   void clearGooglePlaces() {
     googlePlacesBloc!.add(ResetGooglePlaces());
     searchController.clear();
-    setState(() {
-      localSearchResults = [];
-    });
+    if (mounted) {
+      setState(() {
+        localSearchResults = [];
+      });
+    }
   }
 
   List<Measurement> searchAirQualityLocations(
@@ -201,25 +211,27 @@ class _MapScreenState extends State<MapScreen>
   }
 
   void filterByCountry(String country, List<Measurement> measurements) {
-    setState(() {
-      filteredMeasurements = measurements.where((measurement) {
-        if (measurement.siteDetails != null) {
-          return measurement.siteDetails!.country == country;
-        }
-        return false;
-      }).toList();
-      currentFilter = country;
-    });
+    if (mounted) {
+      setState(() {
+        filteredMeasurements = measurements.where((measurement) {
+          if (measurement.siteDetails != null) {
+            return measurement.siteDetails!.country == country;
+          }
+          return false;
+        }).toList();
+        currentFilter = country;
+      });
+    }
   }
 
   void resetFilter() {
-    setState(() {
-      filteredMeasurements = [];
-      currentFilter = "All";
-    });
+    if (mounted) {
+      setState(() {
+        filteredMeasurements = [];
+        currentFilter = "All";
+      });
+    }
   }
-
-  GooglePlacesBloc? googlePlacesBloc;
 
   Future<void> addMarkers(AirQualityResponse response) async {
     if (response.measurements == null || response.measurements!.isEmpty) {
@@ -253,10 +265,12 @@ class _MapScreenState extends State<MapScreen>
       }
     }
 
-    setState(() {
-      markers = newMarkers;
-      isInitializing = false;
-    });
+    if (mounted) {
+      setState(() {
+        markers = newMarkers;
+        isInitializing = false;
+      });
+    }
 
     if (mapControllerInitialized && markers.isNotEmpty) {
       _fitMarkersInView();
@@ -266,9 +280,11 @@ class _MapScreenState extends State<MapScreen>
   Future<void> _retryLoading() async {
     if (isRetrying) return;
 
-    setState(() {
-      isRetrying = true;
-    });
+    if (mounted) {
+      setState(() {
+        isRetrying = true;
+      });
+    }
 
     // Load from map bloc
     context.read<MapBloc>().add(LoadMap(forceRefresh: true));
@@ -293,10 +309,12 @@ class _MapScreenState extends State<MapScreen>
     }
 
     if (finalMeasurements.isNotEmpty) {
-      setState(() {
-        allMeasurements = finalMeasurements;
-        isInitializing = false;
-      });
+      if (mounted) {
+        setState(() {
+          allMeasurements = finalMeasurements;
+          isInitializing = false;
+        });
+      }
     }
   }
 
@@ -310,9 +328,11 @@ class _MapScreenState extends State<MapScreen>
 
   void toggleModal(bool value) {
     if (isModalFull != value) {
-      setState(() {
-        isModalFull = value;
-      });
+      if (mounted) {
+        setState(() {
+          isModalFull = value;
+        });
+      }
     }
   }
 
@@ -918,15 +938,19 @@ class _MapScreenState extends State<MapScreen>
                     onChanged: (value) {
                       if (value.isEmpty) {
                         googlePlacesBloc!.add(ResetGooglePlaces());
-                        setState(() {
-                          localSearchResults = [];
-                        });
+                        if (mounted) {
+                          setState(() {
+                            localSearchResults = [];
+                          });
+                        }
                       } else {
                         googlePlacesBloc!.add(SearchPlace(value));
-                        setState(() {
-                          localSearchResults =
-                              searchAirQualityLocations(value, allMeasurements);
-                        });
+                        if (mounted) {
+                          setState(() {
+                            localSearchResults =
+                                searchAirQualityLocations(value, allMeasurements);
+                          });
+                        }
                       }
                     },
                     style: TextStyle(fontSize: 14),

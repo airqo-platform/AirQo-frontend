@@ -43,11 +43,13 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage =
-              'Location services are disabled. Please enable location services in your device settings.';
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage =
+                'Location services are disabled. Please enable location services in your device settings.';
+          });
+        }
         return;
       }
 
@@ -55,27 +57,31 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          setState(() {
-            _isLoading = false;
-            _errorMessage =
-                'Location permission denied. Please grant location permission to see air quality data near you.';
-          });
+          if (mounted) {
+            setState(() {
+              _isLoading = false;
+              _errorMessage =
+                  'Location permission denied. Please grant location permission to see air quality data near you.';
+            });
+          }
           return;
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        setState(() {
-          _isLoading = false;
-          _errorMessage =
-              'Location permissions are permanently denied. Please enable location in app settings.';
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage =
+                'Location permissions are permanently denied. Please enable location in app settings.';
+          });
+        }
         return;
       }
 
       // Try to get last known position first for quick response
       Position? position = await Geolocator.getLastKnownPosition();
-      if (position != null) {
+      if (position != null && mounted) {
         setState(() {
           _userPosition = position;
           _isLoading = false;
@@ -92,17 +98,19 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           timeLimit: const Duration(seconds: 5),
         );
         
-        setState(() {
-          _userPosition = position;
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _userPosition = position;
+            _isLoading = false;
+          });
+        }
         
         // Update nearby locations with the more accurate position
         await _updateNearbyLocations();
       } catch (e) {
         // If current position fails but we have last known, that's fine
         if (_userPosition != null) {
-          loggy.warning('Could not get current position, using last known: $e');
+          loggy.warning('Current location unavailable, using cached: $e');
         } else {
           throw e; // Re-throw if we don't have any position
         }
@@ -113,19 +121,23 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
             'Retrieved user position: ${_userPosition?.latitude}, ${_userPosition?.longitude}');
       }
 
-      final dashboardState = context.read<DashboardBloc>().state;
-      if (dashboardState is! DashboardLoaded) {
-        context.read<DashboardBloc>().add(LoadDashboard());
+      if (mounted) {
+        final dashboardState = context.read<DashboardBloc>().state;
+        if (dashboardState is! DashboardLoaded) {
+          context.read<DashboardBloc>().add(LoadDashboard());
+        }
       }
     } catch (e) {
       if (kDebugMode) {
-        loggy.error('Error initializing location: $e');
+        loggy.error('Failed to get user location: $e');
       }
-      setState(() {
-        _isLoading = false;
-        _errorMessage =
-            'An error occurred while accessing location services: ${e.toString()}';
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage =
+              'An error occurred while accessing location services: ${e.toString()}';
+        });
+      }
     }
   }
   
@@ -165,14 +177,16 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
           // Sort by distance
           cachedMeasurements.sort((a, b) => a.value.compareTo(b.value));
           
-          setState(() {
-            _nearbyMeasurementsWithDistance = cachedMeasurements;
-            _isLoading = false;
-          });
+          if (mounted) {
+            setState(() {
+              _nearbyMeasurementsWithDistance = cachedMeasurements;
+              _isLoading = false;
+            });
+          }
         }
       }
     } catch (e) {
-      loggy.error('Error loading cached nearby locations: $e');
+      loggy.error('Cache read failed for nearby locations: $e');
       // Continue without cached data - not critical
     }
   }
@@ -184,7 +198,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   Future<void> _updateNearbyLocations() async {
     if (_userPosition == null) {
-      loggy.warning('No user position available when filtering nearby measurements');
+      loggy.warning('Cannot filter nearby locations: user position unavailable');
       return;
     }
     
@@ -304,9 +318,11 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
         );
         
         if (distance <= _defaultSearchRadius) {
-          setState(() {
-            _nearbyMeasurementsWithDistance.add(MapEntry(cachedData.data, distance));
-          });
+          if (mounted) {
+            setState(() {
+              _nearbyMeasurementsWithDistance.add(MapEntry(cachedData.data, distance));
+            });
+          }
           
           if (_nearbyMeasurementsWithDistance.length >= _maxNearbyLocations) {
             break;
@@ -315,12 +331,14 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
       }
 
       if (_nearbyMeasurementsWithDistance.isNotEmpty) {
-        setState(() {
-          _nearbyMeasurementsWithDistance.sort((a, b) => a.value.compareTo(b.value));
-        });
+        if (mounted) {
+          setState(() {
+            _nearbyMeasurementsWithDistance.sort((a, b) => a.value.compareTo(b.value));
+          });
+        }
       }
     } catch (e) {
-      loggy.error('Error expanding from cache: $e');
+      loggy.error('Cache expansion failed: $e');
     }
   }
 
@@ -330,7 +348,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
 
   void _openLocationSettings() async {
     bool didOpen = await Geolocator.openLocationSettings();
-    if (didOpen) {
+    if (didOpen && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content:

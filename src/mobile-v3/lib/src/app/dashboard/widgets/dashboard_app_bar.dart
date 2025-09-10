@@ -123,7 +123,7 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
             preferBelow: true,
             verticalOffset: 20,
             showDuration: Duration(seconds: 2),
-            triggerMode: TooltipTriggerMode.tap,
+            triggerMode: TooltipTriggerMode.longPress,
             decoration: BoxDecoration(
               color: Colors.black87,
               borderRadius: BorderRadius.circular(6),

@@ -343,11 +343,9 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
   }
 
   void _onFieldChanged() {
-    if (!_formChanged) {
-      setState(() {
-        _formChanged = true;
-      });
-    }
+    setState(() {
+      _formChanged = true;
+    });
   }
 
   Widget _buildProfilePictureWidget() {
