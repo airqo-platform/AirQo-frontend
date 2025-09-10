@@ -53,7 +53,11 @@ class AuthImpl extends AuthRepository {
     Response registerResponse = await http.post(
         Uri.parse("https://api.airqo.net/api/v2/users/register"),
         body: registerInputModelToJson(model),
-        headers: {"Accept": "*/*", "Content-Type": "application/json"});
+        headers: {
+          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
+          "Accept": "*/*", 
+          "Content-Type": "application/json"
+          });
 
     if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
       return;
