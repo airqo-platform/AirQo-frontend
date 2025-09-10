@@ -603,6 +603,8 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                       children: [
                         ProfilePictureSelector(
                           currentProfilePicture: _currentProfilePicture,
+                          firstName: _firstNameController.text,
+                          lastName: _lastNameController.text,
                           onImageSelected: (file) {
                             setState(() {
                               _selectedProfileImage = file;

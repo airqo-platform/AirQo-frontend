@@ -71,22 +71,37 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   Widget _buildGuestAvatar(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => LoginPage(),
-          ),
-        );
-      },
-      child: CircleAvatar(
-        backgroundColor: Theme.of(context).highlightColor,
-        radius: 24,
-        child: Center(
-          child: SvgPicture.asset(
-            "assets/icons/user_icon.svg",
-            height: 22,
-            width: 22,
+    return Tooltip(
+      message: "Sign in or create an account",
+      preferBelow: true,
+      verticalOffset: 20,
+      showDuration: Duration(seconds: 2),
+      triggerMode: TooltipTriggerMode.tap,
+      decoration: BoxDecoration(
+        color: Colors.black87,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      textStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 12,
+      ),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => LoginPage(),
+            ),
+          );
+        },
+        child: CircleAvatar(
+          backgroundColor: Theme.of(context).highlightColor,
+          radius: 24,
+          child: Center(
+            child: SvgPicture.asset(
+              "assets/icons/user_icon.svg",
+              height: 22,
+              width: 22,
+            ),
           ),
         ),
       ),
@@ -103,44 +118,74 @@ class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
           String? firstName = user.firstName;
           String? lastName = user.lastName;
 
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => ProfilePage(),
+          return Tooltip(
+            message: "View your profile",
+            preferBelow: true,
+            verticalOffset: 20,
+            showDuration: Duration(seconds: 2),
+            triggerMode: TooltipTriggerMode.tap,
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            textStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkHighlight
+                    : AppColors.dividerColorlight,
+                child: ClipOval(
+                  child:
+                      _buildProfilePicture(profilePicture, firstName, lastName),
                 ),
-              );
-            },
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkHighlight
-                  : AppColors.dividerColorlight,
-              child: ClipOval(
-                child:
-                    _buildProfilePicture(profilePicture, firstName, lastName),
               ),
             ),
           );
         } else if (userState is UserLoadingError) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => LoginPage(),
-                ),
-              );
-            },
-            child: CircleAvatar(
-              radius: 24,
-              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkHighlight
-                  : AppColors.dividerColorlight,
-              child: Center(
-                child: SvgPicture.asset(
-                  "assets/icons/user_icon.svg",
-                  height: 22,
-                  width: 22,
+          return Tooltip(
+            message: "Sign in to access your profile",
+            preferBelow: true,
+            verticalOffset: 20,
+            showDuration: Duration(seconds: 2),
+            triggerMode: TooltipTriggerMode.tap,
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            textStyle: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => LoginPage(),
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                radius: 24,
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkHighlight
+                    : AppColors.dividerColorlight,
+                child: Center(
+                  child: SvgPicture.asset(
+                    "assets/icons/user_icon.svg",
+                    height: 22,
+                    width: 22,
+                  ),
                 ),
               ),
             ),
