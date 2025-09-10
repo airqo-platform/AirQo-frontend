@@ -36,7 +36,7 @@ b) Once the repo is cloned, `cd` into the platform folder within the `AirQo-fron
 
     cd platform
 
-c) Create the `.env` file and fill it with the needed information. You can find the needed information in the `.env.example` file.
+c) Create the `.env` file and fill it with the needed information. You can find the needed information in the `.env.example` file if one exists in this repository; if not, copy the existing `.env` file from a trusted environment or ask a teammate for the required variables. Do NOT commit secrets to the repo.
 
 d) Install the dependencies
 
@@ -75,6 +75,33 @@ To start the production server.
     yarn build
 
 To build the application for production environments
+
+### Docker / docker-compose
+
+If you prefer to run the app inside containers you can use the provided `docker-compose.yml` which supports both a production and a development profile.
+
+- Production (builds the optimized production image and runs it):
+
+```bash
+docker compose up --build -d
+```
+
+- Development (mounts the working directory, uses container node_modules and runs the dev server):
+
+```bash
+docker compose --profile dev up --build
+```
+
+Notes and best practices:
+
+- The compose file reads runtime variables from `.env` at the repository root. Create a `.env` file from `.env.example` (if present) and keep secrets out of source control.
+- In development we mount the project directory into the container but keep `node_modules` inside the container to avoid host/OS binary mismatches.
+- Use the `app` service for production testing and `app-dev` (profile `dev`) for an iterative development workflow.
+- Stop and remove containers when finished:
+
+```bash
+docker compose down
+```
 
 ## Folder Structure
 
