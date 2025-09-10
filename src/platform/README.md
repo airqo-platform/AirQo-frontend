@@ -6,14 +6,15 @@
 
 ## The table of contents
 
-- [Platform beta](#platform-beta)
-  - [Table of contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
+- [Platform beta.](#platform-beta)
+  - [The table of contents](#the-table-of-contents)
+  - [Prerequisites.](#prerequisites)
   - [Getting started here](#getting-started-here)
   - [Running the application](#running-the-application)
     - [Cypress tests](#cypress-tests)
     - [The linter](#the-linter)
     - [The server](#the-server)
+    - [Docker / docker-compose](#docker--docker-compose)
   - [Folder Structure](#folder-structure)
     - [src folder](#src-folder)
     - [public folder](#public-folder)
@@ -34,9 +35,9 @@ a) In order to get started here, you start by cloning the repository accordingly
 
 b) Once the repo is cloned, `cd` into the platform folder within the `AirQo-frontend` directory.
 
-    cd platform
+    cd src/platform
 
-c) Create the `.env` file and fill it with the needed information. You can find the needed information in the `.env.example` file.
+c) Create `../.env` (relative to `src/platform`, i.e., in the repository root) and fill it with the needed information. You can find the needed information in the `.env.example` file if one exists in this repository; if not, copy the existing `.env` file from a trusted environment or ask a teammate for the required variables. Do NOT commit secrets to the repo.
 
 d) Install the dependencies
 
@@ -75,6 +76,47 @@ To start the production server.
     yarn build
 
 To build the application for production environments
+
+### Docker / docker-compose
+
+If you prefer to run the app inside containers you can use the provided `docker-compose.yml`. There are two common ways to run it:
+
+- Run the compose file from the `src/platform` directory (recommended for local development examples in this README):
+
+  - Production (builds the optimized production image and runs it):
+
+    ```bash
+    # when you are in src/platform
+    docker compose up --build -d
+    ```
+
+  - Development (mounts the working directory, uses container node_modules and runs the dev server):
+
+    ```bash
+    # when you are in src/platform
+    docker compose --profile dev up --build
+    ```
+
+- Or run from the repository root and point to the compose file with `-f`:
+
+  ```bash
+  # from the repo root
+  docker compose -f src/platform/docker-compose.yml up --build -d
+
+  # development profile from the repo root
+  docker compose -f src/platform/docker-compose.yml --profile dev up --build
+  ```
+
+Notes and best practices:
+
+- The compose file, as written, references `../.env` relative to the `src/platform` directory (i.e., the repository root). Create that `.env` file in the repository root from `.env.example` (if present) and keep secrets out of source control. If you run Docker Compose from the repository root using `-f src/platform/docker-compose.yml`, ensure the `.env` file is available at the same path the compose file expects or update the paths in the compose file accordingly.
+- In development we mount the project directory into the container but keep `node_modules` inside the container to avoid host/OS binary mismatches.
+- Use the `app` service for production testing and `app-dev` (profile `dev`) for an iterative development workflow.
+- Stop and remove containers when finished:
+
+```bash
+docker compose down
+```
 
 ## Folder Structure
 

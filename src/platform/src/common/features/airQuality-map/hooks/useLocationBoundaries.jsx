@@ -206,11 +206,11 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
         activeRequestRef.current.cancel('Component unmounted');
       }
 
-      if (mapRef.current) {
-        mapRef.current.off('styledata', handleStyleData);
+      if (map) {
+        map.off('styledata', handleStyleData);
 
         if (zoomHandlerRef.current) {
-          mapRef.current.off('zoomend', zoomHandlerRef.current);
+          map.off('zoomend', zoomHandlerRef.current);
         }
 
         removeBoundaries();

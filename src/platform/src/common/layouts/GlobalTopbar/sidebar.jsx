@@ -119,7 +119,7 @@ const GlobalSideBarDrawer = () => {
         closeDrawer();
       }
     },
-    [closeDrawer],
+    [closeDrawer, router],
   );
 
   // Enhanced admin panel subroutes with better caching and error handling

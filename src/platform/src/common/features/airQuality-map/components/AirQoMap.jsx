@@ -218,7 +218,6 @@ const AirQoMap = forwardRef(
         // Add event listeners with error handling
         map.once('style.load', handleStyleLoad);
         map.once('error', (e) => {
-          console.error('Error loading map style');
           logger.error('Error loading map style', e?.error ?? e, {
             url: styleUrl,
           });
@@ -232,6 +231,10 @@ const AirQoMap = forwardRef(
         addControls,
         resetControlsState,
         controlsAddedRef,
+        isReloadingRef,
+        mapRef,
+        prevStyleUrlRef,
+        setStyleUrl,
       ],
     );
     // Optimized viewport change handler
@@ -272,7 +275,7 @@ const AirQoMap = forwardRef(
           zoom: reduxZoom,
         };
       }
-    }, [viewportData, mapInitializedRef]);
+    }, [viewportData, mapInitializedRef, mapRef]);
     // Optimized controls checker
     const checkControls = useCallback(() => {
       if (
@@ -285,7 +288,7 @@ const AirQoMap = forwardRef(
       if (mapRef.current.loaded()) {
         addControls();
       }
-    }, [addControls, mapInitializedRef, controlsAddedRef]);
+    }, [addControls, mapInitializedRef, controlsAddedRef, mapRef]);
     // Cleanup effect - runs on unmount
     useEffect(() => {
       return () => {
@@ -317,7 +320,14 @@ const AirQoMap = forwardRef(
         mapInitializedRef.current = false;
         isReloadingRef.current = false;
       };
-    }, [dispatch, resetControlsState, cleanupMapDataHook]);
+    }, [
+      dispatch,
+      resetControlsState,
+      cleanupMapDataHook,
+      isReloadingRef,
+      mapInitializedRef,
+      mapRef,
+    ]);
 
     // Map initialization effect with dependency optimization
     useEffect(() => {
@@ -329,7 +339,13 @@ const AirQoMap = forwardRef(
       if (needsReload) {
         initializeMap();
       }
-    }, [styleUrl, initializeMap]);
+    }, [
+      styleUrl,
+      initializeMap,
+      isReloadingRef,
+      mapInitializedRef,
+      prevStyleUrlRef,
+    ]);
 
     // NodeType change effect with optimization
     useEffect(() => {
@@ -356,7 +372,14 @@ const AirQoMap = forwardRef(
           }
         }, 100);
       }
-    }, [nodeType, clusterUpdate]);
+    }, [
+      nodeType,
+      clusterUpdate,
+      isReloadingRef,
+      mapInitializedRef,
+      mapRef,
+      prevNodeTypeRef,
+    ]);
 
     // Controls check effect with cleanup
     useEffect(() => {
@@ -379,7 +402,7 @@ const AirQoMap = forwardRef(
           intervalRef.current = null;
         }
       };
-    }, [checkControls, mapInitializedRef.current]);
+    }, [checkControls, mapInitializedRef, mapRef]);
 
     // Viewport changes effect
     useEffect(() => {

@@ -56,7 +56,7 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
         organizationSlug: generatedSlug,
       }));
     }
-  }, [formData.organizationName, currentStep]);
+  }, [formData.organizationName, formData.organizationSlug, currentStep]);
   // Check slug availability with debouncing
   useEffect(() => {
     if (
@@ -70,7 +70,7 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [formData.organizationSlug]); // Removed checkSlugAvailability from dependencies
+  }, [formData.organizationSlug, checkSlugAvailability]); // Removed checkSlugAvailability from dependencies
 
   const handleInputChange = (e) => {
     utilHandleInputChange(e, setFormData, setErrors, errors);
