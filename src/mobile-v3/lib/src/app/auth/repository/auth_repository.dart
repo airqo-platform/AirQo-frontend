@@ -58,6 +58,8 @@ class AuthImpl extends AuthRepository {
     if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
       return;
     } else {
+      loggy.error("Registration failed - Status: ${registerResponse.statusCode}, Body: ${registerResponse.body}");
+      
       String errorMessage;
       
       if (registerResponse.statusCode >= 400 && registerResponse.statusCode <= 499) {
