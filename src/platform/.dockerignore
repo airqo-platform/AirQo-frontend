@@ -25,8 +25,8 @@ pids
 *.pid.lock
 
 # ----------  Local environment  ----------
-.env
-.env.*
+# .env
+# .env.*
 !.env.example            # keep only the example in context
 .env.local
 .env.production.local
