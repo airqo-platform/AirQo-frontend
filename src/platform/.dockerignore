@@ -126,6 +126,10 @@ dmypy.json
 .yarn/install-state.gz
 .yarn-integrity
 
+# npm config (may contain registry auth tokens)
+.npmrc
+.npmrc.*
+
 # ----------  Turbo / Lerna mono-repo caches  ----------
 .turbo
 lerna-debug.log*

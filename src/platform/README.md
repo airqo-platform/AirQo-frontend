@@ -6,14 +6,15 @@
 
 ## The table of contents
 
-- [Platform beta](#platform-beta)
-  - [Table of contents](#table-of-contents)
-  - [Prerequisites](#prerequisites)
+- [Platform beta.](#platform-beta)
+  - [The table of contents](#the-table-of-contents)
+  - [Prerequisites.](#prerequisites)
   - [Getting started here](#getting-started-here)
   - [Running the application](#running-the-application)
     - [Cypress tests](#cypress-tests)
     - [The linter](#the-linter)
     - [The server](#the-server)
+    - [Docker / docker-compose](#docker--docker-compose)
   - [Folder Structure](#folder-structure)
     - [src folder](#src-folder)
     - [public folder](#public-folder)
@@ -82,29 +83,29 @@ If you prefer to run the app inside containers you can use the provided `docker-
 
 - Run the compose file from the `src/platform` directory (recommended for local development examples in this README):
 
-    - Production (builds the optimized production image and runs it):
+  - Production (builds the optimized production image and runs it):
 
-        ```bash
-        # when you are in src/platform
-        docker compose up --build -d
-        ```
+    ```bash
+    # when you are in src/platform
+    docker compose up --build -d
+    ```
 
-    - Development (mounts the working directory, uses container node_modules and runs the dev server):
+  - Development (mounts the working directory, uses container node_modules and runs the dev server):
 
-        ```bash
-        # when you are in src/platform
-        docker compose --profile dev up --build
-        ```
+    ```bash
+    # when you are in src/platform
+    docker compose --profile dev up --build
+    ```
 
 - Or run from the repository root and point to the compose file with `-f`:
 
-    ```bash
-    # from the repo root
-    docker compose -f src/platform/docker-compose.yml up --build -d
+  ```bash
+  # from the repo root
+  docker compose -f src/platform/docker-compose.yml up --build -d
 
-    # development profile from the repo root
-    docker compose -f src/platform/docker-compose.yml --profile dev up --build
-    ```
+  # development profile from the repo root
+  docker compose -f src/platform/docker-compose.yml --profile dev up --build
+  ```
 
 Notes and best practices:
 
