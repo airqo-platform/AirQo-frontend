@@ -22,6 +22,6 @@ class RegisterInputModel {
         "lastName": lastName,
         "email": email,
         "password": password,
-        "Category": category,
+        "category": category,
     };
 }
