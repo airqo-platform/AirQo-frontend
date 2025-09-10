@@ -1,13 +1,13 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
-import { isValid, format, isSameDay } from 'date-fns';
+import { isSameDay } from 'date-fns';
 import { getAQIcon } from '../../MapNodes';
 import { images } from '../../../constants/mapConstants';
 import { useDispatch, useSelector } from 'react-redux';
 import { setSelectedWeeklyPrediction } from '@/lib/store/services/map/MapSlice';
 import Spinner from '@/components/Spinner';
-import { useOutsideClick } from '@/core/hooks';
+// import { useOutsideClick } from '@/core/hooks';
 import Card from '@/components/CardWrapper';
 
 const DayCell = ({ day, date, isActive, imageSrc, loading }) => {
@@ -68,28 +68,28 @@ const Predictions = ({ selectedSite, weeklyPredictions, loading }) => {
     (state) => state.map.selectedWeeklyPrediction,
   );
 
-  const [value, setValue] = useState(
-    new Date(selectedSite?.time || Date.now()),
-  );
-  const [openDatePicker, setOpenDatePicker] = useState(false);
-  const dropdownRef = useRef(null);
+  // const [value, setValue] = useState(
+  //   new Date(selectedSite?.time || Date.now()),
+  // );
+  // const [openDatePicker, setOpenDatePicker] = useState(false);
+  // const dropdownRef = useRef(null);
 
   const currentDay = useMemo(
     () => new Date().toLocaleDateString('en-US', { weekday: 'long' }),
     [],
   );
 
-  useOutsideClick(dropdownRef, () => setOpenDatePicker(false));
+  // useOutsideClick(dropdownRef, () => setOpenDatePicker(false));
 
-  const handleDateValueChange = useCallback((newValue) => {
-    const date = newValue.start ? new Date(newValue.start) : new Date();
-    setValue(date);
-  }, []);
+  // const handleDateValueChange = useCallback((newValue) => {
+  //   const date = newValue.start ? new Date(newValue.start) : new Date();
+  //   setValue(date);
+  // }, []);
 
-  const safeFormatDate = useCallback(
-    (date) => (isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date'),
-    [],
-  );
+  // const safeFormatDate = useCallback(
+  //   (date) => (isValid(date) ? format(date, 'MMM dd, yyyy') : 'Invalid date'),
+  //   [],
+  // );
 
   const isActive = useCallback(
     (prediction) => {

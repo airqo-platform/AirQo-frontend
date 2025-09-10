@@ -1,6 +1,5 @@
 'use client';
 import { useEffect, useState } from 'react';
-import SmallLogo from '@/icons/airqo_logo.svg';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Account/analyticsImage.webp';
 import Head from 'next/head';
@@ -32,7 +31,12 @@ const AccountPageLayout = ({
           <div className="lg:col-span-5 bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 h-full flex justify-center items-center">
             <div className="w-full lg:w-auto">
               <div>
-                <SmallLogo />
+                <Image
+                  src="/icons/airqo_logo.svg"
+                  alt="AirQo logo"
+                  width={47}
+                  height={32}
+                />
               </div>
               <div
                 className={`${

@@ -10,6 +10,7 @@ import ChartRefreshIndicator from './components/ChartRefreshIndicator';
 import Card from '@/components/CardWrapper';
 import { ChartExportUtils } from './utils/chartExportUtils';
 import { CHART_CONFIG } from './config/chartConfig';
+import logger from '@/lib/logger';
 
 const ChartContainer = ({
   chartType,
@@ -92,7 +93,7 @@ const ChartContainer = ({
         );
         handleExportComplete(format);
       } catch (error) {
-        console.error(`Chart export failed (${format}):`, error);
+        logger.error(`Chart export failed (${format}):`, error);
         handleExportError(format, error.message || 'Export failed');
       }
     },
@@ -129,7 +130,7 @@ const ChartContainer = ({
       try {
         cleanup = ChartExportUtils.applyExportStyles();
       } catch (error) {
-        console.warn('Failed to apply export styles:', error);
+        logger.warn('Failed to apply export styles:', error);
       }
     };
     initializeExportStyles();

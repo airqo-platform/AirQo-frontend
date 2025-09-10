@@ -18,6 +18,7 @@ import {
   AqAlertCircle,
   AqLoading01,
 } from '@airqo/icons-react';
+import logger from '@/lib/logger';
 
 const ChartDropdownMenu = ({
   chartContentRef,
@@ -143,7 +144,7 @@ const ChartDropdownMenu = ({
           }));
         }, 3000);
       } catch (error) {
-        console.error('Export failed:', error);
+        logger.error('Export failed:', error);
         const errorMessage =
           error.message || 'Export failed. Please try again.';
         setLocalExportState((prev) => ({
@@ -175,7 +176,6 @@ const ChartDropdownMenu = ({
       isRefreshing,
       localExportState.loading,
       onExport,
-      exportState,
       isDark,
     ],
   );
@@ -194,7 +194,7 @@ const ChartDropdownMenu = ({
       );
       dispatch(setOpenModal(true));
     } catch (error) {
-      console.error('Failed to open insights modal:', error);
+      logger.error('Failed to open insights modal:', error);
       CustomToast({
         message: 'Failed to open insights. Please try again.',
         type: 'error',

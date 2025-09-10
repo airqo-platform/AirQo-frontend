@@ -25,6 +25,7 @@ const PageHeader = ({
   iconClassName = 'w-8 h-8 text-primary dark:text-primary',
   imageClassName = 'w-8 h-8 object-contain',
   iconBg = true,
+  isLoading = false,
   right = null,
   actions = null,
   showBack = false,
@@ -47,14 +48,14 @@ const PageHeader = ({
               <AqArrowNarrowLeft className="w-4 h-4" />
             </button>
           )}
-
-          {/* Render either an image (raster) or an icon (svg component). Images get a dark-mode invert filter
-              so logos designed for light backgrounds remain visible in dark mode. */}
+          {/* Icon / image area. When loading, show a skeleton; otherwise render image or provided Icon component. */}
           {(imageSrc || Icon) && (
             <div
               className={`flex-shrink-0 mt-0.5 ${iconBg ? 'p-1 rounded-full bg-gray-100 dark:bg-gray-800' : ''}`}
             >
-              {imageSrc ? (
+              {isLoading ? (
+                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+              ) : imageSrc ? (
                 <img
                   src={imageSrc}
                   alt={imageAlt}
@@ -67,15 +68,24 @@ const PageHeader = ({
           )}
 
           <div className="min-w-0">
-            {title && (
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
-                {title}
-              </h1>
-            )}
-            {subtitle && (
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 truncate">
-                {subtitle}
-              </p>
+            {isLoading ? (
+              <>
+                <div className="w-48 h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-2" />
+                <div className="w-32 h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              </>
+            ) : (
+              <>
+                {title && (
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 truncate">
+                    {title}
+                  </h1>
+                )}
+                {subtitle && (
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {subtitle}
+                  </p>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -98,6 +108,7 @@ PageHeader.propTypes = {
   title: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   subtitle: PropTypes.oneOfType([PropTypes.string, PropTypes.node]),
   icon: PropTypes.elementType,
+  isLoading: PropTypes.bool,
   imageSrc: PropTypes.string,
   imageAlt: PropTypes.string,
   iconClassName: PropTypes.string,
