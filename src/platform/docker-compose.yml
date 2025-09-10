@@ -8,7 +8,7 @@ services:
       dockerfile: Dockerfile
       target: runner
     env_file:
-      - .env
+      - ../.env
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -26,7 +26,7 @@ services:
       dockerfile: Dockerfile
       target: builder
     env_file:
-      - .env
+      - ../.env
     environment:
       - NODE_ENV=development
       - PORT=3000

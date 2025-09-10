@@ -36,7 +36,7 @@ b) Once the repo is cloned, `cd` into the platform folder within the `AirQo-fron
 
     cd platform
 
-c) Create the `.env` file and fill it with the needed information. You can find the needed information in the `.env.example` file if one exists in this repository; if not, copy the existing `.env` file from a trusted environment or ask a teammate for the required variables. Do NOT commit secrets to the repo.
+c) Create `../.env` (in the repository root) and fill it with the needed information. You can find the needed information in the `.env.example` file if one exists in this repository; if not, copy the existing `.env` file from a trusted environment or ask a teammate for the required variables. Do NOT commit secrets to the repo.
 
 d) Install the dependencies
 
@@ -94,7 +94,7 @@ docker compose --profile dev up --build
 
 Notes and best practices:
 
-- The compose file reads runtime variables from `.env` at the repository root. Create a `.env` file from `.env.example` (if present) and keep secrets out of source control.
+- The compose file reads runtime variables from `../.env` (in the repository root). Create a `.env` file from `.env.example` (if present) and keep secrets out of source control.
 - In development we mount the project directory into the container but keep `node_modules` inside the container to avoid host/OS binary mismatches.
 - Use the `app` service for production testing and `app-dev` (profile `dev`) for an iterative development workflow.
 - Stop and remove containers when finished:

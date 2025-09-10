@@ -52,8 +52,8 @@ const EditClientForm = ({ open, closeModal, data }) => {
 
     return (
       clientName.trim() !== initial.name.trim() ||
-      currentFiltered.length !== initialFiltered.length ||
-      currentFiltered.some((ip, idx) => ip !== initialFiltered[idx])
+      JSON.stringify(currentFiltered.sort()) !==
+        JSON.stringify(initialFiltered.sort())
     );
   }, [clientName, ipAddresses, initial]);
 
@@ -85,8 +85,9 @@ const EditClientForm = ({ open, closeModal, data }) => {
         ip_addresses: ipAddresses.map((ip) => ip.trim()).filter(Boolean),
       };
 
-      const { success } = await updateClientApi(payload, data._id);
-      if (!success) throw new Error('Update failed');
+      const updatedClient = await updateClientApi(payload, data._id);
+      if (!updatedClient || updatedClient._id !== data._id)
+        throw new Error(`Failed to update client ${data._id}`);
 
       const [userRes, clientsRes] = await Promise.all([
         getUserDetails(userId),

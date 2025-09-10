@@ -172,6 +172,7 @@ export function UnifiedGroupProvider({ children }) {
   const retryTimerRef = useRef(null);
   const initializedRef = useRef(false);
   const mountedRef = useRef(true);
+  const prevOrgSlugRef = useRef(null);
 
   // Cleanup function to prevent memory leaks
   const cleanup = useCallback(() => {
@@ -247,8 +248,8 @@ export function UnifiedGroupProvider({ children }) {
         dispatch({ type: 'SET_GROUPS_ERROR', payload: safeMessage });
 
         // Handle auth errors asynchronously
-        const isAuthError =
-          error?.status === 401 || safeMessage.includes('401');
+        const status = error?.response?.status ?? error?.status;
+        const isAuthError = status === 401 || safeMessage.includes('401');
         if (isAuthError && typeof signOut === 'function') {
           // Use setTimeout to avoid setState during render
           setTimeout(() => {
@@ -433,6 +434,12 @@ export function UnifiedGroupProvider({ children }) {
       return;
     }
 
+    // Clear when slug actually changes to prevent stale UI/theme
+    if (prevOrgSlugRef.current !== organizationSlug) {
+      dispatch({ type: 'CLEAR_ORG_DATA' });
+      prevOrgSlugRef.current = organizationSlug;
+    }
+
     const debounceMs = 200;
     const currentCache = requestCacheRef.current;
     const cacheKey = organizationSlug;
@@ -562,6 +569,7 @@ export function UnifiedGroupProvider({ children }) {
     state.organizationLastFailedAt,
     state.organization,
     state.organizationLoading,
+    state.organizationRetryNonce,
   ]);
 
   // Clear switching state when route changes

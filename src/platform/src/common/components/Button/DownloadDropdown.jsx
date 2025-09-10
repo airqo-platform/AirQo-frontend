@@ -100,11 +100,12 @@ export default function ReusableDropdown({
           );
           break;
         case 'Enter':
-        case ' ':
+        case ' ': {
           e.preventDefault();
           const opt = getOptionAt(focusedIndex);
           if (opt) handleOptionSelect(opt);
           break;
+        }
         case 'Escape':
           setIsOpen(false);
           setFocusedIndex(-1);

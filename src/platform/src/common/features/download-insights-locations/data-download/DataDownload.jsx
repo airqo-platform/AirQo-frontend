@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { AqGlobe05, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import logger from '@/lib/logger';
 
 import {
   DATA_TYPE_OPTIONS,
