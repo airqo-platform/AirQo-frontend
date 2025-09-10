@@ -16,9 +16,54 @@ export const fetchUserGroups = createAsyncThunk(
       }
 
       const user = response.users[0];
+
+      // Handle different data structures - map the groups correctly
+      let groups = [];
+
+      // First check for the 'groups' array in the response (this seems to be the main data structure)
+      if (Array.isArray(user.groups)) {
+        groups = user.groups.map((group) => ({
+          _id: group._id,
+          grp_title: group.grp_title,
+          grp_profile_picture: group.grp_profile_picture || group.grp_image,
+          organization_slug: group.organization_slug,
+          grp_slug: group.organization_slug,
+          grp_country: group.grp_country,
+          grp_industry: group.grp_industry,
+          grp_timezone: group.grp_timezone,
+          grp_website: group.grp_website,
+          theme: group.theme,
+          status: group.status,
+          createdAt: group.createdAt,
+          role: group.role,
+          userType: group.userType,
+          // Add any other necessary fields
+          ...group,
+        }));
+      }
+      // Fallback to my_groups if groups array is not available
+      else if (Array.isArray(user.my_groups)) {
+        groups = user.my_groups.map((group) => ({
+          _id: group._id,
+          grp_title: group.grp_title,
+          grp_profile_picture: group.grp_profile_picture || group.grp_image,
+          organization_slug: group.organization_slug,
+          grp_slug: group.organization_slug,
+          grp_country: group.grp_country,
+          grp_industry: group.grp_industry,
+          grp_timezone: group.grp_timezone,
+          grp_website: group.grp_website,
+          theme: group.theme,
+          status: group.status,
+          createdAt: group.createdAt,
+          // Add any other necessary fields
+          ...group,
+        }));
+      }
+
       return {
         user,
-        groups: user.groups || [],
+        groups,
       };
     } catch (error) {
       logger.error('Error fetching user groups:', error);
@@ -170,14 +215,21 @@ const groupsSlice = createSlice({
       })
       .addCase(fetchUserGroups.fulfilled, (state, action) => {
         state.userGroupsLoading = false;
-        state.userGroups = action.payload.groups;
-        state.userInfo = action.payload.user;
+        // Ensure groups is always an array, even if API returns null/undefined
+        state.userGroups = Array.isArray(action.payload?.groups)
+          ? action.payload.groups
+          : [];
+        state.userInfo = action.payload?.user || null;
         state.lastFetched = Date.now();
         state.userGroupsError = null;
       })
       .addCase(fetchUserGroups.rejected, (state, action) => {
         state.userGroupsLoading = false;
         state.userGroupsError = action.payload;
+        // Ensure userGroups remains an empty array on error to prevent undefined access
+        if (!Array.isArray(state.userGroups)) {
+          state.userGroups = [];
+        }
       })
 
       // Fetch Group Details
