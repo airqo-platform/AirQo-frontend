@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
@@ -24,130 +26,249 @@ class AuthImpl extends AuthRepository {
   @override
   Future<String> loginWithEmailAndPassword(
       String username, String password) async {
-    Response loginResponse = await http.post(
-        Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
-        body: jsonEncode({"userName": username, "password": password}),
-        headers: {
-          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
-          "Accept": "*/*",
-          "Content-Type": "application/json"
-        });
+    try {
+      Response loginResponse = await http.post(
+          Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
+          body: jsonEncode({"userName": username, "password": password}),
+          headers: {
+            "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
+            "Accept": "*/*",
+            "Content-Type": "application/json"
+          });
 
-    Map<String, dynamic> data = json.decode(loginResponse.body);
+      if (loginResponse.statusCode == 200) {
+        Map<String, dynamic> data = json.decode(loginResponse.body);
+        String userId = data["_id"];
+        String token = data["token"];
 
-    if (loginResponse.statusCode != 200) {
-      throw Exception(data['message']);
-    } else {
-      String userId = data["_id"];
-      String token = data["token"];
-
-      HiveRepository.saveData(HiveBoxNames.authBox, "token", token);
-      HiveRepository.saveData(HiveBoxNames.authBox, "userId", userId);
+        HiveRepository.saveData(HiveBoxNames.authBox, "token", token);
+        HiveRepository.saveData(HiveBoxNames.authBox, "userId", userId);
+        
+        return data["token"];
+      } else {
+        loggy.error("Login failed - Status: ${loginResponse.statusCode}, Body: ${loginResponse.body}");
+        
+        String errorMessage;
+        String errorType;
+        
+        switch (loginResponse.statusCode) {
+          case 400:
+            errorType = 'VALIDATION_ERROR: Invalid login request format';
+            errorMessage = "Please check your email and password format.";
+            break;
+          case 401:
+            errorType = 'AUTH_ERROR: Invalid credentials';
+            errorMessage = "Invalid email or password. Please check your credentials and try again.";
+            break;
+          case 403:
+            errorType = 'FORBIDDEN_ERROR: Account access blocked';
+            errorMessage = "Your account access has been restricted. Please contact support.";
+            break;
+          case 404:
+            errorType = 'NOT_FOUND_ERROR: User account not found';
+            errorMessage = "No account found with these credentials.";
+            break;
+          case 422:
+            errorType = 'VALIDATION_ERROR: Login validation failed';
+            try {
+              Map<String, dynamic> data = json.decode(loginResponse.body);
+              if (data['message'] != null) {
+                errorMessage = data['message'];
+              } else if (data['errors'] != null) {
+                var errors = data['errors'];
+                if (errors is Map) {
+                  errorMessage = errors.values.join(', ');
+                } else {
+                  errorMessage = "Please check your login information and try again.";
+                }
+              } else {
+                errorMessage = "Please check your login information and try again.";
+              }
+            } catch (e) {
+              errorMessage = "Please check your login information and try again.";
+            }
+            break;
+          case 429:
+            errorType = 'RATE_LIMIT_ERROR: Too many login attempts';
+            errorMessage = "Too many login attempts. Please wait a moment and try again.";
+            break;
+          case 500:
+          case 502:
+          case 503:
+            errorType = 'SERVER_ERROR: Login service unavailable';
+            errorMessage = "We're experiencing technical difficulties. Please try again later.";
+            break;
+          default:
+            errorType = 'UNKNOWN_LOGIN_ERROR';
+            try {
+              Map<String, dynamic> data = json.decode(loginResponse.body);
+              errorMessage = data['message'] ?? "Login failed. Please try again.";
+            } catch (e) {
+              errorMessage = "Login failed. Please try again.";
+            }
+        }
+        
+        loggy.error('Login Failed: $errorType | Details: ${loginResponse.body}');
+        throw Exception(errorMessage);
+      }
+    } on SocketException {
+      throw Exception("No internet connection. Please check your network and try again.");
+    } on TimeoutException {
+      throw Exception("Connection timed out. Please check your network and try again.");
+    } on FormatException {
+      throw Exception("Invalid response from server. Please try again.");
+    } catch (e) {
+      if (e.toString().contains('Connection refused') || e.toString().contains('Failed host lookup')) {
+        throw Exception("Unable to connect to server. Please check your network and try again.");
+      }
+      rethrow;
     }
-
-    return data["token"];
   }
 
   @override
   Future<void> registerWithEmailAndPassword(RegisterInputModel model) async {
-    Response registerResponse = await http.post(
-        Uri.parse("https://api.airqo.net/api/v2/users/register"),
-        body: registerInputModelToJson(model),
-        headers: {"Accept": "*/*", "Content-Type": "application/json"});
+    try {
+      Response registerResponse = await http.post(
+          Uri.parse("https://api.airqo.net/api/v2/users/register"),
+          body: registerInputModelToJson(model),
+          headers: {"Accept": "*/*", "Content-Type": "application/json"});
 
-    if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
-      return;
-    } else {
-      loggy.error("Registration failed - Status: ${registerResponse.statusCode}, Body: ${registerResponse.body}");
-      
-      String errorMessage;
-      
-      if (registerResponse.statusCode >= 400 && registerResponse.statusCode <= 499) {
-        errorMessage = "There was an issue with your request. Please check your input and try again.";
-      } else if (registerResponse.statusCode >= 500 && registerResponse.statusCode <= 599) {
-        errorMessage = "We're experiencing technical difficulties. Please try again later.";
+      if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
+        return;
       } else {
-        errorMessage = "Registration failed. Please try again.";
+        loggy.error("Registration failed - Status: ${registerResponse.statusCode}, Body: ${registerResponse.body}");
+        
+        String errorMessage;
+        
+        if (registerResponse.statusCode >= 400 && registerResponse.statusCode <= 499) {
+          try {
+            final responseBody = jsonDecode(registerResponse.body);
+            if (responseBody != null && responseBody['message'] != null) {
+              errorMessage = responseBody['message'];
+            } else if (responseBody != null && responseBody['error'] != null) {
+              errorMessage = responseBody['error'];
+            } else {
+              errorMessage = "There was an issue with your request. Please check your input and try again.";
+            }
+          } catch (e) {
+            errorMessage = "There was an issue with your request. Please check your input and try again.";
+          }
+        } else if (registerResponse.statusCode >= 500 && registerResponse.statusCode <= 599) {
+          errorMessage = "We're experiencing technical difficulties. Please try again later.";
+        } else {
+          errorMessage = "Registration failed. Please try again.";
+        }
+        
+        throw Exception(errorMessage);
       }
-      
-      throw Exception(errorMessage);
+    } on SocketException {
+      throw Exception("No internet connection. Please check your network and try again.");
+    } on TimeoutException {
+      throw Exception("Connection timed out. Please check your network and try again.");
+    } on FormatException {
+      throw Exception("Invalid response from server. Please try again.");
+    } catch (e) {
+      if (e.toString().contains('Connection refused') || e.toString().contains('Failed host lookup')) {
+        throw Exception("Unable to connect to server. Please check your network and try again.");
+      }
+      rethrow;
     }
   }
 
   @override
   Future<String> requestPasswordReset(String email) async {
-    final response = await http.post(
-      Uri.parse('https://api.airqo.net/api/v2/users/reset-password-request'),
-      headers: {
-        "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
-        "Accept": "*/*",
-        "Content-Type": "application/json"
-      },
-      body: jsonEncode({
-        'email': email,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.airqo.net/api/v2/users/reset-password-request'),
+        headers: {
+          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
+          "Accept": "*/*",
+          "Content-Type": "application/json"
+        },
+        body: jsonEncode({
+          'email': email,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return data['message'] ?? 'Password reset link sent.';
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return data['message'] ?? 'Password reset link sent.';
+        } else {
+          throw Exception(
+              data['message'] ?? 'Failed to send password reset request.');
+        }
       } else {
-        throw Exception(
-            data['message'] ?? 'Failed to send password reset request.');
-      }
-    } else {
-      try {
-        final errorData = jsonDecode(response.body);
-        String errorMessage = errorData['message'] ?? 'Something went wrong.';
+        loggy.error("Password reset request failed - Status: ${response.statusCode}, Body: ${response.body}");
         
-        // Handle specific HTTP status codes
+        String errorMessage;
+        String errorType;
+        
         switch (response.statusCode) {
           case 400:
-            errorMessage = errorData['message'] ?? 'Invalid email address or request.';
+            errorType = 'VALIDATION_ERROR: Invalid email format or request';
+            try {
+              final errorData = jsonDecode(response.body);
+              errorMessage = errorData['message'] ?? 'Please enter a valid email address.';
+            } catch (e) {
+              errorMessage = 'Please enter a valid email address.';
+            }
             break;
           case 401:
+            errorType = 'AUTH_ERROR: Service authentication failed';
             errorMessage = 'Authentication failed. Please try again.';
             break;
           case 403:
-            errorMessage = 'Access denied. Please contact support.';
+            errorType = 'FORBIDDEN_ERROR: Password reset blocked';
+            errorMessage = 'Password reset is not allowed for this account.';
             break;
           case 404:
+            errorType = 'NOT_FOUND_ERROR: User account not found';
             errorMessage = 'No account found with this email address.';
             break;
           case 429:
+            errorType = 'RATE_LIMIT_ERROR: Too many password reset requests';
             errorMessage = 'Too many requests. Please wait a moment and try again.';
             break;
           case 500:
           case 502:
           case 503:
-            errorMessage = 'Server error. Please try again later.';
+            errorType = 'SERVER_ERROR: Password reset service unavailable';
+            errorMessage = 'We\'re experiencing technical difficulties. Please try again later.';
             break;
           default:
-            errorMessage = errorData['message'] ?? 'Unable to send reset code. Please try again.';
+            errorType = 'UNKNOWN_PASSWORD_RESET_ERROR';
+            try {
+              final errorData = jsonDecode(response.body);
+              errorMessage = errorData['message'] ?? 'Unable to send reset code. Please try again.';
+            } catch (e) {
+              errorMessage = 'Unable to send reset code. Please try again.';
+            }
         }
         
+        loggy.error('Password Reset Request Failed: $errorType | Details: ${response.body}');
         throw Exception(errorMessage);
-      } catch (e) {
-        switch (response.statusCode) {
-          case 404:
-            throw Exception('No account found with this email address.');
-          case 429:
-            throw Exception('Too many requests. Please wait a moment and try again.');
-          case 500:
-          case 502:
-          case 503:
-            throw Exception('Server error. Please try again later.');
-          default:
-            throw Exception('Unable to send reset code. Please try again.');
-        }
       }
+    } on SocketException {
+      loggy.error('Password Reset Network Error: No internet connection');
+      throw Exception("No internet connection. Please check your network and try again.");
+    } on TimeoutException {
+      loggy.error('Password Reset Network Error: Connection timed out');
+      throw Exception("Connection timed out. Please check your network and try again.");
+    } on FormatException {
+      loggy.error('Password Reset Parsing Error: Invalid server response format');
+      throw Exception("Invalid response from server. Please try again.");
+    } catch (e) {
+      if (e.toString().contains('Connection refused') || e.toString().contains('Failed host lookup')) {
+        loggy.error('Password Reset Network Error: Unable to connect to server');
+        throw Exception("Unable to connect to server. Please check your network and try again.");
+      }
+      rethrow;
     }
   }
 
 @override
 Future<void> verifyEmailCode(String token, String email) async {
-  
   try {
     final apiToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
     assert(apiToken != null, 'AIRQO_MOBILE_TOKEN missing in .env');
@@ -164,32 +285,73 @@ Future<void> verifyEmailCode(String token, String email) async {
       })
     );
     
-    
-    Map<String, dynamic> data;
-    try {
-      data = json.decode(verifyResponse.body);
-    } catch (e) {
-      throw Exception("Invalid response: ${verifyResponse.body}");
+    if (verifyResponse.statusCode >= 200 && verifyResponse.statusCode <= 299) {
+      return;
     }
     
-    if (verifyResponse.statusCode != 200) {
-      String errorMessage = "Email verification failed";
-      if (data.containsKey('errors')) {
-        var errors = data['errors'];
-        if (errors is Map) {
-          errorMessage = errors.values.join(', ');
-        } else if (errors is String) {
-          errorMessage = errors;
+    loggy.error("Email verification failed - Status: ${verifyResponse.statusCode}, Body: ${verifyResponse.body}");
+    
+    String errorMessage;
+    String errorType;
+    
+    if (verifyResponse.statusCode == 400) {
+      errorType = 'VALIDATION_ERROR: Invalid verification code or email';
+      errorMessage = "Invalid verification code. Please check your code and try again.";
+    } else if (verifyResponse.statusCode == 401) {
+      errorType = 'AUTH_ERROR: Invalid or expired verification token';
+      errorMessage = "Your verification link has expired. Please request a new verification email.";
+    } else if (verifyResponse.statusCode == 403) {
+      errorType = 'FORBIDDEN_ERROR: Email verification blocked';
+      errorMessage = "Email verification is not allowed for this account.";
+    } else if (verifyResponse.statusCode == 404) {
+      errorType = 'NOT_FOUND_ERROR: Verification token or user not found';
+      errorMessage = "Verification link is invalid or has already been used.";
+    } else if (verifyResponse.statusCode == 422) {
+      errorType = 'VALIDATION_ERROR: Invalid email verification data';
+      try {
+        final responseBody = jsonDecode(verifyResponse.body);
+        if (responseBody != null && responseBody['message'] != null) {
+          errorMessage = responseBody['message'];
+        } else if (responseBody != null && responseBody['errors'] != null) {
+          var errors = responseBody['errors'];
+          if (errors is Map) {
+            errorMessage = errors.values.join(', ');
+          } else {
+            errorMessage = "Please check your verification code and try again.";
+          }
+        } else {
+          errorMessage = "Please check your verification code and try again.";
         }
-      } else if (data.containsKey('message')) {
-        errorMessage = data['message'];
+      } catch (e) {
+        errorMessage = "Please check your verification code and try again.";
       }
-      
-      throw Exception(errorMessage);
+    } else if (verifyResponse.statusCode >= 500 && verifyResponse.statusCode <= 599) {
+      errorType = 'SERVER_ERROR: Email verification service unavailable';
+      errorMessage = "We're experiencing technical difficulties. Please try again later.";
+    } else {
+      errorType = 'UNKNOWN_EMAIL_VERIFICATION_ERROR';
+      errorMessage = "Email verification failed. Please try again.";
     }
+    
+    loggy.error('Email Verification Failed: $errorType | Details: ${verifyResponse.body}');
+    throw Exception(errorMessage);
+    
+  } on SocketException {
+    loggy.error('Email Verification Network Error: No internet connection');
+    throw Exception("No internet connection. Please check your network and try again.");
+  } on TimeoutException {
+    loggy.error('Email Verification Network Error: Connection timed out');
+    throw Exception("Connection timed out. Please check your network and try again.");
+  } on FormatException {
+    loggy.error('Email Verification Parsing Error: Invalid server response format');
+    throw Exception("Invalid response from server. Please try again.");
   } catch (e) {
-loggy.error("Exception during email verification: $e");
-    throw Exception(e.toString());
+    if (e.toString().contains('Connection refused') || e.toString().contains('Failed host lookup')) {
+      loggy.error('Email Verification Network Error: Unable to connect to server');
+      throw Exception("Unable to connect to server. Please check your network and try again.");
+    }
+    loggy.error("Unexpected error during email verification: $e");
+    throw Exception("Email verification failed. Please try again.");
   }
 }
 
@@ -200,24 +362,103 @@ loggy.error("Exception during email verification: $e");
     required String password,
     required String confirmPassword,
   }) async {
-    final response = await http.post(
-      Uri.parse('https://api.airqo.net/api/v2/users/reset-password/$token'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'password': password,
-        'confirmPassword': confirmPassword,
-      }),
-    );
+    try {
+      final response = await http.post(
+        Uri.parse('https://api.airqo.net/api/v2/users/reset-password/$token'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'password': password,
+          'confirmPassword': confirmPassword,
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      return data['message'] ?? 'Password reset successful.';
-    } else {
-      final error =
-          jsonDecode(response.body)['message'] ?? 'Failed to reset password.';
-      throw Exception(error);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['message'] ?? 'Password reset successful.';
+      } else {
+        loggy.error("Password update failed - Status: ${response.statusCode}, Body: ${response.body}");
+        
+        String errorMessage;
+        String errorType;
+        
+        switch (response.statusCode) {
+          case 400:
+            errorType = 'VALIDATION_ERROR: Invalid password or token';
+            try {
+              final errorData = jsonDecode(response.body);
+              errorMessage = errorData['message'] ?? 'Password requirements not met. Please check your password and try again.';
+            } catch (e) {
+              errorMessage = 'Password requirements not met. Please check your password and try again.';
+            }
+            break;
+          case 401:
+            errorType = 'AUTH_ERROR: Invalid or expired reset token';
+            errorMessage = 'Your password reset link has expired. Please request a new password reset.';
+            break;
+          case 403:
+            errorType = 'FORBIDDEN_ERROR: Password reset forbidden';
+            errorMessage = 'Password reset is not allowed for this account.';
+            break;
+          case 404:
+            errorType = 'NOT_FOUND_ERROR: Reset token not found';
+            errorMessage = 'Invalid reset link. Please request a new password reset.';
+            break;
+          case 422:
+            errorType = 'VALIDATION_ERROR: Password validation failed';
+            try {
+              final errorData = jsonDecode(response.body);
+              if (errorData['message'] != null) {
+                errorMessage = errorData['message'];
+              } else if (errorData['errors'] != null) {
+                var errors = errorData['errors'];
+                if (errors is Map) {
+                  errorMessage = errors.values.join(', ');
+                } else {
+                  errorMessage = 'Password does not meet requirements. Please try a stronger password.';
+                }
+              } else {
+                errorMessage = 'Password does not meet requirements. Please try a stronger password.';
+              }
+            } catch (e) {
+              errorMessage = 'Password does not meet requirements. Please try a stronger password.';
+            }
+            break;
+          case 500:
+          case 502:
+          case 503:
+            errorType = 'SERVER_ERROR: Password update service unavailable';
+            errorMessage = 'We\'re experiencing technical difficulties. Please try again later.';
+            break;
+          default:
+            errorType = 'UNKNOWN_PASSWORD_UPDATE_ERROR';
+            try {
+              final errorData = jsonDecode(response.body);
+              errorMessage = errorData['message'] ?? 'Failed to reset password. Please try again.';
+            } catch (e) {
+              errorMessage = 'Failed to reset password. Please try again.';
+            }
+        }
+        
+        loggy.error('Password Update Failed: $errorType | Details: ${response.body}');
+        throw Exception(errorMessage);
+      }
+    } on SocketException {
+      loggy.error('Password Update Network Error: No internet connection');
+      throw Exception("No internet connection. Please check your network and try again.");
+    } on TimeoutException {
+      loggy.error('Password Update Network Error: Connection timed out');
+      throw Exception("Connection timed out. Please check your network and try again.");
+    } on FormatException {
+      loggy.error('Password Update Parsing Error: Invalid server response format');
+      throw Exception("Invalid response from server. Please try again.");
+    } catch (e) {
+      if (e.toString().contains('Connection refused') || e.toString().contains('Failed host lookup')) {
+        loggy.error('Password Update Network Error: Unable to connect to server');
+        throw Exception("Unable to connect to server. Please check your network and try again.");
+      }
+      rethrow;
     }
   }
 
