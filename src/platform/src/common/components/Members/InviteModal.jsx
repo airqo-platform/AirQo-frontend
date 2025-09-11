@@ -7,9 +7,10 @@ import {
 import PropTypes from 'prop-types';
 import { useState } from 'react';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
+import Button from '@/common/components/Button';
 import { inviteUserToGroupTeam } from '@/core/apis/Account';
 import logger from '@/lib/logger';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 
 const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
   const [inviteEmails, setInviteEmails] = useState(['']);
@@ -39,31 +40,29 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
 
   const handleInviteMembers = async () => {
     if (!groupId) {
-      CustomToast({ message: 'No group selected', type: 'warning' });
+      NotificationService.warning(null, 'No group selected');
       return;
     }
     const validEmails = inviteEmails.filter((e) => e.trim());
     if (!validEmails.length) {
-      CustomToast({ message: 'Enter at least one email', type: 'warning' });
+      NotificationService.warning(null, 'Enter at least one email');
       return;
     }
     const invalid = validEmails.filter(
       (e) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e),
     );
     if (invalid.length) {
-      CustomToast({
-        message: `Invalid emails: ${invalid.join(', ')}`,
-        type: 'error',
-      });
+      NotificationService.error(null, `Invalid emails: ${invalid.join(', ')}`);
       return;
     }
 
     setInviteLoading(true);
     try {
       const res = await inviteUserToGroupTeam(groupId, { emails: validEmails });
+
       if (res.success) {
         const msg = 'Invitation(s) sent successfully.';
-        CustomToast({ message: msg, type: 'success' });
+        NotificationService.success(res.status || 200, msg);
         handleClose();
       } else {
         // If API returns errors in the response, handle them
@@ -92,7 +91,17 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
             }
           }
         }
-        throw new Error(msg);
+        const status = res.status || null;
+        // For server errors, show a friendly message
+        if (status === 500) {
+          NotificationService.error(
+            500,
+            'Something went wrong on our servers. Please try again later.',
+          );
+        } else {
+          NotificationService.error(status, msg);
+        }
+        return;
       }
     } catch (e) {
       logger.error('Invite error', e);
@@ -126,7 +135,15 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
           msg = apiData.message;
         }
       }
-      CustomToast({ message: msg, type: 'error' });
+      const status = apiData?.status || e.response?.status || null;
+      if (status === 500) {
+        NotificationService.error(
+          500,
+          'Something went wrong on our servers. Please try again later.',
+        );
+      } else {
+        NotificationService.error(status, msg);
+      }
     } finally {
       setInviteLoading(false);
     }
@@ -151,24 +168,33 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
       ariaLabel="Invite Team Members"
       ariaDescribedBy={undefined}
       className=""
-      primaryAction={{
-        label: inviteLoading
-          ? 'Sending...'
-          : `Send ${validEmailsCount} ${validEmailsCount === 1 ? 'Invitation' : 'Invitations'}`,
-        onClick: handleInviteMembers,
-        disabled: inviteLoading || validEmailsCount === 0,
-        className:
-          'text-sm bg-primary hover:bg-primary/90 focus:ring-primary text-white disabled:opacity-50',
-        padding: 'px-4 py-2',
-      }}
-      secondaryAction={{
-        label: 'Cancel',
-        onClick: handleClose,
-        variant: 'outlined',
-        disabled: inviteLoading,
-        className: 'text-sm',
-        padding: 'px-4 py-2',
-      }}
+      customFooter={
+        <div className="flex items-center justify-end space-x-3">
+          <Button
+            variant="outlined"
+            size="md"
+            onClick={handleClose}
+            disabled={inviteLoading}
+            paddingStyles="px-4 py-2"
+            className="text-sm"
+          >
+            Cancel
+          </Button>
+
+          <Button
+            size="md"
+            onClick={handleInviteMembers}
+            loading={inviteLoading}
+            disabled={inviteLoading || validEmailsCount === 0}
+            paddingStyles="px-4 py-2"
+            className="text-sm"
+          >
+            {inviteLoading
+              ? 'Sending...'
+              : `Send ${validEmailsCount} ${validEmailsCount === 1 ? 'Invitation' : 'Invitations'}`}
+          </Button>
+        </div>
+      }
     >
       <div className="space-y-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
