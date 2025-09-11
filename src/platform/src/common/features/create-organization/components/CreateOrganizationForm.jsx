@@ -4,7 +4,7 @@ import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 import TextInputField from '@/common/components/TextInputField';
 import SelectField from '@/common/components/SelectField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import {
   validateStep1,
   validateStep2,
@@ -123,10 +123,7 @@ const CreateOrganizationForm = ({
       }
     };
     reader.onerror = () => {
-      CustomToast({
-        message: 'Error reading file for preview.',
-        type: 'error',
-      });
+      NotificationService.error(500, 'Error reading file for preview.');
       setLogoPreview(''); // Clear preview on error
     };
     reader.readAsDataURL(file);
@@ -186,12 +183,11 @@ const CreateOrganizationForm = ({
         return;
       }
 
-      CustomToast({
-        message:
-          error?.message ||
+      NotificationService.error(
+        500,
+        error?.message ||
           'Failed to submit organization request. Please try again.',
-        type: 'error',
-      });
+      );
     },
     [
       currentStep,

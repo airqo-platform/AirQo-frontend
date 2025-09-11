@@ -4,7 +4,7 @@ import {
   getOrganisationSlugAvailabilityApi,
 } from '@/core/apis/Account';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import logger from '@/lib/logger';
 import { transformFormDataForAPI } from '../utils/formUtils';
 
@@ -49,7 +49,8 @@ export const useCreateOrganization = () => {
     } catch (err) {
       const msg =
         err?.response?.data?.message || err.message || 'Error checking URL';
-      CustomToast({ message: msg, type: 'error' });
+      const statusCode = err?.response?.status || err?.status || 500;
+      NotificationService.error(statusCode, msg);
       logger.error('Slug availability check error:', err);
       setSlugAvailability(null);
       setSlugSuggestions([]);
@@ -85,7 +86,8 @@ export const useCreateOrganization = () => {
     } catch (err) {
       const msg =
         err?.response?.data?.message || err.message || 'Image upload failed';
-      CustomToast({ message: msg, type: 'error' });
+      const statusCode = err?.response?.status || err?.status || 500;
+      NotificationService.error(statusCode, msg);
       logger.error('Cloudinary upload error:', err);
       return '';
     }
@@ -118,18 +120,20 @@ export const useCreateOrganization = () => {
         });
 
         // send it
-        await createOrganisationRequestApi(payload);
-        CustomToast({
-          message: 'Organization request submitted successfully!',
-          type: 'success',
-        });
+        const response = await createOrganisationRequestApi(payload);
+        const statusCode = response?.status || 201;
+        NotificationService.success(
+          statusCode,
+          'Organization request submitted successfully!',
+        );
         return { success: true };
       } catch (err) {
         const msg =
           err?.response?.data?.message ||
           err.message ||
           'Failed to submit request';
-        CustomToast({ message: msg, type: 'error' });
+        const statusCode = err?.response?.status || err?.status || 500;
+        NotificationService.error(statusCode, msg);
         logger.error('Org creation error:', err);
         return { success: false, error: err };
       } finally {

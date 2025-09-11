@@ -222,9 +222,18 @@ const createSecureApiClient = () => {
     },
   );
 
-  // Optimized response interceptor
+  // Enhanced response interceptor to preserve status codes
   instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      // Ensure response data includes status code for NotificationService
+      if (response.data && typeof response.data === 'object') {
+        // Add status code to response data if not already present
+        if (!response.data.status && !response.data.statusCode) {
+          response.data.status = response.status;
+        }
+      }
+      return response;
+    },
     (error) => {
       const status = error.response?.status;
 

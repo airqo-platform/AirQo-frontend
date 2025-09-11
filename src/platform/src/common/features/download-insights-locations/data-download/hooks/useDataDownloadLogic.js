@@ -6,7 +6,7 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 
 // Message types for footer component
@@ -543,10 +543,7 @@ export const useDataDownloadLogic = () => {
 
           await processDownloadResponse(response, formData, selectedColumns);
 
-          CustomToast({
-            message: 'Data downloaded successfully!',
-            type: 'success',
-          });
+          NotificationService.success(200, 'Data downloaded successfully!');
 
           onClearSelection();
           onClose();

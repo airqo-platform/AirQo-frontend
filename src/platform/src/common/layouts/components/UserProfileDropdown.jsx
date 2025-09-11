@@ -31,7 +31,7 @@ const MyProfileDropdown = ({
     } catch {
       return {};
     }
-  });
+  }, []);
   const userInfo = useMemo(
     () => ({ ...(session?.user || {}), ...reduxUserInfo }),
     [session, reduxUserInfo],

@@ -54,7 +54,7 @@ const GlobalSideBarDrawer = () => {
     } catch {
       return false;
     }
-  });
+  }, []);
 
   const isGlobalDrawerOpen = useSelector((state) => {
     try {
@@ -62,7 +62,7 @@ const GlobalSideBarDrawer = () => {
     } catch {
       return false;
     }
-  });
+  }, []);
   // Show global sidebar if either desktop or mobile state is open
   const togglingGlobalDrawer = isGlobalSidebarOpen || isGlobalDrawerOpen;
 
