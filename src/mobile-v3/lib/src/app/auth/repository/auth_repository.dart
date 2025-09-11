@@ -37,16 +37,38 @@ class AuthImpl extends AuthRepository {
           });
 
       if (loginResponse.statusCode == 200) {
-        Map<String, dynamic> data = json.decode(loginResponse.body);
-        String userId = data["_id"];
-        String token = data["token"];
+        Map<String, dynamic> data;
+        try {
+          data = json.decode(loginResponse.body);
+        } catch (e) {
+          loggy.error("Login response parsing failed: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}");
+          throw Exception("Invalid response from server. Please try again.");
+        }
+        
+        if (data.isEmpty) {
+          loggy.error("Login response is empty: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}");
+          throw Exception("Invalid response format from server. Please try again.");
+        }
+        
+        final userId = data["_id"];
+        final token = data["token"];
+        
+        if (userId == null || userId is! String || userId.trim().isEmpty) {
+          loggy.error("Login response missing or invalid userId: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}");
+          throw Exception("Authentication failed. Invalid user data received.");
+        }
+        
+        if (token == null || token is! String || token.trim().isEmpty) {
+          loggy.error("Login response missing or invalid token: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}");
+          throw Exception("Authentication failed. Invalid token received.");
+        }
 
         HiveRepository.saveData(HiveBoxNames.authBox, "token", token);
         HiveRepository.saveData(HiveBoxNames.authBox, "userId", userId);
         
-        return data["token"];
+        return token;
       } else {
-        loggy.error("Login failed - Status: ${loginResponse.statusCode}, Body: ${loginResponse.body}");
+        loggy.error("Login failed - Status: ${loginResponse.statusCode}, BodyLength: ${loginResponse.body.length}");
         
         String errorMessage;
         String errorType;
@@ -108,7 +130,7 @@ class AuthImpl extends AuthRepository {
             }
         }
         
-        loggy.error('Login Failed: $errorType | Details: ${loginResponse.body}');
+        loggy.error('Login Failed: $errorType | Status: ${loginResponse.statusCode}, BodyLength: ${loginResponse.body.length}');
         throw Exception(errorMessage);
       }
     } on SocketException {
@@ -136,7 +158,7 @@ class AuthImpl extends AuthRepository {
       if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
         return;
       } else {
-        loggy.error("Registration failed - Status: ${registerResponse.statusCode}, Body: ${registerResponse.body}");
+        loggy.error("Registration failed - Status: ${registerResponse.statusCode}, BodyLength: ${registerResponse.body.length}");
         
         String errorMessage;
         
@@ -199,7 +221,7 @@ class AuthImpl extends AuthRepository {
               data['message'] ?? 'Failed to send password reset request.');
         }
       } else {
-        loggy.error("Password reset request failed - Status: ${response.statusCode}, Body: ${response.body}");
+        loggy.error("Password reset request failed - Status: ${response.statusCode}, BodyLength: ${response.body.length}");
         
         String errorMessage;
         String errorType;
@@ -246,7 +268,7 @@ class AuthImpl extends AuthRepository {
             }
         }
         
-        loggy.error('Password Reset Request Failed: $errorType | Details: ${response.body}');
+        loggy.error('Password Reset Request Failed: $errorType | Status: ${response.statusCode}, BodyLength: ${response.body.length}');
         throw Exception(errorMessage);
       }
     } on SocketException {
@@ -289,7 +311,7 @@ Future<void> verifyEmailCode(String token, String email) async {
       return;
     }
     
-    loggy.error("Email verification failed - Status: ${verifyResponse.statusCode}, Body: ${verifyResponse.body}");
+    loggy.error("Email verification failed - Status: ${verifyResponse.statusCode}, BodyLength: ${verifyResponse.body.length}");
     
     String errorMessage;
     String errorType;
@@ -333,7 +355,7 @@ Future<void> verifyEmailCode(String token, String email) async {
       errorMessage = "Email verification failed. Please try again.";
     }
     
-    loggy.error('Email Verification Failed: $errorType | Details: ${verifyResponse.body}');
+    loggy.error('Email Verification Failed: $errorType | Status: ${verifyResponse.statusCode}, BodyLength: ${verifyResponse.body.length}');
     throw Exception(errorMessage);
     
   } on SocketException {
@@ -378,7 +400,7 @@ Future<void> verifyEmailCode(String token, String email) async {
         final data = jsonDecode(response.body);
         return data['message'] ?? 'Password reset successful.';
       } else {
-        loggy.error("Password update failed - Status: ${response.statusCode}, Body: ${response.body}");
+        loggy.error("Password update failed - Status: ${response.statusCode}, BodyLength: ${response.body.length}");
         
         String errorMessage;
         String errorType;
@@ -441,7 +463,7 @@ Future<void> verifyEmailCode(String token, String email) async {
             }
         }
         
-        loggy.error('Password Update Failed: $errorType | Details: ${response.body}');
+        loggy.error('Password Update Failed: $errorType | Status: ${response.statusCode}, BodyLength: ${response.body.length}');
         throw Exception(errorMessage);
       }
     } on SocketException {
