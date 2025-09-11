@@ -21,6 +21,7 @@ import {
 } from '../components/MapNodes';
 import { images } from '../constants/mapConstants';
 import logger from '@/lib/logger';
+import NotificationService from '@/core/utils/notificationService';
 
 // Enhanced constants for better performance
 const CONSTANTS = {
@@ -133,7 +134,7 @@ const useMapData = (params = {}) => {
     );
   }, []);
 
-  // Enhanced error handling
+  // Enhanced error handling with status-based notifications
   const handleError = useCallback((type, error) => {
     // Don't log or set error state for aborted requests
     if (error.name === 'AbortError') {
@@ -143,6 +144,31 @@ const useMapData = (params = {}) => {
 
     logger.error(`${type} error:`, error);
     setErrors((prev) => ({ ...prev, [type]: error.message }));
+
+    // Show user-friendly notification based on error status
+    const statusCode = error?.response?.status || error?.status || 500;
+    let customMessage = null;
+
+    // Provide specific context for map data errors
+    if (type === 'mapReading') {
+      customMessage =
+        statusCode >= 500
+          ? 'Unable to load air quality data. Our servers are experiencing issues.'
+          : statusCode === 403
+            ? 'You do not have permission to access this air quality data.'
+            : statusCode === 404
+              ? 'Air quality data not found for this location.'
+              : null; // Use default status message
+    } else if (type === 'waqi') {
+      customMessage =
+        statusCode >= 500
+          ? 'Unable to load global air quality data. Service temporarily unavailable.'
+          : statusCode === 403
+            ? 'Access to global air quality data is restricted.'
+            : null; // Use default status message
+    }
+
+    NotificationService.handleApiError(error, customMessage);
   }, []);
 
   // Optimized feature creation with validation

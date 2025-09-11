@@ -14,7 +14,7 @@ import {
 } from '@airqo/icons-react';
 import { useDispatch } from 'react-redux';
 import CardWrapper from '@/common/components/CardWrapper';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { useOrganizationTheme } from '@/core/hooks/useOrganizationTheme';
 import { setOrganizationTheme } from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
 import AppearanceSettingsFormSkeleton from './AppearanceSettingsFormSkeleton';
@@ -105,10 +105,10 @@ const AppearanceSettingsForm = forwardRef(
 
         // Store organization theme in Redux after successful update
         dispatch(setOrganizationTheme(formattedThemeData));
-        CustomToast({
-          message: 'Appearance settings updated successfully',
-          type: 'success',
-        });
+        NotificationService.success(
+          201,
+          'Appearance settings updated successfully',
+        );
 
         // Reset unsaved changes after successful save
         setHasUnsavedChanges(false);
@@ -116,10 +116,10 @@ const AppearanceSettingsForm = forwardRef(
 
         onSave(); // Call parent save handler
       } catch (error) {
-        CustomToast({
-          message: error.message || 'Failed to update appearance settings',
-          type: 'error',
-        });
+        NotificationService.handleApiError(
+          error,
+          'Failed to update appearance settings',
+        );
       }
     }; // Expose handleSave, isUpdating, and hasUnsavedChanges to parent component - MUST be before any conditional returns
     useImperativeHandle(ref, () => ({

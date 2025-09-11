@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const path = require('path');
+const path = require('path'); // eslint-disable-line @typescript-eslint/no-require-imports
 
 const nextConfig = {
   // Core settings

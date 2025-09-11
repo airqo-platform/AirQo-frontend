@@ -3,7 +3,7 @@ import { AqUser02, AqPlus } from '@airqo/icons-react';
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ReusableDialog from '@/components/Modal/ReusableDialog';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { createClientApi } from '@/core/apis/Settings';
 import { addClients, performRefresh } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
@@ -48,13 +48,13 @@ const AddClientForm = ({ open, closeModal }) => {
     setLoading(true);
 
     if (!clientName) {
-      CustomToast({ message: "Client name can't be empty", type: 'error' });
+      NotificationService.error(422, "Client name can't be empty");
       setLoading(false);
       return;
     }
 
     if (!userId) {
-      CustomToast({ message: 'User ID is required', type: 'error' });
+      NotificationService.error(422, 'User ID is required');
       setLoading(false);
       return;
     }
@@ -78,18 +78,14 @@ const AddClientForm = ({ open, closeModal }) => {
         if (res.success === true) {
           dispatch(addClients(res.users[0].clients));
         }
-        CustomToast({
-          message: 'Client created successfully',
-          type: 'success',
-        });
+        NotificationService.success(201, 'Client created successfully');
       }
       dispatch(performRefresh());
       closeModal();
     } catch (error) {
-      CustomToast({
-        message: error?.response?.data?.message || 'Failed to create client',
-        type: 'error',
-      });
+      // Use status code from error response or default to 500
+      const statusCode = error?.response?.status || 500;
+      NotificationService.handleApiError(error, statusCode);
     } finally {
       setLoading(false);
     }

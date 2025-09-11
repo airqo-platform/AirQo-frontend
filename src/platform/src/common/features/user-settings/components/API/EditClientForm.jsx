@@ -6,7 +6,7 @@ import { AqUser02, AqPlus } from '@airqo/icons-react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 
 import ReusableDialog from '@/components/Modal/ReusableDialog';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import InputField from '@/common/components/InputField';
 import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
 import { getUserDetails } from '@/core/apis/Account';
@@ -68,11 +68,11 @@ const EditClientForm = ({ open, closeModal, data }) => {
 
   const submit = async () => {
     if (!clientName.trim()) {
-      CustomToast({ message: "Client name can't be empty", type: 'error' });
+      NotificationService.error(422, "Client name can't be empty");
       return;
     }
     if (!userId) {
-      CustomToast({ message: 'User ID is required', type: 'error' });
+      NotificationService.error(422, 'User ID is required');
       return;
     }
 
@@ -97,13 +97,12 @@ const EditClientForm = ({ open, closeModal, data }) => {
       dispatch(addClients(userRes.users[0].clients));
       dispatch(addClientsDetails(clientsRes.clients));
 
-      CustomToast({ message: 'Client updated successfully', type: 'success' });
+      NotificationService.success(200, 'Client updated successfully');
       closeModal();
     } catch (e) {
-      CustomToast({
-        message: e?.response?.data?.message || 'Failed to update client',
-        type: 'error',
-      });
+      // Use status code from error response or default to 500
+      const statusCode = e?.response?.status || 500;
+      NotificationService.handleApiError(e, statusCode);
     } finally {
       setLoading(false);
     }

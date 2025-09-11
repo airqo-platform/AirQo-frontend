@@ -5,6 +5,7 @@ import { setMapLoading } from '@/lib/store/services/map/MapSlice';
 import { createMapboxConfig } from '../utils/mapConfig';
 import { createDebouncer } from '../utils/mapHelpers';
 import { MAP_CONFIG } from '../constants/mapConstants';
+import NotificationService from '@/core/utils/notificationService';
 
 /**
  * Hook for map initialization and event handling
@@ -21,7 +22,6 @@ export const useMapInitialization = ({
   clusterUpdate,
   addControls,
   ensureControls,
-  onToastMessage,
 }) => {
   const dispatch = useDispatch();
   const mapInitializedRef = useRef(false);
@@ -43,12 +43,9 @@ export const useMapInitialization = ({
 
     setTimeout(() => {
       fetchAndProcessData()
-        .catch(() => {
-          onToastMessage?.({
-            message: 'Failed to load map data',
-            type: 'error',
-            bgColor: 'bg-red-500',
-          });
+        .catch((error) => {
+          // Use status-based notification instead of legacy toast
+          NotificationService.handleApiError(error, 'Failed to load map data');
         })
         .finally(() => {
           dispatch(setMapLoading(false));
@@ -56,14 +53,7 @@ export const useMapInitialization = ({
           ensureControls();
         });
     }, MAP_CONFIG.TIMEOUTS.DATA_FETCH_DELAY);
-  }, [
-    mapRef,
-    addControls,
-    fetchAndProcessData,
-    dispatch,
-    ensureControls,
-    onToastMessage,
-  ]);
+  }, [mapRef, addControls, fetchAndProcessData, dispatch, ensureControls]);
 
   const setupMapEventHandlers = useCallback(
     (map) => {

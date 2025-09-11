@@ -8,7 +8,7 @@ import Button from '@/common/components/Button';
 import Card from '@/common/components/CardWrapper';
 import InputField from '@/common/components/InputField';
 import TextField from '@/common/components/TextInputField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import ProfileSkeleton from '../components/ProfileSkeleton';
 import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
@@ -171,17 +171,17 @@ export default function Profile() {
 
     const allowed = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'];
     if (!allowed.includes(file.type)) {
-      CustomToast({
-        message: 'Invalid image type. Please use JPEG, PNG, SVG, or WebP.',
-        type: 'error',
-      });
+      NotificationService.error(
+        422,
+        'Invalid image type. Please use JPEG, PNG, SVG, or WebP.',
+      );
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      CustomToast({
-        message: 'Image size exceeds 5MB. Please choose a smaller image.',
-        type: 'error',
-      });
+      NotificationService.error(
+        413,
+        'Image size exceeds 5MB. Please choose a smaller image.',
+      );
       return;
     }
 
@@ -199,10 +199,10 @@ export default function Profile() {
       setSelectedImageBlob(blob);
       setLocalImagePreview(cropped);
     } catch (err) {
-      CustomToast({
-        message: `Image processing failed: ${err.message || 'An unknown error occurred.'}`,
-        type: 'error',
-      });
+      NotificationService.error(
+        500,
+        `Image processing failed: ${err.message || 'An unknown error occurred.'}`,
+      );
       setLocalImagePreview(null);
       setImageError(true);
     } finally {
@@ -233,10 +233,10 @@ export default function Profile() {
           throw new Error('No URL received from Cloudinary upload.');
         }
       } catch (err) {
-        CustomToast({
-          message: `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
-          type: 'error',
-        });
+        NotificationService.error(
+          500,
+          `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
+        );
         setIsSaving(false);
         setProfileUploading(false);
         return;
@@ -254,10 +254,7 @@ export default function Profile() {
       err.inner.forEach((z) => (errs[z.path] = z.message));
       setValidationErrors(errs);
       setIsSaving(false);
-      CustomToast({
-        message: 'Please correct the validation errors.',
-        type: 'error',
-      });
+      NotificationService.error(422, 'Please correct the validation errors.');
       return;
     }
 
