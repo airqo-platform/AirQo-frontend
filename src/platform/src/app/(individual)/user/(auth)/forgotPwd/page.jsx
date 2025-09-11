@@ -3,9 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import AccountPageLayout from '@/common/components/Account/Layout';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import CustomToast, { TOAST_TYPES } from '@/common/components/Toast';
 import { forgotPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
 import Button from '@/common/components/Button';

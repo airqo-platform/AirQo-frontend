@@ -801,6 +801,7 @@ const DataTable = ({
           {showViewDataButton && (
             <Button
               variant="text"
+              Icon={AqBarChart07}
               onClick={onViewDataClick}
               disabled={isLoadingVisualizationData}
               className={`flex items-center gap-2 ${
@@ -809,7 +810,6 @@ const DataTable = ({
                   : 'text-primary hover:bg-primary/10'
               }`}
             >
-              <AqBarChart07 size={16} />
               {isLoadingVisualizationData
                 ? 'Loading Sites...'
                 : 'Visualize Data'}

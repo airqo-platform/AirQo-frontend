@@ -8,9 +8,7 @@ import * as Yup from 'yup';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
 
 import AccountPageLayout from '@/common/components/Account/Layout';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import CustomToast, { TOAST_TYPES } from '@/common/components/Toast';
 import InputField from '@/common/components/InputField';
 import Button from '@/common/components/Button';
 import { setUserData } from '@/lib/store/services/account/LoginSlice';

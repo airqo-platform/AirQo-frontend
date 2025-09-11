@@ -2,9 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import AccountPageLayout from '@/common/components/Account/Layout';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import CustomToast, { TOAST_TYPES } from '@/common/components/Toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { resetPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';

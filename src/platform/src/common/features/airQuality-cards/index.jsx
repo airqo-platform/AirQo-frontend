@@ -9,9 +9,7 @@ import { MAX_CARDS } from './constants';
 import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import CustomToast, { TOAST_TYPES } from '@/common/components/Toast';
 
 /**
  * Validates MongoDB ObjectId format
