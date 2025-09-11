@@ -80,19 +80,20 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
         errorType = 'UNKNOWN_USER_LOAD_ERROR';
       }
       
-      loggy.error('UserBloc LoadUserWithRetry Failed (attempt ${event.retryCount + 1}): $errorType | Details: $specificError');
+      final nextAttempt = event.retryCount + 1;
+      loggy.error('UserBloc LoadUserWithRetry Failed (attempt $nextAttempt): $errorType | Details: $specificError');
       
-      if (event.retryCount < maxRetries) {
+      if (nextAttempt <= maxRetries) {
         final delayMs = baseDelayMs * (1 << event.retryCount);
-        loggy.info('Retrying LoadUser in ${delayMs}ms (attempt ${event.retryCount + 1}/$maxRetries)');
+        loggy.info('Scheduling retry attempt $nextAttempt/$maxRetries in ${delayMs}ms');
         
         Future.delayed(Duration(milliseconds: delayMs), () {
-          add(LoadUserWithRetry(retryCount: event.retryCount + 1));
+          add(LoadUserWithRetry(retryCount: nextAttempt));
         });
         
-        emit(UserLoadingError(e.toString(), retryCount: event.retryCount + 1, canRetry: true));
+        emit(UserLoadingError(e.toString(), retryCount: nextAttempt, canRetry: true));
       } else {
-        loggy.error('Max retries ($maxRetries) reached for LoadUser. Manual retry required.');
+        loggy.error('Max retries ($maxRetries) reached for LoadUser.');
         emit(UserLoadingError(e.toString(), retryCount: event.retryCount, canRetry: false));
       }
     }
