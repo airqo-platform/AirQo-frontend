@@ -1,5 +1,4 @@
 import { AqSave01, AqEdit05, AqRefreshCcw01 } from '@airqo/icons-react';
-import Spinner from '@/common/components/Spinner';
 import { format } from 'date-fns';
 import Button from '@/common/components/Button';
 import CardWrapper from '@/common/components/CardWrapper';
@@ -34,17 +33,11 @@ const SettingsSidebar = ({
           {activeTab !== 'domain' && (
             <Button
               onClick={onSave}
-              disabled={isSaving || !hasUnsavedChanges}
+              disabled={!hasUnsavedChanges || isSaving}
+              loading={isSaving}
               variant={isSaving || !hasUnsavedChanges ? 'disabled' : 'filled'}
-              Icon={
-                !isSaving
-                  ? AqSave01
-                  : () => (
-                      <span className="mr-1">
-                        <Spinner size={18} />
-                      </span>
-                    )
-              }
+              Icon={AqSave01}
+              fullWidth
             >
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
@@ -58,10 +51,12 @@ const SettingsSidebar = ({
                 }
               }}
               disabled={isDomainUpdating || !hasUnsavedChanges}
+              loading={isDomainUpdating}
               variant={
                 isDomainUpdating || !hasUnsavedChanges ? 'disabled' : 'filled'
               }
-              Icon={isDomainUpdating ? () => <Spinner size={18} /> : AqEdit05}
+              Icon={AqEdit05}
+              fullWidth
             >
               {isDomainUpdating ? 'Updating URL...' : 'Update URL'}
             </Button>
@@ -74,9 +69,11 @@ const SettingsSidebar = ({
               <Button
                 onClick={onReset}
                 variant="outlined"
-                className="w-full py-3 px-4 flex items-center justify-center rounded-lg font-semibold transition-all duration-200 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                fullWidth
+                size="lg"
+                Icon={AqRefreshCcw01}
+                className="font-semibold"
               >
-                <AqRefreshCcw01 className="mr-2 h-4 w-4" />
                 Discard Changes
               </Button>
             )}
