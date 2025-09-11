@@ -1,7 +1,7 @@
 'use client';
 
 import PropTypes from 'prop-types';
-import { AqLoading01 } from '@airqo/icons-react';
+import { AqLoading02 } from '@airqo/icons-react';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 
 export default function LoadingSpinner({
@@ -29,7 +29,7 @@ export default function LoadingSpinner({
     );
   };
 
-  // Custom loader using AqLoading01 icon
+  // Custom loader using AqLoading02 icon
   const renderCustomLoader = () => {
     const style = {
       color: primaryColor,
@@ -41,7 +41,7 @@ export default function LoadingSpinner({
       style.height = `${size}px`;
     }
 
-    return <AqLoading01 className="animate-spin" style={style} />;
+    return <AqLoading02 className="animate-spin" style={style} />;
   };
 
   // Calculate text size based on spinner size

@@ -177,8 +177,12 @@ const OrganizationMembersPage = () => {
           <p className="text-sm text-gray-500">Manage your team</p>
         </div>
         {canInvite && (
-          <Button onClick={() => setShowInviteModal(true)} variant="filled">
-            <FaUserPlus className="mr-2" /> Invite Member
+          <Button
+            Icon={FaUserPlus}
+            onClick={() => setShowInviteModal(true)}
+            variant="filled"
+          >
+            Invite Member
           </Button>
         )}
       </div>

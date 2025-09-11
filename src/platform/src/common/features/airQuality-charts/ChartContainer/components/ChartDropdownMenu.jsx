@@ -16,7 +16,7 @@ import {
   AqBarChart12,
   AqCheck,
   AqAlertCircle,
-  AqLoading01,
+  AqLoading02,
 } from '@airqo/icons-react';
 import logger from '@/lib/logger';
 
@@ -231,7 +231,7 @@ const ChartDropdownMenu = ({
 
   // Loading spinner component
   const LoadingSpinner = useMemo(
-    () => <AqLoading01 className="h-4 w-4 animate-spin" />,
+    () => <AqLoading02 className="h-4 w-4 animate-spin" />,
     [],
   );
 
