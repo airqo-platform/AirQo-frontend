@@ -68,7 +68,13 @@ const nextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://api.mapbox.com; img-src 'self' data: https: blob:; connect-src 'self' https:; object-src 'none'; font-src 'self' data:;",
+              "default-src 'self'; " +
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
+              "worker-src 'self' blob: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
+              "style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com https://maps.gstatic.com; " +
+              "img-src 'self' data: https: blob: https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com; " +
+              "connect-src 'self' https: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
+              "object-src 'none'; font-src 'self' data:;",
           },
         ],
       },
