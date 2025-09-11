@@ -1,109 +1,116 @@
 export const AQI_FOR_CITIES = [
-  // Asia
+  /* ---------------  Asia --------------- */
   'Delhi',
   'Mumbai',
   'Bangkok',
   'Jakarta',
   'Seoul',
   'Tokyo',
+  'Manila', // NEW
+  'Ho Chi Minh', // NEW
 
-  // China
-  'Hong Kong',
-  'Shanghai',
+  /* ---------------  China --------------- */
   'Beijing',
+  'Shanghai',
   'Guangzhou',
   'Shenzhen',
   'Chengdu',
   'Chongqing',
-  'Tianjin',
+  'Hangzhou',
   'Wuhan',
   'Nanjing',
-  'Hangzhou',
+  'Tianjin',
   'Suzhou',
-  'Qingdao',
-  'Dalian',
-  'Xiamen',
-  'Changsha',
-  'Zhengzhou',
-  'Shenyang',
-  'Changchun',
-  'Harbin',
-  'Hefei',
-  'Fuzhou',
-  'Nanning',
-  'Kunming',
+  'Xi-an', // NEW
+  'Xiamen', // kept (exists)
 
-  // Canada
+  /* ---------------  Canada --------------- */
+  'Toronto', // NEW
   'Vancouver',
-  'Calgary',
 
-  // Europe
-  'Moscow',
+  /* ---------------  Europe --------------- */
   'London',
-  'Istanbul',
   'Paris',
   'Berlin',
   'Rome',
   'Madrid',
-  'Dublin',
   'Amsterdam',
-  'Prague',
   'Vienna',
-  'Budapest',
   'Stockholm',
-  'Oslo',
-  'Copenhagen',
-  'Athens',
-  'Lisbon',
+  'Zurich', // NEW
   'Warsaw',
+  'Prague',
   'Brussels',
   'Helsinki',
+  'Oslo',
+  'Copenhagen',
 
-  // Australia
+  /* ---------------  Australia --------------- */
   'Sydney',
   'Melbourne',
   'Brisbane',
   'Perth',
   'Adelaide',
   'Canberra',
-  'Hobart',
-  'Darwin',
-  'Gold Coast',
-  'Newcastle',
 
-  // North America
-  'Mountain View',
-  'San Francisco',
+  /* ---------------  North America --------------- */
+  'New York',
   'Los Angeles',
-  'Seattle',
-  'Austin',
-  'Boulder',
-  'Cambridge',
-  'Pittsburgh',
-  'Atlanta',
-  'Detroit',
-  'New York City',
   'Chicago',
-  'Miami',
-  'Dallas',
-  'Washington D.C.',
-  'Boston',
-  'Philadelphia',
   'Houston',
   'Phoenix',
+  'Philadelphia',
+  'San Antonio', // NEW
   'San Diego',
+  'Dallas',
+  'San Jose',
+  'Austin',
+  'Jacksonville', // NEW
 
-  // South America
+  /* ---------------  South America --------------- */
   'Sao Paulo',
   'Buenos Aires',
   'Lima',
   'Bogota',
   'Santiago',
+  'Caracas', // NEW
+  'Quito', // NEW
 
-  // Africa
-  'cape town',
+  /* ---------------  Africa – every city that currently works --------------- */
+  'Cairo',
+  'Lagos',
+  'Johannesburg',
+  'Cape Town',
+  'Casablanca',
+  'Algiers',
+  'Tunis',
+  'Nairobi',
+  'Addis Ababa',
+  'Accra',
+  'Dakar',
+  'Kampala',
+  'Harare',
+  'Lusaka',
+  'Maputo',
+  'Antananarivo',
+  'Port Louis',
+  'Dar es Salaam',
+  'Kigali',
+  'Bujumbura',
+  'Yaoundé',
+  'Libreville',
+  'Kinshasa',
+  'Brazzaville',
+  'Luanda',
+  'Windhoek',
+  'Gaborone',
+  'Pretoria',
+  'Durban',
 
-  // UAE
+  /* ---------------  Middle-East / GCC --------------- */
   'Dubai',
   'Abu Dhabi',
+  'Doha',
+  'Kuwait City',
+  'Riyadh', // NEW
 ];

@@ -112,11 +112,26 @@ export const setupUserSession = async (
       throw new Error('User not found');
     }
 
-    if (!user.groups?.length) {
+    // Prefer `groups` from the user details response but fall back to `my_groups`
+    // to handle older/alternate API shapes. Normalize onto `user.groups` so
+    // downstream logic remains unchanged.
+    const groupsFromResponse =
+      Array.isArray(user.groups) && user.groups.length
+        ? user.groups
+        : Array.isArray(user.my_groups) && user.my_groups.length
+          ? user.my_groups
+          : [];
+
+    if (groupsFromResponse.length === 0) {
       throw new Error(
         'Server error. Contact support to add you to an organization',
       );
-    } // Step 2: Skip fetching user preferences for group selection
+    }
+
+    // Normalize for the rest of the login flow which expects `user.groups`
+    user.groups = groupsFromResponse;
+
+    // Step 2: Skip fetching user preferences for group selection
     // We no longer use previous group preferences to avoid conflicts
     // Group selection is now purely based on login context (individual vs organization)
 
