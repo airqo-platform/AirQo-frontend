@@ -11,7 +11,7 @@ import logger from '@/lib/logger';
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
 import SWRProvider from './SWRProvider';
-import SessionWatchProvider from './SessionWatchProvider';
+// import SessionWatchProvider from './SessionWatchProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 import UnifiedGroupProvider from './UnifiedGroupProvider';
 import { TourProvider } from '@/common/features/tours/contexts/TourProvider';
@@ -114,7 +114,8 @@ export default function ClientProviders({ children }) {
     <NextAuthProvider>
       <SWRProvider>
         <ReduxProviders>
-          <SessionWatchProvider>{children}</SessionWatchProvider>
+          {/* <SessionWatchProvider></SessionWatchProvider> */}
+          {children}
         </ReduxProviders>
       </SWRProvider>
       <Toaster
