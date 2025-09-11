@@ -9,9 +9,13 @@ part 'user_state.dart';
 
 class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
   final UserRepository repository;
+  static const int maxRetries = 3;
+  static const int baseDelayMs = 1000;
   
   UserBloc(this.repository) : super(UserInitial()) {
     on<LoadUser>(_onLoadUser);
+    on<LoadUserWithRetry>(_onLoadUserWithRetry);
+    on<RetryLoadUser>(_onRetryLoadUser);
     on<UpdateUser>(_onUpdateUser);
   }
 
@@ -22,7 +26,6 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
       ProfileResponseModel model = await repository.loadUserProfile();
       emit(UserLoaded(model));
     } catch (e) {
-      // Specific error categorization for Slack alerts
       String errorType;
       String specificError = e.toString();
       
@@ -49,6 +52,56 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
     }
   }
 
+  Future<void> _onLoadUserWithRetry(LoadUserWithRetry event, Emitter<UserState> emit) async {
+    emit(UserLoading());
+
+    try {
+      ProfileResponseModel model = await repository.loadUserProfile();
+      emit(UserLoaded(model));
+    } catch (e) {
+      String errorType;
+      String specificError = e.toString();
+      
+      if (specificError.contains('User ID not found')) {
+        errorType = 'CRITICAL_AUTH_ERROR: UserId missing from local storage';
+      } else if (specificError.contains('401') || specificError.contains('Unauthorized')) {
+        errorType = 'CRITICAL_AUTH_ERROR: Token expired or invalid (HTTP 401/Unauthorized)';
+      } else if (specificError.contains('403')) {
+        errorType = 'CRITICAL_AUTH_ERROR: Token lacks user profile permissions (HTTP 403)';
+      } else if (specificError.contains('404')) {
+        errorType = 'DATA_ERROR: User profile not found in database (HTTP 404)';
+      } else if (specificError.contains('500') || specificError.contains('502') || specificError.contains('503')) {
+        errorType = 'SERVER_ERROR: Backend service unavailable';
+      } else if (specificError.contains('FormatException') || specificError.contains('type \'Null\'')) {
+        errorType = 'DATA_PARSING_ERROR: Invalid API response structure';
+      } else if (specificError.contains('SocketException') || specificError.contains('TimeoutException')) {
+        errorType = 'NETWORK_ERROR: Connection failed to profile service';
+      } else {
+        errorType = 'UNKNOWN_USER_LOAD_ERROR';
+      }
+      
+      loggy.error('UserBloc LoadUserWithRetry Failed (attempt ${event.retryCount + 1}): $errorType | Details: $specificError');
+      
+      if (event.retryCount < maxRetries) {
+        final delayMs = baseDelayMs * (1 << event.retryCount);
+        loggy.info('Retrying LoadUser in ${delayMs}ms (attempt ${event.retryCount + 1}/$maxRetries)');
+        
+        Future.delayed(Duration(milliseconds: delayMs), () {
+          add(LoadUserWithRetry(retryCount: event.retryCount + 1));
+        });
+        
+        emit(UserLoadingError(e.toString(), retryCount: event.retryCount + 1, canRetry: true));
+      } else {
+        loggy.error('Max retries ($maxRetries) reached for LoadUser. Manual retry required.');
+        emit(UserLoadingError(e.toString(), retryCount: event.retryCount, canRetry: false));
+      }
+    }
+  }
+
+  Future<void> _onRetryLoadUser(RetryLoadUser event, Emitter<UserState> emit) async {
+    add(LoadUserWithRetry(retryCount: 0));
+  }
+
   Future<void> _onUpdateUser(UpdateUser event, Emitter<UserState> emit) async {
     emit(UserUpdating());
 
@@ -64,7 +117,7 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
 
       emit(UserLoaded(model));
     } catch (e) {
-      print(e.toString());
+      loggy.error('UserBloc UpdateUser Failed: ${e.toString()}');
       emit(UserUpdateError(e.toString()));
     }
   }

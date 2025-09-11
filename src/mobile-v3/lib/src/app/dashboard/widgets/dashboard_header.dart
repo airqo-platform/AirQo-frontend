@@ -94,18 +94,20 @@ class DashboardHeader extends StatelessWidget {
             ),
           );
         } else if (userState is UserLoadingError) {
-          // User is authenticated but profile failed to load - retry loading
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            context.read<UserBloc>().add(LoadUser());
-          });
+          if (userState.retryCount == 0) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.read<UserBloc>().add(LoadUserWithRetry());
+            });
+          }
+          
           return Text(
             "Hi 👋",
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.w700,
               color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.boldHeadlineColor2
-              : AppColors.boldHeadlineColor5,
+                  ? AppColors.boldHeadlineColor2
+                  : AppColors.boldHeadlineColor5,
             ),
           );
         }
