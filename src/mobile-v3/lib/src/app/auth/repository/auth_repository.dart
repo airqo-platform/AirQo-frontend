@@ -31,8 +31,8 @@ class AuthImpl extends AuthRepository {
           Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
           body: jsonEncode({"userName": username, "password": password}),
           headers: {
-            "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
-            "Accept": "*/*",
+            "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing')),
+            "Accept": "application/json",
             "Content-Type": "application/json"
           });
 
@@ -99,7 +99,7 @@ class AuthImpl extends AuthRepository {
               } else if (data['errors'] != null) {
                 var errors = data['errors'];
                 if (errors is Map) {
-                  errorMessage = errors.values.map((v) => v != null ? (v is String ? v : jsonEncode(v)) : 'null').join(', ');
+                  errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
                 } else {
                   errorMessage = "Please check your login information and try again.";
                 }
@@ -153,7 +153,7 @@ class AuthImpl extends AuthRepository {
       Response registerResponse = await http.post(
           Uri.parse("https://api.airqo.net/api/v2/users/register"),
           body: registerInputModelToJson(model),
-          headers: {"Accept": "*/*", "Content-Type": "application/json"});
+          headers: {"Accept": "application/json", "Content-Type": "application/json"});
 
       if (registerResponse.statusCode >= 200 && registerResponse.statusCode <= 299) {
         return;
@@ -203,8 +203,8 @@ class AuthImpl extends AuthRepository {
       final response = await http.post(
         Uri.parse('https://api.airqo.net/api/v2/users/reset-password-request'),
         headers: {
-          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"]!,
-          "Accept": "*/*",
+          "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing')),
+          "Accept": "application/json",
           "Content-Type": "application/json"
         },
         body: jsonEncode({
@@ -292,13 +292,12 @@ class AuthImpl extends AuthRepository {
 @override
 Future<void> verifyEmailCode(String token, String email) async {
   try {
-    final apiToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
-    assert(apiToken != null, 'AIRQO_MOBILE_TOKEN missing in .env');
+    final apiToken = dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing'));
 
     final verifyResponse = await http.post(
       Uri.parse("https://api.airqo.net/api/v2/users/verify-email/$token"),
       headers: {
-        "Authorization": apiToken!,
+        "Authorization": apiToken,
         "Content-Type": "application/json",
         "Accept": "application/json"
       },
@@ -337,7 +336,7 @@ Future<void> verifyEmailCode(String token, String email) async {
         } else if (responseBody != null && responseBody['errors'] != null) {
           var errors = responseBody['errors'];
           if (errors is Map) {
-            errorMessage = errors.values.map((v) => v != null ? (v is String ? v : jsonEncode(v)) : 'null').join(', ');
+            errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
           } else {
             errorMessage = "Please check your verification code and try again.";
           }
@@ -436,7 +435,7 @@ Future<void> verifyEmailCode(String token, String email) async {
               } else if (errorData['errors'] != null) {
                 var errors = errorData['errors'];
                 if (errors is Map) {
-                  errorMessage = errors.values.map((v) => v != null ? (v is String ? v : jsonEncode(v)) : 'null').join(', ');
+                  errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
                 } else {
                   errorMessage = 'Password does not meet requirements. Please try a stronger password.';
                 }
