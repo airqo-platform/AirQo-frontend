@@ -14,6 +14,7 @@ import SWRProvider from './SWRProvider';
 import SessionWatchProvider from './SessionWatchProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 import UnifiedGroupProvider from './UnifiedGroupProvider';
+import { TourProvider } from '@/common/features/tours/contexts/TourProvider';
 import { useThemeInitialization } from '@/core/hooks';
 
 /**
@@ -33,16 +34,23 @@ function ReduxProviders({ children }) {
 
     async function initializeStore() {
       try {
-        const { store, persistor } = makeStore();
+        const storeAndPersistor = makeStore();
 
         if (mounted) {
-          setStoreData({ store, persistor });
+          setStoreData(storeAndPersistor);
           setIsInitialized(true);
         }
       } catch (error) {
         logger.error('Store initialization error:', error);
         if (mounted) {
-          setIsInitialized(true); // Still set to true to prevent infinite loading
+          // Create a basic store without persistence as fallback
+          try {
+            const fallbackStore = makeStore();
+            setStoreData(fallbackStore);
+          } catch (fallbackError) {
+            logger.error('Fallback store creation failed:', fallbackError);
+          }
+          setIsInitialized(true);
         }
       }
     }
@@ -90,8 +98,10 @@ function ClientProvidersInner({ children }) {
     <ErrorBoundary>
       <ThemeProvider>
         <UnifiedGroupProvider>
-          <ThemeInitializer />
-          {children}
+          <TourProvider>
+            <ThemeInitializer />
+            {children}
+          </TourProvider>
         </UnifiedGroupProvider>
       </ThemeProvider>
     </ErrorBoundary>

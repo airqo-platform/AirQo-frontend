@@ -117,8 +117,8 @@ const makeStore = () => {
         .concat(cleanupMiddleware),
   });
 
-  store.__persistor = persistStore(store);
-  return store;
+  const persistor = persistStore(store);
+  return { store, persistor };
 };
 
 // Default export the makeStore factory for client-side initialization

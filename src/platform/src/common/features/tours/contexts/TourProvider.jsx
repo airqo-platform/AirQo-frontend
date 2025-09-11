@@ -8,15 +8,15 @@ import {
   useEffect,
 } from 'react';
 import { useSession } from 'next-auth/react';
-import CustomJoyride from '@/features/tours/components/CustomJoyride';
+import CustomJoyride from '@/common/features/tours/components/CustomJoyride';
 import { usePathname } from 'next/navigation';
 import {
   routeTourConfig,
   globalTourConfig,
   standalonePopupConfig,
-} from '@/features/tours/config/tourSteps';
+} from '@/common/features/tours/config/tourSteps';
 import { STATUS } from 'react-joyride';
-import * as tourStorage from '@/features/tours/utils/tourStorage';
+import * as tourStorage from '@/common/features/tours/utils/tourStorage';
 import logger from '@/lib/logger';
 
 export const TourContext = createContext(undefined);

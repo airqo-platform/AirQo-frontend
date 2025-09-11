@@ -36,13 +36,13 @@ const Button = React.forwardRef(
     const getVariantStyles = () => {
       switch (variant) {
         case 'outlined':
-          return 'border border-blue-600 text-blue-600 bg-transparent hover:bg-blue-50 disabled:border-gray-300 disabled:text-gray-400 disabled:bg-transparent';
+          return 'border border-blue-600 text-blue-600 bg-transparent hover:bg-blue-50 hover:text-blue-700 disabled:border-gray-300 disabled:text-gray-400 disabled:bg-transparent';
         case 'text':
-          return 'text-blue-600 bg-transparent hover:bg-blue-50 disabled:text-gray-400 disabled:bg-transparent';
+          return 'text-blue-600 bg-transparent hover:bg-blue-50 hover:text-blue-700 disabled:text-gray-400 disabled:bg-transparent';
         case 'disabled':
           return 'bg-gray-300 text-gray-500 cursor-not-allowed border-none';
         default: // filled
-          return 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500';
+          return 'bg-blue-600 text-white hover:bg-blue-700 hover:text-white disabled:bg-gray-300 disabled:text-gray-500';
       }
     };
 

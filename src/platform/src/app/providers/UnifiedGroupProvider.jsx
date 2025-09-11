@@ -303,19 +303,19 @@ export function UnifiedGroupProvider({ children }) {
 
       try {
         // Defer Redux dispatch to avoid setState during render
-        setTimeout(() => {
+        const performUpdate = () => {
           if (mountedRef.current) {
             rdxDispatch(setActiveGroupAction(group));
             rdxDispatch(setOrganizationName(group?.grp_title || ''));
-            // mark initial group set in next tick to avoid render-phase updates
-            try {
+            // mark initial group set safely
+            if (mountedRef.current) {
               dispatch({ type: 'SET_INITIAL_GROUP_SET' });
-            } catch (e) {
-              // swallow during hot-reload render-phase cleanup
-              logger.debug('Deferred dispatch skipped', e);
             }
           }
-        }, 0);
+        };
+
+        // Use requestAnimationFrame for non-blocking state updates
+        requestAnimationFrame(performUpdate);
       } finally {
         lock.current = false;
       }
@@ -615,9 +615,12 @@ export function UnifiedGroupProvider({ children }) {
   // Clear switching state when route changes
   useEffect(() => {
     if (state.isSwitching) {
+      // Use a shorter timeout for better UX
       const timer = setTimeout(() => {
-        dispatch({ type: 'SET_SWITCHING', payload: false });
-      }, 1000);
+        if (mountedRef.current) {
+          dispatch({ type: 'SET_SWITCHING', payload: false });
+        }
+      }, 500);
 
       return () => clearTimeout(timer);
     }
