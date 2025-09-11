@@ -1,6 +1,6 @@
 import { useSession } from 'next-auth/react';
 import { AqUser02, AqPlus } from '@airqo/icons-react';
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import ReusableDialog from '@/components/Modal/ReusableDialog';
 import NotificationService from '@/core/utils/notificationService';
@@ -8,107 +8,134 @@ import { createClientApi } from '@/core/apis/Settings';
 import { addClients, performRefresh } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
 import { FiX, FiTrash2 } from 'react-icons/fi';
+import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 
+/* ---------- tiny helper ---------- */
+const IPV4_REGEX =
+  /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
+
+const isValidIp = (ip) => !ip || IPV4_REGEX.test(ip.trim());
+
+/* ---------- component ---------- */
 const AddClientForm = ({ open, closeModal }) => {
   const { data: session } = useSession();
   const dispatch = useDispatch();
+  const userInfo = useSelector((state) => state.login.userInfo);
+
+  const userId = useMemo(
+    () => session?.user?.id || userInfo?.id || userInfo?._id,
+    [session, userInfo],
+  );
+
+  /* ---------- local state ---------- */
   const [loading, setLoading] = useState(false);
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState(['']);
-  const userInfo = useSelector((state) => state.login.userInfo);
 
-  // Get user ID from session with fallback to Redux state
-  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
+  /* ---------- validators ---------- */
+  const ipErrors = useMemo(
+    () => ipAddresses.map((ip) => !isValidIp(ip)),
+    [ipAddresses],
+  );
 
-  const handleInputValueChange = (type, value, index) => {
-    if (type === 'clientName') {
-      setClientName(value);
-    } else if (type === 'ipAddress') {
-      const newIpAddresses = [...ipAddresses];
-      newIpAddresses[index] = value;
-      setIpAddresses(newIpAddresses);
+  const hasAnyIpError = ipErrors.some(Boolean);
+
+  /* ---------- handlers ---------- */
+  const handleChangeName = useCallback(
+    (e) => setClientName(e.target.value),
+    [],
+  );
+
+  const handleChangeIp = useCallback((idx, value) => {
+    setIpAddresses((prev) => prev.map((ip, i) => (i === idx ? value : ip)));
+  }, []);
+
+  const handleRemoveIp = useCallback((idx) => {
+    setIpAddresses((prev) => prev.filter((_, i) => i !== idx));
+  }, []);
+
+  const handleAddIp = useCallback(() => {
+    setIpAddresses((prev) => [...prev, '']);
+  }, []);
+
+  const handleClearName = useCallback(() => setClientName(''), []);
+
+  /* ---------- submit ---------- */
+  const handleSubmit = useCallback(async () => {
+    if (!clientName.trim()) {
+      return NotificationService.error(422, "Client name can't be empty");
     }
-  };
-
-  const handleRemoveInputValue = (type, index) => {
-    if (type === 'clientName') {
-      setClientName('');
-    } else if (type === 'ipAddress') {
-      const newIpAddresses = ipAddresses.filter((_, i) => i !== index);
-      setIpAddresses(newIpAddresses);
+    if (!userId) {
+      return NotificationService.error(422, 'User ID is required');
     }
-  };
+    if (hasAnyIpError) {
+      return NotificationService.error(422, 'Please fix invalid IP addresses');
+    }
 
-  const handleAddIpAddress = () => {
-    setIpAddresses([...ipAddresses, '']);
-  };
-
-  const handleSubmit = async () => {
     setLoading(true);
 
-    if (!clientName) {
-      NotificationService.error(422, "Client name can't be empty");
-      setLoading(false);
-      return;
-    }
-
-    if (!userId) {
-      NotificationService.error(422, 'User ID is required');
-      setLoading(false);
-      return;
-    }
+    const payload = {
+      name: clientName.trim(),
+      user_id: userId,
+      ip_addresses: ipAddresses.map((ip) => ip.trim()).filter(Boolean), // drop empty
+    };
 
     try {
-      const data = {
-        name: clientName,
-        user_id: userId,
-      };
+      const res = await createClientApi(payload);
 
-      const filteredIpAddresses = ipAddresses.filter((ip) => ip.trim() !== '');
-      if (filteredIpAddresses.length > 0) {
-        data.ip_addresses = filteredIpAddresses;
-      }
+      /* ------- success / failure ------- */
+      const status = Number(res?.status || res?.data?.status || 0);
+      const success =
+        res?.success === true ||
+        (status >= 200 && status < 300) ||
+        !!(
+          res?.created_client ||
+          res?.data?.created_client ||
+          res?._id ||
+          res?.id
+        );
 
-      const response = await createClientApi(data);
-
-      if (response.success === true) {
-        const res = await getUserDetails(userId);
-
-        if (res.success === true) {
-          dispatch(addClients(res.users[0].clients));
+      if (success) {
+        /* refresh user details */
+        const userRes = await getUserDetails(userId);
+        if (userRes?.success && userRes.users?.[0]?.clients) {
+          dispatch(addClients(userRes.users[0].clients));
         }
-        NotificationService.success(201, 'Client created successfully');
+        NotificationService.success(status, 'Client created successfully');
+        dispatch(performRefresh());
+        closeModal();
+      } else {
+        /* business error from backend */
+        NotificationService.error(
+          status,
+          res?.message || 'Client creation failed',
+        );
       }
-      dispatch(performRefresh());
-      closeModal();
-    } catch (error) {
-      // Use status code from error response or default to 500
-      const statusCode = error?.response?.status || 500;
-      NotificationService.handleApiError(error, statusCode);
+    } catch (err) {
+      /* network / runtime error */
+      NotificationService.handleApiError(err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [clientName, userId, ipAddresses, hasAnyIpError, dispatch, closeModal]);
 
+  /* ---------- render ---------- */
   return (
     <ReusableDialog
       isOpen={open}
       onClose={closeModal}
       title="Create new client"
       icon={AqUser02}
-      showFooter={true}
+      showFooter
       primaryAction={{
-        label: 'Create Client',
+        label: loading ? 'Creating…' : 'Create Client',
         onClick: handleSubmit,
-        disabled: loading || !clientName.trim(),
-        className:
-          loading || !clientName.trim() ? 'opacity-60 pointer-events-none' : '',
+        disabled: loading || !clientName.trim() || hasAnyIpError,
       }}
     >
-      {/* Form Content */}
       <div className="space-y-4">
-        {/* Client Name Section */}
+        {/* ----- client name ----- */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Client Name <span className="text-red-500">*</span>
@@ -116,23 +143,15 @@ const AddClientForm = ({ open, closeModal }) => {
           <div className="relative">
             <InputField
               type="text"
-              label={null}
               placeholder="Enter a descriptive name for your client"
               value={clientName}
-              onChange={(val) =>
-                handleInputValueChange(
-                  'clientName',
-                  val.target ? val.target.value : val,
-                )
-              }
-              className="pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={handleChangeName}
             />
             {clientName && (
               <button
-                className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                onClick={() => handleRemoveInputValue('clientName')}
-                tabIndex={-1}
                 aria-label="Clear client name"
+                className="absolute inset-y-0 right-0 flex items-center mr-3 text-gray-400 hover:text-gray-600"
+                onClick={handleClearName}
                 type="button"
               >
                 <FiX className="w-4 h-4" />
@@ -141,7 +160,7 @@ const AddClientForm = ({ open, closeModal }) => {
           </div>
         </div>
 
-        {/* IP Addresses Section */}
+        {/* ----- ip addresses ----- */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -153,32 +172,28 @@ const AddClientForm = ({ open, closeModal }) => {
           </div>
 
           <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1">
-            {ipAddresses.map((ip, index) => (
-              <div key={index} className="relative group">
+            {ipAddresses.map((ip, idx) => (
+              <div key={idx} className="relative">
                 <InputField
                   type="text"
-                  label={null}
                   placeholder={
-                    index === 0
+                    idx === 0
                       ? 'Enter IP address (e.g., 192.168.1.100)'
-                      : `Enter IP address ${index + 1}`
+                      : `Enter IP address ${idx + 1}`
                   }
                   value={ip}
-                  onChange={(val) =>
-                    handleInputValueChange(
-                      'ipAddress',
-                      val.target ? val.target.value : val,
-                      index,
-                    )
+                  onChange={(e) => handleChangeIp(idx, e.target.value)}
+                  className={
+                    ipErrors[idx]
+                      ? 'border-red-500 focus:ring-red-500'
+                      : 'focus:ring-blue-500'
                   }
-                  className="pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
                 {ipAddresses.length > 1 && (
                   <button
-                    className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                    onClick={() => handleRemoveInputValue('ipAddress', index)}
-                    tabIndex={-1}
-                    aria-label={`Remove IP address ${index + 1}`}
+                    aria-label={`Remove IP address ${idx + 1}`}
+                    className="absolute inset-y-0 right-0 flex items-center mr-3 text-gray-400 hover:text-red-500"
+                    onClick={() => handleRemoveIp(idx)}
                     type="button"
                   >
                     <FiTrash2 className="w-4 h-4" />
@@ -188,14 +203,17 @@ const AddClientForm = ({ open, closeModal }) => {
             ))}
           </div>
 
-          {/* Add IP Button */}
-          <button
-            onClick={handleAddIpAddress}
-            className="flex items-center justify-center w-full py-2 px-4 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 border border-dashed border-blue-300 dark:border-blue-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+          <Button
+            variant="ghost"
+            size="md"
+            fullWidth
+            onClick={handleAddIp}
+            className="text-blue-600 border-dashed border-blue-300"
+            Icon={AqPlus}
+            showTextOnMobile
           >
-            <AqPlus size={16} className="mr-2" color="currentColor" />
             Add IP Address
-          </button>
+          </Button>
 
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Restrict client access to specific IP addresses. Leave empty to
@@ -203,17 +221,17 @@ const AddClientForm = ({ open, closeModal }) => {
           </p>
         </div>
 
-        {/* Form Summary */}
+        {/* ----- summary ----- */}
         {clientName && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200">
             <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
               Client Summary
             </h4>
             <div className="space-y-1 text-sm">
-              <p className="text-blue-800 dark:text-blue-200">
+              <p>
                 <span className="font-medium">Name:</span> {clientName}
               </p>
-              <p className="text-blue-800 dark:text-blue-200">
+              <p>
                 <span className="font-medium">IP Restrictions:</span>{' '}
                 {ipAddresses.filter((ip) => ip.trim()).length > 0
                   ? `${ipAddresses.filter((ip) => ip.trim()).length} address(es)`

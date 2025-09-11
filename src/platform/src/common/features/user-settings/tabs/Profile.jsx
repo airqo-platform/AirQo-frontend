@@ -192,13 +192,30 @@ export default function Profile() {
     };
     reader.readAsDataURL(file);
 
+    // Convert data URL to Blob without using fetch (avoids NetworkError on some platforms)
+    const dataURLToBlob = (dataURL) => {
+      if (!dataURL) return null;
+      try {
+        const [header, base64] = dataURL.split(',');
+        const mime = header.match(/:(.*?);/)[1];
+        const binary = atob(base64);
+        const len = binary.length;
+        const u8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
+        return new Blob([u8], { type: mime });
+      } catch {
+        return null;
+      }
+    };
+
     setProfileUploading(true);
     try {
       const cropped = await cropImage(file);
-      const blob = await (await fetch(cropped)).blob();
+      const blob = dataURLToBlob(cropped);
+      if (!blob) throw new Error('Failed to convert image to blob');
       setSelectedImageBlob(blob);
       setLocalImagePreview(cropped);
-    } catch (err) {
+    } catch {
       NotificationService.error(
         500,
         `Image processing failed: ${err.message || 'An unknown error occurred.'}`,
@@ -212,7 +229,7 @@ export default function Profile() {
 
   // Handle submit
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Crucial: Prevent default form submission to avoid full page reload
+    e.preventDefault();
     setIsSaving(true);
 
     // First, handle image upload if needed
@@ -279,8 +296,7 @@ export default function Profile() {
       !userData.profilePicture &&
       initialUserData.profilePicture
     ) {
-      // This condition handles removing a profile picture if it was previously set
-      fieldsToUpdate.profilePicture = ''; // Set to empty string or null to indicate removal
+      fieldsToUpdate.profilePicture = '';
     }
 
     // If no changes, prevent API call and inform user
@@ -528,20 +544,19 @@ export default function Profile() {
                   <Button
                     type="button"
                     variant="outlined"
+                    size="md"
                     onClick={handleCancel}
                     disabled={isSaving || !hasChanges}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSaving || !hasChanges}>
-                    {isSaving ? (
-                      <>
-                        <Spinner size={16} />
-                        <span className="ml-2">Saving…</span>
-                      </>
-                    ) : (
-                      'Save'
-                    )}
+                  <Button
+                    type="submit"
+                    size="md"
+                    loading={isSaving}
+                    disabled={isSaving || !hasChanges}
+                  >
+                    Save
                   </Button>
                 </div>
               </form>
