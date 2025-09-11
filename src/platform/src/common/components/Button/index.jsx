@@ -6,12 +6,11 @@ import { useMediaQuery } from 'react-responsive';
 const Button = React.forwardRef(
   (
     {
-      variant = 'filled', // filled | outlined | text | disabled
+      variant = 'filled',
       padding = 'py-2 px-4',
-      paddingStyles, // Legacy prop for backward compatibility
+      paddingStyles,
       className,
       disabled = false,
-      path,
       onClick,
       type = 'button',
       dataTestId,
@@ -22,101 +21,75 @@ const Button = React.forwardRef(
     },
     ref,
   ) => {
-    // Base styles
-    const base =
-      'flex items-center justify-center rounded-lg transition transform active:scale-95 duration-200';
-    const variantMap = {
-      filled: clsx(
-        'bg-primary',
-        'hover:bg-primary/80',
-        'text-white',
-        'border border-transparent',
-        'shadow-sm hover:shadow-lg',
-        'focus:ring-2 focus:ring-primary focus:ring-opacity-50',
-      ),
-      outlined: clsx(
-        'bg-transparent',
-        'border border-primary',
-        'text-primary',
-        'hover:bg-primary',
-        'hover:text-white',
-        'focus:ring-2 focus:ring-primary focus:ring-opacity-50',
-      ),
-      text: clsx(
-        'bg-transparent',
-        'text-primary',
-        'hover:bg-primary/10',
-        'focus:ring-2 focus:ring-primary focus:ring-opacity-50',
-      ),
-      disabled: clsx(
-        'bg-gray-300 dark:bg-gray-600',
-        'text-gray-500 dark:text-gray-400',
-        'border border-transparent',
-      ),
+    const isMobile = useMediaQuery({ maxWidth: 640 });
+
+    // Safe click handler
+    const handleClick = (e) => {
+      if (disabled) {
+        e.preventDefault();
+        return;
+      }
+      onClick?.(e);
     };
-    const activeVariant = disabled ? 'disabled' : variant;
-    const variantStyles = variantMap[activeVariant] || variantMap.filled;
-    const disabledStyles = disabled && 'cursor-not-allowed opacity-50'; // Responsive detection
-    const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
-    // Determine if text should be hidden
-    const hideText = isMobile && Icon && !showTextOnMobile;
-    // Only apply right margin on icon when there's visible text
-    const iconMargin = hideText ? '' : 'mr-2';
 
-    // Determine padding - paddingStyles takes precedence for backward compatibility
-    const finalPadding = paddingStyles || padding;
+    // Determine button styles based on variant
+    const getVariantStyles = () => {
+      switch (variant) {
+        case 'outlined':
+          return 'border border-blue-600 text-blue-600 bg-transparent hover:bg-blue-50 disabled:border-gray-300 disabled:text-gray-400 disabled:bg-transparent';
+        case 'text':
+          return 'text-blue-600 bg-transparent hover:bg-blue-50 disabled:text-gray-400 disabled:bg-transparent';
+        case 'disabled':
+          return 'bg-gray-300 text-gray-500 cursor-not-allowed border-none';
+        default: // filled
+          return 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500';
+      }
+    };
 
-    // If loading, override background and text color for visibility
-    const loadingStyles = rest['loading']
-      ? 'bg-gray-400 !text-gray-900 !border-gray-400'
-      : '';
+    // Use paddingStyles if provided (legacy support), otherwise use padding
+    const paddingClass = paddingStyles || padding;
 
-    const btnClass = clsx(
-      base,
-      finalPadding,
-      variantStyles,
-      disabledStyles,
-      loadingStyles,
+    const buttonClasses = clsx(
+      // Base styles
+      'inline-flex items-center justify-center rounded-md font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+      // Variant styles
+      getVariantStyles(),
+      // Padding
+      paddingClass,
+      // Custom className
       className,
+      // Disabled state
+      disabled && 'pointer-events-none',
     );
 
-    const Content = (
+    const content = (
       <>
-        {Icon && <Icon className={clsx('w-4 h-4', iconMargin)} />}
-        {!hideText && children}
+        {Icon && (
+          <span className={clsx('flex-shrink-0', children && 'mr-2')}>
+            <Icon className="w-4 h-4" />
+          </span>
+        )}
+        {children && (
+          <span
+            className={clsx(isMobile && !showTextOnMobile && Icon && 'sr-only')}
+          >
+            {children}
+          </span>
+        )}
       </>
     );
-
-    if (path) {
-      return (
-        <a
-          ref={ref}
-          href={path}
-          className={btnClass}
-          data-testid={dataTestId}
-          aria-disabled={disabled}
-          {...rest}
-        >
-          {Content}
-        </a>
-      );
-    }
-
-    // If loading prop is passed, set aria-busy for accessibility
-    const { loading, ...buttonRest } = rest;
 
     return (
       <button
         ref={ref}
         type={type}
-        onClick={onClick}
-        className={btnClass}
-        data-testid={dataTestId}
+        className={buttonClasses}
         disabled={disabled}
-        aria-busy={!!loading}
-        {...buttonRest}
+        onClick={handleClick}
+        data-testid={dataTestId}
+        {...rest}
       >
-        {Content}
+        {content}
       </button>
     );
   },
@@ -127,15 +100,14 @@ Button.displayName = 'Button';
 Button.propTypes = {
   variant: PropTypes.oneOf(['filled', 'outlined', 'text', 'disabled']),
   padding: PropTypes.string,
-  paddingStyles: PropTypes.string, // Legacy prop for backward compatibility
+  paddingStyles: PropTypes.string,
   className: PropTypes.string,
   disabled: PropTypes.bool,
-  path: PropTypes.string,
   onClick: PropTypes.func,
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
   dataTestId: PropTypes.string,
   Icon: PropTypes.elementType,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
   showTextOnMobile: PropTypes.bool,
 };
 

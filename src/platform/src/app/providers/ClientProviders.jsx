@@ -8,8 +8,6 @@ import Loading from '../loading';
 import ErrorBoundary from '../../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
 import logger from '@/lib/logger';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
 import SWRProvider from './SWRProvider';
@@ -17,61 +15,60 @@ import SessionWatchProvider from './SessionWatchProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
 import UnifiedGroupProvider from './UnifiedGroupProvider';
 import { useThemeInitialization } from '@/core/hooks';
-// Import environment validation
-import { validateEnvironment } from '@/lib/envConstants';
 
 /**
  * Component that initializes theme settings for authenticated users
- * This runs globally and handles theme loading during login setup
  */
 function ThemeInitializer() {
   useThemeInitialization();
-  return null; // This component doesn't render anything
+  return null;
 }
 
 function ReduxProviders({ children }) {
-  const [store, setStore] = useState(null);
-  const [isClient, setIsClient] = useState(false);
+  const [storeData, setStoreData] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Mark as client-side only after first render
-    setIsClient(true);
+    let mounted = true;
 
-    // Initialize environment validation
-    try {
-      // Validate environment variables (for development debugging only)
-      const envValidation = validateEnvironment();
-      if (
-        envValidation.errors.length > 0 &&
-        process.env.NODE_ENV === 'development'
-      ) {
-        logger.error('Environment validation errors:', envValidation.errors);
-      }
-      if (
-        envValidation.warnings.length > 0 &&
-        process.env.NODE_ENV === 'development'
-      ) {
-        logger.warn('Environment validation warnings:', envValidation.warnings);
-      }
+    async function initializeStore() {
+      try {
+        const { store, persistor } = makeStore();
 
-      logger.info('Environment validation completed');
-    } catch (error) {
-      logger.error('Failed to initialize validation systems:', error);
+        if (mounted) {
+          setStoreData({ store, persistor });
+          setIsInitialized(true);
+        }
+      } catch (error) {
+        logger.error('Store initialization error:', error);
+        if (mounted) {
+          setIsInitialized(true); // Still set to true to prevent infinite loading
+        }
+      }
     }
 
-    // Create store only on client side
-    const storeInstance = makeStore();
-    setStore(storeInstance);
+    initializeStore();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  // Show loading on server side and before store is ready
-  if (!isClient || !store) {
+  if (!isInitialized) {
     return <Loading />;
   }
 
+  if (!storeData) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Failed to initialize application. Please refresh the page.</p>
+      </div>
+    );
+  }
+
   return (
-    <Provider store={store}>
-      <PersistGate loading={<Loading />} persistor={store.__persistor}>
+    <Provider store={storeData.store}>
+      <PersistGate loading={<Loading />} persistor={storeData.persistor}>
         <ClientProvidersInner>{children}</ClientProvidersInner>
       </PersistGate>
     </Provider>
@@ -79,122 +76,49 @@ function ReduxProviders({ children }) {
 }
 
 function ClientProvidersInner({ children }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // 🚨 Track Google login redirect
-    const success = searchParams.get('success');
-
-    if (success === 'google') {
-      // We need to access the store differently now
-      // This will need to be refactored to use useDispatch hook
-      handleGoogleLoginFromCookie();
-      // Construct the URL without the 'success' query parameter
-      const newSearchParams = new URLSearchParams(searchParams.toString());
-      newSearchParams.delete('success');
-      const cleanUrl = `${pathname}${newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''}`;
-      router.replace(cleanUrl, { shallow: true });
-    }
-  }, [searchParams, pathname, router]);
-
-  useEffect(() => {
-    const handleGlobalError = (event) => {
-      // Ignore ResizeObserver loop errors - they're benign
-      if (
-        event.error?.message?.includes('ResizeObserver loop') ||
-        event.message?.includes('ResizeObserver loop')
-      ) {
-        return;
-      }
-
-      event.preventDefault();
-      logger.error('Uncaught error', event.error || new Error(event.message), {
-        source: event.filename,
-        line: event.lineno,
-        column: event.colno,
-      });
-    };
-
-    const handlePromiseRejection = (event) => {
-      const reason =
-        event.reason instanceof Error
-          ? event.reason
-          : new Error(String(event.reason));
-
-      // Filter known benign or noisy sources (minified vendor helpers)
-      const msg = String(reason.stack || reason.message || '');
-      const isNoisyVendor = /isFeatureBroken|updateFeaturesInner/i.test(msg);
-
-      event.preventDefault();
-      if (isNoisyVendor) {
-        // Downgrade to info to avoid noisy error logs while still recording
-        logger.info('Filtered unhandled rejection from vendor helper', {
-          message: reason.message,
-        });
-        return;
-      }
-      logger.error('Unhandled promise rejection', reason);
-    };
-
-    const manageDevTools = () => {
-      const currentEnv =
-        process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS ||
-        process.env.NODE_ENV ||
-        'development';
-      const isDevOrStaging =
-        currentEnv === 'development' || currentEnv === 'staging';
-
-      if (!isDevOrStaging) {
-        const handleContextMenu = (e) => e.preventDefault();
-        const handleF12 = (e) => {
-          if (e.keyCode === 123) e.preventDefault();
-        };
-
-        document.addEventListener('contextmenu', handleContextMenu);
-        document.addEventListener('keydown', handleF12);
-
-        return () => {
-          document.removeEventListener('contextmenu', handleContextMenu);
-          document.removeEventListener('keydown', handleF12);
-        };
-      }
-      return () => {};
-    };
-
-    window.addEventListener('error', handleGlobalError);
-    window.addEventListener('unhandledrejection', handlePromiseRejection);
-    const cleanupDevTools = manageDevTools();
-
-    return () => {
-      window.removeEventListener('error', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handlePromiseRejection);
-      cleanupDevTools();
-    };
+    setIsMounted(true);
   }, []);
 
+  if (!isMounted) {
+    return <Loading />;
+  }
+
   return (
-    <ErrorBoundary name="AppRoot" feature="global">
-      {children}
-      <Toaster expand={true} richColors />
+    <ErrorBoundary>
+      <ThemeProvider>
+        <UnifiedGroupProvider>
+          <ThemeInitializer />
+          {children}
+        </UnifiedGroupProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
 
+// Main client providers component
 export default function ClientProviders({ children }) {
   return (
     <NextAuthProvider>
       <SWRProvider>
         <ReduxProviders>
-          <SessionWatchProvider>
-            <ThemeProvider>
-              <ThemeInitializer />
-              <UnifiedGroupProvider>{children}</UnifiedGroupProvider>
-            </ThemeProvider>
-          </SessionWatchProvider>
+          <SessionWatchProvider>{children}</SessionWatchProvider>
         </ReduxProviders>
       </SWRProvider>
+      <Toaster
+        richColors
+        position="top-right"
+        expand={false}
+        closeButton
+        toastOptions={{
+          duration: 5000,
+          style: {
+            fontSize: '14px',
+          },
+        }}
+      />
     </NextAuthProvider>
   );
 }
@@ -203,10 +127,10 @@ ClientProviders.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-ClientProvidersInner.propTypes = {
+ReduxProviders.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-ReduxProviders.propTypes = {
+ClientProvidersInner.propTypes = {
   children: PropTypes.node.isRequired,
 };

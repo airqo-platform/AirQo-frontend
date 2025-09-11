@@ -171,8 +171,9 @@ export function UnifiedGroupProvider({ children }) {
     return Array.isArray(userGroups) ? userGroups.length : 0;
   }, [userGroups]);
 
-  // Refs for async operations
+  // Refs for async operations - initialize properly with safe defaults
   const lock = useRef(false);
+  // keep abortRef as a flat ref to the AbortController (avoid wrapper object)
   const abortRef = useRef(null);
   const requestCacheRef = useRef(new Map());
   const retryTimerRef = useRef(null);
@@ -182,35 +183,46 @@ export function UnifiedGroupProvider({ children }) {
 
   // Cleanup function to prevent memory leaks
   const cleanup = useCallback(() => {
-    // Clear all timers
-    if (retryTimerRef.current) {
-      clearTimeout(retryTimerRef.current);
-      retryTimerRef.current = null;
-    }
+    try {
+      // Clear all timers
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
 
-    // Abort any pending requests
-    if (abortRef.current) {
-      abortRef.current.abort();
-      abortRef.current = null;
-    }
+      // Abort any pending requests
+      if (abortRef.current && typeof abortRef.current.abort === 'function') {
+        abortRef.current.abort();
+        abortRef.current = null;
+      }
 
-    // Clear request cache
-    if (
-      requestCacheRef.current &&
-      typeof requestCacheRef.current.clear === 'function'
-    ) {
-      requestCacheRef.current.clear();
-    }
+      // Clear request cache
+      if (
+        requestCacheRef.current &&
+        typeof requestCacheRef.current.clear === 'function'
+      ) {
+        requestCacheRef.current.clear();
+      }
 
-    // Release locks
-    lock.current = false;
+      // Release locks
+      lock.current = false;
+    } catch (error) {
+      logger.error('Cleanup error:', error);
+    }
   }, []);
 
   // Cleanup on unmount
+  // Defer cleanup to next tick to avoid React calling it synchronously during render/hot-reload
   useEffect(() => {
     return () => {
       mountedRef.current = false;
-      cleanup();
+      setTimeout(() => {
+        try {
+          cleanup();
+        } catch (e) {
+          logger.error('Deferred cleanup error:', e);
+        }
+      }, 0);
     };
   }, [cleanup]);
 
@@ -283,13 +295,27 @@ export function UnifiedGroupProvider({ children }) {
     (group, reason) => {
       if (!group || lock.current) return;
 
-      logger.debug('setActiveGroupAtomic', { group: group.grp_title, reason });
+      // Defensive: grp_title might be missing during hot-reload or malformed data
+      const groupTitleForLog =
+        group?.grp_title ?? group?._id ?? 'unknown-group';
+      logger.debug('setActiveGroupAtomic', { group: groupTitleForLog, reason });
       lock.current = true;
 
       try {
-        rdxDispatch(setActiveGroupAction(group));
-        rdxDispatch(setOrganizationName(group.grp_title));
-        dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+        // Defer Redux dispatch to avoid setState during render
+        setTimeout(() => {
+          if (mountedRef.current) {
+            rdxDispatch(setActiveGroupAction(group));
+            rdxDispatch(setOrganizationName(group?.grp_title || ''));
+            // mark initial group set in next tick to avoid render-phase updates
+            try {
+              dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+            } catch (e) {
+              // swallow during hot-reload render-phase cleanup
+              logger.debug('Deferred dispatch skipped', e);
+            }
+          }
+        }, 0);
       } finally {
         lock.current = false;
       }
@@ -319,7 +345,7 @@ export function UnifiedGroupProvider({ children }) {
 
         // Update Redux store
         rdxDispatch(setActiveGroupAction(target));
-        rdxDispatch(setOrganizationName(target.grp_title));
+        rdxDispatch(setOrganizationName(target?.grp_title || ''));
         rdxDispatch(setChartSites([]));
         if (!isAirQo) rdxDispatch(resetChartStore());
 
@@ -476,8 +502,8 @@ export function UnifiedGroupProvider({ children }) {
         return;
       }
 
-      // Abort previous request
-      abortRef.current?.abort?.();
+      // Abort previous request (safe flat ref usage)
+      abortRef.current?.abort();
       abortRef.current = new AbortController();
       const { signal } = abortRef.current;
 
@@ -560,13 +586,21 @@ export function UnifiedGroupProvider({ children }) {
     }, debounceMs);
 
     return () => {
-      clearTimeout(timer);
-      abortRef.current?.abort?.();
-      currentCache.delete(cacheKey);
-      if (retryTimerRef.current) {
-        clearTimeout(retryTimerRef.current);
-        retryTimerRef.current = null;
-      }
+      // Defer cleanup to avoid synchronous aborts during render/hot-reload
+      setTimeout(() => {
+        try {
+          clearTimeout(timer);
+          // safe abort
+          abortRef.current?.abort();
+          currentCache.delete(cacheKey);
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
+            retryTimerRef.current = null;
+          }
+        } catch (e) {
+          logger.error('Deferred inner-effect cleanup error:', e);
+        }
+      }, 0);
     };
   }, [
     organizationSlug,
@@ -600,7 +634,9 @@ export function UnifiedGroupProvider({ children }) {
       refreshGroups,
       isOrganizationContext,
       organizationSlug,
-      isAdminContext: pathname?.startsWith?.('/admin'),
+      // pathname may be null during some Next.js transitions; guard startsWith
+      isAdminContext:
+        typeof pathname === 'string' ? pathname.startsWith('/admin') : false,
       getGroupRoute: groupRoute,
       canSwitchToGroup,
       primaryColor:
@@ -646,7 +682,7 @@ export function UnifiedGroupProvider({ children }) {
   if (state.isSwitching && activeGroup) {
     return (
       <OrganizationSwitchLoader
-        organizationName={activeGroup.grp_title || 'Organization'}
+        organizationName={activeGroup?.grp_title || 'Organization'}
         primaryColor={
           state.organizationTheme?.primaryColor ||
           state.organization?.primaryColor ||
