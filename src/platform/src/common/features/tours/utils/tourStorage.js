@@ -2,7 +2,7 @@
 
 import logger from '@/lib/logger';
 
-const STORAGE_KEY_PREFIX = 'user_tour_status_';
+export const STORAGE_KEY_PREFIX = 'user_tour_status_';
 
 /**
  * Generates a storage key specific to the user and tour.

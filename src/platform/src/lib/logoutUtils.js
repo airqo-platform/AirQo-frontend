@@ -11,6 +11,8 @@
 
 import { mutate } from 'swr';
 import logger from '@/lib/logger';
+// Import tour storage prefix to avoid clearing user tour keys on logout
+import { STORAGE_KEY_PREFIX as TOUR_STORAGE_PREFIX } from '@/common/features/tours/utils/tourStorage';
 
 /**
  * Dispatch action to reset Redux store
@@ -69,9 +71,18 @@ export const clearBrowserStorage = () => {
       /persist:/,
     ];
 
-    // Clear localStorage
+    // Clear localStorage (but preserve user tour keys)
     const localStorageKeys = Object.keys(localStorage);
     localStorageKeys.forEach((key) => {
+      // preserve tour keys that start with the known prefix
+      if (
+        typeof TOUR_STORAGE_PREFIX === 'string' &&
+        key.startsWith(TOUR_STORAGE_PREFIX)
+      ) {
+        logger.debug('Preserving tour localStorage key on logout:', key);
+        return;
+      }
+
       const shouldClear =
         criticalKeys.includes(key) ||
         patterns.some((pattern) => pattern.test(key));
@@ -86,9 +97,17 @@ export const clearBrowserStorage = () => {
       }
     });
 
-    // Clear sessionStorage
+    // Clear sessionStorage (also preserve tour keys if present there)
     const sessionStorageKeys = Object.keys(sessionStorage);
     sessionStorageKeys.forEach((key) => {
+      if (
+        typeof TOUR_STORAGE_PREFIX === 'string' &&
+        key.startsWith(TOUR_STORAGE_PREFIX)
+      ) {
+        logger.debug('Preserving tour sessionStorage key on logout:', key);
+        return;
+      }
+
       const shouldClear =
         criticalKeys.includes(key) ||
         patterns.some((pattern) => pattern.test(key));
