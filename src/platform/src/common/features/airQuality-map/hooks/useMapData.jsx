@@ -153,7 +153,7 @@ const useMapData = (params = {}) => {
     if (type === 'mapReading') {
       customMessage =
         statusCode >= 500
-          ? 'Unable to load air quality data. Our servers are experiencing issues.'
+          ? 'Unable to load air quality data. Service temporarily unavailable.'
           : statusCode === 403
             ? 'You do not have permission to access this air quality data.'
             : statusCode === 404
