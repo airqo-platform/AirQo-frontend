@@ -4,7 +4,7 @@ import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 import SelectField from '@/common/components/SelectField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { updateGroupRoleApi } from '@/core/apis/Account';
 
 const EditRoleDialog = ({
@@ -32,20 +32,40 @@ const EditRoleDialog = ({
       };
       const response = await updateGroupRoleApi(roleId, payload);
       if (response?.success) {
-        CustomToast({ message: 'Role updated successfully!', type: 'success' });
+        NotificationService.success(
+          response?.status || 200,
+          'Role updated successfully!',
+        );
         onClose();
         if (typeof onRefresh === 'function') onRefresh();
       } else {
-        CustomToast({
-          message: response?.message || 'Failed to update role.',
-          type: 'error',
-        });
+        const status = response?.status || null;
+        if (status === 500) {
+          NotificationService.error(
+            500,
+            'Something went wrong on our servers. Please try again later.',
+          );
+        } else {
+          NotificationService.error(
+            status,
+            response?.message || 'Failed to update role.',
+          );
+        }
       }
     } catch (error) {
-      CustomToast({
-        message: error?.message || 'Failed to update role.',
-        type: 'error',
-      });
+      const status = error?.response?.status || null;
+      const apiMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to update role.';
+      if (status === 500) {
+        NotificationService.error(
+          500,
+          'Something went wrong on our servers. Please try again later.',
+        );
+      } else {
+        NotificationService.error(status, apiMessage);
+      }
     } finally {
       setLoading(false);
     }

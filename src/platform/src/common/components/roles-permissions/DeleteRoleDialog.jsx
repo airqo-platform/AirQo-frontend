@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { deleteGroupRoleApi } from '@/core/apis/Account';
 
 const DeleteRoleDialog = ({ isOpen, onClose, roleId, onRefresh }) => {
@@ -15,20 +15,40 @@ const DeleteRoleDialog = ({ isOpen, onClose, roleId, onRefresh }) => {
     try {
       const response = await deleteGroupRoleApi(roleId);
       if (response?.success) {
-        CustomToast({ message: 'Role deleted successfully!', type: 'success' });
+        NotificationService.success(
+          response?.status || 200,
+          'Role deleted successfully!',
+        );
         onClose();
         if (typeof onRefresh === 'function') onRefresh();
       } else {
-        CustomToast({
-          message: response?.message || 'Failed to delete role.',
-          type: 'error',
-        });
+        const status = response?.status || null;
+        if (status === 500) {
+          NotificationService.error(
+            500,
+            'Something went wrong on our servers. Please try again later.',
+          );
+        } else {
+          NotificationService.error(
+            status,
+            response?.message || 'Failed to delete role.',
+          );
+        }
       }
     } catch (error) {
-      CustomToast({
-        message: error?.message || 'Failed to delete role.',
-        type: 'error',
-      });
+      const status = error?.response?.status || null;
+      const apiMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to delete role.';
+      if (status === 500) {
+        NotificationService.error(
+          500,
+          'Something went wrong on our servers. Please try again later.',
+        );
+      } else {
+        NotificationService.error(status, apiMessage);
+      }
     } finally {
       setLoading(false);
     }

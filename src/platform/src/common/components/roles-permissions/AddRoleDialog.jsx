@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { createGroupRoleApi } from '@/core/apis/Account';
 
 const AddRoleDialog = ({ isOpen, onClose, groupId, onRefresh }) => {
@@ -21,21 +21,41 @@ const AddRoleDialog = ({ isOpen, onClose, groupId, onRefresh }) => {
       };
       const response = await createGroupRoleApi(payload);
       if (response?.success) {
-        CustomToast({ message: 'Role created successfully!', type: 'success' });
+        NotificationService.success(
+          response?.status || 200,
+          'Role created successfully!',
+        );
         setRoleName('');
         onClose();
         if (typeof onRefresh === 'function') onRefresh();
       } else {
-        CustomToast({
-          message: response?.message || 'Failed to create role.',
-          type: 'error',
-        });
+        const status = response?.status || null;
+        if (status === 500) {
+          NotificationService.error(
+            500,
+            'Something went wrong on our servers. Please try again later.',
+          );
+        } else {
+          NotificationService.error(
+            status,
+            response?.message || 'Failed to create role.',
+          );
+        }
       }
     } catch (error) {
-      CustomToast({
-        message: error?.message || 'Failed to create role.',
-        type: 'error',
-      });
+      const status = error?.response?.status || null;
+      const apiMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to create role.';
+      if (status === 500) {
+        NotificationService.error(
+          500,
+          'Something went wrong on our servers. Please try again later.',
+        );
+      } else {
+        NotificationService.error(status, apiMessage);
+      }
     } finally {
       setLoading(false);
     }
