@@ -82,6 +82,7 @@ const CustomToast = ({
   style: customStyle = {},
   position = 'bottom-center',
   closeButton = false,
+  onDismiss,
   onClick,
   className = '',
   action,
