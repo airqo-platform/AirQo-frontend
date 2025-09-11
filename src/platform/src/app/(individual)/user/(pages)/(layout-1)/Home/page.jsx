@@ -195,7 +195,7 @@ const Home = () => {
         {/* Quick Access Section */}
         <div className="mb-8">
           <div className="flex items-center mb-3">
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mr-2">
+            <h2 className="text-xl md:text-2xl text-gray-800 dark:text-white mr-2">
               Quick Access
             </h2>
           </div>
