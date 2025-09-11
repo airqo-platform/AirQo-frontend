@@ -99,7 +99,7 @@ class AuthImpl extends AuthRepository {
               } else if (data['errors'] != null) {
                 var errors = data['errors'];
                 if (errors is Map) {
-                  errorMessage = errors.values.join(', ');
+                  errorMessage = errors.values.map((v) => v != null ? (v is String ? v : jsonEncode(v)) : 'null').join(', ');
                 } else {
                   errorMessage = "Please check your login information and try again.";
                 }
@@ -337,7 +337,7 @@ Future<void> verifyEmailCode(String token, String email) async {
         } else if (responseBody != null && responseBody['errors'] != null) {
           var errors = responseBody['errors'];
           if (errors is Map) {
-            errorMessage = errors.values.join(', ');
+            errorMessage = errors.values.map((v) => v != null ? (v is String ? v : jsonEncode(v)) : 'null').join(', ');
           } else {
             errorMessage = "Please check your verification code and try again.";
           }
@@ -436,7 +436,7 @@ Future<void> verifyEmailCode(String token, String email) async {
               } else if (errorData['errors'] != null) {
                 var errors = errorData['errors'];
                 if (errors is Map) {
-                  errorMessage = errors.values.join(', ');
+                  errorMessage = errors.values.map((v) => v != null ? (v is String ? v : jsonEncode(v)) : 'null').join(', ');
                 } else {
                   errorMessage = 'Password does not meet requirements. Please try a stronger password.';
                 }
