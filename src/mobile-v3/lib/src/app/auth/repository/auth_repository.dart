@@ -24,6 +24,21 @@ abstract class AuthRepository with UiLoggy {
 }
 
 class AuthImpl extends AuthRepository {
+  static String _sanitizeToken(String? rawToken) {
+    if (rawToken == null) return '';
+    
+    String token = rawToken.trim();
+    if (token.isEmpty) return '';
+    
+    final schemePattern = RegExp(r'^(bearer\s+|jwt\s+)+', caseSensitive: false);
+    
+    while (schemePattern.hasMatch(token)) {
+      token = token.replaceFirst(schemePattern, '').trim();
+    }
+    
+    return token;
+  }
+  
   @override
   Future<String> loginWithEmailAndPassword(
       String username, String password) async {
@@ -51,16 +66,17 @@ class AuthImpl extends AuthRepository {
           throw Exception("Invalid response format from server. Please try again.");
         }
         
-        final token = data["token"];
+        final rawToken = data["token"];
+        final sanitizedToken = _sanitizeToken(rawToken is String ? rawToken : null);
         
-        if (token == null || token is! String || token.trim().isEmpty) {
-          loggy.error("Login response missing or invalid token: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}");
+        if (sanitizedToken.isEmpty) {
+          loggy.error("Login response missing or invalid token: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}, TokenLength=${sanitizedToken.length}");
           throw Exception("Authentication failed. Invalid token received.");
         }
 
         String? userId;
         try {
-          final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+          final Map<String, dynamic> decodedToken = JwtDecoder.decode(sanitizedToken);
           
           final possibleIdFields = ['sub', 'id', 'userId', 'user_id', '_id', 'uid'];
           
@@ -80,14 +96,14 @@ class AuthImpl extends AuthRepository {
         }
 
         try {
-          await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, token);
+          await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, sanitizedToken);
           await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.userId, userId);
         } catch (e) {
           loggy.error("Failed to save authentication data securely: $e");
           throw Exception("Failed to save authentication data. Please try again.");
         }
         
-        return token;
+        return sanitizedToken;
       } else {
         loggy.error("Login failed - Status: ${loginResponse.statusCode}, BodyLength: ${loginResponse.body.length}");
         
