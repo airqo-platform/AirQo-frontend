@@ -675,7 +675,7 @@ const DataTable = ({
             description={
               isSearchActive
                 ? `No results found for "${currentSearchTerm}". Try different search terms.`
-                : 'Try adjusting your filters.'
+                : 'No data to display. Please adjust your filters or refresh the page.'
             }
             variant="info"
           />
