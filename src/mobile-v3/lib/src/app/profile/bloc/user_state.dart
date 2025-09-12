@@ -22,11 +22,13 @@ final class UserLoaded extends UserState {
 
 final class UserLoadingError extends UserState {
   final String message;
+  final int retryCount;
+  final bool canRetry;
 
-  const UserLoadingError(this.message);
+  const UserLoadingError(this.message, {this.retryCount = 0, this.canRetry = true});
   
   @override
-  List<Object> get props => [message];
+  List<Object> get props => [message, retryCount, canRetry];
 }
 
 final class UserUpdating extends UserState {}
