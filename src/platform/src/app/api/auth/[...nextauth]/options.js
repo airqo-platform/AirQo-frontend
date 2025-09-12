@@ -263,12 +263,14 @@ export const options = {
 
           let decodedToken;
           try {
-            // Some backends prefix the token with 'JWT ' — strip that if present
-            const tokenString = String(data.token || '').replace(
-              /^JWT\s+/i,
-              '',
-            );
+            // Some backends prefix the token with 'JWT ' or 'Bearer ' — strip that if present
+            const rawToken = String(data.token || '');
+            const tokenString = rawToken
+              .replace(/^\s*(JWT|Bearer)\s+/i, '')
+              .trim();
             decodedToken = jwtDecode(tokenString);
+            // Normalize token for downstream usage
+            data.token = tokenString;
           } catch (jwtError) {
             logger.error('[NextAuth] JWT decode error:', jwtError.message);
             throw new Error('Invalid token received from API');
