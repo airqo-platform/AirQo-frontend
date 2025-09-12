@@ -5,7 +5,7 @@ import OrganizationInformationForm from './OrganizationInformationForm';
 import AppearanceSettingsForm from './AppearanceSettingsForm';
 import DomainSettingsForm from './DomainSettingsForm';
 import SettingsSidebar from './SettingsSidebar';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 
 const OrganizationSettingsContainer = ({
   formData,
@@ -87,7 +87,10 @@ const OrganizationSettingsContainer = ({
       };
 
       const { message, type } = getToastConfig(saveStatus);
-      CustomToast({ message, type });
+      // Map type to status code
+      const statusCode =
+        type === 'success' ? 200 : type === 'error' ? 500 : 400;
+      NotificationService.showNotification(statusCode, message);
     }
   }, [saveStatus]);
   const handleAppearanceChange = (field, value) => {

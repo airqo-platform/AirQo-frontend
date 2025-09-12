@@ -222,9 +222,18 @@ const createSecureApiClient = () => {
     },
   );
 
-  // Optimized response interceptor
+  // Enhanced response interceptor to preserve status codes
   instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+      const data = response.data;
+      // Only inject into plain objects (exclude arrays, null, blobs, formdata, etc.)
+      const isPlainObject =
+        data && Object.prototype.toString.call(data) === '[object Object]';
+      if (isPlainObject && data.status == null && data.statusCode == null) {
+        data.status = response.status;
+      }
+      return response;
+    },
     (error) => {
       const status = error.response?.status;
 

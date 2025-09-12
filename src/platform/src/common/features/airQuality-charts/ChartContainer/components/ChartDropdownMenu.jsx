@@ -8,7 +8,7 @@ import React, {
 import { useDispatch, useSelector } from 'react-redux';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
 import { ChartExportUtils } from '../utils/chartExportUtils';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import StandardsMenu from './StandardsMenu';
 import {
   AqRefreshCcw02,
@@ -16,7 +16,7 @@ import {
   AqBarChart12,
   AqCheck,
   AqAlertCircle,
-  AqLoading01,
+  AqLoading02,
 } from '@airqo/icons-react';
 import logger from '@/lib/logger';
 
@@ -59,20 +59,20 @@ const ChartDropdownMenu = ({
     async (format) => {
       // Validation - check if ChartExportUtils is available
       if (!ChartExportUtils?.EXPORT_FORMATS) {
-        CustomToast({
-          message: 'Export utility not available. Please refresh the page.',
-          type: 'error',
-        });
+        NotificationService.error(
+          503,
+          'Export utility not available. Please refresh the page.',
+        );
         return;
       }
       if (
         !chartContentRef?.current ||
         !ChartExportUtils.EXPORT_FORMATS.includes(format)
       ) {
-        CustomToast({
-          message: 'Invalid export configuration. Please try again.',
-          type: 'error',
-        });
+        NotificationService.error(
+          422,
+          'Invalid export configuration. Please try again.',
+        );
         return;
       }
       if (disabled || isRefreshing || localExportState.loading) {
@@ -88,11 +88,10 @@ const ChartDropdownMenu = ({
 
       try {
         // Show loading toast
-        CustomToast({
-          message: `Preparing ${format.toUpperCase()} export...`,
-          type: 'info',
-          duration: 2000,
-        });
+        NotificationService.info(
+          200,
+          `Preparing ${format.toUpperCase()} export...`,
+        );
 
         // Enhanced export options - simplified to match new utility
         const exportOptions = {
@@ -129,12 +128,11 @@ const ChartDropdownMenu = ({
           completed: format,
         }));
 
-        // Success toast
-        CustomToast({
-          message: `Chart exported as ${format.toUpperCase()} successfully!`,
-          type: 'success',
-          duration: 3000,
-        });
+        // Success notification
+        NotificationService.success(
+          200,
+          `Chart exported as ${format.toUpperCase()} successfully!`,
+        );
 
         // Auto-clear completed state after delay
         timeoutRef.current = setTimeout(() => {
@@ -153,12 +151,11 @@ const ChartDropdownMenu = ({
           error: errorMessage,
         }));
 
-        // Error toast with more context
-        CustomToast({
-          message: `Failed to export chart as ${format.toUpperCase()}: ${errorMessage}`,
-          type: 'error',
-          duration: 5000,
-        });
+        // Error notification with more context
+        NotificationService.error(
+          500,
+          `Failed to export chart as ${format.toUpperCase()}: ${errorMessage}`,
+        );
 
         // Auto-clear error state after delay
         timeoutRef.current = setTimeout(() => {
@@ -195,10 +192,10 @@ const ChartDropdownMenu = ({
       dispatch(setOpenModal(true));
     } catch (error) {
       logger.error('Failed to open insights modal:', error);
-      CustomToast({
-        message: 'Failed to open insights. Please try again.',
-        type: 'error',
-      });
+      NotificationService.error(
+        500,
+        'Failed to open insights. Please try again.',
+      );
     }
   }, [dispatch, userSelectedSites, disabled, isRefreshing]);
 
@@ -231,7 +228,7 @@ const ChartDropdownMenu = ({
 
   // Loading spinner component
   const LoadingSpinner = useMemo(
-    () => <AqLoading01 className="h-4 w-4 animate-spin" />,
+    () => <AqLoading02 className="h-4 w-4 animate-spin" />,
     [],
   );
 

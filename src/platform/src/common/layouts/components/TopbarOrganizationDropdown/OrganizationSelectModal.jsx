@@ -108,7 +108,6 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
             onClick={handleCreateOrganization}
             Icon={AqPlus}
             className="text-xs"
-            padding="px-3 py-2"
           >
             Request New Organization
           </Button>
@@ -116,12 +115,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       }
       customFooter={
         <div className="flex items-center justify-end border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <Button
-            onClick={onClose}
-            variant="outlined"
-            className="text-sm"
-            padding="px-4 py-2"
-          >
+          <Button onClick={onClose} variant="outlined" className="text-sm">
             Close
           </Button>
         </div>

@@ -8,7 +8,7 @@ import {
 } from '@/common/layouts/SideBar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
-import MaintenanceBanner from '@/components/MaintenanceBanner';
+import MaintenanceBanner from '@/common/components/MaintenanceBanner';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';

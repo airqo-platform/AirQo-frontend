@@ -6,11 +6,10 @@ import AirQoMap from '../components/AirQoMap';
 import MapControls from '../components/MapControls';
 import MapSidebar from '../components/map-sidebar';
 import AirQualityLegend from '../components/Legend';
-import Toast from '@/components/Toast';
 import Loader from '@/components/Spinner';
 import { LoadingOverlay } from '../hooks';
 import { isDesktop } from '../utils/mapHelpers';
-import { TOAST_CONFIG } from '../constants/mapConstants';
+// Remove legacy toast usage - now using CustomToast through NotificationService
 
 const MapPage = () => {
   const { width } = useWindowSize();
@@ -22,9 +21,6 @@ const MapPage = () => {
 
   const {
     loading: sidebarLoading, // Rename for clarity - this is for sidebar data loading
-    toastMessage,
-    setToastMessage,
-    clearToastMessage,
     isControlsExpanded,
     setIsControlsExpanded,
     siteDetails,
@@ -79,7 +75,7 @@ const MapPage = () => {
             mapboxApiAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
             customStyle="flex-grow h-full w-full relative dark:text-black-900"
             pollutant={pollutant}
-            onToastMessage={setToastMessage}
+            onToastMessage={() => {}} // Legacy prop - notifications now handled by NotificationService
             onMapReadingLoadingChange={setMapReadingLoading}
             onWaqiLoadingChange={setWaqiLoading}
           />
@@ -111,17 +107,7 @@ const MapPage = () => {
               </span>
             </div>
           )}
-          {/* Toast notifications */}
-          {toastMessage.message && (
-            <Toast
-              message={toastMessage.message}
-              clearData={clearToastMessage}
-              type={toastMessage.type}
-              timeout={TOAST_CONFIG.TIMEOUT}
-              bgColor={toastMessage.bgColor}
-              position={TOAST_CONFIG.POSITION}
-            />
-          )}
+          {/* Toast notifications now handled globally by CustomToast via NotificationService */}
         </div>
       </div>
     </div>

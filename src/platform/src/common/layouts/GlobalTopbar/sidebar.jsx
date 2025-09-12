@@ -7,7 +7,7 @@ import {
   setGlobalSidebarOpen,
   setGlobalDrawerOpen,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
 import AirqoLogo from '@/common/components/Icons/AirqoLogo';
 import {
@@ -54,7 +54,7 @@ const GlobalSideBarDrawer = () => {
     } catch {
       return false;
     }
-  });
+  }, []);
 
   const isGlobalDrawerOpen = useSelector((state) => {
     try {
@@ -62,7 +62,7 @@ const GlobalSideBarDrawer = () => {
     } catch {
       return false;
     }
-  });
+  }, []);
   // Show global sidebar if either desktop or mobile state is open
   const togglingGlobalDrawer = isGlobalSidebarOpen || isGlobalDrawerOpen;
 

@@ -40,7 +40,7 @@ const createUserObject = (data, decodedToken, credentials) => ({
   isOrgLogin: !!credentials.orgSlug,
 });
 
-// Map API error/status to a friendly user-facing message
+// Map API error/status to a friendly user-facing message with status codes
 const getFriendlyAuthErrorMessage = (error) => {
   // Axios-style errors
   const status = error?.response?.status;
@@ -54,32 +54,68 @@ const getFriendlyAuthErrorMessage = (error) => {
     message.includes('<html') ||
     message.includes('SyntaxError')
   ) {
-    return 'Authentication service returned an unexpected response. Please try again later.';
+    return {
+      message:
+        'Authentication service returned an unexpected response. Please try again later.',
+      statusCode: 502,
+    };
   }
 
   if (error?.request && !error?.response) {
     // No response received
-    return 'Network error: please check your internet connection and try again.';
+    return {
+      message:
+        'Network error: please check your internet connection and try again.',
+      statusCode: 503,
+    };
   }
 
   switch (status) {
     case 400:
-      return 'Invalid request. Please check the information you provided and try again.';
+      return {
+        message:
+          'Invalid request. Please check the information you provided and try again.',
+        statusCode: 400,
+      };
     case 401:
-      return 'Incorrect email or password. Please try again.';
+      return {
+        message: 'Incorrect email or password. Please try again.',
+        statusCode: 401,
+      };
     case 403:
-      return 'You do not have permission to access this resource.';
+      return {
+        message: 'You do not have permission to access this resource.',
+        statusCode: 403,
+      };
     case 404:
-      return 'User not found. Please check your credentials.';
+      return {
+        message: 'User not found. Please check your credentials.',
+        statusCode: 404,
+      };
     case 422:
-      return 'Provided data is invalid. Please check and try again.';
+      return {
+        message: 'Provided data is invalid. Please check and try again.',
+        statusCode: 422,
+      };
     case 502:
-      return 'Authentication service is temporarily unavailable. Please try again in a few minutes.';
+      return {
+        message:
+          'Authentication service is temporarily unavailable. Please try again in a few minutes.',
+        statusCode: 502,
+      };
     case 503:
-      return 'Authentication service is temporarily unavailable. Please try again later.';
+      return {
+        message:
+          'Authentication service is temporarily unavailable. Please try again later.',
+        statusCode: 503,
+      };
     case 500:
     default:
-      return 'Authentication failed. Please try again or contact support if the problem persists.';
+      return {
+        message:
+          'Authentication failed. Please try again or contact support if the problem persists.',
+        statusCode: 500,
+      };
   }
 };
 
@@ -196,8 +232,8 @@ export const options = {
           );
 
           // Translate to a friendly, non-verbose message for the client
-          const friendlyMessage = getFriendlyAuthErrorMessage(error);
-          throw new Error(friendlyMessage);
+          const errorInfo = getFriendlyAuthErrorMessage(error);
+          throw new Error(errorInfo.message);
         }
       },
     }),
@@ -215,6 +251,11 @@ export const options = {
         // Store all user data in the token for persistence
         Object.assign(token, user);
         token.accessToken = user.token;
+
+        // Ensure firstName is available for the home page
+        if (user.firstName) {
+          token.firstName = user.firstName;
+        }
       }
       return token;
     },
@@ -226,6 +267,16 @@ export const options = {
 
         // Only populate session-level fields at session root
         transferTokenDataToSession(session, token);
+
+        // Ensure firstName is always available in session.user for home page
+        if (token.firstName) {
+          session.user.firstName = token.firstName;
+        }
+
+        // Fallback to email if firstName is not available
+        if (!session.user.firstName && session.user.email) {
+          session.user.firstName = session.user.email.split('@')[0];
+        }
       }
       return session;
     },

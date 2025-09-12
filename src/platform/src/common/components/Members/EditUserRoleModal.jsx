@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import ReusableDialog from '../Modal/ReusableDialog';
 import SelectField from '../SelectField';
+import Button from '@/common/components/Button';
+import NotificationService from '@/core/utils/notificationService';
 import { getGroupRolesApi, assignRoleToUserApi } from '@/core/apis/Account';
 
 const EditUserRoleModal = ({
@@ -15,6 +17,7 @@ const EditUserRoleModal = ({
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(user?.role || '');
   const [loadingRoles, setLoadingRoles] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -23,10 +26,13 @@ const EditUserRoleModal = ({
       getGroupRolesApi(groupId)
         .then((data) => {
           setRoles(data?.roles || []);
-          setError('');
+          // clear any prior errors silently
         })
         .catch((err) => {
-          setError(err.message || 'Failed to fetch roles');
+          NotificationService.error(
+            err?.status || 400,
+            err?.message || 'Failed to fetch roles',
+          );
         })
         .finally(() => setLoadingRoles(false));
     }
@@ -39,24 +45,69 @@ const EditUserRoleModal = ({
   const handleSave = async () => {
     const userId = user?._id;
     if (!selectedRole || !userId) return;
+
+    setError('');
+    setSubmitting(true);
     try {
-      // Assign the role to the user using _id
-      await assignRoleToUserApi(selectedRole, { user: userId });
+      const res = await assignRoleToUserApi(selectedRole, { user: userId });
+
+      const status =
+        res?.status ?? res?.statusCode ?? (res?.success === false ? 400 : 200);
+
+      if (res && typeof res === 'object') {
+        if (res.success === false) {
+          // Prefer detailed error from API when available (avoid generic 'Bad Request Error')
+          let detail = res.message || 'Failed to assign role';
+          if (
+            status === 400 &&
+            Array.isArray(res.errors) &&
+            res.errors.length > 0
+          ) {
+            // Prefer the first error message and sanitize IDs
+            const messages = res.errors.map((e) => e?.message).filter(Boolean);
+            if (messages.length > 0) {
+              const raw = messages[0];
+              // Detect common 'already assigned' pattern and replace with friendly message
+              const alreadyAssignedRegex =
+                /User\s+[a-fA-F0-9]{24}\s+is already assigned to the role\s+[a-fA-F0-9]{24}/i;
+              if (alreadyAssignedRegex.test(raw)) {
+                detail = 'Selected user already has the selected role.';
+              } else {
+                // Remove any Mongo-like IDs from the message to avoid exposing them
+                detail = messages
+                  .map((m) =>
+                    m
+                      .replace(/[a-fA-F0-9]{24}/g, '')
+                      .replace(/\s{2,}/g, ' ')
+                      .trim(),
+                  )
+                  .filter(Boolean)
+                  .join('; ');
+              }
+            }
+          }
+          NotificationService.error(status, detail);
+          return;
+        }
+
+        NotificationService.success(
+          status,
+          res.message || 'Role assigned successfully',
+        );
+        onSave(selectedRole);
+        return;
+      }
+
+      // Fallback: assume success
+      NotificationService.success(200, 'Role assigned successfully');
       onSave(selectedRole);
     } catch (err) {
-      // Try to parse a more user-friendly error message
-      let friendlyMessage = err.message || 'Failed to assign role';
-      if (err.errors && Array.isArray(err.errors)) {
-        const alreadyAssigned = err.errors.find(
-          (e) =>
-            e.message && e.message.includes('is already assigned to the role'),
-        );
-        if (alreadyAssigned) {
-          friendlyMessage =
-            'The selected role is already assigned to this user.';
-        }
-      }
-      setError(friendlyMessage);
+      const apiMessage =
+        err?.message || err?.response?.data?.message || 'Failed to assign role';
+      const status = err?.status || err?.response?.status || 500;
+      NotificationService.error(status, apiMessage);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -66,16 +117,26 @@ const EditUserRoleModal = ({
       onClose={onClose}
       title={`Edit Role for ${user?.firstName || ''} ${user?.lastName || ''}`}
       showFooter={true}
-      primaryAction={{
-        label: isLoading ? 'Saving...' : 'Save',
-        onClick: handleSave,
-        disabled: isLoading || !selectedRole,
-      }}
-      secondaryAction={{
-        label: 'Cancel',
-        onClick: onClose,
-        disabled: isLoading,
-      }}
+      // Keep footer but render custom buttons to use Button component and local loading
+      customFooter={
+        <div className="flex gap-2 justify-end">
+          <Button
+            variant="text"
+            onClick={onClose}
+            disabled={isLoading || submitting}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="filled"
+            loading={isLoading || submitting}
+            onClick={handleSave}
+            disabled={isLoading || submitting || !selectedRole}
+          >
+            {isLoading || submitting ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
+      }
     >
       <div className="space-y-4">
         {loadingRoles ? (
@@ -88,7 +149,7 @@ const EditUserRoleModal = ({
             value={selectedRole}
             onChange={(e) => setSelectedRole(e.target.value)}
             required
-            disabled={isLoading}
+            disabled={isLoading || submitting}
           >
             <option value="" disabled>
               Select a role

@@ -9,9 +9,7 @@ import { MAX_CARDS } from './constants';
 import { SiteCard, AddLocationCard } from './components';
 import { SkeletonCard } from './components/SkeletonCard';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 
 /**
  * Validates MongoDB ObjectId format
@@ -233,14 +231,10 @@ const AQNumberCard = () => {
     [measurements],
   );
 
-  // Use CustomToast for errors
+  // Use NotificationService for errors
   useEffect(() => {
     if (error || measurementsError) {
-      CustomToast({
-        message: error || measurementsError,
-        type: TOAST_TYPES.ERROR,
-        duration: 5000,
-      });
+      NotificationService.error(500, error || measurementsError);
       // Clear the local error state after showing the toast
       const timer = setTimeout(() => setError(null), 100);
       return () => clearTimeout(timer);

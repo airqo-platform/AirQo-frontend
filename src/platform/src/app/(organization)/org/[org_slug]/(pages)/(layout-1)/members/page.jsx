@@ -12,7 +12,7 @@ import { MembersPageSkeleton } from '@/common/components/Skeleton';
 import { MembersTable, InviteModal } from '@/common/components/Members';
 import { FaUserPlus } from 'react-icons/fa';
 import logger from '@/lib/logger';
-import CustomToast from '@/components/Toast/CustomToast';
+import CustomToast from '@/common/components/Toast/CustomToast';
 
 const OrganizationMembersPage = () => {
   const { organization, primaryColor } = useOrganization();
@@ -177,8 +177,12 @@ const OrganizationMembersPage = () => {
           <p className="text-sm text-gray-500">Manage your team</p>
         </div>
         {canInvite && (
-          <Button onClick={() => setShowInviteModal(true)} variant="filled">
-            <FaUserPlus className="mr-2" /> Invite Member
+          <Button
+            Icon={FaUserPlus}
+            onClick={() => setShowInviteModal(true)}
+            variant="filled"
+          >
+            Invite Member
           </Button>
         )}
       </div>

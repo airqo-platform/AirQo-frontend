@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ReusableTable from '@/common/components/Table/ReusableTable';
 import { AqX, AqCheck } from '@airqo/icons-react';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import {
   getAllUserClientsApi,
@@ -34,7 +34,7 @@ const AdminClientsTable = () => {
           setClients(normalized);
         }
       } catch {
-        CustomToast({ type: 'error', message: 'Failed to fetch clients' });
+        NotificationService.error(500, 'Failed to fetch clients');
       } finally {
         setIsLoading(false);
       }
@@ -43,7 +43,15 @@ const AdminClientsTable = () => {
   }, [refresh, my_clients]);
 
   // Notification helper
-  const notify = (message, type) => CustomToast({ type, message });
+  const notify = (message, type) => {
+    if (type === 'success') {
+      NotificationService.success(200, message);
+    } else if (type === 'error') {
+      NotificationService.error(500, message);
+    } else {
+      NotificationService.showNotification(200, message);
+    }
+  };
 
   // Activate client
   const handleActivate = async () => {

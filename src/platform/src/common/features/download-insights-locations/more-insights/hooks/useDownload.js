@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { saveAs } from 'file-saver';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import useDataDownload from '@/core/hooks/useDataDownload';
 import csvFromResponse from '../utils/csvFromResponse';
 import formatFileName from '../utils/formatFileName';
@@ -19,7 +19,7 @@ export default function useDownload({
   const download = useCallback(
     async (datatype = 'calibrated') => {
       if (!visibleSites.length) {
-        CustomToast({ message: 'Select at least one site', type: 'warning' });
+        NotificationService.warning(400, 'Select at least one site');
         return;
       }
       setLoading(true);
@@ -66,12 +66,16 @@ export default function useDownload({
             endDate: new Date(dateRange.endDate),
           }),
         );
-        CustomToast({
-          message: `Download complete for ${visibleSites.length} site(s)!`,
-          type: 'success',
-        });
+        NotificationService.success(
+          200,
+          `Download complete for ${visibleSites.length} site(s)!`,
+        );
       } catch (err) {
-        setError(err.name === 'AbortError' ? 'Download canceled' : err.message);
+        const statusCode = err?.response?.status || err?.status || 500;
+        const errorMessage =
+          err.name === 'AbortError' ? 'Download canceled' : err.message;
+        setError(errorMessage);
+        NotificationService.error(statusCode, errorMessage);
       } finally {
         setLoading(false);
       }
