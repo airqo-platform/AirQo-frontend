@@ -11,7 +11,6 @@
 
 import { mutate } from 'swr';
 import logger from '@/lib/logger';
-// Import tour storage prefix to avoid clearing user tour keys on logout
 import { STORAGE_KEY_PREFIX as TOUR_STORAGE_PREFIX } from '@/common/features/tours/utils/tourStorage';
 
 /**
@@ -72,8 +71,15 @@ export const clearBrowserStorage = () => {
     ];
 
     // Clear localStorage (but preserve user tour keys)
+    // Keys we must always preserve across logout
+    const PRESERVE_KEYS = ['moreInsightsInfoBannerSeen'];
     const localStorageKeys = Object.keys(localStorage);
     localStorageKeys.forEach((key) => {
+      // preserve explicit keys
+      if (PRESERVE_KEYS.includes(key)) {
+        logger.debug('Preserving explicit localStorage key on logout:', key);
+        return;
+      }
       // preserve tour keys that start with the known prefix
       if (
         typeof TOUR_STORAGE_PREFIX === 'string' &&
@@ -98,8 +104,13 @@ export const clearBrowserStorage = () => {
     });
 
     // Clear sessionStorage (also preserve tour keys if present there)
+    // Preserve explicit keys in sessionStorage as well
     const sessionStorageKeys = Object.keys(sessionStorage);
     sessionStorageKeys.forEach((key) => {
+      if (PRESERVE_KEYS.includes(key)) {
+        logger.debug('Preserving explicit sessionStorage key on logout:', key);
+        return;
+      }
       if (
         typeof TOUR_STORAGE_PREFIX === 'string' &&
         key.startsWith(TOUR_STORAGE_PREFIX)
