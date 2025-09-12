@@ -96,7 +96,21 @@ export const getApiToken = () => {
 };
 
 export const getNextAuthUrl = () => {
-  return process.env.NEXTAUTH_URL || 'https://analytics.airqo.net';
+  // 1) Explicit NEXTAUTH_URL takes priority
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
+
+  // 2) If dev tools flag requests staging, use staging for testing
+  if (process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging') {
+    return 'https://staging-analytics.airqo.net';
+  }
+
+  // 3) Production environment uses the production URL
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://analytics.airqo.net';
+  }
+
+  // 4) Default to localhost for local development
+  return 'http://localhost:3000';
 };
 
 export const getNextAuthSecret = () => {
