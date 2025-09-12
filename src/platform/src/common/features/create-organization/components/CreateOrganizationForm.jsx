@@ -4,7 +4,7 @@ import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 import TextInputField from '@/common/components/TextInputField';
 import SelectField from '@/common/components/SelectField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import {
   validateStep1,
   validateStep2,
@@ -16,7 +16,7 @@ import {
   handleInputChange as utilsHandleInputChange,
 } from '../utils/formUtils';
 import {
-  AqLoading01,
+  AqLoading02,
   AqCheck,
   AqXClose,
   AqImagePlus,
@@ -123,10 +123,7 @@ const CreateOrganizationForm = ({
       }
     };
     reader.onerror = () => {
-      CustomToast({
-        message: 'Error reading file for preview.',
-        type: 'error',
-      });
+      NotificationService.error(500, 'Error reading file for preview.');
       setLogoPreview(''); // Clear preview on error
     };
     reader.readAsDataURL(file);
@@ -186,12 +183,11 @@ const CreateOrganizationForm = ({
         return;
       }
 
-      CustomToast({
-        message:
-          error?.message ||
+      NotificationService.error(
+        500,
+        error?.message ||
           'Failed to submit organization request. Please try again.',
-        type: 'error',
-      });
+      );
     },
     [
       currentStep,
@@ -228,7 +224,7 @@ const CreateOrganizationForm = ({
     if (isSubmitting) {
       return (
         <div className="flex items-center">
-          <AqLoading01 className="animate-spin h-4 w-4 mr-2 text-white" />
+          <AqLoading02 className="animate-spin h-4 w-4 mr-2 text-white" />
           {currentStep === 1 ? 'Checking...' : 'Submitting...'}
         </div>
       );
@@ -324,7 +320,7 @@ const CreateOrganizationForm = ({
 
               {isCheckingSlug && (
                 <p className="mt-1 flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <AqLoading01 className="animate-spin h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
+                  <AqLoading02 className="animate-spin h-4 w-4 mr-2 text-gray-500 dark:text-gray-400" />
                   Checking availability...
                 </p>
               )}

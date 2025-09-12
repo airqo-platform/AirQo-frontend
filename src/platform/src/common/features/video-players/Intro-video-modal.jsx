@@ -5,9 +5,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import { updateTaskProgress } from '@/lib/store/services/checklists/CheckList';
 import { AqXClose } from '@airqo/icons-react';
-import Spinner from '@/components/Spinner';
+import Spinner from '@/common/components/Spinner';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
 
 const VideoModal = ({ open, setOpen, videoUrl }) => {
   const dispatch = useDispatch();

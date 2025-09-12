@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import AccountPageLayout from '@/components/Account/Layout';
-import CustomToast from '@/components/Toast/CustomToast';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import CustomToast from '@/common/components/Toast/CustomToast';
 import InputField from '@/common/components/InputField';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import {

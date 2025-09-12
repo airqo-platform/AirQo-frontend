@@ -3,12 +3,12 @@ import { useDispatch } from 'react-redux';
 import { useSession } from 'next-auth/react';
 import Spinner from '@/common/components/Spinner';
 import * as Yup from 'yup';
-import AlertBox from '@/components/AlertBox';
-import Button from '@/components/Button';
-import Card from '@/components/CardWrapper';
+import AlertBox from '@/common/components/AlertBox';
+import Button from '@/common/components/Button';
+import Card from '@/common/components/CardWrapper';
 import InputField from '@/common/components/InputField';
 import TextField from '@/common/components/TextInputField';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import ProfileSkeleton from '../components/ProfileSkeleton';
 import { updateUserCreationDetails, getUserDetails } from '@/core/apis/Account';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
@@ -171,17 +171,17 @@ export default function Profile() {
 
     const allowed = ['image/jpeg', 'image/png', 'image/svg+xml', 'image/webp'];
     if (!allowed.includes(file.type)) {
-      CustomToast({
-        message: 'Invalid image type. Please use JPEG, PNG, SVG, or WebP.',
-        type: 'error',
-      });
+      NotificationService.error(
+        422,
+        'Invalid image type. Please use JPEG, PNG, SVG, or WebP.',
+      );
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      CustomToast({
-        message: 'Image size exceeds 5MB. Please choose a smaller image.',
-        type: 'error',
-      });
+      NotificationService.error(
+        413,
+        'Image size exceeds 5MB. Please choose a smaller image.',
+      );
       return;
     }
 
@@ -192,17 +192,34 @@ export default function Profile() {
     };
     reader.readAsDataURL(file);
 
+    // Convert data URL to Blob without using fetch (avoids NetworkError on some platforms)
+    const dataURLToBlob = (dataURL) => {
+      if (!dataURL) return null;
+      try {
+        const [header, base64] = dataURL.split(',');
+        const mime = header.match(/:(.*?);/)[1];
+        const binary = atob(base64);
+        const len = binary.length;
+        const u8 = new Uint8Array(len);
+        for (let i = 0; i < len; i++) u8[i] = binary.charCodeAt(i);
+        return new Blob([u8], { type: mime });
+      } catch {
+        return null;
+      }
+    };
+
     setProfileUploading(true);
     try {
       const cropped = await cropImage(file);
-      const blob = await (await fetch(cropped)).blob();
+      const blob = dataURLToBlob(cropped);
+      if (!blob) throw new Error('Failed to convert image to blob');
       setSelectedImageBlob(blob);
       setLocalImagePreview(cropped);
     } catch (err) {
-      CustomToast({
-        message: `Image processing failed: ${err.message || 'An unknown error occurred.'}`,
-        type: 'error',
-      });
+      NotificationService.error(
+        500,
+        `Image processing failed: ${err?.message || 'An unknown error occurred.'}`,
+      );
       setLocalImagePreview(null);
       setImageError(true);
     } finally {
@@ -212,7 +229,7 @@ export default function Profile() {
 
   // Handle submit
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Crucial: Prevent default form submission to avoid full page reload
+    e.preventDefault();
     setIsSaving(true);
 
     // First, handle image upload if needed
@@ -233,10 +250,10 @@ export default function Profile() {
           throw new Error('No URL received from Cloudinary upload.');
         }
       } catch (err) {
-        CustomToast({
-          message: `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
-          type: 'error',
-        });
+        NotificationService.error(
+          500,
+          `Image upload failed: ${err.message || 'An unknown error occurred.'}`,
+        );
         setIsSaving(false);
         setProfileUploading(false);
         return;
@@ -254,10 +271,7 @@ export default function Profile() {
       err.inner.forEach((z) => (errs[z.path] = z.message));
       setValidationErrors(errs);
       setIsSaving(false);
-      CustomToast({
-        message: 'Please correct the validation errors.',
-        type: 'error',
-      });
+      NotificationService.error(422, 'Please correct the validation errors.');
       return;
     }
 
@@ -282,8 +296,7 @@ export default function Profile() {
       !userData.profilePicture &&
       initialUserData.profilePicture
     ) {
-      // This condition handles removing a profile picture if it was previously set
-      fieldsToUpdate.profilePicture = ''; // Set to empty string or null to indicate removal
+      fieldsToUpdate.profilePicture = '';
     }
 
     // If no changes, prevent API call and inform user
@@ -531,20 +544,19 @@ export default function Profile() {
                   <Button
                     type="button"
                     variant="outlined"
+                    size="md"
                     onClick={handleCancel}
                     disabled={isSaving || !hasChanges}
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={isSaving || !hasChanges}>
-                    {isSaving ? (
-                      <>
-                        <Spinner size={16} />
-                        <span className="ml-2">Saving…</span>
-                      </>
-                    ) : (
-                      'Save'
-                    )}
+                  <Button
+                    type="submit"
+                    size="md"
+                    loading={isSaving}
+                    disabled={isSaving || !hasChanges}
+                  >
+                    Save
                   </Button>
                 </div>
               </form>

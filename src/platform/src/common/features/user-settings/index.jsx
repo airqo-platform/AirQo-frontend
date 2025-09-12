@@ -9,7 +9,7 @@ import { getAssignedGroupMembers } from '@/core/apis/Account';
 import { useSessionAwarePermissions } from '@/core/HOC';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 import { THEME_MODES } from '@/common/features/theme-customizer/constants/themeConstants';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
 
 // Tab Components
 import Profile from './tabs/Profile';

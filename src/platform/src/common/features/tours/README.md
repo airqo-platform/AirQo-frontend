@@ -12,7 +12,7 @@ Automatically trigger global tours before route-specific tours when a user logs 
 // app/layout.jsx or similar root layout
 'use client';
 import { useEffect } from 'react';
-import { useTour } from '@/features/tours/contexts/TourProvider';
+import { useTour } from '@/common/features/tours/contexts/TourProvider';
 import { useSession } from 'next-auth/react';
 
 export default function RootLayout({ children }) {
@@ -49,7 +49,7 @@ Allow users to manually trigger tours or popups via buttons (e.g., Help menu).
 ```jsx
 // components/DashboardHeader.jsx
 'use client';
-import { useTour } from '@/features/tours/contexts/TourProvider';
+import { useTour } from '@/common/features/tours/contexts/TourProvider';
 import Button from '@/common/components/Button'; // Adjust path
 
 export default function DashboardHeader() {
@@ -98,7 +98,7 @@ Trigger a tour step that waits for a user to perform a specific action (e.g., cl
 // pages/analytics/index.jsx or app/user/analytics/page.jsx
 'use client';
 import { useEffect, useCallback } from 'react';
-import { useTour } from '@/features/tours/contexts/TourProvider';
+import { useTour } from '@/common/features/tours/contexts/TourProvider';
 import Button from '@/common/components/Button'; // Adjust path
 
 export default function AnalyticsPage() {

@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Button from '@/components/Button';
+import Button from '@/common/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
 import PlayIcon from '@/images/Home/PlayIcon';
 import { HomeSkeleton } from '@/common/components/Skeleton';
 import VideoModal from '@/features/video-players/Intro-video-modal';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import { Checklist } from '@/features/Checklist';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -195,7 +195,7 @@ const Home = () => {
         {/* Quick Access Section */}
         <div className="mb-8">
           <div className="flex items-center mb-3">
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-white mr-2">
+            <h2 className="text-xl md:text-2xl text-gray-800 dark:text-white mr-2">
               Quick Access
             </h2>
           </div>

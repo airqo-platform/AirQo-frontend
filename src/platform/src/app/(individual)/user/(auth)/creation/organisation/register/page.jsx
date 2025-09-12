@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useDispatch } from 'react-redux';
-import AccountPageLayout from '@/components/Account/Layout';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import {
   createUser,
   setUserFirstName,
@@ -12,9 +12,9 @@ import {
   setUserEmail,
 } from '@/lib/store/services/account/CreationSlice';
 import { AqAnnotationQuestion, AqEye, AqEyeOff } from '@airqo/icons-react';
-import Toast from '@/components/Toast';
+import Toast from '@/common/components/Toast';
 import { useRouter } from 'next/navigation';
-import Spinner from '@/components/Spinner';
+import Spinner from '@/common/components/Spinner';
 
 const OrganisationIndividualAccountCreation = () => {
   const [firstName, setFirstName] = useState('');

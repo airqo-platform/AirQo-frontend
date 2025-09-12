@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { saveAs } from 'file-saver';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import useDataDownload from '@/core/hooks/useDataDownload';
 import { format } from 'date-fns';
 import { POLLUTANT_OPTIONS } from '@/lib/constants';
@@ -79,11 +79,10 @@ export default function useAnalyticsDownload() {
     async (datatype = 'calibrated', sitesData = []) => {
       // Validate required data
       if (!chartData.chartSites || chartData.chartSites.length === 0) {
-        CustomToast({
-          message:
-            'No favorite locations selected. Please add favorite locations first.',
-          type: 'warning',
-        });
+        NotificationService.warning(
+          422,
+          'No favorite locations selected. Please add favorite locations first.',
+        );
         return;
       }
 
@@ -91,10 +90,10 @@ export default function useAnalyticsDownload() {
         !chartData.chartDataRange?.startDate ||
         !chartData.chartDataRange?.endDate
       ) {
-        CustomToast({
-          message: 'Invalid date range. Please select a valid date range.',
-          type: 'warning',
-        });
+        NotificationService.warning(
+          422,
+          'Invalid date range. Please select a valid date range.',
+        );
         return;
       }
 
@@ -166,18 +165,17 @@ export default function useAnalyticsDownload() {
 
         saveAs(blob, filename);
 
-        CustomToast({
-          message: `Download complete for ${chartData.chartSites.length} favorite location(s)!`,
-          type: 'success',
-        });
+        NotificationService.success(
+          200,
+          `Download complete for ${chartData.chartSites.length} favorite location(s)!`,
+        );
       } catch (err) {
         const errorMessage =
           err.name === 'AbortError' ? 'Download canceled' : err.message;
         setError(errorMessage);
-        CustomToast({
-          message: errorMessage,
-          type: 'error',
-        });
+        // Use status from error or default to 500
+        const statusCode = err?.response?.status || err?.status || 500;
+        NotificationService.error(statusCode, errorMessage);
       } finally {
         setLoading(false);
       }

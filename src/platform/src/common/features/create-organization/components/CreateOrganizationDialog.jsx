@@ -5,7 +5,7 @@ import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 import TextInputField from '@/common/components/TextInputField';
 import SelectField from '@/common/components/SelectField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import {
   validateStep1,
   validateStep2,
@@ -186,12 +186,12 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
         onClose();
       }
     } catch (error) {
-      CustomToast({
-        message:
-          error.message ||
+      const statusCode = error?.response?.status || error?.status || 500;
+      NotificationService.error(
+        statusCode,
+        error.message ||
           'Failed to submit organization request. Please try again.',
-        type: 'error',
-      });
+      );
     }
   };
 

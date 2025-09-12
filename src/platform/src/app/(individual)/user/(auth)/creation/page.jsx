@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import CheckComponent from '@/components/Account/CheckComponent';
+import CheckComponent from '@/common/components/Account/CheckComponent';
 
 const userRoles = [
   {

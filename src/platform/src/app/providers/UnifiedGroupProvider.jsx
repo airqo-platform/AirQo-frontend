@@ -28,8 +28,8 @@ import {
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
+import LoadingSpinner from '@/common/components/LoadingSpinner';
+import OrganizationNotFound from '@/common/components/Organization/OrganizationNotFound';
 import OrganizationSwitchLoader from '@/common/components/Organization/OrganizationSwitchLoader';
 import logger from '@/lib/logger';
 
@@ -151,22 +151,29 @@ export function UnifiedGroupProvider({ children }) {
     if (Array.isArray(_rawUserGroups)) {
       return _rawUserGroups;
     }
+    // Handle case where userGroups might be undefined or null during SSR
+    if (_rawUserGroups === undefined || _rawUserGroups === null) {
+      return [];
+    }
     // Log warning for debugging - userGroups should always be an array from Redux initial state
     if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.warn(
+      logger.warn(
         'UnifiedGroupProvider: _rawUserGroups is not an array:',
         _rawUserGroups,
       );
     }
-    // Handle case where userGroups might be undefined or null
+    // Fallback to empty array
     return [];
   }, [_rawUserGroups]);
 
-  const userGroupsLength = useMemo(() => userGroups.length, [userGroups]);
+  const userGroupsLength = useMemo(() => {
+    // Extra safety check to prevent length access on undefined
+    return Array.isArray(userGroups) ? userGroups.length : 0;
+  }, [userGroups]);
 
-  // Refs for async operations
+  // Refs for async operations - initialize properly with safe defaults
   const lock = useRef(false);
+  // keep abortRef as a flat ref to the AbortController (avoid wrapper object)
   const abortRef = useRef(null);
   const requestCacheRef = useRef(new Map());
   const retryTimerRef = useRef(null);
@@ -176,35 +183,43 @@ export function UnifiedGroupProvider({ children }) {
 
   // Cleanup function to prevent memory leaks
   const cleanup = useCallback(() => {
-    // Clear all timers
-    if (retryTimerRef.current) {
-      clearTimeout(retryTimerRef.current);
-      retryTimerRef.current = null;
-    }
+    try {
+      // Clear all timers
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
 
-    // Abort any pending requests
-    if (abortRef.current) {
-      abortRef.current.abort();
-      abortRef.current = null;
-    }
+      // Abort any pending requests
+      if (abortRef.current && typeof abortRef.current.abort === 'function') {
+        abortRef.current.abort();
+        abortRef.current = null;
+      }
 
-    // Clear request cache
-    if (
-      requestCacheRef.current &&
-      typeof requestCacheRef.current.clear === 'function'
-    ) {
-      requestCacheRef.current.clear();
-    }
+      // Clear request cache
+      if (
+        requestCacheRef.current &&
+        typeof requestCacheRef.current.clear === 'function'
+      ) {
+        requestCacheRef.current.clear();
+      }
 
-    // Release locks
-    lock.current = false;
+      // Release locks
+      lock.current = false;
+    } catch (error) {
+      logger.error('Cleanup error:', error);
+    }
   }, []);
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
       mountedRef.current = false;
-      cleanup();
+      try {
+        cleanup();
+      } catch (e) {
+        logger.error('Cleanup error:', e);
+      }
     };
   }, [cleanup]);
 
@@ -277,13 +292,27 @@ export function UnifiedGroupProvider({ children }) {
     (group, reason) => {
       if (!group || lock.current) return;
 
-      logger.debug('setActiveGroupAtomic', { group: group.grp_title, reason });
+      // Defensive: grp_title might be missing during hot-reload or malformed data
+      const groupTitleForLog =
+        group?.grp_title ?? group?._id ?? 'unknown-group';
+      logger.debug('setActiveGroupAtomic', { group: groupTitleForLog, reason });
       lock.current = true;
 
       try {
-        rdxDispatch(setActiveGroupAction(group));
-        rdxDispatch(setOrganizationName(group.grp_title));
-        dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+        // Defer Redux dispatch to avoid setState during render
+        const performUpdate = () => {
+          if (mountedRef.current) {
+            rdxDispatch(setActiveGroupAction(group));
+            rdxDispatch(setOrganizationName(group?.grp_title || ''));
+            // mark initial group set safely
+            if (mountedRef.current) {
+              dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+            }
+          }
+        };
+
+        // Use requestAnimationFrame for non-blocking state updates
+        requestAnimationFrame(performUpdate);
       } finally {
         lock.current = false;
       }
@@ -313,7 +342,7 @@ export function UnifiedGroupProvider({ children }) {
 
         // Update Redux store
         rdxDispatch(setActiveGroupAction(target));
-        rdxDispatch(setOrganizationName(target.grp_title));
+        rdxDispatch(setOrganizationName(target?.grp_title || ''));
         rdxDispatch(setChartSites([]));
         if (!isAirQo) rdxDispatch(resetChartStore());
 
@@ -408,7 +437,7 @@ export function UnifiedGroupProvider({ children }) {
       target = userGroups.find((g) => g._id === session.user.activeGroup._id);
     }
 
-    if (!target && userGroups.length > 0) {
+    if (!target && Array.isArray(userGroups) && userGroups.length > 0) {
       target = userGroups.find(isAirQoGroup) ?? userGroups[0];
     }
 
@@ -470,10 +499,11 @@ export function UnifiedGroupProvider({ children }) {
         return;
       }
 
-      // Abort previous request
-      abortRef.current?.abort?.();
+      // Abort previous request (safe flat ref usage)
+      abortRef.current?.abort();
       abortRef.current = new AbortController();
-      const { signal } = abortRef.current;
+      const controllerForThisEffect = abortRef.current;
+      const { signal } = controllerForThisEffect;
 
       currentCache.set(cacheKey, true);
 
@@ -554,12 +584,17 @@ export function UnifiedGroupProvider({ children }) {
     }, debounceMs);
 
     return () => {
-      clearTimeout(timer);
-      abortRef.current?.abort?.();
-      currentCache.delete(cacheKey);
-      if (retryTimerRef.current) {
-        clearTimeout(retryTimerRef.current);
-        retryTimerRef.current = null;
+      try {
+        clearTimeout(timer);
+        // Abort only the controller created by this effect run
+        controllerForThisEffect?.abort();
+        currentCache.delete(cacheKey);
+        if (retryTimerRef.current) {
+          clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
+        }
+      } catch (e) {
+        logger.error('Inner-effect cleanup error:', e);
       }
     };
   }, [
@@ -575,9 +610,12 @@ export function UnifiedGroupProvider({ children }) {
   // Clear switching state when route changes
   useEffect(() => {
     if (state.isSwitching) {
+      // Use a shorter timeout for better UX
       const timer = setTimeout(() => {
-        dispatch({ type: 'SET_SWITCHING', payload: false });
-      }, 1000);
+        if (mountedRef.current) {
+          dispatch({ type: 'SET_SWITCHING', payload: false });
+        }
+      }, 500);
 
       return () => clearTimeout(timer);
     }
@@ -594,7 +632,9 @@ export function UnifiedGroupProvider({ children }) {
       refreshGroups,
       isOrganizationContext,
       organizationSlug,
-      isAdminContext: pathname?.startsWith?.('/admin'),
+      // pathname may be null during some Next.js transitions; guard startsWith
+      isAdminContext:
+        typeof pathname === 'string' ? pathname.startsWith('/admin') : false,
       getGroupRoute: groupRoute,
       canSwitchToGroup,
       primaryColor:
@@ -640,7 +680,7 @@ export function UnifiedGroupProvider({ children }) {
   if (state.isSwitching && activeGroup) {
     return (
       <OrganizationSwitchLoader
-        organizationName={activeGroup.grp_title || 'Organization'}
+        organizationName={activeGroup?.grp_title || 'Organization'}
         primaryColor={
           state.organizationTheme?.primaryColor ||
           state.organization?.primaryColor ||

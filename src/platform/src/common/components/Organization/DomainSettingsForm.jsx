@@ -13,7 +13,7 @@ import {
 } from '@airqo/icons-react';
 import { FaInfo } from 'react-icons/fa';
 import CardWrapper from '@/common/components/CardWrapper';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import useGroupSlugManager from '@/core/hooks/useGroupSlugManager';
 import logger from '@/lib/logger';
 
@@ -52,11 +52,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
   const [slugSuggestions, setSlugSuggestions] = useState([]); // For suggested alternatives
 
   const [hasChanges, setHasChanges] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastConfig, setToastConfig] = useState({
-    message: '',
-    type: 'success',
-  });
+  // Toast state removed - now using global NotificationService
 
   // Initialize form data when currentSlug is available from the hook
   useEffect(() => {
@@ -86,10 +82,18 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
   // Calculate format error for use throughout the component
   const formatError = formData.slug ? validateSlugFormat(formData.slug) : null;
 
-  // Helper function to show toast messages
+  // Helper function to show toast messages using status-based notifications
   const showToastMessage = useCallback((message, type) => {
-    setToastConfig({ message, type });
-    setShowToast(true);
+    // Map legacy types to status codes
+    const statusMap = {
+      info: 200,
+      success: 201,
+      warning: 422,
+      error: 500,
+    };
+
+    const statusCode = statusMap[type] || 200;
+    NotificationService.showNotification(statusCode, message);
   }, []);
 
   // Handle form submission - simplified version that uses the improved hook
@@ -146,8 +150,9 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
         // Prevent further state updates or error toasts after success
         return;
       } catch (error) {
-        // Only show error toast if updateSlugHook actually throws
-        showToastMessage(error.message, 'error');
+        // Use status-based notification instead of error.message
+        const statusCode = error?.response?.status || error?.status || 500;
+        NotificationService.error(statusCode, error.message);
       }
     },
     [
@@ -502,14 +507,7 @@ const DomainSettingsForm = forwardRef((_props, ref) => {
             {/* Form Actions - Removed, handled by sidebar */}
           </form>
 
-          {/* Toast Notifications */}
-          {showToast && (
-            <CustomToast
-              message={toastConfig.message}
-              type={toastConfig.type}
-              onClose={() => setShowToast(false)}
-            />
-          )}
+          {/* Toast notifications now handled globally by NotificationService */}
         </div>
       </CardWrapper>
     </>

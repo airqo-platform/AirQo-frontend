@@ -133,7 +133,7 @@ export default function ReusableDropdown({
 
   /* ---------- render helpers ---------- */
   const getButtonStyles = () => {
-    const base = `relative flex items-center gap-3 font-medium rounded-xl transition-all duration-200 ${sizeClasses[size]} ${fullWidth ? 'w-full' : ''}`;
+    const base = `relative flex items-center gap-3 font-medium rounded-md transition-all duration-200 ${sizeClasses[size]} ${fullWidth ? 'w-full' : ''}`;
     if (isDisabled)
       return `${base} bg-gray-100 text-gray-400 cursor-not-allowed`;
     switch (buttonVariant) {
@@ -176,7 +176,7 @@ export default function ReusableDropdown({
       >
         {option.icon && (
           <div
-            className={`flex-shrink-0 p-1 rounded-lg ${isFocused ? 'bg-primary/20' : 'bg-gray-100'}`}
+            className={`flex-shrink-0 p-1 rounded-md ${isFocused ? 'bg-primary/20' : 'bg-gray-100'}`}
           >
             {typeof option.icon === 'string' ? (
               <span className="text-sm">{option.icon}</span>
@@ -210,7 +210,7 @@ export default function ReusableDropdown({
   return (
     <div className={`relative inline-block ${fullWidth ? 'w-full' : ''}`}>
       {isDisabled && showTooltipOnDisabled && tooltip && (
-        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-3 py-2 rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+        <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm px-3 py-2 rounded-md opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
           {tooltip}
           <div className="absolute top-full left-1/2 -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900" />
         </div>

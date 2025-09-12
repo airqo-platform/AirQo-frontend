@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import { useRouter, useParams } from 'next/navigation';
 import CustomToast from '@/common/components/Toast/CustomToast';
 import {

@@ -21,7 +21,7 @@ const UserCreationSuccess = () => {
           `/user/creation/organisation/verify/${id}/create-org/token-confirmation`,
         );
       } catch {
-        // TODO:ADD LATER
+        // ADD LATER
       }
     },
     [router, id],

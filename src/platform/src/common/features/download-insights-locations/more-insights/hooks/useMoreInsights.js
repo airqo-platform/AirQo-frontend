@@ -2,7 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
 import formatDateRangeToISO from '@/core/utils/formatDateRangeToISO';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import useMergeAbort from '../utils/mergeAbort';
 import {
   setMoreInsightsSites,
@@ -179,10 +179,10 @@ export default function useMoreInsights() {
       if (action === 'toggle') {
         setVisibleSites((p) => {
           if (p.length === 1 && p.includes(siteId)) {
-            CustomToast({
-              message: 'At least one location must remain selected.',
-              type: 'warning',
-            });
+            NotificationService.warning(
+              400,
+              'At least one location must remain selected.',
+            );
             return p;
           }
           const newVisibleSites = p.includes(siteId)

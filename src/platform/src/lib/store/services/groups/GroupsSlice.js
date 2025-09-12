@@ -4,6 +4,8 @@ import logger from '@/lib/logger';
 
 /**
  * Async thunk to fetch user details and groups
+ * Implements safe data normalization following the pattern:
+ * groups first, my_groups fallback, empty array otherwise
  */
 export const fetchUserGroups = createAsyncThunk(
   'groups/fetchUserGroups',
@@ -17,53 +19,60 @@ export const fetchUserGroups = createAsyncThunk(
 
       const user = response.users[0];
 
-      // Handle different data structures - map the groups correctly
-      let groups = [];
+      // Normalize data according to requirements:
+      // 1. Extract networks, groups, clients safely
+      // 2. Use groups first, fallback to my_groups, else empty array
+      // 3. Strip everything else except what UI consumes
 
-      // First check for the 'groups' array in the response (this seems to be the main data structure)
-      if (Array.isArray(user.groups)) {
-        groups = user.groups.map((group) => ({
-          _id: group._id,
-          grp_title: group.grp_title,
-          grp_profile_picture: group.grp_profile_picture || group.grp_image,
-          organization_slug: group.organization_slug,
-          grp_slug: group.organization_slug,
-          grp_country: group.grp_country,
-          grp_industry: group.grp_industry,
-          grp_timezone: group.grp_timezone,
-          grp_website: group.grp_website,
-          theme: group.theme,
-          status: group.status,
-          createdAt: group.createdAt,
-          role: group.role,
-          userType: group.userType,
-          // Add any other necessary fields
-          ...group,
-        }));
-      }
-      // Fallback to my_groups if groups array is not available
-      else if (Array.isArray(user.my_groups)) {
-        groups = user.my_groups.map((group) => ({
-          _id: group._id,
-          grp_title: group.grp_title,
-          grp_profile_picture: group.grp_profile_picture || group.grp_image,
-          organization_slug: group.organization_slug,
-          grp_slug: group.organization_slug,
-          grp_country: group.grp_country,
-          grp_industry: group.grp_industry,
-          grp_timezone: group.grp_timezone,
-          grp_website: group.grp_website,
-          theme: group.theme,
-          status: group.status,
-          createdAt: group.createdAt,
-          // Add any other necessary fields
-          ...group,
-        }));
-      }
+      const safeNetworks = Array.isArray(user.networks) ? user.networks : [];
+      const safeClients = Array.isArray(user.clients) ? user.clients : [];
+
+      // Safe groups extraction with fallback pattern
+      const safeGroups = Array.isArray(user.groups)
+        ? user.groups
+        : Array.isArray(user.my_groups)
+          ? user.my_groups
+          : [];
+
+      // Normalize groups to consistent structure
+      const normalizedGroups = safeGroups.map((group) => ({
+        // Keep only what's needed for UI (explicitly override any originals below)
+        ...group,
+        _id: group._id,
+        grp_title: group.grp_title,
+        grp_profile_picture: group.grp_profile_picture || group.grp_image,
+        organization_slug: group.organization_slug,
+        // Prefer specific slug fields; fall back sensibly
+        grp_slug: group.grp_slug || group.organization_slug || group.slug,
+        grp_country: group.grp_country,
+        grp_industry: group.grp_industry,
+        grp_timezone: group.grp_timezone,
+        grp_website: group.grp_website,
+        theme: group.theme,
+        status: group.status,
+        createdAt: group.createdAt,
+        role: group.role,
+        userType: group.userType,
+      }));
+
+      // Return normalized user data with only essential fields
+      const normalizedUser = {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        userName: user.userName,
+        organization: user.organization,
+        long_organization: user.long_organization,
+        privilege: user.privilege,
+        profilePicture: user.profilePicture,
+        networks: safeNetworks,
+        clients: safeClients,
+      };
 
       return {
-        user,
-        groups,
+        user: normalizedUser,
+        groups: normalizedGroups,
       };
     } catch (error) {
       logger.error('Error fetching user groups:', error);

@@ -193,7 +193,7 @@ const AnalyticsControls = ({
             iconPosition="left"
             isButton
             onClick={() => handleOpenModal('addFavorites')}
-            tooltipEnabled
+            // tooltipEnabled
             tooltipText="Add up to 4 favorite locations for quick monitoring and visualization"
           />
 

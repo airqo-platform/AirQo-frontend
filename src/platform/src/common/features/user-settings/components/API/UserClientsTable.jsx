@@ -4,7 +4,7 @@ import moment from 'moment';
 import { getUserDetails } from '@/core/apis/Account';
 import { AqEdit05 } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import {
   addClients,
   addClientsDetails,
@@ -26,11 +26,6 @@ import ReusableTable from '@/common/components/Table/ReusableTable';
 const UserClientsTable = () => {
   const { data: session } = useSession();
   const dispatch = useDispatch();
-  const [isError, setIsError] = useState({
-    isError: false,
-    message: '',
-    type: '',
-  });
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingToken, setIsLoadingToken] = useState(false);
@@ -49,20 +44,19 @@ const UserClientsTable = () => {
   const userId = session?.user?.id || userInfo?.id || userInfo?._id;
 
   const setErrorState = (message, type) => {
-    setIsError({
-      isError: true,
-      message,
-      type,
-    });
+    // Map legacy types to status codes and use NotificationService
+    const statusMap = {
+      error: 500,
+      warning: 422,
+      info: 200,
+      success: 201,
+    };
+
+    const statusCode = statusMap[type] || 500;
+    NotificationService.showNotification(statusCode, message);
   };
 
-  // Show toast when isError changes
-  useEffect(() => {
-    if (isError.isError) {
-      CustomToast({ message: isError.message, type: isError.type });
-      setIsError({ isError: false, message: '', type: '' });
-    }
-  }, [isError]);
+  // Remove the useEffect for toast handling - now handled by NotificationService
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -142,7 +136,8 @@ const UserClientsTable = () => {
         }
         dispatch(performRefresh());
       } catch (error) {
-        setErrorState(error.message, 'error');
+        // Use status-based error notification instead of error.message
+        NotificationService.handleApiError(error, 'Failed to generate token');
       } finally {
         setIsLoadingToken(false);
       }
@@ -156,22 +151,20 @@ const UserClientsTable = () => {
       const response = await activationRequestApi(clientID);
       setShowInfoModal(false);
       if (response.success) {
-        CustomToast({
-          message: 'Activation request sent successfully',
-          type: 'success',
-        });
+        NotificationService.success(
+          200,
+          'Activation request sent successfully',
+        );
       } else {
-        CustomToast({
-          message: 'Failed to send activation request',
-          type: 'error',
-        });
+        NotificationService.error(500, 'Failed to send activation request');
       }
     } catch (error) {
       setShowInfoModal(false);
-      CustomToast({
-        message: error.message || 'Failed to send activation request',
-        type: 'error',
-      });
+      // Use status-based error notification
+      NotificationService.handleApiError(
+        error,
+        'Failed to send activation request',
+      );
     } finally {
       setIsLoadingActivationRequest(false);
     }
@@ -352,10 +345,11 @@ const UserClientsTable = () => {
               </p>
             </div>
             <Button
+              Icon={AqPlus}
               onClick={() => setOpenAddForm(true)}
               className="w-[152px] h-11 flex justify-center items-center gap-2 rounded py-3 px-4 mr-5 my-4 md:mb-0 text-sm font-medium"
             >
-              <AqPlus /> Create client
+              Create client
             </Button>
           </div>
         }

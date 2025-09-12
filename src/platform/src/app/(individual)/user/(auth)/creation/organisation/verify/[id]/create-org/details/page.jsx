@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
-import ProgressComponent from '@/components/Account/ProgressComponent';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import ProgressComponent from '@/common/components/Account/ProgressComponent';
 import {
   AqAnnotationQuestion,
   AqSearchSm,
@@ -11,10 +11,10 @@ import {
   AqInfoCircle,
 } from '@airqo/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
-import Spinner from '@/components/Spinner';
+import Spinner from '@/common/components/Spinner';
 
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import Toast from '@/components/Toast';
+import Toast from '@/common/components/Toast';
 import Link from 'next/link';
 import { isEmpty } from 'underscore';
 import countries from 'i18n-iso-countries';

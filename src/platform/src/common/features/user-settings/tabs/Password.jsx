@@ -2,10 +2,10 @@ import { useState } from 'react';
 import * as Yup from 'yup';
 import { updateUserPasswordApi } from '@/core/apis/Settings';
 import { useSession } from 'next-auth/react';
-import AlertBox from '@/components/AlertBox';
-import Spinner from '@/components/Spinner';
-import Card from '@/components/CardWrapper';
-import Button from '@/components/Button';
+import AlertBox from '@/common/components/AlertBox';
+import Spinner from '@/common/components/Spinner';
+import Card from '@/common/components/CardWrapper';
+import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 
 // Define the password complexity regex

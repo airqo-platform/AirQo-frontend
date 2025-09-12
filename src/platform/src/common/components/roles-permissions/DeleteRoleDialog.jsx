@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { deleteGroupRoleApi } from '@/core/apis/Account';
 
 const DeleteRoleDialog = ({ isOpen, onClose, roleId, onRefresh }) => {
@@ -14,21 +14,53 @@ const DeleteRoleDialog = ({ isOpen, onClose, roleId, onRefresh }) => {
     setLoading(true);
     try {
       const response = await deleteGroupRoleApi(roleId);
-      if (response?.success) {
-        CustomToast({ message: 'Role deleted successfully!', type: 'success' });
+      // Some delete endpoints return 204/no-body and APIs in this repo
+      // often return `response.data` (so `status` may be undefined).
+      // Treat absence of explicit `success: false` as success.
+      const ok = response?.success !== false;
+      if (ok) {
+        const status = Number(response?.status) || 200;
+        const message =
+          response?.data?.message ||
+          response?.message ||
+          'Role deleted successfully!';
+        NotificationService.success(status, message);
         onClose();
         if (typeof onRefresh === 'function') onRefresh();
       } else {
-        CustomToast({
-          message: response?.message || 'Failed to delete role.',
-          type: 'error',
-        });
+        const status = Number(response?.status) || 400;
+        const message =
+          response?.data?.message ||
+          response?.message ||
+          'Failed to delete role.';
+        if (status === 500) {
+          NotificationService.error(
+            500,
+            'Something went wrong on our servers. Please try again later.',
+          );
+        } else {
+          NotificationService.error(status, message);
+        }
       }
     } catch (error) {
-      CustomToast({
-        message: error?.message || 'Failed to delete role.',
-        type: 'error',
-      });
+      const status = error?.response?.status ?? 0; // 0 => network error
+      const apiMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        'Failed to delete role.';
+      if (status === 500) {
+        NotificationService.error(
+          500,
+          'Something went wrong on our servers. Please try again later.',
+        );
+      } else if (status === 0) {
+        NotificationService.error(
+          0,
+          'Network error. Please check your connection and try again.',
+        );
+      } else {
+        NotificationService.error(status, apiMessage);
+      }
     } finally {
       setLoading(false);
     }

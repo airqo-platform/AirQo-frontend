@@ -1,4 +1,3 @@
-// EditClientForm.jsx
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -6,8 +5,9 @@ import { AqUser02, AqPlus } from '@airqo/icons-react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 
 import ReusableDialog from '@/components/Modal/ReusableDialog';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import InputField from '@/common/components/InputField';
+import Button from '@/common/components/Button';
 import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
 import { getUserDetails } from '@/core/apis/Account';
 import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
@@ -68,26 +68,55 @@ const EditClientForm = ({ open, closeModal, data }) => {
 
   const submit = async () => {
     if (!clientName.trim()) {
-      CustomToast({ message: "Client name can't be empty", type: 'error' });
+      NotificationService.error(422, "Client name can't be empty");
       return;
     }
     if (!userId) {
-      CustomToast({ message: 'User ID is required', type: 'error' });
+      NotificationService.error(422, 'User ID is required');
+      return;
+    }
+    if (!data?._id) {
+      NotificationService.error(422, 'Client ID is required');
       return;
     }
 
     setLoading(true);
 
     try {
+      // Normalize and only include ip_addresses when user provided at least one
+      const cleanedIps = ipAddresses.map((ip) => ip.trim()).filter(Boolean);
+
       const payload = {
         name: clientName.trim(),
         user_id: userId,
-        ip_addresses: ipAddresses.map((ip) => ip.trim()).filter(Boolean),
+        // only attach ip_addresses when present to avoid sending empty arrays
+        ...(cleanedIps.length ? { ip_addresses: cleanedIps } : {}),
       };
 
-      const updatedClient = await updateClientApi(payload, data._id);
-      if (!updatedClient || updatedClient._id !== data._id)
-        throw new Error(`Failed to update client ${data._id}`);
+      const res = await updateClientApi(payload, data._id);
+
+      // Normalize the updated client object from possible response shapes
+      const updatedClient =
+        (res && res.updated_client) ||
+        (res && res.data && res.data.updated_client) ||
+        (res && res.data && (res.data._id || res.data.id) ? res.data : null) ||
+        (res && (res._id || res.id) ? res : null);
+
+      // Determine success: prefer explicit `success: true`, or HTTP 2xx status, or presence of updated client id
+      const isSuccess =
+        (res && res.success === true) ||
+        (typeof res?.status === 'number' &&
+          res.status >= 200 &&
+          res.status < 300) ||
+        (updatedClient && (updatedClient._id || updatedClient.id));
+
+      if (!isSuccess) {
+        const msg =
+          res?.data?.message || res?.message || 'Failed to update client';
+        const statusCode = Number(res?.status) || 400;
+        NotificationService.error(statusCode, msg);
+        return;
+      }
 
       const [userRes, clientsRes] = await Promise.all([
         getUserDetails(userId),
@@ -97,13 +126,13 @@ const EditClientForm = ({ open, closeModal, data }) => {
       dispatch(addClients(userRes.users[0].clients));
       dispatch(addClientsDetails(clientsRes.clients));
 
-      CustomToast({ message: 'Client updated successfully', type: 'success' });
+      // Prefer any provided status, otherwise default to 200
+      const okStatus = Number(res?.status) || 200;
+      const okMessage = res?.message || 'Client updated successfully';
+      NotificationService.success(okStatus, okMessage);
       closeModal();
     } catch (e) {
-      CustomToast({
-        message: e?.response?.data?.message || 'Failed to update client',
-        type: 'error',
-      });
+      NotificationService.handleApiError(e, 'Failed to update client');
     } finally {
       setLoading(false);
     }
@@ -188,13 +217,17 @@ const EditClientForm = ({ open, closeModal, data }) => {
             ))}
           </div>
 
-          <button
+          <Button
+            variant="ghost"
+            size="md"
+            fullWidth
             onClick={addIp}
-            className="flex items-center justify-center w-full py-2 px-4 text-sm text-blue-600 hover:text-blue-700 border border-dashed border-blue-300 rounded-lg hover:bg-blue-50 transition-all"
+            className="text-blue-600 border-dashed border-blue-300"
+            Icon={AqPlus}
+            showTextOnMobile
           >
-            <AqPlus size={16} className="mr-2" />
             Add IP Address
-          </button>
+          </Button>
 
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Restrict client access to specific IP addresses. Leave empty to
