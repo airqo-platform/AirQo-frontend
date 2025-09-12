@@ -1070,7 +1070,9 @@ class _MapScreenState extends State<MapScreen>
                           "assets/icons/search_icon.svg",
                           height: 15,
                           colorFilter: ColorFilter.mode(
-                            Theme.of(context).textTheme.headlineLarge!.color!,
+                            Theme.of(context).textTheme.headlineLarge?.color ??
+                                Theme.of(context).iconTheme.color ??
+                                Colors.black,
                             BlendMode.srcIn,
                           ),
                         ),
