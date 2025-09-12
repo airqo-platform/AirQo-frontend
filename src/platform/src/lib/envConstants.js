@@ -96,7 +96,7 @@ export const getApiToken = () => {
 };
 
 export const getNextAuthUrl = () => {
-  return process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  return process.env.NEXTAUTH_URL || 'https://analytics.airqo.net';
 };
 
 export const getNextAuthSecret = () => {
