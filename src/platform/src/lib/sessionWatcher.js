@@ -2,11 +2,12 @@
  * Session Watcher - JWT Token Expiry Management
  *
  * This module provides a singleton session watcher that:
- * - Monitors JWT token expiry time
+ * - Monitors JWT token expiry time (if present)
  * - Logs out user 1 minute before token expires (24h - 1min)
  * - Uses BroadcastChannel for cross-tab synchronization
  * - Clears all caches and storage on logout
  * - Survives HMR and fast refresh without duplicate timers
+ * - Handles tokens without expiry gracefully
  */
 
 import jwtDecode from 'jwt-decode';
@@ -25,6 +26,7 @@ class SessionWatcher {
     this.onExpireCallback = null;
     this.lastToken = null;
     this.isInitialized = false;
+    this.hasExpiry = false; // Track if current token has expiry
 
     // Bind methods to preserve context
     this.handleBroadcastMessage = this.handleBroadcastMessage.bind(this);
@@ -100,8 +102,8 @@ class SessionWatcher {
   handleVisibilityChange() {
     if (!document.hidden) {
       this.electLeader();
-      // Re-validate token when page becomes visible
-      if (this.lastToken) {
+      // Re-validate token when page becomes visible (only if it has expiry)
+      if (this.lastToken && this.hasExpiry) {
         this.validateTokenExpiry(this.lastToken);
       }
     }
@@ -109,8 +111,8 @@ class SessionWatcher {
 
   handlePageFocus() {
     this.electLeader();
-    // Re-validate token when page gains focus
-    if (this.lastToken) {
+    // Re-validate token when page gains focus (only if it has expiry)
+    if (this.lastToken && this.hasExpiry) {
       this.validateTokenExpiry(this.lastToken);
     }
   }
@@ -133,8 +135,8 @@ class SessionWatcher {
           }),
         );
         logger.debug('Elected as session timer leader');
-        // If we just became leader and have an active token but no timer, schedule it
-        if (becameLeader && this.lastToken && !this.timerId) {
+        // If we just became leader and have an active token with expiry but no timer, schedule it
+        if (becameLeader && this.lastToken && this.hasExpiry && !this.timerId) {
           this.scheduleTimerFromToken(this.lastToken);
         }
       } else {
@@ -155,25 +157,48 @@ class SessionWatcher {
     return this._tabId;
   }
 
-  validateTokenExpiry(token) {
-    if (!token) return false;
+  /**
+   * Check if token has expiry field and validate it
+   * @param {string} token - JWT token
+   * @returns {object} - { hasExpiry: boolean, isValid: boolean }
+   */
+  checkTokenExpiry(token) {
+    if (!token) return { hasExpiry: false, isValid: false };
 
     try {
       const decoded = jwtDecode(token);
-      const now = Math.floor(Date.now() / 1000);
 
-      if (decoded.exp && decoded.exp <= now) {
-        logger.warn('Token has already expired');
-        this.triggerLogout();
-        return false;
+      // Check if token has expiry field
+      if (!decoded.exp || typeof decoded.exp !== 'number') {
+        logger.info(
+          'Token does not have expiry field, skipping expiry validation',
+        );
+        return { hasExpiry: false, isValid: true };
       }
 
-      return true;
+      const now = Math.floor(Date.now() / 1000);
+      const isValid = decoded.exp > now;
+
+      if (!isValid) {
+        logger.warn('Token has already expired');
+      }
+
+      return { hasExpiry: true, isValid };
     } catch (error) {
       logger.error('Token validation failed:', error);
+      return { hasExpiry: false, isValid: false };
+    }
+  }
+
+  validateTokenExpiry(token) {
+    const { isValid } = this.checkTokenExpiry(token);
+
+    if (!isValid) {
       this.triggerLogout();
       return false;
     }
+
+    return true;
   }
 
   startSessionWatch(token, onExpire) {
@@ -188,11 +213,21 @@ class SessionWatcher {
     this.lastToken = token;
     this.onExpireCallback = onExpire;
 
-    // Validate token immediately
-    if (!this.validateTokenExpiry(token)) {
+    // Check token expiry
+    const { hasExpiry, isValid } = this.checkTokenExpiry(token);
+    this.hasExpiry = hasExpiry;
+
+    if (!isValid) {
+      return; // Token is invalid, don't proceed
+    }
+
+    // If token doesn't have expiry, just store the callback and return
+    if (!hasExpiry) {
+      logger.info('Token has no expiry, session watch started without timer');
       return;
     }
 
+    // Token has expiry, proceed with timer setup
     try {
       const decoded = jwtDecode(token);
       const expiryTime = decoded.exp * 1000; // Convert to milliseconds
@@ -233,16 +268,25 @@ class SessionWatcher {
   scheduleTimerFromToken(token) {
     try {
       const { exp } = jwtDecode(token) || {};
-      if (!exp) return;
+
+      // If no expiry, don't schedule timer
+      if (!exp || typeof exp !== 'number') {
+        logger.debug('Token has no expiry, skipping timer scheduling');
+        return;
+      }
+
       const expiryTime = exp * 1000;
       const logoutTime = expiryTime - LOGOUT_SAFETY_MARGIN;
       const delay = logoutTime - Date.now();
+
       if (delay <= 0) return this.triggerLogout();
       if (this.timerId) clearTimeout(this.timerId);
+
       this.timerId = setTimeout(() => this.triggerLogout(), delay);
+      logger.debug('Timer scheduled from token');
     } catch (e) {
       logger.error('Failed to schedule timer from token:', e);
-      this.triggerLogout();
+      // Don't trigger logout for decoding errors if token might not have expiry
     }
   }
 
@@ -255,6 +299,7 @@ class SessionWatcher {
 
     this.lastToken = null;
     this.onExpireCallback = null;
+    this.hasExpiry = false;
   }
 
   triggerLogout() {
@@ -320,12 +365,19 @@ class SessionWatcher {
 
   // Public method to check if watcher is active
   isActive() {
-    return this.timerId !== null;
+    return (
+      this.timerId !== null || (this.lastToken !== null && !this.hasExpiry)
+    );
   }
 
-  // Public method to get remaining time
+  // Public method to check if current token has expiry
+  tokenHasExpiry() {
+    return this.hasExpiry;
+  }
+
+  // Public method to get remaining time (only if token has expiry)
   getTimeUntilExpiry() {
-    if (!this.lastToken) return null;
+    if (!this.lastToken || !this.hasExpiry) return null;
 
     try {
       const decoded = jwtDecode(this.lastToken);
@@ -364,6 +416,11 @@ export const stopSessionWatch = () => {
 export const isSessionWatchActive = () => {
   if (!sessionWatcher) return false;
   return sessionWatcher.isActive();
+};
+
+export const tokenHasExpiry = () => {
+  if (!sessionWatcher) return false;
+  return sessionWatcher.tokenHasExpiry();
 };
 
 export const getTimeUntilExpiry = () => {
