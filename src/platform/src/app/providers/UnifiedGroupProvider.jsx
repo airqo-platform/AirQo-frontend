@@ -212,17 +212,14 @@ export function UnifiedGroupProvider({ children }) {
   }, []);
 
   // Cleanup on unmount
-  // Defer cleanup to next tick to avoid React calling it synchronously during render/hot-reload
   useEffect(() => {
     return () => {
       mountedRef.current = false;
-      setTimeout(() => {
-        try {
-          cleanup();
-        } catch (e) {
-          logger.error('Deferred cleanup error:', e);
-        }
-      }, 0);
+      try {
+        cleanup();
+      } catch (e) {
+        logger.error('Cleanup error:', e);
+      }
     };
   }, [cleanup]);
 
@@ -505,7 +502,8 @@ export function UnifiedGroupProvider({ children }) {
       // Abort previous request (safe flat ref usage)
       abortRef.current?.abort();
       abortRef.current = new AbortController();
-      const { signal } = abortRef.current;
+      const controllerForThisEffect = abortRef.current;
+      const { signal } = controllerForThisEffect;
 
       currentCache.set(cacheKey, true);
 
@@ -586,21 +584,18 @@ export function UnifiedGroupProvider({ children }) {
     }, debounceMs);
 
     return () => {
-      // Defer cleanup to avoid synchronous aborts during render/hot-reload
-      setTimeout(() => {
-        try {
-          clearTimeout(timer);
-          // safe abort
-          abortRef.current?.abort();
-          currentCache.delete(cacheKey);
-          if (retryTimerRef.current) {
-            clearTimeout(retryTimerRef.current);
-            retryTimerRef.current = null;
-          }
-        } catch (e) {
-          logger.error('Deferred inner-effect cleanup error:', e);
+      try {
+        clearTimeout(timer);
+        // Abort only the controller created by this effect run
+        controllerForThisEffect?.abort();
+        currentCache.delete(cacheKey);
+        if (retryTimerRef.current) {
+          clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
         }
-      }, 0);
+      } catch (e) {
+        logger.error('Inner-effect cleanup error:', e);
+      }
     };
   }, [
     organizationSlug,

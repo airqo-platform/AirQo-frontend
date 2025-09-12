@@ -121,12 +121,17 @@ export const useCreateOrganization = () => {
 
         // send it
         const response = await createOrganisationRequestApi(payload);
-        const statusCode = response?.status || 201;
+        const success = response?.success !== false; // default true if not provided
+        if (!success) {
+          const msg = response?.message || 'Failed to submit request';
+          NotificationService.error(400, msg);
+          return { success: false, error: new Error(msg) };
+        }
         NotificationService.success(
-          statusCode,
+          201,
           'Organization request submitted successfully!',
         );
-        return { success: true };
+        return { success: true, data: response };
       } catch (err) {
         const msg =
           err?.response?.data?.message ||

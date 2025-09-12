@@ -75,14 +75,22 @@ const EditClientForm = ({ open, closeModal, data }) => {
       NotificationService.error(422, 'User ID is required');
       return;
     }
+    if (!data?._id) {
+      NotificationService.error(422, 'Client ID is required');
+      return;
+    }
 
     setLoading(true);
 
     try {
+      // Normalize and only include ip_addresses when user provided at least one
+      const cleanedIps = ipAddresses.map((ip) => ip.trim()).filter(Boolean);
+
       const payload = {
         name: clientName.trim(),
         user_id: userId,
-        ip_addresses: ipAddresses.map((ip) => ip.trim()).filter(Boolean),
+        // only attach ip_addresses when present to avoid sending empty arrays
+        ...(cleanedIps.length ? { ip_addresses: cleanedIps } : {}),
       };
 
       const res = await updateClientApi(payload, data._id);
@@ -104,11 +112,9 @@ const EditClientForm = ({ open, closeModal, data }) => {
 
       if (!isSuccess) {
         const msg =
-          (res && (res.message || (res.data && res.data.message))) ||
-          'Failed to update client';
-        const statusCode = (res && res.status) || 400;
+          res?.data?.message || res?.message || 'Failed to update client';
+        const statusCode = Number(res?.status) || 400;
         NotificationService.error(statusCode, msg);
-        setLoading(false);
         return;
       }
 

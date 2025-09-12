@@ -1,6 +1,18 @@
 import CustomToast from '@/common/components/Toast/CustomToast';
 import { getNotificationConfig } from './statusText';
 
+// Ensure we always pass a human-readable string to the toast layer
+const normalizeMessage = (input) => {
+  if (!input) return null;
+  if (typeof input === 'string') return input;
+  if (input?.message) return input.message;
+  try {
+    return JSON.stringify(input);
+  } catch {
+    return String(input);
+  }
+};
+
 /**
  * Enhanced notification utility that provides standardized toast messages
  * based on HTTP status codes with support for custom message overrides
@@ -14,7 +26,10 @@ class NotificationService {
    * @returns {string|number} Toast ID for manual dismissal
    */
   static showNotification(statusCode, customMessage = null, options = {}) {
-    const { message, type } = getNotificationConfig(statusCode, customMessage);
+    const { message, type } = getNotificationConfig(
+      statusCode,
+      normalizeMessage(customMessage),
+    );
 
     return CustomToast({
       message,
@@ -74,7 +89,11 @@ class NotificationService {
    */
   static handleApiResponse(response, customMessage = null, options = {}) {
     const statusCode = response?.status || response?.statusCode || 200;
-    return this.showNotification(statusCode, customMessage, options);
+    return this.showNotification(
+      statusCode,
+      normalizeMessage(customMessage),
+      options,
+    );
   }
 
   /**
@@ -86,17 +105,26 @@ class NotificationService {
    */
   static handleApiError(error, customMessage = null, options = {}) {
     // Extract status code from various error structures
+    if (error?.name === 'AbortError') return null; // don't toast cancelations
     const statusCode =
       error?.response?.status ||
       error?.status ||
       error?.statusCode ||
-      (error?.message?.includes('Network Error') ? 503 : 500);
+      (/\b(Network Error|Failed to fetch|ECONNABORTED)\b/i.test(
+        error?.message || '',
+      )
+        ? 503
+        : 500);
 
-    return this.showNotification(statusCode, customMessage, {
-      type: 'error',
-      duration: 7000,
-      ...options,
-    });
+    return this.showNotification(
+      statusCode,
+      normalizeMessage(customMessage || error),
+      {
+        type: 'error',
+        duration: 7000,
+        ...options,
+      },
+    );
   }
 
   /**

@@ -215,10 +215,10 @@ export default function Profile() {
       if (!blob) throw new Error('Failed to convert image to blob');
       setSelectedImageBlob(blob);
       setLocalImagePreview(cropped);
-    } catch {
+    } catch (err) {
       NotificationService.error(
         500,
-        `Image processing failed: ${err.message || 'An unknown error occurred.'}`,
+        `Image processing failed: ${err?.message || 'An unknown error occurred.'}`,
       );
       setLocalImagePreview(null);
       setImageError(true);

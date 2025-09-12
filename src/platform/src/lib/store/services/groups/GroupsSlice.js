@@ -36,11 +36,14 @@ export const fetchUserGroups = createAsyncThunk(
 
       // Normalize groups to consistent structure
       const normalizedGroups = safeGroups.map((group) => ({
+        // Keep only what's needed for UI (explicitly override any originals below)
+        ...group,
         _id: group._id,
         grp_title: group.grp_title,
         grp_profile_picture: group.grp_profile_picture || group.grp_image,
         organization_slug: group.organization_slug,
-        grp_slug: group.organization_slug,
+        // Prefer specific slug fields; fall back sensibly
+        grp_slug: group.grp_slug || group.organization_slug || group.slug,
         grp_country: group.grp_country,
         grp_industry: group.grp_industry,
         grp_timezone: group.grp_timezone,
@@ -50,8 +53,6 @@ export const fetchUserGroups = createAsyncThunk(
         createdAt: group.createdAt,
         role: group.role,
         userType: group.userType,
-        // Keep only what's needed for UI
-        ...group,
       }));
 
       // Return normalized user data with only essential fields

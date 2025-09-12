@@ -44,8 +44,17 @@ const nextConfig = {
     }
 
     config.module.rules.push({
-      test: /\.svg$/,
-      use: ['@svgr/webpack'],
+      test: /\.svg$/i,
+      oneOf: [
+        {
+          resourceQuery: /url/, // e.g., import logoUrl from './logo.svg?url'
+          type: 'asset',
+        },
+        {
+          issuer: /\.[jt]sx?$/,
+          use: ['@svgr/webpack'], // e.g., import Logo from './logo.svg'
+        },
+      ],
     });
 
     return config;
@@ -74,8 +83,22 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com https://maps.gstatic.com; " +
               "img-src 'self' data: https: blob: https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com; " +
               "connect-src 'self' https: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
-              "object-src 'none'; font-src 'self' data:;",
+              "object-src 'none'; font-src 'self' data:; frame-ancestors 'self';",
           },
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=15552000; includeSubDomains; preload',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'geolocation=(), microphone=(), camera=()',
+          },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
         ],
       },
     ];

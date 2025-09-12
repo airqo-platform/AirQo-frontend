@@ -34,10 +34,24 @@ function ReduxProviders({ children }) {
 
     async function initializeStore() {
       try {
-        const storeAndPersistor = makeStore();
+        const raw = makeStore();
+
+        // Normalize return shapes:
+        // - Older API: returns Redux store instance directly
+        // - Newer API: returns { store, persistor }
+        let normalized;
+        if (raw && typeof raw.getState === 'function') {
+          // It's a Redux store instance
+          normalized = {
+            store: raw,
+            persistor: raw.__persistor || null,
+          };
+        } else {
+          normalized = raw || { store: null, persistor: null };
+        }
 
         if (mounted) {
-          setStoreData(storeAndPersistor);
+          setStoreData(normalized);
           setIsInitialized(true);
         }
       } catch (error) {
@@ -45,8 +59,20 @@ function ReduxProviders({ children }) {
         if (mounted) {
           // Create a basic store without persistence as fallback
           try {
-            const fallbackStore = makeStore();
-            setStoreData(fallbackStore);
+            const rawFallback = makeStore();
+            let fallbackNormalized;
+            if (rawFallback && typeof rawFallback.getState === 'function') {
+              fallbackNormalized = {
+                store: rawFallback,
+                persistor: rawFallback.__persistor || null,
+              };
+            } else {
+              fallbackNormalized = rawFallback || {
+                store: null,
+                persistor: null,
+              };
+            }
+            setStoreData(fallbackNormalized);
           } catch (fallbackError) {
             logger.error('Fallback store creation failed:', fallbackError);
           }
@@ -74,11 +100,44 @@ function ReduxProviders({ children }) {
     );
   }
 
+  // Defensive: ensure we pass a valid Redux store to react-redux Provider
+  const reduxStore =
+    (storeData && storeData.store) ||
+    (typeof window !== 'undefined' && window.__NEXT_REDUX_STORE__) ||
+    null;
+
+  if (!reduxStore || typeof reduxStore.getState !== 'function') {
+    // Log details for debugging
+    logger.error('Invalid Redux store provided to Provider', {
+      storeData,
+      windowStore:
+        typeof window !== 'undefined' ? window.__NEXT_REDUX_STORE__ : null,
+    });
+
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="max-w-lg text-center">
+          <h2 className="text-xl font-semibold">
+            Application initialization error
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            The application failed to initialize its internal store. Please try
+            refreshing the page. If the problem persists, contact support.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Provider store={storeData.store}>
-      <PersistGate loading={<Loading />} persistor={storeData.persistor}>
+    <Provider store={reduxStore}>
+      {storeData.persistor ? (
+        <PersistGate loading={<Loading />} persistor={storeData.persistor}>
+          <ClientProvidersInner>{children}</ClientProvidersInner>
+        </PersistGate>
+      ) : (
         <ClientProvidersInner>{children}</ClientProvidersInner>
-      </PersistGate>
+      )}
     </Provider>
   );
 }

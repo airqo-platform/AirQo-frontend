@@ -56,6 +56,18 @@ class SessionWatcher {
       );
       window.addEventListener('focus', this.handlePageFocus);
       window.addEventListener('beforeunload', this.cleanup.bind(this));
+      // Fallback listener for cross-tab sync via localStorage
+      this.handleStorageEvent =
+        this.handleStorageEvent?.bind(this) ||
+        ((e) => {
+          if (e.key === 'airqo-logout-signal') {
+            if (this.onExpireCallback) {
+              logger.info('Received storage-based logout signal');
+              this.onExpireCallback();
+            }
+          }
+        });
+      window.addEventListener('storage', this.handleStorageEvent);
 
       // Elect initial leader
       this.electLeader();
@@ -111,6 +123,7 @@ class SessionWatcher {
 
       // Become leader if no leader exists or leader is stale (5 seconds)
       if (!leaderData || now - leaderData.timestamp > 5000) {
+        const becameLeader = !this.isLeader;
         this.isLeader = true;
         localStorage.setItem(
           STORAGE_KEY,
@@ -120,6 +133,10 @@ class SessionWatcher {
           }),
         );
         logger.debug('Elected as session timer leader');
+        // If we just became leader and have an active token but no timer, schedule it
+        if (becameLeader && this.lastToken && !this.timerId) {
+          this.scheduleTimerFromToken(this.lastToken);
+        }
       } else {
         this.isLeader = false;
         logger.debug('Not session timer leader');
@@ -213,6 +230,22 @@ class SessionWatcher {
     }
   }
 
+  scheduleTimerFromToken(token) {
+    try {
+      const { exp } = jwtDecode(token) || {};
+      if (!exp) return;
+      const expiryTime = exp * 1000;
+      const logoutTime = expiryTime - LOGOUT_SAFETY_MARGIN;
+      const delay = logoutTime - Date.now();
+      if (delay <= 0) return this.triggerLogout();
+      if (this.timerId) clearTimeout(this.timerId);
+      this.timerId = setTimeout(() => this.triggerLogout(), delay);
+    } catch (e) {
+      logger.error('Failed to schedule timer from token:', e);
+      this.triggerLogout();
+    }
+  }
+
   stopSessionWatch() {
     if (this.timerId) {
       clearTimeout(this.timerId);
@@ -270,6 +303,7 @@ class SessionWatcher {
       this.handleVisibilityChange,
     );
     window.removeEventListener('focus', this.handlePageFocus);
+    window.removeEventListener('storage', this.handleStorageEvent);
 
     // Clean up leader election
     if (this.isLeader) {
@@ -295,6 +329,7 @@ class SessionWatcher {
 
     try {
       const decoded = jwtDecode(this.lastToken);
+      if (!decoded || typeof decoded.exp !== 'number') return null;
       const expiryTime = decoded.exp * 1000;
       const currentTime = Date.now();
       return Math.max(0, expiryTime - currentTime);
@@ -335,14 +370,5 @@ export const getTimeUntilExpiry = () => {
   if (!sessionWatcher) return null;
   return sessionWatcher.getTimeUntilExpiry();
 };
-
-// Cleanup on page unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    if (sessionWatcher) {
-      sessionWatcher.cleanup();
-    }
-  });
-}
 
 export default sessionWatcher;

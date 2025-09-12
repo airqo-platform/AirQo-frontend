@@ -225,12 +225,12 @@ const createSecureApiClient = () => {
   // Enhanced response interceptor to preserve status codes
   instance.interceptors.response.use(
     (response) => {
-      // Ensure response data includes status code for NotificationService
-      if (response.data && typeof response.data === 'object') {
-        // Add status code to response data if not already present
-        if (!response.data.status && !response.data.statusCode) {
-          response.data.status = response.status;
-        }
+      const data = response.data;
+      // Only inject into plain objects (exclude arrays, null, blobs, formdata, etc.)
+      const isPlainObject =
+        data && Object.prototype.toString.call(data) === '[object Object]';
+      if (isPlainObject && data.status == null && data.statusCode == null) {
+        data.status = response.status;
       }
       return response;
     },

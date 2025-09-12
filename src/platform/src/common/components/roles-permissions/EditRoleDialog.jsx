@@ -39,21 +39,22 @@ const EditRoleDialog = ({
         onClose();
         if (typeof onRefresh === 'function') onRefresh();
       } else {
-        const status = response?.status || null;
+        const status = Number(response?.status) || 400;
+        const message =
+          response?.data?.message ||
+          response?.message ||
+          'Failed to update role.';
         if (status === 500) {
           NotificationService.error(
             500,
             'Something went wrong on our servers. Please try again later.',
           );
         } else {
-          NotificationService.error(
-            status,
-            response?.message || 'Failed to update role.',
-          );
+          NotificationService.error(status, message);
         }
       }
     } catch (error) {
-      const status = error?.response?.status || null;
+      const status = error?.response?.status ?? 0; // 0 => network error
       const apiMessage =
         error?.response?.data?.message ||
         error?.message ||
@@ -62,6 +63,11 @@ const EditRoleDialog = ({
         NotificationService.error(
           500,
           'Something went wrong on our servers. Please try again later.',
+        );
+      } else if (status === 0) {
+        NotificationService.error(
+          0,
+          'Network error. Please check your connection and try again.',
         );
       } else {
         NotificationService.error(status, apiMessage);

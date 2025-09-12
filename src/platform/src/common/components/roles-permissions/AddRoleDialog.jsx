@@ -29,7 +29,7 @@ const AddRoleDialog = ({ isOpen, onClose, groupId, onRefresh }) => {
         onClose();
         if (typeof onRefresh === 'function') onRefresh();
       } else {
-        const status = response?.status || null;
+        const status = response?.status ?? 500;
         if (status === 500) {
           NotificationService.error(
             500,
@@ -38,15 +38,15 @@ const AddRoleDialog = ({ isOpen, onClose, groupId, onRefresh }) => {
         } else {
           NotificationService.error(
             status,
-            response?.message || 'Failed to create role.',
+            response?.message ?? 'Failed to create role.',
           );
         }
       }
     } catch (error) {
-      const status = error?.response?.status || null;
+      const status = error?.response?.status ?? error?.status ?? 500;
       const apiMessage =
-        error?.response?.data?.message ||
-        error?.message ||
+        error?.response?.data?.message ??
+        error?.message ??
         'Failed to create role.';
       if (status === 500) {
         NotificationService.error(

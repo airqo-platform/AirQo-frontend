@@ -17,7 +17,7 @@ export const TOAST_TYPES = {
 };
 
 // Toast configuration for consistency
-const TOAST_CONFIG = {
+export const TOAST_CONFIG = {
   [TOAST_TYPES.SUCCESS]: {
     icon: AqCheck,
     bgClass: 'bg-green-500',
@@ -81,6 +81,7 @@ const Toast = ({
   const [isPaused, setIsPaused] = useState(false);
   const timeoutRef = useRef(null);
   const toastRef = useRef(null);
+  const closedRef = useRef(false);
 
   // Validate and get toast configuration
   const config = TOAST_CONFIG[type] || TOAST_CONFIG[TOAST_TYPES.INFO];
@@ -88,6 +89,13 @@ const Toast = ({
 
   // Handle toast dismissal
   const handleClose = useCallback(() => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    // ensure any pending timer is cleared
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     setVisible(false);
 
     // Call legacy clearData callback

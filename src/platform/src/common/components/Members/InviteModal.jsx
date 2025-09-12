@@ -43,7 +43,7 @@ const InviteModal = ({ showInviteModal, setShowInviteModal, groupId }) => {
       NotificationService.warning(null, 'No group selected');
       return;
     }
-    const validEmails = inviteEmails.filter((e) => e.trim());
+    const validEmails = inviteEmails.map((e) => e.trim()).filter(Boolean);
     if (!validEmails.length) {
       NotificationService.warning(null, 'Enter at least one email');
       return;

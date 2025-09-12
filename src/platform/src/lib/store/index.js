@@ -118,7 +118,15 @@ const makeStore = () => {
   });
 
   const persistor = persistStore(store);
-  return { store, persistor };
+  // Back-compat: expose store and persistor the old way too
+  // Avoid in SSR
+  if (typeof window !== 'undefined') {
+    window.__NEXT_REDUX_STORE__ = store;
+  }
+  // Legacy callers may rely on this
+  store.__persistor = persistor;
+  // Option A: keep previous API
+  return store;
 };
 
 // Default export the makeStore factory for client-side initialization

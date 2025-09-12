@@ -134,46 +134,45 @@ const CustomToast = ({
     };
   }
 
-  // If caller requested a close button, add an explicit textual Close action
-  if (closeButton) {
-    toastOptions.action = toastOptions.action || {
-      label: 'Close',
-      onClick: () => toast.dismiss(),
-    };
+  // If caller requested a close button, wire it to this toast only
+  let toastId;
+  if (closeButton && !toastOptions.action) {
+    const onClose = () => toast.dismiss(toastId);
+    toastOptions.action = { label: 'Close', onClick: onClose };
   }
-
-  return toast(message, toastOptions);
+  toastId = toast(message, toastOptions);
+  return toastId;
 };
 
 // Convenience methods for each toast type
 CustomToast.success = (message, options = {}) =>
   CustomToast({
     message,
-    type: TOAST_TYPES.SUCCESS,
     ...options,
+    type: TOAST_TYPES.SUCCESS,
   });
 
 CustomToast.error = (message, options = {}) =>
   CustomToast({
     message,
-    type: TOAST_TYPES.ERROR,
-    duration: 7000, // Longer duration for errors
+    duration: 7000, // Longer duration for errors (allow override)
     ...options,
+    type: TOAST_TYPES.ERROR,
   });
 
 CustomToast.warning = (message, options = {}) =>
   CustomToast({
     message,
-    type: TOAST_TYPES.WARNING,
-    duration: 6000, // Slightly longer for warnings
+    duration: 6000, // Slightly longer for warnings (allow override)
     ...options,
+    type: TOAST_TYPES.WARNING,
   });
 
 CustomToast.info = (message, options = {}) =>
   CustomToast({
     message,
-    type: TOAST_TYPES.INFO,
     ...options,
+    type: TOAST_TYPES.INFO,
   });
 
 // Promise-based toast for async operations

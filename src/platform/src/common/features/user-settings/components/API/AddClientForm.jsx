@@ -42,12 +42,15 @@ const AddClientForm = ({ open, closeModal }) => {
   const hasAnyIpError = ipErrors.some(Boolean);
 
   /* ---------- handlers ---------- */
-  const handleChangeName = useCallback(
-    (e) => setClientName(e.target.value),
-    [],
-  );
+  const handleChangeName = useCallback((eOrValue) => {
+    const value =
+      typeof eOrValue === 'string' ? eOrValue : (eOrValue?.target?.value ?? '');
+    setClientName(value);
+  }, []);
 
-  const handleChangeIp = useCallback((idx, value) => {
+  const handleChangeIp = useCallback((idx, eOrValue) => {
+    const value =
+      typeof eOrValue === 'string' ? eOrValue : (eOrValue?.target?.value ?? '');
     setIpAddresses((prev) => prev.map((ip, i) => (i === idx ? value : ip)));
   }, []);
 
@@ -85,16 +88,8 @@ const AddClientForm = ({ open, closeModal }) => {
       const res = await createClientApi(payload);
 
       /* ------- success / failure ------- */
-      const status = Number(res?.status || res?.data?.status || 0);
       const success =
-        res?.success === true ||
-        (status >= 200 && status < 300) ||
-        !!(
-          res?.created_client ||
-          res?.data?.created_client ||
-          res?._id ||
-          res?.id
-        );
+        res?.success === true || !!(res?.created_client || res?.id || res?._id);
 
       if (success) {
         /* refresh user details */
@@ -182,7 +177,7 @@ const AddClientForm = ({ open, closeModal }) => {
                       : `Enter IP address ${idx + 1}`
                   }
                   value={ip}
-                  onChange={(e) => handleChangeIp(idx, e.target.value)}
+                  onChange={(eOrValue) => handleChangeIp(idx, eOrValue)}
                   className={
                     ipErrors[idx]
                       ? 'border-red-500 focus:ring-red-500'
