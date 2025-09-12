@@ -1,10 +1,11 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import jwtDecode from 'jwt-decode';
 import logger from '@/lib/logger';
-import { getNextAuthSecret } from '@/lib/envConstants';
+import { getNextAuthSecret, getApiBaseUrl } from '@/lib/envConstants';
 import axios from 'axios';
 
-const API_BASE_URL = process.env.API_BASE_URL || '';
+// Use the central helper to get a normalized API base URL (handles fallbacks)
+const API_BASE_URL = getApiBaseUrl();
 
 // Centralized login redirect logic
 export const getLoginRedirectPath = (pathname, orgSlug = null) => {
@@ -217,7 +218,10 @@ export const options = {
           logger.info('[NextAuth] Calling auth endpoint:', url);
 
           const resp = await axios.post(url, loginData, {
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
             timeout: 15000,
             responseType: 'json',
             // Do not follow redirects automatically in case the upstream returns HTML login pages
