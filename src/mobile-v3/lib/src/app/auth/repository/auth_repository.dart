@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:airqo/src/app/auth/models/input_model.dart';
-import 'package:airqo/src/app/shared/repository/hive_repository.dart';
+import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
@@ -63,8 +63,13 @@ class AuthImpl extends AuthRepository {
           throw Exception("Authentication failed. Invalid token received.");
         }
 
-        HiveRepository.saveData(HiveBoxNames.authBox, "token", token);
-        HiveRepository.saveData(HiveBoxNames.authBox, "userId", userId);
+        try {
+          await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, token);
+          await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.userId, userId);
+        } catch (e) {
+          loggy.error("Failed to save authentication data securely: $e");
+          throw Exception("Failed to save authentication data. Please try again.");
+        }
         
         return token;
       } else {
@@ -73,61 +78,73 @@ class AuthImpl extends AuthRepository {
         String errorMessage;
         String errorType;
         
-        switch (loginResponse.statusCode) {
-          case 400:
-            errorType = 'VALIDATION_ERROR: Invalid login request format';
-            errorMessage = "Please check your email and password format.";
-            break;
-          case 401:
-            errorType = 'AUTH_ERROR: Invalid credentials';
-            errorMessage = "Invalid email or password. Please check your credentials and try again.";
-            break;
-          case 403:
-            errorType = 'FORBIDDEN_ERROR: Account access blocked';
-            errorMessage = "Your account access has been restricted. Please contact support.";
-            break;
-          case 404:
-            errorType = 'NOT_FOUND_ERROR: User account not found';
-            errorMessage = "No account found with these credentials.";
-            break;
-          case 422:
-            errorType = 'VALIDATION_ERROR: Login validation failed';
-            try {
-              Map<String, dynamic> data = json.decode(loginResponse.body);
-              if (data['message'] != null) {
-                errorMessage = data['message'];
-              } else if (data['errors'] != null) {
-                var errors = data['errors'];
-                if (errors is Map) {
-                  errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
+        // Handle ranges first with proper defaults
+        if (loginResponse.statusCode >= 400 && loginResponse.statusCode < 500) {
+          // 4xx - Client errors (user can fix)
+          errorType = 'CLIENT_ERROR';
+          errorMessage = "Please check your login information and try again."; // Default for 4xx
+          
+          // Then handle specific cases within the range
+          switch (loginResponse.statusCode) {
+            case 400:
+              errorType = 'VALIDATION_ERROR: Invalid login request format';
+              errorMessage = "Please check your email and password format.";
+              break;
+            case 401:
+              errorType = 'AUTH_ERROR: Invalid credentials';
+              errorMessage = "Invalid email or password. Please check your credentials and try again.";
+              break;
+            case 403:
+              errorType = 'FORBIDDEN_ERROR: Account access blocked';
+              errorMessage = "Your account access has been restricted. Please contact support.";
+              break;
+            case 404:
+              errorType = 'NOT_FOUND_ERROR: User account not found';
+              errorMessage = "No account found with these credentials.";
+              break;
+            case 422:
+              errorType = 'VALIDATION_ERROR: Login validation failed';
+              try {
+                Map<String, dynamic> data = json.decode(loginResponse.body);
+                if (data['message'] != null) {
+                  errorMessage = data['message'];
+                } else if (data['errors'] != null) {
+                  var errors = data['errors'];
+                  if (errors is Map) {
+                    errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
+                  } else {
+                    errorMessage = "Please check your login information and try again.";
+                  }
                 } else {
                   errorMessage = "Please check your login information and try again.";
                 }
-              } else {
+              } catch (e) {
                 errorMessage = "Please check your login information and try again.";
               }
-            } catch (e) {
-              errorMessage = "Please check your login information and try again.";
-            }
-            break;
-          case 429:
-            errorType = 'RATE_LIMIT_ERROR: Too many login attempts';
-            errorMessage = "Too many login attempts. Please wait a moment and try again.";
-            break;
-          case 500:
-          case 502:
-          case 503:
-            errorType = 'SERVER_ERROR: Login service unavailable';
-            errorMessage = "We're experiencing technical difficulties. Please try again later.";
-            break;
-          default:
-            errorType = 'UNKNOWN_LOGIN_ERROR';
-            try {
-              Map<String, dynamic> data = json.decode(loginResponse.body);
-              errorMessage = data['message'] ?? "Login failed. Please try again.";
-            } catch (e) {
-              errorMessage = "Login failed. Please try again.";
-            }
+              break;
+            case 429:
+              errorType = 'RATE_LIMIT_ERROR: Too many login attempts';
+              errorMessage = "Too many login attempts. Please wait a moment and try again.";
+              break;
+          }
+        } else if (loginResponse.statusCode >= 500) {
+          // 5xx - Server errors (user should retry later)
+          errorType = 'SERVER_ERROR';
+          errorMessage = "We're experiencing technical difficulties. Please try again later."; // Default for 5xx
+          
+          // Handle specific server errors if needed
+          switch (loginResponse.statusCode) {
+            case 502:
+              errorType = 'BAD_GATEWAY_ERROR: Login service unavailable';
+              break;
+            case 503:
+              errorType = 'SERVICE_UNAVAILABLE_ERROR: Login service unavailable';
+              break;
+          }
+        } else {
+          // Unknown status code
+          errorType = 'UNKNOWN_LOGIN_ERROR';
+          errorMessage = "Login failed. Please try again.";
         }
         
         loggy.error('Login Failed: $errorType | Status: ${loginResponse.statusCode}, BodyLength: ${loginResponse.body.length}');
@@ -226,46 +243,58 @@ class AuthImpl extends AuthRepository {
         String errorMessage;
         String errorType;
         
-        switch (response.statusCode) {
-          case 400:
-            errorType = 'VALIDATION_ERROR: Invalid email format or request';
-            try {
-              final errorData = jsonDecode(response.body);
-              errorMessage = errorData['message'] ?? 'Please enter a valid email address.';
-            } catch (e) {
-              errorMessage = 'Please enter a valid email address.';
-            }
-            break;
-          case 401:
-            errorType = 'AUTH_ERROR: Service authentication failed';
-            errorMessage = 'Authentication failed. Please try again.';
-            break;
-          case 403:
-            errorType = 'FORBIDDEN_ERROR: Password reset blocked';
-            errorMessage = 'Password reset is not allowed for this account.';
-            break;
-          case 404:
-            errorType = 'NOT_FOUND_ERROR: User account not found';
-            errorMessage = 'No account found with this email address.';
-            break;
-          case 429:
-            errorType = 'RATE_LIMIT_ERROR: Too many password reset requests';
-            errorMessage = 'Too many requests. Please wait a moment and try again.';
-            break;
-          case 500:
-          case 502:
-          case 503:
-            errorType = 'SERVER_ERROR: Password reset service unavailable';
-            errorMessage = 'We\'re experiencing technical difficulties. Please try again later.';
-            break;
-          default:
-            errorType = 'UNKNOWN_PASSWORD_RESET_ERROR';
-            try {
-              final errorData = jsonDecode(response.body);
-              errorMessage = errorData['message'] ?? 'Unable to send reset code. Please try again.';
-            } catch (e) {
-              errorMessage = 'Unable to send reset code. Please try again.';
-            }
+        // Handle ranges first with proper defaults
+        if (response.statusCode >= 400 && response.statusCode < 500) {
+          // 4xx - Client errors (user can fix)
+          errorType = 'CLIENT_ERROR';
+          errorMessage = 'Please check your email address and try again.'; // Default for 4xx
+          
+          // Then handle specific cases within the range
+          switch (response.statusCode) {
+            case 400:
+              errorType = 'VALIDATION_ERROR: Invalid email format or request';
+              try {
+                final errorData = jsonDecode(response.body);
+                errorMessage = errorData['message'] ?? 'Please enter a valid email address.';
+              } catch (e) {
+                errorMessage = 'Please enter a valid email address.';
+              }
+              break;
+            case 401:
+              errorType = 'AUTH_ERROR: Service authentication failed';
+              errorMessage = 'Authentication failed. Please try again.';
+              break;
+            case 403:
+              errorType = 'FORBIDDEN_ERROR: Password reset blocked';
+              errorMessage = 'Password reset is not allowed for this account.';
+              break;
+            case 404:
+              errorType = 'NOT_FOUND_ERROR: User account not found';
+              errorMessage = 'No account found with this email address.';
+              break;
+            case 429:
+              errorType = 'RATE_LIMIT_ERROR: Too many password reset requests';
+              errorMessage = 'Too many requests. Please wait a moment and try again.';
+              break;
+          }
+        } else if (response.statusCode >= 500) {
+          // 5xx - Server errors (user should retry later)
+          errorType = 'SERVER_ERROR';
+          errorMessage = 'We\'re experiencing technical difficulties. Please try again later.'; // Default for 5xx
+          
+          // Handle specific server errors if needed
+          switch (response.statusCode) {
+            case 502:
+              errorType = 'BAD_GATEWAY_ERROR: Password reset service unavailable';
+              break;
+            case 503:
+              errorType = 'SERVICE_UNAVAILABLE_ERROR: Password reset service unavailable';
+              break;
+          }
+        } else {
+          // Unknown status code
+          errorType = 'UNKNOWN_PASSWORD_RESET_ERROR';
+          errorMessage = 'Unable to send reset code. Please try again.';
         }
         
         loggy.error('Password Reset Request Failed: $errorType | Status: ${response.statusCode}, BodyLength: ${response.body.length}');
@@ -315,41 +344,67 @@ Future<void> verifyEmailCode(String token, String email) async {
     String errorMessage;
     String errorType;
     
-    if (verifyResponse.statusCode == 400) {
-      errorType = 'VALIDATION_ERROR: Invalid verification code or email';
-      errorMessage = "Invalid verification code. Please check your code and try again.";
-    } else if (verifyResponse.statusCode == 401) {
-      errorType = 'AUTH_ERROR: Invalid or expired verification token';
-      errorMessage = "Your verification link has expired. Please request a new verification email.";
-    } else if (verifyResponse.statusCode == 403) {
-      errorType = 'FORBIDDEN_ERROR: Email verification blocked';
-      errorMessage = "Email verification is not allowed for this account.";
-    } else if (verifyResponse.statusCode == 404) {
-      errorType = 'NOT_FOUND_ERROR: Verification token or user not found';
-      errorMessage = "Verification link is invalid or has already been used.";
-    } else if (verifyResponse.statusCode == 422) {
-      errorType = 'VALIDATION_ERROR: Invalid email verification data';
-      try {
-        final responseBody = jsonDecode(verifyResponse.body);
-        if (responseBody != null && responseBody['message'] != null) {
-          errorMessage = responseBody['message'];
-        } else if (responseBody != null && responseBody['errors'] != null) {
-          var errors = responseBody['errors'];
-          if (errors is Map) {
-            errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
-          } else {
+    // Handle ranges first with proper defaults
+    if (verifyResponse.statusCode >= 400 && verifyResponse.statusCode < 500) {
+      // 4xx - Client errors (user can fix)
+      errorType = 'CLIENT_ERROR';
+      errorMessage = "Please check your verification code and try again."; // Default for 4xx
+      
+      // Then handle specific cases within the range
+      switch (verifyResponse.statusCode) {
+        case 400:
+          errorType = 'VALIDATION_ERROR: Invalid verification code or email';
+          errorMessage = "Invalid verification code. Please check your code and try again.";
+          break;
+        case 401:
+          errorType = 'AUTH_ERROR: Invalid or expired verification token';
+          errorMessage = "Your verification link has expired. Please request a new verification email.";
+          break;
+        case 403:
+          errorType = 'FORBIDDEN_ERROR: Email verification blocked';
+          errorMessage = "Email verification is not allowed for this account.";
+          break;
+        case 404:
+          errorType = 'NOT_FOUND_ERROR: Verification token or user not found';
+          errorMessage = "Verification link is invalid or has already been used.";
+          break;
+        case 422:
+          errorType = 'VALIDATION_ERROR: Invalid email verification data';
+          try {
+            final responseBody = jsonDecode(verifyResponse.body);
+            if (responseBody != null && responseBody['message'] != null) {
+              errorMessage = responseBody['message'];
+            } else if (responseBody != null && responseBody['errors'] != null) {
+              var errors = responseBody['errors'];
+              if (errors is Map) {
+                errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
+              } else {
+                errorMessage = "Please check your verification code and try again.";
+              }
+            } else {
+              errorMessage = "Please check your verification code and try again.";
+            }
+          } catch (e) {
             errorMessage = "Please check your verification code and try again.";
           }
-        } else {
-          errorMessage = "Please check your verification code and try again.";
-        }
-      } catch (e) {
-        errorMessage = "Please check your verification code and try again.";
+          break;
       }
-    } else if (verifyResponse.statusCode >= 500 && verifyResponse.statusCode <= 599) {
-      errorType = 'SERVER_ERROR: Email verification service unavailable';
-      errorMessage = "We're experiencing technical difficulties. Please try again later.";
+    } else if (verifyResponse.statusCode >= 500) {
+      // 5xx - Server errors (user should retry later)
+      errorType = 'SERVER_ERROR';
+      errorMessage = "We're experiencing technical difficulties. Please try again later."; // Default for 5xx
+      
+      // Handle specific server errors if needed
+      switch (verifyResponse.statusCode) {
+        case 502:
+          errorType = 'BAD_GATEWAY_ERROR: Email verification service unavailable';
+          break;
+        case 503:
+          errorType = 'SERVICE_UNAVAILABLE_ERROR: Email verification service unavailable';
+          break;
+      }
     } else {
+      // Unknown status code
       errorType = 'UNKNOWN_EMAIL_VERIFICATION_ERROR';
       errorMessage = "Email verification failed. Please try again.";
     }
@@ -404,62 +459,74 @@ Future<void> verifyEmailCode(String token, String email) async {
         String errorMessage;
         String errorType;
         
-        switch (response.statusCode) {
-          case 400:
-            errorType = 'VALIDATION_ERROR: Invalid password or token';
-            try {
-              final errorData = jsonDecode(response.body);
-              errorMessage = errorData['message'] ?? 'Password requirements not met. Please check your password and try again.';
-            } catch (e) {
-              errorMessage = 'Password requirements not met. Please check your password and try again.';
-            }
-            break;
-          case 401:
-            errorType = 'AUTH_ERROR: Invalid or expired reset token';
-            errorMessage = 'Your password reset link has expired. Please request a new password reset.';
-            break;
-          case 403:
-            errorType = 'FORBIDDEN_ERROR: Password reset forbidden';
-            errorMessage = 'Password reset is not allowed for this account.';
-            break;
-          case 404:
-            errorType = 'NOT_FOUND_ERROR: Reset token not found';
-            errorMessage = 'Invalid reset link. Please request a new password reset.';
-            break;
-          case 422:
-            errorType = 'VALIDATION_ERROR: Password validation failed';
-            try {
-              final errorData = jsonDecode(response.body);
-              if (errorData['message'] != null) {
-                errorMessage = errorData['message'];
-              } else if (errorData['errors'] != null) {
-                var errors = errorData['errors'];
-                if (errors is Map) {
-                  errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
+        // Handle ranges first with proper defaults
+        if (response.statusCode >= 400 && response.statusCode < 500) {
+          // 4xx - Client errors (user can fix)
+          errorType = 'CLIENT_ERROR';
+          errorMessage = 'Please check your password and try again.'; // Default for 4xx
+          
+          // Then handle specific cases within the range
+          switch (response.statusCode) {
+            case 400:
+              errorType = 'VALIDATION_ERROR: Invalid password or token';
+              try {
+                final errorData = jsonDecode(response.body);
+                errorMessage = errorData['message'] ?? 'Password requirements not met. Please check your password and try again.';
+              } catch (e) {
+                errorMessage = 'Password requirements not met. Please check your password and try again.';
+              }
+              break;
+            case 401:
+              errorType = 'AUTH_ERROR: Invalid or expired reset token';
+              errorMessage = 'Your password reset link has expired. Please request a new password reset.';
+              break;
+            case 403:
+              errorType = 'FORBIDDEN_ERROR: Password reset forbidden';
+              errorMessage = 'Password reset is not allowed for this account.';
+              break;
+            case 404:
+              errorType = 'NOT_FOUND_ERROR: Reset token not found';
+              errorMessage = 'Invalid reset link. Please request a new password reset.';
+              break;
+            case 422:
+              errorType = 'VALIDATION_ERROR: Password validation failed';
+              try {
+                final errorData = jsonDecode(response.body);
+                if (errorData['message'] != null) {
+                  errorMessage = errorData['message'];
+                } else if (errorData['errors'] != null) {
+                  var errors = errorData['errors'];
+                  if (errors is Map) {
+                    errorMessage = errors.values.map((e) => e?.toString() ?? 'null').join(', ');
+                  } else {
+                    errorMessage = 'Password does not meet requirements. Please try a stronger password.';
+                  }
                 } else {
                   errorMessage = 'Password does not meet requirements. Please try a stronger password.';
                 }
-              } else {
+              } catch (e) {
                 errorMessage = 'Password does not meet requirements. Please try a stronger password.';
               }
-            } catch (e) {
-              errorMessage = 'Password does not meet requirements. Please try a stronger password.';
-            }
-            break;
-          case 500:
-          case 502:
-          case 503:
-            errorType = 'SERVER_ERROR: Password update service unavailable';
-            errorMessage = 'We\'re experiencing technical difficulties. Please try again later.';
-            break;
-          default:
-            errorType = 'UNKNOWN_PASSWORD_UPDATE_ERROR';
-            try {
-              final errorData = jsonDecode(response.body);
-              errorMessage = errorData['message'] ?? 'Failed to reset password. Please try again.';
-            } catch (e) {
-              errorMessage = 'Failed to reset password. Please try again.';
-            }
+              break;
+          }
+        } else if (response.statusCode >= 500) {
+          // 5xx - Server errors (user should retry later)
+          errorType = 'SERVER_ERROR';
+          errorMessage = 'We\'re experiencing technical difficulties. Please try again later.'; // Default for 5xx
+          
+          // Handle specific server errors if needed
+          switch (response.statusCode) {
+            case 502:
+              errorType = 'BAD_GATEWAY_ERROR: Password update service unavailable';
+              break;
+            case 503:
+              errorType = 'SERVICE_UNAVAILABLE_ERROR: Password update service unavailable';
+              break;
+          }
+        } else {
+          // Unknown status code
+          errorType = 'UNKNOWN_PASSWORD_UPDATE_ERROR';
+          errorMessage = 'Failed to reset password. Please try again.';
         }
         
         loggy.error('Password Update Failed: $errorType | Status: ${response.statusCode}, BodyLength: ${response.body.length}');
