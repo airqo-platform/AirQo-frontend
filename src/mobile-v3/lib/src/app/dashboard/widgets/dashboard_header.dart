@@ -93,6 +93,23 @@ class DashboardHeader extends StatelessWidget {
             : AppColors.boldHeadlineColor5,
             ),
           );
+        } else if (userState is UserLoadingError) {
+          if (userState.retryCount == 0) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.read<UserBloc>().add(LoadUserWithRetry());
+            });
+          }
+          
+          return Text(
+            "Hi 👋",
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.w700,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.boldHeadlineColor2
+                  : AppColors.boldHeadlineColor5,
+            ),
+          );
         }
         return _buildDefaultGreeting(context);
       },

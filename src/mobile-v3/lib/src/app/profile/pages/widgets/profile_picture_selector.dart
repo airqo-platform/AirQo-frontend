@@ -9,12 +9,16 @@ class ProfilePictureSelector extends StatefulWidget {
   final String? currentProfilePicture;
   final Function(File?) onImageSelected;
   final Function()? onRemoveImage;
+  final String? firstName;
+  final String? lastName;
 
   const ProfilePictureSelector({
     super.key,
     this.currentProfilePicture,
     required this.onImageSelected,
     this.onRemoveImage,
+    this.firstName,
+    this.lastName,
   });
 
   @override
@@ -27,8 +31,16 @@ class _ProfilePictureSelectorState extends State<ProfilePictureSelector> with Ui
 
   // Get initial letters for avatar
   String _getInitials(BuildContext context) {
-    // You can extract this from user data if available
-    return "?";
+    String initials = "";
+    
+    if (widget.firstName != null && widget.firstName!.isNotEmpty) {
+      initials += widget.firstName![0].toUpperCase();
+    }
+    if (widget.lastName != null && widget.lastName!.isNotEmpty) {
+      initials += widget.lastName![0].toUpperCase();
+    }
+    
+    return initials.isEmpty ? "?" : initials;
   }
 
   // Build profile picture widget based on current state

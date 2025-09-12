@@ -36,25 +36,24 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await CacheManager().initialize();
-
-  const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
-  AppLoggySetup.init(isDevelopment: !kReleaseMode);
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    Object()
-        .logError('Unhandled Flutter error', details.exception, details.stack);
-  };
-
-  await dotenv.load(fileName: ".env.prod");
-
   runZonedGuarded(
     () async {
       try {
-        Object().logInfo('Application initialized successfully');
+        WidgetsFlutterBinding.ensureInitialized();
+
+        await CacheManager().initialize();
+
+        const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
+        AppLoggySetup.init(isDevelopment: !kReleaseMode);
+
+        FlutterError.onError = (FlutterErrorDetails details) {
+          FlutterError.presentError(details);
+          Object()
+              .logError('Unhandled Flutter error', details.exception, details.stack);
+        };
+
+        await dotenv.load(fileName: ".env.prod");
+
 
         Bloc.observer = LoggingBlocObserver();
 

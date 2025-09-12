@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../../../meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 
-enum DashboardView { all, favorites, nearYou, country }
+enum DashboardView { all, nearYou ,favorites, country }
 
 class ViewSelector extends StatefulWidget {
   final DashboardView currentView;
@@ -98,28 +98,6 @@ class _ViewSelectorState extends State<ViewSelector> {
         children: [
           if (!widget.isGuestUser) ...[
             Tooltip(
-              key: _myPlacesTooltipKey,
-              message: "Save your most relevant locations in one place",
-              preferBelow: true,
-              verticalOffset: 20,
-              showDuration: Duration(seconds: 2),
-              decoration: BoxDecoration(
-                color: Colors.black87,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              textStyle: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-              child: _buildViewButton(
-                context,
-                label: "Favorites",
-                isSelected: widget.currentView == DashboardView.favorites,
-                onTap: () => widget.onViewChanged(DashboardView.favorites),
-              ),
-            ),
-            SizedBox(width: 8),
-            Tooltip(
               key: _nearbyTooltipKey,
               message: "View air quality in locations closest to you",
               preferBelow: true,
@@ -141,8 +119,51 @@ class _ViewSelectorState extends State<ViewSelector> {
               ),
             ),
             SizedBox(width: 8),
+            Tooltip(
+              key: _myPlacesTooltipKey,
+              message: "Save your most relevant locations in one place",
+              preferBelow: true,
+              verticalOffset: 20,
+              showDuration: Duration(seconds: 2),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+              child: _buildViewButton(
+                context,
+                label: "Favorites",
+                isSelected: widget.currentView == DashboardView.favorites,
+                onTap: () => widget.onViewChanged(DashboardView.favorites),
+              ),
+            ),
+            SizedBox(width: 8),
           ],
-          if (widget.isGuestUser)
+          if (widget.isGuestUser) ...[
+            Tooltip(
+              message: "View air quality in locations closest to you",
+              preferBelow: true,
+              verticalOffset: 20,
+              showDuration: Duration(seconds: 2),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              textStyle: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+              child: _buildViewButton(
+                context,
+                label: "Near You",
+                isSelected: widget.currentView == DashboardView.nearYou,
+                onTap: () => widget.onViewChanged(DashboardView.nearYou),
+              ),
+            ),
+            SizedBox(width: 8),
             Tooltip(
               message: "Create an account to access all features",
               preferBelow: true,
@@ -163,6 +184,7 @@ class _ViewSelectorState extends State<ViewSelector> {
                 onTap: () => _showLoginPrompt(),
               ),
             ),
+          ],
           SizedBox(width: 8),
           ...sortedCountries.map((country) => Padding(
                 padding: const EdgeInsets.only(right: 8),

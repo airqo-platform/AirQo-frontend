@@ -851,8 +851,8 @@ const DataTable = ({
                 ? 'text-gray-400 cursor-not-allowed'
                 : 'text-primary hover:bg-primary/10'
             }`}
+            Icon={AqEye}
           >
-            <AqEye size={16} />
             {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
           </Button>
         </div>

@@ -41,6 +41,7 @@ const LocationCard = ({
   isLoading = false,
   disableToggle = false,
   cardStyle = null,
+  // no download props here
 }) => {
   const autoId = useId();
   const cardVariants = {
@@ -71,10 +72,40 @@ const LocationCard = ({
     );
   }
 
-  const { name, search_name, country, city, _id } = site || {};
-  const fullName = name || (search_name && search_name.split(',')[0]) || '';
-  const displayName = truncateName(fullName);
-  const locationDescription = formatLocationDescription(country, city);
+  const {
+    name,
+    search_name,
+    country,
+    city,
+    _id,
+    // fields used when visualizing devices
+    displayName: deviceDisplayName,
+    originalSiteName,
+    // associatedDevices is intentionally not destructured here to avoid unused var
+    location_name,
+  } = site || {};
+
+  // If this card represents a device visualization item, prefer device name on top
+  // and show the site/location name underneath. Otherwise fall back to site name.
+  const topName =
+    // explicit device-provided displayName (set in DataDownload for devices)
+    deviceDisplayName ||
+    // item name (site name) or first part of search_name
+    name ||
+    (search_name && search_name.split(',')[0]) ||
+    '';
+
+  const displayName = truncateName(topName);
+
+  // Prefer explicit location_name or originalSiteName for the small description
+  const siteLabel =
+    location_name || originalSiteName || name || search_name || '';
+
+  // Use city/country only if no explicit site label is available
+  const locationDescription = siteLabel
+    ? // show site label (may be same as site name)
+      siteLabel
+    : formatLocationDescription(country, city);
 
   // Always show the card, even if name or location is unknown
   const checkboxId = `checkbox-${_id || autoId}`;
@@ -121,7 +152,7 @@ const LocationCard = ({
         </motion.div>
         <div className="flex flex-col">
           <Tooltip
-            content={fullName || 'No name available'}
+            content={topName || 'No name available'}
             placement="top"
             trigger="hover"
           >
@@ -140,7 +171,7 @@ const LocationCard = ({
         className="flex items-center justify-center"
       >
         <label htmlFor={checkboxId} className="sr-only">
-          Select {fullName || displayName || 'site'}
+          Select {topName || displayName || 'site'}
         </label>
         <input
           type="checkbox"
@@ -156,6 +187,7 @@ const LocationCard = ({
           aria-label={`Select ${displayName || 'site'}`}
           disabled={disableToggle}
         />
+        {/* no per-site download button here */}
       </motion.div>
     </motion.div>
   );
@@ -168,6 +200,10 @@ LocationCard.propTypes = {
     search_name: PropTypes.string,
     country: PropTypes.string,
     city: PropTypes.string,
+    // Device visualization helpers
+    displayName: PropTypes.string,
+    originalSiteName: PropTypes.string,
+    location_name: PropTypes.string,
   }).isRequired,
   onToggle: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
@@ -175,6 +211,8 @@ LocationCard.propTypes = {
   isLoading: PropTypes.bool,
   disableToggle: PropTypes.bool,
   cardStyle: PropTypes.object,
+  download: PropTypes.func,
+  downloadLoading: PropTypes.bool,
 };
 
 export default LocationCard;

@@ -1,8 +1,11 @@
 import CredentialsProvider from 'next-auth/providers/credentials';
 import jwtDecode from 'jwt-decode';
 import logger from '@/lib/logger';
-import { getNextAuthSecret } from '@/lib/envConstants';
-import { postUserLoginDetails } from '@/core/apis/Account';
+import { getNextAuthSecret, getApiBaseUrl } from '@/lib/envConstants';
+import axios from 'axios';
+
+// Use the central helper to get a normalized API base URL (handles fallbacks)
+const API_BASE_URL = getApiBaseUrl();
 
 // Centralized login redirect logic
 export const getLoginRedirectPath = (pathname, orgSlug = null) => {
@@ -47,12 +50,22 @@ const getFriendlyAuthErrorMessage = (error) => {
 
   // Detect JSON parse / unexpected HTML errors
   const message = (error && error.message) || '';
+
+  // If axios returned a response and that response body looks like HTML,
+  // treat it as an upstream service error (502)
+  const respData = error?.response?.data;
+  const respContentType = error?.response?.headers?.['content-type'] || '';
+  const responseLooksLikeHtml =
+    (typeof respData === 'string' && respData.trim().startsWith('<')) ||
+    (typeof respData === 'string' && respData.includes('<html')) ||
+    respContentType.includes('text/html');
+
   if (
     message.includes('JSON') ||
     message.includes('Unexpected token') ||
     message.includes('Unexpected end of JSON input') ||
-    message.includes('<html') ||
-    message.includes('SyntaxError')
+    message.includes('SyntaxError') ||
+    responseLooksLikeHtml
   ) {
     return {
       message:
@@ -200,7 +213,40 @@ export const options = {
             password: '***HIDDEN***',
           });
 
-          const data = await postUserLoginDetails(loginData);
+          // Direct axios call to the authentication endpoint
+          const url = `${API_BASE_URL.replace(/\/$/, '')}/users/loginUser`;
+          logger.info('[NextAuth] Calling auth endpoint:', url);
+
+          const resp = await axios.post(url, loginData, {
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            timeout: 15000,
+            responseType: 'json',
+            // Do not follow redirects automatically in case the upstream returns HTML login pages
+            maxRedirects: 0,
+          });
+
+          // Ensure we received a JSON response; if not, throw a controlled error so
+          // the outer catch will translate it into a friendly message.
+          const respContentType = (
+            resp?.headers?.['content-type'] || ''
+          ).toLowerCase();
+          if (!respContentType.includes('application/json')) {
+            logger.error(
+              '[NextAuth] Unexpected content-type from auth endpoint:',
+              respContentType,
+            );
+            const htmlError = new Error(
+              'Unexpected non-JSON response from authentication service',
+            );
+            // Attach the response so getFriendlyAuthErrorMessage can inspect headers/body
+            htmlError.response = resp;
+            throw htmlError;
+          }
+
+          const data = resp?.data || {};
 
           logger.info('[NextAuth] API Response data:', {
             hasToken: !!data.token,
@@ -217,7 +263,14 @@ export const options = {
 
           let decodedToken;
           try {
-            decodedToken = jwtDecode(data.token);
+            // Some backends prefix the token with 'JWT ' or 'Bearer ' — strip that if present
+            const rawToken = String(data.token || '');
+            const tokenString = rawToken
+              .replace(/^\s*(JWT|Bearer)\s+/i, '')
+              .trim();
+            decodedToken = jwtDecode(tokenString);
+            // Normalize token for downstream usage
+            data.token = tokenString;
           } catch (jwtError) {
             logger.error('[NextAuth] JWT decode error:', jwtError.message);
             throw new Error('Invalid token received from API');
