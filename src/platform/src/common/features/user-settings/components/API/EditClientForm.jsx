@@ -126,7 +126,10 @@ const EditClientForm = ({ open, closeModal, data }) => {
       dispatch(addClients(userRes.users[0].clients));
       dispatch(addClientsDetails(clientsRes.clients));
 
-      NotificationService.success(200, 'Client updated successfully');
+      // Prefer any provided status, otherwise default to 200
+      const okStatus = Number(res?.status) || 200;
+      const okMessage = res?.message || 'Client updated successfully';
+      NotificationService.success(okStatus, okMessage);
       closeModal();
     } catch (e) {
       NotificationService.handleApiError(e, 'Failed to update client');

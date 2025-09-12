@@ -97,13 +97,16 @@ const AddClientForm = ({ open, closeModal }) => {
         if (userRes?.success && userRes.users?.[0]?.clients) {
           dispatch(addClients(userRes.users[0].clients));
         }
-        NotificationService.success(status, 'Client created successfully');
+        const statusCode = Number(res?.status) || 201;
+        const message = res?.message || 'Client created successfully';
+        NotificationService.success(statusCode, message);
         dispatch(performRefresh());
         closeModal();
       } else {
         /* business error from backend */
+        const statusCode = Number(res?.status) || 400;
         NotificationService.error(
-          status,
+          statusCode,
           res?.message || 'Client creation failed',
         );
       }

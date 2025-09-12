@@ -114,8 +114,26 @@ export const clearIndexedDB = async () => {
         (name) =>
           new Promise((resolve) => {
             const req = indexedDB.deleteDatabase(name);
-            req.onsuccess = req.onerror = req.onblocked = () => resolve();
-            setTimeout(resolve, 2000); // Timeout fallback
+            req.onsuccess = () => {
+              logger.debug(`Deleted IndexedDB database: ${name}`);
+              resolve(name);
+            };
+            req.onerror = (e) => {
+              logger.debug(`Failed to delete ${name}:`, e);
+              // resolve with name to continue cleanup but log the error
+              resolve(name);
+            };
+            req.onblocked = () => {
+              logger.warn(
+                `Database ${name} deletion blocked - connections still open`,
+              );
+              // don't resolve immediately; allow the timeout fallback below to continue
+            };
+            // Timeout fallback - ensure the promise resolves eventually
+            setTimeout(() => {
+              logger.debug(`Timeout while deleting ${name} - continuing`);
+              resolve(name);
+            }, 2000);
           }),
       ),
     );

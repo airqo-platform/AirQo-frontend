@@ -14,11 +14,17 @@ const DeleteRoleDialog = ({ isOpen, onClose, roleId, onRefresh }) => {
     setLoading(true);
     try {
       const response = await deleteGroupRoleApi(roleId);
-      if (response?.success) {
-        NotificationService.success(
-          response?.status || 200,
-          'Role deleted successfully!',
-        );
+      // Some delete endpoints return 204/no-body and APIs in this repo
+      // often return `response.data` (so `status` may be undefined).
+      // Treat absence of explicit `success: false` as success.
+      const ok = response?.success !== false;
+      if (ok) {
+        const status = Number(response?.status) || 200;
+        const message =
+          response?.data?.message ||
+          response?.message ||
+          'Role deleted successfully!';
+        NotificationService.success(status, message);
         onClose();
         if (typeof onRefresh === 'function') onRefresh();
       } else {
