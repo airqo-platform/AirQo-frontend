@@ -194,6 +194,15 @@ export const cancelPendingRequests = () => {
  * Comprehensive logout - clears everything while preserving specified keys
  */
 export const performComprehensiveLogout = async (dispatch) => {
+  // Guard to prevent concurrent/duplicate logout cleanup
+  if (performComprehensiveLogout._isRunning) {
+    logger.debug(
+      'performComprehensiveLogout already running - skipping duplicate',
+    );
+    return;
+  }
+
+  performComprehensiveLogout._isRunning = true;
   logger.info('Starting logout cleanup');
 
   try {
@@ -213,5 +222,11 @@ export const performComprehensiveLogout = async (dispatch) => {
     logger.info('Logout cleanup completed');
   } catch (error) {
     logger.error('Logout cleanup error:', error);
+  } finally {
+    // Keep the flag true for a short period to avoid immediate re-entrancy
+    setTimeout(() => {
+      performComprehensiveLogout._isRunning = false;
+      logger.debug('performComprehensiveLogout flag reset');
+    }, 2000);
   }
 };

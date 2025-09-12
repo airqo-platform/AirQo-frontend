@@ -20,6 +20,9 @@ const STORAGE_KEY = 'airqo-session-timer-leader';
 
 class SessionWatcher {
   constructor() {
+    // Guard to prevent duplicate logout flows from multiple sources
+    this._isLogoutInProgress = false;
+
     this.timerId = null;
     this.isLeader = false;
     this.broadcastChannel = null;
@@ -194,6 +197,7 @@ class SessionWatcher {
     const { isValid } = this.checkTokenExpiry(token);
 
     if (!isValid) {
+      // Token already invalid/expired — ensure logout is triggered
       this.triggerLogout();
       return false;
     }
@@ -218,7 +222,9 @@ class SessionWatcher {
     this.hasExpiry = hasExpiry;
 
     if (!isValid) {
-      return; // Token is invalid, don't proceed
+      // Token is invalid/expired — trigger logout immediately and don't proceed
+      this.triggerLogout();
+      return;
     }
 
     // If token doesn't have expiry, just store the callback and return
@@ -303,15 +309,41 @@ class SessionWatcher {
   }
 
   triggerLogout() {
+    // Prevent re-entrancy: if a logout flow is already in progress, skip
+    if (this._isLogoutInProgress) {
+      logger.debug('Logout already in progress (sessionWatcher) - skipping');
+      return;
+    }
+
+    this._isLogoutInProgress = true;
     logger.info('Session expiry triggered, initiating logout');
 
     // Broadcast logout to all tabs
     this.broadcastLogout();
 
-    // Execute logout callback
-    if (this.onExpireCallback) {
-      this.onExpireCallback();
+    // Stop local timers/state to prevent duplicate triggers
+    try {
+      this.stopSessionWatch();
+    } catch (e) {
+      logger.debug('Error stopping session watch during logout:', e);
     }
+
+    // Execute logout callback (may be async) and swallow errors
+    if (this.onExpireCallback) {
+      try {
+        const res = this.onExpireCallback();
+        if (res && typeof res.then === 'function') {
+          // If the callback returns a promise, await it
+          res.catch((err) => logger.error('onExpire callback error:', err));
+        }
+      } catch (err) {
+        logger.error('onExpire callback threw error:', err);
+      }
+    }
+
+    // Leave _isLogoutInProgress true - other parts of the app (centralized logout)
+    // are responsible for resetting global state when appropriate. This guard
+    // ensures sessionWatcher will not re-enter logout while the app handles it.
   }
 
   broadcastLogout() {
