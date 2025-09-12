@@ -1,6 +1,7 @@
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/widgets/analytics_card.dart';
+import 'package:airqo/src/app/dashboard/widgets/analytics_details.dart';
 import 'package:airqo/src/app/dashboard/widgets/google_places_loader.dart';
 import 'package:airqo/src/app/dashboard/widgets/location_display_widget.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -19,6 +20,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
 
 class MapScreen extends StatefulWidget {
@@ -44,6 +46,8 @@ class _MapScreenState extends State<MapScreen>
 
   List<Measurement> allMeasurements = [];
   List<Measurement> localSearchResults = [];
+  List<Measurement> nearbyMeasurements = [];
+  Position? userPosition;
 
   List<Marker> markers = [];
   bool isInitializing = true;
@@ -121,13 +125,6 @@ class _MapScreenState extends State<MapScreen>
 
   void viewDetails({Measurement? measurement, String? placeName}) {
     if (measurement != null) {
-      if (mounted) {
-        setState(() {
-          showDetails = true;
-          currentDetails = measurement;
-        });
-      }
-
       if (mapControllerInitialized &&
           measurement.siteDetails?.approximateLatitude != null &&
           measurement.siteDetails?.approximateLongitude != null) {
@@ -139,6 +136,8 @@ class _MapScreenState extends State<MapScreen>
           ),
         );
       }
+      
+      _showAnalyticsDetails(measurement);
     } else if (measurement == null && placeName != null) {
       googlePlacesBloc!.add(GetPlaceDetails(placeName));
       if (mounted) {
@@ -148,6 +147,17 @@ class _MapScreenState extends State<MapScreen>
         });
       }
     }
+  }
+
+  void _showAnalyticsDetails(Measurement measurement) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => AnalyticsDetails(
+        measurement: measurement,
+      ),
+    );
   }
 
   void resetDetails() {
@@ -315,6 +325,92 @@ class _MapScreenState extends State<MapScreen>
           isInitializing = false;
         });
       }
+      _updateNearbyMeasurements();
+    }
+  }
+
+  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    return Geolocator.distanceBetween(lat1, lon1, lat2, lon2) / 1000;
+  }
+
+  Future<void> _getUserLocation() async {
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        loggy.warning('Location services are disabled');
+        return;
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          loggy.warning('Location permissions are denied');
+          return;
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        loggy.warning('Location permissions are permanently denied');
+        return;
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+        timeLimit: const Duration(seconds: 5),
+      );
+
+      if (mounted) {
+        setState(() {
+          userPosition = position;
+        });
+      }
+      
+      _updateNearbyMeasurements();
+    } catch (e) {
+      loggy.error('Failed to get user location: $e');
+    }
+  }
+
+  void _updateNearbyMeasurements() {
+    if (userPosition == null || allMeasurements.isEmpty) {
+      return;
+    }
+
+    List<MapEntry<Measurement, double>> measWithDistance = [];
+    const double searchRadius = 50.0; // 50km radius
+
+    for (var measurement in allMeasurements) {
+      final siteDetails = measurement.siteDetails;
+      if (siteDetails == null) continue;
+
+      double? latitude = siteDetails.approximateLatitude;
+      double? longitude = siteDetails.approximateLongitude;
+      
+      if (latitude == null || longitude == null) continue;
+
+      final distance = _calculateDistance(
+        userPosition!.latitude,
+        userPosition!.longitude,
+        latitude,
+        longitude,
+      );
+
+      if (distance <= searchRadius) {
+        measWithDistance.add(MapEntry(measurement, distance));
+      }
+    }
+
+    // Sort by distance and take the closest 6
+    measWithDistance.sort((a, b) => a.value.compareTo(b.value));
+    
+    if (mounted) {
+      setState(() {
+        nearbyMeasurements = measWithDistance
+            .take(6)
+            .map((entry) => entry.key)
+            .toList();
+      });
     }
   }
 
@@ -342,6 +438,7 @@ class _MapScreenState extends State<MapScreen>
       ..add(ResetGooglePlaces());
 
     _loadDataFromAvailableSources();
+    _getUserLocation();
 
     super.initState();
   }
@@ -439,6 +536,15 @@ class _MapScreenState extends State<MapScreen>
                     16,
                   ),
                 );
+              }
+              
+              _showAnalyticsDetails(measurement);
+              
+              if (mounted) {
+                setState(() {
+                  showDetails = false;
+                  currentDetailsName = null;
+                });
               }
             }
           },
@@ -575,7 +681,7 @@ class _MapScreenState extends State<MapScreen>
                             borderRadius: BorderRadius.circular(44),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 5,
                                 offset: Offset(0, 2),
                               ),
@@ -620,7 +726,7 @@ class _MapScreenState extends State<MapScreen>
                             borderRadius: BorderRadius.circular(44),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 5,
                                 offset: Offset(0, 2),
                               ),
@@ -929,7 +1035,7 @@ class _MapScreenState extends State<MapScreen>
                 ],
               ),
               SizedBox(height: 16),
-              Container(
+              SizedBox(
                 height: 45,
                 child: Padding(
                   padding: const EdgeInsets.only(top: 0),
@@ -963,8 +1069,10 @@ class _MapScreenState extends State<MapScreen>
                         child: SvgPicture.asset(
                           "assets/icons/search_icon.svg",
                           height: 15,
-                          color:
-                              Theme.of(context).textTheme.headlineLarge!.color,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(context).textTheme.headlineLarge!.color!,
+                            BlendMode.srcIn,
+                          ),
                         ),
                       ),
                       suffixIcon:
@@ -999,7 +1107,6 @@ class _MapScreenState extends State<MapScreen>
                   ),
                 ),
               ),
-              SizedBox(height: 12),
               BlocBuilder<GooglePlacesBloc, GooglePlacesState>(
                 builder: (context, placesState) {
                   if (placesState is SearchLoading) {
@@ -1013,57 +1120,64 @@ class _MapScreenState extends State<MapScreen>
                       ],
                     );
                   } else if (placesState is SearchLoaded) {
-                    return Column(
-                      children: [
-                        // Show local AirQuality matches first
-                        if (localSearchResults.isNotEmpty) ...[
-                          Text("Air Quality Monitoring Locations",
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          ListView.separated(
-                              shrinkWrap: true,
-                              itemCount: localSearchResults.length,
-                              separatorBuilder: (context, index) =>
-                                  Divider(indent: 50),
-                              itemBuilder: (context, index) {
-                                Measurement measurement =
-                                    localSearchResults[index];
-                                return GestureDetector(
-                                  onTap: () =>
-                                      viewDetails(measurement: measurement),
-                                  child: LocationDisplayWidget(
-                                    title:
-                                        measurement.siteDetails!.locationName ??
-                                            "",
-                                    subTitle:
-                                        measurement.siteDetails!.searchName ??
-                                            measurement.siteDetails!.name ??
-                                            "---",
-                                  ),
-                                );
-                              }),
-                          Divider(),
-                        ],
-
-                        Text("Other Locations",
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        ListView.separated(
-                            shrinkWrap: true,
-                            itemCount: placesState.response.predictions.length,
-                            separatorBuilder: (context, index) =>
-                                Divider(indent: 50),
-                            itemBuilder: (context, index) {
-                              Prediction prediction =
-                                  placesState.response.predictions[index];
-                              return GestureDetector(
-                                onTap: () => viewDetails(
-                                    placeName: prediction.description),
-                                child: LocationDisplayWidget(
-                                    title: prediction.description,
-                                    subTitle: prediction
-                                        .structuredFormatting.mainText),
-                              );
-                            }),
-                      ],
+                    return Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Show local AirQuality matches first
+                            if (localSearchResults.isNotEmpty) ...[
+                              ListView.separated(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
+                                  itemCount: localSearchResults.length,
+                                  separatorBuilder: (context, index) =>
+                                      Divider(indent: 50),
+                                  itemBuilder: (context, index) {
+                                    Measurement measurement =
+                                        localSearchResults[index];
+                                    return InkWell(
+                                      onTap: () =>
+                                          viewDetails(measurement: measurement),
+                                      child: Container(
+                                        width: double.infinity,
+                                        child: LocationDisplayWidget(
+                                          title:
+                                              measurement.siteDetails!.locationName ??
+                                                  "",
+                                          subTitle:
+                                              measurement.siteDetails!.searchName ??
+                                                  measurement.siteDetails!.name ??
+                                                  "---",
+                                        ),
+                                      ),
+                                    );
+                                  }),
+                            ],
+                            ListView.separated(
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: placesState.response.predictions.length,
+                                separatorBuilder: (context, index) =>
+                                    Divider(indent: 50),
+                                itemBuilder: (context, index) {
+                                  Prediction prediction =
+                                      placesState.response.predictions[index];
+                                  return InkWell(
+                                    onTap: () => viewDetails(
+                                        placeName: prediction.description),
+                                    child: Container(
+                                      width: double.infinity,
+                                      child: LocationDisplayWidget(
+                                          title: prediction.description,
+                                          subTitle: prediction
+                                              .structuredFormatting.mainText),
+                                    ),
+                                  );
+                                }),
+                          ],
+                        ),
+                      ),
                     );
                   }
                   return Expanded(
@@ -1150,12 +1264,14 @@ class _MapScreenState extends State<MapScreen>
                             builder: (context) {
                               List<Measurement> measurements =
                                   currentFilter == "All"
-                                      ? allMeasurements
+                                      ? (nearbyMeasurements.isNotEmpty 
+                                          ? nearbyMeasurements 
+                                          : allMeasurements.take(6).toList())
                                       : filteredMeasurements;
 
                               if (measurements.isEmpty) {
                                 return Center(
-                                  child: Text("No measurements available"),
+                                  child: Text("No locations available"),
                                 );
                               }
 
@@ -1167,16 +1283,19 @@ class _MapScreenState extends State<MapScreen>
                                 itemCount: measurements.length,
                                 itemBuilder: (context, index) {
                                   Measurement measurement = measurements[index];
-                                  return GestureDetector(
+                                  return InkWell(
                                     onTap: () =>
                                         viewDetails(measurement: measurement),
-                                    child: LocationDisplayWidget(
-                                      title: measurement.siteDetails?.city ??
-                                          "Unknown City",
-                                      subTitle:
-                                          measurement.siteDetails?.searchName ??
-                                              measurement.siteDetails?.name ??
-                                              "---",
+                                    child: Container(
+                                      width: double.infinity,
+                                      child: LocationDisplayWidget(
+                                        title: measurement.siteDetails?.city ??
+                                            "Unknown City",
+                                        subTitle:
+                                            measurement.siteDetails?.searchName ??
+                                                measurement.siteDetails?.name ??
+                                                "---",
+                                      ),
                                     ),
                                   );
                                 },
