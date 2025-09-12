@@ -7,6 +7,7 @@ import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:loggy/loggy.dart';
 
 abstract class AuthRepository with UiLoggy {
@@ -50,17 +51,32 @@ class AuthImpl extends AuthRepository {
           throw Exception("Invalid response format from server. Please try again.");
         }
         
-        final userId = data["_id"];
         final token = data["token"];
-        
-        if (userId == null || userId is! String || userId.trim().isEmpty) {
-          loggy.error("Login response missing or invalid userId: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}");
-          throw Exception("Authentication failed. Invalid user data received.");
-        }
         
         if (token == null || token is! String || token.trim().isEmpty) {
           loggy.error("Login response missing or invalid token: Status=${loginResponse.statusCode}, BodyLength=${loginResponse.body.length}");
           throw Exception("Authentication failed. Invalid token received.");
+        }
+
+        String? userId;
+        try {
+          final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+          
+          final possibleIdFields = ['sub', 'id', 'userId', 'user_id', '_id', 'uid'];
+          
+          for (final field in possibleIdFields) {
+            if (decodedToken.containsKey(field) && decodedToken[field] != null) {
+              userId = decodedToken[field].toString();
+              break;
+            }
+          }
+          
+          if (userId == null || userId.trim().isEmpty) {
+            throw Exception("Authentication failed. Token does not contain user information.");
+          }
+        } catch (e) {
+          loggy.error("Failed to decode JWT token");
+          throw Exception("Authentication failed. Invalid token format received.");
         }
 
         try {
