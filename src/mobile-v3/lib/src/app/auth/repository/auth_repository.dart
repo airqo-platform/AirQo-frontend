@@ -78,13 +78,9 @@ class AuthImpl extends AuthRepository {
         String errorMessage;
         String errorType;
         
-        // Handle ranges first with proper defaults
         if (loginResponse.statusCode >= 400 && loginResponse.statusCode < 500) {
-          // 4xx - Client errors (user can fix)
           errorType = 'CLIENT_ERROR';
-          errorMessage = "Please check your login information and try again."; // Default for 4xx
-          
-          // Then handle specific cases within the range
+          errorMessage = "Please check your login information and try again.";
           switch (loginResponse.statusCode) {
             case 400:
               errorType = 'VALIDATION_ERROR: Invalid login request format';
@@ -128,11 +124,8 @@ class AuthImpl extends AuthRepository {
               break;
           }
         } else if (loginResponse.statusCode >= 500) {
-          // 5xx - Server errors (user should retry later)
           errorType = 'SERVER_ERROR';
-          errorMessage = "We're experiencing technical difficulties. Please try again later."; // Default for 5xx
-          
-          // Handle specific server errors if needed
+          errorMessage = "We're experiencing technical difficulties. Please try again later.";
           switch (loginResponse.statusCode) {
             case 502:
               errorType = 'BAD_GATEWAY_ERROR: Login service unavailable';
@@ -142,7 +135,6 @@ class AuthImpl extends AuthRepository {
               break;
           }
         } else {
-          // Unknown status code
           errorType = 'UNKNOWN_LOGIN_ERROR';
           errorMessage = "Login failed. Please try again.";
         }
@@ -243,13 +235,9 @@ class AuthImpl extends AuthRepository {
         String errorMessage;
         String errorType;
         
-        // Handle ranges first with proper defaults
         if (response.statusCode >= 400 && response.statusCode < 500) {
-          // 4xx - Client errors (user can fix)
           errorType = 'CLIENT_ERROR';
-          errorMessage = 'Please check your email address and try again.'; // Default for 4xx
-          
-          // Then handle specific cases within the range
+          errorMessage = 'Please check your email address and try again.';
           switch (response.statusCode) {
             case 400:
               errorType = 'VALIDATION_ERROR: Invalid email format or request';
@@ -278,11 +266,8 @@ class AuthImpl extends AuthRepository {
               break;
           }
         } else if (response.statusCode >= 500) {
-          // 5xx - Server errors (user should retry later)
           errorType = 'SERVER_ERROR';
-          errorMessage = 'We\'re experiencing technical difficulties. Please try again later.'; // Default for 5xx
-          
-          // Handle specific server errors if needed
+          errorMessage = 'We\'re experiencing technical difficulties. Please try again later.';
           switch (response.statusCode) {
             case 502:
               errorType = 'BAD_GATEWAY_ERROR: Password reset service unavailable';
@@ -292,7 +277,6 @@ class AuthImpl extends AuthRepository {
               break;
           }
         } else {
-          // Unknown status code
           errorType = 'UNKNOWN_PASSWORD_RESET_ERROR';
           errorMessage = 'Unable to send reset code. Please try again.';
         }
@@ -344,13 +328,9 @@ Future<void> verifyEmailCode(String token, String email) async {
     String errorMessage;
     String errorType;
     
-    // Handle ranges first with proper defaults
     if (verifyResponse.statusCode >= 400 && verifyResponse.statusCode < 500) {
-      // 4xx - Client errors (user can fix)
       errorType = 'CLIENT_ERROR';
-      errorMessage = "Please check your verification code and try again."; // Default for 4xx
-      
-      // Then handle specific cases within the range
+      errorMessage = "Please check your verification code and try again.";
       switch (verifyResponse.statusCode) {
         case 400:
           errorType = 'VALIDATION_ERROR: Invalid verification code or email';
@@ -390,11 +370,8 @@ Future<void> verifyEmailCode(String token, String email) async {
           break;
       }
     } else if (verifyResponse.statusCode >= 500) {
-      // 5xx - Server errors (user should retry later)
       errorType = 'SERVER_ERROR';
-      errorMessage = "We're experiencing technical difficulties. Please try again later."; // Default for 5xx
-      
-      // Handle specific server errors if needed
+      errorMessage = "We're experiencing technical difficulties. Please try again later.";
       switch (verifyResponse.statusCode) {
         case 502:
           errorType = 'BAD_GATEWAY_ERROR: Email verification service unavailable';
@@ -404,7 +381,6 @@ Future<void> verifyEmailCode(String token, String email) async {
           break;
       }
     } else {
-      // Unknown status code
       errorType = 'UNKNOWN_EMAIL_VERIFICATION_ERROR';
       errorMessage = "Email verification failed. Please try again.";
     }
@@ -459,13 +435,9 @@ Future<void> verifyEmailCode(String token, String email) async {
         String errorMessage;
         String errorType;
         
-        // Handle ranges first with proper defaults
         if (response.statusCode >= 400 && response.statusCode < 500) {
-          // 4xx - Client errors (user can fix)
           errorType = 'CLIENT_ERROR';
-          errorMessage = 'Please check your password and try again.'; // Default for 4xx
-          
-          // Then handle specific cases within the range
+          errorMessage = 'Please check your password and try again.';
           switch (response.statusCode) {
             case 400:
               errorType = 'VALIDATION_ERROR: Invalid password or token';
@@ -510,11 +482,8 @@ Future<void> verifyEmailCode(String token, String email) async {
               break;
           }
         } else if (response.statusCode >= 500) {
-          // 5xx - Server errors (user should retry later)
           errorType = 'SERVER_ERROR';
-          errorMessage = 'We\'re experiencing technical difficulties. Please try again later.'; // Default for 5xx
-          
-          // Handle specific server errors if needed
+          errorMessage = 'We\'re experiencing technical difficulties. Please try again later.';
           switch (response.statusCode) {
             case 502:
               errorType = 'BAD_GATEWAY_ERROR: Password update service unavailable';
@@ -524,7 +493,6 @@ Future<void> verifyEmailCode(String token, String email) async {
               break;
           }
         } else {
-          // Unknown status code
           errorType = 'UNKNOWN_PASSWORD_UPDATE_ERROR';
           errorMessage = 'Failed to reset password. Please try again.';
         }
