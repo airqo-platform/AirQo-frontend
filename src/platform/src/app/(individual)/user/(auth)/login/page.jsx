@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signIn as _signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import * as Yup from 'yup';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
@@ -62,7 +62,7 @@ const UserLogin = () => {
       }
 
       try {
-        const result = await _signIn('credentials', {
+        const result = await signIn('credentials', {
           userName: formData.userName,
           password: formData.password,
           redirect: false,

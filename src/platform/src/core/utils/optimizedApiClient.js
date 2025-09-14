@@ -372,7 +372,7 @@ const addAuthInterceptor = (client) => {
       if (token) {
         options.headers = {
           ...options.headers,
-          Authorization: `Bearer ${token}`,
+          Authorization: `JWT ${token}`,
         };
       }
     }

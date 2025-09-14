@@ -337,10 +337,7 @@ export const createProxyHandler = (options = {}) => {
 
         if (authHeader) {
           // Ensure the token starts with "JWT " for API compatibility
-          if (
-            !authHeader.startsWith('JWT ') &&
-            !authHeader.startsWith('Bearer ')
-          ) {
+          if (!authHeader.startsWith('JWT ')) {
             authHeader = `JWT ${authHeader}`;
           }
           config.headers.Authorization = authHeader;
