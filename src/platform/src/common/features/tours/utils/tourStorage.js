@@ -152,7 +152,7 @@ export const markTourAsSeenBackend = async (tourKey, userId, token) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Or however your API expects auth
+        'Authorization': `JWT ${token}`, // Or however your API expects auth
       },
       body: JSON.stringify({
         seen: true,
@@ -195,7 +195,7 @@ export const isTourSeenBackend = async (tourKey, userId, token) => {
     const response = await fetch(`/api/user/${userId}/tours/${tourKey}/status`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `JWT ${token}`,
       },
     });
 
