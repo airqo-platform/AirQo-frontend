@@ -21,11 +21,21 @@ const validateAndDecodeToken = (token) => {
     throw new Error('No access_token found');
   }
 
+  // Note: Token is now managed by NextAuth session, not localStorage
   try {
     const decoded = jwtDecode(token);
 
+    // Validate required fields
     if (!decoded._id) {
       throw new Error('Invalid token: missing user ID');
+    }
+
+    // Validate token expiry if present
+    if (decoded?.exp && typeof decoded.exp === 'number') {
+      const now = Math.floor(Date.now() / 1000);
+      if (decoded.exp <= now) {
+        throw new Error('Token expired');
+      }
     }
 
     return decoded;

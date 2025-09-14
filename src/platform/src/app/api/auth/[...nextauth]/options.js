@@ -353,10 +353,11 @@ export const authOptions = {
     async jwt({ token, user }) {
       // Merge user data into token on sign in
       if (user) {
+        const { token: rawToken, ...safeUser } = user;
         return {
           ...token,
-          ...user,
-          accessToken: user.token,
+          ...safeUser,
+          accessToken: rawToken,
         };
       }
       return token;

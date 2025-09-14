@@ -88,9 +88,11 @@ class SessionWatcher {
   }
 
   handleStorageEvent(e) {
-    if (e.key === 'airqo-logout-signal' && this.onExpireCallback) {
+    // Only react to a set event for the logout signal and use triggerLogout
+    // so the re-entrancy guard is respected and duplicate invocations are prevented
+    if (e.key === 'airqo-logout-signal' && e.newValue) {
       logger.info('Received storage-based logout signal');
-      this.onExpireCallback();
+      this.triggerLogout();
     }
   }
 
@@ -118,7 +120,13 @@ class SessionWatcher {
           this.scheduleTimerFromToken(this.lastToken);
         }
       } else {
+        const demoted = this.isLeader;
         this.isLeader = false;
+        if (demoted && this.timerId) {
+          clearTimeout(this.timerId);
+          this.timerId = null;
+          logger.debug('Demoted from leader: cleared timer');
+        }
       }
     } catch (error) {
       logger.error('Leader election failed:', error);
@@ -234,6 +242,8 @@ class SessionWatcher {
         return;
       }
 
+      // Only the leader should schedule or clear timers
+      if (!this.isLeader) return;
       if (this.timerId) clearTimeout(this.timerId);
       this.timerId = setTimeout(() => this.triggerLogout(), delay);
       logger.debug('Timer scheduled from token');
