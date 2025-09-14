@@ -120,12 +120,22 @@ class SessionWatcher {
           this.scheduleTimerFromToken(this.lastToken);
         }
       } else {
-        const demoted = this.isLeader;
-        this.isLeader = false;
-        if (demoted && this.timerId) {
-          clearTimeout(this.timerId);
-          this.timerId = null;
-          logger.debug('Demoted from leader: cleared timer');
+        const isCurrentLeader = leaderData.tabId === this.getTabId();
+        if (isCurrentLeader) {
+          // Maintain leadership and refresh heartbeat
+          this.isLeader = true;
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify({ timestamp: now, tabId: leaderData.tabId }),
+          );
+        } else {
+          const demoted = this.isLeader;
+          this.isLeader = false;
+          if (demoted && this.timerId) {
+            clearTimeout(this.timerId);
+            this.timerId = null;
+            logger.debug('Demoted from leader: cleared timer');
+          }
         }
       }
     } catch (error) {
