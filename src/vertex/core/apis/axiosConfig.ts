@@ -1,5 +1,6 @@
 import axios from 'axios';
 import logger from '@/lib/logger';
+import { clearSessionData } from '../utils/sessionManager';
 
 // Function to get JWT Token
 const getJwtToken = () => {
@@ -46,6 +47,13 @@ const createAxiosInstance = (isJWT = true) => {
   // Add a response interceptor to handle errors globally
   axiosInstance.interceptors.response.use(
     (response) => {
+      // On successful response, check for the new token in 'x-access-token' header
+      const newToken = response.headers['x-access-token'];
+      if (newToken && typeof newToken === 'string') {
+        logger.info('Successfully refreshed and storing new auth token.');
+        // Replace the token in localStorage
+        localStorage.setItem('token', newToken);
+      }
       return response;
     },
     (error) => {
@@ -57,6 +65,18 @@ const createAxiosInstance = (isJWT = true) => {
         status: error.response?.status,
         data: error.response?.data,
       });
+
+      // Handle 401 Unauthorized - session expired
+      if (error.response?.status === 401) {
+        logger.error('Session expired. Logging out.');
+        clearSessionData();
+
+        // Redirect to login page. This ensures a full page reload, clearing any in-memory state.
+        if (typeof window !== 'undefined') {
+          window.location.href = '/user/login?session_expired=true';
+        }
+        return Promise.reject(error); // Important to reject after handling
+      }
 
       if (error.response?.status === 403) {
         // Dispatch forbidden state to Redux store

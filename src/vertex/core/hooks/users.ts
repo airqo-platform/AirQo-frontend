@@ -21,6 +21,8 @@ import { useRouter } from "next/navigation";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { devices } from "../apis/devices";
+import { clearSessionData } from '../utils/sessionManager';
+import logger from "@/lib/logger";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -151,24 +153,12 @@ export const useAuth = () => {
         message: `Login Failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
-      localStorage.removeItem("token");
-      localStorage.removeItem("userDetails");
-      localStorage.removeItem("activeNetwork");
-      localStorage.removeItem("availableNetworks");
-      localStorage.removeItem("activeGroup");
-      localStorage.removeItem("userGroups");
-      localStorage.removeItem("userContext");
+      clearSessionData();
     },
   });
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userDetails");
-    localStorage.removeItem("activeNetwork");
-    localStorage.removeItem("availableNetworks");
-    localStorage.removeItem("activeGroup");
-    localStorage.removeItem("userGroups");
-    localStorage.removeItem("userContext");
+    clearSessionData();
     dispatch(logout());
     router.push("/login");
   };
@@ -185,6 +175,13 @@ export const useAuth = () => {
 
       if (token && storedUserDetails) {
         const userDetails = JSON.parse(storedUserDetails) as UserDetails;
+
+        // Gracefully handle corrupted session data if essential fields like _id are missing.
+        if (!userDetails?._id) {
+          logger.error('Corrupted user session data in localStorage. Logging out.');
+          handleLogout();
+          return;
+        }
 
         const safeUserDetails: UserDetails = {
           ...userDetails,

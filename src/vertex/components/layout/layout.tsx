@@ -8,6 +8,7 @@ import PrimarySidebar from "./primary-sidebar";
 import SecondarySidebar from "./secondary-sidebar";
 import OrganizationLoadingState from "./loading/org-loading";
 import SessionLoadingState from "./loading/session-loading";
+import ErrorBoundary from "../shared/ErrorBoundary";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -96,7 +97,9 @@ export default function Layout({ children }: LayoutProps) {
         }`}
       >
         <div className={`flex-1 w-full bg-background ${!isMapPage && "max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-2 lg:py-8 lg:px-8"}`}>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </div>
       </main>
     </div>
