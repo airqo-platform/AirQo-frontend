@@ -125,10 +125,8 @@ const createSecureApiClient = () => {
     // Performance optimizations
     maxRedirects: 2,
     validateStatus: (status) => status < 500, // Accept 4xx as valid responses
-    // Note: Removed unsafe headers (Accept-Encoding, Connection) that browsers manage automatically
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    // Note: Do not set a global Content-Type header here. We'll set it per-request
+    // only for plain JSON payloads to avoid breaking FormData/multipart uploads.
   });
 
   // Optimized auth header handler
@@ -179,6 +177,24 @@ const createSecureApiClient = () => {
   // Optimized request interceptor
   instance.interceptors.request.use(
     async (config) => {
+      // Set JSON content-type only for plain object payloads (not FormData).
+      try {
+        if (
+          config &&
+          !config.headers?.['Content-Type'] &&
+          config.data &&
+          typeof config.data === 'object'
+        ) {
+          const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+          if (!isFormData) {
+            config.headers = config.headers || {};
+            config.headers['Content-Type'] = 'application/json';
+          }
+        }
+      } catch {
+        // Defensive: if FormData is not available or check fails, don't block the request
+      }
+
       const authType = config.headers?.['X-Auth-Type'] || AUTH_TYPES.AUTO;
 
       switch (authType) {
