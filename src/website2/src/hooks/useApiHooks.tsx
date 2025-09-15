@@ -11,6 +11,7 @@ import {
   getDepartments,
   getEventDetails,
   getExternalTeamMembers,
+  getFAQs,
   getForumEventDetails,
   getForumEvents,
   getForumEventTitles,
@@ -33,12 +34,12 @@ import { swrOptions } from './swrConfig';
  * @param initialData - Optional initial data to return while fetching.
  * @returns An object containing the fetched data, loading state, error state, and mutate function.
  */
-const useFetch = (
+const useFetch = <T,>(
   key: string | null,
-  fetcher: () => Promise<any>,
-  initialData: any = [],
+  fetcher: () => Promise<T>,
+  initialData: T | null = null,
 ) => {
-  const { data, error, mutate } = useSWR(key, fetcher, {
+  const { data, error, mutate, isValidating } = useSWR<T>(key, fetcher, {
     ...swrOptions,
     onError: (error) => {
       // Don't log cancelled requests as errors
@@ -48,17 +49,14 @@ const useFetch = (
       ) {
         return;
       }
-
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`Failed to fetch ${key}:`, error.message);
-      }
+      console.error('SWR error:', error);
     },
   });
-  const isLoading = !data && !error;
 
   return {
-    data: data ?? initialData,
-    isLoading,
+    data: (data ?? initialData) as T | null,
+    isLoading: !data && !error,
+    isValidating,
     isError: error,
     mutate,
   };
@@ -170,3 +168,8 @@ export const useCleanAirResources = () =>
  * ------------------------------------- */
 export const useAfricanCountries = () =>
   useFetch('africanCountries', getAfricanCountries, []);
+
+/** -------------------------------------
+ *                 FAQS
+ * ------------------------------------- */
+export const useFAQs = () => useFetch('faqs', getFAQs, []);

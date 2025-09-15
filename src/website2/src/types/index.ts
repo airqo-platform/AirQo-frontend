@@ -34,3 +34,13 @@ export interface Resource {
 }
 
 export type ResourceCategory = Resource['resource_category'];
+
+export interface FAQ {
+  id: number;
+  question: string;
+  answer: string;
+  answer_html: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}

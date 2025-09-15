@@ -1,5 +1,7 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
+import type { FAQ } from '@/types';
+
 // Define the base URL for the API using our proxy route
 const getApiBaseUrl = () => {
   return '/api/proxy';
@@ -250,4 +252,21 @@ export const getCleanAirResources = async (): Promise<any> => {
 // African Countries API
 export const getAfricanCountries = async (): Promise<any> => {
   return getRequest('/african-countries/');
+};
+
+// FAQ API
+export const getFAQs = async (): Promise<FAQ[]> => {
+  try {
+    return await getRequest('/faq/');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn('Failed to fetch FAQs:', error);
+    }
+    return [] as FAQ[]; // Return typed empty array so components can show "no data" message
+  }
 };
