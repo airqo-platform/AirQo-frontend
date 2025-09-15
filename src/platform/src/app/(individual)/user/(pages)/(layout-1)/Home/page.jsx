@@ -25,68 +25,37 @@ const ANALYTICS_VIDEO_URL =
 const Home = () => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [userData, setUserData] = useState(null);
+  // Rely on NextAuth session for user info (firstName, id, etc.)
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchInitiated, setIsFetchInitiated] = useState(false);
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
 
-  // Get Redux state for checklist and user info
+  // Get Redux state for checklist
   const checklistStatus = useSelector((state) => state.cardChecklist.status);
   const checklistData = useSelector((state) => state.cardChecklist.checklist);
-  const reduxUserInfo = useSelector((state) => state.login.userInfo);
 
-  // Get user display name from multiple sources with priority
+  // Get user display name from session (firstName preferred)
   const getUserDisplayName = () => {
-    // Priority: Redux user info -> NextAuth session -> Guest
-    if (reduxUserInfo?.firstName) {
-      return reduxUserInfo.firstName;
-    }
-    if (reduxUserInfo?.name) {
-      return reduxUserInfo.name;
-    }
-    if (session?.user?.name) {
-      return session.user.name.split(' ')[0];
-    }
-    if (userData?.firstName) {
-      return userData.firstName;
-    }
-    if (userData?.name) {
-      return userData.name;
-    }
+    if (session?.user?.firstName) return session.user.firstName;
+    if (session?.user?.userName) return session.user.userName.split('@')[0];
+    if (session?.user?.email) return session.user.email.split('@')[0];
     return 'Guest';
   };
+
   useEffect(() => {
     let timer;
 
     const loadUserData = () => {
       try {
-        // If we have NextAuth session, prioritize that data
+        // If we have NextAuth session, fetch checklists using session user id
         if (session?.user) {
-          const sessionUser = {
-            _id: session.user.id,
-            firstName: session.user.name?.split(' ')[0],
-            name: session.user.name,
-            email: session.user.email,
-          };
-          setUserData(sessionUser);
-
-          // Fetch checklist if we haven't started yet
           if (session.user.id && !isFetchInitiated) {
             dispatch(fetchUserChecklists(session.user.id));
             setIsFetchInitiated(true);
           }
-        } else if (reduxUserInfo?._id) {
-          // Use Redux user info if available
-          setUserData(reduxUserInfo);
-
-          if (reduxUserInfo._id && !isFetchInitiated) {
-            dispatch(fetchUserChecklists(reduxUserInfo._id));
-            setIsFetchInitiated(true);
-          }
         }
       } catch (error) {
-        // Handle error silently or with logger
         logger.warn('Error loading user data:', error);
       }
 
@@ -103,9 +72,7 @@ const Home = () => {
     loadUserData();
 
     return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
+      if (timer) clearTimeout(timer);
     };
   }, [
     dispatch,
@@ -114,8 +81,8 @@ const Home = () => {
     checklistData,
     session,
     status,
-    reduxUserInfo,
   ]);
+
   useEffect(() => {
     const checkPlatform = () => {
       const platform = navigator.platform || '';
@@ -124,29 +91,25 @@ const Home = () => {
       if (isMacOS) {
         if (
           (!checklistData || checklistData.length === 0) &&
-          (userData?._id || session?.user?.id) &&
+          session?.user?.id &&
           checklistStatus !== 'loading'
         ) {
-          // Attempt recovery by refetching checklist data
-          const userId = userData?._id || session?.user?.id;
-          if (userId) {
-            dispatch(fetchUserChecklists(userId));
-          }
+          // Attempt recovery by refetching checklist data using session user id
+          const userId = session.user.id;
+          if (userId) dispatch(fetchUserChecklists(userId));
         }
       }
     };
 
-    if (!isLoading) {
-      checkPlatform();
-    }
-  }, [isLoading, checklistData, userData, dispatch, checklistStatus, session]);
+    if (!isLoading) checkPlatform();
+  }, [isLoading, checklistData, dispatch, checklistStatus, session]);
 
   // Handle video modal close and update checklist item
   const handleVideoModalClose = () => {
     setOpen(false);
 
     // Find and update the video step (ID=1) as completed when modal is closed
-    if (Array.isArray(checklistData) && userData?._id) {
+    if (Array.isArray(checklistData) && session?.user?.id) {
       const videoStep = checklistData.find(
         (item) => item.id === 1 || item.title?.includes('video'),
       );
