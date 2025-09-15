@@ -75,10 +75,8 @@ app.*.map.json
 /ios/Configuration.storekit
 /ios/Flutter/Generated.xcconfig
 /ios/Flutter/flutter_export_environment.sh
-/ios/Flutter/ApiKeys.xcconfig
-/ios/build/
 /ios/Podfile.lock
-
+ios/Flutter/ApiKeys.xcconfig
 
 # Environment files
 .env
