@@ -166,7 +166,7 @@ class BaseRepository with UiLoggy {
     Response response = await http
         .get(Uri.parse(url).replace(queryParameters: queryParams), headers: {
       "Accept": "*/*",
-      "Authorization": token,
+      "Authorization": "JWT $token",
       "Content-Type": "application/json",
     });
 
