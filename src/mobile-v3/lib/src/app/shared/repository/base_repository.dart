@@ -35,6 +35,37 @@ class BaseRepository with UiLoggy {
     }
   }
 
+  Exception _httpError(Response response, String url) {
+    String errorMessage = 'An error occurred';
+    
+    try {
+      // Check if response has JSON content type
+      final contentType = response.headers['content-type'] ?? '';
+      if (contentType.toLowerCase().contains('application/json') && response.body.isNotEmpty) {
+        final responseBody = json.decode(response.body);
+        if (responseBody is Map && responseBody.containsKey('message')) {
+          errorMessage = responseBody['message'];
+        }
+      } else if (response.body.isNotEmpty) {
+        // Use raw body for non-JSON responses, but limit length to avoid huge error messages
+        final rawBody = response.body.length > 200 
+            ? '${response.body.substring(0, 200)}...' 
+            : response.body;
+        errorMessage = rawBody;
+      }
+    } catch (e) {
+      // JSON parsing failed, use raw body if available
+      if (response.body.isNotEmpty) {
+        final rawBody = response.body.length > 200 
+            ? '${response.body.substring(0, 200)}...' 
+            : response.body;
+        errorMessage = rawBody;
+      }
+    }
+    
+    return Exception('$errorMessage (status=${response.statusCode}, url=$url)');
+  }
+
   Future<Response> createAuthenticatedPutRequest({
   required String path, 
   required dynamic data
@@ -66,11 +97,7 @@ class BaseRepository with UiLoggy {
     await _handleSessionExpiry();
     throw Exception('Your session has expired. Please log in again.');
   } else {
-    final responseBody = json.decode(response.body);
-    final errorMessage = responseBody is Map && responseBody.containsKey('message')
-        ? responseBody['message']
-        : 'An error occurred';
-    throw Exception(errorMessage);
+    throw _httpError(response, url);
   }
 }
 
@@ -102,11 +129,7 @@ class BaseRepository with UiLoggy {
       await _handleSessionExpiry();
       throw Exception('Your session has expired. Please log in again.');
     } else {
-      final responseBody = json.decode(response.body);
-      final errorMessage = responseBody is Map && responseBody.containsKey('message')
-          ? responseBody['message']
-          : 'An error occurred';
-      throw Exception(errorMessage);
+      throw _httpError(response, url);
     }
   }
 
@@ -142,11 +165,7 @@ class BaseRepository with UiLoggy {
       await _handleSessionExpiry();
       throw Exception('Your session has expired. Please log in again.');
     } else {
-      final responseBody = json.decode(response.body);
-      final errorMessage = responseBody is Map && responseBody.containsKey('message')
-          ? responseBody['message']
-          : 'An error occurred';
-      throw Exception(errorMessage);
+      throw _httpError(response, url);
     }
   }
 
@@ -179,11 +198,7 @@ class BaseRepository with UiLoggy {
       await _handleSessionExpiry();
       throw Exception('Your session has expired. Please log in again.');
     } else {
-      final responseBody = json.decode(response.body);
-      final errorMessage = responseBody is Map && responseBody.containsKey('message')
-          ? responseBody['message']
-          : 'An error occurred';
-      throw Exception(errorMessage);
+      throw _httpError(response, url);
     }
   }
 }
