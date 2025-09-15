@@ -121,12 +121,9 @@ const createSecureApiClient = () => {
   const instance = axios.create({
     baseURL: '/api',
     withCredentials: true,
-    timeout: 45000, // Increased timeout for heavy endpoints like map readings
-    // Performance optimizations
+    timeout: 45000,
     maxRedirects: 2,
-    validateStatus: (status) => status < 500, // Accept 4xx as valid responses
-    // Note: Do not set a global Content-Type header here. We'll set it per-request
-    // only for plain JSON payloads to avoid breaking FormData/multipart uploads.
+    validateStatus: (status) => status < 500,
   });
 
   // Optimized auth header handler
