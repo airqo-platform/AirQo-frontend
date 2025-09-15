@@ -7,11 +7,8 @@ import 'package:http/http.dart';
 import 'package:loggy/loggy.dart';
 
 class BaseRepository with UiLoggy {
-  String? _cachedToken;
-
   Future<String?> _getToken() async {
-    _cachedToken ??= await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
-    return _cachedToken;
+    return await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
   }
 
   Future<void> _handleTokenRefresh(Response response) async {
@@ -19,7 +16,6 @@ class BaseRepository with UiLoggy {
     if (newToken != null && newToken.isNotEmpty) {
       try {
         await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, newToken);
-        _cachedToken = newToken;
         loggy.info("Successfully refreshed and stored new auth token.");
       } catch (e) {
         loggy.error("Failed to save refreshed token: $e");
@@ -31,7 +27,6 @@ class BaseRepository with UiLoggy {
     try {
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-      _cachedToken = null;
       loggy.warning("Session expired. All auth data cleared.");
       
       GlobalAuthManager.instance.notifySessionExpired();
@@ -162,7 +157,7 @@ class BaseRepository with UiLoggy {
       throw Exception('Authentication token not found');
     }
 
-    loggy.info("Token for authenticated request: ${token.substring(0, 10)}...");
+    loggy.info("Auth token present: true - using authenticated request");
 
     String url = ApiUtils.baseUrl + path;
 
