@@ -11,6 +11,7 @@ import {
   getDepartments,
   getEventDetails,
   getExternalTeamMembers,
+  getFAQs,
   getForumEventDetails,
   getForumEvents,
   getForumEventTitles,
@@ -170,3 +171,8 @@ export const useCleanAirResources = () =>
  * ------------------------------------- */
 export const useAfricanCountries = () =>
   useFetch('africanCountries', getAfricanCountries, []);
+
+/** -------------------------------------
+ *                 FAQS
+ * ------------------------------------- */
+export const useFAQs = () => useFetch('faqs', getFAQs, []);

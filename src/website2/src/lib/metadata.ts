@@ -363,6 +363,18 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Resources',
     },
   },
+  faqs: {
+    title: 'Frequently Asked Questions | AirQo',
+    description:
+      'Find answers to common questions about AirQo, our air quality monitoring services, data access, and how we help African communities combat air pollution.',
+    keywords:
+      'AirQo FAQ, frequently asked questions, air quality questions, AirQo help, air monitoring questions, air quality data FAQ',
+    url: '/faqs',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      alt: 'AirQo Frequently Asked Questions',
+    },
+  },
   // Partners page
   partners: {
     title: 'Partners | AirQo',
