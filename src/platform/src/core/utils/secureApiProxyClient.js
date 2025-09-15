@@ -185,7 +185,8 @@ const createSecureApiClient = () => {
           config.data &&
           typeof config.data === 'object'
         ) {
-          const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
+          const isFormData =
+            typeof FormData !== 'undefined' && config.data instanceof FormData;
           if (!isFormData) {
             config.headers = config.headers || {};
             config.headers['Content-Type'] = 'application/json';
