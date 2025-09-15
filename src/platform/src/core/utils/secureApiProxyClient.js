@@ -125,10 +125,9 @@ const createSecureApiClient = () => {
     // Performance optimizations
     maxRedirects: 2,
     validateStatus: (status) => status < 500, // Accept 4xx as valid responses
-    // Compression and connection reuse
+    // Note: Removed unsafe headers (Accept-Encoding, Connection) that browsers manage automatically
     headers: {
-      'Accept-Encoding': 'gzip, deflate, br',
-      Connection: 'keep-alive',
+      'Content-Type': 'application/json',
     },
   });
 

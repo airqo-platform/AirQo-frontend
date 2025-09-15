@@ -473,6 +473,9 @@ export function UnifiedGroupProvider({ children }) {
     const currentCache = requestCacheRef.current;
     const cacheKey = organizationSlug;
 
+    // Declare controller outside the timeout so cleanup can access it
+    let controllerForThisEffect = null;
+
     const timer = setTimeout(async () => {
       if (!mountedRef.current) return;
 
@@ -502,7 +505,7 @@ export function UnifiedGroupProvider({ children }) {
       // Abort previous request (safe flat ref usage)
       abortRef.current?.abort();
       abortRef.current = new AbortController();
-      const controllerForThisEffect = abortRef.current;
+      controllerForThisEffect = abortRef.current;
       const { signal } = controllerForThisEffect;
 
       currentCache.set(cacheKey, true);
