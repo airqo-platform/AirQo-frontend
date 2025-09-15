@@ -49,3 +49,7 @@ class ResendVerificationCode extends AuthEvent {
 class LogoutUser extends AuthEvent {
   const LogoutUser();
 }
+
+class SessionExpired extends AuthEvent {
+  const SessionExpired();
+}

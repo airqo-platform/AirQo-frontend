@@ -23,7 +23,7 @@ class AuthLoadingError extends AuthState {
   const AuthLoadingError(this.message);
 }
 
-enum AuthPurpose { LOGIN, REGISTER }
+enum AuthPurpose { login, register }
 
 final class GuestUser extends AuthState {}
 

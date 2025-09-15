@@ -55,7 +55,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthLoaded && state.authPurpose == AuthPurpose.REGISTER) {
+        if (state is AuthLoaded && state.authPurpose == AuthPurpose.register) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => EmailVerificationScreen(
