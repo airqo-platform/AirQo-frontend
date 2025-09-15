@@ -123,7 +123,7 @@ const createSecureApiClient = () => {
     withCredentials: true,
     timeout: 45000,
     maxRedirects: 2,
-    validateStatus: (status) => status < 500,
+    validateStatus: (status) => status >= 200 && status < 300,
   });
 
   // Optimized auth header handler
@@ -174,23 +174,23 @@ const createSecureApiClient = () => {
   // Optimized request interceptor
   instance.interceptors.request.use(
     async (config) => {
-      // Set JSON content-type only for plain object payloads (not FormData).
-      try {
-        if (
-          config &&
-          !config.headers?.['Content-Type'] &&
-          config.data &&
-          typeof config.data === 'object'
-        ) {
-          const isFormData =
-            typeof FormData !== 'undefined' && config.data instanceof FormData;
-          if (!isFormData) {
+      if (
+        config &&
+        !config.headers?.['Content-Type'] &&
+        config.data !== undefined &&
+        config.data !== null
+      ) {
+        try {
+          const tag = Object.prototype.toString.call(config.data);
+          const isJsonLike =
+            tag === '[object Object]' || tag === '[object Array]';
+          if (isJsonLike) {
             config.headers = config.headers || {};
             config.headers['Content-Type'] = 'application/json';
           }
+        } catch {
+          // Defensive: if the check fails for any reason, don't block the request
         }
-      } catch {
-        // Defensive: if FormData is not available or check fails, don't block the request
       }
 
       const authType = config.headers?.['X-Auth-Type'] || AUTH_TYPES.AUTO;
