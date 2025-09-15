@@ -100,9 +100,11 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
             ),
           ],
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Padding(
               padding: const EdgeInsets.only(
                   left: 16, right: 16, bottom: 16, top: 16),
@@ -270,6 +272,7 @@ class AnalyticsCard extends StatelessWidget with UiLoggy {
             ),
           ],
         ),
+      ),
       ),
     );
   }

@@ -279,7 +279,6 @@ void main() {
           home: Scaffold(
             body: NearbyMeasurementCard(
               measurement: measurement,
-              distance: 2.5,
             ),
           ),
         ),
@@ -326,7 +325,6 @@ void main() {
             child: Scaffold(
               body: NearbyMeasurementCard(
                 measurement: measurement,
-                distance: 1.2,
               ),
             ),
           ),
