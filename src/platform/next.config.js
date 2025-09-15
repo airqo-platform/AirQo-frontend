@@ -81,8 +81,9 @@ const nextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
               "worker-src 'self' blob: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
               "style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com https://maps.gstatic.com; " +
-              "img-src 'self' data: https: blob: https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com; " +
+              "img-src 'self' data: https: blob: https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com https://res.cloudinary.com https://asset.cloudinary.com; " +
               "connect-src 'self' https: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
+              "media-src 'self' https: https://res.cloudinary.com https://asset.cloudinary.com blob: data:; " +
               "object-src 'none'; font-src 'self' data:; frame-ancestors 'self';",
           },
           {
@@ -98,7 +99,8 @@ const nextConfig = {
             value: 'geolocation=(), microphone=(), camera=()',
           },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-          { key: 'Cross-Origin-Resource-Policy', value: 'same-origin' },
+          // Allow cross-origin resource loads (e.g., Cloudinary videos)
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
         ],
       },
     ];

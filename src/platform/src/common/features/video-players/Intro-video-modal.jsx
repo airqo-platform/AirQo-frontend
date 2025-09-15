@@ -61,6 +61,8 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
       videoRef.current.currentTime =
         (videoChecklistItem.videoProgress / 100) * duration;
     }
+    // Ensure loading indicator is removed once metadata is available
+    setLoading(false);
   }, [videoChecklistItem]);
 
   // Close handlers - simplified since we have dedicated backdrop
@@ -126,7 +128,28 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
   }, [dispatch, videoChecklistItem, getUserId]);
 
   // Handle video load events
-  const handleVideoLoad = () => setLoading(false);
+  const handleVideoLoad = () => {
+    // Remove loading state when enough data has loaded
+    setLoading(false);
+  };
+
+  const handleVideoError = (event) => {
+    // Log error for debugging and remove loading spinner to show fallback UI
+    // eslint-disable-next-line no-console
+    console.error('Video playback error:', event);
+    setLoading(false);
+  };
+
+  const handleVideoWaiting = () => {
+    // Video is buffering or waiting
+    // eslint-disable-next-line no-console
+    console.debug('Video waiting/buffering');
+  };
+
+  const handleVideoStalled = () => {
+    // eslint-disable-next-line no-console
+    console.debug('Video stalled');
+  };
 
   if (!open) return null;
   return (
@@ -172,7 +195,12 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
             <video
               ref={videoRef}
               onLoadedMetadata={handleLoadedMetadata}
+              onLoadedData={handleVideoLoad}
               onCanPlayThrough={handleVideoLoad}
+              onPlaying={handleVideoLoad}
+              onWaiting={handleVideoWaiting}
+              onStalled={handleVideoStalled}
+              onError={handleVideoError}
               onPause={handleVideoPause}
               onEnded={handleVideoEnd}
               className={`w-full h-full object-contain bg-black ${
@@ -183,6 +211,7 @@ const VideoModal = ({ open, setOpen, videoUrl }) => {
               autoPlay
               playsInline
               preload="metadata"
+              crossOrigin="anonymous"
             />
           </div>
         </div>
