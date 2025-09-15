@@ -37,14 +37,17 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
     isError: titlesError,
   } = useForumEventTitles();
 
-  // Log forum access
+  // Log forum access only on errors
   React.useEffect(() => {
-    logger.info('Clean Air Forum accessed', {
-      slug,
-      hasSelectedEvent: !!selectedEvent,
-      hasEventTitles: !!eventTitles,
-    });
-  }, [slug, selectedEvent, eventTitles]);
+    // Only log if there are actual errors, not for normal access
+    if (detailsError || titlesError) {
+      logger.error('Clean Air Forum data loading failed', undefined, {
+        slug,
+        detailsError: !!detailsError,
+        titlesError: !!titlesError,
+      });
+    }
+  }, [slug, detailsError, titlesError]);
 
   // Handle loading states
   if (detailsLoading || titlesLoading) {

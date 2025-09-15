@@ -65,8 +65,8 @@ class Logger {
         break;
     }
 
-    // Send to Slack in production or for errors
-    if (this.isProduction || level === 'error') {
+    // Send to Slack only for errors and warnings, not for info/debug
+    if (level === 'error' || level === 'warn') {
       await this.sendToSlack(data);
     }
   }

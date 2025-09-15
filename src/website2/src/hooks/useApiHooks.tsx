@@ -37,9 +37,9 @@ import { swrOptions } from './swrConfig';
 const useFetch = <T,>(
   key: string | null,
   fetcher: () => Promise<T>,
-  initialData: T,
+  initialData: T | null = null,
 ) => {
-  const { data, error, mutate } = useSWR<T>(key, fetcher, {
+  const { data, error, mutate, isValidating } = useSWR<T>(key, fetcher, {
     ...swrOptions,
     onError: (error) => {
       // Don't log cancelled requests as errors
@@ -54,8 +54,9 @@ const useFetch = <T,>(
   });
 
   return {
-    data: (data ?? initialData) as T,
+    data: (data ?? initialData) as T | null,
     isLoading: !data && !error,
+    isValidating,
     isError: error,
     mutate,
   };
