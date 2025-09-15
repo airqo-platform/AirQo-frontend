@@ -121,15 +121,9 @@ const createSecureApiClient = () => {
   const instance = axios.create({
     baseURL: '/api',
     withCredentials: true,
-    timeout: 45000, // Increased timeout for heavy endpoints like map readings
-    // Performance optimizations
+    timeout: 45000,
     maxRedirects: 2,
-    validateStatus: (status) => status < 500, // Accept 4xx as valid responses
-    // Compression and connection reuse
-    headers: {
-      'Accept-Encoding': 'gzip, deflate, br',
-      Connection: 'keep-alive',
-    },
+    validateStatus: (status) => status >= 200 && status < 300,
   });
 
   // Optimized auth header handler
@@ -180,6 +174,25 @@ const createSecureApiClient = () => {
   // Optimized request interceptor
   instance.interceptors.request.use(
     async (config) => {
+      if (
+        config &&
+        !config.headers?.['Content-Type'] &&
+        config.data !== undefined &&
+        config.data !== null
+      ) {
+        try {
+          const tag = Object.prototype.toString.call(config.data);
+          const isJsonLike =
+            tag === '[object Object]' || tag === '[object Array]';
+          if (isJsonLike) {
+            config.headers = config.headers || {};
+            config.headers['Content-Type'] = 'application/json';
+          }
+        } catch {
+          // Defensive: if the check fails for any reason, don't block the request
+        }
+      }
+
       const authType = config.headers?.['X-Auth-Type'] || AUTH_TYPES.AUTO;
 
       switch (authType) {
