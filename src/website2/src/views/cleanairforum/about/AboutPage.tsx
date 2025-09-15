@@ -31,16 +31,7 @@ const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
 const AboutPage = () => {
   const { selectedEvent } = useForumData();
 
-  // Log only when there's an issue with missing event data
-  React.useEffect(() => {
-    if (!selectedEvent) {
-      logger.warn('Clean Air Forum About page: No event data available', {
-        eventId: null,
-        hasEvent: false,
-        component: 'AboutPage',
-      });
-    }
-  }, [selectedEvent]);
+  // Removed duplicate warn; we log once in the early return below.
 
   if (!selectedEvent) {
     // Log missing event data
