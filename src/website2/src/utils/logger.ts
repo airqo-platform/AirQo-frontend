@@ -25,10 +25,7 @@ class Logger {
 
   private async sendToSlack(data: LogData): Promise<void> {
     // Gate Slack in non-production unless explicitly enabled
-    if (
-      process.env.NODE_ENV !== 'production' &&
-      process.env.NEXT_PUBLIC_SLACK_LOGS !== 'true'
-    ) {
+    if (process.env.NODE_ENV !== 'production') {
       return;
     }
 
