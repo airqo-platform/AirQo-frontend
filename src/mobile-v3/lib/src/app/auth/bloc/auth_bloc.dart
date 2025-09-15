@@ -21,6 +21,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LogoutUser>(_onLogoutUser);
 
+    on<SessionExpired>(_onSessionExpired);
+
     on<UseAsGuest>((event, emit) => emit(GuestUser()));
 
     on<VerifyEmailCode>(_onVerifyEmailCode);
@@ -32,7 +34,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
-        emit(AuthLoaded(AuthPurpose.LOGIN));
+        emit(AuthLoaded(AuthPurpose.login));
       } else {
         emit(GuestUser());
       }
@@ -48,7 +50,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await authRepository.loginWithEmailAndPassword(
         event.username, event.password);
 
-    emit(AuthLoaded(AuthPurpose.LOGIN));
+    emit(AuthLoaded(AuthPurpose.login));
   } catch (e) {
     debugPrint("Login error: $e");
     
@@ -69,7 +71,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
-      emit(AuthLoaded(AuthPurpose.REGISTER));
+      emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
       debugPrint("Registration error: $e");
       emit(AuthLoadingError(_extractErrorMessage(e)));
@@ -99,6 +101,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       debugPrint("Logout error: $e");
       emit(AuthLoadingError("Failed to log out. Please try again."));
+    }
+  }
+
+  Future<void> _onSessionExpired(SessionExpired event, Emitter<AuthState> emit) async {
+    try {
+      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
+      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+      emit(GuestUser()); 
+    } catch (e) {
+      debugPrint("Session expiry cleanup error: $e");
+      emit(GuestUser());
     }
   }
 

@@ -3,6 +3,7 @@ import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
@@ -105,7 +106,11 @@ class AirqoMobile extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => AuthBloc(authRepository)..add(AppStarted()),
+          create: (context) {
+            final authBloc = AuthBloc(authRepository)..add(AppStarted());
+            GlobalAuthManager.instance.setAuthBloc(authBloc);
+            return authBloc;
+          },
         ),
         BlocProvider(
           create: (context) => ForecastBloc(forecastRepository),
