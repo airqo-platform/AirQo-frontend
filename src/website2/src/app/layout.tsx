@@ -117,7 +117,7 @@ export default async function RootLayout({
   const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
   const ENABLE_GA =
     process.env.NODE_ENV === 'production' &&
-    process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true' &&
+    // process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true' &&
     !!GA_ID;
   const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net/';
   const siteUrl = rawSiteUrl.replace(/\/$/, '') + '/';

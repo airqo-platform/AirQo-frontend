@@ -31,14 +31,7 @@ const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
 const AboutPage = () => {
   const { selectedEvent } = useForumData();
 
-  // Log page access for analytics
-  React.useEffect(() => {
-    logger.info('Clean Air Forum About page accessed', {
-      eventId: selectedEvent?.id,
-      eventTitle: selectedEvent?.title,
-      hasEvent: !!selectedEvent,
-    });
-  }, [selectedEvent]);
+  // Removed duplicate warn; we log once in the early return below.
 
   if (!selectedEvent) {
     // Log missing event data

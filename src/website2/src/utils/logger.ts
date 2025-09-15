@@ -24,24 +24,37 @@ class Logger {
   }
 
   private async sendToSlack(data: LogData): Promise<void> {
+    // Gate Slack in non-production unless explicitly enabled
+    if (process.env.NODE_ENV !== 'production') {
+      return;
+    }
+
     try {
       // Use our API route instead of direct Slack webhook
+      const { error, context, ...rest } = data as any;
+      const payload = {
+        ...rest,
+        errorMessage: error?.message,
+        errorStack: error?.stack,
+        context: safeJson(context),
+        env: process.env.NODE_ENV,
+      };
+
       const response = await fetch('/api/log', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
         console.error('Failed to send log to Slack:', response.statusText);
       }
-    } catch (error) {
-      console.error('Error sending log to Slack:', error);
+    } catch (err) {
+      console.error('Error sending log to Slack:', err);
     }
   }
-
   private async logToConsoleAndSlack(data: LogData): Promise<void> {
     const { level, message, error, context } = data;
 
@@ -65,8 +78,8 @@ class Logger {
         break;
     }
 
-    // Send to Slack in production or for errors
-    if (this.isProduction || level === 'error') {
+    // Send to Slack only for errors and warnings, not for info/debug
+    if (level === 'error' || level === 'warn') {
       await this.sendToSlack(data);
     }
   }
@@ -130,6 +143,15 @@ class Logger {
     this.logToConsoleAndSlack(logData).catch((err) => {
       console.error('Failed to log debug:', err);
     });
+  }
+}
+
+// Helper to safely serialize potentially non-serializable context objects
+function safeJson(value: unknown) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch {
+    return { warning: 'non-serializable context' };
   }
 }
 

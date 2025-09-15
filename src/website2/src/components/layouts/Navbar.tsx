@@ -89,6 +89,7 @@ const menuItems: MenuItems = {
     { title: 'Contact Us', href: '/contact' },
     { title: 'Events', href: '/events' },
     { title: 'Press', href: '/press' },
+    { title: 'FAQs', href: '/faqs' },
     { title: 'CLEAN-Air Forum', href: '/clean-air-forum/about' },
   ],
 };
