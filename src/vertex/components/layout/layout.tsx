@@ -9,6 +9,8 @@ import SecondarySidebar from "./secondary-sidebar";
 import OrganizationLoadingState from "./loading/org-loading";
 import SessionLoadingState from "./loading/session-loading";
 import ErrorBoundary from "../shared/ErrorBoundary";
+import { useSession } from "next-auth/react";
+import { useAuth } from "@/core/hooks/users";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,6 +28,15 @@ export default function Layout({ children }: LayoutProps) {
   
   const isInitialized = useAppSelector((state) => state.user.isInitialized);
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+
+  const { data: session, status } = useSession();
+  const { initializeUserSession } = useAuth();
+
+  useEffect(() => {
+    if (status === 'authenticated' && !isAuthenticated && session) {
+      initializeUserSession(session);
+    }
+  }, [status, isAuthenticated, session, initializeUserSession]);
 
   useEffect(() => {
     if (

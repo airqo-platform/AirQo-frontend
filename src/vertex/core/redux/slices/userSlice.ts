@@ -33,6 +33,7 @@ interface UserState {
     isSwitching: boolean;
     switchingTo: string;
   };
+  isContextLoading: boolean;
 }
 
 const initialState: UserState = {
@@ -57,6 +58,7 @@ const initialState: UserState = {
     isSwitching: false,
     switchingTo: "",
   },
+  isContextLoading: true,
 };
 
 // Helper function to determine user context
@@ -194,6 +196,9 @@ const userSlice = createSlice({
     setOrganizationSwitching: (state, action: PayloadAction<{ isSwitching: boolean; switchingTo: string }>) => {
       state.organizationSwitching = action.payload;
     },
+    setContextLoading(state, action: PayloadAction<boolean>) {
+      state.isContextLoading = action.payload;
+    },
   },
 });
 
@@ -209,5 +214,6 @@ export const {
   setForbiddenState,
   clearForbiddenState,
   setOrganizationSwitching,
+  setContextLoading,
 } = userSlice.actions;
 export default userSlice.reducer;

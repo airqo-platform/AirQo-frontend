@@ -1,6 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { useCallback } from "react";
 import { users } from "../apis/users";
 import {
   setUserDetails,
@@ -10,17 +9,21 @@ import {
   setUserGroups,
   setInitialized,
   setUserContext,
+  setContextLoading,
 } from "../redux/slices/userSlice";
+import { useCallback } from "react";
 import type {
   Network,
   Group,
   UserDetailsResponse,
+  UserDetails,
 } from "@/app/types/users";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { devices } from "../apis/devices";
 import { signOut } from "next-auth/react";
 import { clearSessionData } from "../utils/sessionManager";
+import { Session } from "next-auth";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -32,21 +35,44 @@ export const useAuth = () => {
     queryClient.clear();
   }, [queryClient]);
 
-  const initializeUserSession = useCallback(async (userId: string): Promise<boolean> => {
+  const initializeUserSession = useCallback(async (session: Session): Promise<void> => {
+    const user = session.user;
+
+    if (!user) {
+      console.error("Session is missing user data. Cannot initialize.", session);
+      return;
+    }
+
+    const basicUserInfo = {
+      _id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userName: user.userName,
+      privilege: user.privilege || "",
+      organization: user.organization || "",
+      country: user.country || "",
+      timezone: user.timezone || "",
+      phoneNumber: user.phoneNumber || "",
+    };
+
+    dispatch(setUserDetails(basicUserInfo as UserDetails));
+
+    dispatch(setInitialized());
+
+    dispatch(setContextLoading(true));
     try {
-      const userDetailsResponse = (await users.getUserDetails(userId)) as UserDetailsResponse;
+      const userDetailsResponse = (await users.getUserDetails(user.id)) as UserDetailsResponse;
       const userInfo = userDetailsResponse.users[0];
 
       if (!userInfo) {
-        throw new Error("User details not found after login");
+        throw new Error("Extended user details not found.");
       }
 
-      // Store details in Redux
       dispatch(setUserDetails(userInfo));
       dispatch(setUserGroups(userInfo.groups || []));
       dispatch(setAvailableNetworks(userInfo.networks || []));
 
-      // Store details in localStorage for persistence across sessions/tabs
       localStorage.setItem("userDetails", JSON.stringify(userInfo));
       localStorage.setItem("userGroups", JSON.stringify(userInfo.groups || []));
       localStorage.setItem("availableNetworks", JSON.stringify(userInfo.networks || []));
@@ -97,37 +123,39 @@ export const useAuth = () => {
       dispatch(setUserContext(initialUserContext));
       localStorage.setItem("userContext", initialUserContext);
 
-      if (initialUserContext === "personal") {
-        queryClient.prefetchQuery({
-          queryKey: ["my-devices", userInfo._id, defaultGroup?._id],
-          queryFn: () => devices.getMyDevices(userInfo._id),
-          staleTime: 300_000,
-        });
-      } else if (defaultGroup) {
-        const resolvedNetworkName = defaultNetwork?.net_name || "";
-        const resolvedGroupName = defaultGroup?.grp_title || "";
+      dispatch(setContextLoading(false));
 
-        queryClient.prefetchQuery({
-          queryKey: ["devices", resolvedNetworkName, resolvedGroupName],
-          queryFn: () => devices.getDevicesSummaryApi(resolvedNetworkName, resolvedGroupName),
-          staleTime: 300_000,
-        });
+
+      try {
+        if (initialUserContext === "personal") {
+          await queryClient.prefetchQuery({
+            queryKey: ["my-devices", userInfo._id, defaultGroup?._id],
+            queryFn: () => devices.getMyDevices(userInfo._id),
+            staleTime: 300_000,
+          });
+        } else if (defaultGroup) {
+          const resolvedNetworkName = defaultNetwork?.net_name || "";
+          const resolvedGroupName = defaultGroup?.grp_title || "";
+
+          await queryClient.prefetchQuery({
+            queryKey: ["devices", resolvedNetworkName, resolvedGroupName],
+            queryFn: () => devices.getDevicesSummaryApi(resolvedNetworkName, resolvedGroupName),
+            staleTime: 300_000,
+          });
+        }
+      } catch {
+        ReusableToast({ message: "Could not load initial device data.", type: "WARNING" });
       }
 
-      return true;
     } catch (e) {
       const error = e as Error;
       ReusableToast({
-        message: `Session setup failed: ${getApiErrorMessage(error)}`,
-        type: "ERROR",
+        message: `Could not load organization details: ${getApiErrorMessage(error)}`,
+        type: "WARNING",
       });
-      clearClientSession();
-      signOut({ callbackUrl: '/login' });
-      return false;
-    } finally {
-      dispatch(setInitialized());
+      dispatch(setContextLoading(false));
     }
-  }, [dispatch, queryClient, clearClientSession]);
+  }, [dispatch, queryClient]);
 
   const handleLogout = useCallback(() => {
     clearClientSession();

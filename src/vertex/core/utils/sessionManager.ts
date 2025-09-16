@@ -8,4 +8,5 @@ export const clearSessionData = () => {
   localStorage.removeItem('activeGroup');
   localStorage.removeItem('userGroups');
   localStorage.removeItem('userContext');
+  localStorage.removeItem("recentOrganizations");
 };
