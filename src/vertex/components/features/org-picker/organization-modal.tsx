@@ -18,7 +18,7 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 interface OrganizationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userGroups: Group[];
+  userGroups?: Group[];
   activeGroup: Group | null;
   userContext: UserContext | null;
   isAirQoStaff: boolean;
