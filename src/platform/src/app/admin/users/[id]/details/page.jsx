@@ -37,6 +37,7 @@ import { UserDetailsSkeleton } from '@/common/components/Skeleton';
 import ErrorState from '@/common/components/ErrorState';
 import RuntimeErrorBoundary from '@/common/components/ErrorBoundary/RuntimeErrorBoundary';
 import CardWrapper from '@/common/components/CardWrapper';
+import SelectField from '@/common/components/SelectField';
 /**
  * Utility function for consistent date formatting
  */
@@ -611,7 +612,7 @@ const UserDetailsPageContent = () => {
   const fetchRoles = useCallback(async () => {
     try {
       setRolesLoading(true);
-      const res = await getGroupRolesApi(activeGroupID);
+      const res = await getGroupRolesApi();
       if (Array.isArray(res)) setAvailableRoles(res);
       else if (Array.isArray(res?.roles)) setAvailableRoles(res.roles);
       else if (Array.isArray(res?.data)) setAvailableRoles(res.data);
@@ -622,11 +623,11 @@ const UserDetailsPageContent = () => {
     } finally {
       setRolesLoading(false);
     }
-  }, [activeGroupID]);
+  }, []);
 
   useEffect(() => {
     if (!isLoadingAuth) fetchRoles();
-  }, [isLoadingAuth, activeGroupID, fetchRoles]);
+  }, [isLoadingAuth, fetchRoles]);
 
   const handleAssignRole = useCallback(async () => {
     if (!selectedRoleId || !userId) return;
@@ -813,11 +814,16 @@ const UserDetailsPageContent = () => {
                       Assign New Role
                     </label>
                     <div className="space-y-3">
-                      <select
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-200"
+                      <SelectField
+                        label={null}
+                        placeholder={
+                          rolesLoading ? 'Loading roles...' : 'Select a role'
+                        }
                         value={selectedRoleId}
                         onChange={(e) => setSelectedRoleId(e.target.value)}
                         disabled={rolesLoading}
+                        maxHeight={300}
+                        listClassName="max-h-[300px]"
                       >
                         <option value="">
                           {rolesLoading ? 'Loading roles...' : 'Select a role'}
@@ -830,7 +836,7 @@ const UserDetailsPageContent = () => {
                             {r.role_name || r.name || r.title}
                           </option>
                         ))}
-                      </select>
+                      </SelectField>
                       <button
                         className="w-full btn btn-primary disabled:opacity-50"
                         onClick={handleAssignRole}
