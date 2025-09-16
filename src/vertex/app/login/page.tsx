@@ -6,7 +6,7 @@ import * as z from "zod"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useCallback, useRef, useEffect } from "react"
 import { signIn, getSession } from "next-auth/react"
 import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
@@ -35,37 +35,57 @@ export default function LoginPage() {
     },
   })
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
-    setIsLoading(true)
-    const result = await signIn("credentials", {
-      redirect: false,
-      userName: values.userName,
-      password: values.password,
-    })
-    setIsLoading(false)
-    
-    if (result?.ok) {
-      try {
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
+    setIsLoading(true);
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        userName: values.userName,
+        password: values.password,
+      });
+
+      if (!isMounted.current) return;
+
+      if (result?.ok) {
         const session = await getSession();
         if (session?.user?.id) {
           await initializeUserSession(session.user.id);
           router.push("/home");
         } else {
-          logger.error("Sign-in succeeded but session is missing user data.", { session });
-          ReusableToast({ message: "Session could not be established. Please try again.", type: "ERROR" });
+          throw new Error("Session could not be established. Please try again.");
         }
-      } catch (error) {
-        logger.error("Error during post-login session initialization", { error });
-        ReusableToast({ message: getApiErrorMessage(error), type: "ERROR" });
+      } else {
+        let message = "Login failed. Please check your credentials.";
+        if (result?.error) {
+          if (result.error === 'CredentialsSignin') {
+            message = "Invalid email or password. Please check your credentials.";
+          } else if (result.error.toLowerCase().includes('fetch')) {
+            message = "Network error. Please check your connection and try again.";
+          } else {
+            message = result.error;
+          }
+        }
+        throw new Error(message);
       }
-    } else {
-      // Handle failed login
-      const defaultMessage = "Login failed. Please check your credentials.";
-      const message = result?.error && result.error !== 'CredentialsSignin' ? result.error : defaultMessage;
-      ReusableToast({ message, type: "ERROR" })
-      logger.error("Sign-in failed", { error: result?.error })
+    } catch (error) {
+      if (!isMounted.current) return;
+      const message = getApiErrorMessage(error);
+      logger.error("Sign-in failed", { error: message });
+      ReusableToast({ message, type: "ERROR" });
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
     }
-  }
+  }, [initializeUserSession, router]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
