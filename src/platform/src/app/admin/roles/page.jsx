@@ -100,7 +100,11 @@ const RolesPermissionsPage = () => {
   useEffect(() => {
     // Only fetch after auth loading is complete and permissions are resolved
     if (isLoadingAuth) return;
-    if (canView === false) return; // No permission, don't fetch
+    if (canView === false) {
+      // No permission, don't fetch but ensure loading state is cleared
+      setLoading(false);
+      return;
+    }
 
     fetchRoles();
   }, [fetchRoles, isLoadingAuth, canView]);

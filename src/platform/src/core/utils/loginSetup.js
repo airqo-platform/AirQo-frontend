@@ -243,7 +243,7 @@ export const setupUserSession = async (
 
       // Don't set redirectPath for admin routes - let them stay on the current path
       redirectPath = null;
-    } else if (pathname.includes('/org/')) {
+    } else if (typeof pathname === 'string' && pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
       if (currentOrgSlug) {
