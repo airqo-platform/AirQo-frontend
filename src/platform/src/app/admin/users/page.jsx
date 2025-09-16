@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { AqUsers01, AqCheck, AqX, AqEye } from '@airqo/icons-react';
 
 // Import API
-import { getUsersApi as getCombinedUsersApi } from '@/core/apis/Account';
+import { getUsersApi } from '@/core/apis/Account';
 
 // Import Components
 import { PageHeader } from '@/common/components/Header';
@@ -48,13 +48,13 @@ const UsersPageContent = () => {
   // Fetch users data
   useEffect(() => {
     const fetchUsers = async () => {
-      if (!canView) return; // Don't fetch if no permission
+      if (!canView) return;
 
       try {
         setLoading(true);
         setError(null);
 
-        const response = await getCombinedUsersApi();
+        const response = await getUsersApi();
 
         if (response?.success && Array.isArray(response?.users)) {
           // Transform data for table (guard booleans and ensure array)

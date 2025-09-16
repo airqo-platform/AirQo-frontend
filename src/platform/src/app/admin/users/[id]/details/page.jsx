@@ -254,18 +254,14 @@ const UserGroups = React.memo(({ groups = [] }) => {
             <div key={group._id || index} className="">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-4">
-                  {group.grp_profile_picture ? (
-                    <img
-                      src={group.grp_profile_picture}
-                      alt={group.grp_title}
-                      className="w-12 h-12 rounded-lg object-cover border border-gray-200 dark:border-gray-600"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-semibold text-lg border border-gray-200 dark:border-gray-700">
-                      {(group.grp_title || '').trim().charAt(0).toUpperCase() ||
-                        '?'}
-                    </div>
-                  )}
+                  {/* Show first two letters of group title as initials */}
+                  <div className="w-12 h-12 rounded-lg flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 font-semibold text-lg border border-gray-200 dark:border-gray-700">
+                    {(() => {
+                      const title = (group.grp_title || '').trim();
+                      if (!title) return '?';
+                      return title.slice(0, 2).toUpperCase();
+                    })()}
+                  </div>
                   <div className="min-w-0 flex-1">
                     <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
                       {group.grp_title}
