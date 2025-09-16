@@ -24,6 +24,7 @@ import { devices } from "../apis/devices";
 import { signOut } from "next-auth/react";
 import { clearSessionData } from "../utils/sessionManager";
 import { Session } from "next-auth";
+import logger from "@/lib/logger";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -39,7 +40,7 @@ export const useAuth = () => {
     const user = session.user;
 
     if (!user) {
-      console.error("Session is missing user data. Cannot initialize.", session);
+      logger.warn("Session is missing user data. Cannot initialize.", session);
       return;
     }
 
