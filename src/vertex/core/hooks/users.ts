@@ -40,7 +40,7 @@ export const useAuth = () => {
     const user = session.user;
 
     if (!user) {
-      logger.warn("Session is missing user data. Cannot initialize.", session);
+      logger.warn("Session is missing user data. Cannot initialize.");
       dispatch(setInitialized());
       dispatch(setContextLoading(false));
       return;
