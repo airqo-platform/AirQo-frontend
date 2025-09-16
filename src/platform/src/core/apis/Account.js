@@ -468,19 +468,18 @@ export const updateUserThemeApi = (userId, groupId, currentTheme, newTheme) => {
 
 // Group Roles
 /**
- * Get roles for a group
- * @param {string} groupId - The group ID to fetch roles for
+ * Get roles for a group or all roles when no groupId is provided
+ * @param {string} [groupId] - Optional group ID to fetch roles for. When omitted, attempts to fetch all roles.
  * @returns {Promise} - Promise resolving to group roles
  */
 export const getGroupRolesApi = (groupId) => {
-  if (!groupId || typeof groupId !== 'string') {
-    return Promise.reject(new Error('Valid group ID is required'));
+  const options = { authType: AUTH_TYPES.JWT };
+  if (groupId && typeof groupId === 'string') {
+    options.params = { group_id: groupId };
   }
+
   return secureApiProxy
-    .get(GROUP_ROLES_URL, {
-      params: { group_id: groupId },
-      authType: AUTH_TYPES.JWT,
-    })
+    .get(GROUP_ROLES_URL, options)
     .then((response) => response.data)
     .catch((error) => {
       const errorMessage =

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format, isValid } from 'date-fns';
 import { AqUsers01, AqCheck, AqX } from '@airqo/icons-react';
 
@@ -27,15 +27,19 @@ const UsersPageContent = () => {
   const [error, setError] = useState(null);
 
   const { hasPermission, isLoading: permLoading } = usePermissions();
-  // Use the unified provider helper to get the active group id quickly
-  const { id: activeGroupID } = useGetActiveGroup();
-  const groupId = activeGroupID || null;
+  const { id: activeGroupID, loading: groupLoading } = useGetActiveGroup();
 
-  const canView = hasPermission('USER_MANAGEMENT', groupId, null, true);
+  // Only compute permissions after loading is complete to prevent flicker
+  const isLoadingAuth = permLoading || groupLoading;
+  const canView = !isLoadingAuth
+    ? hasPermission('USER_MANAGEMENT', activeGroupID)
+    : null;
 
   // Fetch users data
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!canView) return; // Don't fetch if no permission
+
       try {
         setLoading(true);
         setError(null);
@@ -65,20 +69,22 @@ const UsersPageContent = () => {
       } catch (err) {
         logger.error('Error fetching users:', err);
         setError(err.message || 'Failed to load users');
+        setUsers([]);
       } finally {
         setLoading(false);
       }
     };
 
-    // Only fetch when permissions have loaded and user can view
-    if (permLoading) return;
-    if (!canView) {
+    // Only fetch when auth loading is complete and user has permission
+    if (isLoadingAuth) return;
+    if (canView === false) {
       setUsers([]);
       setLoading(false);
       return;
     }
+
     fetchUsers();
-  }, [permLoading, canView]);
+  }, [isLoadingAuth, canView]);
 
   // Table columns configuration
   const columns = useMemo(
@@ -248,18 +254,19 @@ const UsersPageContent = () => {
   );
 
   // Handle retry
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     window.location.reload();
-  };
+  }, []);
 
-  // Note: table handles its own loading state; show header skeleton while data loads
-  // Render header with loading skeleton if data is still loading
+  // Show loading skeleton while authentication is loading or data is being fetched
+  if (isLoadingAuth || loading) {
+    return <RolesPermissionsPageSkeleton />;
+  }
 
-  // Permission loading
-  if (permLoading) return <RolesPermissionsPageSkeleton />;
-
-  // Permission denied
-  if (!canView) return <PermissionDenied />;
+  // Show permission denied only after auth loading is complete
+  if (canView === false) {
+    return <PermissionDenied />;
+  }
 
   // Error state
   if (error) {

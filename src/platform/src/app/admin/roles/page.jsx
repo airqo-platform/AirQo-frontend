@@ -21,6 +21,7 @@ import AddRoleDialog from '@/common/components/roles-permissions/AddRoleDialog';
 import EditRoleDialog from '@/common/components/roles-permissions/EditRoleDialog';
 import DeleteRoleDialog from '@/common/components/roles-permissions/DeleteRoleDialog';
 import { useRouter } from 'next/navigation';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 const StatusBadge = ({ status }) => {
   const isActive = status?.toUpperCase() === 'ACTIVE';
@@ -47,7 +48,6 @@ const RolesPermissionsPage = () => {
 
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [permissionDenied, setPermissionDenied] = useState(false);
 
   // Dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -55,17 +55,28 @@ const RolesPermissionsPage = () => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [selectedRole, setSelectedRole] = useState(null);
 
-  // Permissions (no group id for admin panel)
   const { hasPermission, isLoading: permLoading } = usePermissions();
-  const canView = hasPermission('ROLE_VIEW', null);
-  const canCreate = hasPermission('ROLE_CREATE', null);
-  const canEdit = hasPermission('ROLE_EDIT', null);
-  const canDelete = hasPermission('ROLE_DELETE', null);
+  const { id: activeGroupID, loading: groupLoading } = useGetActiveGroup();
+
+  // Only compute permissions after loading is complete to prevent flicker
+  const isLoadingAuth = permLoading || groupLoading;
+  const canView = !isLoadingAuth
+    ? hasPermission('ROLE_VIEW', activeGroupID)
+    : null;
+  const canCreate = !isLoadingAuth
+    ? hasPermission('ROLE_CREATE', activeGroupID)
+    : null;
+  const canEdit = !isLoadingAuth
+    ? hasPermission('ROLE_EDIT', activeGroupID)
+    : null;
+  const canDelete = !isLoadingAuth
+    ? hasPermission('ROLE_DELETE', activeGroupID)
+    : null;
 
   const fetchRoles = useCallback(async () => {
-    setLoading(true);
-    setPermissionDenied(false);
+    if (!canView) return; // Don't fetch if no permission
 
+    setLoading(true);
     try {
       const payload = await getGroupRolesSummaryApi();
       const list = Array.isArray(payload)
@@ -73,34 +84,26 @@ const RolesPermissionsPage = () => {
         : Array.isArray(payload.roles)
           ? payload.roles
           : [];
-      if (!list.length) throw new Error('No roles returned');
       setRoles(list);
     } catch (e) {
-      if (e?.status === 403 || e?.response?.status === 403) {
-        setPermissionDenied(true);
-        setLoading(false);
-        return;
-      }
       logger.error('Fetch roles error', e);
       CustomToast({
         message: e.message || 'Failed to fetch roles',
         type: 'error',
       });
+      setRoles([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canView]);
 
   useEffect(() => {
-    // Wait until permission check is ready
-    if (permLoading) return;
-    if (!canView) {
-      setPermissionDenied(true);
-      setLoading(false);
-      return;
-    }
+    // Only fetch after auth loading is complete and permissions are resolved
+    if (isLoadingAuth) return;
+    if (canView === false) return; // No permission, don't fetch
+
     fetchRoles();
-  }, [fetchRoles, permLoading, canView]);
+  }, [fetchRoles, isLoadingAuth, canView]);
 
   const handleRoleAction = useCallback(
     (action, role) => {
@@ -200,8 +203,12 @@ const RolesPermissionsPage = () => {
           <Dropdown
             menu={[
               { id: 'edit_role', name: 'Edit Role', disabled: !canEdit },
-              { id: 'edit_permissions', name: 'Edit Permissions' },
-              { id: 'delete_role', name: 'Delete Role' },
+              {
+                id: 'edit_permissions',
+                name: 'Edit Permissions',
+                disabled: !canEdit,
+              },
+              { id: 'delete_role', name: 'Delete Role', disabled: !canDelete },
             ]}
             onItemClick={(action) => handleRoleAction(action, item)}
             length="last"
@@ -209,7 +216,7 @@ const RolesPermissionsPage = () => {
         ),
       },
     ],
-    [handleRoleAction, canEdit],
+    [handleRoleAction, canEdit, canDelete],
   );
 
   const statusFilterOptions = [
@@ -227,13 +234,19 @@ const RolesPermissionsPage = () => {
     },
   ];
 
-  const handleAddRole = () => setShowAddDialog(true);
+  const handleAddRole = useCallback(() => {
+    setShowAddDialog(true);
+  }, []);
 
-  if (permissionDenied) return <PermissionDenied />;
+  // Show loading skeleton while authentication is loading or data is being fetched
+  if (isLoadingAuth || loading) {
+    return <RolesPermissionsPageSkeleton />;
+  }
 
-  if (permLoading || loading) return <RolesPermissionsPageSkeleton />;
-
-  if (!canView) return <PermissionDenied />;
+  // Show permission denied only after auth loading is complete
+  if (canView === false) {
+    return <PermissionDenied />;
+  }
 
   return (
     <>
