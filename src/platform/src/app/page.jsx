@@ -27,10 +27,14 @@ const HomePage = () => {
         setIsRedirecting(true);
 
         if (status === 'authenticated' && session?.user) {
-          // ALWAYS redirect authenticated users to /user/Home regardless of org login or previous context
-          // This ensures when users open the application in another tab they go to /user/Home
-          // with active group set to airqo
-          router.replace('/user/Home');
+          // Only redirect to /user/Home if user is accessing the root "/" path directly
+          // This prevents interference with protected route navigation
+          if (
+            typeof window !== 'undefined' &&
+            window.location.pathname === '/'
+          ) {
+            router.replace('/user/Home');
+          }
         } else {
           // Not authenticated - redirect to user login
           router.replace('/user/login');
