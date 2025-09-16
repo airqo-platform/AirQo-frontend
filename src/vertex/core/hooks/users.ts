@@ -52,19 +52,19 @@ export const useAuth = () => {
         (group: Group) => group.grp_title.toLowerCase() === "airqo"
       );
 
-      let defaultNetwork = userInfo.networks?.[0];
-      let defaultGroup = userInfo.groups?.[0];
+      let defaultNetwork: Network | undefined;
+      let defaultGroup: Group | undefined;
 
-      if (isAirQoStaff && airqoNetwork) {
-        defaultNetwork = airqoNetwork;
-        if (airqoGroup) {
-          defaultGroup = airqoGroup;
-        }
+      if (isAirQoStaff) {
+        defaultNetwork = airqoNetwork || userInfo.networks?.[0];
+        defaultGroup = airqoGroup || userInfo.groups?.[0];
       } else {
-        const nonAirqoNetwork = userInfo.networks?.find((n) => n.net_name.toLowerCase() !== "airqo");
-        const nonAirqoGroup = userInfo.groups?.find((g) => g.grp_title.toLowerCase() !== "airqo");
-        if (nonAirqoNetwork) defaultNetwork = nonAirqoNetwork;
-        if (nonAirqoGroup) defaultGroup = nonAirqoGroup;
+        defaultNetwork =
+          userInfo.networks?.find((n) => n.net_name.toLowerCase() !== "airqo") ||
+          userInfo.networks?.[0];
+        defaultGroup = userInfo.groups?.find(
+          (g) => g.grp_title.toLowerCase() !== "airqo"
+        );
       }
 
       if (defaultNetwork) {

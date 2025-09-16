@@ -207,7 +207,6 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
 
       // Normalize URL
       const normalizedBaseUrl = API_BASE_URL.replace(/\/+$/, '');
-      logger.info(`NORMALISED URL", ${normalizedBaseUrl}`)
 
       // Configure request
       const config: ExtendedAxiosConfig = {

@@ -29,13 +29,19 @@ const OrganizationPicker: React.FC = () => {
   const { isPersonalContext } = useUserContext();
 
   const validUserGroups = useMemo(() => {
-    if (!Array.isArray(userGroups)) {
-      return [];
-    }
-    return userGroups.filter(
+    if (!Array.isArray(userGroups)) return [];
+
+    const filteredGroups = userGroups.filter(
       (group): group is Group => !!(group && group._id && group.grp_title)
     );
-  }, [userGroups]);
+
+    if (!isAirQoStaff) {
+      return filteredGroups.filter(
+        (group) => group.grp_title.toLowerCase() !== "airqo"
+      );
+    }
+    return filteredGroups;
+  }, [userGroups, isAirQoStaff]);
 
   const handleOrganizationChange = async (group: Group | "private") => {
     dispatch(setOrganizationSwitching({ 
