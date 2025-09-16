@@ -32,7 +32,7 @@ export const useAuth = () => {
     queryClient.clear();
   }, [queryClient]);
 
-  const initializeUserSession = useCallback(async (userId: string) => {
+  const initializeUserSession = useCallback(async (userId: string): Promise<boolean> => {
     try {
       const userDetailsResponse = (await users.getUserDetails(userId)) as UserDetailsResponse;
       const userInfo = userDetailsResponse.users[0];
@@ -113,6 +113,8 @@ export const useAuth = () => {
           staleTime: 300_000,
         });
       }
+
+      return true;
     } catch (e) {
       const error = e as Error;
       ReusableToast({
@@ -121,6 +123,7 @@ export const useAuth = () => {
       });
       clearClientSession();
       signOut({ callbackUrl: '/login' });
+      return false;
     } finally {
       dispatch(setInitialized());
     }

@@ -57,8 +57,10 @@ export default function LoginPage() {
       if (result?.ok) {
         const session = await getSession();
         if (session?.user?.id) {
-          await initializeUserSession(session.user.id);
-          router.push("/home");
+          const ok = await initializeUserSession(session.user.id);
+          if (ok) {
+            router.replace("/home");
+          }
         } else {
           throw new Error("Session could not be established. Please try again.");
         }
