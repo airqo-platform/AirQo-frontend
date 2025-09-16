@@ -68,7 +68,7 @@ const OrganizationPicker: React.FC = () => {
 
     try {
       await queryClient.cancelQueries();
-      queryClient.removeQueries();
+      queryClient.clear();
       router.replace("/");
       router.refresh();
 
