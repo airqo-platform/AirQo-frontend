@@ -18,7 +18,9 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
     if (status === 'authenticated' && session?.user?.id && (!isInitialized || user?._id !== session.user.id)) {
       if (!isInitializing.current) {
         isInitializing.current = true;
-        initializeUserSession(session.user.id);
+        void Promise
+          .resolve(initializeUserSession(session.user.id))
+          .finally(() => { isInitializing.current = false; });
       }
     }
     else if (status === 'unauthenticated') {
