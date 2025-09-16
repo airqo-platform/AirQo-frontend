@@ -9,13 +9,13 @@ import { ExtendedSession } from '../utils/secureApiProxyClient';
 
 function AuthInitializer({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
-  const { isInitialized, user } = useAppSelector((state) => state.user);
+  const { isInitialized, userDetails: user } = useAppSelector((state) => state.user);
   const { initializeUserSession } = useAuth();
   const dispatch = useAppDispatch();
   const isInitializing = useRef(false);
 
   useEffect(() => {
-    if (status === 'authenticated' && session?.user?.id && (!isInitialized || user?.id !== session.user.id)) {
+    if (status === 'authenticated' && session?.user?.id && (!isInitialized || user?._id !== session.user.id)) {
       if (!isInitializing.current) {
         isInitializing.current = true;
         initializeUserSession(session.user.id);
