@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { format, isValid } from 'date-fns';
-import { AqUsers01, AqCheck, AqX } from '@airqo/icons-react';
+import { useRouter } from 'next/navigation';
+import { AqUsers01, AqCheck, AqX, AqEye } from '@airqo/icons-react';
 
 // Import API
 import { getUsersApi as getCombinedUsersApi } from '@/core/apis/Account';
@@ -25,6 +26,7 @@ const UsersPageContent = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   const { hasPermission, isLoading: permLoading } = usePermissions();
   const { id: activeGroupID, loading: groupLoading } = useGetActiveGroup();
@@ -34,6 +36,14 @@ const UsersPageContent = () => {
   const canView = !isLoadingAuth
     ? hasPermission('USER_MANAGEMENT', activeGroupID)
     : null;
+
+  // Handle navigation to user details
+  const handleViewUser = useCallback(
+    (userId) => {
+      router.push(`/admin/users/${userId}/details`);
+    },
+    [router],
+  );
 
   // Fetch users data
   useEffect(() => {
@@ -224,8 +234,27 @@ const UsersPageContent = () => {
         ),
         sortable: true,
       },
+      {
+        key: 'actions',
+        label: 'Actions',
+        render: (_, item) => (
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewUser(item.id);
+              }}
+              className="p-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-full hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+              aria-label="View Details"
+              title="View User Details"
+            >
+              <AqEye className="w-4 h-4" />
+            </button>
+          </div>
+        ),
+      },
     ],
-    [],
+    [handleViewUser],
   );
 
   // Table filters configuration

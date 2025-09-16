@@ -16,6 +16,7 @@ import {
   getUserThemeUrl,
   updateUserThemeUrl,
   getGroupSlugUrl,
+  getUserUrl,
   GROUP_ROLES_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
@@ -88,6 +89,41 @@ export const getUserDetails = (userID) => {
         throw new Error('Network error - please check your connection');
       } else {
         throw new Error(error.message || 'Failed to fetch user details');
+      }
+    });
+};
+
+// New: Get single user by id (convenience wrapper using getUserUrl)
+export const getUserByIdApi = (userId) => {
+  if (!userId || typeof userId !== 'string') {
+    return Promise.reject(new Error('Valid user ID is required'));
+  }
+
+  return secureApiProxy
+    .get(getUserUrl(userId), {
+      authType: AUTH_TYPES.JWT,
+      timeout: 15000,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      if (error.response) {
+        const status = error.response.status;
+        switch (status) {
+          case 404:
+            throw new Error('User not found');
+          case 403:
+            throw new Error('Access denied');
+          case 401:
+            throw new Error('Authentication required');
+          default: {
+            const msg = error.response.data?.message || 'Failed to fetch user';
+            throw new Error(msg);
+          }
+        }
+      } else if (error.request) {
+        throw new Error('Network error - please check your connection');
+      } else {
+        throw new Error(error.message || 'Failed to fetch user');
       }
     });
 };
@@ -616,6 +652,27 @@ export const assignRoleToUserApi = (roleId, body) => {
     .catch((error) => {
       const errorMessage =
         error.response?.data?.message || 'Failed to assign role to user';
+      throw new Error(errorMessage);
+    });
+};
+
+// Unassign a role from a user
+export const unassignRoleFromUserApi = (roleId, userId) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!userId || typeof userId !== 'string') {
+    return Promise.reject(new Error('Valid user ID is required'));
+  }
+
+  return secureApiProxy
+    .delete(`${GROUP_ROLES_URL}/${roleId}/user/${userId}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to unassign role from user';
       throw new Error(errorMessage);
     });
 };
