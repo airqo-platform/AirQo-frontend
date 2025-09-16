@@ -6,14 +6,13 @@ import * as z from "zod"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { useState, useCallback, useRef, useEffect } from "react"
-import { signIn, getSession } from "next-auth/react"
+import { useState, useCallback, useRef, useEffect } from "react";
+import { signIn } from "next-auth/react";
 import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
 import ReusableButton from "@/components/shared/button/ReusableButton"
 import ReusableToast from "@/components/shared/toast/ReusableToast"
-import { useAuth } from "@/core/hooks/users"
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
@@ -25,7 +24,6 @@ const loginSchema = z.object({
 export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
-  const { initializeUserSession } = useAuth()
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -55,15 +53,7 @@ export default function LoginPage() {
       if (!isMounted.current) return;
 
       if (result?.ok) {
-        const session = await getSession();
-        if (session?.user?.id) {
-          const ok = await initializeUserSession(session.user.id);
-          if (ok) {
-            router.replace("/home");
-          }
-        } else {
-          throw new Error("Session could not be established. Please try again.");
-        }
+        router.replace("/home");
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
@@ -87,7 +77,7 @@ export default function LoginPage() {
         setIsLoading(false);
       }
     }
-  }, [initializeUserSession, router]);
+  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">

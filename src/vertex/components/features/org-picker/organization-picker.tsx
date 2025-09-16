@@ -10,6 +10,7 @@ import OrganizationModal from "./organization-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 
 const formatTitle = (title: string) => {
@@ -24,6 +25,7 @@ const OrganizationPicker: React.FC = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const userContext = useAppSelector((state) => state.user.userContext);
+  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
   const isAirQoStaff = useAppSelector((state) => state.user.isAirQoStaff);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isPersonalContext } = useUserContext();
@@ -66,7 +68,7 @@ const OrganizationPicker: React.FC = () => {
 
     try {
       await queryClient.cancelQueries();
-      queryClient.removeQueries();
+      queryClient.clear();
       router.replace("/");
       router.refresh();
 
@@ -110,6 +112,10 @@ const OrganizationPicker: React.FC = () => {
     }
     return formatTitle(activeGroup?.grp_title || "") || "Select Organization";
   };
+
+  if (isContextLoading) {
+    return <Skeleton className="h-10 w-48 rounded-lg" />;
+  }
 
   return (
     <>
