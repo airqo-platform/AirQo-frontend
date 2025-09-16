@@ -8,7 +8,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const stripTrailingSlash = (url: string) => {
-  return url.replace(/\/$/, "");
+  return url.replace(/\/+$/, "");
 };
 
 export const transformDataToGeoJson = (

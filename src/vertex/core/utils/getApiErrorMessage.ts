@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 
 // This interface covers the various error shapes
 interface ApiErrorResponse {
@@ -16,11 +16,16 @@ interface ApiErrorResponse {
  * @returns A user-friendly error message string.
  */
 export const getApiErrorMessage = (error: unknown): string => {
-    if (axios.isAxiosError(error) && error.response?.data) {
+    if (axios.isAxiosError(error)) {
+        if (error.code === 'ECONNABORTED') {
+            return 'Request timed out. Please check your connection and try again.';
+        }
+
+        if (error.response?.data) {
         const data = error.response.data as ApiErrorResponse;
 
         // 1. Nested validation errors: { "errors": { "field": { "msg": "..." } } }
-        if (typeof data.errors === 'object' && data.errors !== null && !('message' in data.errors as any)) {
+        if (typeof data.errors === 'object' && data.errors !== null && !('message' in data.errors)) {
             const errorValues = Object.values(data.errors);
             if (errorValues.length > 0) {
                 const firstError = errorValues[0];
@@ -46,6 +51,7 @@ export const getApiErrorMessage = (error: unknown): string => {
         if (data.message) {
             return data.message;
         }
+    }
     }
 
     // 5. Fallback to standard Error message
