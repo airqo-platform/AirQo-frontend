@@ -1,18 +1,13 @@
 import { LoginCredentials } from "@/app/types/users";
 import createSecureApiClient from "../utils/secureApiProxyClient";
+import axios from "axios";
+import { getApiBaseUrl } from "@/lib/envConstants";
 
 export const users = {
-  loginUser: async (data: LoginCredentials) => {
-    try {
-      const response = await createSecureApiClient().post(`/users/loginUser`, data);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
   loginWithDetails: async (data: LoginCredentials) => {
     try {
-      const response = await createSecureApiClient().post(`/users/login-with-details`, data);
+      const apiUrl = getApiBaseUrl();
+      const response = await axios.post(`${apiUrl}/users/login-with-details`, data);
       return response.data;
     } catch (error) {
       throw error;

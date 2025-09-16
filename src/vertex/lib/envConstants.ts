@@ -2,6 +2,7 @@
  * Environment constants and utilities for API configuration
  * Centralizes environment variable access with proper validation
  */
+import { stripTrailingSlash } from './utils';
 
 /**
  * Gets the API base URL from environment variables
@@ -15,7 +16,7 @@ export const getApiBaseUrl = (): string => {
     throw new Error('NEXT_PUBLIC_API_URL environment variable is not defined');
   }
   
-  return apiUrl;
+  return stripTrailingSlash(apiUrl);
 };
 
 /**

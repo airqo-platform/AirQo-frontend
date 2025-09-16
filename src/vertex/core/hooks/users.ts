@@ -1,56 +1,48 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
+import { useCallback } from "react";
 import { users } from "../apis/users";
 import {
   setUserDetails,
   setActiveNetwork,
   setActiveGroup,
-  logout,
   setAvailableNetworks,
   setUserGroups,
   setInitialized,
   setUserContext,
 } from "../redux/slices/userSlice";
 import type {
-  LoginCredentials,
-  UserDetails,
   Network,
   Group,
+  UserDetailsResponse,
 } from "@/app/types/users";
-import { useRouter } from "next/navigation";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { devices } from "../apis/devices";
-import { clearSessionData } from '../utils/sessionManager';
-import logger from "@/lib/logger";
+import { signOut } from "next-auth/react";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
-  const router = useRouter();
   const queryClient = useQueryClient();
 
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      const loginResponse = (await users.loginWithDetails(
-        credentials
-      )) as { token: string; details: UserDetails };
-      const { token, details: userInfo } = loginResponse;
+  const initializeUserSession = useCallback(async (userId: string) => {
+    try {
+      const userDetailsResponse = (await users.getUserDetails(userId)) as UserDetailsResponse;
+      const userInfo = userDetailsResponse.users[0];
 
       if (!userInfo) {
-        throw new Error("User info not found in response");
+        throw new Error("User details not found after login");
       }
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("userDetails", JSON.stringify(userInfo));
-      localStorage.setItem(
-        "availableNetworks",
-        JSON.stringify(userInfo.networks || [])
-      );
-      localStorage.setItem("userGroups", JSON.stringify(userInfo.groups || []));
-
+      // Store details in Redux
       dispatch(setUserDetails(userInfo));
       dispatch(setUserGroups(userInfo.groups || []));
       dispatch(setAvailableNetworks(userInfo.networks || []));
+
+      // Store details in localStorage for persistence across sessions/tabs
+      localStorage.setItem("userDetails", JSON.stringify(userInfo));
+      localStorage.setItem("userGroups", JSON.stringify(userInfo.groups || []));
+      localStorage.setItem("availableNetworks", JSON.stringify(userInfo.networks || []));
 
       const isAirQoStaff = !!userInfo.email?.endsWith("@airqo.net");
       const airqoNetwork = userInfo.networks?.find(
@@ -69,19 +61,10 @@ export const useAuth = () => {
           defaultGroup = airqoGroup;
         }
       } else {
-        // For non-staff, find the first non-airqo group/network if possible
-        const nonAirqoNetwork = userInfo.networks?.find(
-          (n) => n.net_name.toLowerCase() !== "airqo"
-        );
-        const nonAirqoGroup = userInfo.groups?.find(
-          (g) => g.grp_title.toLowerCase() !== "airqo"
-        );
-        if (nonAirqoNetwork) {
-          defaultNetwork = nonAirqoNetwork;
-        }
-        if (nonAirqoGroup) {
-          defaultGroup = nonAirqoGroup;
-        }
+        const nonAirqoNetwork = userInfo.networks?.find((n) => n.net_name.toLowerCase() !== "airqo");
+        const nonAirqoGroup = userInfo.groups?.find((g) => g.grp_title.toLowerCase() !== "airqo");
+        if (nonAirqoNetwork) defaultNetwork = nonAirqoNetwork;
+        if (nonAirqoGroup) defaultGroup = nonAirqoGroup;
       }
 
       if (defaultNetwork) {
@@ -93,30 +76,9 @@ export const useAuth = () => {
         localStorage.setItem("activeGroup", JSON.stringify(defaultGroup));
       }
 
-      return userInfo;
-    },
-    onSuccess: (userInfo) => {
-      const isAirQoStaff = !!userInfo.email?.endsWith("@airqo.net");
       let initialUserContext: "personal" | "airqo-internal" | "external-org";
-      let activeGroup: Group | undefined;
-
-      const airqoNetwork = userInfo.networks?.find(
-        (network: Network) => network.net_name.toLowerCase() === "airqo"
-      );
-
-      if (airqoNetwork) {
-        const airqoGroup = userInfo.groups?.find(
-          (group: Group) => group.grp_title.toLowerCase() === "airqo"
-        );
-        if (airqoGroup) {
-          activeGroup = airqoGroup;
-        }
-      } else if (userInfo.groups && userInfo.groups.length > 0) {
-        activeGroup = userInfo.groups[0];
-      }
-
-      if (activeGroup) {
-        if (activeGroup.grp_title.toLowerCase() === "airqo" && isAirQoStaff) {
+      if (defaultGroup) {
+        if (defaultGroup.grp_title.toLowerCase() === "airqo" && isAirQoStaff) {
           initialUserContext = "airqo-internal";
         } else {
           initialUserContext = "external-org";
@@ -130,111 +92,38 @@ export const useAuth = () => {
 
       if (initialUserContext === "personal") {
         queryClient.prefetchQuery({
-          queryKey: ["my-devices", userInfo._id, activeGroup?._id],
+          queryKey: ["my-devices", userInfo._id, defaultGroup?._id],
           queryFn: () => devices.getMyDevices(userInfo._id),
           staleTime: 300_000,
         });
-      } else if (activeGroup) {
-        const resolvedNetworkName =
-          airqoNetwork?.net_name || userInfo.networks?.[0]?.net_name || "";
-        const resolvedGroupName = activeGroup?.grp_title || "";
+      } else if (defaultGroup) {
+        const resolvedNetworkName = defaultNetwork?.net_name || "";
+        const resolvedGroupName = defaultGroup?.grp_title || "";
 
         queryClient.prefetchQuery({
           queryKey: ["devices", resolvedNetworkName, resolvedGroupName],
-          queryFn: () =>
-            devices.getDevicesSummaryApi(resolvedNetworkName, resolvedGroupName),
+          queryFn: () => devices.getDevicesSummaryApi(resolvedNetworkName, resolvedGroupName),
           staleTime: 300_000,
         });
       }
-
-    },
-    onError: (error) => {
+    } catch (e) {
+      const error = e as Error;
       ReusableToast({
-        message: `Login Failed: ${getApiErrorMessage(error)}`,
+        message: `Session setup failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
-      clearSessionData();
-    },
-  });
-
-  const handleLogout = () => {
-    clearSessionData();
-    dispatch(logout());
-    router.push("/login");
-  };
-
-  const restoreSession = () => {
-    try {
-      const token = localStorage.getItem("token");
-      const storedUserDetails = localStorage.getItem("userDetails");
-      const storedActiveNetwork = localStorage.getItem("activeNetwork");
-      const storedAvailableNetworks = localStorage.getItem("availableNetworks");
-      const storedActiveGroup = localStorage.getItem("activeGroup");
-      const storedUserGroups = localStorage.getItem("userGroups");
-      const storedUserContext = localStorage.getItem("userContext");
-
-      if (token && storedUserDetails) {
-        const userDetails = JSON.parse(storedUserDetails) as UserDetails;
-
-        // Gracefully handle corrupted session data if essential fields like _id are missing.
-        if (!userDetails?._id) {
-          logger.error('Corrupted user session data in localStorage. Logging out.');
-          handleLogout();
-          return;
-        }
-
-        const safeUserDetails: UserDetails = {
-          ...userDetails,
-          networks: userDetails.networks || [],
-          groups: userDetails.groups || [],
-        };
-
-        dispatch(setUserDetails(safeUserDetails));
-
-        if (storedActiveNetwork) {
-          const activeNetwork = JSON.parse(storedActiveNetwork) as Network;
-          dispatch(setActiveNetwork(activeNetwork));
-        }
-        if (storedAvailableNetworks) {
-          const availableNetworks = JSON.parse(
-            storedAvailableNetworks
-          ) as Network[];
-          dispatch(setAvailableNetworks(availableNetworks));
-        }
-        if (storedUserGroups) {
-          const userGroups = JSON.parse(storedUserGroups) as Group[];
-          dispatch(setUserGroups(userGroups));
-        }
-        if (storedActiveGroup) {
-          const activeGroup = JSON.parse(storedActiveGroup) as Group;
-          dispatch(setActiveGroup(activeGroup));
-        }
-        if (storedUserContext) {
-          const userContext = storedUserContext as 'personal' | 'airqo-internal' | 'external-org';
-
-          const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
-          if (userContext === 'airqo-internal' && !isAirQoStaff) {
-
-            console.warn('Unauthorized context found in localStorage, resetting to personal');
-            dispatch(setUserContext('personal'));
-            localStorage.setItem("userContext", 'personal');
-          } else {
-            dispatch(setUserContext(userContext));
-          }
-        }
-      } else {
-        handleLogout();
-      }
+      signOut({ callbackUrl: '/login' });
     } finally {
       dispatch(setInitialized());
     }
+  }, [dispatch, queryClient]);
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/login" });
   };
 
   return {
-    login: loginMutation.mutate,
+    initializeUserSession,
     logout: handleLogout,
-    isLoading: loginMutation.isPending,
-    error: loginMutation.error,
-    restoreSession,
   };
 };

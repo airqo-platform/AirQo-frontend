@@ -1,24 +1,33 @@
 "use client";
 
-import { SessionProvider } from 'next-auth/react';
-import { createContext, useContext } from 'react';
-import type { UserDetails } from '@/app/types/users';
+import { SessionProvider, useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '@/core/redux/hooks';
+import { useAuth } from '@/core/hooks/users';
+import { setInitialized, logout } from '@/core/redux/slices/userSlice';
 
-interface AuthContextType {
-  user: UserDetails | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
+function AuthInitializer({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
+  const { isInitialized } = useAppSelector((state) => state.user);
+  const { initializeUserSession } = useAuth();
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    if (status === 'authenticated' && !isInitialized && session?.user?.id) {
+      initializeUserSession(session.user.id);
+    } 
+  
+    else if (status === 'unauthenticated' && isInitialized) {
+      dispatch(logout());
+    }
+    
+    else if (status === 'unauthenticated' && !isInitialized) {
+        dispatch(setInitialized());
+    }
+  }, [status, isInitialized, session, initializeUserSession, dispatch]);
+
+  return <>{children}</>;
 }
-
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuthContext = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuthContext must be used within an AuthProvider');
-  }
-  return context;
-};
 
 interface AuthProviderProps {
   children: React.ReactNode;
@@ -28,7 +37,9 @@ interface AuthProviderProps {
 export function AuthProvider({ children, session }: AuthProviderProps) {
   return (
     <SessionProvider session={session}>
-      {children}
+      <AuthInitializer>
+        {children}
+      </AuthInitializer>
     </SessionProvider>
   );
 }

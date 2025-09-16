@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
@@ -27,6 +27,15 @@ const OrganizationPicker: React.FC = () => {
   const isAirQoStaff = useAppSelector((state) => state.user.isAirQoStaff);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isPersonalContext } = useUserContext();
+
+  const validUserGroups = useMemo(() => {
+    if (!Array.isArray(userGroups)) {
+      return [];
+    }
+    return userGroups.filter(
+      (group): group is Group => !!(group && group._id && group.grp_title)
+    );
+  }, [userGroups]);
 
   const handleOrganizationChange = async (group: Group | "private") => {
     dispatch(setOrganizationSwitching({ 
@@ -56,7 +65,7 @@ const OrganizationPicker: React.FC = () => {
       router.refresh();
 
       if (group === "private") {
-        const airqoGroup = userGroups.find(
+        const airqoGroup = validUserGroups.find(
           (g) => g.grp_title.toLowerCase() === "airqo"
         );
         if (airqoGroup) {
@@ -113,7 +122,7 @@ const OrganizationPicker: React.FC = () => {
       <OrganizationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        userGroups={userGroups}
+        userGroups={validUserGroups}
         activeGroup={activeGroup}
         userContext={userContext}
         isAirQoStaff={isAirQoStaff}

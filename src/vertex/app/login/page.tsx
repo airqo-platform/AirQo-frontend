@@ -1,16 +1,21 @@
 "use client"
 
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import { useState } from "react"
+import { signIn, getSession } from "next-auth/react"
 import { Form, FormField } from "@/components/ui/form"
-import { useAuth } from "@/core/hooks/users"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
 import ReusableButton from "@/components/shared/button/ReusableButton"
+import ReusableToast from "@/components/shared/toast/ReusableToast"
+import { useAuth } from "@/core/hooks/users"
+import logger from "@/lib/logger"
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -19,7 +24,8 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isLoading } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
+  const { initializeUserSession } = useAuth()
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -30,11 +36,35 @@ export default function LoginPage() {
   })
 
   async function onSubmit(values: z.infer<typeof loginSchema>) {
-    login(values, {
-      onSuccess: () => {
-        router.push("/")
-      },
+    setIsLoading(true)
+    const result = await signIn("credentials", {
+      redirect: false,
+      userName: values.userName,
+      password: values.password,
     })
+    setIsLoading(false)
+    
+    if (result?.ok) {
+      try {
+        const session = await getSession();
+        if (session?.user?.id) {
+          await initializeUserSession(session.user.id);
+          router.push("/home");
+        } else {
+          logger.error("Sign-in succeeded but session is missing user data.", { session });
+          ReusableToast({ message: "Session could not be established. Please try again.", type: "ERROR" });
+        }
+      } catch (error) {
+        logger.error("Error during post-login session initialization", { error });
+        ReusableToast({ message: getApiErrorMessage(error), type: "ERROR" });
+      }
+    } else {
+      // Handle failed login
+      const defaultMessage = "Login failed. Please check your credentials.";
+      const message = result?.error && result.error !== 'CredentialsSignin' ? result.error : defaultMessage;
+      ReusableToast({ message, type: "ERROR" })
+      logger.error("Sign-in failed", { error: result?.error })
+    }
   }
 
   return (
