@@ -64,8 +64,8 @@ const createAxiosInstance = (isJWT = true) => {
         logger.error('Session expired. Logging out.');
         clearSessionData();
 
-        if (typeof window !== 'undefined') {
-          window.location.href = '/user/login?session_expired=true';
+        if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+          window.location.href = '/login?session_expired=true';
         }
         return Promise.reject(error);
       }
