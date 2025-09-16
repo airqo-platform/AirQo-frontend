@@ -2,7 +2,6 @@
  * Clears all session-related data from localStorage.
  */
 export const clearSessionData = () => {
-  localStorage.removeItem('token');
   localStorage.removeItem('userDetails');
   localStorage.removeItem('activeNetwork');
   localStorage.removeItem('availableNetworks');
