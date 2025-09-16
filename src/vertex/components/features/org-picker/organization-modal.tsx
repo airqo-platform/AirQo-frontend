@@ -18,7 +18,7 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 interface OrganizationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  userGroups: Group[];
+  userGroups?: Group[];
   activeGroup: Group | null;
   userContext: UserContext | null;
   isAirQoStaff: boolean;
@@ -53,7 +53,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
       recentIds.unshift(activeGroup._id);
     }
 
-    const groupMap = new Map(userGroups.map(g => [g._id, g]));
+    const groupMap = new Map((userGroups || []).map(g => [g._id, g]));
     
     const recents = recentIds
       .map(id => groupMap.get(id))
@@ -80,7 +80,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   }
 
   const filteredGroups = useMemo(() => {
-    if (!userGroups) return [];
+    if (!Array.isArray(userGroups)) return [];
     
     let groups = userGroups.filter((group) =>
         group.grp_title && 

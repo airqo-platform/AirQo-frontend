@@ -11,6 +11,7 @@ import {
   Settings,
 } from "lucide-react";
 import { AqMenu02, AqDotsGrid, AqUser02 } from "@airqo/icons-react";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,7 +20,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logout as reduxLogout } from "@/core/redux/slices/userSlice";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -28,7 +28,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import OrganizationPicker from "../features/org-picker/organization-picker";
 import Image from "next/image";
@@ -43,7 +42,6 @@ const AirqoLogoRaw = "/images/airqo_logo.svg";
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
   const currentUser = useAppSelector((state) => state.user.userDetails);
-  const dispatch = useDispatch();
   const router = useRouter();
 
   useEffect(() => {
@@ -59,14 +57,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userDetails");
-    localStorage.removeItem("activeNetwork");
-    localStorage.removeItem("availableNetworks");
-    localStorage.removeItem("activeGroup");
-    localStorage.removeItem("userGroups");
-    dispatch(reduxLogout());
-    router.push("/login");
+    signOut({ callbackUrl: '/login' });
   };
 
   const apps = [
