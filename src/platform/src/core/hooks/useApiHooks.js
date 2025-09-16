@@ -13,16 +13,13 @@ import logger from '@/lib/logger';
  * @param {object} options.toastConfig - Toast configuration
  * @returns {object} { callApi, loading, error, data }
  */
-export const useApiCall = (
-  apiFunction,
-  options = {}
-) => {
+export const useApiCall = (apiFunction, options = {}) => {
   const {
     onSuccess = () => {},
     onError = () => {},
     onFinally = () => {},
     showToast = false,
-    toastConfig = {}
+    toastConfig = {},
   } = options;
 
   const { loading, startLoading, stopLoading } = useLoadingState(false);
@@ -77,7 +74,17 @@ export const useApiCall = (
         }
       }
     },
-    [apiFunction, loading, startLoading, stopLoading, onSuccess, onError, onFinally, showToast, toastConfig]
+    [
+      apiFunction,
+      loading,
+      startLoading,
+      stopLoading,
+      onSuccess,
+      onError,
+      onFinally,
+      showToast,
+      toastConfig,
+    ],
   );
 
   return {
@@ -98,7 +105,7 @@ export const useApiCall = (
 export const useFormSubmission = (
   validationSchema,
   submitFunction,
-  options = {}
+  options = {},
 ) => {
   const {
     onValidationError = () => {},
@@ -164,7 +171,17 @@ export const useFormSubmission = (
         }
       }
     },
-    [validationSchema, submitFunction, loading, startLoading, stopLoading, clearErrors, onValidationError, onSubmitSuccess, onSubmitError]
+    [
+      validationSchema,
+      submitFunction,
+      loading,
+      startLoading,
+      stopLoading,
+      clearErrors,
+      onValidationError,
+      onSubmitSuccess,
+      onSubmitError,
+    ],
   );
 
   return {
@@ -185,7 +202,7 @@ export const useFormSubmission = (
 export const useDataFetcher = (
   fetchFunction,
   dependencies = [],
-  options = {}
+  options = {},
 ) => {
   const {
     immediate = true,
@@ -232,7 +249,7 @@ export const useDataFetcher = (
         }
       }
     },
-    [fetchFunction, startLoading, stopLoading, onSuccess, onError]
+    [fetchFunction, startLoading, stopLoading, onSuccess, onError],
   );
 
   useEffect(() => {

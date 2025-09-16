@@ -6,7 +6,10 @@ import CustomToast, { TOAST_TYPES } from '@/common/components/Toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { resetPasswordApi } from '@/core/apis/Account';
 import Button from '@/common/components/Button';
-import { useMultiplePasswordVisibility, useLoadingState } from '@/core/hooks/useCommonStates';
+import {
+  useMultiplePasswordVisibility,
+  useLoadingState,
+} from '@/core/hooks/useCommonStates';
 import PasswordInputWithToggle from '@/common/components/PasswordInputWithToggle';
 import * as Yup from 'yup';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
@@ -30,10 +33,11 @@ const ResetPassword = () => {
   const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const { passwordVisibility, togglePasswordVisibility } = useMultiplePasswordVisibility({
-    password: false,
-    confirmPassword: false,
-  });
+  const { passwordVisibility, togglePasswordVisibility } =
+    useMultiplePasswordVisibility({
+      password: false,
+      confirmPassword: false,
+    });
   const token = searchParams.get('token');
   const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
@@ -117,7 +121,15 @@ const ResetPassword = () => {
         }
       }
     },
-    [password, confirmPassword, token, loading, router, startLoading, stopLoading],
+    [
+      password,
+      confirmPassword,
+      token,
+      loading,
+      router,
+      startLoading,
+      stopLoading,
+    ],
   );
 
   // Basic check for form completion (Yup handles detailed validation)
@@ -155,7 +167,9 @@ const ResetPassword = () => {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 showPassword={passwordVisibility.confirmPassword}
-                onToggleVisibility={() => togglePasswordVisibility('confirmPassword')}
+                onToggleVisibility={() =>
+                  togglePasswordVisibility('confirmPassword')
+                }
                 required
               />
             </div>

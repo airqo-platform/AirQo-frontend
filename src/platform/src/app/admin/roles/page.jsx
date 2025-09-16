@@ -7,6 +7,7 @@ import ReusableTable from '@/common/components/Table/ReusableTable';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
 import { getGroupRolesApi as getGroupRolesSummaryApi } from '@/core/apis/Account';
+import { useLoadingState } from '@/core/hooks/useCommonStates';
 import {
   AqPlus,
   AqShield03,
@@ -47,7 +48,7 @@ const RolesPermissionsPage = () => {
   const router = useRouter();
 
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { loading, startLoading, stopLoading } = useLoadingState(true);
 
   // Dialog state
   const [showAddDialog, setShowAddDialog] = useState(false);
@@ -76,7 +77,7 @@ const RolesPermissionsPage = () => {
   const fetchRoles = useCallback(async () => {
     if (!canView) return; // Don't fetch if no permission
 
-    setLoading(true);
+    startLoading();
     try {
       const payload = await getGroupRolesSummaryApi();
       const list = Array.isArray(payload)
@@ -93,21 +94,21 @@ const RolesPermissionsPage = () => {
       });
       setRoles([]);
     } finally {
-      setLoading(false);
+      stopLoading();
     }
-  }, [canView]);
+  }, [canView, startLoading, stopLoading]);
 
   useEffect(() => {
     // Only fetch after auth loading is complete and permissions are resolved
     if (isLoadingAuth) return;
     if (canView === false) {
       // No permission, don't fetch but ensure loading state is cleared
-      setLoading(false);
+      stopLoading();
       return;
     }
 
     fetchRoles();
-  }, [fetchRoles, isLoadingAuth, canView]);
+  }, [fetchRoles, isLoadingAuth, canView, stopLoading]);
 
   const handleRoleAction = useCallback(
     (action, role) => {
