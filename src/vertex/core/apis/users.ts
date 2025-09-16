@@ -7,7 +7,9 @@ export const users = {
   loginWithDetails: async (data: LoginCredentials) => {
     try {
       const apiUrl = getApiBaseUrl();
-      const response = await axios.post(`${apiUrl}/users/login-with-details`, data);
+      const response = await axios.post(`${apiUrl}/users/login-with-details`, data, {
+        timeout: 15000, // 15-second timeout for login request
+      });
       return response.data;
     } catch (error) {
       throw error;
