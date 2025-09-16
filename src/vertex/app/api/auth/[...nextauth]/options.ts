@@ -5,7 +5,6 @@ import { jwtDecode } from 'jwt-decode';
 import type { LoginCredentials, LoginResponse, DecodedToken } from '@/app/types/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import logger from '@/lib/logger';
-import { clearSessionData } from '@/core/utils/sessionManager';
 
 export const options: NextAuthOptions = {
   providers: [
@@ -107,12 +106,6 @@ export const options: NextAuthOptions = {
   pages: {
     signIn: '/login',
     error: '/login',
-  },
-  
-  events: {
-    async signOut() {
-      clearSessionData();
-    }
   },
   
   debug: process.env.NODE_ENV === 'development',

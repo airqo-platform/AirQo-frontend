@@ -20,10 +20,17 @@ import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { devices } from "../apis/devices";
 import { signOut } from "next-auth/react";
+import { clearSessionData } from "../utils/sessionManager";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
+
+  const clearClientSession = useCallback(() => {
+    clearSessionData();
+
+    queryClient.clear();
+  }, [queryClient]);
 
   const initializeUserSession = useCallback(async (userId: string) => {
     try {
@@ -112,15 +119,17 @@ export const useAuth = () => {
         message: `Session setup failed: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
+      clearClientSession();
       signOut({ callbackUrl: '/login' });
     } finally {
       dispatch(setInitialized());
     }
-  }, [dispatch, queryClient]);
+  }, [dispatch, queryClient, clearClientSession]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
+    clearClientSession();
     signOut({ callbackUrl: "/login" });
-  };
+  }, [clearClientSession]);
 
   return {
     initializeUserSession,
