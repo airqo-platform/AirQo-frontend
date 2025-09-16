@@ -11,7 +11,6 @@ import {
   Settings,
 } from "lucide-react";
 import { AqMenu02, AqDotsGrid, AqUser02 } from "@airqo/icons-react";
-import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -21,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppSelector } from "@/core/redux/hooks";
+import { useAuth } from "@/core/hooks/users";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -42,6 +42,7 @@ const AirqoLogoRaw = "/images/airqo_logo.svg";
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
   const currentUser = useAppSelector((state) => state.user.userDetails);
+  const { logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -54,10 +55,6 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
-  };
-
-  const handleLogout = () => {
-    signOut({ callbackUrl: '/login' });
   };
 
   const apps = [
@@ -245,7 +242,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="flex items-center"
-                  onClick={handleLogout}
+                  onClick={logout}
                 >
                   <span>Log out</span>
                 </DropdownMenuItem>

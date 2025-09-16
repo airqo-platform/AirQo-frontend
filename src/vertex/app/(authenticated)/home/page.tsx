@@ -15,7 +15,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 const WelcomePage = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const router = useRouter();
-  const { userContext, isLoading, hasError, error } = useUserContext();
+  const { userContext, hasError, error } = useUserContext();
+  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
 
   const allActions = [
     {
@@ -118,7 +119,7 @@ const WelcomePage = () => {
 
       {/* Context Header */}
       <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-gradient-to-r from-primary to-primary/80 text-white p-8">
-        {isLoading ? (
+        {isContextLoading ? (
           <div className="space-y-3">
             <Skeleton className="h-10 w-3/4 bg-white/20" />
             <Skeleton className="h-6 w-1/2 bg-white/20" />
@@ -144,11 +145,11 @@ const WelcomePage = () => {
       </div>
 
       {/* Quick Access Buttons */}
-      {(isLoading || actions.length > 0) && (
+      {(isContextLoading || actions.length > 0) && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
-            {isLoading
+            {isContextLoading
               ? getContextActions().map((action) => (
                   <Skeleton key={action.href} className="h-12 w-full" />
                 ))

@@ -19,7 +19,7 @@ function AuthInitializer({ children }: { children: React.ReactNode }) {
       if (!isInitializing.current) {
         isInitializing.current = true;
         void Promise
-          .resolve(initializeUserSession(session.user.id))
+          .resolve(initializeUserSession(session))
           .finally(() => { isInitializing.current = false; });
       }
     }
