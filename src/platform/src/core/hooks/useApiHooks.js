@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import { useLoadingState } from './useCommonStates';
 import logger from '@/lib/logger';
 
@@ -24,8 +24,8 @@ export const useApiCall = (apiFunction, options = {}) => {
 
   const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
-  const dataRef = useRef(null);
-  const errorRef = useRef(null);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -38,14 +38,16 @@ export const useApiCall = (apiFunction, options = {}) => {
       if (!isMountedRef.current || loading) return;
 
       startLoading();
-      errorRef.current = null;
+      // clear previous error
+      setError(null);
 
       try {
         const response = await apiFunction(...args);
 
         if (!isMountedRef.current) return;
 
-        dataRef.current = response;
+        // update reactive state only when component still mounted
+        setData(response);
         onSuccess(response);
 
         if (showToast && toastConfig.successMessage) {
@@ -58,7 +60,7 @@ export const useApiCall = (apiFunction, options = {}) => {
         if (!isMountedRef.current) return;
 
         logger.error('API call failed:', error);
-        errorRef.current = error;
+        setError(error);
         onError(error);
 
         if (showToast && toastConfig.errorMessage) {
@@ -90,8 +92,8 @@ export const useApiCall = (apiFunction, options = {}) => {
   return {
     callApi,
     loading,
-    error: errorRef.current,
-    data: dataRef.current,
+    error,
+    data,
   };
 };
 
@@ -115,7 +117,7 @@ export const useFormSubmission = (
 
   const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
-  const errorsRef = useRef({});
+  const [errors, setErrors] = useState({});
 
   useEffect(() => {
     return () => {
@@ -123,9 +125,7 @@ export const useFormSubmission = (
     };
   }, []);
 
-  const clearErrors = useCallback(() => {
-    errorsRef.current = {};
-  }, []);
+  const clearErrors = useCallback(() => setErrors({}), []);
 
   const handleSubmit = useCallback(
     async (formData, ...args) => {
@@ -156,7 +156,7 @@ export const useFormSubmission = (
           error.inner.forEach((err) => {
             validationErrors[err.path] = err.message;
           });
-          errorsRef.current = validationErrors;
+          setErrors(validationErrors);
           onValidationError(validationErrors);
         } else {
           // Handle submission errors
@@ -187,7 +187,7 @@ export const useFormSubmission = (
   return {
     handleSubmit,
     loading,
-    errors: errorsRef.current,
+    errors,
     clearErrors,
   };
 };
@@ -212,8 +212,8 @@ export const useDataFetcher = (
 
   const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
-  const dataRef = useRef(null);
-  const errorRef = useRef(null);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     return () => {
@@ -226,21 +226,22 @@ export const useDataFetcher = (
       if (!isMountedRef.current) return;
 
       startLoading();
-      errorRef.current = null;
+      // clear previous error
+      setError(null);
 
       try {
         const result = await fetchFunction(...args);
 
         if (!isMountedRef.current) return;
 
-        dataRef.current = result;
+        setData(result);
         onSuccess(result);
         return result;
       } catch (error) {
         if (!isMountedRef.current) return;
 
         logger.error('Data fetch error:', error);
-        errorRef.current = error;
+        setError(error);
         onError(error);
         throw error;
       } finally {
@@ -260,9 +261,9 @@ export const useDataFetcher = (
   }, [immediate, fetchData, ...dependencies]);
 
   return {
-    data: dataRef.current,
+    data,
     loading,
-    error: errorRef.current,
+    error,
     refetch: fetchData,
   };
 };

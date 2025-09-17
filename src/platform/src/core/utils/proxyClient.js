@@ -376,7 +376,7 @@ export const createProxyHandler = (options = {}) => {
         };
         logger.warn('Proxy request timeout:', {
           url: `${targetPath}`,
-          timeout: config?.timeout || 60000,
+          timeout: error.config?.timeout ?? 60000,
           method: req.method,
         });
       } else if (error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {
