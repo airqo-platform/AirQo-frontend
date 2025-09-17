@@ -11,7 +11,11 @@ import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { resetPasswordApi } from '@/core/apis/Organizations';
 import Toast from '@/common/components/Toast';
-import InputField from '@/common/components/InputField';
+import PasswordInputWithToggle from '@/common/components/PasswordInputWithToggle';
+import {
+  useMultiplePasswordVisibility,
+  useLoadingState,
+} from '@/core/hooks/useCommonStates';
 import logger from '@/lib/logger';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
 
@@ -31,7 +35,12 @@ const OrganizationResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { loading, startLoading, stopLoading } = useLoadingState(false);
+  const { passwordVisibility, togglePasswordVisibility } =
+    useMultiplePasswordVisibility({
+      password: false,
+      confirmPassword: false,
+    });
   const [recaptchaToken, setRecaptchaToken] = useState(null);
   const recaptchaRef = useRef(null);
 
@@ -44,7 +53,7 @@ const OrganizationResetPassword = () => {
   const orgSlug = params?.org_slug || 'airqo';
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    startLoading();
     setError('');
 
     try {
@@ -56,14 +65,14 @@ const OrganizationResetPassword = () => {
 
       if (!token) {
         setError('Invalid or missing reset token');
-        setLoading(false);
+        stopLoading();
         return;
       }
 
       // Validate reCAPTCHA
       if (!recaptchaToken) {
         setError('Please complete the reCAPTCHA verification');
-        setLoading(false);
+        stopLoading();
         return;
       }
 
@@ -94,7 +103,7 @@ const OrganizationResetPassword = () => {
         setError(err.message || 'An error occurred. Please try again.');
       }
     } finally {
-      setLoading(false);
+      stopLoading();
       // Reset reCAPTCHA
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
@@ -163,24 +172,26 @@ const OrganizationResetPassword = () => {
           {error && <Toast message={error} type="error" />}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <InputField
+            <PasswordInputWithToggle
               id="password"
-              name="password"
-              type="password"
               label="New Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              showPassword={passwordVisibility.password}
+              onToggleVisibility={() => togglePasswordVisibility('password')}
               required
               placeholder="Enter your new password"
             />
 
-            <InputField
+            <PasswordInputWithToggle
               id="confirmPassword"
-              name="confirmPassword"
-              type="password"
               label="Confirm New Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              showPassword={passwordVisibility.confirmPassword}
+              onToggleVisibility={() =>
+                togglePasswordVisibility('confirmPassword')
+              }
               required
               placeholder="Confirm your new password"
             />

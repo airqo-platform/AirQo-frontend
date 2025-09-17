@@ -48,19 +48,60 @@ const Checklist = ({ openVideoModal }) => {
   // Fetch checklist data when component mounts or userId changes
   useEffect(() => {
     let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
 
     const fetchData = async () => {
       if (userId && isMounted) {
         try {
-          await dispatch(fetchUserChecklists(userId));
+          const result = await dispatch(fetchUserChecklists(userId));
 
-          if (isMounted) {
-            setDataFetched(true);
+          // Check if the action was fulfilled
+          if (fetchUserChecklists.fulfilled.match(result)) {
+            if (isMounted) {
+              setDataFetched(true);
+              logger.info('Checklist data fetched successfully', {
+                userId,
+                itemCount: result.payload?.length || 0,
+              });
+            }
+          } else if (fetchUserChecklists.rejected.match(result)) {
+            // Handle the case where the action was rejected
+            logger.warn('Failed to fetch checklist data', {
+              userId,
+              error: result.payload || result.error?.message,
+              retryCount,
+            });
+
+            // Retry if we haven't exceeded max retries
+            if (retryCount < maxRetries && isMounted) {
+              retryCount++;
+              setTimeout(() => {
+                if (isMounted) {
+                  fetchData();
+                }
+              }, 1000 * retryCount); // Exponential backoff
+            } else if (isMounted) {
+              setDataFetched(true); // Stop loading even if failed
+            }
           }
         } catch (error) {
-          // Log error but don't expose in production
-          if (process.env.NODE_ENV !== 'production') {
-            logger.error('Error fetching checklist data:', error);
+          logger.error('Error fetching checklist data:', {
+            userId,
+            error: error.message,
+            retryCount,
+          });
+
+          // Retry if we haven't exceeded max retries
+          if (retryCount < maxRetries && isMounted) {
+            retryCount++;
+            setTimeout(() => {
+              if (isMounted) {
+                fetchData();
+              }
+            }, 1000 * retryCount); // Exponential backoff
+          } else if (isMounted) {
+            setDataFetched(true); // Stop loading even if failed
           }
         }
       }
@@ -81,7 +122,28 @@ const Checklist = ({ openVideoModal }) => {
 
   const handleStepClick = useCallback(
     async (stepItem) => {
-      if (!stepItem._id || !userId) return;
+      if (!stepItem._id || !userId) {
+        logger.warn('Cannot update step: missing ID or user ID', {
+          stepId: stepItem.id,
+          hasId: !!stepItem._id,
+          hasUserId: !!userId,
+        });
+
+        // If no _id, try to refetch the checklist data
+        if (!stepItem._id && userId) {
+          logger.info('Attempting to reinitialize checklist...');
+          try {
+            const result = await dispatch(fetchUserChecklists(userId));
+            if (fetchUserChecklists.fulfilled.match(result)) {
+              logger.info('Checklist reinitialized successfully');
+              setDataFetched(true);
+            }
+          } catch (reinitError) {
+            logger.error('Failed to reinitialize checklist:', reinitError);
+          }
+        }
+        return;
+      }
 
       try {
         // For step ID 4, directly mark as completed if not already completed
@@ -95,6 +157,11 @@ const Checklist = ({ openVideoModal }) => {
               userId: userId,
             }),
           ).unwrap();
+
+          logger.info('Step 4 marked as completed', {
+            userId,
+            stepId: stepItem._id,
+          });
           return;
         }
 
@@ -113,6 +180,11 @@ const Checklist = ({ openVideoModal }) => {
                 userId: userId,
               }),
             ).unwrap();
+
+            logger.info('Step 1 marked as in progress', {
+              userId,
+              stepId: stepItem._id,
+            });
           }
         } else if (stepItem.status === 'not started') {
           // For other new steps, mark as in progress
@@ -123,14 +195,34 @@ const Checklist = ({ openVideoModal }) => {
               userId: userId,
             }),
           ).unwrap();
+
+          logger.info('Step marked as in progress', {
+            userId,
+            stepId: stepItem._id,
+            stepNumber: stepItem.id,
+          });
         }
       } catch (error) {
-        // If there's an error updating the task, refresh the checklist data
-        setDataFetched(false);
-        // Log the error for debugging
-        if (process.env.NODE_ENV !== 'production') {
-          // eslint-disable-next-line no-console
-          console.error('Error updating task:', error);
+        logger.error('Error updating task:', {
+          userId,
+          stepId: stepItem._id,
+          stepNumber: stepItem.id,
+          error: error.message,
+        });
+
+        // If there's an error updating the task, try to refresh the checklist data
+        try {
+          const result = await dispatch(fetchUserChecklists(userId));
+          if (fetchUserChecklists.fulfilled.match(result)) {
+            setDataFetched(true);
+            logger.info('Checklist refreshed after update error');
+          }
+        } catch (refreshError) {
+          logger.error(
+            'Failed to refresh checklist after error:',
+            refreshError,
+          );
+          setDataFetched(false);
         }
       }
     },
@@ -143,6 +235,59 @@ const Checklist = ({ openVideoModal }) => {
     (!reduxChecklist || reduxChecklist.length === 0)
   ) {
     return <ChecklistSkeleton />;
+  }
+
+  // Show error state if failed and no data
+  if (
+    reduxStatus === 'failed' &&
+    (!reduxChecklist || reduxChecklist.length === 0)
+  ) {
+    return (
+      <ErrorBoundary name="Checklist" feature="Onboarding">
+        <div className="p-6 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+          <div className="flex items-center mb-3">
+            <div className="flex-shrink-0">
+              <svg
+                className="h-5 w-5 text-yellow-400"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                Checklist Temporarily Unavailable
+              </h3>
+            </div>
+          </div>
+          <div className="text-sm text-yellow-700 dark:text-yellow-300 mb-4">
+            We&apos;re having trouble loading your onboarding checklist. This is
+            usually temporary.
+          </div>
+          <button
+            onClick={async () => {
+              if (userId) {
+                setDataFetched(false);
+                try {
+                  await dispatch(fetchUserChecklists(userId));
+                  setDataFetched(true);
+                } catch (error) {
+                  logger.error('Manual retry failed:', error);
+                }
+              }
+            }}
+            className="bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-800 dark:hover:bg-yellow-700 text-yellow-800 dark:text-yellow-200 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      </ErrorBoundary>
+    );
   }
 
   return (
@@ -158,7 +303,7 @@ const Checklist = ({ openVideoModal }) => {
             </h2>
             <p className="text-sm md:text-base text-gray-500 dark:text-gray-300">
               {allCompleted
-                ? "Great job! You've completed all onboarding steps."
+                ? 'Great job! You&apos;ve completed all onboarding steps.'
                 : 'Continue with your onboarding journey.'}
             </p>
           </div>
