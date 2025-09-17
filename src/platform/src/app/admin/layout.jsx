@@ -6,6 +6,7 @@ import {
   UnifiedSidebarContent,
   UnifiedSideBarDrawer,
 } from '@/common/layouts/SideBar';
+import Footer from '@/common/layouts/components/Footer';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
 import MaintenanceBanner from '@/common/components/MaintenanceBanner';
@@ -96,6 +97,9 @@ function AdminLayout({ children }) {
             {children}
           </div>
         </div>
+
+        {/* Footer */}
+        <Footer />
       </main>
 
       {/* Mobile Bottom Navigation - Show admin navigation for mobile */}
