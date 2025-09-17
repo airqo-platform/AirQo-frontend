@@ -90,7 +90,7 @@ const DeviceAssignmentModal: React.FC<DeviceAssignmentModalProps> = ({
                 <SelectValue placeholder="Select organization" />
               </SelectTrigger>
               <SelectContent>
-                {userGroups.map((group) => (
+                {userGroups && userGroups.map((group) => (
                   <SelectItem key={group._id} value={group._id}>
                     {group.grp_title}
                   </SelectItem>

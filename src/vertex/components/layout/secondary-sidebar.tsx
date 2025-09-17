@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/popover";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import Card from "../shared/card/CardWrapper";
+import { useAppSelector } from "@/core/redux/hooks";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -248,6 +250,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     useUserContext();
   const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
+  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
 
   return (
     <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
@@ -274,129 +277,143 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
         >
-          {activeModule === "network" && (
+          {isContextLoading ? (
+            <div className="flex flex-col gap-4 p-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <div className="mt-4 space-y-2">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          ) : (
             <>
-              <NavItem
-                href="/home"
-                icon={AqHomeSmile}
-                label="Home"
-                isCollapsed={isCollapsed}
-                disabled={false}
-              />
+              {activeModule === "network" && (
+                <>
+                  <NavItem
+                    href="/home"
+                    icon={AqHomeSmile}
+                    label="Home"
+                    isCollapsed={isCollapsed}
+                    disabled={false}
+                  />
 
-              {/* Network Map - only for AirQo Internal */}
-              {sidebarConfig.showNetworkMap && (
-                <NavItem
-                  href="/network-map"
-                  icon={AqGlobe05}
-                  label="Network Map"
-                  isCollapsed={isCollapsed}
-                  disabled={false}
-                />
-              )}
-
-              {/* Network Section Heading */}
-              <SidebarSectionHeading isCollapsed={isCollapsed}>
-                {isPersonalContext ? "My Network" : "Network"}
-              </SidebarSectionHeading>
-
-              {/* Devices Section */}
-              {contextPermissions.canViewDevices && (
-                <SidebarDropdown
-                  label="Devices"
-                  icon={AqMonitor}
-                  isCollapsed={isCollapsed}
-                  defaultOpen={true}
-                >
-                  {sidebarConfig.showDeviceOverview && (
-                    <SubMenuItem
-                      href="/devices/overview"
-                      label="Overview"
-                      disabled={!contextPermissions.canViewDevices}
-                      tooltip="You do not have permission to view devices."
+                  {/* Network Map - only for AirQo Internal */}
+                  {sidebarConfig.showNetworkMap && (
+                    <NavItem
+                      href="/network-map"
+                      icon={AqGlobe05}
+                      label="Network Map"
+                      isCollapsed={isCollapsed}
+                      disabled={false}
                     />
                   )}
-                  {sidebarConfig.showMyDevices && (
-                    <SubMenuItem
-                      href="/devices/my-devices"
-                      label="My Devices"
-                      disabled={!contextPermissions.canViewDevices}
-                      tooltip="You do not have permission to view devices."
+
+                  {/* Network Section Heading */}
+                  <SidebarSectionHeading isCollapsed={isCollapsed}>
+                    {isPersonalContext ? "My Network" : "Network"}
+                  </SidebarSectionHeading>
+
+                  {/* Devices Section */}
+                  {contextPermissions.canViewDevices && (
+                    <SidebarDropdown
+                      label="Devices"
+                      icon={AqMonitor}
+                      isCollapsed={isCollapsed}
+                      defaultOpen={true}
+                    >
+                      {sidebarConfig.showDeviceOverview && (
+                        <SubMenuItem
+                          href="/devices/overview"
+                          label="Overview"
+                          disabled={!contextPermissions.canViewDevices}
+                          tooltip="You do not have permission to view devices."
+                        />
+                      )}
+                      {sidebarConfig.showMyDevices && (
+                        <SubMenuItem
+                          href="/devices/my-devices"
+                          label="My Devices"
+                          disabled={!contextPermissions.canViewDevices}
+                          tooltip="You do not have permission to view devices."
+                        />
+                      )}
+                      {sidebarConfig.showClaimDevice && (
+                        <SubMenuItem href="/devices/claim" label="Claim Device" />
+                      )}
+                      {sidebarConfig.showDeployDevice && (
+                        <SubMenuItem href="/devices/deploy" label="Deploy Device" />
+                      )}
+                    </SidebarDropdown>
+                  )}
+
+                  {/* Sites - only for non-personal contexts */}
+                  {sidebarConfig.showSites && contextPermissions.canViewSites && (
+                    <NavItem
+                      href="/sites"
+                      icon={AqMarkerPin01}
+                      label="Sites"
+                      isCollapsed={isCollapsed}
+                      disabled={false}
                     />
                   )}
-                  {sidebarConfig.showClaimDevice && (
-                    <SubMenuItem href="/devices/claim" label="Claim Device" />
+
+                  {sidebarConfig.showGrids && contextPermissions.canViewSites && (
+                  <NavItem
+                    href="/grids"
+                    icon={AqAirQlouds}
+                    label="Grids"
+                    isCollapsed={isCollapsed}
+                    disabled={false}
+                  />
+                )}
+
+                {sidebarConfig.showCohorts && contextPermissions.canViewDevices && (
+                  <NavItem
+                    href="/cohorts"
+                    icon={Users}
+                    label="Cohorts"
+                    isCollapsed={isCollapsed}
+                    disabled={false}
+                  />
+                )}
+                </>
+              )}
+
+              {activeModule === "admin" && (
+                <>
+                  {sidebarConfig.showUserManagement && (
+                    <NavItem
+                      href="/user-management"
+                      icon={Users}
+                      label="User Management"
+                      isCollapsed={isCollapsed}
+                      disabled={!contextPermissions.canViewUserManagement}
+                      tooltip="You do not have permission to view user management."
+                    />
                   )}
-                  {sidebarConfig.showDeployDevice && (
-                    <SubMenuItem href="/devices/deploy" label="Deploy Device" />
+                  {sidebarConfig.showAccessControl && (
+                    <NavItem
+                      href="/access-control"
+                      icon={Shield}
+                      label="Access Control"
+                      isCollapsed={isCollapsed}
+                      disabled={!contextPermissions.canViewAccessControl}
+                      tooltip="You do not have permission to view access control."
+                    />
                   )}
-                </SidebarDropdown>
-              )}
-
-              {/* Sites - only for non-personal contexts */}
-              {sidebarConfig.showSites && contextPermissions.canViewSites && (
-                <NavItem
-                  href="/sites"
-                  icon={AqMarkerPin01}
-                  label="Sites"
-                  isCollapsed={isCollapsed}
-                  disabled={false}
-                />
-              )}
-
-              {sidebarConfig.showGrids && contextPermissions.canViewSites && (
-              <NavItem
-                href="/grids"
-                icon={AqAirQlouds}
-                label="Grids"
-                isCollapsed={isCollapsed}
-                disabled={false}
-              />
-            )}
-
-            {sidebarConfig.showCohorts && contextPermissions.canViewDevices && (
-              <NavItem
-                href="/cohorts"
-                icon={Users}
-                label="Cohorts"
-                isCollapsed={isCollapsed}
-                disabled={false}
-              />
-            )}
-            </>
-          )}
-
-          {activeModule === "admin" && (
-            <>
-              {sidebarConfig.showUserManagement && (
-                <NavItem
-                  href="/user-management"
-                  icon={Users}
-                  label="User Management"
-                  isCollapsed={isCollapsed}
-                  disabled={!contextPermissions.canViewUserManagement}
-                  tooltip="You do not have permission to view user management."
-                />
-              )}
-              {sidebarConfig.showAccessControl && (
-                <NavItem
-                  href="/access-control"
-                  icon={Shield}
-                  label="Access Control"
-                  isCollapsed={isCollapsed}
-                  disabled={!contextPermissions.canViewAccessControl}
-                  tooltip="You do not have permission to view access control."
-                />
-              )}
-              {sidebarConfig.showOrganizations && (
-                <NavItem
-                  href="/organizations"
-                  icon={AqHomeSmile}
-                  label="Organizations"
-                  isCollapsed={isCollapsed}
-                  disabled={!contextPermissions.canViewOrganizations}
-                  tooltip="You do not have permission to view organizations."
-                />
+                  {sidebarConfig.showOrganizations && (
+                    <NavItem
+                      href="/organizations"
+                      icon={AqHomeSmile}
+                      label="Organizations"
+                      isCollapsed={isCollapsed}
+                      disabled={!contextPermissions.canViewOrganizations}
+                      tooltip="You do not have permission to view organizations."
+                    />
+                  )}
+                </>
               )}
             </>
           )}
@@ -407,12 +424,18 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           <SidebarSectionHeading isCollapsed={isCollapsed}>
             Account
           </SidebarSectionHeading>
-          <NavItem
-            href="/profile"
-            icon={AqUser03}
-            label="Profile"
-            isCollapsed={isCollapsed}
-          />
+          {isContextLoading ? (
+            <div className="p-2">
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : (
+                <NavItem
+                  href="/profile"
+                  icon={AqUser03}
+                  label="Profile"
+                  isCollapsed={isCollapsed}
+                />
+          )}
         </div>
       </div>
     </aside>

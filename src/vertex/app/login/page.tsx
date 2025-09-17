@@ -1,16 +1,20 @@
 "use client"
 
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
+import { useState, useCallback, useRef, useEffect } from "react";
+import { signIn } from "next-auth/react";
 import { Form, FormField } from "@/components/ui/form"
-import { useAuth } from "@/core/hooks/users"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
 import ReusableButton from "@/components/shared/button/ReusableButton"
+import ReusableToast from "@/components/shared/toast/ReusableToast"
+import logger from "@/lib/logger"
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -19,7 +23,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isLoading } = useAuth()
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -29,13 +33,51 @@ export default function LoginPage() {
     },
   })
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
-    login(values, {
-      onSuccess: () => {
-        router.push("/")
-      },
-    })
-  }
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
+    setIsLoading(true);
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        userName: values.userName,
+        password: values.password,
+      });
+
+      if (!isMounted.current) return;
+
+      if (result?.ok) {
+        router.replace("/home");
+      } else {
+        let message = "Login failed. Please check your credentials.";
+        if (result?.error) {
+          if (result.error === 'CredentialsSignin') {
+            message = "Invalid email or password. Please check your credentials.";
+          } else if (result.error.toLowerCase().includes('fetch')) {
+            message = "Network error. Please check your connection and try again.";
+          } else {
+            message = result.error;
+          }
+        }
+        throw new Error(message);
+      }
+    } catch (error) {
+      if (!isMounted.current) return;
+      const message = getApiErrorMessage(error);
+      logger.error("Sign-in failed", { error: message });
+      ReusableToast({ message, type: "ERROR" });
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false);
+      }
+    }
+  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">

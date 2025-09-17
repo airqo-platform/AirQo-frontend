@@ -9,7 +9,7 @@ interface TokenCacheEntry {
   expiry: number;
 }
 
-interface ExtendedSession {
+export interface ExtendedSession {
   user: {
     id: string;
     accessToken: string;
@@ -60,33 +60,20 @@ async function getJwtToken(): Promise<string | null> {
 
   try {
     // Try to get token from NextAuth session first
-    const session = (await getSession()) as ExtendedSession;
-    let token = session?.accessToken || session?.user?.accessToken;
-    
-    // If NextAuth doesn't have the token, fallback to localStorage
-    if (!token && typeof window !== 'undefined') {
-      const localStorageToken = localStorage.getItem('token');
-      if (localStorageToken !== null) {
-        token = localStorageToken;
-      }
-    }
+    const session = await getSession() as ExtendedSession | null;
+    const token = session?.accessToken || session?.user?.accessToken;
     
     if (token) {
       tokenCache.set(token);
       return token;
     }
     
+    logger.warn('No JWT token found in NextAuth session.');
     return null;
   } catch (error: unknown) {
-    logger.error('Failed to get JWT token:', { error: error instanceof Error ? error.message : String(error) });
-    // Fallback to localStorage if session fails
-    if (typeof window !== 'undefined') {
-      const fallbackToken = localStorage.getItem('token');
-      if (fallbackToken !== null) {
-        tokenCache.set(fallbackToken);
-        return fallbackToken;
-      }
-    }
+    logger.error('Failed to get JWT token from session:', { 
+      error: error instanceof Error ? error.message : String(error) 
+    });
     return null;
   }
 }

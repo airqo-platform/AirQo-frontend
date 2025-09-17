@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useAppSelector, useAppDispatch } from "@/core/redux/hooks";
@@ -10,6 +10,7 @@ import OrganizationModal from "./organization-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 
 const formatTitle = (title: string) => {
@@ -24,9 +25,25 @@ const OrganizationPicker: React.FC = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const userContext = useAppSelector((state) => state.user.userContext);
+  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
   const isAirQoStaff = useAppSelector((state) => state.user.isAirQoStaff);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isPersonalContext } = useUserContext();
+
+  const validUserGroups = useMemo(() => {
+    if (!Array.isArray(userGroups)) return [];
+
+    const filteredGroups = userGroups.filter(
+      (group): group is Group => !!(group && group._id && group.grp_title)
+    );
+
+    if (!isAirQoStaff) {
+      return filteredGroups.filter(
+        (group) => group.grp_title.toLowerCase() !== "airqo"
+      );
+    }
+    return filteredGroups;
+  }, [userGroups, isAirQoStaff]);
 
   const handleOrganizationChange = async (group: Group | "private") => {
     dispatch(setOrganizationSwitching({ 
@@ -51,12 +68,12 @@ const OrganizationPicker: React.FC = () => {
 
     try {
       await queryClient.cancelQueries();
-      queryClient.removeQueries();
+      queryClient.clear();
       router.replace("/");
       router.refresh();
 
       if (group === "private") {
-        const airqoGroup = userGroups.find(
+        const airqoGroup = validUserGroups.find(
           (g) => g.grp_title.toLowerCase() === "airqo"
         );
         if (airqoGroup) {
@@ -96,6 +113,10 @@ const OrganizationPicker: React.FC = () => {
     return formatTitle(activeGroup?.grp_title || "") || "Select Organization";
   };
 
+  if (isContextLoading) {
+    return <Skeleton className="h-10 w-48 rounded-lg" />;
+  }
+
   return (
     <>
       <Button
@@ -113,7 +134,7 @@ const OrganizationPicker: React.FC = () => {
       <OrganizationModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        userGroups={userGroups}
+        userGroups={validUserGroups}
         activeGroup={activeGroup}
         userContext={userContext}
         isAirQoStaff={isAirQoStaff}
