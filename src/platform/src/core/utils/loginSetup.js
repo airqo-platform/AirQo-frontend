@@ -173,7 +173,8 @@ export const setupUserSession = async (
       (pathname.startsWith('/user/analytics') ||
         pathname.startsWith('/user/data-export') ||
         pathname.startsWith('/user/profile') ||
-        pathname.startsWith('/user/settings'));
+        pathname.startsWith('/user/settings') ||
+        pathname.startsWith('/user/map'));
 
     if (isRootPageRedirect) {
       // Force user flow with AirQo group for root page access
