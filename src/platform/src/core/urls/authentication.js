@@ -24,6 +24,9 @@ export const GROUP_ROLES_URL = `${AUTH_URL}/roles`;
 // Group slug management URL
 export const getGroupSlugUrl = (groupId) => `${GROUPS_URL}/${groupId}/slug`;
 
+// Single user URL helper
+export const getUserUrl = (userId) => `${USERS_URL}/${userId}`;
+
 // Theme Management URLs
 export const USER_THEME_BASE_URL = `${USERS_URL}/preferences/theme/user`;
 export const getUserThemeUrl = (userId, groupId) =>

@@ -8,6 +8,7 @@ import {
   rejectOrganisationRequestApi,
 } from '@/core/apis/Account';
 import { usePermissions } from '@/core/HOC/authUtils';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import logger from '@/lib/logger';
 import { PageHeader } from '@/common/components/Header';
@@ -31,11 +32,22 @@ export default function OrgRequestsPage() {
   const { loading: requestsLoading } = useSelector(
     (state) => state.organisationRequests,
   );
-  const [permissionDenied, setPermissionDenied] = useState(false);
+
   const { hasPermission, isLoading: permLoading } = usePermissions();
-  const canView = hasPermission('ORG_VIEW', null);
-  const canApprove = hasPermission('ORG_APPROVE', null);
-  const canReject = hasPermission('ORG_REJECT', null);
+  const { id: activeGroupID, loading: groupLoading } = useGetActiveGroup();
+
+  // Only compute permissions after loading is complete to prevent flicker
+  const isLoadingAuth = permLoading || groupLoading;
+  const canView = !isLoadingAuth
+    ? hasPermission('ORG_VIEW', activeGroupID)
+    : null;
+  const canApprove = !isLoadingAuth
+    ? hasPermission('ORG_APPROVE', activeGroupID)
+    : null;
+  const canReject = !isLoadingAuth
+    ? hasPermission('ORG_REJECT', activeGroupID)
+    : null;
+
   const [requests, setRequests] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState('createdAt');
@@ -56,8 +68,9 @@ export default function OrgRequestsPage() {
   useEffect(() => {
     let isMounted = true;
 
-    // reset any previous permission state before fetching
-    setPermissionDenied(false);
+    // Only fetch if user has permission - computed after auth loading completes
+    if (isLoadingAuth) return;
+    if (canView === false) return;
 
     dispatch(fetchOrgRequests())
       .unwrap()
@@ -69,19 +82,18 @@ export default function OrgRequestsPage() {
       .catch((error) => {
         logger.error('Error fetching organization requests:', error);
         if (isMounted) {
-          // If the API returned a 403, treat it as permission denied
-          if (error?.response?.status === 403 || error?.status === 403) {
-            setPermissionDenied(true);
-          } else {
-            setRequests([]);
-          }
+          setRequests([]);
+          CustomToast({
+            message: 'Failed to fetch organization requests',
+            type: 'error',
+          });
         }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [dispatch]);
+  }, [dispatch, isLoadingAuth, canView]);
 
   // Memoized callbacks to prevent unnecessary re-renders
   const formatDate = useCallback((dateString) => {
@@ -406,10 +418,15 @@ export default function OrgRequestsPage() {
     [],
   );
 
-  // Permission/data loading: show skeleton while permissions or requests are loading
-  if (permissionDenied) return <PermissionDenied />;
-  if (permLoading || requestsLoading) return <RolesPermissionsPageSkeleton />;
-  if (!canView) return <PermissionDenied />;
+  // Show loading skeleton while authentication is loading or data is being fetched
+  if (isLoadingAuth || requestsLoading) {
+    return <RolesPermissionsPageSkeleton />;
+  }
+
+  // Show permission denied only after auth loading is complete
+  if (canView === false) {
+    return <PermissionDenied />;
+  }
 
   return (
     <div className="w-full space-y-5">

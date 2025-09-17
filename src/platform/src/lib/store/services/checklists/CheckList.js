@@ -16,37 +16,94 @@ export const fetchUserChecklists = createAsyncThunk(
     try {
       if (!userId) throw new Error('User ID is required');
 
-      // Try fetching existing checklists
-      const response = await getUserChecklists(userId);
-      if (!response.success) {
-        return rejectWithValue(
-          response.message || 'Failed to fetch checklists',
-        );
+      let response;
+      try {
+        // Try fetching existing checklists
+        response = await getUserChecklists(userId);
+      } catch (fetchError) {
+        // If the request fails with 404 or other errors, we'll initialize
+        logger.warn('Checklist fetch failed, will initialize:', {
+          userId,
+          error: fetchError.message,
+        });
+        response = { success: true, checklists: [] }; // Treat as empty
       }
 
-      let items = [];
-      if (response.checklists?.length > 0) {
-        items = response.checklists[0].items || [];
-      } else {
-        // No existing: initialize four blank items
-        const initialItems = [1, 2, 3, 4].map(() => ({
+      // Handle both explicit errors and "no checklists found" cases
+      if (
+        !response.success ||
+        (response.message &&
+          response.message.includes('no checklists found')) ||
+        !response.checklists ||
+        response.checklists.length === 0
+      ) {
+        logger.info(
+          'No existing checklist found, initializing for user:',
+          userId,
+        );
+
+        // Initialize four blank items with proper structure
+        const initialItems = [1, 2, 3, 4].map((index) => ({
           title: '',
           completed: false,
           completionDate: '',
           videoProgress: 0,
           status: 'not started',
+          position: index - 1, // 0-based position
         }));
-        // Upsert to create in DB
-        await upsertUserChecklists({ user_id: userId, items: initialItems });
-        // Refetch to retrieve generated _id
-        const newResp = await getUserChecklists(userId);
-        if (newResp.success && newResp.checklists?.length > 0) {
-          items = newResp.checklists[0].items || [];
-        } else {
-          items = initialItems;
+
+        try {
+          // Upsert to create in DB
+          const upsertResponse = await upsertUserChecklists({
+            user_id: userId,
+            items: initialItems,
+          });
+
+          if (!upsertResponse.success) {
+            logger.error('Failed to initialize checklist:', {
+              userId,
+              error: upsertResponse.message,
+            });
+            // Return basic items without _id as fallback
+            return initialItems;
+          }
+
+          // Refetch to retrieve generated _id values
+          try {
+            const newResp = await getUserChecklists(userId);
+            if (newResp.success && newResp.checklists?.length > 0) {
+              const items = newResp.checklists[0].items || [];
+              logger.info('Successfully initialized and fetched checklist:', {
+                userId,
+                itemCount: items.length,
+              });
+              return items;
+            }
+          } catch (refetchError) {
+            logger.warn('Refetch after initialization failed:', {
+              userId,
+              error: refetchError.message,
+            });
+          }
+
+          // If refetch fails, return the basic items
+          return initialItems;
+        } catch (initError) {
+          logger.error('Failed to initialize checklist:', {
+            userId,
+            error: initError.message,
+          });
+          // Return basic items as final fallback
+          return initialItems;
         }
       }
 
+      // User has existing checklists
+      const items = response.checklists[0].items || [];
+      logger.info('Fetched existing checklist:', {
+        userId,
+        itemCount: items.length,
+      });
       return items;
     } catch (error) {
       logger.error('Error in fetchUserChecklists:', error);

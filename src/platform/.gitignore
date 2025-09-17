@@ -116,4 +116,5 @@ cypress/screenshots
 
 # vscode files
 .vscode/*
+.github
 

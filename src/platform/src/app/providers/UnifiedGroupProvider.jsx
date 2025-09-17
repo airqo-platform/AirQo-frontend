@@ -349,15 +349,11 @@ export function UnifiedGroupProvider({ children }) {
         const targetRoute = groupRoute(target);
 
         if (navigate && pathname !== targetRoute) {
-          // Small delay to let state settle before navigation
-          await new Promise((resolve) => setTimeout(resolve, 150));
-          router.push(targetRoute);
-        } else {
-          // Clear switching state immediately if not navigating
-          dispatch({ type: 'SET_SWITCHING', payload: false });
+          // Use immediate navigation with replace for smoother transition
+          router.replace(targetRoute);
         }
 
-        // Update user preferences asynchronously
+        // Update user preferences asynchronously without blocking UI
         rdxDispatch(
           replaceUserPreferences({
             user_id: session.user.id,
@@ -369,14 +365,17 @@ export function UnifiedGroupProvider({ children }) {
           await rdxDispatch(fetchGroupDetails(target._id));
         }
 
+        // Clear switching state after a short delay to allow navigation to complete
+        setTimeout(() => {
+          dispatch({ type: 'SET_SWITCHING', payload: false });
+        }, 300);
+
         return { success: true, targetRoute };
       } catch (error) {
         logger.error('switchToGroup error:', error);
         return { success: false, error: extractErrorMessage(error) };
       } finally {
         lock.current = false;
-        // Ensure switching state is cleared on any exit path
-        dispatch({ type: 'SET_SWITCHING', payload: false });
       }
     },
     [

@@ -109,9 +109,14 @@ const useAuthStateProcessor = (protectionLevel, permissions = []) => {
               setupResult.error || 'Failed to setup user session',
             );
           }
+          // Only redirect if we're not on a protected route and a redirect path is provided
           if (
             setupResult.redirectPath &&
-            setupResult.redirectPath !== pathname
+            setupResult.redirectPath !== pathname &&
+            !pathname.startsWith('/user/analytics') &&
+            !pathname.startsWith('/user/data-export') &&
+            !pathname.startsWith('/user/profile') &&
+            !pathname.startsWith('/user/settings')
           ) {
             router.replace(setupResult.redirectPath);
             return { success: true, ready: false, redirecting: true };

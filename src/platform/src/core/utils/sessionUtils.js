@@ -28,7 +28,7 @@ export const ROUTE_TYPES = {
  * @returns {string} The route type
  */
 export const getRouteType = (pathname) => {
-  if (!pathname) return ROUTE_TYPES.PUBLIC;
+  if (!pathname || typeof pathname !== 'string') return ROUTE_TYPES.PUBLIC;
 
   // Auth routes (check FIRST before organization routes)
   if (
@@ -70,6 +70,7 @@ export const getRouteType = (pathname) => {
  * @returns {string|null} The organization slug or null
  */
 export const extractOrgSlug = (pathname) => {
+  if (!pathname || typeof pathname !== 'string') return null;
   const orgMatch = pathname.match(/^\/org\/([^/]+)/);
   return orgMatch ? orgMatch[1] : null;
 };
