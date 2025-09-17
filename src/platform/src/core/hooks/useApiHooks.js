@@ -57,10 +57,12 @@ export const useApiCall = (apiFunction, options = {}) => {
 
         return response;
       } catch (error) {
-        if (!isMountedRef.current) return;
-
+        // Always log and rethrow the error so promise rejection semantics are preserved.
         logger.error('API call failed:', error);
-        setError(error);
+        if (isMountedRef.current) {
+          setError(error);
+        }
+        // Allow consumers to react to the error even if unmounted.
         onError(error);
 
         if (showToast && toastConfig.errorMessage) {
@@ -72,8 +74,9 @@ export const useApiCall = (apiFunction, options = {}) => {
       } finally {
         if (isMountedRef.current) {
           stopLoading();
-          onFinally();
         }
+        // Always call the finally callback so callers can run cleanup regardless of mount state
+        onFinally();
       }
     },
     [
@@ -148,15 +151,22 @@ export const useFormSubmission = (
         onSubmitSuccess(result);
         return result;
       } catch (error) {
-        if (!isMountedRef.current) return;
-
+        // Don't swallow errors when component unmounts; always process and rethrow.
         if (error.name === 'ValidationError') {
-          // Handle validation errors
+          // Handle validation errors and harden mapping in case error.inner is missing
           const validationErrors = {};
-          error.inner.forEach((err) => {
-            validationErrors[err.path] = err.message;
-          });
-          setErrors(validationErrors);
+          if (Array.isArray(error.inner) && error.inner.length > 0) {
+            error.inner.forEach((err) => {
+              if (err && err.path) validationErrors[err.path] = err.message;
+            });
+          } else if (error.path) {
+            validationErrors[error.path] = error.message;
+          } else {
+            // Fallback generic key
+            validationErrors._error = error.message || 'Validation error';
+          }
+          if (isMountedRef.current) setErrors(validationErrors);
+          // Notify consumer even if unmounted
           onValidationError(validationErrors);
         } else {
           // Handle submission errors
@@ -238,10 +248,9 @@ export const useDataFetcher = (
         onSuccess(result);
         return result;
       } catch (error) {
-        if (!isMountedRef.current) return;
-
+        // Preserve rejection semantics; only guard state updates
         logger.error('Data fetch error:', error);
-        setError(error);
+        if (isMountedRef.current) setError(error);
         onError(error);
         throw error;
       } finally {

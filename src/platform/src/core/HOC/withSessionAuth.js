@@ -116,7 +116,8 @@ const useAuthStateProcessor = (protectionLevel, permissions = []) => {
             !pathname.startsWith('/user/analytics') &&
             !pathname.startsWith('/user/data-export') &&
             !pathname.startsWith('/user/profile') &&
-            !pathname.startsWith('/user/settings')
+            !pathname.startsWith('/user/settings') &&
+            !pathname.startsWith('/user/map')
           ) {
             router.replace(setupResult.redirectPath);
             return { success: true, ready: false, redirecting: true };

@@ -63,7 +63,7 @@ export const statusText = {
   500: "Something went wrong on our side. We're on it.",
   501: 'Not implemented yet.',
   502: "A connected service is down. We're working to restore it.",
-  503: "We're temporarily overloaded. Please retry in a moment.",
+  503: "Service temporarily unavailable due to maintenance or heavy load. We're working to restore it — please try again in a few minutes.",
   504: 'Gateway timed out.',
   505: 'Version not supported.',
   506: 'Variant also negotiates.',
