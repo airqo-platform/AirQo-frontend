@@ -41,3 +41,12 @@ final class UpdateUser extends UserEvent {
         if (profilePicture != null) profilePicture!,
       ];
 }
+
+final class UpdateUserFields extends UserEvent {
+  final Map<String, dynamic> fields;
+
+  const UpdateUserFields({required this.fields});
+
+  @override
+  List<Object> get props => [fields];
+}

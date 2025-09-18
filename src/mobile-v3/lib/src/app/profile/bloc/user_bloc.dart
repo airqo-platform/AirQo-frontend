@@ -17,6 +17,7 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
     on<LoadUserWithRetry>(_onLoadUserWithRetry);
     on<RetryLoadUser>(_onRetryLoadUser);
     on<UpdateUser>(_onUpdateUser);
+    on<UpdateUserFields>(_onUpdateUserFields);
   }
 
   Future<void> _onLoadUser(LoadUser event, Emitter<UserState> emit) async {
@@ -116,9 +117,26 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
       
       emit(UserUpdateSuccess(model));
 
-      emit(UserLoaded(model));
+      final freshUserData = await repository.loadUserProfileFromAPI();
+      emit(UserLoaded(freshUserData));
     } catch (e) {
       loggy.error('UserBloc UpdateUser Failed: ${e.toString()}');
+      emit(UserUpdateError(e.toString()));
+    }
+  }
+
+  Future<void> _onUpdateUserFields(UpdateUserFields event, Emitter<UserState> emit) async {
+    emit(UserUpdating());
+
+    try {
+      ProfileResponseModel model = await repository.updateUserProfileFields(event.fields);
+      
+      emit(UserUpdateSuccess(model));
+
+      final freshUserData = await repository.loadUserProfileFromAPI();
+      emit(UserLoaded(freshUserData));
+    } catch (e) {
+      loggy.error('UserBloc UpdateUserFields Failed: ${e.toString()}');
       emit(UserUpdateError(e.toString()));
     }
   }

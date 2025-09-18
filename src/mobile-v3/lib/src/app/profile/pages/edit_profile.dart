@@ -214,12 +214,26 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         throw Exception("Authentication token not found");
       }
 
-      var body = {
-        'firstName': _firstNameController.text.trim(),
-        'lastName': _lastNameController.text.trim(),
-        'email': _emailController.text.trim(),
-        'profilePicture': imageUrl,
-      };
+      // Build request body with only changed fields
+      final userState = context.read<UserBloc>().state;
+      final Map<String, dynamic> body = {};
+      
+      if (userState is UserLoaded) {
+        final currentUser = userState.model.users[0];
+        
+        if (_firstNameController.text.trim() != currentUser.firstName) {
+          body['firstName'] = _firstNameController.text.trim();
+        }
+        if (_lastNameController.text.trim() != currentUser.lastName) {
+          body['lastName'] = _lastNameController.text.trim();
+        }
+        if (_emailController.text.trim() != currentUser.email) {
+          body['email'] = _emailController.text.trim();
+        }
+      }
+      
+      // Always include profile picture since it's the main change
+      body['profilePicture'] = imageUrl;
 
       loggy.info(
           'Updating profile at $uri with limited details: firstName & lastName...');
@@ -237,12 +251,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       if (response.statusCode == 200 || response.statusCode == 201) {
         var jsonResponse = json.decode(response.body);
         if (jsonResponse['success'] == true) {
-          context.read<UserBloc>().add(UpdateUser(
-                firstName: _firstNameController.text.trim(),
-                lastName: _lastNameController.text.trim(),
-                email: _emailController.text.trim(),
-                profilePicture: imageUrl,
-              ));
+          context.read<UserBloc>().add(UpdateUserFields(fields: body));
 
           return jsonResponse['user']?['profilePicture'] ?? "PROFILE_UPDATED";
         } else {
@@ -303,13 +312,40 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           Navigator.of(context).pop();
         }
       } else {
-        context.read<UserBloc>().add(
-              UpdateUser(
-                firstName: _firstNameController.text.trim(),
-                lastName: _lastNameController.text.trim(),
-                email: _emailController.text.trim(),
+        // Build request body with only changed fields
+        final userState = context.read<UserBloc>().state;
+        if (userState is UserLoaded) {
+          final currentUser = userState.model.users[0];
+          final Map<String, dynamic> requestBody = {};
+
+          if (_firstNameController.text.trim() != currentUser.firstName) {
+            requestBody["firstName"] = _firstNameController.text.trim();
+          }
+          if (_lastNameController.text.trim() != currentUser.lastName) {
+            requestBody["lastName"] = _lastNameController.text.trim();
+          }
+          if (_emailController.text.trim() != currentUser.email) {
+            requestBody["email"] = _emailController.text.trim();
+          }
+
+          if (requestBody.isNotEmpty) {
+            context.read<UserBloc>().add(UpdateUserFields(fields: requestBody));
+          } else {
+            // No changes detected
+            _resetLoadingState();
+            setState(() {
+              _formChanged = false;
+            });
+            
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('No changes detected'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 2),
               ),
             );
+          }
+        }
       }
     } catch (e) {
       _resetLoadingState();

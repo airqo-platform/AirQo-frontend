@@ -11,12 +11,15 @@ import 'package:loggy/loggy.dart';
 abstract class UserRepository extends BaseRepository {
   Future<ProfileResponseModel> loadUserProfile();
   Future<ProfileResponseModel> loadUserProfileFromToken();
+  Future<ProfileResponseModel> loadUserProfileFromAPI();
   Future<ProfileResponseModel> updateUserProfile({
     required String firstName,
     required String lastName,
     required String email,
     String? profilePicture,
   });
+  
+  Future<ProfileResponseModel> updateUserProfileFields(Map<String, dynamic> fields);
 }
 
 class UserImpl extends UserRepository with UiLoggy {
@@ -89,6 +92,22 @@ class UserImpl extends UserRepository with UiLoggy {
   }
 
   @override
+  Future<ProfileResponseModel> loadUserProfileFromAPI() async {
+    final userId = await AuthHelper.getCurrentUserId();
+    if (userId == null) {
+      throw Exception("User ID not found - user may not be authenticated");
+    }
+
+    loggy.info('Loading user profile from API (forced refresh)');
+    http.Response profileResponse =
+        await createAuthenticatedGetRequest("/api/v2/users/$userId", {});
+
+    ProfileResponseModel model =
+        profileResponseModelFromJson(profileResponse.body);
+    return model;
+  }
+
+  @override
   Future<ProfileResponseModel> updateUserProfile({
     required String firstName,
     required String lastName,
@@ -129,7 +148,42 @@ class UserImpl extends UserRepository with UiLoggy {
         loggy.debug("User object keys: ${(responseBody['user'] as Map).keys}");
       }
 
-      return await loadUserProfile();
+      // Force fresh data reload from API instead of JWT token
+      return await loadUserProfileFromAPI();
+    } catch (e) {
+      loggy.warning("Error parsing update response");
+      throw Exception("Failed to update profile");
+    }
+  }
+
+  @override
+  Future<ProfileResponseModel> updateUserProfileFields(Map<String, dynamic> fields) async {
+    final userId = await AuthHelper.getCurrentUserId();
+    if (userId == null) {
+      throw Exception("User ID not found - user may not be authenticated");
+    }
+
+    loggy.info("Updating user profile with only changed fields: ${fields.keys.toList()}");
+
+    http.Response updateResponse = await createAuthenticatedPutRequest(
+      path: "/api/v2/users/$userId",
+      data: fields,
+    );
+
+    try {
+      final responseBody = json.decode(updateResponse.body);
+      loggy.info("Response structure: ${responseBody.keys}");
+
+      responseBody.forEach((key, value) {
+        loggy.debug("Key: $key, Value: $value, Type: ${value?.runtimeType}");
+      });
+
+      if (responseBody.containsKey('user') && responseBody['user'] != null) {
+        loggy.debug("User object keys: ${(responseBody['user'] as Map).keys}");
+      }
+
+      // Force fresh data reload from API instead of JWT token
+      return await loadUserProfileFromAPI();
     } catch (e) {
       loggy.warning("Error parsing update response");
       throw Exception("Failed to update profile");
