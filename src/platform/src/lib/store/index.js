@@ -1,5 +1,4 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { createWrapper } from 'next-redux-wrapper';
 import { persistReducer, persistStore } from 'redux-persist';
 import createWebStorage from 'redux-persist/lib/storage/createWebStorage';
 import {
@@ -118,10 +117,17 @@ const makeStore = () => {
         .concat(cleanupMiddleware),
   });
 
-  store.__persistor = persistStore(store);
+  const persistor = persistStore(store);
+  // Back-compat: expose store and persistor the old way too
+  // Avoid in SSR
+  if (typeof window !== 'undefined') {
+    window.__NEXT_REDUX_STORE__ = store;
+  }
+  // Legacy callers may rely on this
+  store.__persistor = persistor;
+  // Option A: keep previous API
   return store;
 };
 
-// Export the store wrapper
-export const wrapper = createWrapper(makeStore);
+// Default export the makeStore factory for client-side initialization
 export default makeStore;

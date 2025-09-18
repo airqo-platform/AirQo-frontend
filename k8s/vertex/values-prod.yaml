@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-vertex
-  tag: prod-c8f6ea9d-1756962942
+  tag: prod-f2020af8-1758051745
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''

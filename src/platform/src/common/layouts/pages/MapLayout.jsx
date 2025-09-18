@@ -11,7 +11,7 @@ import { UnifiedSidebarContent, UnifiedSideBarDrawer } from '../SideBar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import MobileBottomNavigation from '../components/MobileBottomNavigation';
-import MaintenanceBanner from '@/components/MaintenanceBanner';
+import MaintenanceBanner from '@/common/components/MaintenanceBanner';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';

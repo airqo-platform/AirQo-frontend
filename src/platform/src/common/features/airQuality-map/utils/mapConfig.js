@@ -16,9 +16,8 @@ export const createMapboxConfig = (container, styleUrl, center, zoom) => {
       if (resourceType === 'Source' && url.includes('mapbox')) {
         return {
           url,
-          headers: {
-            'Accept-Encoding': 'gzip, br',
-          },
+          // Note: Removed Accept-Encoding header as it's managed automatically by the browser
+          headers: {},
         };
       }
     },

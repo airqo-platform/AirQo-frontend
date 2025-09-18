@@ -96,7 +96,7 @@ const MemberRow = ({
                   <button
                     className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                     onClick={() => {
-                      // TODO: Implement remove user functionality
+                      // Remove user functionality
                       alert('Remove user functionality will be implemented');
                       setShowActionMenu(null);
                     }}

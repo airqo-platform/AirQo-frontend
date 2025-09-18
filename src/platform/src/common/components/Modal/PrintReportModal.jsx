@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import AlertBox from '@/components/AlertBox';
 import ExportModalWrapper from './ExportModalWrapper';
-import ShareIcon from '@/icons/Analytics/share.svg';
-import MailIcon from '@/icons/Settings/mail.svg';
-import PlusIcon from '@/icons/Settings/plus.svg';
+import ShareIcon from '@/common/components/Icons/Analytics/ShareIcon';
+import MailIcon from '@/common/components/Icons/Settings/MailIcon';
+import PlusIcon from '@/common/components/Icons/Settings/PlusIcon';
 import Button from '@/components/Button';
 import { exportDataApi, shareReportApi } from '@/core/apis/Analytics';
 import { useSelector } from 'react-redux';
@@ -118,7 +118,7 @@ const PrintReportModal = ({
         7000,
       );
       handleCancel();
-    } catch (err) {
+    } catch {
       setAlert({
         type: 'error',
         message: 'An error occurred while exporting data',
@@ -260,7 +260,7 @@ const PrintReportModal = ({
           show: true,
         });
       }
-    } catch (error) {
+    } catch {
       setAlert({
         type: 'error',
         message:
@@ -278,7 +278,6 @@ const PrintReportModal = ({
         title={title}
         open={open}
         onClose={() => {
-          onClose;
           handleCancel();
         }}
         downloadDataFunc={shareModel ? handleShareReport : handleDataExport}

@@ -100,6 +100,14 @@ const SelectMore = ({ onClose }) => {
     });
   }, []);
 
+  const handleOpenModal = useCallback(
+    (type, ids = [], data = null) => {
+      dispatch(setModalType({ type, ids, data }));
+      dispatch(setOpenModal(true));
+    },
+    [dispatch],
+  );
+
   /**
    * Handles the submission of selected sites.
    * Dispatches the replaceUserPreferences action with the formatted payload.
@@ -120,8 +128,8 @@ const SelectMore = ({ onClose }) => {
       return rest;
     });
 
-    handleOpenModal('inSights', null, selectedSitesData);
-  }, [selectedSites, userID, dispatch, onClose]);
+    handleOpenModal('inSights', [], selectedSitesData);
+  }, [selectedSites, userID, handleOpenModal]);
 
   /**
    * Generates the content for the selected sites panel.
@@ -163,14 +171,7 @@ const SelectMore = ({ onClose }) => {
         isSelected={true}
       />
     ));
-  }, [selectedSites, handleToggleSite, loading]);
-
-  const handleOpenModal = useCallback(
-    (type, ids = null, data = null) => {
-      dispatch(setModalType({ type, ids, data }));
-    },
-    [dispatch],
-  );
+  }, [selectedSites, loading, handleToggleSite]);
 
   return (
     <>

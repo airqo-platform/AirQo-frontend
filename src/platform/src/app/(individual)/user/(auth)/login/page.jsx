@@ -2,19 +2,17 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signIn as _signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import * as Yup from 'yup';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
 
-import AccountPageLayout from '@/components/Account/Layout';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import InputField from '@/common/components/InputField';
 import Button from '@/common/components/Button';
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
+import NotificationService from '@/core/utils/notificationService';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -57,17 +55,14 @@ const UserLogin = () => {
           const messages = validationError.inner
             .map((err) => err.message)
             .join(' ');
-          CustomToast({
-            message: messages,
-            type: TOAST_TYPES.ERROR,
-            duration: 8000,
-          });
+          // Use status code 422 for validation errors
+          NotificationService.error(422, messages);
         }
         return;
       }
 
       try {
-        const result = await _signIn('credentials', {
+        const result = await signIn('credentials', {
           userName: formData.userName,
           password: formData.password,
           redirect: false,
@@ -76,37 +71,56 @@ const UserLogin = () => {
         if (!isMountedRef.current) return;
 
         if (result?.error) {
-          let errorMessage = 'Login failed. Please try again.';
+          // Parse the error message to extract status code information
+          let statusCode = 401; // Default to unauthorized
+          let customMessage = null;
+
           if (
             result.error.includes('Invalid credentials') ||
-            result.error.includes('Authentication failed')
+            result.error.includes('Incorrect email or password')
           ) {
-            errorMessage =
-              'Invalid email or password. Please check your credentials.';
-          } else if (result.error.includes('Network')) {
-            errorMessage =
-              'Network error. Please check your connection and try again.';
+            statusCode = 401;
+            customMessage = null; // Use default status message
+          } else if (
+            result.error.includes('Network') ||
+            result.error.includes('connection')
+          ) {
+            statusCode = 503;
+            customMessage = null; // Use default status message
+          } else if (
+            result.error.includes(
+              'Authentication service returned an unexpected response',
+            )
+          ) {
+            statusCode = 502;
+            customMessage = null; // Use default status message
+          } else if (result.error.includes('You do not have permission')) {
+            statusCode = 403;
+            customMessage = null; // Use default status message
           } else {
-            errorMessage = result.error;
+            // For other errors, try to extract status code or default to 500
+            statusCode = 500;
+            customMessage = result.error;
           }
-          throw new Error(errorMessage);
+
+          NotificationService.error(statusCode, customMessage);
+          return;
         }
 
         if (result?.ok) {
-          // Success. Redirect handled by HOC or session management.
-          // CustomToast({ message: 'Login successful!', type: TOAST_TYPES.SUCCESS });
+          // Success notification
+          NotificationService.success(200, 'Login successful!');
         } else {
-          throw new Error('Login failed. Please try again.');
+          NotificationService.error(500, 'Login failed. Please try again.');
         }
       } catch (err) {
         if (!isMountedRef.current) return;
 
-        CustomToast({
-          message:
-            err.message || 'An unexpected error occurred. Please try again.',
-          type: TOAST_TYPES.ERROR,
-          duration: 8000,
-        });
+        // Use status-based notification instead of generic error message
+        NotificationService.error(
+          500,
+          err.message || 'An unexpected error occurred. Please try again.',
+        );
       } finally {
         if (isMountedRef.current) {
           setLoading(false);

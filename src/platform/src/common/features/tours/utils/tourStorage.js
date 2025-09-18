@@ -2,7 +2,7 @@
 
 import logger from '@/lib/logger';
 
-const STORAGE_KEY_PREFIX = 'user_tour_status_';
+export const STORAGE_KEY_PREFIX = 'user_tour_status_';
 
 /**
  * Generates a storage key specific to the user and tour.
@@ -143,7 +143,7 @@ export const clearAllUserTourStatuses = (userId) => {
 /*
 export const markTourAsSeenBackend = async (tourKey, userId, token) => {
   if (!userId || !tourKey || !token) {
-    console.warn("tourStorage (Backend): User ID, Tour Key, and Token are required.");
+    logger.warn("tourStorage (Backend): User ID, Tour Key, and Token are required.");
     return;
   }
 
@@ -152,7 +152,7 @@ export const markTourAsSeenBackend = async (tourKey, userId, token) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Or however your API expects auth
+        'Authorization': `JWT ${token}`, // Or however your API expects auth
       },
       body: JSON.stringify({
         seen: true,
@@ -166,10 +166,10 @@ export const markTourAsSeenBackend = async (tourKey, userId, token) => {
     }
 
     const result = await response.json();
-    console.log(`tourStorage (Backend): Successfully marked tour '${tourKey}' as seen for user '${userId}'.`, result);
+    logger.debug(`tourStorage (Backend): Successfully marked tour '${tourKey}' as seen for user '${userId}'.`, result);
     // Optionally, update local state/context if needed based on the response
   } catch (error) {
-    console.error(`tourStorage (Backend): Error marking tour '${tourKey}' as seen for user '${userId}':`, error);
+    logger.error(`tourStorage (Backend): Error marking tour '${tourKey}' as seen for user '${userId}':`, error);
     // Fallback: Potentially mark in localStorage if backend fails?
     // markTourAsSeen(tourKey, userId);
   }
@@ -187,7 +187,7 @@ export const markTourAsSeenBackend = async (tourKey, userId, token) => {
 /*
 export const isTourSeenBackend = async (tourKey, userId, token) => {
   if (!userId || !tourKey || !token) {
-    console.warn("tourStorage (Backend): User ID, Tour Key, and Token are required.");
+    logger.warn("tourStorage (Backend): User ID, Tour Key, and Token are required.");
     return false;
   }
 
@@ -195,14 +195,14 @@ export const isTourSeenBackend = async (tourKey, userId, token) => {
     const response = await fetch(`/api/user/${userId}/tours/${tourKey}/status`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': `JWT ${token}`,
       },
     });
 
     if (!response.ok) {
       if (response.status === 404) {
          // 404 might mean "not seen" or tour data doesn't exist yet
-         console.log(`tourStorage (Backend): Tour '${tourKey}' status not found for user '${userId}' (implies not seen).`);
+         logger.debug(`tourStorage (Backend): Tour '${tourKey}' status not found for user '${userId}' (implies not seen).`);
          return false;
       }
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -210,10 +210,10 @@ export const isTourSeenBackend = async (tourKey, userId, token) => {
 
     const data = await response.json();
     const seen = data.seen === true; // Assuming API returns { seen: boolean, ... }
-    console.log(`tourStorage (Backend): Checked tour '${tourKey}' for user '${userId}'. Seen: ${seen}`, data);
+    logger.debug(`tourStorage (Backend): Checked tour '${tourKey}' for user '${userId}'. Seen: ${seen}`, data);
     return seen;
   } catch (error) {
-    console.error(`tourStorage (Backend): Error checking tour '${tourKey}' status for user '${userId}':`, error);
+    logger.error(`tourStorage (Backend): Error checking tour '${tourKey}' status for user '${userId}':`, error);
     // Fallback: Potentially check localStorage if backend fails?
     // return isTourSeen(tourKey, userId);
     return false; // Or handle error state as needed

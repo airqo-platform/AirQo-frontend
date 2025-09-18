@@ -139,17 +139,20 @@ class CacheManager with UiLoggy {
   Stream<bool> get batteryChange => _batteryChangeController.stream;
 
   Future<void> initialize() async {
-    loggy.info('Initializing CacheManager');
 
     await _initializeHiveBoxes();
 
     _connectivity.onConnectivityChanged.listen(_updateConnectionType);
     _updateConnectionType(await _connectivity.checkConnectivity());
 
-    _battery.onBatteryStateChanged.listen(_updateBatteryState);
-    _updateBatteryState(await _battery.batteryState);
+    try {
+      _battery.onBatteryStateChanged.listen(_updateBatteryState);
+      _updateBatteryState(await _battery.batteryState);
+    } catch (e) {
+      loggy.warning('Battery info disabled: $e');
+      _isLowBattery = false;
+    }
 
-    loggy.info('CacheManager initialized successfully');
   }
 
   Future<void> _initializeHiveBoxes() async {
@@ -169,7 +172,6 @@ class CacheManager with UiLoggy {
         await Hive.openBox(CacheBoxName.userPreferences.toString());
       }
 
-      loggy.info('Hive boxes initialized');
     } catch (e) {
       loggy.error('Error initializing Hive boxes: $e');
       rethrow;
@@ -212,18 +214,23 @@ class CacheManager with UiLoggy {
   }
 
   void _updateBatteryState(BatteryState batteryState) async {
-    if (batteryState == BatteryState.charging) {
-      _isLowBattery = false;
-    } else {
-      int batteryLevel = await _battery.batteryLevel;
-      bool newIsLowBattery = batteryLevel <= 20;
+    try {
+      if (batteryState == BatteryState.charging) {
+        _isLowBattery = false;
+      } else {
+        int batteryLevel = await _battery.batteryLevel;
+        bool newIsLowBattery = batteryLevel <= 20;
 
-      if (_isLowBattery != newIsLowBattery) {
-        _isLowBattery = newIsLowBattery;
-        loggy
-            .info('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
-        _batteryChangeController.add(_isLowBattery);
+        if (_isLowBattery != newIsLowBattery) {
+          _isLowBattery = newIsLowBattery;
+          loggy
+              .info('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
+          _batteryChangeController.add(_isLowBattery);
+        }
       }
+    } catch (e) {
+      loggy.warning('Battery level check failed: $e');
+      _isLowBattery = false;
     }
   }
 

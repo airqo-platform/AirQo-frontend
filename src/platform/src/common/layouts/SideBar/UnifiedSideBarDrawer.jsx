@@ -2,10 +2,10 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSelector, useDispatch } from 'react-redux';
 import { setToggleDrawer } from '@/lib/store/services/sideBar/SideBarSlice';
-import AirqoLogo from '@/icons/airqo_logo.svg';
+import AirqoLogo from '@/common/components/Icons/AirqoLogo';
 import { AqXClose, AqLogOut01 } from '@airqo/icons-react';
 import LogoutUser from '@/core/HOC/LogoutUser';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import UnifiedSidebarContent from './UnifiedSidebarContent';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import {

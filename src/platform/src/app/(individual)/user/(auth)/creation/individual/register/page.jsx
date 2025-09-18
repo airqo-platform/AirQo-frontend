@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import Button from '@/common/components/Button';
-import AccountPageLayout from '@/components/Account/Layout';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InputField from '@/common/components/InputField';
 import CustomToast from '@/common/components/Toast/CustomToast';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
 import { postUserCreationDetails } from '@/core/apis/Account';
+import logger from '@/lib/logger';
 
 // Move static regex outside component to prevent recreation on every render
 const PASSWORD_REGEX =
@@ -78,10 +79,7 @@ const IndividualAccountRegistration = () => {
         try {
           sessionStorage.setItem('registeredUserEmail', email);
         } catch (storageError) {
-          console.warn(
-            'Failed to store email in sessionStorage:',
-            storageError,
-          );
+          logger.warn('Failed to store email in sessionStorage:', storageError);
         }
 
         CustomToast({
@@ -126,7 +124,7 @@ const IndividualAccountRegistration = () => {
       }
     } catch (err) {
       // Handle network errors or unexpected exceptions
-      console.error('Registration error:', err);
+      logger.error('Registration error:', err);
       CustomToast({
         message:
           'An unexpected error occurred. Please check your connection and try again later.',

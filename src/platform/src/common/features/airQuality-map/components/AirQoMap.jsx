@@ -23,6 +23,7 @@ import {
   useMapInitialization,
 } from '../hooks';
 import LayerModal from '@/common/features/airQuality-map/components/LayerModal';
+import logger from '@/lib/logger';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
 import { mapStyles, mapDetails } from '../constants/mapConstants';
 
@@ -210,14 +211,16 @@ const AirQoMap = forwardRef(
             isReloadingRef.current = false;
             prevStyleUrlRef.current = url;
           } catch (error) {
-            console.error('Error handling style load:', error);
+            logger.error('Error handling style load:', error);
             isReloadingRef.current = false;
           }
         };
         // Add event listeners with error handling
         map.once('style.load', handleStyleLoad);
-        map.once('error', () => {
-          console.error('Error loading map style');
+        map.once('error', (e) => {
+          logger.error('Error loading map style', e?.error ?? e, {
+            url: styleUrl,
+          });
           isReloadingRef.current = false;
         });
       },
@@ -228,6 +231,10 @@ const AirQoMap = forwardRef(
         addControls,
         resetControlsState,
         controlsAddedRef,
+        isReloadingRef,
+        mapRef,
+        prevStyleUrlRef,
+        setStyleUrl,
       ],
     );
     // Optimized viewport change handler
@@ -268,7 +275,7 @@ const AirQoMap = forwardRef(
           zoom: reduxZoom,
         };
       }
-    }, [viewportData, mapInitializedRef]);
+    }, [viewportData, mapInitializedRef, mapRef]);
     // Optimized controls checker
     const checkControls = useCallback(() => {
       if (
@@ -281,7 +288,7 @@ const AirQoMap = forwardRef(
       if (mapRef.current.loaded()) {
         addControls();
       }
-    }, [addControls, mapInitializedRef, controlsAddedRef]);
+    }, [addControls, mapInitializedRef, controlsAddedRef, mapRef]);
     // Cleanup effect - runs on unmount
     useEffect(() => {
       return () => {
@@ -305,7 +312,7 @@ const AirQoMap = forwardRef(
             mapRef.current.remove();
             mapRef.current = null;
           } catch (error) {
-            console.warn('Error removing map:', error);
+            logger.warn('Error removing map:', error);
           }
         }
         // Reset state
@@ -313,7 +320,14 @@ const AirQoMap = forwardRef(
         mapInitializedRef.current = false;
         isReloadingRef.current = false;
       };
-    }, [dispatch, resetControlsState, cleanupMapDataHook]);
+    }, [
+      dispatch,
+      resetControlsState,
+      cleanupMapDataHook,
+      isReloadingRef,
+      mapInitializedRef,
+      mapRef,
+    ]);
 
     // Map initialization effect with dependency optimization
     useEffect(() => {
@@ -325,7 +339,13 @@ const AirQoMap = forwardRef(
       if (needsReload) {
         initializeMap();
       }
-    }, [styleUrl, initializeMap]);
+    }, [
+      styleUrl,
+      initializeMap,
+      isReloadingRef,
+      mapInitializedRef,
+      prevStyleUrlRef,
+    ]);
 
     // NodeType change effect with optimization
     useEffect(() => {
@@ -352,7 +372,14 @@ const AirQoMap = forwardRef(
           }
         }, 100);
       }
-    }, [nodeType, clusterUpdate]);
+    }, [
+      nodeType,
+      clusterUpdate,
+      isReloadingRef,
+      mapInitializedRef,
+      mapRef,
+      prevNodeTypeRef,
+    ]);
 
     // Controls check effect with cleanup
     useEffect(() => {
@@ -375,7 +402,7 @@ const AirQoMap = forwardRef(
           intervalRef.current = null;
         }
       };
-    }, [checkControls, mapInitializedRef.current]);
+    }, [checkControls, mapInitializedRef, mapRef]);
 
     // Viewport changes effect
     useEffect(() => {

@@ -1,155 +1,163 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSelector, useDispatch } from 'react-redux';
-import ReusableDialog from '@/components/Modal/ReusableDialog';
-
-import CustomToast from '@/common/components/Toast/CustomToast';
-import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
-import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
-import { getUserDetails } from '@/core/apis/Account';
 import { AqUser02, AqPlus } from '@airqo/icons-react';
 import { FiX, FiTrash2 } from 'react-icons/fi';
+
+import ReusableDialog from '@/components/Modal/ReusableDialog';
+import NotificationService from '@/core/utils/notificationService';
 import InputField from '@/common/components/InputField';
+import Button from '@/common/components/Button';
+import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
+import { getUserDetails } from '@/core/apis/Account';
+import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
 
 const EditClientForm = ({ open, closeModal, data }) => {
   const { data: session } = useSession();
   const dispatch = useDispatch();
-  const userInfo = useSelector((state) => state.login.userInfo);
-  const clientID = data?._id;
+
+  const userInfo = useSelector((s) => s.login.userInfo);
+  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
+
+  /* ----------- local state ----------- */
   const [loading, setLoading] = useState(false);
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState(['']);
-  const [initialData, setInitialData] = useState(null);
 
-  // Get user ID from session with fallback to Redux state
-  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
+  /* ----------- derive initial values once when dialog opens ----------- */
+  const initial = useMemo(() => {
+    if (!data) return { name: '', ipAddresses: [''] };
 
-  useEffect(() => {
-    handleInitialData();
-  }, [data]);
-
-  const handleInitialData = () => {
-    const name = data?.name || '';
-    const ipAddresses = Array.isArray(data?.ip_addresses)
-      ? data?.ip_addresses
-      : data?.ip_addresses
-        ? [data?.ip_addresses]
+    const ips = Array.isArray(data.ip_addresses)
+      ? data.ip_addresses
+      : data.ip_addresses
+        ? [data.ip_addresses]
         : [''];
 
-    setClientName(name);
-    setIpAddresses(ipAddresses);
-    setInitialData({
-      name,
-      ipAddresses,
-    });
-  };
+    return { name: data.name || '', ipAddresses: ips };
+  }, [data]);
 
-  const handleInputValueChange = useCallback((type, value, index) => {
-    if (type === 'clientName') {
-      setClientName(value);
-    } else if (type === 'ipAddress') {
-      setIpAddresses((prev) => {
-        const newIpAddresses = [...prev];
-        newIpAddresses[index] = value;
-        return newIpAddresses;
-      });
-    }
-  }, []);
+  /* ----------- reset form whenever `data` changes ----------- */
+  useEffect(() => {
+    setClientName(initial.name);
+    setIpAddresses(initial.ipAddresses);
+  }, [initial]);
 
-  const handleRemoveInputValue = useCallback((type, index) => {
-    if (type === 'clientName') {
-      setClientName('');
-    } else if (type === 'ipAddress') {
-      setIpAddresses((prev) => prev.filter((_, i) => i !== index));
-    }
-  }, []);
-
-  const handleAddIpAddress = useCallback(() => {
-    setIpAddresses((prev) => [...prev, '']);
-  }, []);
-
-  // Check if form has changes
-  const hasChanges = () => {
-    if (!initialData) return false;
-
-    const currentFilteredIps = ipAddresses.filter((ip) => ip.trim() !== '');
-    const initialFilteredIps = initialData.ipAddresses.filter(
-      (ip) => ip.trim() !== '',
-    );
+  /* ----------- helpers ----------- */
+  const hasChanges = useMemo(() => {
+    const currentFiltered = ipAddresses.map((ip) => ip.trim()).filter(Boolean);
+    const initialFiltered = initial.ipAddresses
+      .map((ip) => ip.trim())
+      .filter(Boolean);
 
     return (
-      clientName !== initialData.name ||
-      currentFilteredIps.length !== initialFilteredIps.length ||
-      !currentFilteredIps.every((ip, index) => ip === initialFilteredIps[index])
+      clientName.trim() !== initial.name.trim() ||
+      JSON.stringify(currentFiltered.sort()) !==
+        JSON.stringify(initialFiltered.sort())
     );
-  };
+  }, [clientName, ipAddresses, initial]);
 
-  const handleSubmit = async () => {
+  /* ----------- handlers ----------- */
+  const addIp = () => setIpAddresses((prev) => [...prev, '']);
+
+  const updateIp = (idx, value) =>
+    setIpAddresses((prev) => prev.map((ip, i) => (i === idx ? value : ip)));
+
+  const removeIp = (idx) =>
+    setIpAddresses((prev) => prev.filter((_, i) => i !== idx));
+
+  const submit = async () => {
+    if (!clientName.trim()) {
+      NotificationService.error(422, "Client name can't be empty");
+      return;
+    }
+    if (!userId) {
+      NotificationService.error(422, 'User ID is required');
+      return;
+    }
+    if (!data?._id) {
+      NotificationService.error(422, 'Client ID is required');
+      return;
+    }
+
     setLoading(true);
 
-    if (!clientName) {
-      CustomToast({ message: "Client name can't be empty", type: 'error' });
-      setLoading(false);
-      return;
-    }
-
-    if (!userId) {
-      CustomToast({ message: 'User ID is required', type: 'error' });
-      setLoading(false);
-      return;
-    }
-
     try {
-      const data = {
-        name: clientName,
+      // Normalize and only include ip_addresses when user provided at least one
+      const cleanedIps = ipAddresses.map((ip) => ip.trim()).filter(Boolean);
+
+      const payload = {
+        name: clientName.trim(),
         user_id: userId,
+        // only attach ip_addresses when present to avoid sending empty arrays
+        ...(cleanedIps.length ? { ip_addresses: cleanedIps } : {}),
       };
 
-      const filteredIpAddresses = ipAddresses.filter((ip) => ip.trim() !== '');
-      if (filteredIpAddresses.length > 0) {
-        data.ip_addresses = filteredIpAddresses;
+      const res = await updateClientApi(payload, data._id);
+
+      // Normalize the updated client object from possible response shapes
+      const updatedClient =
+        (res && res.updated_client) ||
+        (res && res.data && res.data.updated_client) ||
+        (res && res.data && (res.data._id || res.data.id) ? res.data : null) ||
+        (res && (res._id || res.id) ? res : null);
+
+      // Determine success: prefer explicit `success: true`, or HTTP 2xx status, or presence of updated client id
+      const isSuccess =
+        (res && res.success === true) ||
+        (typeof res?.status === 'number' &&
+          res.status >= 200 &&
+          res.status < 300) ||
+        (updatedClient && (updatedClient._id || updatedClient.id));
+
+      if (!isSuccess) {
+        const msg =
+          res?.data?.message || res?.message || 'Failed to update client';
+        const statusCode = Number(res?.status) || 400;
+        NotificationService.error(statusCode, msg);
+        return;
       }
 
-      const response = await updateClientApi(data, clientID);
-      if (response.success !== true) {
-        throw new Error('Failed to update client');
-      }
-      const res = await getUserDetails(userId);
-      const resp = await getClientsApi(userId);
-      dispatch(addClients(res.users[0].clients));
-      dispatch(addClientsDetails(resp.clients));
-      CustomToast({ message: 'Client updated successfully', type: 'success' });
+      const [userRes, clientsRes] = await Promise.all([
+        getUserDetails(userId),
+        getClientsApi(userId),
+      ]);
+
+      dispatch(addClients(userRes.users[0].clients));
+      dispatch(addClientsDetails(clientsRes.clients));
+
+      // Prefer any provided status, otherwise default to 200
+      const okStatus = Number(res?.status) || 200;
+      const okMessage = res?.message || 'Client updated successfully';
+      NotificationService.success(okStatus, okMessage);
       closeModal();
-    } catch (error) {
-      CustomToast({
-        message: error?.response?.data?.message || 'Failed to update client',
-        type: 'error',
-      });
+    } catch (e) {
+      NotificationService.handleApiError(e, 'Failed to update client');
     } finally {
       setLoading(false);
     }
   };
 
+  /* ----------- render ----------- */
   return (
     <ReusableDialog
       isOpen={open}
       onClose={closeModal}
       title="Edit client"
       icon={AqUser02}
-      showFooter={true}
+      showFooter
       primaryAction={{
-        label: hasChanges() ? 'Update Client' : 'No Changes',
-        onClick: handleSubmit,
-        disabled: loading || !clientName.trim() || !hasChanges(),
+        label: hasChanges ? 'Update Client' : 'No Changes',
+        onClick: submit,
+        disabled: loading || !clientName.trim() || !hasChanges,
         className:
-          loading || !clientName.trim() || !hasChanges()
+          loading || !clientName.trim() || !hasChanges
             ? 'opacity-60 pointer-events-none'
             : '',
       }}
     >
-      {/* Form Content */}
       <div className="space-y-6">
-        {/* Client Name Section */}
+        {/* ---- Client Name ---- */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Client Name <span className="text-red-500">*</span>
@@ -157,22 +165,14 @@ const EditClientForm = ({ open, closeModal, data }) => {
           <div className="relative">
             <InputField
               type="text"
-              label={null}
               placeholder="Enter a descriptive name for your client"
               value={clientName}
-              onChange={(val) =>
-                handleInputValueChange(
-                  'clientName',
-                  val.target ? val.target.value : val,
-                )
-              }
-              className="pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              onChange={(e) => setClientName(e.target.value)}
             />
             {clientName && (
               <button
-                className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
-                onClick={() => handleRemoveInputValue('clientName')}
-                tabIndex={-1}
+                className="absolute inset-y-0 right-0 flex items-center mr-3 text-gray-400 hover:text-gray-600"
+                onClick={() => setClientName('')}
                 aria-label="Clear client name"
                 type="button"
               >
@@ -185,7 +185,7 @@ const EditClientForm = ({ open, closeModal, data }) => {
           </p>
         </div>
 
-        {/* IP Addresses Section */}
+        {/* ---- IP Addresses ---- */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -197,27 +197,18 @@ const EditClientForm = ({ open, closeModal, data }) => {
           </div>
 
           <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1">
-            {ipAddresses.map((ip, index) => (
-              <div key={index} className="relative group">
+            {ipAddresses.map((ip, idx) => (
+              <div key={idx} className="relative group">
                 <InputField
                   type="text"
-                  label={null}
-                  placeholder={`Enter IP address ${index + 1} (e.g., 192.168.1.100)`}
+                  placeholder={`Enter IP address ${idx + 1}`}
                   value={ip}
-                  onChange={(val) =>
-                    handleInputValueChange(
-                      'ipAddress',
-                      val.target ? val.target.value : val,
-                      index,
-                    )
-                  }
-                  className="pr-10 transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  onChange={(e) => updateIp(idx, e.target.value)}
                 />
                 <button
-                  className="absolute inset-y-0 right-0 flex justify-center items-center mr-3 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
-                  onClick={() => handleRemoveInputValue('ipAddress', index)}
-                  tabIndex={-1}
-                  aria-label={`Remove IP address ${index + 1}`}
+                  className="absolute inset-y-0 right-0 flex items-center mr-3 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                  onClick={() => removeIp(idx)}
+                  aria-label={`Remove IP address ${idx + 1}`}
                   type="button"
                 >
                   <FiTrash2 className="w-4 h-4" />
@@ -226,14 +217,17 @@ const EditClientForm = ({ open, closeModal, data }) => {
             ))}
           </div>
 
-          {/* Add IP Button */}
-          <button
-            onClick={handleAddIpAddress}
-            className="flex items-center justify-center w-full py-2 px-4 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 border border-dashed border-blue-300 dark:border-blue-600 rounded-lg hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+          <Button
+            variant="ghost"
+            size="md"
+            fullWidth
+            onClick={addIp}
+            className="text-blue-600 border-dashed border-blue-300"
+            Icon={AqPlus}
+            showTextOnMobile
           >
-            <AqPlus size={16} className="mr-2" color="currentColor" />
             Add IP Address
-          </button>
+          </Button>
 
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Restrict client access to specific IP addresses. Leave empty to
@@ -241,22 +235,24 @@ const EditClientForm = ({ open, closeModal, data }) => {
           </p>
         </div>
 
-        {/* Changes Summary */}
-        {hasChanges() && (
+        {/* ---- Changes Summary ---- */}
+        {hasChanges && (
           <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
             <h4 className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-2">
               Pending Changes
             </h4>
             <div className="space-y-1 text-sm">
-              {clientName !== initialData?.name && (
+              {clientName.trim() !== initial.name.trim() && (
                 <p className="text-amber-800 dark:text-amber-200">
-                  <span className="font-medium">Name:</span> {initialData?.name}{' '}
-                  → {clientName}
+                  <span className="font-medium">Name:</span> {initial.name} →{' '}
+                  {clientName.trim()}
                 </p>
               )}
-              {JSON.stringify(ipAddresses.filter((ip) => ip.trim())) !==
+              {JSON.stringify(
+                ipAddresses.map((ip) => ip.trim()).filter(Boolean),
+              ) !==
                 JSON.stringify(
-                  initialData?.ipAddresses?.filter((ip) => ip.trim()) || [],
+                  initial.ipAddresses.map((ip) => ip.trim()).filter(Boolean),
                 ) && (
                 <p className="text-amber-800 dark:text-amber-200">
                   <span className="font-medium">IP Addresses:</span> Modified
@@ -266,21 +262,20 @@ const EditClientForm = ({ open, closeModal, data }) => {
           </div>
         )}
 
-        {/* Current Configuration */}
-        {clientName && !hasChanges() && (
+        {/* ---- Current Configuration ---- */}
+        {clientName.trim() && !hasChanges && (
           <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
             <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
               Current Configuration
             </h4>
             <div className="space-y-1 text-sm">
               <p className="text-green-800 dark:text-green-200">
-                <span className="font-medium">Name:</span> {clientName}
+                <span className="font-medium">Name:</span> {clientName.trim()}
               </p>
               <p className="text-green-800 dark:text-green-200">
                 <span className="font-medium">IP Restrictions:</span>{' '}
-                {ipAddresses.filter((ip) => ip.trim()).length > 0
-                  ? `${ipAddresses.filter((ip) => ip.trim()).length} address(es)`
-                  : 'None (unrestricted)'}
+                {ipAddresses.filter((ip) => ip.trim()).length ||
+                  'None (unrestricted)'}
               </p>
             </div>
           </div>

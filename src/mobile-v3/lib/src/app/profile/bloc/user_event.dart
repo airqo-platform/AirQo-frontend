@@ -9,6 +9,17 @@ sealed class UserEvent extends Equatable {
 
 final class LoadUser extends UserEvent {}
 
+final class LoadUserWithRetry extends UserEvent {
+  final int retryCount;
+  
+  const LoadUserWithRetry({this.retryCount = 0});
+  
+  @override
+  List<Object> get props => [retryCount];
+}
+
+final class RetryLoadUser extends UserEvent {}
+
 final class UpdateUser extends UserEvent {
   final String firstName;
   final String lastName;

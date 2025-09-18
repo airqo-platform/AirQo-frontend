@@ -6,7 +6,7 @@ import { saveAs } from 'file-saver';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { format } from 'date-fns';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import { event } from '@/core/hooks/useGoogleAnalytics';
 
 // Message types for footer component
@@ -256,7 +256,8 @@ export const useDataDownloadLogic = () => {
   // Process different file types with improved CSV handling
   const processDownloadResponse = useCallback(
     async (response, formData, selectedColumns = null) => {
-      const fileExtension = formData.fileType.value || formData.fileType.name.toLowerCase();
+      const fileExtension =
+        formData.fileType.value || formData.fileType.name.toLowerCase();
       const mimeType = getMimeType(fileExtension);
       const fileName = `${formData.title.name || 'Air_Quality_Data'}.${fileExtension}`;
 
@@ -509,7 +510,8 @@ export const useDataDownloadLogic = () => {
           metaDataFields: ['latitude', 'longitude'],
           weatherFields: ['temperature', 'humidity'],
           frequency: formData.frequency.name.toLowerCase(),
-          downloadType: formData.fileType.value || formData.fileType.name.toLowerCase(),
+          downloadType:
+            formData.fileType.value || formData.fileType.name.toLowerCase(),
           outputFormat: 'airqo-standard',
           minimum: true,
         };
@@ -541,10 +543,7 @@ export const useDataDownloadLogic = () => {
 
           await processDownloadResponse(response, formData, selectedColumns);
 
-          CustomToast({
-            message: 'Data downloaded successfully!',
-            type: 'success',
-          });
+          NotificationService.success(200, 'Data downloaded successfully!');
 
           onClearSelection();
           onClose();

@@ -59,6 +59,16 @@ const validateEnvironmentVariables = () => {
     }
   });
 
+  // In production, NEXTAUTH_SECRET is critical for session encryption/decryption
+  if (process.env.NODE_ENV === 'production') {
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret || secret.trim() === '') {
+      errors.push(
+        'NEXTAUTH_SECRET is required in production for session encryption',
+      );
+    }
+  }
+
   // Validate URL formats
   const urlVars = ['NEXTAUTH_URL', 'API_BASE_URL', 'NEXT_PUBLIC_API_BASE_URL'];
   urlVars.forEach((varName) => {
@@ -86,7 +96,21 @@ export const getApiToken = () => {
 };
 
 export const getNextAuthUrl = () => {
-  return process.env.NEXTAUTH_URL || 'http://localhost:3000';
+  // 1) Explicit NEXTAUTH_URL takes priority
+  if (process.env.NEXTAUTH_URL) return process.env.NEXTAUTH_URL;
+
+  // 2) If dev tools flag requests staging, use staging for testing
+  if (process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging') {
+    return 'https://staging-analytics.airqo.net';
+  }
+
+  // 3) Production environment uses the production URL
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://analytics.airqo.net';
+  }
+
+  // 4) Default to localhost for local development
+  return 'http://localhost:3000';
 };
 
 export const getNextAuthSecret = () => {

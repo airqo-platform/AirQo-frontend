@@ -27,10 +27,30 @@ class SessionCache {
     }, 60000); // Every minute
 
     // Cleanup on process exit
+    // Register process listeners only once per Node process to avoid
+    // accumulating listeners when this module is hot-reloaded or initialized
+    // multiple times (e.g., in dev with HMR / Next.js server restarts).
     if (typeof process !== 'undefined') {
-      process.on('exit', () => this.clear());
-      process.on('SIGINT', () => this.clear());
-      process.on('SIGTERM', () => this.clear());
+      try {
+        // Use a process-global key to mark registration and keep references
+        // to the bound handlers so they can be removed if needed.
+        const key = '__airqo_session_cache_listeners_registered__';
+        if (!process[key]) {
+          // Bind handlers so we can later remove them if required
+          this._boundClear = this.clear.bind(this);
+          process.on('exit', this._boundClear);
+          process.on('SIGINT', this._boundClear);
+          process.on('SIGTERM', this._boundClear);
+
+          // Mark as registered and keep a reference to the handlers
+          process[key] = true;
+        }
+      } catch (err) {
+        // Best-effort: if process is not available or binding fails, ignore
+        // to avoid crashing the server.
+        // eslint-disable-next-line no-console
+        console.warn('SessionCache: failed to register process listeners', err);
+      }
     }
   }
 
@@ -317,10 +337,7 @@ export const createProxyHandler = (options = {}) => {
 
         if (authHeader) {
           // Ensure the token starts with "JWT " for API compatibility
-          if (
-            !authHeader.startsWith('JWT ') &&
-            !authHeader.startsWith('Bearer ')
-          ) {
+          if (!authHeader.startsWith('JWT ')) {
             authHeader = `JWT ${authHeader}`;
           }
           config.headers.Authorization = authHeader;
@@ -359,7 +376,7 @@ export const createProxyHandler = (options = {}) => {
         };
         logger.warn('Proxy request timeout:', {
           url: `${targetPath}`,
-          timeout: config.timeout,
+          timeout: error.config?.timeout ?? 60000,
           method: req.method,
         });
       } else if (error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {

@@ -19,8 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { logout as reduxLogout } from "@/core/redux/slices/userSlice";
 import { useAppSelector } from "@/core/redux/hooks";
+import { useAuth } from "@/core/hooks/users";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -28,7 +28,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 import OrganizationPicker from "../features/org-picker/organization-picker";
 import Image from "next/image";
@@ -43,7 +42,7 @@ const AirqoLogoRaw = "/images/airqo_logo.svg";
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
   const currentUser = useAppSelector((state) => state.user.userDetails);
-  const dispatch = useDispatch();
+  const { logout } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -56,17 +55,6 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userDetails");
-    localStorage.removeItem("activeNetwork");
-    localStorage.removeItem("availableNetworks");
-    localStorage.removeItem("activeGroup");
-    localStorage.removeItem("userGroups");
-    dispatch(reduxLogout());
-    router.push("/login");
   };
 
   const apps = [
@@ -254,7 +242,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="flex items-center"
-                  onClick={handleLogout}
+                  onClick={logout}
                 >
                   <span>Log out</span>
                 </DropdownMenuItem>

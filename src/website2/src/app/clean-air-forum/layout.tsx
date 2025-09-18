@@ -37,14 +37,7 @@ const CleanAirLayout: React.FC<CleanAirLayoutProps> = ({ children }) => {
     isError: titlesError,
   } = useForumEventTitles();
 
-  // Log forum access
-  React.useEffect(() => {
-    logger.info('Clean Air Forum accessed', {
-      slug,
-      hasSelectedEvent: !!selectedEvent,
-      hasEventTitles: !!eventTitles,
-    });
-  }, [slug, selectedEvent, eventTitles]);
+  // Removed duplicate error logging effect; we log once in the error branch below.
 
   // Handle loading states
   if (detailsLoading || titlesLoading) {

@@ -136,8 +136,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           return;
         }
 
-        final userId = await AuthHelper.getCurrentUserId();
-        loggy.info('Retrieved user ID: ${userId ?? "NULL"}');
+        final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
 
         if (userId != null) {
           setState(() {

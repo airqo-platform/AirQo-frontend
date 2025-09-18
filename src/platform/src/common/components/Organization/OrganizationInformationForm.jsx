@@ -5,7 +5,7 @@ import InputField from '@/common/components/InputField';
 import TextField from '@/common/components/TextInputField';
 import SelectField from '@/common/components/SelectField';
 import CardWrapper from '@/common/components/CardWrapper';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import GroupLogo from '@/common/components/GroupLogo';
 import countries from 'i18n-iso-countries';
 import enLocale from 'i18n-iso-countries/langs/en.json';
@@ -115,20 +115,17 @@ const OrganizationInformationForm = ({
       'image/webp',
     ];
     if (!allowedTypes.includes(file.type)) {
-      CustomToast({
-        message: 'Please upload a valid image file (PNG, JPG, SVG, WEBP)',
-        type: 'error',
-      });
+      NotificationService.error(
+        400,
+        'Please upload a valid image file (PNG, JPG, SVG, WEBP)',
+      );
       return;
     }
 
     // Validate file size (5MB)
     const maxSize = 5 * 1024 * 1024; // 5MB in bytes
     if (file.size > maxSize) {
-      CustomToast({
-        message: 'File size must be less than 5MB',
-        type: 'error',
-      });
+      NotificationService.error(400, 'File size must be less than 5MB');
       return;
     }
 
@@ -145,10 +142,10 @@ const OrganizationInformationForm = ({
     onFileSelect(file);
 
     // Show success message
-    CustomToast({
-      message: 'Logo selected! Click "Save Changes" to upload and apply.',
-      type: 'success',
-    });
+    NotificationService.success(
+      200,
+      'Logo selected! Click "Save Changes" to upload and apply.',
+    );
   };
 
   // Clear logo selection (local preview and pending file)
@@ -156,10 +153,7 @@ const OrganizationInformationForm = ({
     setLocalImagePreview(null);
     setPendingImageFile(null);
     if (onFileSelect) onFileSelect(null); // Notify parent to clear pending file
-    CustomToast({
-      message: 'Logo selection cleared.',
-      type: 'info',
-    });
+    NotificationService.info(200, 'Logo selection cleared.');
   };
 
   // Handlers for SelectDropdown fields (matching user settings pattern)

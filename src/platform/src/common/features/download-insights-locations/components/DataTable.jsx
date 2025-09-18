@@ -675,7 +675,7 @@ const DataTable = ({
             description={
               isSearchActive
                 ? `No results found for "${currentSearchTerm}". Try different search terms.`
-                : 'Try adjusting your filters.'
+                : 'No data to display. Please adjust your filters or refresh the page.'
             }
             variant="info"
           />
@@ -801,6 +801,7 @@ const DataTable = ({
           {showViewDataButton && (
             <Button
               variant="text"
+              Icon={AqBarChart07}
               onClick={onViewDataClick}
               disabled={isLoadingVisualizationData}
               className={`flex items-center gap-2 ${
@@ -809,7 +810,6 @@ const DataTable = ({
                   : 'text-primary hover:bg-primary/10'
               }`}
             >
-              <AqBarChart07 size={16} />
               {isLoadingVisualizationData
                 ? 'Loading Sites...'
                 : 'Visualize Data'}
@@ -851,8 +851,8 @@ const DataTable = ({
                 ? 'text-gray-400 cursor-not-allowed'
                 : 'text-primary hover:bg-primary/10'
             }`}
+            Icon={AqEye}
           >
-            <AqEye size={16} />
             {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
           </Button>
         </div>

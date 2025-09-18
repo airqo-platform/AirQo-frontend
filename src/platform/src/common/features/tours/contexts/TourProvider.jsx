@@ -8,15 +8,16 @@ import {
   useEffect,
 } from 'react';
 import { useSession } from 'next-auth/react';
-import CustomJoyride from '@/features/tours/components/CustomJoyride';
+import CustomJoyride from '@/common/features/tours/components/CustomJoyride';
 import { usePathname } from 'next/navigation';
 import {
   routeTourConfig,
   globalTourConfig,
   standalonePopupConfig,
-} from '@/features/tours/config/tourSteps';
+} from '@/common/features/tours/config/tourSteps';
 import { STATUS } from 'react-joyride';
-import * as tourStorage from '@/features/tours/utils/tourStorage';
+import * as tourStorage from '@/common/features/tours/utils/tourStorage';
+import logger from '@/lib/logger';
 
 export const TourContext = createContext(undefined);
 
@@ -84,14 +85,14 @@ export const TourProvider = ({
         // Check steps array
         const tourKey = config.key;
         if (!userId) {
-          console.warn(
+          logger.warn(
             `TourProvider: User ID not available for route tour '${tourKey}'.`,
           );
           return;
         }
         const seen = tourStorage.isTourSeen(tourKey, userId);
         if (force || (!seen && !state.run)) {
-          console.log(
+          logger.debug(
             `TourProvider: Starting route tour '${tourKey}' for path '${pathname}' for user '${userId}'.`,
           );
           dispatch({
@@ -104,11 +105,11 @@ export const TourProvider = ({
             },
           });
         } else if (seen && !allowRestart) {
-          console.log(
+          logger.debug(
             `TourProvider: Route tour '${tourKey}' already seen for user '${userId}'.`,
           );
         } else if (state.run) {
-          console.log(
+          logger.debug(
             `TourProvider: A tour is already running for user '${userId}'.`,
           );
         }
@@ -123,14 +124,14 @@ export const TourProvider = ({
       if (config && config.steps?.length > 0) {
         // Check steps array
         if (!userId) {
-          console.warn(
+          logger.warn(
             `TourProvider: User ID not available for global tour '${tourKey}'.`,
           );
           return;
         }
         const seen = tourStorage.isTourSeen(tourKey, userId);
         if (force || (!seen && !state.run)) {
-          console.log(
+          logger.debug(
             `TourProvider: Starting global tour '${tourKey}' for user '${userId}'.`,
           );
           dispatch({
@@ -143,16 +144,16 @@ export const TourProvider = ({
             },
           });
         } else if (seen && !allowRestart) {
-          console.log(
+          logger.debug(
             `TourProvider: Global tour '${tourKey}' already seen for user '${userId}'.`,
           );
         } else if (state.run) {
-          console.log(
+          logger.debug(
             `TourProvider: A tour is already running for user '${userId}'.`,
           );
         }
       } else {
-        console.warn(
+        logger.warn(
           `TourProvider: Global tour '${tourKey}' not found or has no steps.`,
         );
       }
@@ -167,7 +168,7 @@ export const TourProvider = ({
       if (config && config.step) {
         // Check for single step object
         if (!userId) {
-          console.warn(
+          logger.warn(
             `TourProvider: User ID not available for standalone popup '${popupKey}'.`,
           );
           return;
@@ -176,7 +177,7 @@ export const TourProvider = ({
         const popupSeenKey = `popup_${popupKey}`;
         const seen = tourStorage.isTourSeen(popupSeenKey, userId); // Reuse storage function
         if (force || (!seen && !state.run)) {
-          console.log(
+          logger.debug(
             `TourProvider: Showing standalone popup '${popupKey}' for user '${userId}'.`,
           );
           // Wrap the single step in an array for CustomJoyride
@@ -194,16 +195,16 @@ export const TourProvider = ({
             },
           });
         } else if (seen) {
-          console.log(
+          logger.debug(
             `TourProvider: Standalone popup '${popupKey}' already shown for user '${userId}'.`,
           );
         } else if (state.run) {
-          console.log(
+          logger.debug(
             `TourProvider: A tour/popup is already running for user '${userId}'.`,
           );
         }
       } else {
-        console.warn(
+        logger.warn(
           `TourProvider: Standalone popup '${popupKey}' not found or has no step.`,
         );
       }
@@ -215,16 +216,14 @@ export const TourProvider = ({
   const attemptStartTours = useCallback(
     ({ force = false } = {}) => {
       if (state.run) {
-        console.log(
+        logger.debug(
           'TourProvider: A tour is already running, skipping auto-start checks.',
         );
         return;
       }
 
       if (!userId) {
-        console.warn(
-          'TourProvider: User ID not available, cannot check tours.',
-        );
+        logger.warn('TourProvider: User ID not available, cannot check tours.');
         return;
       }
 
@@ -236,7 +235,7 @@ export const TourProvider = ({
         const globalKey = globalOnboardingConfig.key;
         const globalSeen = tourStorage.isTourSeen(globalKey, userId);
         if (force || (!globalSeen && !state.run)) {
-          console.log(
+          logger.debug(
             `TourProvider: Prioritizing and starting global onboarding tour '${globalKey}'.`,
           );
           dispatch({
@@ -250,7 +249,7 @@ export const TourProvider = ({
           });
           globalOnboardingStarted = true;
         } else if (globalSeen) {
-          console.log(
+          logger.debug(
             `TourProvider: Global onboarding tour '${globalKey}' already seen.`,
           );
         }
@@ -263,7 +262,7 @@ export const TourProvider = ({
           const routeKey = routeConfig.key;
           const routeSeen = tourStorage.isTourSeen(routeKey, userId);
           if (force || (!routeSeen && !state.run)) {
-            console.log(
+            logger.debug(
               `TourProvider: Starting route tour '${routeKey}' for path '${pathname}'.`,
             );
             dispatch({
@@ -276,7 +275,7 @@ export const TourProvider = ({
               },
             });
           } else if (routeSeen) {
-            console.log(
+            logger.debug(
               `TourProvider: Route tour '${routeKey}' already seen for path '${pathname}'.`,
             );
           }
@@ -289,7 +288,7 @@ export const TourProvider = ({
   // --- CONTROL FUNCTIONS ---
 
   const stopTour = useCallback(() => {
-    console.log('TourProvider: stopTour called');
+    logger.debug('TourProvider: stopTour called');
     dispatch({ type: 'STOP_TOUR' });
   }, []);
 
@@ -304,7 +303,7 @@ export const TourProvider = ({
       const { status, type, step } = data;
 
       if ([STATUS.FINISHED, STATUS.SKIPPED].includes(status)) {
-        console.log('TourProvider: Tour/Popup truly finished or skipped.');
+        logger.debug('TourProvider: Tour/Popup truly finished or skipped.');
         const finishedTourKey = state.currentTourKey;
         const finishedTourType = state.currentTourType; // Get the type
         dispatch({ type: 'TOUR_ENDED' });
@@ -318,7 +317,7 @@ export const TourProvider = ({
             tourStorage.markTourAsSeen(finishedTourKey, userId);
           }
         } else if (finishedTourKey && !userId) {
-          console.warn(
+          logger.warn(
             `TourProvider: Tour/Popup '${finishedTourKey}' finished, but user ID not available.`,
           );
         }
@@ -334,7 +333,7 @@ export const TourProvider = ({
           step.awaitedAction ||
           state.currentTourConfig?.steps?.[step?.index]?.awaitedAction
         ) {
-          console.log(
+          logger.debug(
             'TourProvider: Current step awaits an action:',
             state.awaitedAction,
           );
@@ -362,7 +361,10 @@ export const TourProvider = ({
         state.awaitedAction.type === 'CUSTOM_EVENT' &&
         event.type === state.awaitedAction.payload
       ) {
-        console.log('TourProvider: Detected awaited custom event:', event.type);
+        logger.debug(
+          'TourProvider: Detected awaited custom event:',
+          event.type,
+        );
         dispatch({ type: 'ACTION_COMPLETED' });
       }
     };

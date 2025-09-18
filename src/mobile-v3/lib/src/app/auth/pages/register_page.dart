@@ -30,6 +30,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   GlobalKey<FormState> dataKey = GlobalKey<FormState>();
 
   AuthBloc? authBloc;
+  bool _isPasswordVisible = false;
 
   void changeIndex(int index) {
     setState(() {
@@ -54,7 +55,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthLoaded && state.authPurpose == AuthPurpose.REGISTER) {
+        if (state is AuthLoaded && state.authPurpose == AuthPurpose.register) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => EmailVerificationScreen(
@@ -191,6 +192,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   height: 10,
                                 ),
                               ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: AppColors.primaryColor,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
                               validator: (value) {
                                 String val = value ?? "";
                                 if (val.isEmpty) {
@@ -212,7 +226,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                               },
                               hintText: "Create your password",
                               label: "Password",
-                              isPassword: true,
+                              isPassword: !_isPasswordVisible,
                               controller: passwordController, onChanged: (value) {  },
                             ),
                             SizedBox(height: 32),

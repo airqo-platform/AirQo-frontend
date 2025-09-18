@@ -7,8 +7,13 @@ import {
   approveOrganisationRequestApi,
   rejectOrganisationRequestApi,
 } from '@/core/apis/Account';
+import { usePermissions } from '@/core/HOC/authUtils';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
+import PermissionDenied from '@/common/components/PermissionDenied';
 import logger from '@/lib/logger';
-import CustomToast from '@/components/Toast/CustomToast';
+import { PageHeader } from '@/common/components/Header';
+import CustomToast from '@/common/components/Toast/CustomToast';
+import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';
 import ReusableTable from '@/common/components/Table';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import SettingsTabNavigation from '@/common/components/Tabs/SettingsTabNavigation';
@@ -27,6 +32,22 @@ export default function OrgRequestsPage() {
   const { loading: requestsLoading } = useSelector(
     (state) => state.organisationRequests,
   );
+
+  const { hasPermission, isLoading: permLoading } = usePermissions();
+  const { id: activeGroupID, loading: groupLoading } = useGetActiveGroup();
+
+  // Only compute permissions after loading is complete to prevent flicker
+  const isLoadingAuth = permLoading || groupLoading;
+  const canView = !isLoadingAuth
+    ? hasPermission('ORG_VIEW', activeGroupID)
+    : null;
+  const canApprove = !isLoadingAuth
+    ? hasPermission('ORG_APPROVE', activeGroupID)
+    : null;
+  const canReject = !isLoadingAuth
+    ? hasPermission('ORG_REJECT', activeGroupID)
+    : null;
+
   const [requests, setRequests] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState('createdAt');
@@ -47,6 +68,10 @@ export default function OrgRequestsPage() {
   useEffect(() => {
     let isMounted = true;
 
+    // Only fetch if user has permission - computed after auth loading completes
+    if (isLoadingAuth) return;
+    if (canView === false) return;
+
     dispatch(fetchOrgRequests())
       .unwrap()
       .then((fetchedRequests) => {
@@ -58,13 +83,17 @@ export default function OrgRequestsPage() {
         logger.error('Error fetching organization requests:', error);
         if (isMounted) {
           setRequests([]);
+          CustomToast({
+            message: 'Failed to fetch organization requests',
+            type: 'error',
+          });
         }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [dispatch]);
+  }, [dispatch, isLoadingAuth, canView]);
 
   // Memoized callbacks to prevent unnecessary re-renders
   const formatDate = useCallback((dateString) => {
@@ -336,26 +365,30 @@ export default function OrgRequestsPage() {
             </button>
             {item.status === 'pending' && (
               <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openApproveDialog(item);
-                  }}
-                  className="p-2 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                  aria-label="Approve"
-                >
-                  <AqCheck className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openRejectDialog(item);
-                  }}
-                  className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  aria-label="Reject"
-                >
-                  <AqX className="w-4 h-4" />
-                </button>
+                {canApprove && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openApproveDialog(item);
+                    }}
+                    className="p-2 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 rounded-full hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+                    aria-label="Approve"
+                  >
+                    <AqCheck className="w-4 h-4" />
+                  </button>
+                )}
+                {canReject && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openRejectDialog(item);
+                    }}
+                    className="p-2 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-full hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    aria-label="Reject"
+                  >
+                    <AqX className="w-4 h-4" />
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -369,6 +402,8 @@ export default function OrgRequestsPage() {
       openViewDialog,
       openApproveDialog,
       openRejectDialog,
+      canApprove,
+      canReject,
     ],
   );
 
@@ -383,8 +418,22 @@ export default function OrgRequestsPage() {
     [],
   );
 
+  // Show loading skeleton while authentication is loading or data is being fetched
+  if (isLoadingAuth || requestsLoading) {
+    return <RolesPermissionsPageSkeleton />;
+  }
+
+  // Show permission denied only after auth loading is complete
+  if (canView === false) {
+    return <PermissionDenied />;
+  }
+
   return (
-    <div className="w-full">
+    <div className="w-full space-y-5">
+      <PageHeader
+        title="Organization Requests"
+        subtitle="Manage organization join requests"
+      />
       <SettingsTabNavigation
         tabs={tabs}
         activeTab={activeTab}
@@ -420,7 +469,7 @@ export default function OrgRequestsPage() {
         size="lg"
         showFooter={true}
         primaryAction={
-          selectedRequest && selectedRequest.status === 'pending'
+          selectedRequest && selectedRequest.status === 'pending' && canApprove
             ? {
                 label: 'Approve',
                 onClick: () => {
@@ -432,7 +481,7 @@ export default function OrgRequestsPage() {
             : undefined
         }
         secondaryAction={
-          selectedRequest && selectedRequest.status === 'pending'
+          selectedRequest && selectedRequest.status === 'pending' && canReject
             ? {
                 label: 'Reject',
                 onClick: () => {
@@ -506,7 +555,7 @@ export default function OrgRequestsPage() {
         primaryAction={{
           label: isApproving ? 'Approving...' : 'Approve',
           onClick: handleApproveRequest,
-          disabled: isApproving,
+          disabled: isApproving || !canApprove,
           className: 'bg-green-600 hover:bg-green-700 text-white',
         }}
         secondaryAction={{
@@ -535,7 +584,7 @@ export default function OrgRequestsPage() {
         primaryAction={{
           label: isRejecting ? 'Rejecting...' : 'Reject',
           onClick: handleRejectRequest,
-          disabled: isRejecting || !feedbackText.trim(),
+          disabled: isRejecting || !feedbackText.trim() || !canReject,
           className: 'bg-red-600 hover:bg-red-700 text-white',
         }}
         secondaryAction={{

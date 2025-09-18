@@ -3,6 +3,8 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { users } from '@/core/apis/users';
 import { jwtDecode } from 'jwt-decode';
 import type { LoginCredentials, LoginResponse, DecodedToken } from '@/app/types/users';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
+import logger from '@/lib/logger';
 
 export const options: NextAuthOptions = {
   providers: [
@@ -15,18 +17,17 @@ export const options: NextAuthOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.userName || !credentials?.password) {
-          return null;
+          logger.warn('Authorize call with missing credentials.');
+          throw new Error('Username and password are required.');
         }
 
         try {
-          // Use your existing login API
-          const loginResponse = await users.loginUser({
+          const loginResponse = await users.loginWithDetails({
             userName: credentials.userName,
             password: credentials.password
           } as LoginCredentials) as LoginResponse;
 
           if (loginResponse?.token) {
-            // Decode the JWT token to get user info
             const decoded = jwtDecode<DecodedToken>(loginResponse.token);
             
             return {
@@ -37,7 +38,6 @@ export const options: NextAuthOptions = {
               accessToken: loginResponse.token,
               organization: decoded.organization,
               privilege: decoded.privilege,
-              // Include other fields you need
               firstName: decoded.firstName,
               lastName: decoded.lastName,
               country: decoded.country || '',
@@ -46,10 +46,15 @@ export const options: NextAuthOptions = {
             };
           }
           
-          return null;
+          logger.warn('Login API returned success status but no token.', { userName: credentials.userName });
+          throw new Error('Authentication server returned an invalid response.');
         } catch (error) {
-          console.error('Authentication error:', error);
-          return null;
+          const errorMessage = getApiErrorMessage(error);
+          logger.error('Authentication error during login', { 
+            userName: credentials.userName,
+            error: errorMessage,
+          });
+          throw new Error(errorMessage);
         }
       }
     })
@@ -66,8 +71,8 @@ export const options: NextAuthOptions = {
   
   callbacks: {
     async jwt({ token, user }) {
-      // Persist user data in the JWT token
       if (user) {
+        token.id = user.id;
         token.accessToken = user.accessToken;
         token.userName = user.userName;
         token.organization = user.organization;
@@ -82,8 +87,8 @@ export const options: NextAuthOptions = {
     },
     
     async session({ session, token }) {
-      // Send properties to the client
       if (token) {
+        session.user.id = token.id as string;
         session.user.accessToken = token.accessToken as string;
         session.user.userName = token.userName as string;
         session.user.organization = token.organization as string;
@@ -101,12 +106,6 @@ export const options: NextAuthOptions = {
   pages: {
     signIn: '/login',
     error: '/login',
-  },
-  
-  events: {
-    async signOut() {
-      // Clean up any additional data on logout
-    }
   },
   
   debug: process.env.NODE_ENV === 'development',

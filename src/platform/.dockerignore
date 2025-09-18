@@ -1,8 +1,141 @@
-Dockerfile
-.dockerignore
+# ------------------------------------------------------------------
+#  AirQo-platform/AirQo-frontend - platform (Next.js) service
+#  Keep this file in the build context (do NOT ignore it)
+# ------------------------------------------------------------------
+
+# ----------  Build artefacts  ----------
 node_modules
-npm-debug.log
-README.md
 .next
+/.next
+dist
+build
+out
+*.tsbuildinfo
+
+# ----------  Logs  ----------
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ----------  Local environment  ----------
+# .env
+# .env.*
+!.env.example            # keep only the example in context
+.env.local
+.env.production.local
+.env.staging.local
+
+# ----------  Git / VCS  ----------
 .git
-cypress*
+.gitignore
+.gitattributes
+
+# ----------  OS & editors  ----------
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-*
+
+# ----------  Test & coverage  ----------
+coverage
+.nyc_output
+jest.cache
+cypress/videos
+cypress/screenshots
+cypress/downloads
+playwright-report
+test-results
+*.lcov
+
+# ----------  Storybook  ----------
+storybook-static
+.cache-loader
+*.stories.tsx.snap
+
+# ----------  Documentation / design assets  ----------
+README.md
+CHANGELOG.md
+CONTRIBUTING.md
+docs/
+designs/
+*.sketch
+*.fig
+*.xd
+
+# ----------  CI / infra / deployment files not needed at build-time  ----------
+.github
+.gitlab-ci.yml
+.travis.yml
+circle.yml
+Jenkinsfile
+docker-compose*.yml
+k8s/
+helm/
+terraform/
+infra/
+scripts/deploy/
+scripts/ci/
+
+# ----------  Large data / sample files  ----------
+sample_data/
+*.csv
+*.jsonl
+*.geojson
+*.dump
+*.sql
+*.sqlite
+*.sqlite3
+
+# ----------  Python artefacts (repo contains some python helpers)  ----------
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# ----------  Package manager artefacts (keep lockfiles!)  ----------
+# yarn.lock, package.json, package-lock.json MUST stay in context
+.pnpm-store/
+.pnpm-debug.log*
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.yarn-integrity
+
+# npm config (may contain registry auth tokens)
+.npmrc
+.npmrc.*
+
+# ----------  Turbo / Lerna mono-repo caches  ----------
+.turbo
+lerna-debug.log*
+
+# ----------  Optional global ignores (add more below if required)  ----------
+*.bak
+*.tmp
+*.temp
+*.orig

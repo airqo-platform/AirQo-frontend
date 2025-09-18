@@ -2,15 +2,14 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import AccountPageLayout from '@/components/Account/Layout';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import NotificationService from '@/core/utils/notificationService';
 import { forgotPasswordApi } from '@/core/apis/Account';
 import InputField from '@/common/components/InputField';
 import Button from '@/common/components/Button';
 import * as Yup from 'yup';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
+import logger from '@/lib/logger';
 
 const ForgotPasswordSchema = Yup.object().shape({
   email: Yup.string()
@@ -43,11 +42,10 @@ const ForgotPassword = () => {
       } catch (validationError) {
         if (isMountedRef.current) {
           setLoading(false);
-          CustomToast({
-            message: validationError.errors?.[0] || 'Validation error',
-            type: TOAST_TYPES.ERROR,
-            duration: 8000,
-          });
+          NotificationService.error(
+            422,
+            validationError.errors?.[0] || 'Validation error',
+          );
         }
         return;
       }
@@ -58,32 +56,37 @@ const ForgotPassword = () => {
 
         if (!isMountedRef.current) return;
 
+        // Use status from response or default based on success
+        const statusCode =
+          response?.status ||
+          response?.statusCode ||
+          (response?.success ? 200 : 400);
+
         if (response?.success === true) {
           setEmail('');
-          CustomToast({
-            message:
-              response.message || 'Password reset link sent successfully!',
-            type: TOAST_TYPES.SUCCESS,
-            duration: 8000,
-          });
+          NotificationService.success(
+            statusCode,
+            response.message || 'Password reset link sent successfully!',
+          );
         } else {
-          CustomToast({
-            message:
-              response?.message ||
-              'The provided email does not belong to a registered account. Please check the email and try again.',
-            type: TOAST_TYPES.ERROR,
-            duration: 8000,
-          });
+          // Prefer error message from API response, especially from errors array
+          const errorMessage =
+            response?.errors?.[0]?.message ||
+            response?.message ||
+            'The provided email does not belong to a registered account. Please check the email and try again.';
+          NotificationService.error(statusCode, errorMessage);
         }
       } catch (err) {
         if (!isMountedRef.current) return;
 
-        console.error('Forgot password API error:', err);
-        CustomToast({
-          message: 'An unexpected error occurred. Please try again later.',
-          type: TOAST_TYPES.ERROR,
-          duration: 8000,
-        });
+        logger.error('Forgot password API error:', err);
+        // Use status from error response or default to 500
+        const statusCode =
+          err?.response?.status || err?.status || err?.statusCode || 500;
+        NotificationService.error(
+          statusCode,
+          'An unexpected error occurred. Please try again later.',
+        );
       } finally {
         if (isMountedRef.current) {
           setLoading(false);

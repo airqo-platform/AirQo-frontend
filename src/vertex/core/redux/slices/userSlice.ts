@@ -33,6 +33,7 @@ interface UserState {
     isSwitching: boolean;
     switchingTo: string;
   };
+  isContextLoading: boolean;
 }
 
 const initialState: UserState = {
@@ -57,13 +58,14 @@ const initialState: UserState = {
     isSwitching: false,
     switchingTo: "",
   },
+  isContextLoading: true,
 };
 
 // Helper function to determine user context
 const determineUserContext = (
   userDetails: UserDetails | null,
   activeGroup: Group | null,
-  userGroups: Group[]
+  userGroups: Group[] | null | undefined
 ): { context: UserContext; isAirQoStaff: boolean; canSwitchContext: boolean } => {
   if (!userDetails || !activeGroup) {
     return { context: 'personal', isAirQoStaff: false, canSwitchContext: false };
@@ -71,7 +73,7 @@ const determineUserContext = (
 
   const isAirQoStaff = userDetails.email?.endsWith('@airqo.net') || false;
   const isAirQoOrg = activeGroup.grp_title?.toLowerCase() === 'airqo';
-  const hasMultipleOrgs = userGroups.length > 1;
+  const hasMultipleOrgs = Array.isArray(userGroups) && userGroups.length > 1;
 
   let context: UserContext;
   if (isAirQoOrg) {
@@ -149,13 +151,14 @@ const userSlice = createSlice({
       state.canSwitchContext = canSwitchContext;
     },
     setUserGroups(state, action: PayloadAction<Group[]>) {
-      state.userGroups = action.payload;
+      const groups = action.payload || [];
+      state.userGroups = groups;
       
       // Update context when user groups change
       const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
         state.userDetails,
         state.activeGroup,
-        action.payload
+        groups
       );
       state.userContext = context;
       state.isAirQoStaff = isAirQoStaff;
@@ -193,6 +196,9 @@ const userSlice = createSlice({
     setOrganizationSwitching: (state, action: PayloadAction<{ isSwitching: boolean; switchingTo: string }>) => {
       state.organizationSwitching = action.payload;
     },
+    setContextLoading(state, action: PayloadAction<boolean>) {
+      state.isContextLoading = action.payload;
+    },
   },
 });
 
@@ -208,5 +214,6 @@ export const {
   setForbiddenState,
   clearForbiddenState,
   setOrganizationSwitching,
+  setContextLoading,
 } = userSlice.actions;
 export default userSlice.reducer;

@@ -6,9 +6,10 @@ import {
   UnifiedSidebarContent,
   UnifiedSideBarDrawer,
 } from '@/common/layouts/SideBar';
+import Footer from '@/common/layouts/components/Footer';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
-import MaintenanceBanner from '@/components/MaintenanceBanner';
+import MaintenanceBanner from '@/common/components/MaintenanceBanner';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -57,7 +58,7 @@ function AdminLayout({ children }) {
 
   return (
     <div
-      className="flex overflow-hidden min-h-screen"
+      className="flex overflow-hidden min-h-screen h-screen bg-background"
       data-testid="admin-layout"
     >
       <Head>
@@ -84,16 +85,21 @@ function AdminLayout({ children }) {
       </aside>
 
       {/* Main Content */}
-      <main className={mainContentClass}>
-        <div className={`overflow-hidden ${containerClasses}`}>
+      <main
+        className={`${mainContentClass} bg-background w-full flex flex-col`}
+      >
+        <div className={`flex-1 w-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
 
           {/* Content */}
-          <div className="text-text transition-all duration-300 overflow-hidden">
+          <div className="text-text transition-all duration-300 h-full">
             {children}
           </div>
         </div>
+
+        {/* Footer */}
+        <Footer />
       </main>
 
       {/* Mobile Bottom Navigation - Show admin navigation for mobile */}

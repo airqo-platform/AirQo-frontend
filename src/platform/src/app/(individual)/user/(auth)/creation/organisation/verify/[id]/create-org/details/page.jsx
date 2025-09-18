@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
-import ProgressComponent from '@/components/Account/ProgressComponent';
+import { useEffect, useState, useMemo } from 'react';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import ProgressComponent from '@/common/components/Account/ProgressComponent';
 import {
   AqAnnotationQuestion,
   AqSearchSm,
@@ -11,10 +11,10 @@ import {
   AqInfoCircle,
 } from '@airqo/icons-react';
 import { useDispatch, useSelector } from 'react-redux';
-import Spinner from '@/components/Spinner';
+import Spinner from '@/common/components/Spinner';
 
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import Toast from '@/components/Toast';
+import Toast from '@/common/components/Toast';
 import Link from 'next/link';
 import { isEmpty } from 'underscore';
 import countries from 'i18n-iso-countries';
@@ -105,7 +105,7 @@ const CreateOrganisationDetailsPageOne = ({ handleComponentSwitch }) => {
         `/user/creation/organisation/verify/${id}/create-org/token-confirmation`,
       );
     }
-  }, []);
+  }, [id, router, token]);
 
   return (
     <div className="lg:mb-3 md:mb-5 w-full">
@@ -510,7 +510,10 @@ const CreateOrganisationDetailsPageThree = () => {
   // const gridSitesLocations = gridLocationsState.map((grid) => grid.sites);
   // const gridLocationsData = [].concat(...gridSitesLocations);
   const gridsData = useSelector((state) => state.grids.sitesSummary);
-  const gridLocationsData = (gridsData && gridsData.sites) || [];
+  const gridLocationsData = useMemo(
+    () => (gridsData && gridsData.sites) || [],
+    [gridsData],
+  );
   const { id } = router.query;
   const [location, setLocation] = useState('');
   const [inputSelect, setInputSelect] = useState(false);
@@ -538,11 +541,13 @@ const CreateOrganisationDetailsPageThree = () => {
   };
 
   const handleLocationSelect = (item) => {
-    locationArray.includes(item)
-      ? setLocationArray(
-          locationArray.filter((location) => location._id !== item._id),
-        )
-      : setLocationArray((locations) => [...locations, item]);
+    setLocationArray((prev) =>
+      prev.some((l) => l._id === item._id)
+        ? prev.filter((l) => l._id !== item._id)
+        : prev.length >= 4
+          ? prev
+          : [...prev, item],
+    );
     setInputSelect(true);
     setLocation('');
   };
@@ -576,14 +581,14 @@ const CreateOrganisationDetailsPageThree = () => {
 
   const toggleInputSelect = () => {
     setFilteredLocations(gridLocationsData);
-    inputSelect ? setInputSelect(false) : setInputSelect(true);
+    setInputSelect(!inputSelect);
   };
 
   useEffect(() => {
     if (gridLocationsData && gridLocationsData.length < 1) {
       dispatch(getSitesSummary());
     }
-  }, [gridLocationsData]);
+  }, [gridLocationsData, dispatch]);
 
   return (
     <div className="relative h-[600px] w-full">
@@ -649,7 +654,7 @@ const CreateOrganisationDetailsPageThree = () => {
                 </div>
               )}
               <div className="mt-1 flex space-x-1 text-xs text-grey-350">
-                <InfoCircle />
+                <AqInfoCircle />
                 <span>Select any 4 locations</span>
               </div>
             </div>

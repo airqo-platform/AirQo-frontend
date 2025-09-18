@@ -17,11 +17,16 @@ class SlackLoggyPrinter extends LoggyPrinter {
     
     switch (record.level) {
       case LogLevel.error:
-        SlackLogger().logError(
-          message,
-          error: record.error,
-          stackTrace: record.stackTrace,
-        );
+        try {
+          SlackLogger().logError(
+            message,
+            error: record.error,
+            stackTrace: record.stackTrace,
+          );
+        } catch (e) {
+          // Prevent infinite loops - don't use logError here
+          print('SlackLoggerError: Failed to send error to Slack: $e');
+        }
         break;
         
       case LogLevel.warning:

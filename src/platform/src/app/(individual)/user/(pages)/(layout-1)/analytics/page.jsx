@@ -10,7 +10,7 @@ import {
   AnalyticsControls,
   AnalyticsChartsGrid,
 } from '@/features/analytics-overview';
-import AlertBox from '@/components/AlertBox';
+import AlertBox from '@/common/components/AlertBox';
 import { useOutsideClick } from '@/core/hooks';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
 

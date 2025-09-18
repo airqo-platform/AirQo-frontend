@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
+import logger from '@/lib/logger';
 
 // Constants
 const DEFAULT_THEME = {
@@ -66,7 +67,7 @@ const useThemeInitialization = () => {
         return JSON.parse(storedTheme);
       }
     } catch (error) {
-      console.error('Error parsing cached theme:', error);
+      logger.error('Error parsing cached theme:', error);
     }
 
     return null;
@@ -90,12 +91,12 @@ const useThemeInitialization = () => {
 
         // Debug logging in development
         if (process.env.NODE_ENV === 'development') {
-          console.log('Theme applied successfully:', themeToApply);
+          logger.debug('Theme applied successfully:', themeToApply);
         }
 
         return true;
       } catch (error) {
-        console.error('Error applying theme to UI:', error);
+        logger.error('Error applying theme to UI:', error);
         return false;
       }
     },
@@ -174,7 +175,7 @@ const useThemeInitialization = () => {
       safeSetState(setIsThemeApplied, true);
 
       if (process.env.NODE_ENV === 'development') {
-        console.warn('Theme initialization timed out');
+        logger.warn('Theme initialization timed out');
       }
     }, RETRY_CONFIG.timeoutMs);
   }, [checkAndApplyCachedTheme, clearTimers, safeSetState]);

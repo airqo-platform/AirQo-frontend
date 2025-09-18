@@ -3,7 +3,6 @@ import { format } from 'date-fns';
 import PropTypes from 'prop-types';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import Button from '@/common/components/Button';
-import LoadingSpinner from '@/common/components/LoadingSpinner';
 import {
   AqEye,
   AqDownload02,
@@ -15,6 +14,7 @@ import {
 } from '@airqo/icons-react';
 import SelectionMessage from '../../components/SelectionMessage';
 import { AVAILABLE_COLUMNS } from '../hooks/useDataPreview';
+import { AqLoading02 } from '@airqo/icons-react';
 
 /* -----------------------------
    Safe Date Formatters
@@ -189,7 +189,7 @@ const DataPreviewDialog = ({
         showFooter={false}
       >
         <div className="flex flex-col items-center justify-center py-16">
-          <LoadingSpinner size={32} text="Preparing your data preview..." />
+          <AqLoading02 className="animate-spin text-gray-500" size={40} />
         </div>
       </ReusableDialog>
     );

@@ -28,8 +28,8 @@ import {
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
-import LoadingSpinner from '@/components/LoadingSpinner';
-import OrganizationNotFound from '@/components/Organization/OrganizationNotFound';
+import LoadingSpinner from '@/common/components/LoadingSpinner';
+import OrganizationNotFound from '@/common/components/Organization/OrganizationNotFound';
 import OrganizationSwitchLoader from '@/common/components/Organization/OrganizationSwitchLoader';
 import logger from '@/lib/logger';
 
@@ -56,6 +56,19 @@ const findGroupBySlug = (groups, slug) =>
       (g.organization_slug || g.grp_slug || titleToSlug(g.grp_title)) === slug
     );
   });
+
+// Calculate retry delay with exponential backoff
+const calculateRetryDelay = (retryCount) => {
+  const backoffDelays = [1000, 2000, 4000, 8000, 16000, 300000];
+  return backoffDelays[Math.min(retryCount, backoffDelays.length - 1)];
+};
+
+// Safe error message extraction
+const extractErrorMessage = (error) => {
+  if (typeof error?.message === 'string') return error.message;
+  if (error == null) return 'Unknown error occurred';
+  return String(error);
+};
 
 // --- Reducer ---
 const initialState = {
@@ -130,40 +143,137 @@ export function UnifiedGroupProvider({ children }) {
   const router = useRouter();
 
   const activeGroup = useSelector(selectActiveGroup);
-  const userGroups = useSelector(selectUserGroups);
+  const _rawUserGroups = useSelector(selectUserGroups);
+
+  // Stable memoized values to prevent unnecessary re-renders
+  const userGroups = useMemo(() => {
+    // Defensive check - ensure we always have an array
+    if (Array.isArray(_rawUserGroups)) {
+      return _rawUserGroups;
+    }
+    // Handle case where userGroups might be undefined or null during SSR
+    if (_rawUserGroups === undefined || _rawUserGroups === null) {
+      return [];
+    }
+    // Log warning for debugging - userGroups should always be an array from Redux initial state
+    if (process.env.NODE_ENV === 'development') {
+      logger.warn(
+        'UnifiedGroupProvider: _rawUserGroups is not an array:',
+        _rawUserGroups,
+      );
+    }
+    // Fallback to empty array
+    return [];
+  }, [_rawUserGroups]);
+
+  const userGroupsLength = useMemo(() => {
+    // Extra safety check to prevent length access on undefined
+    return Array.isArray(userGroups) ? userGroups.length : 0;
+  }, [userGroups]);
+
+  // Refs for async operations - initialize properly with safe defaults
   const lock = useRef(false);
+  // keep abortRef as a flat ref to the AbortController (avoid wrapper object)
   const abortRef = useRef(null);
   const requestCacheRef = useRef(new Map());
   const retryTimerRef = useRef(null);
+  const initializedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const prevOrgSlugRef = useRef(null);
+
+  // Cleanup function to prevent memory leaks
+  const cleanup = useCallback(() => {
+    try {
+      // Clear all timers
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
+
+      // Abort any pending requests
+      if (abortRef.current && typeof abortRef.current.abort === 'function') {
+        abortRef.current.abort();
+        abortRef.current = null;
+      }
+
+      // Clear request cache
+      if (
+        requestCacheRef.current &&
+        typeof requestCacheRef.current.clear === 'function'
+      ) {
+        requestCacheRef.current.clear();
+      }
+
+      // Release locks
+      lock.current = false;
+    } catch (error) {
+      logger.error('Cleanup error:', error);
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      try {
+        cleanup();
+      } catch (e) {
+        logger.error('Cleanup error:', e);
+      }
+    };
+  }, [cleanup]);
 
   const organizationSlug = useMemo(() => extractOrgSlug(pathname), [pathname]);
   const isOrganizationContext = Boolean(organizationSlug);
 
-  // --- Core Logic ---
+  // --- Core Logic (moved to useCallback to prevent recreations) ---
   const refreshGroups = useCallback(
     async (force = false) => {
+      // Prevent concurrent executions and invalid states
       if (
+        !mountedRef.current ||
         sessionStatus !== 'authenticated' ||
         !session?.user?.id ||
         (!force && state.isLoading) ||
         lock.current
-      )
+      ) {
         return;
+      }
 
       lock.current = true;
-      dispatch({ type: 'SET_GROUPS_LOADING', payload: true });
 
       try {
-        if (!userGroups.length || force) {
+        if (!mountedRef.current) return;
+        dispatch({ type: 'SET_GROUPS_LOADING', payload: true });
+
+        // Always fetch if userGroups is empty or force is true
+        if (userGroupsLength === 0 || force) {
           await rdxDispatch(fetchUserGroups(session.user.id)).unwrap();
         }
+
+        if (!mountedRef.current) return;
         dispatch({ type: 'SET_GROUPS_LOADING', payload: false });
       } catch (error) {
-        logger.error('refreshGroups error:', error);
-        dispatch({ type: 'SET_GROUPS_ERROR', payload: error.message });
+        if (!mountedRef.current) return;
 
-        if (error?.status === 401 || error?.message?.includes?.('401')) {
-          signOut({ callbackUrl: '/user/login' }).catch(logger.error);
+        logger.error('refreshGroups error:', error);
+
+        // Safe error handling - defer state updates
+        const safeMessage = extractErrorMessage(error);
+        dispatch({ type: 'SET_GROUPS_ERROR', payload: safeMessage });
+
+        // Handle auth errors asynchronously
+        const status = error?.response?.status ?? error?.status;
+        const isAuthError = status === 401 || safeMessage.includes('401');
+        if (isAuthError && typeof signOut === 'function') {
+          // Use setTimeout to avoid setState during render
+          setTimeout(() => {
+            if (mountedRef.current) {
+              signOut({ callbackUrl: '/user/login' }).catch((e) =>
+                logger.error('signOut failed', e),
+              );
+            }
+          }, 0);
         }
       } finally {
         lock.current = false;
@@ -173,7 +283,7 @@ export function UnifiedGroupProvider({ children }) {
       rdxDispatch,
       sessionStatus,
       session?.user?.id,
-      userGroups.length,
+      userGroupsLength,
       state.isLoading,
     ],
   );
@@ -181,12 +291,31 @@ export function UnifiedGroupProvider({ children }) {
   const setActiveGroupAtomic = useCallback(
     (group, reason) => {
       if (!group || lock.current) return;
-      logger.debug('setActiveGroupAtomic', { group: group.grp_title, reason });
+
+      // Defensive: grp_title might be missing during hot-reload or malformed data
+      const groupTitleForLog =
+        group?.grp_title ?? group?._id ?? 'unknown-group';
+      logger.debug('setActiveGroupAtomic', { group: groupTitleForLog, reason });
       lock.current = true;
-      rdxDispatch(setActiveGroupAction(group));
-      rdxDispatch(setOrganizationName(group.grp_title));
-      dispatch({ type: 'SET_INITIAL_GROUP_SET' });
-      lock.current = false;
+
+      try {
+        // Defer Redux dispatch to avoid setState during render
+        const performUpdate = () => {
+          if (mountedRef.current) {
+            rdxDispatch(setActiveGroupAction(group));
+            rdxDispatch(setOrganizationName(group?.grp_title || ''));
+            // mark initial group set safely
+            if (mountedRef.current) {
+              dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+            }
+          }
+        };
+
+        // Use requestAnimationFrame for non-blocking state updates
+        requestAnimationFrame(performUpdate);
+      } finally {
+        lock.current = false;
+      }
     },
     [rdxDispatch],
   );
@@ -194,14 +323,16 @@ export function UnifiedGroupProvider({ children }) {
   const switchToGroup = useCallback(
     async (target, opts = {}) => {
       const { navigate = true } = opts;
+
       if (
         !target ||
         !session?.user?.id ||
         state.isSwitching ||
         lock.current ||
         activeGroup?._id === target._id
-      )
-        return { success: false, error: 'Invalid or duplicate' };
+      ) {
+        return { success: false, error: 'Invalid or duplicate switch' };
+      }
 
       lock.current = true;
       dispatch({ type: 'SET_SWITCHING', payload: true });
@@ -209,36 +340,21 @@ export function UnifiedGroupProvider({ children }) {
       try {
         const isAirQo = isAirQoGroup(target);
 
+        // Update Redux store
         rdxDispatch(setActiveGroupAction(target));
-        rdxDispatch(setOrganizationName(target.grp_title));
+        rdxDispatch(setOrganizationName(target?.grp_title || ''));
         rdxDispatch(setChartSites([]));
         if (!isAirQo) rdxDispatch(resetChartStore());
 
-        // Calculate target route outside of navigate condition
         const targetRoute = groupRoute(target);
 
-        if (navigate) {
-          // Force navigation to ensure proper layout loading
-          const currentPath = pathname;
-
-          // Only navigate if we're actually changing routes
-          if (currentPath !== targetRoute) {
-            // Add a delay to allow UI to update before navigation
-            await new Promise((resolve) => setTimeout(resolve, 150));
-            router.push(targetRoute);
-            // Don't clear loading immediately - let route change effect handle it
-          } else {
-            // Same route, just clear switching state
-            lock.current = false;
-            dispatch({ type: 'SET_SWITCHING', payload: false });
-          }
-        } else {
-          // If not navigating, clear switching state immediately
-          lock.current = false;
-          dispatch({ type: 'SET_SWITCHING', payload: false });
+        if (navigate && pathname !== targetRoute) {
+          // Use immediate navigation with replace for smoother transition
+          router.replace(targetRoute);
         }
 
-        await rdxDispatch(
+        // Update user preferences asynchronously without blocking UI
+        rdxDispatch(
           replaceUserPreferences({
             user_id: session.user.id,
             group_id: target._id,
@@ -249,12 +365,17 @@ export function UnifiedGroupProvider({ children }) {
           await rdxDispatch(fetchGroupDetails(target._id));
         }
 
+        // Clear switching state after a short delay to allow navigation to complete
+        setTimeout(() => {
+          dispatch({ type: 'SET_SWITCHING', payload: false });
+        }, 300);
+
         return { success: true, targetRoute };
       } catch (error) {
         logger.error('switchToGroup error:', error);
+        return { success: false, error: extractErrorMessage(error) };
+      } finally {
         lock.current = false;
-        dispatch({ type: 'SET_SWITCHING', payload: false });
-        return { success: false, error: error.message };
       }
     },
     [
@@ -281,39 +402,58 @@ export function UnifiedGroupProvider({ children }) {
     [userGroups],
   );
 
-  // --- Effects ---
+  // --- Effects (properly structured to avoid setState during render) ---
+
+  // Initialize groups
   useEffect(() => {
     if (
       sessionStatus === 'authenticated' &&
       session?.user?.id &&
-      !userGroups.length
+      userGroupsLength === 0 &&
+      !initializedRef.current &&
+      !state.isLoading
     ) {
+      initializedRef.current = true;
       refreshGroups();
     }
-  }, [sessionStatus, session?.user?.id, userGroups.length, refreshGroups]);
+  }, [
+    sessionStatus,
+    session?.user?.id,
+    userGroupsLength,
+    refreshGroups,
+    state.isLoading,
+  ]);
 
+  // Set initial active group
   useEffect(() => {
-    if (!userGroups.length || state.initialGroupSet || lock.current) return;
+    if (userGroupsLength === 0 || state.initialGroupSet || lock.current) return;
 
     let target = null;
+
     if (isOrganizationContext && organizationSlug) {
       target = findGroupBySlug(userGroups, organizationSlug);
     } else if (session?.user?.activeGroup) {
       target = userGroups.find((g) => g._id === session.user.activeGroup._id);
     }
 
-    if (!target) target = userGroups.find(isAirQoGroup) ?? userGroups[0];
-    if (target) setActiveGroupAtomic(target, 'auto');
+    if (!target && Array.isArray(userGroups) && userGroups.length > 0) {
+      target = userGroups.find(isAirQoGroup) ?? userGroups[0];
+    }
+
+    if (target) {
+      setActiveGroupAtomic(target, 'auto-initialization');
+    }
   }, [
-    userGroups,
+    userGroupsLength,
+    state.initialGroupSet,
     organizationSlug,
     isOrganizationContext,
     session?.user?.activeGroup,
-    state.initialGroupSet,
+    userGroups,
     setActiveGroupAtomic,
   ]);
 
-  // Organization data fetching with rate limiting protection
+  // Organization data fetching
   useEffect(() => {
     if (!isOrganizationContext || !organizationSlug) {
       if (state.organization || state.organizationLoading) {
@@ -322,58 +462,63 @@ export function UnifiedGroupProvider({ children }) {
       return;
     }
 
+    // Clear when slug actually changes to prevent stale UI/theme
+    if (prevOrgSlugRef.current !== organizationSlug) {
+      dispatch({ type: 'CLEAR_ORG_DATA' });
+      prevOrgSlugRef.current = organizationSlug;
+    }
+
+    const debounceMs = 200;
     const currentCache = requestCacheRef.current;
-
-    // Rate limiting logic - check if we should wait before making another request
-    const timeSinceLastFailure = state.organizationLastFailedAt
-      ? Date.now() - state.organizationLastFailedAt
-      : Infinity;
-
-    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, then 5 minutes
-    const backoffDelays = [1000, 2000, 4000, 8000, 16000, 300000];
-    const currentBackoff =
-      backoffDelays[
-        Math.min(state.organizationRetryCount, backoffDelays.length - 1)
-      ];
-
-    if (
-      state.organizationRetryCount > 0 &&
-      timeSinceLastFailure < currentBackoff
-    ) {
-      logger.warn(
-        `Rate limiting: waiting ${currentBackoff - timeSinceLastFailure}ms before retry`,
-        {
-          organizationSlug,
-          retryCount: state.organizationRetryCount,
-          timeSinceLastFailure,
-          currentBackoff,
-        },
-      );
-      return;
-    }
-
-    // Check cache for pending requests (deduplication)
     const cacheKey = organizationSlug;
-    if (currentCache.has(cacheKey)) {
-      logger.info(`Deduplicating request for ${organizationSlug}`);
-      return;
-    }
 
-    // Abort previous request
-    abortRef.current?.abort?.();
-    abortRef.current = new AbortController();
-    const { signal } = abortRef.current;
+    // Declare controller outside the timeout so cleanup can access it
+    let controllerForThisEffect = null;
 
-    // Add to cache to prevent duplicate requests
-    currentCache.set(cacheKey, true);
+    const timer = setTimeout(async () => {
+      if (!mountedRef.current) return;
 
-    dispatch({ type: 'SET_ORG_LOADING' });
+      // Rate limiting check
+      const timeSinceLastFailure = state.organizationLastFailedAt
+        ? Date.now() - state.organizationLastFailedAt
+        : Infinity;
+      const currentBackoff = calculateRetryDelay(state.organizationRetryCount);
 
-    getOrganizationBySlugApi(organizationSlug, { signal })
-      .then((res) => {
-        if (signal.aborted) return;
+      if (
+        state.organizationRetryCount > 0 &&
+        timeSinceLastFailure < currentBackoff
+      ) {
+        logger.warn(
+          `Rate limiting: waiting ${currentBackoff - timeSinceLastFailure}ms before retry`,
+          { organizationSlug, retryCount: state.organizationRetryCount },
+        );
+        return;
+      }
 
-        // Clear from cache on completion
+      // Deduplication check
+      if (currentCache.has(cacheKey)) {
+        logger.info(`Deduplicating request for ${organizationSlug}`);
+        return;
+      }
+
+      // Abort previous request (safe flat ref usage)
+      abortRef.current?.abort();
+      abortRef.current = new AbortController();
+      controllerForThisEffect = abortRef.current;
+      const { signal } = controllerForThisEffect;
+
+      currentCache.set(cacheKey, true);
+
+      if (!mountedRef.current) return;
+      dispatch({ type: 'SET_ORG_LOADING' });
+
+      try {
+        const res = await getOrganizationBySlugApi(organizationSlug, {
+          signal,
+        });
+
+        if (signal.aborted || !mountedRef.current) return;
+
         currentCache.delete(cacheKey);
 
         const org = res.success ? res.data : null;
@@ -396,67 +541,62 @@ export function UnifiedGroupProvider({ children }) {
             now: Date.now(),
           },
         });
-      })
-      .catch((error) => {
-        if (!signal.aborted) {
-          // Clear from cache on error
-          currentCache.delete(cacheKey);
+      } catch (error) {
+        if (signal.aborted || !mountedRef.current) return;
 
-          // Check if it's a rate limiting error
-          const isRateLimited =
-            error.response?.status === 429 ||
-            error.message?.includes('rate limit') ||
-            error.message?.includes('Too many requests');
+        currentCache.delete(cacheKey);
 
-          if (isRateLimited) {
-            logger.error('Rate limited by server:', {
-              organizationSlug,
-              retryCount: state.organizationRetryCount,
-              error: error.message,
-            });
-          } else {
-            logger.error('Organization fetch error:', error);
+        const isRateLimited =
+          error.response?.status === 429 ||
+          error.message?.includes('rate limit') ||
+          error.message?.includes('Too many requests');
+
+        const errorMessage = isRateLimited
+          ? 'Too many requests. Please wait.'
+          : extractErrorMessage(error);
+
+        dispatch({
+          type: 'SET_ORG_DATA',
+          payload: {
+            error: errorMessage,
+            org: null,
+            theme: null,
+            now: Date.now(),
+          },
+        });
+
+        // Set up retry timer for rate-limited requests
+        if (isRateLimited && mountedRef.current) {
+          if (retryTimerRef.current) {
+            clearTimeout(retryTimerRef.current);
           }
 
-          dispatch({
-            type: 'SET_ORG_DATA',
-            payload: {
-              error: isRateLimited
-                ? 'Too many requests. Please wait.'
-                : error.message,
-              org: null,
-              theme: null,
-              now: Date.now(),
-            },
-          });
-
-          // Set up retry timer for rate-limited requests
-          if (isRateLimited) {
-            // Clear any existing retry timer
-            if (retryTimerRef.current) {
-              clearTimeout(retryTimerRef.current);
-            }
-
-            // Calculate next retry delay
-            const retryDelay = calculateRetryDelay(
-              state.organizationRetryCount + 1,
-            );
-
-            // Set timer to trigger retry
-            retryTimerRef.current = setTimeout(() => {
+          const retryDelay = calculateRetryDelay(
+            state.organizationRetryCount + 1,
+          );
+          retryTimerRef.current = setTimeout(() => {
+            if (mountedRef.current) {
               dispatch({ type: 'ORG_RETRY_TICK' });
-            }, retryDelay);
-          }
+            }
+          }, retryDelay);
         }
-      });
+
+        logger.error('Organization fetch error:', error);
+      }
+    }, debounceMs);
 
     return () => {
-      abortRef.current?.abort?.(); // Cleanup on unmount/change
-      currentCache.delete(cacheKey);
-      // Clear retry timer on cleanup
-      if (retryTimerRef.current) {
-        clearTimeout(retryTimerRef.current);
-        retryTimerRef.current = null;
+      try {
+        clearTimeout(timer);
+        // Abort only the controller created by this effect run
+        controllerForThisEffect?.abort();
+        currentCache.delete(cacheKey);
+        if (retryTimerRef.current) {
+          clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
+        }
+      } catch (e) {
+        logger.error('Inner-effect cleanup error:', e);
       }
     };
   }, [
@@ -464,25 +604,26 @@ export function UnifiedGroupProvider({ children }) {
     isOrganizationContext,
     state.organizationRetryCount,
     state.organizationLastFailedAt,
-    state.organizationRetryNonce,
     state.organization,
     state.organizationLoading,
+    state.organizationRetryNonce,
   ]);
 
-  // Clear switching state when route changes (organization switch complete)
+  // Clear switching state when route changes
   useEffect(() => {
     if (state.isSwitching) {
-      // Use setTimeout to ensure route change is complete
+      // Use a shorter timeout for better UX
       const timer = setTimeout(() => {
-        lock.current = false;
-        dispatch({ type: 'SET_SWITCHING', payload: false });
-      }, 1000); // Longer delay to ensure complete transition and avoid loader conflicts
+        if (mountedRef.current) {
+          dispatch({ type: 'SET_SWITCHING', payload: false });
+        }
+      }, 500);
 
       return () => clearTimeout(timer);
     }
   }, [pathname, state.isSwitching]);
 
-  // --- Render ---
+  // --- Context Value ---
   const value = useMemo(
     () => ({
       ...state,
@@ -493,7 +634,9 @@ export function UnifiedGroupProvider({ children }) {
       refreshGroups,
       isOrganizationContext,
       organizationSlug,
-      isAdminContext: pathname?.startsWith?.('/admin'),
+      // pathname may be null during some Next.js transitions; guard startsWith
+      isAdminContext:
+        typeof pathname === 'string' ? pathname.startsWith('/admin') : false,
       getGroupRoute: groupRoute,
       canSwitchToGroup,
       primaryColor:
@@ -528,17 +671,18 @@ export function UnifiedGroupProvider({ children }) {
     state.organizationTheme?.primaryColor &&
     state.organizationTheme?.secondaryColor &&
     state.organizationTheme?.logo;
+
   const showLoader =
     isOrganizationContext &&
-    !state.isSwitching && // Don't show loader if switching (switching loader has priority)
+    !state.isSwitching &&
     (state.organizationLoading ||
       (!themeComplete && !state.organizationError && state.organization));
 
-  // Show organization switch loader when switching groups (highest priority)
+  // Organization switch loader (highest priority)
   if (state.isSwitching && activeGroup) {
     return (
       <OrganizationSwitchLoader
-        organizationName={activeGroup.grp_title || 'Organization'}
+        organizationName={activeGroup?.grp_title || 'Organization'}
         primaryColor={
           state.organizationTheme?.primaryColor ||
           state.organization?.primaryColor ||
@@ -548,7 +692,7 @@ export function UnifiedGroupProvider({ children }) {
     );
   }
 
-  // Show organization data loader when not switching
+  // Organization data loader
   if (showLoader) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -557,6 +701,7 @@ export function UnifiedGroupProvider({ children }) {
     );
   }
 
+  // Organization not found
   if (
     isOrganizationContext &&
     state.organizationInitialized &&
@@ -581,15 +726,32 @@ export const useUnifiedGroup = () => {
 
 // Legacy hooks (unchanged API)
 export const useGetActiveGroup = () => {
-  const { activeGroup, userGroups, isLoading, error } = useUnifiedGroup();
+  const context = useContext(ctx);
   const { data: session } = useSession();
+
+  // Handle context not being available
+  if (!context) {
+    logger.error('useGetActiveGroup: Provider not available');
+    return {
+      loading: false,
+      error: 'Provider not available',
+      id: null,
+      title: null,
+      userID: session?.user?.id || null,
+      groupList: [],
+      activeGroup: null,
+    };
+  }
+
+  const { activeGroup, userGroups, isLoading, error } = context;
+
   return {
     loading: isLoading,
     error,
     id: activeGroup?._id || null,
     title: activeGroup?.grp_title || null,
     userID: session?.user?.id || null,
-    groupList: userGroups,
+    groupList: Array.isArray(userGroups) ? userGroups : [],
     activeGroup,
   };
 };

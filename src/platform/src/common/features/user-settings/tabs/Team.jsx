@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import TeamsTable from '../components/Teams/table';
-import Button from '@/components/Button';
-import AddIcon from '@/icons/Actions/plus.svg';
+import Button from '@/common/components/Button';
+import AddIcon from '@/common/components/Icons/Actions/AddIcon';
 import TeamInviteForm from '../components/Teams/InviteForm';
 
 const Team = ({ users, loading }) => {

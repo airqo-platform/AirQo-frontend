@@ -7,9 +7,9 @@ import {
   setGlobalSidebarOpen,
   setGlobalDrawerOpen,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
-import AirqoLogo from '@/icons/airqo_logo.svg';
+import AirqoLogo from '@/common/components/Icons/AirqoLogo';
 import {
   getNavigationItems,
   USER_TYPES,
@@ -54,7 +54,7 @@ const GlobalSideBarDrawer = () => {
     } catch {
       return false;
     }
-  });
+  }, []);
 
   const isGlobalDrawerOpen = useSelector((state) => {
     try {
@@ -62,7 +62,7 @@ const GlobalSideBarDrawer = () => {
     } catch {
       return false;
     }
-  });
+  }, []);
   // Show global sidebar if either desktop or mobile state is open
   const togglingGlobalDrawer = isGlobalSidebarOpen || isGlobalDrawerOpen;
 
@@ -119,7 +119,7 @@ const GlobalSideBarDrawer = () => {
         closeDrawer();
       }
     },
-    [closeDrawer],
+    [closeDrawer, router],
   );
 
   // Enhanced admin panel subroutes with better caching and error handling
@@ -245,7 +245,7 @@ const GlobalSideBarDrawer = () => {
               <SideBarItem
                 label="Admin Panel"
                 Icon={MdAdminPanelSettings}
-                navPath="/admin"
+                navPath="#"
                 onClick={closeDrawer}
                 subroutes={adminSubroutes}
                 onSubrouteClick={handleSubrouteClick}

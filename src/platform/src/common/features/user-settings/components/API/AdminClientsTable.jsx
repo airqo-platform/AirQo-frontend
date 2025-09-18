@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import ReusableTable from '@/common/components/Table/ReusableTable';
-import { AqXClose, AqCheckDone01 } from '@airqo/icons-react';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import { AqX, AqCheck } from '@airqo/icons-react';
+import NotificationService from '@/core/utils/notificationService';
 import ReusableDialog from '@/common/components/Modal/ReusableDialog';
 import {
   getAllUserClientsApi,
@@ -34,7 +34,7 @@ const AdminClientsTable = () => {
           setClients(normalized);
         }
       } catch {
-        CustomToast({ type: 'error', message: 'Failed to fetch clients' });
+        NotificationService.error(500, 'Failed to fetch clients');
       } finally {
         setIsLoading(false);
       }
@@ -43,7 +43,15 @@ const AdminClientsTable = () => {
   }, [refresh, my_clients]);
 
   // Notification helper
-  const notify = (message, type) => CustomToast({ type, message });
+  const notify = (message, type) => {
+    if (type === 'success') {
+      NotificationService.success(200, message);
+    } else if (type === 'error') {
+      NotificationService.error(500, message);
+    } else {
+      NotificationService.showNotification(200, message);
+    }
+  };
 
   // Activate client
   const handleActivate = async () => {
@@ -144,7 +152,7 @@ const AdminClientsTable = () => {
             disabled={client.isActive}
             type="button"
           >
-            <AqCheckDone01 />
+            <AqCheck className="w-4 h-4" />
           </button>
           <button
             className={`w-9 h-9 p-2.5 bg-white dark:bg-gray-900 rounded border border-gray-200 dark:border-gray-700 flex justify-center items-center ${client.isActive ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
@@ -162,7 +170,7 @@ const AdminClientsTable = () => {
             disabled={!client.isActive}
             type="button"
           >
-            <AqXClose />
+            <AqX className="w-4 h-4" />
           </button>
         </div>
       ),
@@ -201,7 +209,7 @@ const AdminClientsTable = () => {
         pageSizeOptions={[8, 16, 32, 64]}
         loading={isLoading}
         headerComponent={
-          <div className="px-3 py-4 border-b border-gray-200 dark:border-gray-800">
+          <div className="px-3 py-4 w-full border-b border-gray-200 dark:border-gray-800">
             <h3 className="text-gray-710 dark:text-white font-medium text-lg">
               Clients Activation Manager
             </h3>

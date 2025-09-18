@@ -1,10 +1,6 @@
 import '../styles/globals.css';
 import PropTypes from 'prop-types';
 import ClientProviders from './providers/ClientProviders';
-import { Inter } from 'next/font/google';
-import Script from 'next/script';
-
-const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
   title: 'AirQo Analytics',
@@ -18,7 +14,7 @@ export const metadata = {
 // This is the root layout for the App Router
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={inter.className}>
+    <html lang="en" suppressHydrationWarning={true}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
@@ -31,12 +27,8 @@ export default function RootLayout({ children }) {
           rel="stylesheet"
         />
       </head>
-      <body className="bg-background">
-        <ClientProviders>{children}</ClientProviders>{' '}
-        <Script
-          src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places&loading=async`}
-          strategy="afterInteractive"
-        />
+      <body className="bg-background" suppressHydrationWarning={true}>
+        <ClientProviders>{children}</ClientProviders>
       </body>
     </html>
   );

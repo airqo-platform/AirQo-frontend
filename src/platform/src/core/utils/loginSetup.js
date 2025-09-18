@@ -112,11 +112,26 @@ export const setupUserSession = async (
       throw new Error('User not found');
     }
 
-    if (!user.groups?.length) {
+    // Prefer `groups` from the user details response but fall back to `my_groups`
+    // to handle older/alternate API shapes. Normalize onto `user.groups` so
+    // downstream logic remains unchanged.
+    const groupsFromResponse =
+      Array.isArray(user.groups) && user.groups.length
+        ? user.groups
+        : Array.isArray(user.my_groups) && user.my_groups.length
+          ? user.my_groups
+          : [];
+
+    if (groupsFromResponse.length === 0) {
       throw new Error(
         'Server error. Contact support to add you to an organization',
       );
-    } // Step 2: Skip fetching user preferences for group selection
+    }
+
+    // Normalize for the rest of the login flow which expects `user.groups`
+    user.groups = groupsFromResponse;
+
+    // Step 2: Skip fetching user preferences for group selection
     // We no longer use previous group preferences to avoid conflicts
     // Group selection is now purely based on login context (individual vs organization)
 
@@ -152,6 +167,15 @@ export const setupUserSession = async (
     // Note: Only apply this when pathname is explicitly "/" not when undefined/empty during session setup
     const isRootPageRedirect = pathname === '/';
 
+    // NEW: Check if we're on a protected route that should NOT be redirected
+    const isProtectedRoute =
+      typeof pathname === 'string' &&
+      (pathname.startsWith('/user/analytics') ||
+        pathname.startsWith('/user/data-export') ||
+        pathname.startsWith('/user/profile') ||
+        pathname.startsWith('/user/settings') ||
+        pathname.startsWith('/user/map'));
+
     if (isRootPageRedirect) {
       // Force user flow with AirQo group for root page access
       const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
@@ -181,6 +205,25 @@ export const setupUserSession = async (
         );
       }
       redirectPath = '/user/Home';
+    } else if (isProtectedRoute && !isDomainUpdate) {
+      // For protected routes (analytics, data-export, etc.), set up user session
+      // but don't override the current path to prevent redirect loops
+      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
+      if (airqoGroup) {
+        activeGroup = airqoGroup;
+        logger.info(
+          'Protected route: Setting AirQo as active group without redirect',
+          {
+            groupId: airqoGroup._id,
+            groupName: airqoGroup.grp_title || airqoGroup.grp_name,
+            loginContext: 'protected_route',
+            pathname,
+          },
+        );
+      } else {
+        activeGroup = user.groups[0];
+      }
+      redirectPath = null; // Don't redirect, stay on current protected route
     } else if (typeof pathname === 'string' && pathname.startsWith('/admin')) {
       // ADMIN ROUTES: Set AirQo group and stay on current admin path
       logger.info('Admin route detected, setting up admin session...');
@@ -199,7 +242,7 @@ export const setupUserSession = async (
 
       // Don't set redirectPath for admin routes - let them stay on the current path
       redirectPath = null;
-    } else if (pathname.includes('/org/')) {
+    } else if (typeof pathname === 'string' && pathname.includes('/org/')) {
       // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
       const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
       if (currentOrgSlug) {

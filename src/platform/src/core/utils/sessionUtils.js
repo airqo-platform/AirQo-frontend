@@ -28,7 +28,7 @@ export const ROUTE_TYPES = {
  * @returns {string} The route type
  */
 export const getRouteType = (pathname) => {
-  if (!pathname) return ROUTE_TYPES.PUBLIC;
+  if (!pathname || typeof pathname !== 'string') return ROUTE_TYPES.PUBLIC;
 
   // Auth routes (check FIRST before organization routes)
   if (
@@ -70,6 +70,7 @@ export const getRouteType = (pathname) => {
  * @returns {string|null} The organization slug or null
  */
 export const extractOrgSlug = (pathname) => {
+  if (!pathname || typeof pathname !== 'string') return null;
   const orgMatch = pathname.match(/^\/org\/([^/]+)/);
   return orgMatch ? orgMatch[1] : null;
 };
@@ -248,10 +249,24 @@ export const validateServerSession = async (request) => {
     const routeType = getRouteType(pathname);
 
     // Get token from middleware context
-    const token = await getToken({
-      req: request,
-      secret: getNextAuthSecret(),
-    });
+    let token;
+    try {
+      token = await getToken({
+        req: request,
+        secret: getNextAuthSecret(),
+      });
+    } catch (err) {
+      // Handle decryption / JWE failures gracefully
+      logger.error('getToken failed during server session validation:', err);
+
+      // If the token cannot be decrypted (e.g., NEXTAUTH_SECRET mismatch or rotated),
+      // return an invalid session result so the user is redirected to login.
+      return {
+        isValid: false,
+        redirectPath: '/user/login',
+        reason: 'Session invalid or expired (decryption failed)',
+      };
+    }
 
     const orgSlug = extractOrgSlug(pathname);
 

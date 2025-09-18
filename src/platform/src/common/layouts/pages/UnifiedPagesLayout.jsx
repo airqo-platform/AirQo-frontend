@@ -7,7 +7,7 @@ import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar'
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import { UnifiedSideBarDrawer, UnifiedSidebarContent } from '../SideBar';
-import MaintenanceBanner from '@/components/MaintenanceBanner';
+import MaintenanceBanner from '@/common/components/MaintenanceBanner';
 import Footer from '@/common/layouts/components/Footer';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
@@ -22,7 +22,7 @@ import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/theme
 import { LAYOUT_CONFIGS, DEFAULT_CONFIGS } from '../layoutConfigs';
 import { motion } from 'framer-motion';
 import { useSession } from 'next-auth/react';
-import { useTour } from '@/features/tours/contexts/TourProvider';
+import { useTour } from '@/common/features/tours/contexts/TourProvider';
 import MobileBottomNavigation from '../components/MobileBottomNavigation';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import { getMobileNavigationItems } from '../SideBar/sidebarConfig';

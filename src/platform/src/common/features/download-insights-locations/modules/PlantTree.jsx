@@ -48,7 +48,7 @@ const PlantTree = ({ onClose }) => {
   const handleSubmit = useCallback(() => {
     // const _finalAmount = getFinalAmount();
     // Submit donation logic would go here
-  }, [selectedAmount, customAmount]);
+  }, []);
 
   const handleClearSelection = useCallback(() => {
     setSelectedAmount('$10');

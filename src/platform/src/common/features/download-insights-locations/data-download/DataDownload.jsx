@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import { AqGlobe05, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import logger from '@/lib/logger';
 
 import {
   DATA_TYPE_OPTIONS,
@@ -641,12 +642,12 @@ const DataDownload = ({
             // Debug logging to track the data mapping issue
             if (process.env.NODE_ENV === 'development') {
               // eslint-disable-next-line no-console
-              console.log(
+              logger.debug(
                 'Grid API returned site IDs:',
                 siteAndDeviceIds.site_ids.length,
               );
               // eslint-disable-next-line no-console
-              console.log(
+              logger.debug(
                 'Available sites for mapping:',
                 availableSites.length,
               );
@@ -667,12 +668,12 @@ const DataDownload = ({
                 siteAndDeviceIds.site_ids.length - visualizationData.length;
               if (unmappedCount > 0) {
                 // eslint-disable-next-line no-console
-                console.warn(
+                logger.warn(
                   `Could not map ${unmappedCount} site IDs to site objects. This may indicate sites from different organizations.`,
                 );
               }
               // eslint-disable-next-line no-console
-              console.log(
+              logger.debug(
                 'Successfully mapped sites for visualization:',
                 visualizationData.length,
               );
@@ -834,18 +835,18 @@ const DataDownload = ({
             // Debug logging for development
             if (process.env.NODE_ENV === 'development') {
               // eslint-disable-next-line no-console
-              console.log('Selected devices:', selectedItems.length);
+              logger.debug('Selected devices:', selectedItems.length);
               // eslint-disable-next-line no-console
-              console.log('Device site IDs extracted:', deviceSiteIds);
+              logger.debug('Device site IDs extracted:', deviceSiteIds);
               // eslint-disable-next-line no-console
-              console.log('Unique sites from devices:', uniqueSiteIds.length);
+              logger.debug('Unique sites from devices:', uniqueSiteIds.length);
               // eslint-disable-next-line no-console
-              console.log(
+              logger.debug(
                 'Sites available for visualization:',
                 visualizationData.length,
               );
               // eslint-disable-next-line no-console
-              console.log(
+              logger.debug(
                 'Enhanced visualization data:',
                 visualizationData.map((site) => ({
                   id: site._id,
@@ -896,7 +897,7 @@ const DataDownload = ({
       // Log error for debugging (in development only)
       if (process.env.NODE_ENV === 'development') {
         // eslint-disable-next-line no-console
-        console.error('Error in onViewDataClick:', error);
+        logger.error('Error in onViewDataClick:', error);
       }
 
       if (error.name === 'QuotaExceededError') {

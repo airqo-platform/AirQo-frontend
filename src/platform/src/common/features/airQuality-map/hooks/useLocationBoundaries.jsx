@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import axios from 'axios';
 import { BOUNDARY_URL } from '../constants/mapConstants';
+import logger from '@/lib/logger';
 
 const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
   const zoomHandlerRef = useRef(null);
@@ -17,7 +18,7 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
       try {
         return map.isStyleLoaded() && map.getLayer(layerId);
       } catch (err) {
-        console.error('Error checking layer existence:', err);
+        logger.error('Error checking layer existence:', err);
         return false;
       }
     };
@@ -27,7 +28,7 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
       try {
         return map.isStyleLoaded() && map.getSource(sourceId);
       } catch (err) {
-        console.error('Error checking source existence:', err);
+        logger.error('Error checking source existence:', err);
         return false;
       }
     };
@@ -45,7 +46,7 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
 
         hasLayerRef.current = false;
       } catch (err) {
-        console.error('Error removing boundaries:', err);
+        logger.error('Error removing boundaries:', err);
       }
     };
 
@@ -164,7 +165,7 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
               );
             }
           } catch (err) {
-            console.error('Error in zoom handler:', err);
+            logger.error('Error in zoom handler:', err);
           }
         };
 
@@ -172,7 +173,7 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
         map.on('zoomend', zoomHandler);
       } catch (error) {
         if (!axios.isCancel(error)) {
-          console.error('Boundary fetch error:', error);
+          logger.error('Boundary fetch error:', error);
         }
       } finally {
         setLoading(false);
@@ -205,11 +206,11 @@ const useLocationBoundaries = ({ mapRef, mapData, setLoading }) => {
         activeRequestRef.current.cancel('Component unmounted');
       }
 
-      if (mapRef.current) {
-        mapRef.current.off('styledata', handleStyleData);
+      if (map) {
+        map.off('styledata', handleStyleData);
 
         if (zoomHandlerRef.current) {
-          mapRef.current.off('zoomend', zoomHandlerRef.current);
+          map.off('zoomend', zoomHandlerRef.current);
         }
 
         removeBoundaries();

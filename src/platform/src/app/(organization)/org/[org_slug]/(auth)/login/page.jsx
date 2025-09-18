@@ -10,8 +10,8 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import InputField from '@/common/components/InputField';
-import Toast from '@/components/Toast';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
+import NotificationService from '@/core/utils/notificationService';
 import logger from '@/lib/logger';
 import { formatOrgSlug } from '@/core/utils/strings';
 
@@ -26,7 +26,6 @@ const OrganizationLogin = () => {
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const { getDisplayName, primaryColor } = useOrganization();
@@ -36,7 +35,6 @@ const OrganizationLogin = () => {
     async (e) => {
       e.preventDefault();
       setIsLoading(true);
-      setError('');
 
       // Validate form data
       try {
@@ -49,7 +47,9 @@ const OrganizationLogin = () => {
           .map((err) => err.message)
           .join(', ');
         setIsLoading(false);
-        return setError(messages);
+        // Use status code 422 for validation errors
+        NotificationService.error(422, messages);
+        return;
       }
 
       try {
@@ -62,7 +62,31 @@ const OrganizationLogin = () => {
         });
 
         if (result?.error) {
-          throw new Error(result.error);
+          // Parse the error message to extract status code information
+          let statusCode = 401; // Default to unauthorized
+          let customMessage = null;
+
+          if (
+            result.error.includes('Invalid credentials') ||
+            result.error.includes('Authentication failed') ||
+            result.error.includes('HTTP 401')
+          ) {
+            statusCode = 401;
+            customMessage = null; // Use default status message
+          } else if (
+            result.error.includes('Network Error') ||
+            result.error.includes('fetch') ||
+            result.error.includes('connection')
+          ) {
+            statusCode = 503;
+            customMessage = null; // Use default status message
+          } else {
+            statusCode = 500;
+            customMessage = result.error;
+          }
+
+          NotificationService.error(statusCode, customMessage);
+          return;
         }
 
         if (result?.ok) {
@@ -74,38 +98,22 @@ const OrganizationLogin = () => {
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new window.Event('focus'));
             }
+            NotificationService.success(200, 'Login successful!');
           } else {
-            throw new Error('Session data is incomplete');
+            NotificationService.error(500, 'Session data is incomplete');
+            return;
           }
         } else {
-          throw new Error('Login failed without specific error');
+          NotificationService.error(500, 'Login failed without specific error');
         }
       } catch (err) {
         logger.error('Organization login error:', err);
 
-        let errorMessage = 'Something went wrong, please try again';
-
-        if (err.message) {
-          // Handle specific error messages
-          if (
-            err.message.includes('Invalid credentials') ||
-            err.message.includes('Authentication failed') ||
-            err.message.includes('HTTP 401')
-          ) {
-            errorMessage =
-              'Invalid email or password. Please check your credentials.';
-          } else if (
-            err.message.includes('Network Error') ||
-            err.message.includes('fetch')
-          ) {
-            errorMessage =
-              'Network error. Please check your connection and try again.';
-          } else {
-            errorMessage = err.message;
-          }
-        }
-
-        setError(errorMessage);
+        // Use status-based notification for unexpected errors
+        NotificationService.error(
+          500,
+          err.message || 'Something went wrong, please try again',
+        );
       } finally {
         setIsLoading(false);
       }
@@ -127,7 +135,7 @@ const OrganizationLogin = () => {
         subtitle="Access your organization's air quality analytics dashboard"
       >
         <div className="w-full">
-          {error && <Toast type="error" timeout={8000} message={error} />}
+          {/* Toast notifications now handled globally by CustomToast via NotificationService */}
           <form onSubmit={handleSubmit} noValidate>
             <div className="mt-6">
               <InputField

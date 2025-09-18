@@ -1,16 +1,19 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
-import CustomToast, {
-  TOAST_TYPES,
-} from '@/common/components/Toast/CustomToast';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import CustomToast, { TOAST_TYPES } from '@/common/components/Toast';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { resetPasswordApi } from '@/core/apis/Account';
-import InputField from '@/common/components/InputField';
 import Button from '@/common/components/Button';
+import {
+  useMultiplePasswordVisibility,
+  useLoadingState,
+} from '@/core/hooks/useCommonStates';
+import PasswordInputWithToggle from '@/common/components/PasswordInputWithToggle';
 import * as Yup from 'yup';
-import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
+import logger from '@/lib/logger';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
@@ -30,8 +33,13 @@ const ResetPassword = () => {
   const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { passwordVisibility, togglePasswordVisibility } =
+    useMultiplePasswordVisibility({
+      password: false,
+      confirmPassword: false,
+    });
   const token = searchParams.get('token');
-  const [loading, setLoading] = useState(false);
+  const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -46,7 +54,7 @@ const ResetPassword = () => {
 
       if (!isMountedRef.current || loading || !token) return;
 
-      setLoading(true);
+      startLoading();
 
       try {
         await ResetPasswordSchema.validate(
@@ -55,7 +63,7 @@ const ResetPassword = () => {
         );
       } catch (validationError) {
         if (isMountedRef.current) {
-          setLoading(false);
+          stopLoading();
           const messages = validationError.inner
             .map((err) => err.message)
             .join(' ');
@@ -101,7 +109,7 @@ const ResetPassword = () => {
       } catch (err) {
         if (!isMountedRef.current) return;
 
-        console.error('Reset password API error:', err);
+        logger.error('Reset password API error:', err);
         CustomToast({
           message: 'An unexpected error occurred. Please try again later.',
           type: TOAST_TYPES.ERROR,
@@ -109,11 +117,19 @@ const ResetPassword = () => {
         });
       } finally {
         if (isMountedRef.current) {
-          setLoading(false);
+          stopLoading();
         }
       }
     },
-    [password, confirmPassword, token, loading, router],
+    [
+      password,
+      confirmPassword,
+      token,
+      loading,
+      router,
+      startLoading,
+      stopLoading,
+    ],
   );
 
   // Basic check for form completion (Yup handles detailed validation)
@@ -132,24 +148,28 @@ const ResetPassword = () => {
           </p>
           <form onSubmit={handlePasswordReset}>
             <div className="mt-6">
-              <InputField
+              <PasswordInputWithToggle
                 id="reset-password"
                 label="Password"
-                type="password"
                 placeholder="Enter new password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                showPassword={passwordVisibility.password}
+                onToggleVisibility={() => togglePasswordVisibility('password')}
                 required
               />
             </div>
             <div className="mt-6">
-              <InputField
+              <PasswordInputWithToggle
                 id="reset-confirm-password"
                 label="Confirm Password"
-                type="password"
                 placeholder="Confirm new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
+                showPassword={passwordVisibility.confirmPassword}
+                onToggleVisibility={() =>
+                  togglePasswordVisibility('confirmPassword')
+                }
                 required
               />
             </div>

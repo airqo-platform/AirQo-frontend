@@ -28,7 +28,7 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> with UiLoggy {
-  DashboardView currentView = DashboardView.favorites;
+  DashboardView currentView = DashboardView.nearYou;
   String? selectedCountry;
   String? userCountry;
   // Background refresher that triggers silently
@@ -44,14 +44,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
 
     _getUserCountry();
 
-    final authState = context.read<AuthBloc>().state;
-    final isGuest = authState is GuestUser;
-
-    if (isGuest) {
-      setState(() {
-        currentView = DashboardView.all;
-      });
-    }
+    // Both logged-in and guest users now default to Near You view
 
     _backgroundRefreshTimer = Timer.periodic(Duration(minutes: 30), (_) {
       _silentBackgroundRefresh();
@@ -123,8 +116,7 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     final authState = context.read<AuthBloc>().state;
     final isGuest = authState is GuestUser;
 
-    if (isGuest &&
-        (view == DashboardView.favorites || view == DashboardView.nearYou)) {
+    if (isGuest && view == DashboardView.favorites) {
       _showLoginPrompt();
       return;
     }

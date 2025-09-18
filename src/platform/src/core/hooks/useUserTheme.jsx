@@ -5,7 +5,8 @@ import { getUserThemeApi, updateUserThemeApi } from '@/core/apis/Account';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { useSession } from 'next-auth/react';
-import CustomToast from '@/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
+import logger from '@/lib/logger';
 
 // Utility functions and constants
 const isValidObjectId = (id) => id && /^[0-9a-fA-F]{24}$/.test(id);
@@ -117,8 +118,7 @@ const useUserTheme = () => {
       }
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
-        // eslint-disable-next-line no-console
-        console.warn('Failed to parse session storage theme:', error);
+        logger.warn('Failed to parse session storage theme:', error);
       }
     }
 
@@ -215,7 +215,7 @@ const useUserTheme = () => {
         const errorMessage = 'Invalid user ID for updating theme';
         safeSetState(setError, errorMessage);
         if (showToast) {
-          CustomToast({ message: errorMessage, type: 'error' });
+          NotificationService.error(400, errorMessage);
         }
         return false;
       }
@@ -224,7 +224,7 @@ const useUserTheme = () => {
         const errorMessage = 'Invalid group ID for updating theme';
         safeSetState(setError, errorMessage);
         if (showToast) {
-          CustomToast({ message: errorMessage, type: 'error' });
+          NotificationService.error(400, errorMessage);
         }
         return false;
       }
@@ -233,7 +233,7 @@ const useUserTheme = () => {
         const errorMessage = 'Invalid theme settings provided';
         safeSetState(setError, errorMessage);
         if (showToast) {
-          CustomToast({ message: errorMessage, type: 'error' });
+          NotificationService.error(400, errorMessage);
         }
         return false;
       }
@@ -261,7 +261,9 @@ const useUserTheme = () => {
           applyThemeToContext(updatedTheme);
 
           if (showToast) {
-            CustomToast({ message: successMessage, type: 'success' });
+            // Use API response status or default to 200 for success
+            const statusCode = response?.status || 200;
+            NotificationService.success(statusCode, successMessage);
           }
           return true;
         }
@@ -271,7 +273,9 @@ const useUserTheme = () => {
         const errorMessage = err.message || 'Failed to update user theme';
         safeSetState(setError, errorMessage);
         if (showToast) {
-          CustomToast({ message: errorMessage, type: 'error' });
+          // Use error response status or default to 500
+          const statusCode = err?.response?.status || err?.status || 500;
+          NotificationService.error(statusCode, errorMessage);
         }
         return false;
       } finally {

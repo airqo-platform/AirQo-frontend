@@ -2,16 +2,16 @@
 
 // Verifies the organisation cohort id
 import React, { useState } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
-import ProgressComponent from '@/components/Account/ProgressComponent';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import ProgressComponent from '@/common/components/Account/ProgressComponent';
 import { AqAnnotationQuestion } from '@airqo/icons-react';
-import Spinner from '@/components/Spinner';
+import Spinner from '@/common/components/Spinner';
 
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { verifyCohortID } from '@/core/apis/DeviceRegistry';
 import { registerInquiry } from '@/core/apis/Inquiry';
-import DialogWrapper from '@/components/Modal/DialogWrapper';
+import DialogWrapper from '@/common/components/Modal/DialogWrapper';
 
 const ContactAdminModal = ({ open, onClose }) => {
   const [fullName, setFullName] = useState('');

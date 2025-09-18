@@ -1,192 +1,66 @@
-/* eslint-disable */
-const withVideos = require('next-videos');
-const path = require('path');
+/** @type {import('next').NextConfig} */
+const path = require('path'); // eslint-disable-line @typescript-eslint/no-require-imports
 
-module.exports = withVideos({
-  output: 'standalone',
-  transpilePackages: ['redux-persist'],
-
-  // Performance optimizations
+const nextConfig = {
+  // Core settings
+  reactStrictMode: false,
   swcMinify: true,
-  poweredByHeader: false,
-  compress: true,
+  output: 'standalone',
 
-  // Optimize builds
-  experimental: {
-    optimizeServerReact: true,
-    typedRoutes: false, // Disable if causing issues
-  },
+  // Essential transpilePackages only
+  transpilePackages: [
+    'redux-persist',
+    'react-redux',
+    '@reduxjs/toolkit',
+    'react-hook-form',
+    '@hookform/resolvers',
+  ],
 
+  // Simplified image config with SVG support
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'flagsapi.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'asset.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'res.cloudinary.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'www.vhv.rs',
-      },
-      {
-        protocol: 'https',
-        hostname: 'img.freepik.com',
-      },
+      { protocol: 'https', hostname: 'flagsapi.com' },
+      { protocol: 'https', hostname: 'asset.cloudinary.com' },
+      { protocol: 'https', hostname: 'res.cloudinary.com' },
     ],
-    formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 60,
+    formats: ['image/webp'],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
-  // Client-side optimizations and error handling
-  reactStrictMode: false, // Disabled to prevent double-mounting issues
-
-  // Improve error handling during development
-  onDemandEntries: {
-    // Period (in ms) where the server will keep pages in the buffer
-    maxInactiveAge: 25 * 1000,
-    // Number of pages that should be kept simultaneously without being disposed
-    pagesBufferLength: 2,
-  },
-
-  eslint: {
-    dirs: ['pages', 'components', 'lib', 'utils', 'hooks'],
-  },
-
-  webpack(config, { isServer, dev }) {
-    // Increase max listeners to prevent memory leak warnings
-    if (dev) {
-      require('events').EventEmitter.defaultMaxListeners = 20;
-    }
-
-    // SVG handling
-    config.module.rules.push({
-      test: /\.svg$/,
-      use: ['@svgr/webpack'],
-    });
-
-    // Resolve fallbacks for client-side
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-    };
-
-    // Fix webpack module resolution issues
+  // Clean webpack config
+  webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, './src'),
     };
 
-    // Enhanced module resolution
-    config.resolve.extensions = ['.js', '.jsx', '.ts', '.tsx', '.json'];
-
-    // Fix webpack chunk loading issues and dynamic import problems
-    config.optimization = {
-      ...config.optimization,
-      moduleIds: dev ? 'named' : 'deterministic',
-      chunkIds: dev ? 'named' : 'deterministic',
-      splitChunks: {
-        chunks: 'all',
-        minSize: 20000,
-        maxSize: 244000,
-        cacheGroups: {
-          default: {
-            minChunks: 2,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: -10,
-            reuseExistingChunk: true,
-            enforce: true,
-          },
-          common: {
-            name: 'common',
-            minChunks: 2,
-            priority: -15,
-            reuseExistingChunk: true,
-            enforce: true,
-          },
-          // Separate airQuality-map feature bundle to prevent circular dependencies
-          airQualityMap: {
-            test: /[\\/]src[\\/]common[\\/]features[\\/]airQuality-map[\\/]/,
-            name: 'airquality-map',
-            priority: 20,
-            reuseExistingChunk: true,
-            enforce: true,
-          },
-        },
-      },
-      // Fix runtime chunk issues that cause originalFactory errors
-      runtimeChunk: dev
-        ? 'single'
-        : {
-            name: (entrypoint) => `runtime-${entrypoint.name}`,
-          },
-    };
-
-    // Enhanced error handling and webpack internal error suppression
-    config.stats = {
-      ...config.stats,
-      errorDetails: true,
-      warnings: false,
-      warningsFilter: [
-        /Critical dependency: the request of a dependency is an expression/,
-        /Can't resolve 'original-factory'/,
-        /Module not found/,
-      ],
-    };
-
-    // Suppress axios warnings in Edge Runtime
-    if (!isServer && !dev) {
-      config.resolve.alias = {
-        ...config.resolve.alias,
-        // Only exclude axios in production client builds to avoid edge runtime warnings
+    if (!isServer) {
+      config.resolve.fallback = {
+        fs: false,
+        net: false,
+        tls: false,
       };
     }
 
-    // Enhanced warning suppression for production builds
-    config.ignoreWarnings = [
-      { module: /node_modules\/axios\/lib\/utils\.js/ },
-      /A Node\.js API is used \(setImmediate\)/,
-      /A Node\.js API is used \(process\.nextTick\)/,
-      /Can't resolve 'original-factory'/,
-      /Critical dependency: the request of a dependency is an expression/,
-      /Module not found: Error: Can't resolve/,
-      /originalFactory is undefined/,
-    ];
+    config.module.rules.push({
+      test: /\.svg$/i,
+      oneOf: [
+        {
+          resourceQuery: /url/, // e.g., import logoUrl from './logo.svg?url'
+          type: 'asset',
+        },
+        {
+          issuer: /\.[jt]sx?$/,
+          use: ['@svgr/webpack'], // e.g., import Logo from './logo.svg'
+        },
+      ],
+    });
 
     return config;
   },
 
-  async rewrites() {
-    return {
-      beforeFiles: [
-        // Use API routes for dynamic generation
-        {
-          source: '/robots.txt',
-          destination: '/api/robots',
-        },
-        {
-          source: '/sitemap.xml',
-          destination: '/api/sitemap',
-        },
-      ],
-    };
-  },
-
+  // Essential headers only
   async headers() {
     return [
       {
@@ -198,23 +72,48 @@ module.exports = withVideos({
           },
           {
             key: 'X-Frame-Options',
-            value: 'DENY',
+            value: 'SAMEORIGIN',
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: 'Content-Security-Policy',
+            value:
+              "default-src 'self'; " +
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
+              "worker-src 'self' blob: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
+              "style-src 'self' 'unsafe-inline' https://api.mapbox.com https://fonts.googleapis.com https://maps.gstatic.com; " +
+              "img-src 'self' data: https: blob: https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com https://res.cloudinary.com https://asset.cloudinary.com; " +
+              "connect-src 'self' https: https://api.mapbox.com https://maps.googleapis.com https://maps.gstatic.com; " +
+              "media-src 'self' https: https://res.cloudinary.com https://asset.cloudinary.com blob: data:; " +
+              "object-src 'none'; font-src 'self' data:; frame-ancestors 'self';",
           },
-        ],
-      },
-      {
-        source: '/static/(.*)',
-        headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: 'Strict-Transport-Security',
+            value: 'max-age=15552000; includeSubDomains; preload',
           },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'geolocation=(), microphone=(), camera=()',
+          },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          // Allow cross-origin resource loads (e.g., Cloudinary videos)
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
         ],
       },
     ];
   },
-});
+
+  // Performance settings
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+
+  experimental: {
+    optimizeCss: true,
+  },
+};
+
+module.exports = nextConfig;

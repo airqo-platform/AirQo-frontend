@@ -55,10 +55,13 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       to: group.grp_title,
     });
     try {
-      // Show loading immediately for smooth transition
+      // Close modal immediately for better UX
+      onClose();
+      // Execute switch without waiting to avoid blocking UI
       const result = await switchToGroup(group, { navigate: true });
-      if (result.success) onClose();
-      else logger.error('Switch failed:', result.error);
+      if (!result.success) {
+        logger.error('Switch failed:', result.error);
+      }
     } catch (err) {
       logger.error('Switch error:', err);
     }
@@ -108,7 +111,6 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
             onClick={handleCreateOrganization}
             Icon={AqPlus}
             className="text-xs"
-            padding="px-3 py-2"
           >
             Request New Organization
           </Button>
@@ -116,12 +118,7 @@ const OrganizationSelectModal = ({ isOpen, onClose }) => {
       }
       customFooter={
         <div className="flex items-center justify-end border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <Button
-            onClick={onClose}
-            variant="outlined"
-            className="text-sm"
-            padding="px-4 py-2"
-          >
+          <Button onClick={onClose} variant="outlined" className="text-sm">
             Close
           </Button>
         </div>
