@@ -61,7 +61,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
                 (elapsed.week ?? 0) * 7 +
                 (elapsed.day ?? 0);
               let colorClass = "text-green-600";
-              if (daysOffline >= 5 && daysOffline <= 10) colorClass = "text-yellow-600";
+              if (daysOffline >= 2 && daysOffline <= 10) colorClass = "text-yellow-600";
               else if (daysOffline >= 11 && daysOffline <= 20) colorClass = "text-orange-600";
               else if (daysOffline > 20) colorClass = "text-red-600";
               return (
