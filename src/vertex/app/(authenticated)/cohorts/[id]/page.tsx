@@ -12,6 +12,7 @@ import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-detail
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -40,6 +41,7 @@ export default function CohortDetailsPage() {
   });
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
 
   const handleOpenDetails = () => setShowDetailsModal(true);
@@ -62,6 +64,11 @@ export default function CohortDetailsPage() {
     setShowAssignDialog(false);
   };
 
+  const handleUnassignSuccess = () => {
+    setSelectedDevices([]);
+    setShowUnassignDialog(false);
+  };
+
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div>
@@ -76,6 +83,13 @@ export default function CohortDetailsPage() {
           onOpenChange={setShowAssignDialog}
           selectedDevices={selectedDevices}
           onSuccess={handleAssignSuccess}
+          cohortId={cohortId}
+        />
+        <UnassignCohortDevicesDialog
+          open={showUnassignDialog}
+          onOpenChange={setShowUnassignDialog}
+          selectedDevices={selectedDevices}
+          onSuccess={handleUnassignSuccess}
           cohortId={cohortId}
         />
 

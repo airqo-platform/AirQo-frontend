@@ -9,6 +9,7 @@ import moment from "moment";
 import { useState } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { UnassignCohortDevicesDialog } from "../cohorts/unassign-cohort-devices";
 
 interface DevicesTableProps {
   devices: Device[];
@@ -37,6 +38,7 @@ export default function DevicesTable({
   const router = useRouter();
   const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const { userContext } = useUserContext();
   const isInternalView = userContext === "airqo-internal";
 
@@ -51,9 +53,19 @@ export default function DevicesTable({
     setShowAssignDialog(false);
   };
 
+  const handleUnassignSuccess = () => {
+    setSelectedDevices([]);
+    setShowUnassignDialog(false);
+  };
+
   const handleActionSubmit = (selectedIds: (string | number)[]) => {
     setSelectedDevices(selectedIds as string[]);
     setShowAssignDialog(true);
+  };
+
+  const handleUnassignActionSubmit = (selectedIds: (string | number)[]) => {
+    setSelectedDevices(selectedIds as string[]);
+    setShowUnassignDialog(true);
   };
 
   const devicesWithId: TableDevice[] = devices
@@ -205,10 +217,15 @@ export default function DevicesTable({
           multiSelect
             ? [
                 {
-                  label: "Assign to Cohort",
+                  label: "Add to Cohort",
                   value: "assign_cohort",
                   handler: handleActionSubmit,
                 },
+                {
+                  label: "Remove from Cohort",
+                  value: "unassign_cohort",
+                  handler: handleUnassignActionSubmit,
+                }
               ]
             : []
         }
@@ -233,6 +250,14 @@ export default function DevicesTable({
         selectedDevices={selectedDevices}
         onSuccess={handleAssignSuccess}
       />
+
+      {/* Unassign from Cohort Dialog */}
+      <UnassignCohortDevicesDialog
+          open={showUnassignDialog}
+          onOpenChange={setShowUnassignDialog}
+          selectedDevices={selectedDevices}
+          onSuccess={handleUnassignSuccess}
+        />
     </div>
   );
 }

@@ -95,5 +95,19 @@ export const cohorts = {
     } catch (error) {
       throw error;
     }
-  }
+  },
+  unassignDevicesFromCohort: async (cohortId: string, deviceIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().delete(
+        `/devices/cohorts/${cohortId}/unassign-many-devices`,
+        {
+          data: { device_ids: deviceIds },
+          headers: { 'X-Auth-Type': 'JWT' }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

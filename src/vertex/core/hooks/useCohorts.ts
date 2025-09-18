@@ -161,6 +161,40 @@ export const useAssignDevicesToCohort = () => {
   });
 };
 
+export const useUnassignDevicesFromCohort = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      cohortId,
+      deviceIds
+    }: {
+      cohortId: string;
+      deviceIds: string[]
+    }) => {
+      if (!cohortId || !deviceIds?.length) {
+        throw new Error("Cohort ID and at least one device ID are required");
+      }
+      return cohortsApi.unassignDevicesFromCohort(cohortId, deviceIds);
+    },
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: `${variables.deviceIds.length} device(s) unassigned from cohort successfully`,
+        type: "SUCCESS",
+      });
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["cohort-details", variables.cohortId] });
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Failed to unassign devices: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+};
+
 export const useAssignCohortsToGroup = () => {
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
