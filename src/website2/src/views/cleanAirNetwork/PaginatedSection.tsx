@@ -21,7 +21,8 @@ const PaginatedSection: React.FC<PaginatedSectionProps> = ({
   }
 
   return (
-    <div className={sectionClassName}>
+    // add top padding so logos don't sit flush against dividers
+    <div className={`${sectionClassName} pt-6`}>
       {logos.map((logo) => (
         <div
           key={logo.id}

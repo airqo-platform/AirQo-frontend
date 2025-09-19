@@ -19,7 +19,8 @@ const LogoDisplay: React.FC<LogoDisplayProps> = ({
   }
 
   return (
-    <div className={sectionClassName}>
+    // add top padding to ensure logos don't touch separators/dividers
+    <div className={`${sectionClassName} pt-6`}>
       {logos.map((logo) => (
         <div
           key={logo.id}
