@@ -641,8 +641,16 @@ const ReusableTable = <T extends TableItem>({
     if (!tableId) return null;
     try {
       const s = searchParams.get(`${tableId}_search`) || "";
-      const p = parseInt(searchParams.get(`${tableId}_page`) || "1", 10);
-      const ps = parseInt(searchParams.get(`${tableId}_pageSize`) || String(pageSize), 10);
+      const rawP = Number.parseInt(searchParams.get(`${tableId}_page`) || "1", 10);
+      const rawPs = Number.parseInt(
+        searchParams.get(`${tableId}_pageSize`) || String(pageSize),
+        10,
+      );
+      const p = Number.isFinite(rawP) && rawP >= 1 ? rawP : 1;
+      const psUnsafe = Number.isFinite(rawPs) && rawPs > 0 ? rawPs : pageSize;
+      const ps = Array.isArray(pageSizeOptions) && pageSizeOptions.length > 0
+        ? (pageSizeOptions.includes(psUnsafe) ? psUnsafe : pageSize)
+        : psUnsafe;
       const sortRaw = searchParams.get(`${tableId}_sort`);
       const sort = sortRaw ? JSON.parse(sortRaw) : { key: null, direction: "asc" };
       const filtersRaw = searchParams.get(`${tableId}_filters`);
@@ -651,7 +659,7 @@ const ReusableTable = <T extends TableItem>({
     } catch {
       return { searchTerm: "", currentPage: 1, currentPageSize: pageSize, sortConfig: { key: null, direction: "asc" }, filterValues: initialFilters };
     }
-  }, [tableId, searchParams, pageSize, initialFilters]);
+  }, [tableId, searchParams, pageSize, pageSizeOptions, initialFilters]);
 
   const searchTerm = tableId ? urlState!.searchTerm : localSearchTerm;
   const currentPage = tableId ? urlState!.currentPage : localCurrentPage;
@@ -884,30 +892,34 @@ const ReusableTable = <T extends TableItem>({
     return sortedData.slice(start, end);
   }, [sortedData, currentPage, currentPageSize]);
 
-  const totalPages = Math.ceil(sortedData.length / currentPageSize);
+  const totalPages = Math.ceil(sortedData.length / Math.max(1, currentPageSize || 1));
 
   const handlePageChange = useCallback((page: number) => {
+    const clamped = Math.max(1, Math.min(page, Math.max(1, totalPages)));
     if (tableId) {
-      updateUrlState({ page });
+      updateUrlState({ page: clamped });
     } else {
-      setLocalCurrentPage(page);
+      setLocalCurrentPage(clamped);
     }
-  }, [tableId, updateUrlState]);
+  }, [tableId, updateUrlState, totalPages]);
 
   useEffect(() => {
-    if (currentPage > totalPages) {
-      handlePageChange(totalPages > 0 ? totalPages : 1);
+    if (currentPage > totalPages || currentPage < 1 || !Number.isFinite(currentPage)) {
+      handlePageChange(totalPages > 0 ? Math.min(Math.max(1, currentPage), totalPages) : 1);
     }
   }, [currentPage, totalPages, handlePageChange]);
 
   const handlePageSizeChange = useCallback((newPageSize: number) => {
+    const normalized = Array.isArray(pageSizeOptions) && pageSizeOptions.length > 0
+      ? (pageSizeOptions.includes(newPageSize) ? newPageSize : pageSizeOptions[0])
+      : Math.max(1, newPageSize || 1);
     if (tableId) {
-      updateUrlState({ pageSize: newPageSize, page: 1 });
+      updateUrlState({ pageSize: normalized, page: 1 });
     } else {
-      setLocalCurrentPageSize(newPageSize);
+      setLocalCurrentPageSize(normalized);
       setLocalCurrentPage(1);
     }
-  }, [tableId, updateUrlState]);
+  }, [tableId, updateUrlState, pageSizeOptions]);
 
   const handleSort = useCallback(
     (key: string) => {
