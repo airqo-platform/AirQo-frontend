@@ -5,7 +5,6 @@ const API_TOKEN = process.env.API_TOKEN;
 
 function isValidUrl(url: string) {
   try {
-    // Allow http(s) only
     const u = new URL(url);
     return u.protocol === 'http:' || u.protocol === 'https:';
   } catch {
@@ -40,11 +39,12 @@ export async function GET(
     }
 
     const endpoint = params.endpoint.join('/');
-
     const { searchParams } = new URL(request.url);
 
-    // Build external API URL
-    const apiUrl = new URL(`/website/api/v2/${endpoint}`, API_URL);
+    // Ensure path ends with '/' so query params are attached after the trailing slash
+    const basePath = `/website/api/v2/${endpoint}`;
+    const normalizedPath = basePath.endsWith('/') ? basePath : `${basePath}/`;
+    const apiUrl = new URL(normalizedPath, API_URL);
 
     // Forward other query params except token first
     searchParams.forEach((value, key) => {
@@ -71,7 +71,10 @@ export async function GET(
     } catch {
       // ignore logging errors
     }
+
+    // eslint-disable-next-line no-console
     console.log('API URL:', apiUrl.toString());
+
     const res = await fetch(apiUrl.toString(), {
       headers: {
         'Content-Type': 'application/json',
@@ -140,10 +143,12 @@ export async function POST(
     }
 
     const endpoint = params.endpoint.join('/');
-
     const { searchParams } = new URL(request.url);
 
-    const apiUrl = new URL(`/website/api/v2/${endpoint}`, API_URL);
+    // Ensure path ends with '/' so query params are attached after the trailing slash
+    const basePath = `/website/api/v2/${endpoint}`;
+    const normalizedPath = basePath.endsWith('/') ? basePath : `${basePath}/`;
+    const apiUrl = new URL(normalizedPath, API_URL);
 
     // Forward other query params except token first
     searchParams.forEach((value, key) => {
