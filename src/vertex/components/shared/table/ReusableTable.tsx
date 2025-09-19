@@ -886,19 +886,19 @@ const ReusableTable = <T extends TableItem>({
 
   const totalPages = Math.ceil(sortedData.length / currentPageSize);
 
-  useEffect(() => {
-    if (!tableId && (localSearchTerm !== searchTerm || JSON.stringify(localFilterValues) !== JSON.stringify(filterValues))) {
-      setLocalCurrentPage(1);
-    }
-  }, [searchTerm, filterValues, tableId, localSearchTerm, localFilterValues]);
-
-  const handlePageChange = (page: number) => {
+  const handlePageChange = useCallback((page: number) => {
     if (tableId) {
       updateUrlState({ page });
     } else {
       setLocalCurrentPage(page);
     }
-  };
+  }, [tableId, updateUrlState]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      handlePageChange(totalPages > 0 ? totalPages : 1);
+    }
+  }, [currentPage, totalPages, handlePageChange]);
 
   const handlePageSizeChange = useCallback((newPageSize: number) => {
     if (tableId) {
