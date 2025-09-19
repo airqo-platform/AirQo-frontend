@@ -57,6 +57,8 @@ export function useApiItem<T>(
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
+      // Cache for 5 minutes to improve performance
+      dedupingInterval: 300000,
       ...swrOptions,
     },
   );

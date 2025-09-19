@@ -9,7 +9,6 @@ import ForumDetailSkeleton from '@/components/ui/ForumDetailSkeleton';
 import { ForumDataProvider } from '@/context/ForumDataContext';
 import { useForumEventDetail } from '@/services/hooks/endpoints';
 import { ForumEventDetail } from '@/services/types/api';
-import { normalizeForumEventData } from '@/utils/forumDataNormalizer';
 import logger from '@/utils/logger';
 
 import BannerSection from '../../../views/cleanairforum/BannerSection';
@@ -43,9 +42,13 @@ const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
   }, [forumEventData]);
 
   // Normalize the forum event data for easier consumption by child components
+  // Note: Most pages now use selectedEvent directly for better performance
+  // Only normalize for pages that still require it (like legacy components)
   const normalizedData = React.useMemo(() => {
-    return selectedEvent ? normalizeForumEventData(selectedEvent) : null;
-  }, [selectedEvent]);
+    // Since most pages now use selectedEvent directly, skip normalization for performance
+    // Only enable if specific pages require it
+    return null; // selectedEvent ? normalizeForumEventData(selectedEvent) : null;
+  }, []);
 
   // Handle loading states
   if (detailsLoading) {

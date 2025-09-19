@@ -1,16 +1,18 @@
 import Image from 'next/image';
 import React from 'react';
 
-interface LogoDisplayProps {
-  logos: Array<{
-    id: any;
-    logoUrl: any;
-  }>;
+interface Logo {
+  id: any;
+  logoUrl: any;
+}
+
+interface PaginatedSectionProps {
+  logos: Logo[];
   sectionClassName?: string;
   noClick?: boolean;
 }
 
-const LogoDisplay: React.FC<LogoDisplayProps> = ({
+const PaginatedSection: React.FC<PaginatedSectionProps> = ({
   logos,
   sectionClassName = 'grid grid-cols-1 lg:grid-cols-2 w-full',
 }) => {
@@ -38,4 +40,4 @@ const LogoDisplay: React.FC<LogoDisplayProps> = ({
   );
 };
 
-export default LogoDisplay;
+export default PaginatedSection;

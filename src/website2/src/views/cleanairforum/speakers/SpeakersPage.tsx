@@ -17,14 +17,14 @@ interface Section {
 }
 
 const SpeakersPage = () => {
-  // Use normalizedData from context
-  const { normalizedData } = useForumData();
+  // Use selectedEvent from context directly
+  const { selectedEvent } = useForumData();
   const membersPerPage = 6;
   const [currentKeyNotePage, setCurrentKeyNotePage] = useState<number>(1);
   const [currentSpeakersPage, setCurrentSpeakersPage] = useState<number>(1);
   const [currentPlenaryPage, setCurrentPlenaryPage] = useState<number>(1);
 
-  if (!normalizedData) {
+  if (!selectedEvent) {
     return (
       <div className="flex flex-col items-center justify-center h-96">
         <h2 className="text-2xl font-bold text-gray-700 mb-4">
@@ -37,7 +37,11 @@ const SpeakersPage = () => {
     );
   }
 
-  const { speakers: speakersData, sections } = normalizedData;
+  const speakersData = {
+    speakersTextSection: selectedEvent.speakers_text_section || '',
+    persons: selectedEvent.persons || [],
+  };
+  const sections = selectedEvent.sections || [];
 
   // Filter keynote speakers and speakers from speakersData.persons
   const keyNoteSpeakers: any[] =
