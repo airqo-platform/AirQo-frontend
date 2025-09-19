@@ -126,7 +126,7 @@ export default function DevicesTable({
     },
     {
       key: "status",
-      label: "Status",
+      label: "Deployment Status",
       render: (status) => {
         const value = typeof status === "string" ? status : "";
         const statusMap: Record<string, string> = {
@@ -159,7 +159,7 @@ export default function DevicesTable({
   if (isInternalView) {
     const groupsColumn: TableColumn<TableDevice, string> = {
       key: "groups",
-      label: "Groups",
+      label: "Organization",
       render: (value, item) => {
         const device = item as Device;
         const groups = device.groups as string[] | undefined;
@@ -186,8 +186,7 @@ export default function DevicesTable({
         );
       },
     };
-    // Insert "Groups" column after "Site"
-    columns.splice(3, 0, groupsColumn);
+    columns.splice(5, 0, groupsColumn);
   }
 
   return (
