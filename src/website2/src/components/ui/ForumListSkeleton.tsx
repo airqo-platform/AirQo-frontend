@@ -7,32 +7,8 @@ import React from 'react';
 const ForumListSkeleton: React.FC = () => {
   return (
     <div className="min-h-screen w-full animate-pulse">
-      {/* Hero Section Skeleton */}
-      <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white">
-        <div className="relative z-10 flex flex-col items-center justify-center text-center py-20 px-6">
-          {/* Title skeleton */}
-          <div className="h-12 bg-blue-600/30 rounded-lg w-96 max-w-full mb-6"></div>
-
-          {/* Description skeleton */}
-          <div className="space-y-3 mb-8">
-            <div className="h-6 bg-blue-600/20 rounded w-80 max-w-full"></div>
-            <div className="h-6 bg-blue-600/20 rounded w-72 max-w-full"></div>
-          </div>
-
-          {/* Key initiatives skeleton */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="flex items-center">
-                <div className="w-2 h-2 bg-blue-200/50 rounded-full mr-3"></div>
-                <div className="h-4 bg-blue-600/20 rounded w-32"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Events List Section Skeleton */}
-      <div className="max-w-7xl mx-auto px-6 py-16">
+      <div className="max-w-5xl mx-auto px-6 py-16">
         {/* Section heading skeleton */}
         <div className="text-center mb-12">
           <div className="h-10 bg-gray-200 rounded-lg w-80 max-w-full mx-auto mb-4"></div>
@@ -40,7 +16,7 @@ const ForumListSkeleton: React.FC = () => {
         </div>
 
         {/* Cards grid skeleton */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[1, 2, 3, 4, 5, 6].map((item) => (
             <div
               key={item}
