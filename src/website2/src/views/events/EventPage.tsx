@@ -7,26 +7,42 @@ import { FiCalendar, FiClock } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useAirQoEvents } from '@/hooks/useApiHooks';
+import { useInfiniteEvents } from '@/services/hooks/endpoints';
+import { EventV2 } from '@/services/types/api';
 import EventCardsSection from '@/views/events/EventCardsSection';
 
 const EventPage: React.FC = () => {
   const router = useRouter();
-  const { data: airQoEvents, isLoading, isError } = useAirQoEvents();
   const [selectedTab, setSelectedTab] = useState('upcoming');
 
-  const upcomingEvents = airQoEvents.filter(
-    (event: any) => new Date(event.end_date) > new Date(),
-  );
-  const pastEvents = airQoEvents.filter(
-    (event: any) => new Date(event.end_date) <= new Date(),
-  );
-  const featuredEvents = airQoEvents.filter(
-    (event: any) => event.event_tag === 'Featured',
+  // Use v2 paginated/infinite events
+  const {
+    results: eventsResults,
+    isLoadingInitialData,
+    isLoadingMore,
+    error,
+    isReachingEnd,
+    size,
+    setSize,
+  } = useInfiniteEvents({ page_size: 20 });
+
+  const airQoEvents: EventV2[] = (eventsResults as EventV2[]) || [];
+
+  const upcomingEvents = airQoEvents.filter((event: EventV2) =>
+    event.end_date ? new Date(event.end_date) > new Date() : true,
   );
 
-  const firstFeaturedEvent =
-    featuredEvents.length > 0 ? featuredEvents[0] : null;
+  const pastEvents = airQoEvents.filter((event: EventV2) =>
+    event.end_date ? new Date(event.end_date) <= new Date() : false,
+  );
+
+  const featuredEvents = airQoEvents.filter(
+    (event: EventV2) => (event.event_tag || '').toLowerCase() === 'featured',
+  );
+
+  const firstFeaturedEvent = (
+    featuredEvents.length > 0 ? featuredEvents[0] : null
+  ) as EventV2 | null;
 
   // Function to format the date range based on whether the months are the same
   const formatDateRange = (startDate: string, endDate: string) => {
@@ -50,7 +66,7 @@ const EventPage: React.FC = () => {
   return (
     <div className="flex flex-col w-full h-full">
       {/* Header Section */}
-      {isLoading ? (
+      {isLoadingInitialData ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
           <div
             className={`${mainConfig.containerClass} w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
@@ -69,7 +85,7 @@ const EventPage: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : isError ? (
+      ) : error ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
           <div
             className={`${mainConfig.containerClass} w-full px-4 lg:px-0 text-center`}
@@ -89,45 +105,54 @@ const EventPage: React.FC = () => {
             >
               <div className="flex-1 mb-8 lg:mb-0">
                 <h1 className="text-4xl font-bold mb-4">
-                  {firstFeaturedEvent.title}
+                  {firstFeaturedEvent?.title}
                 </h1>
-                <p className="text-lg text-gray-600 mb-6">
-                  {firstFeaturedEvent.title_subtext}
-                </p>
+                {firstFeaturedEvent?.title_subtext && (
+                  <p className="text-lg text-gray-600 mb-6">
+                    {firstFeaturedEvent.title_subtext}
+                  </p>
+                )}
                 <div className="flex flex-col flex-wrap gap-4 mb-6">
                   <div className="flex items-center space-x-2">
                     <FiCalendar className="text-gray-500 w-5 h-5" />
                     <p className="text-gray-600">
                       {formatDateRange(
-                        firstFeaturedEvent.start_date,
-                        firstFeaturedEvent.end_date,
+                        firstFeaturedEvent?.start_date,
+                        firstFeaturedEvent?.end_date,
                       )}
                     </p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <FiClock className="text-gray-500 w-5 h-5" />
                     <p className="text-gray-600">
-                      {`${format(
-                        parse(
-                          firstFeaturedEvent.start_time,
-                          'HH:mm:ss',
-                          new Date(),
-                        ),
-                        'HH:mm',
-                      )} - ${format(
-                        parse(
-                          firstFeaturedEvent.end_time,
-                          'HH:mm:ss',
-                          new Date(),
-                        ),
-                        'HH:mm',
-                      )}`}
+                      {firstFeaturedEvent?.start_time &&
+                        firstFeaturedEvent?.end_time &&
+                        `${format(
+                          parse(
+                            firstFeaturedEvent.start_time,
+                            'HH:mm:ss',
+                            new Date(),
+                          ),
+                          'HH:mm',
+                        )} - ${format(
+                          parse(
+                            firstFeaturedEvent.end_time,
+                            'HH:mm:ss',
+                            new Date(),
+                          ),
+                          'HH:mm',
+                        )}`}
                     </p>
                   </div>
                 </div>
                 <CustomButton
                   onClick={() =>
-                    router.push(`/events/${firstFeaturedEvent.id}`)
+                    router.push(
+                      `/events/${
+                        firstFeaturedEvent?.public_identifier ||
+                        firstFeaturedEvent?.id
+                      }`,
+                    )
                   }
                   className="bg-blue-100 text-blue-700 px-6 py-4"
                 >
@@ -135,16 +160,18 @@ const EventPage: React.FC = () => {
                 </CustomButton>
               </div>
               <div className="flex justify-center items-center flex-1 w-full mb-6 lg:mb-0">
-                <Image
-                  src={firstFeaturedEvent.event_image_url}
-                  alt={firstFeaturedEvent.title}
-                  width={800}
-                  height={600}
-                  layout="responsive"
-                  objectFit="cover"
-                  priority
-                  className="rounded-lg shadow-md w-full max-h-[400px] max-w-[500px] object-cover h-auto transition-transform duration-500 ease-in-out transform lg:hover:scale-110 cursor-pointer"
-                />
+                {firstFeaturedEvent?.event_image_url && (
+                  <Image
+                    src={firstFeaturedEvent.event_image_url}
+                    alt={firstFeaturedEvent.title || ''}
+                    width={800}
+                    height={600}
+                    layout="responsive"
+                    objectFit="cover"
+                    priority
+                    className="rounded-lg shadow-md w-full max-h-[400px] max-w-[500px] object-cover h-auto transition-transform duration-500 ease-in-out transform lg:hover:scale-110 cursor-pointer"
+                  />
+                )}
               </div>
             </div>
           </section>
@@ -180,7 +207,7 @@ const EventPage: React.FC = () => {
       </section>
 
       {/* Event Cards Section */}
-      {isLoading ? (
+      {isLoadingInitialData ? (
         <div
           className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8`}
         >
@@ -206,6 +233,22 @@ const EventPage: React.FC = () => {
           pastEvents={pastEvents}
         />
       )}
+      {/* Pagination controls */}
+      <div
+        className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8 mt-6`}
+      >
+        {!isReachingEnd && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setSize(size + 1)}
+              className="px-6 py-3 bg-blue-600 text-white rounded-md"
+              disabled={isLoadingMore}
+            >
+              {isLoadingMore ? 'Loading...' : 'Load more events'}
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

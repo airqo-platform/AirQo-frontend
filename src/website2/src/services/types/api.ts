@@ -53,6 +53,21 @@ export interface Event {
   updated_at: string;
 }
 
+// Extended event shape returned by v2 API (some fields optional)
+export interface EventV2 extends Event {
+  public_identifier?: string;
+  api_url?: string;
+  event_tag?: string;
+  title_subtext?: string;
+  start_time?: string; // e.g. '09:00:00'
+  end_time?: string; // e.g. '17:00:00'
+  event_image_url?: string;
+  background_image_url?: string;
+  event_details?: string; // quill delta JSON string or HTML
+  location_name?: string;
+  registration_link?: string;
+}
+
 export interface TeamMember {
   id: string;
   name: string;

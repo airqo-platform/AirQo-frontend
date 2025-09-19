@@ -7,11 +7,12 @@ import { FiCalendar } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
+import { EventV2 } from '@/services/types/api';
 
 const EventCardsSection: React.FC<{
   selectedTab: string;
-  upcomingEvents: any[];
-  pastEvents: any[];
+  upcomingEvents: EventV2[];
+  pastEvents: EventV2[];
 }> = ({ selectedTab, upcomingEvents, pastEvents }) => {
   const router = useRouter();
 
@@ -46,15 +47,15 @@ const EventCardsSection: React.FC<{
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {eventsToShow.map((event) => (
             <div
-              key={event.id}
+              key={event.public_identifier || event.id}
               className="flex flex-col rounded-lg transition-shadow bg-white overflow-hidden max-w-[350px] mx-auto"
               style={{ maxHeight: '450px' }}
             >
               {/* Event Image */}
               <div className="relative w-full rounded-t-lg h-[200px] mb-4 flex justify-center items-center overflow-hidden">
                 <Image
-                  src={event.event_image_url}
-                  alt={event.title}
+                  src={event.event_image_url || '/placeholder.webp'}
+                  alt={event.title || ''}
                   layout="fill"
                   objectFit="cover"
                   objectPosition="center"
@@ -71,7 +72,10 @@ const EventCardsSection: React.FC<{
 
                 {/* Event Description */}
                 <p className="text-gray-600">
-                  {truncateText(event.title_subtext, 80)}
+                  {truncateText(
+                    event.title_subtext || event.description || '',
+                    80,
+                  )}
                 </p>
 
                 {/* Event Date */}
@@ -82,7 +86,11 @@ const EventCardsSection: React.FC<{
 
                 {/* Read More Button */}
                 <CustomButton
-                  onClick={() => router.push(`/events/${event.id}`)}
+                  onClick={() =>
+                    router.push(
+                      `/events/${event.public_identifier || event.id}`,
+                    )
+                  }
                   className="text-blue-600 text-left p-0 bg-transparent mt-4"
                 >
                   Read more →
