@@ -8,7 +8,6 @@ import { FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
 import ForumListSkeleton from '@/components/ui/ForumListSkeleton';
-import mainConfig from '@/configs/mainConfigs';
 import { useInfiniteForumEvents } from '@/services/hooks/endpoints';
 import { ForumEvent } from '@/services/types/api';
 
@@ -85,7 +84,7 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
       {/* Optional Hero Section is rendered by page wrapper when needed */}
       {!skipHero && (
         <section className="bg-[#F2F1F6] px-4 lg:px-0 py-16">
-          <div className={`${mainConfig.containerClass}`}>
+          <div className="max-w-5xl mx-auto">
             <div className="max-w-4xl mx-auto text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
                 Forum Events
@@ -101,7 +100,7 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
       )}
       {/* Events Section */}
       <section className="py-16 bg-white">
-        <div className={`${mainConfig.containerClass} px-6 lg:px-8`}>
+        <div className="max-w-5xl mx-auto px-6 lg:px-8">
           {forumEvents.length === 0 ? (
             <div className="text-center py-20">
               <FiCalendar className="w-16 h-16 text-gray-300 mx-auto mb-6" />

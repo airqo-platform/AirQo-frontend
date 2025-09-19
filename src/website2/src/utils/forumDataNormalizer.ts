@@ -80,6 +80,15 @@ export interface NormalizedForumData {
   glossary: {
     glossaryDetails: string;
   };
+
+  // Support contacts data
+  supports: any[];
+
+  // Engagement objectives data
+  engagement: {
+    title: string;
+    objectives: any[];
+  } | null;
 }
 
 export const normalizeForumEventData = (
@@ -198,5 +207,11 @@ export const normalizeForumEventData = (
     glossary: {
       glossaryDetails: event.glossary_details,
     },
+
+    // Support contacts
+    supports: event.supports || [],
+
+    // Engagement data
+    engagement: event.engagement || null,
   };
 };
