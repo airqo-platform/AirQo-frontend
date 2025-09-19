@@ -3,7 +3,7 @@
 import DOMPurify from 'dompurify';
 import React from 'react';
 
-import { Divider, ForumLoading, NoData } from '@/components/ui';
+import { Divider, ForumLoading } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { isValidHTMLContent } from '@/utils/htmlValidator';
 import logger from '@/utils/logger';
@@ -22,20 +22,16 @@ const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
       <div className="w-full md:w-1/3">
         <h1 className="text-2xl mt-0 pt-0 font-bold"> {title}</h1>
       </div>
-
       <div className="md:w-2/3 text-left space-y-4">{children}</div>
     </div>
   </>
 );
 
 const AboutPage = () => {
-  const { selectedEvent } = useForumData();
+  const { normalizedData } = useForumData();
 
-  // Removed duplicate warn; we log once in the early return below.
-
-  if (!selectedEvent) {
-    // Log missing event data
-    logger.warn('No selectedEvent found in AboutPage', {
+  if (!normalizedData) {
+    logger.warn('No normalizedData found in AboutPage', {
       component: 'AboutPage',
       context: 'ForumDataContext',
     });
@@ -43,154 +39,133 @@ const AboutPage = () => {
   }
 
   try {
-    // Process Introduction with error handling
-    const introductionHTML = renderContent(selectedEvent.introduction || '');
+    const { about, sections } = normalizedData;
+
+    // Process Introduction
+    const introductionHTML = renderContent(about.introduction || '');
     const validIntroduction = isValidHTMLContent(introductionHTML);
 
-    // Process Objectives (if any) with error handling
-    const objectives = selectedEvent.engagement?.objectives || [];
-    const validObjectives = objectives.filter((objective: any) => {
-      try {
-        return isValidHTMLContent(objective.details);
-      } catch (error) {
-        logger.error('Error processing objective details', error as Error, {
-          objectiveId: objective.id,
-          objectiveTitle: objective.title,
-        });
-        return false;
-      }
-    });
+    // Process Registration Details
+    const registrationHTML = renderContent(about.registrationDetails || '');
+    const validRegistration = isValidHTMLContent(registrationHTML);
 
-    const renderObjectives = () => {
-      if (validObjectives.length === 0) return null;
-      return (
-        <section className="space-y-6">
-          <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
-          <h2 className="text-2xl font-bold text-left">Objectives</h2>
-          <div className="divide-y divide-gray-200">
-            {validObjectives.map((objective: any) => (
-              <SectionRow key={objective.id} title={objective.title}>
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(objective.details),
-                  }}
-                />
-              </SectionRow>
-            ))}
-          </div>
-        </section>
-      );
-    };
-
-    // Process Sponsorship Opportunities with error handling
-    const sponsorshipOpportunitiesHTML = renderContent(
-      selectedEvent.sponsorship_opportunities_about || '',
+    // Process Travel Logistics
+    const vaccinationHTML = renderContent(
+      about.travelDetails.vaccination || '',
     );
-    const validSponsorshipOpportunities = isValidHTMLContent(
-      sponsorshipOpportunitiesHTML,
+    const visaHTML = renderContent(about.travelDetails.visa || '');
+    const accommodationHTML = renderContent(
+      about.travelDetails.accommodation || '',
     );
 
-    // Process Sponsorship Packages with error handling
-    const sponsorshipPackagesHTML = renderContent(
-      selectedEvent.sponsorship_packages || '',
-    );
-    const validSponsorshipPackages = isValidHTMLContent(
-      sponsorshipPackagesHTML,
-    );
+    const hasVaccination = isValidHTMLContent(vaccinationHTML);
+    const hasVisa = isValidHTMLContent(visaHTML);
+    const hasAccommodation = isValidHTMLContent(accommodationHTML);
 
-    // Process About Sections with error handling
-    const aboutSections = selectedEvent.sections?.filter((section: any) => {
-      try {
+    // Filter sections for about page
+    const aboutSections =
+      sections?.filter((section: any) => {
         if (!section.pages.includes('about')) return false;
-        const sectionHTML = renderContent(section.content);
-        return isValidHTMLContent(sectionHTML);
-      } catch (error) {
-        logger.error('Error processing about section', error as Error, {
-          sectionId: section.id,
-          sectionTitle: section.title,
-        });
-        return false;
-      }
-    });
+        const html = renderContent(section.content);
+        return isValidHTMLContent(html);
+      }) || [];
 
     return (
-      <div className="w-full px-6 lg:px-0 bg-white">
-        <Divider className="bg-black p-0 m-0 h-[1px] w-full max-w-5xl mx-auto" />
+      <div className="px-4 prose max-w-none lg:px-0">
+        {/* Introduction Section */}
+        {validIntroduction && (
+          <SectionRow title="Introduction">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(introductionHTML),
+              }}
+            />
+          </SectionRow>
+        )}
 
-        <div className="max-w-5xl mx-auto space-y-12 py-8">
-          {/* Introduction Section */}
-          {validIntroduction && (
-            <section className="space-y-6">
-              <h2 className="text-2xl font-bold text-left">Introduction</h2>
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(introductionHTML),
-                }}
-              />
-            </section>
+        {/* Registration Section */}
+        {validRegistration && (
+          <SectionRow title="Registration">
+            <div
+              dangerouslySetInnerHTML={{
+                __html: DOMPurify.sanitize(registrationHTML),
+              }}
+            />
+          </SectionRow>
+        )}
+
+        {/* Travel Logistics Section */}
+        {(hasVaccination || hasVisa || hasAccommodation) && (
+          <SectionRow title="Travel & Logistics">
+            <div className="space-y-4">
+              {hasVaccination && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Vaccination</h3>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(vaccinationHTML),
+                    }}
+                  />
+                </div>
+              )}
+              {hasVisa && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Visa</h3>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(visaHTML),
+                    }}
+                  />
+                </div>
+              )}
+              {hasAccommodation && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Accommodation</h3>
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: DOMPurify.sanitize(accommodationHTML),
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </SectionRow>
+        )}
+
+        {/* Additional Sections */}
+        {aboutSections.length > 0 && (
+          <div>
+            {aboutSections.map((section, index) => (
+              <SectionDisplay key={section.id || index} section={section} />
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!validIntroduction &&
+          !validRegistration &&
+          !hasVaccination &&
+          !hasVisa &&
+          !hasAccommodation &&
+          aboutSections.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                No information available for this forum event.
+              </p>
+            </div>
           )}
-
-          {/* Objectives Section */}
-          {renderObjectives()}
-
-          {/* Sponsorship Opportunities Section */}
-          {validSponsorshipOpportunities && (
-            <SectionRow title="Sponsorship Opportunities">
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(sponsorshipOpportunitiesHTML),
-                }}
-              />
-            </SectionRow>
-          )}
-
-          {/* Sponsorship Packages Section */}
-          {validSponsorshipPackages && (
-            <SectionRow title="Sponsorship Packages">
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(sponsorshipPackagesHTML),
-                }}
-              />
-            </SectionRow>
-          )}
-
-          {/* Dynamic About Sections */}
-          {aboutSections && aboutSections.length > 0 && (
-            <>
-              {aboutSections.map((section: any) => (
-                <SectionDisplay key={section.id} section={section} />
-              ))}
-            </>
-          )}
-
-          {/* No Content Fallback */}
-          {!validIntroduction &&
-            validObjectives.length === 0 &&
-            !validSponsorshipOpportunities &&
-            !validSponsorshipPackages &&
-            (!aboutSections || aboutSections.length === 0) && (
-              <NoData message="No about information available for this event." />
-            )}
-        </div>
       </div>
     );
   } catch (error) {
-    // Log any unexpected errors in the component
-    logger.error('Unexpected error in AboutPage component', error as Error, {
+    logger.error('Error rendering AboutPage', error as Error, {
       component: 'AboutPage',
-      eventId: selectedEvent?.id,
-      eventTitle: selectedEvent?.title,
     });
 
     return (
-      <div className="w-full px-6 lg:px-0 bg-white">
-        <div className="max-w-5xl mx-auto py-8">
-          <NoData message="Error loading about information. Please try again later." />
-        </div>
+      <div className="text-center py-12">
+        <p className="text-red-500">
+          Error loading forum information. Please try again later.
+        </p>
       </div>
     );
   }

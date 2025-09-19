@@ -3,11 +3,11 @@
 import DOMPurify from 'dompurify';
 import React from 'react';
 
+import LogoDisplay from '@/components/sections/LogoDisplay';
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
-import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
 
 const SponsorshipPage = () => {
   const { selectedEvent } = useForumData();
@@ -65,8 +65,7 @@ const SponsorshipPage = () => {
                   Sponsors
                 </h1>
               </div>
-              <PaginatedSection
-                noClick={true}
+              <LogoDisplay
                 logos={sponsorPartner}
                 sectionClassName="grid grid-cols-1 lg:grid-cols-2 w-full"
               />

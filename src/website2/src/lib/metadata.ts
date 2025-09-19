@@ -216,18 +216,6 @@ export const METADATA_CONFIGS = {
       alt: 'CLEAN-Air Forum 2025 Nairobi',
     },
   },
-  cleanAirNetwork: {
-    title: 'CLEAN-Air Network | African Air Quality Community',
-    description:
-      'Join the CLEAN-Air Network, an African-led, multi-regional network bringing together a community of practice for air quality solutions and air quality management across Africa.',
-    keywords:
-      'CLEAN-Air Network, African air quality network, air quality community, clean air Africa, air quality collaboration, environmental network Africa',
-    url: '/clean-air-network/about',
-    image: {
-      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp',
-      alt: 'CLEAN-Air Network Community',
-    },
-  },
   // Solutions pages
   solutionsAfricanCities: {
     title: 'Air Quality Solutions for African Cities | AirQo',

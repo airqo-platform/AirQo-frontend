@@ -4,6 +4,8 @@ import {
   CleanAirResource,
   Event,
   FAQ,
+  ForumEvent,
+  ForumEventDetail,
   ImpactNumber,
   Partner,
   Press,
@@ -79,7 +81,15 @@ export const useAfricanCountries = (params?: QueryParams) =>
 export const useDepartments = (params?: QueryParams) =>
   useApiData('departments', { params });
 export const useForumEvents = (params?: QueryParams) =>
-  useApiData('forum-events', { params });
+  useApiData<ForumEvent>('forum-events', { params });
+export const useInfiniteForumEvents = (params?: QueryParams) =>
+  useInfiniteApiData<ForumEvent>('forum-events', params);
+
+// Forum Event Details (by unique_title)
+export const useForumEventDetail = (uniqueTitle: string | null) =>
+  useApiData<ForumEventDetail>(
+    uniqueTitle ? `forum-events/${uniqueTitle}` : null,
+  );
 export const useEventInquiries = (params?: QueryParams) =>
   useApiData('event-inquiries', { params });
 export const useEventPrograms = (params?: QueryParams) =>

@@ -1,6 +1,7 @@
 import { format, isValid } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { FaCalendarAlt, FaClock, FaMapMarkerAlt } from 'react-icons/fa';
 
@@ -65,15 +66,25 @@ const formatTimeRange = (startTime?: any, endTime?: any) => {
 };
 
 const BannerSection = ({ data }: { data: any }) => {
+  const router = useRouter();
   if (!data) {
     return null;
   }
 
   return (
-    <div className="w-full pt-10 bg-white relative">
+    <div className="w-full pt-10 relative">
       <div className="max-w-5xl mx-auto flex flex-col-reverse md:flex-row items-center px-4 lg:px-0 justify-between gap-6">
         {/* Text Section */}
         <div className="md:w-[40%] prose max-w-none h-full">
+          {/* Back button for detail pages */}
+          <div className="flex w-full justify-start mb-4">
+            <button
+              onClick={() => router.push('/clean-air-forum')}
+              className="inline-flex items-center px-3 py-2 bg-white rounded-md shadow-sm text-sm text-gray-700 hover:bg-gray-50"
+            >
+              ← Back
+            </button>
+          </div>
           <h1 className="text-3xl md:text-5xl mb-4 font-bold text-gray-900">
             {data.title}
           </h1>
@@ -102,10 +113,12 @@ const BannerSection = ({ data }: { data: any }) => {
       </div>
 
       {/* Navigation Links */}
-      <TabNavigation />
+      <div className="max-w-5xl mx-auto px-4 lg:px-0">
+        <TabNavigation />
+      </div>
 
       {/* Data Date, Time, and Location */}
-      <div className="max-w-5xl mx-auto space-y-4 pb-4">
+      <div className="max-w-5xl mx-auto space-y-4 pb-4 px-4 lg:px-0">
         <div className="flex flex-wrap items-center space-x-4 text-gray-700 text-sm">
           <div className="flex items-center space-x-2">
             <FaCalendarAlt />

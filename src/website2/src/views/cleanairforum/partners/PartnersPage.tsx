@@ -3,12 +3,12 @@
 import DOMPurify from 'dompurify';
 import React from 'react';
 
+import LogoDisplay from '@/components/sections/LogoDisplay';
 import { Divider } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
 import { isValidHTMLContent } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 import SectionDisplay from '@/views/cleanairforum/SectionDisplay';
-import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
 
 const PartnersPage = () => {
   const { selectedEvent } = useForumData();
@@ -102,8 +102,7 @@ const PartnersPage = () => {
               </h2>
             </div>
             <div className="md:w-2/3">
-              <PaginatedSection
-                noClick={true}
+              <LogoDisplay
                 logos={conveningPartners}
                 sectionClassName="grid grid-cols-1 lg:grid-cols-2 w-full"
               />
@@ -122,8 +121,7 @@ const PartnersPage = () => {
               </h2>
             </div>
             <div className="md:w-2/3">
-              <PaginatedSection
-                noClick={true}
+              <LogoDisplay
                 logos={hostPartners}
                 sectionClassName="grid grid-cols-1 lg:grid-cols-2 w-full"
               />
@@ -140,8 +138,7 @@ const PartnersPage = () => {
               <h2 className="text-2xl font-bold text-gray-900">Exhibitors</h2>
             </div>
             <div className="md:w-2/3">
-              <PaginatedSection
-                noClick={true}
+              <LogoDisplay
                 logos={programPartners}
                 sectionClassName="grid grid-cols-1 lg:grid-cols-2 w-full"
               />
@@ -160,8 +157,7 @@ const PartnersPage = () => {
               </h2>
             </div>
             <div className="md:w-2/3">
-              <PaginatedSection
-                noClick={true}
+              <LogoDisplay
                 logos={fundingPartners}
                 sectionClassName="grid grid-cols-1 lg:grid-cols-2 w-full"
               />

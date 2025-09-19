@@ -5,6 +5,7 @@ import Link from 'next/link';
 import React from 'react';
 import { FaArrowRightLong } from 'react-icons/fa6';
 
+import LogoDisplay from '@/components/sections/LogoDisplay';
 import { CustomButton, Divider, MemberCard } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks/reduxHooks';
@@ -15,7 +16,6 @@ import {
   useTeamMembers,
 } from '@/services/hooks/endpoints';
 import { openModal } from '@/store/slices/modalSlice';
-import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
 
 // Helper to normalize paginated responses to arrays
 const normalizeList = (data: any) => {
@@ -415,7 +415,7 @@ const AboutPage: React.FC = () => {
                 </CustomButton>
               </div>
             </div>
-            <PaginatedSection
+            <LogoDisplay
               logos={filteredPartners.map((partner: any) => ({
                 id: partner.id,
                 logoUrl: partner.partner_logo_url || '',

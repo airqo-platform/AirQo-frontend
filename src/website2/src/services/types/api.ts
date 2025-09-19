@@ -173,3 +173,40 @@ export interface ImpactNumber {
   created_at: string;
   updated_at: string;
 }
+
+export interface ForumEvent {
+  id: number;
+  title: string;
+  title_subtext?: string;
+  start_date: string;
+  end_date: string;
+  start_time: string;
+  end_time: string;
+  location_name?: string;
+  location_link?: string;
+  registration_link?: string;
+  unique_title: string;
+  background_image_url?: string;
+  event_status: 'upcoming' | 'past' | 'ongoing';
+  order: number;
+  created: string;
+  modified: string;
+}
+
+export interface ForumEventDetail extends ForumEvent {
+  introduction?: string; // Quill delta JSON
+  speakers_text_section?: string; // Quill delta JSON
+  committee_text_section?: string; // Quill delta JSON
+  partners_text_section?: string; // Quill delta JSON
+  schedule_details?: string; // Quill delta JSON
+  registration_details?: string; // Quill delta JSON
+  sponsorship_opportunities_about?: string; // Quill delta JSON
+  sponsorship_opportunities_schedule?: string; // Quill delta JSON
+  sponsorship_opportunities_partners?: string; // Quill delta JSON
+  sponsorship_packages?: string; // Quill delta JSON
+  travel_logistics_vaccination_details?: string; // Quill delta JSON
+  travel_logistics_visa_details?: string; // Quill delta JSON
+  travel_logistics_accommodation_details?: string; // Quill delta JSON
+  glossary_details?: string; // Quill delta JSON
+  is_deleted?: boolean;
+}

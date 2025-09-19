@@ -1,6 +1,8 @@
 'use client';
 import React from 'react';
 
+import mainConfig from '@/configs/mainConfigs';
+
 import ActionButtons from './ActionButtons';
 import Footer from './Footer';
 import Highlight from './Highlight';
@@ -9,19 +11,28 @@ import NewsLetter from './NewsLetter';
 
 interface MainLayoutProps {
   children: React.ReactNode;
+  // Optional full-width element rendered above the centered container (e.g., full-width hero)
+  topFullWidth?: React.ReactNode;
 }
 
-const MainLayout = ({ children }: MainLayoutProps) => {
+const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden">
       {/* Navbar */}
-      <header className="sticky top-0 z-50">
+      <header className="sticky top-0 z-50 bg-white">
         <Navbar />
       </header>
 
       {/* Main Content */}
       <main className="flex-1 pb-8">
-        <div className="lg:px-0 text-gray-700">{children}</div>
+        {/* Optional full-width area inserted before the centered container */}
+        {topFullWidth}
+
+        <div className="text-gray-700">
+          <div className={`px-4 lg:px-0 ${mainConfig.containerClass}`}>
+            {children}
+          </div>
+        </div>
 
         {/* Highlight Section */}
         <section className="mt-32 mb-8">
