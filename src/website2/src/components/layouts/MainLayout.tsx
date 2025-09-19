@@ -1,8 +1,6 @@
 'use client';
 import React from 'react';
 
-import mainConfig from '@/configs/mainConfigs';
-
 import ActionButtons from './ActionButtons';
 import Footer from './Footer';
 import Highlight from './Highlight';
@@ -28,11 +26,7 @@ const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
         {/* Optional full-width area inserted before the centered container */}
         {topFullWidth}
 
-        <div className="text-gray-700">
-          <div className={`px-4 lg:px-0 ${mainConfig.containerClass}`}>
-            {children}
-          </div>
-        </div>
+        <div className="text-gray-700 w-full px-4 lg:px-0">{children}</div>
 
         {/* Highlight Section */}
         <section className="mt-32 mb-8">
