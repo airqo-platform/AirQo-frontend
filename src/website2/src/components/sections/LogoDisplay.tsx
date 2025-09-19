@@ -5,6 +5,7 @@ interface LogoDisplayProps {
   logos: Array<{
     id: any;
     logoUrl: any;
+    link?: string | null;
   }>;
   sectionClassName?: string;
   noClick?: boolean;
@@ -26,13 +27,30 @@ const LogoDisplay: React.FC<LogoDisplayProps> = ({
           key={logo.id}
           className="flex items-center justify-center p-6 border border-gray-200"
         >
-          <Image
-            src={logo.logoUrl || '/assets/images/placeholder.webp'}
-            alt="Partner logo"
-            width={150}
-            height={80}
-            className="object-contain"
-          />
+          {logo.link ? (
+            <a
+              href={logo.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+            >
+              <Image
+                src={logo.logoUrl || '/assets/images/placeholder.webp'}
+                alt="Partner logo"
+                width={150}
+                height={80}
+                className="object-contain"
+              />
+            </a>
+          ) : (
+            <Image
+              src={logo.logoUrl || '/assets/images/placeholder.webp'}
+              alt="Partner logo"
+              width={150}
+              height={80}
+              className="object-contain"
+            />
+          )}
         </div>
       ))}
     </div>
