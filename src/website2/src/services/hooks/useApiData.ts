@@ -39,6 +39,37 @@ export function useApiData<T>(
   };
 }
 
+export function useApiItem<T>(
+  endpoint: string | null,
+  options?: UseApiDataOptions,
+) {
+  const { params, ...swrOptions } = options || {};
+
+  const queryString = params
+    ? '?' + new URLSearchParams(params as any).toString()
+    : '';
+  const key = endpoint ? `/api/v2/${endpoint}${queryString}` : null;
+
+  // Cast key/fetcher to any to satisfy SWR's TypeScript overloads with our generic fetcher
+  const { data, error, isValidating, mutate } = useSWR<T>(
+    key as any,
+    fetcher as any,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      ...swrOptions,
+    },
+  );
+
+  return {
+    data,
+    error: error as any,
+    isLoading: !error && !data,
+    isValidating,
+    mutate,
+  };
+}
+
 export function useInfiniteApiData<T>(
   endpoint: string,
   params?: QueryParams,

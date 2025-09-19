@@ -210,3 +210,45 @@ export interface ForumEventDetail extends ForumEvent {
   glossary_details?: string; // Quill delta JSON
   is_deleted?: boolean;
 }
+
+// African Countries interfaces
+export interface CityContentDescription {
+  id: number;
+  paragraph: string;
+  order: number;
+}
+
+export interface CityContentImage {
+  id: number;
+  image_url: string;
+  order: number;
+}
+
+export interface CityContent {
+  id: number;
+  title: string;
+  order: number;
+  description: CityContentDescription[];
+  image: CityContentImage[];
+}
+
+export interface City {
+  id: number;
+  city_name: string;
+  order: number;
+  content: CityContent[];
+}
+
+export interface AfricanCountry {
+  id: number;
+  country_name: string;
+  country_flag_url: string;
+  cities_count: number;
+  order: number;
+  created: string;
+  modified: string;
+}
+
+export interface AfricanCountryDetail extends AfricanCountry {
+  city: City[];
+}

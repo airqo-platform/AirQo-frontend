@@ -1,4 +1,6 @@
 import {
+  AfricanCountry,
+  AfricanCountryDetail,
   BoardMember,
   Career,
   CleanAirResource,
@@ -13,7 +15,7 @@ import {
   QueryParams,
   TeamMember,
 } from '../types/api';
-import { useApiData, useInfiniteApiData } from './useApiData';
+import { useApiData, useApiItem, useInfiniteApiData } from './useApiData';
 
 // Board Members
 export const useBoardMembers = (params?: QueryParams) =>
@@ -77,7 +79,16 @@ export const useInfiniteImpactNumbers = (params?: QueryParams) =>
 
 // Additional endpoints
 export const useAfricanCountries = (params?: QueryParams) =>
-  useApiData('african-countries', { params });
+  useApiData<AfricanCountry>('african-countries', { params });
+export const useInfiniteAfricanCountries = (params?: QueryParams) =>
+  useInfiniteApiData<AfricanCountry>('african-countries', params);
+
+// African Country Detail (by ID)
+export const useAfricanCountryDetail = (countryId: number | null) =>
+  useApiItem<AfricanCountryDetail>(
+    countryId ? `african-countries/${countryId}` : null,
+  );
+
 export const useDepartments = (params?: QueryParams) =>
   useApiData('departments', { params });
 export const useForumEvents = (params?: QueryParams) =>
@@ -87,7 +98,7 @@ export const useInfiniteForumEvents = (params?: QueryParams) =>
 
 // Forum Event Details (by unique_title)
 export const useForumEventDetail = (uniqueTitle: string | null) =>
-  useApiData<ForumEventDetail>(
+  useApiItem<ForumEventDetail>(
     uniqueTitle ? `forum-events/${uniqueTitle}` : null,
   );
 export const useEventInquiries = (params?: QueryParams) =>
