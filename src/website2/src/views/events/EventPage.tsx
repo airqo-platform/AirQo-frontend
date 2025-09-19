@@ -7,7 +7,11 @@ import { FiCalendar, FiClock } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useInfiniteEvents } from '@/services/hooks/endpoints';
+import {
+  useInfiniteEvents,
+  useInfinitePastEvents,
+  useInfiniteUpcomingEvents,
+} from '@/services/hooks/endpoints';
 import { EventV2 } from '@/services/types/api';
 import EventCardsSection from '@/views/events/EventCardsSection';
 
@@ -15,58 +19,73 @@ const EventPage: React.FC = () => {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('upcoming');
 
-  // Use v2 paginated/infinite events
+  // Use separate hooks for upcoming and past events
+  const upcomingEventsHook = useInfiniteUpcomingEvents({ page_size: 20 });
+  const pastEventsHook = useInfinitePastEvents({ page_size: 20 });
+
+  // Use general events hook for featured events (all events)
   const {
-    results: eventsResults,
+    results: allEventsResults,
+    isLoadingInitialData: isLoadingAllEvents,
+    error: allEventsError,
+  } = useInfiniteEvents({ page_size: 100 }); // Get more for featured selection
+
+  // Get current tab's data
+  const currentTabData =
+    selectedTab === 'upcoming' ? upcomingEventsHook : pastEventsHook;
+  const {
+    results: currentEvents,
     isLoadingInitialData,
     isLoadingMore,
     error,
     isReachingEnd,
     size,
     setSize,
-  } = useInfiniteEvents({ page_size: 20 });
+  } = currentTabData;
 
-  const airQoEvents: EventV2[] = (eventsResults as EventV2[]) || [];
-
-  const upcomingEvents = airQoEvents.filter((event: EventV2) =>
-    event.end_date ? new Date(event.end_date) > new Date() : true,
+  // Featured events are selected from all events
+  const allEvents: EventV2[] = (allEventsResults as EventV2[]) || [];
+  const featuredEvents = allEvents.filter(
+    (event: EventV2) =>
+      ((event as any).event_tag || '').toLowerCase() === 'featured',
   );
 
-  const pastEvents = airQoEvents.filter((event: EventV2) =>
-    event.end_date ? new Date(event.end_date) <= new Date() : false,
-  );
-
-  const featuredEvents = airQoEvents.filter(
-    (event: EventV2) => (event.event_tag || '').toLowerCase() === 'featured',
-  );
-
-  const firstFeaturedEvent = (
-    featuredEvents.length > 0 ? featuredEvents[0] : null
-  ) as EventV2 | null;
+  const firstFeaturedEvent =
+    featuredEvents.length > 0 ? featuredEvents[0] : null;
 
   // Function to format the date range based on whether the months are the same
-  const formatDateRange = (startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+  const formatDateRange = (startDate?: string, endDate?: string) => {
+    if (!startDate && !endDate) return 'Date to be announced';
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
 
-    if (isSameMonth(start, end)) {
-      return `${format(start, 'do')} - ${format(end, 'do MMMM yyyy')}`;
-    } else {
-      return `${format(start, 'MMMM do, yyyy')} - ${format(
-        end,
-        'MMMM do, yyyy',
-      )}`;
+    if (start && end) {
+      if (isSameMonth(start, end)) {
+        return `${format(start, 'do')} - ${format(end, 'do MMMM yyyy')}`;
+      }
+      return `${format(start, 'MMMM do, yyyy')} - ${format(end, 'MMMM do, yyyy')}`;
     }
+    if (start && !end) return format(start, 'MMMM do, yyyy');
+    if (!start && end) return format(end, 'MMMM do, yyyy');
+    return 'Date to be announced';
   };
 
   const handleTabClick = (tab: string) => {
     setSelectedTab(tab);
   };
 
+  const handleLoadMore = () => {
+    setSize(size + 1);
+  };
+
+  // Determine loading and error states
+  const isHeaderLoading = isLoadingAllEvents;
+  const hasHeaderError = allEventsError;
+
   return (
     <div className="flex flex-col w-full h-full">
       {/* Header Section */}
-      {isLoadingInitialData ? (
+      {isHeaderLoading ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
           <div
             className={`${mainConfig.containerClass} w-full px-4 lg:px-0 flex flex-col-reverse lg:flex-row lg:space-x-12 items-center`}
@@ -85,7 +104,7 @@ const EventPage: React.FC = () => {
             </div>
           </div>
         </div>
-      ) : error ? (
+      ) : hasHeaderError ? (
         <div className="mb-12 bg-[#F2F1F6] py-4 lg:py-16">
           <div
             className={`${mainConfig.containerClass} w-full px-4 lg:px-0 text-center`}
@@ -122,28 +141,29 @@ const EventPage: React.FC = () => {
                       )}
                     </p>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <FiClock className="text-gray-500 w-5 h-5" />
-                    <p className="text-gray-600">
-                      {firstFeaturedEvent?.start_time &&
-                        firstFeaturedEvent?.end_time &&
-                        `${format(
-                          parse(
-                            firstFeaturedEvent.start_time,
-                            'HH:mm:ss',
-                            new Date(),
-                          ),
-                          'HH:mm',
-                        )} - ${format(
-                          parse(
-                            firstFeaturedEvent.end_time,
-                            'HH:mm:ss',
-                            new Date(),
-                          ),
-                          'HH:mm',
-                        )}`}
-                    </p>
-                  </div>
+                  {firstFeaturedEvent?.start_time &&
+                    firstFeaturedEvent?.end_time && (
+                      <div className="flex items-center space-x-2">
+                        <FiClock className="text-gray-500 w-5 h-5" />
+                        <p className="text-gray-600">
+                          {`${format(
+                            parse(
+                              firstFeaturedEvent.start_time,
+                              'HH:mm:ss',
+                              new Date(),
+                            ),
+                            'HH:mm',
+                          )} - ${format(
+                            parse(
+                              firstFeaturedEvent.end_time,
+                              'HH:mm:ss',
+                              new Date(),
+                            ),
+                            'HH:mm',
+                          )}`}
+                        </p>
+                      </div>
+                    )}
                 </div>
                 <CustomButton
                   onClick={() =>
@@ -229,25 +249,28 @@ const EventPage: React.FC = () => {
       ) : (
         <EventCardsSection
           selectedTab={selectedTab}
-          upcomingEvents={upcomingEvents}
-          pastEvents={pastEvents}
+          events={currentEvents as EventV2[]}
+          error={error}
         />
       )}
+
       {/* Pagination controls */}
       <div
         className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8 mt-6`}
       >
-        {!isReachingEnd && (
-          <div className="flex justify-center">
-            <button
-              onClick={() => setSize(size + 1)}
-              className="px-6 py-3 bg-blue-600 text-white rounded-md"
-              disabled={isLoadingMore}
-            >
-              {isLoadingMore ? 'Loading...' : 'Load more events'}
-            </button>
-          </div>
-        )}
+        {!isReachingEnd &&
+          !isLoadingInitialData &&
+          (currentEvents as EventV2[])?.length > 0 && (
+            <div className="flex justify-center">
+              <CustomButton
+                onClick={handleLoadMore}
+                className="px-6 py-3 bg-blue-600 text-white"
+                disabled={isLoadingMore}
+              >
+                {isLoadingMore ? 'Loading...' : 'Load more events'}
+              </CustomButton>
+            </div>
+          )}
       </div>
     </div>
   );

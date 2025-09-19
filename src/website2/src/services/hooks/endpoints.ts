@@ -35,6 +35,18 @@ export const useEvents = (params?: QueryParams) =>
 export const useInfiniteEvents = (params?: QueryParams) =>
   useInfiniteApiData<Event>('events', params);
 
+// Events - Upcoming
+export const useUpcomingEvents = (params?: QueryParams) =>
+  useApiData<Event>('events/upcoming', { params });
+export const useInfiniteUpcomingEvents = (params?: QueryParams) =>
+  useInfiniteApiData<Event>('events/upcoming', params);
+
+// Events - Past
+export const usePastEvents = (params?: QueryParams) =>
+  useApiData<Event>('events/past', { params });
+export const useInfinitePastEvents = (params?: QueryParams) =>
+  useInfiniteApiData<Event>('events/past', params);
+
 // Team Members
 export const useTeamMembers = (params?: QueryParams) =>
   useApiData<TeamMember>('team-members', { params });
