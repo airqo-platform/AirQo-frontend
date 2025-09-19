@@ -7,20 +7,25 @@ import { FiArrowRight } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useCareers, useDepartments } from '@/hooks/useApiHooks';
+import { useCareers, useDepartments } from '@/services/hooks/endpoints';
 
 const CareerPage: React.FC = () => {
   const router = useRouter();
   const {
-    data: departments,
+    data: departmentsPage,
     isLoading: departmentsLoading,
-    isError: departmentsError,
+    error: departmentsError,
   } = useDepartments();
+
+  const departments = departmentsPage?.results || [];
   const {
-    data: careers,
+    data: careersPage,
     isLoading: careersLoading,
-    isError: careersError,
+    error: careersError,
   } = useCareers();
+
+  // careersPage is a paginated response; items are in careersPage.results
+  const careers = careersPage?.results || [];
 
   const [selectedDepartmentId, setSelectedDepartmentId] =
     useState<string>('all'); // Default to All
@@ -36,7 +41,7 @@ const CareerPage: React.FC = () => {
     return isBefore(new Date(), parseISO(closingDate));
   };
   // Filter jobs based on the selected department ID and show only open positions
-  const filteredJobs = careers?.filter((career: any) => {
+  const filteredJobs = careers.filter((career: any) => {
     const isOpen = isJobOpen(career.closing_date);
     if (selectedDepartmentId === 'all') return isOpen;
     // Fix: career.department is an object, we need to access career.department.id
@@ -146,7 +151,9 @@ const CareerPage: React.FC = () => {
                         (job: any, idx: number) => (
                           <CustomButton
                             key={idx}
-                            onClick={() => router.push(`careers/${job.id}`)}
+                            onClick={() =>
+                              router.push(`careers/${job.public_identifier}`)
+                            }
                             className="flex items-center justify-between p-4 lg:p-6 text-black w-full bg-[#FFFFFF80] rounded-lg shadow-sm hover:shadow-md"
                           >
                             <div className="text-left">

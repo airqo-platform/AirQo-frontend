@@ -1,17 +1,17 @@
 'use client';
+
 import { useRouter, useSearchParams } from 'next/navigation';
 import React, { useMemo, useState } from 'react';
 import { FiDownload } from 'react-icons/fi';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { usePublications } from '@/hooks/useApiHooks';
+import { usePublications } from '@/services/hooks/endpoints';
 
 const ResourcePage: React.FC = () => {
   const router = useRouter();
-  const { data: publications, isLoading, isError } = usePublications();
   const searchParams = useSearchParams();
-  console.log('data', publications);
+
   // Tabs mapped to categories from the Publication model
   const tabs = useMemo(
     () => [
@@ -22,33 +22,34 @@ const ResourcePage: React.FC = () => {
     ],
     [],
   );
+
   // State management
   const [selectedTab, setSelectedTab] = useState<string | string[]>(
-    searchParams?.get('tab') || 'policy',
+    (searchParams?.get('tab') as string) || 'policy',
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
 
   // Pagination logic
   const itemsPerPage = 4;
 
-  // Filtering resources based on the selected tab
-  const filteredResources = useMemo(() => {
-    if (!publications) return [];
-    return publications.filter((resource: any) => {
-      if (Array.isArray(selectedTab)) {
-        // If "Guides and Manuals" is selected, show both "guide" and "manual"
-        return selectedTab.includes(resource.category);
-      } else {
-        return resource.category === selectedTab;
-      }
-    });
-  }, [publications, selectedTab]);
+  // Build category param
+  const categoryParam = Array.isArray(selectedTab)
+    ? selectedTab.join(',')
+    : (selectedTab as string);
 
-  const totalPages = Math.ceil(filteredResources.length / itemsPerPage);
-  const displayedResources = filteredResources.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  // Fetch paginated publications from the v2 endpoint
+  const {
+    data: publicationsPage,
+    error,
+    isLoading,
+  } = usePublications({
+    page: currentPage,
+    page_size: itemsPerPage,
+    category: categoryParam,
+  } as any);
+
+  const results = publicationsPage?.results ?? [];
+  const totalPages = publicationsPage?.total_pages ?? 1;
 
   // Handle tab click
   const handleTabClick = (tabValue: string | string[]) => {
@@ -83,8 +84,10 @@ const ResourcePage: React.FC = () => {
                   (Array.isArray(selectedTab) &&
                     selectedTab.includes('guide') &&
                     selectedTab.includes('manual') &&
-                    tab.value.includes('guide') &&
-                    tab.value.includes('manual')) ||
+                    (Array.isArray(tab.value)
+                      ? tab.value.includes('guide') &&
+                        tab.value.includes('manual')
+                      : false)) ||
                   selectedTab === tab.value
                     ? 'text-black border-b-2 border-black font-semibold'
                     : 'text-gray-500'
@@ -102,7 +105,7 @@ const ResourcePage: React.FC = () => {
         {isLoading ? (
           // Skeleton Loader
           <div className="space-y-6">
-            {[...Array(4)].map((_, idx) => (
+            {[...Array(itemsPerPage)].map((_, idx) => (
               <div
                 key={idx}
                 className="bg-gray-100 p-6 lg:p-16 rounded-lg animate-pulse"
@@ -117,13 +120,13 @@ const ResourcePage: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : isError ? (
+        ) : error ? (
           <NoData message="Failed to load resources. Please try again later." />
-        ) : displayedResources.length === 0 ? (
+        ) : results.length === 0 ? (
           <NoData message="No resources available for this category." />
         ) : (
           <div className="space-y-6">
-            {displayedResources.map((resource: any, idx: any) => (
+            {results.map((resource: any, idx: any) => (
               <div
                 key={idx}
                 className="bg-card-custom-gradient p-6 lg:p-16 rounded-lg shadow-sm transition-all duration-300 hover:shadow-md"
@@ -167,7 +170,7 @@ const ResourcePage: React.FC = () => {
       </section>
 
       {/* Pagination Section */}
-      {displayedResources.length > 0 && (
+      {results.length > 0 && (
         <Pagination
           totalPages={totalPages}
           currentPage={currentPage}

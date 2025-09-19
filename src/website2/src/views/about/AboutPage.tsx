@@ -13,9 +13,17 @@ import {
   useExternalTeamMembers,
   usePartners,
   useTeamMembers,
-} from '@/hooks/useApiHooks';
+} from '@/services/hooks/endpoints';
 import { openModal } from '@/store/slices/modalSlice';
 import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
+
+// Helper to normalize paginated responses to arrays
+const normalizeList = (data: any) => {
+  if (!data) return [];
+  if (Array.isArray(data)) return data;
+  if (data.results && Array.isArray(data.results)) return data.results;
+  return [];
+};
 
 /** Skeleton Loader Component **/
 
@@ -35,16 +43,23 @@ const SkeletonCard: React.FC = () => (
 /** Main AboutPage Component **/
 
 const AboutPage: React.FC = () => {
-  const { data: boardMembers, isLoading: loadingBoard } = useBoardMembers();
-  const { data: teamMembers, isLoading: loadingTeam } = useTeamMembers();
-  const { data: externalTeamMembers, isLoading: loadingExternalTeam } =
+  const { data: boardMembersData, isLoading: loadingBoard } = useBoardMembers();
+  const { data: teamMembersData, isLoading: loadingTeam } = useTeamMembers();
+  const { data: externalTeamMembersData, isLoading: loadingExternalTeam } =
     useExternalTeamMembers();
-  const { data: partners } = usePartners();
+  const { data: partnersData } = usePartners();
 
-  // filter out partners whose website_category is airqo
-  const filteredPartners = partners.filter(
-    (partner: any) => partner.website_category !== 'cleanair',
-  );
+  // normalize paginated responses (they may be arrays or paginated objects)
+  const boardMembers = normalizeList(boardMembersData);
+  const teamMembers = normalizeList(teamMembersData);
+  const externalTeamMembers = normalizeList(externalTeamMembersData);
+  const partners = normalizeList(partnersData);
+
+  // filter out partners whose website_category is cleanair
+  const filteredPartners = normalizeList(partners).filter((partner: any) => {
+    const cat = (partner.website_category || partner.category || '') as string;
+    return cat.toLowerCase() !== 'cleanair';
+  });
 
   const dispatch = useDispatch();
 
@@ -71,7 +86,7 @@ const AboutPage: React.FC = () => {
       );
     }
 
-    if (!loading && members.length === 0) {
+    if (!loading && (!members || members.length === 0)) {
       return null;
     }
 
@@ -122,7 +137,10 @@ const AboutPage: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
             {members.map((member: any, idx: any) => (
-              <MemberCard key={idx} member={member} />
+              <MemberCard
+                key={member.public_identifier || member.id || idx}
+                member={member}
+              />
             ))}
           </div>
         </section>

@@ -4,7 +4,7 @@ import Image from 'next/image';
 import React, { useMemo } from 'react';
 
 import mainConfig from '@/configs/mainConfigs';
-import { usePartners } from '@/hooks/useApiHooks';
+import { usePartners } from '@/services/hooks/endpoints';
 import PaginatedSection from '@/views/cleanAirNetwork/PaginatedSection';
 import RegisterBanner from '@/views/cleanAirNetwork/RegisterBanner';
 
@@ -35,8 +35,8 @@ const SkeletonPaginatedSection: React.FC = () => {
 };
 
 const MemberPage: React.FC = () => {
-  const { data: partners, isLoading } = usePartners();
-
+  const { data: partnersPage, isLoading } = usePartners();
+  // normalize partners list (paginated or array)
   // Categorize partners using useMemo for performance optimization
   const {
     implementingPartners,
@@ -44,24 +44,44 @@ const MemberPage: React.FC = () => {
     supportingPartners,
     privateSectorPartners,
   } = useMemo(() => {
-    if (!partners)
+    const list: any[] = Array.isArray(partnersPage)
+      ? (partnersPage as any[])
+      : (partnersPage as any)?.results || (partnersPage as any) || [];
+
+    if (!list || list.length === 0) {
       return {
         implementingPartners: [],
         policyPartners: [],
         supportingPartners: [],
         privateSectorPartners: [],
       };
+    }
 
-    const cleanairPartners = partners.filter(
-      (partner: any) => partner.website_category.toLowerCase() === 'cleanair',
-    );
+    const cleanairPartners = list.filter((partner: any) => {
+      const cat =
+        (partner.website_category as string) ||
+        (partner.category as string) ||
+        '';
+
+      return cat.toLowerCase() === 'cleanair';
+    });
 
     const categorize = (type: string) =>
       cleanairPartners
-        .filter((partner: any) => partner.type.toLowerCase() === type)
+        .filter((partner: any) => {
+          return ((partner.type || '') as string).toLowerCase() === type;
+        })
         .map((partner: any) => ({
-          id: partner.id,
-          logoUrl: partner.partner_logo_url || partner.partner_logo || '',
+          // prefer public_identifier if available, otherwise fall back to id
+          id: partner.public_identifier || partner.id,
+          // pick available logo url fields
+          logoUrl:
+            partner.partner_logo_url ||
+            partner.partner_logo ||
+            partner.logo ||
+            '',
+          // keep link if present
+          link: partner.website || undefined,
         }));
 
     return {
@@ -70,7 +90,7 @@ const MemberPage: React.FC = () => {
       supportingPartners: categorize('ca-support'),
       privateSectorPartners: categorize('ca-private-sector'),
     };
-  }, [partners]);
+  }, [partnersPage]);
 
   return (
     <div className="py-8 space-y-16 bg-white">

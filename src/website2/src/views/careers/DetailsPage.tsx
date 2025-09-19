@@ -6,9 +6,28 @@ import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useCareerDetails } from '@/hooks/useApiHooks';
+import { useApiData } from '@/services/hooks/useApiData';
+import { Career } from '@/services/types/api';
+
 const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
-  const { data: careerDetails, isLoading, isError } = useCareerDetails(id);
+  const {
+    data: careerData,
+    isLoading,
+    error,
+  } = useApiData<Career>(id ? `careers/${id}` : null);
+
+  // Normalize to a single careerDetails object.
+  let careerDetails: any = null;
+  if (careerData) {
+    if (
+      (careerData as any).results &&
+      Array.isArray((careerData as any).results)
+    ) {
+      careerDetails = (careerData as any).results[0];
+    } else {
+      careerDetails = careerData;
+    }
+  }
   const router = useRouter();
   if (isLoading) {
     return (
@@ -43,7 +62,7 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
       </div>
     );
   }
-  if (isError) {
+  if (error) {
     return (
       <div className="text-center text-xl text-red-500 p-8">
         {' '}

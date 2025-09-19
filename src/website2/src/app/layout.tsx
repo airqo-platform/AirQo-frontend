@@ -1,3 +1,4 @@
+/* eslint-disable simple-import-sort/imports */
 import './globals.css';
 
 import { Metadata } from 'next';
@@ -10,6 +11,7 @@ import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
+import { SwrProvider } from '@/services/providers/SwrProvider';
 import { generateViewport } from '@/lib/metadata';
 
 const interFont = localFont({
@@ -215,10 +217,12 @@ export default async function RootLayout({
         <ExternalLinkDecorator />
         <ErrorBoundary>
           <ReduxDataProvider>
-            <Suspense fallback={<Loading />}>
-              <EngagementDialog />
-              {children}
-            </Suspense>
+            <SwrProvider>
+              <Suspense fallback={<Loading />}>
+                <EngagementDialog />
+                {children}
+              </Suspense>
+            </SwrProvider>
           </ReduxDataProvider>
         </ErrorBoundary>
       </body>

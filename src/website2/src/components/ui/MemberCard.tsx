@@ -15,18 +15,24 @@ import {
   Divider,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
+import { useApiData } from '@/services/hooks/useApiData';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
 // Define types for member data
 interface Member {
-  name: string;
-  title: string;
-  picture_url: string;
-  picture: string;
-  bio: string;
-  descriptions: { description: string }[];
-  twitter?: string;
-  linked_in?: string;
+  // list response fields (may vary between board/team)
+  id?: string | number;
+  public_identifier?: string;
+  api_url?: string;
+  name?: string;
+  title?: string;
+  picture_url?: string;
+  picture?: string;
+  bio?: string;
+  about?: string;
+  descriptions?: { id?: number; description?: string }[];
+  twitter?: string | null;
+  linked_in?: string | null;
 }
 
 interface MemberCardProps {
@@ -40,6 +46,28 @@ const MemberCard: React.FC<MemberCardProps> = ({
   btnText = 'Read Bio',
   cardClassName,
 }) => {
+  // When dialog opens, fetch detailed member data if a public_identifier or id is available
+  const identifier = member.public_identifier || member.id;
+
+  const { data: detailData } = useApiData<any>(
+    identifier
+      ? member.public_identifier
+        ? `team-members/${identifier}`
+        : `board-members/${identifier}`
+      : null,
+  );
+
+  const detailed = React.useMemo(() => {
+    if (!detailData) return member;
+    if (Array.isArray(detailData)) return detailData[0] || member;
+    if (
+      (detailData as any).results &&
+      Array.isArray((detailData as any).results)
+    )
+      return (detailData as any).results[0] || member;
+    return detailData;
+  }, [detailData, member]);
+
   const renderContent = (content: string) => {
     const isHtml = content?.trim().startsWith('<');
     return convertDeltaToHtml(isHtml ? content : convertDeltaToHtml(content));
@@ -61,8 +89,12 @@ const MemberCard: React.FC<MemberCardProps> = ({
           */}
           <div className="relative w-full h-[350px] rounded-xl overflow-hidden mt-[-20px]">
             <Image
-              src={member.picture_url || member.picture || PlaceholderImage}
-              alt={member.name}
+              src={
+                (detailed as any).picture_url ||
+                (detailed as any).picture ||
+                PlaceholderImage
+              }
+              alt={(detailed as any).name || ''}
               fill
               sizes="(max-width: 640px) 100vw, 300px"
               className="object-cover transition-transform duration-300 ease-in-out hover:scale-105"
@@ -73,15 +105,15 @@ const MemberCard: React.FC<MemberCardProps> = ({
           <div className="w-full text-left">
             <h3
               className="text-lg font-semibold leading-tight truncate"
-              title={member.name}
+              title={(detailed as any).name || ''}
             >
-              {member.name}
+              {(detailed as any).name}
             </h3>
             <p
               className="text-gray-600 text-sm leading-snug truncate"
-              title={member.title}
+              title={(detailed as any).title || ''}
             >
-              {member.title}
+              {(detailed as any).title}
             </p>
           </div>
 
@@ -94,9 +126,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
 
           {/* Social Icons */}
           <div className="flex items-center space-x-3 self-start mt-1">
-            {member.twitter && (
+            {(detailed as any).twitter && (
               <a
-                href={member.twitter}
+                href={(detailed as any).twitter}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-600 transition"
@@ -104,9 +136,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
                 <FaTwitter size={20} />
               </a>
             )}
-            {member.linked_in && (
+            {(detailed as any).linked_in && (
               <a
-                href={member.linked_in}
+                href={(detailed as any).linked_in}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-600 transition"
@@ -160,8 +192,12 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {/* Dialog Image */}
             <div className="flex-shrink-0 w-full lg:w-[300px] h-[300px] lg:h-auto overflow-hidden rounded-lg">
               <Image
-                src={member.picture_url || member.picture || PlaceholderImage}
-                alt={member.name}
+                src={
+                  (detailed as any).picture_url ||
+                  (detailed as any).picture ||
+                  PlaceholderImage
+                }
+                alt={(detailed as any).name || ''}
                 width={300}
                 height={300}
                 className="w-full h-full object-cover"
@@ -174,27 +210,29 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {/* Description with scroll if content is long */}
             <div className="flex-1 max-h-[50vh] md:max-h-[60vh] overflow-y-auto pr-2">
               <DialogDescription className="leading-relaxed">
-                {member.descriptions?.length
-                  ? member.descriptions.map((desc, idx) => (
-                      <p key={idx} className="mb-2">
-                        {desc.description}
-                      </p>
-                    ))
+                {(detailed as any).descriptions?.length
+                  ? (detailed as any).descriptions.map(
+                      (desc: any, idx: number) => (
+                        <p key={idx} className="mb-2">
+                          {desc.description}
+                        </p>
+                      ),
+                    )
                   : null}
 
-                {member.bio && (
+                {(detailed as any).bio && (
                   <div
                     className="mb-2"
                     dangerouslySetInnerHTML={{
-                      __html: renderContent(member.bio),
+                      __html: renderContent((detailed as any).bio),
                     }}
                   />
                 )}
 
                 {/* If no descriptions and no bio */}
-                {!member.bio &&
-                  (!member.descriptions ||
-                    member.descriptions.length === 0) && (
+                {!(detailed as any).bio &&
+                  (!(detailed as any).descriptions ||
+                    (detailed as any).descriptions.length === 0) && (
                     <p className="text-gray-500">Bio is not available.</p>
                   )}
               </DialogDescription>

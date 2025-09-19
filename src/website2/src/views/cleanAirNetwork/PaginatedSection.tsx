@@ -10,7 +10,7 @@ import { Pagination } from '../../components/ui';
 const logosPerPage = 8;
 
 type Partner = {
-  id: number;
+  id: string | number;
   logoUrl: string;
   link?: string | null;
 };
