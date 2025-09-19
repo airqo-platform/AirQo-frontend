@@ -135,13 +135,14 @@ const HomePage = () => {
           subtitle="CLEAN-Air Network"
           description={
             <div>
-              <span className="text-blue-700 font-medium">
-                An African-led, multi-regional community of practice
-              </span>
-              <br />
-              uniting stakeholders to co-develop scalable, evidence-driven air
-              quality solutions and advance air quality monitoring, modelling,
-              and management across African cities.
+              The Africa Clean Air Network (AfriCAN) unites partners across
+              disciplines, sectors and borders to support clean air efforts
+              across Africa. The network&apos;s mission is to build
+              cross-border, cross-sector, multi-skilled partnerships that
+              deliver scalable, evidence-driven and open-access clean air
+              solutions for African cities. Launched in 2023 under the
+              leadership of AirQo at Makerere University (Uganda), the network
+              is building a shared framework for action on clean air.
             </div>
           }
           buttonText="Join the Network"

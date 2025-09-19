@@ -4,6 +4,7 @@ import DOMPurify from 'dompurify';
 import React from 'react';
 
 import { Divider, ForumLoading } from '@/components/ui';
+import mainConfig from '@/configs/mainConfigs';
 import { useForumData } from '@/context/ForumDataContext';
 import { isValidHTMLContent } from '@/utils/htmlValidator';
 import logger from '@/utils/logger';
@@ -71,89 +72,93 @@ const AboutPage = () => {
       }) || [];
 
     return (
-      <div className="px-4 prose max-w-none lg:px-0">
-        {/* Introduction Section */}
-        {validIntroduction && (
-          <SectionRow title="Introduction">
-            <div
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(introductionHTML),
-              }}
-            />
-          </SectionRow>
-        )}
+      <div className={`${mainConfig.containerClass} px-4 lg:px-0`}>
+        <div className="prose max-w-none">
+          {/* Introduction Section */}
+          {validIntroduction && (
+            <SectionRow title="Introduction">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(introductionHTML),
+                }}
+              />
+            </SectionRow>
+          )}
 
-        {/* Registration Section */}
-        {validRegistration && (
-          <SectionRow title="Registration">
-            <div
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(registrationHTML),
-              }}
-            />
-          </SectionRow>
-        )}
+          {/* Registration Section */}
+          {validRegistration && (
+            <SectionRow title="Registration">
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(registrationHTML),
+                }}
+              />
+            </SectionRow>
+          )}
 
-        {/* Travel Logistics Section */}
-        {(hasVaccination || hasVisa || hasAccommodation) && (
-          <SectionRow title="Travel & Logistics">
-            <div className="space-y-4">
-              {hasVaccination && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Vaccination</h3>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(vaccinationHTML),
-                    }}
-                  />
-                </div>
-              )}
-              {hasVisa && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Visa</h3>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(visaHTML),
-                    }}
-                  />
-                </div>
-              )}
-              {hasAccommodation && (
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Accommodation</h3>
-                  <div
-                    dangerouslySetInnerHTML={{
-                      __html: DOMPurify.sanitize(accommodationHTML),
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </SectionRow>
-        )}
+          {/* Travel Logistics Section */}
+          {(hasVaccination || hasVisa || hasAccommodation) && (
+            <SectionRow title="Travel & Logistics">
+              <div className="space-y-4">
+                {hasVaccination && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Vaccination</h3>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(vaccinationHTML),
+                      }}
+                    />
+                  </div>
+                )}
+                {hasVisa && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Visa</h3>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(visaHTML),
+                      }}
+                    />
+                  </div>
+                )}
+                {hasAccommodation && (
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">
+                      Accommodation
+                    </h3>
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(accommodationHTML),
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </SectionRow>
+          )}
 
-        {/* Additional Sections */}
-        {aboutSections.length > 0 && (
-          <div>
-            {aboutSections.map((section, index) => (
-              <SectionDisplay key={section.id || index} section={section} />
-            ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!validIntroduction &&
-          !validRegistration &&
-          !hasVaccination &&
-          !hasVisa &&
-          !hasAccommodation &&
-          aboutSections.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">
-                No information available for this forum event.
-              </p>
+          {/* Additional Sections */}
+          {aboutSections.length > 0 && (
+            <div>
+              {aboutSections.map((section, index) => (
+                <SectionDisplay key={section.id || index} section={section} />
+              ))}
             </div>
           )}
+
+          {/* Empty State */}
+          {!validIntroduction &&
+            !validRegistration &&
+            !hasVaccination &&
+            !hasVisa &&
+            !hasAccommodation &&
+            aboutSections.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">
+                  No information available for this forum event.
+                </p>
+              </div>
+            )}
+        </div>
       </div>
     );
   } catch (error) {
