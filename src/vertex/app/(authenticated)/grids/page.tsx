@@ -95,7 +95,7 @@ export default function GridsPage() {
                 <p className="text-sm text-muted-foreground">{error.message}</p>
               </div>
             ) : (
-              "No devices available"
+              "No grids available"
             )
           }
         />

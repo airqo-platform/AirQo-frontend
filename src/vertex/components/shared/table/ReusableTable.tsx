@@ -18,7 +18,6 @@ import {
   AqFilterLines,
   AqXClose,
 } from "@airqo/icons-react";
-import { Loader2 } from "lucide-react";
 import SelectField from "@/components/ui/select-field";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
@@ -41,6 +40,7 @@ export type TableColumn<T, K extends keyof T = keyof T> = {
   label?: React.ReactNode;
   render: (value: T[keyof T], item: T) => React.ReactNode;
   sortable?: boolean;
+  className?: string;
 };
 
 interface TableAction {
@@ -473,6 +473,60 @@ const Pagination: React.FC<PaginationProps> = ({
   );
 };
 
+// --- TableSkeleton Component ---
+interface TableSkeletonProps {
+  columns: { key: PropertyKey }[];
+  pageSize: number;
+}
+
+const TableSkeleton: React.FC<TableSkeletonProps> = ({
+  columns,
+  pageSize,
+}) => {
+  return (
+    <table className="w-full">
+      <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
+        <tr className="animate-pulse">
+          {columns.map((column) => (
+            <th
+              key={String(column.key)}
+              className={
+                column.key === "checkbox"
+                  ? "w-4 p-4"
+                  : "px-6 py-3 text-left"
+              }
+            >
+              {column.key === "checkbox" ? (
+                <div className="h-4 w-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+              ) : (
+                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
+        {Array.from({ length: pageSize }).map((_, index) => (
+          <tr key={index} className="animate-pulse">
+            {columns.map((column) => (
+              <td
+                key={String(column.key)}
+                className={
+                  column.key === "checkbox"
+                    ? "w-4 p-4"
+                    : "px-6 py-4 whitespace-nowrap"
+                }
+              >
+                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
 // --- Main ReusableTable Component ---
 interface ReusableTableProps<T extends TableItem> {
   title?: string;
@@ -491,8 +545,9 @@ interface ReusableTableProps<T extends TableItem> {
   multiSelect?: boolean;
   actions?: TableAction[];
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
-  onRowClick?: (item: unknown) => void;
-  emptyState?: string | React.ReactNode;
+  onRowClick?: (item: T) => void;
+  emptyState?: ReactNode;
+  className?: string;
 }
 
 // Normalize any value to a searchable string
@@ -539,6 +594,8 @@ const ReusableTable = <T extends TableItem>({
   actions = [],
   onSelectedItemsChange,
   onRowClick,
+  emptyState = "No data available",
+  className = "",
 }: ReusableTableProps<T>) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -710,28 +767,19 @@ const ReusableTable = <T extends TableItem>({
 
       const fuseOptions = {
         keys: fuseKeys,
-        threshold: 0.3,
+        threshold: searchTerm.trim().length < 3 ? 0.4 : 0.3,
         ignoreLocation: true,
         minMatchCharLength: 1,
         isCaseSensitive: false,
         includeScore: true,
         includeMatches: true,
-        shouldSort: true,
+        shouldSort: true, // This will sort by score
         findAllMatches: true,
         ignoreFieldNorm: true,
       };
       const fuse = new Fuse(fuseData, fuseOptions);
       const fuseResults = fuse.search(searchTerm.trim());
-
-      if (searchTerm.length === 1) {
-        result = fuseResults
-          .filter((res) => (res.score ?? 1) <= 0.9)
-          .map((searchResult) => result[searchResult.refIndex]);
-      } else {
-        result = fuseResults
-          .sort((a, b) => (a.score || 0) - (b.score || 0))
-          .map((searchResult) => result[searchResult.refIndex]);
-      }
+      result = fuseResults.map((searchResult) => result[searchResult.refIndex]);
     }
 
     return result;
@@ -953,7 +1001,9 @@ const ReusableTable = <T extends TableItem>({
   ]);
 
   return (
-    <div className="overflow-hidden shadow p-0 rounded-lg w-full bg-[#E9F7EF]">
+    <div
+      className={`overflow-hidden shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] ${className}`}
+    >
       {/* Header */}
       <TableHeader
         title={title}
@@ -984,9 +1034,7 @@ const ReusableTable = <T extends TableItem>({
           loadingComponent ? (
             loadingComponent
           ) : (
-            <div className="w-full py-12 flex justify-center items-center">
-              <Loader2 size={30} className="animate-spin" />
-            </div>
+            <TableSkeleton columns={displayColumns} pageSize={currentPageSize} />
           )
         ) : (
           <table className="w-full">
@@ -998,8 +1046,8 @@ const ReusableTable = <T extends TableItem>({
                     className={`${
                       column.key === "checkbox"
                         ? "w-4 p-4"
-                        : "px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    } ${
+                        : "max-w-sm px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                    } ${column.className || ""} ${
                       sortable &&
                       column.sortable !== false &&
                       column.key !== "checkbox"
@@ -1057,11 +1105,11 @@ const ReusableTable = <T extends TableItem>({
                     {displayColumns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className={`${
+                        className={`break-words ${
                           column.key === "checkbox"
                             ? "w-4 p-4"
-                            : "px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
-                        }`}
+                            : "px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
+                        } ${column.className || ""}`}
                       >
                         {renderCell(item, column)}
                       </td>
@@ -1079,7 +1127,7 @@ const ReusableTable = <T extends TableItem>({
                       (v) => v && (Array.isArray(v) ? v.length > 0 : v !== "")
                     )
                       ? "No matching results found"
-                      : "No data available"}
+                      : emptyState}
                   </td>
                 </tr>
               )}
@@ -1102,6 +1150,22 @@ const ReusableTable = <T extends TableItem>({
       )}
     </div>
   );
+};
+
+ReusableTable.defaultProps = {
+  title: "Table",
+  data: [],
+  columns: [],
+  searchable: true,
+  filterable: true,
+  filters: [],
+  pageSize: 10,
+  showPagination: true,
+  sortable: true,
+  pageSizeOptions: [5, 10, 20, 50, 100],
+  loading: false,
+  multiSelect: false,
+  actions: [],
 };
 
 export default ReusableTable;
