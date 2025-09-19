@@ -677,6 +677,38 @@ const ReusableTable = <T extends TableItem>({
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [tableId, searchParams, router, pathname, pageSize, initialFilters]);
 
+  const [searchInput, setSearchInput] = useState(searchTerm);
+
+  useEffect(() => {
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== searchTerm) {
+        if (tableId) {
+          updateUrlState({ search: searchInput, page: 1 });
+        } else {
+          setLocalSearchTerm(searchInput);
+          setLocalCurrentPage(1);
+        }
+      }
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [
+    searchInput,
+    searchTerm,
+    tableId,
+    updateUrlState,
+    setLocalSearchTerm,
+    setLocalCurrentPage,
+  ]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchInput("");
+  }, []);
+
   const resolvePath = (obj: unknown, path: string): unknown => {
     const parts = path.split(".");
     const walk = (current: unknown, idx: number): unknown => {
@@ -1012,19 +1044,6 @@ const ReusableTable = <T extends TableItem>({
     setSelectedAction("");
   }, [selectedAction, actions, selectedItems]);
 
-  const handleSearchChange = useCallback((term: string) => {
-    if (tableId) {
-      updateUrlState({ search: term, page: 1 });
-    } else {
-      setLocalSearchTerm(term);
-      setLocalCurrentPage(1);
-    }
-  }, [tableId, updateUrlState]);
-
-  const handleClearSearch = useCallback(() => {
-    handleSearchChange("");
-  }, [handleSearchChange]);
-
   const displayColumns = useMemo((): TableColumn<T>[] => {
     const cols = [...columns];
     if (multiSelect) {
@@ -1073,8 +1092,8 @@ const ReusableTable = <T extends TableItem>({
       <TableHeader
         title={title}
         searchable={searchable}
-        searchTerm={searchTerm}
-        onSearchChange={handleSearchChange}
+        searchTerm={searchInput}
+        onSearchChange={setSearchInput}
         onClearSearch={handleClearSearch}
         filterable={filterable}
         filters={filters}
