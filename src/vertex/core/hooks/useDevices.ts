@@ -1,7 +1,6 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
-import { DeviceDetailsResponse, devices, type MaintenanceActivitiesResponse } from "../apis/devices";
-import { setDevices, setError } from "../redux/slices/devicesSlice";
+import { DeviceDetailsResponse, devices, type MaintenanceActivitiesResponse, GetDevicesSummaryParams } from "../apis/devices";
+import { setDevices, setError } from "@/core/redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
   DevicesSummaryResponse,
@@ -18,7 +17,7 @@ import type {
   MyDevicesResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";import { useDispatch } from "react-redux";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
@@ -29,44 +28,50 @@ interface ErrorResponse {
   };
 }
 
-export const useDevices = () => {
-  const dispatch = useDispatch();
+export interface DeviceListingOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
+export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+
+  const { page = 1, limit = 100, search, sortBy, order } = options;
+  const skip = (page - 1) * limit;
 
   const devicesQuery = useQuery<
     DevicesSummaryResponse,
     AxiosError<ErrorResponse>
   >({
-    queryKey: ["devices", activeNetwork?.net_name, activeGroup?.grp_title],
-    queryFn: () =>
-      devices.getDevicesSummaryApi(
-        activeNetwork?.net_name || "",
-        activeGroup?.grp_title === "airqo" ? "" : activeGroup?.grp_title || ""
-      ),
+    queryKey: ["devices", activeNetwork?.net_name, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
+    queryFn: () => {
+      const params: GetDevicesSummaryParams = {
+        network: activeNetwork?.net_name || "",
+        group: activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || ""),
+        limit,
+        skip,
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(order && { order }),
+      };
+      return devices.getDevicesSummaryApi(params);
+    },
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
-    onSuccess: (data: DevicesSummaryResponse) => {
-      const devicesWithStatus = data.devices.map(device => ({
-        ...device,
-        device_number: 0,
-        mobility: false,
-        maintenance_status: "good" as const,
-        powerType: "mains" as const,
-        elapsed_time: 0,
-        status: device.isOnline ? "online" as const : "offline" as const,
-      }));
-      dispatch(setDevices(devicesWithStatus));
-    },
-    onError: (error: AxiosError<ErrorResponse>) => {
-      dispatch(setError(error.message));
-    },
-  } as UseQueryOptions<DevicesSummaryResponse, AxiosError<ErrorResponse>>);
+    keepPreviousData: true,
+  });
 
   return {
+    data: devicesQuery.data,
     devices: devicesQuery.data?.devices || [],
+    meta: devicesQuery.data?.meta,
     isLoading: devicesQuery.isLoading,
+    isFetching: devicesQuery.isFetching,
     error: devicesQuery.error,
   };
 };

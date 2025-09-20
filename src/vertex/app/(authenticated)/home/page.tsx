@@ -28,14 +28,6 @@ const WelcomePage = () => {
       showInExternalOrg: true,
     },
     {
-      href: "/devices/deploy",
-      label: "Deploy Device",
-      permission: PERMISSIONS.DEVICE.DEPLOY,
-      showInPersonal: true,
-      showInAirQoInternal: true,
-      showInExternalOrg: true,
-    },
-    {
       href: "/sites",
       label: "Create Site",
       permission: PERMISSIONS.SITE.CREATE,

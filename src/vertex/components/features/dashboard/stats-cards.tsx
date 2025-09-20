@@ -171,7 +171,7 @@ export const DashboardStatsCards = () => {
       activeMonitors = deviceStats.online;
 
       pendingDeployments = orgDevices.filter(
-        (device) =>
+        (device:Device) =>
           device.status === "not deployed" ||
           (device.claim_status === "claimed" && device.status !== "deployed")
       ).length;

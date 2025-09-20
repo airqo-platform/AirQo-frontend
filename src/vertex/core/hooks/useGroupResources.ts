@@ -43,7 +43,7 @@ export const useGroupResources = (groupId: string) => {
     queryFn: async () => {
       try {
 
-        const response = await devices.getDevicesSummaryApi(networkId, groupTitle)
+        const response = await devices.getDevicesSummaryApi({network: networkId, group: groupTitle})
 
         return {
           hasDevices: Array.isArray(response.devices) && response.devices.length > 0,

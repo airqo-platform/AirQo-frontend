@@ -11,7 +11,7 @@ import { useParams } from "next/navigation";
 import { SiteInformationCard } from "@/components/features/sites/site-information-card";
 import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-card";
 import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-details-dialog";
-import DevicesTable from "@/components/features/devices/device-list-table";
+import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 
 const ActionButtonsSkeleton = () => (
   <div className="flex gap-1">
@@ -79,7 +79,7 @@ export default function SiteDetailsPage() {
             </div>
           </div>
           <div className="mt-6">
-            <DevicesTable
+            <ClientPaginatedDevicesTable
               devices={site.devices || []}
               isLoading={isLoading}
               error={error}

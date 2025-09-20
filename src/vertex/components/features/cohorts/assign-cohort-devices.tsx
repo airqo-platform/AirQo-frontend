@@ -20,6 +20,7 @@ import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
 import { CreateCohortDialog } from "./create-cohort";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import { Device } from "@/app/types/devices";
 
 interface AssignCohortDevicesDialogProps {
   open: boolean;
@@ -60,10 +61,10 @@ export function AssignCohortDevicesDialog({
   });
 
   const deviceOptions: Option[] = useMemo(() => {
-    return allDevices.map((device) => ({
-      value: device._id || device.id || "",
+    return allDevices.map((device: Device) => ({
+      value: device._id || "",
       label: device.long_name || device.name || `Device ${device._id}`,
-    })).filter(option => option.value);
+    })).filter((option: Option) => option.value);
   }, [allDevices]);
 
   useEffect(() => {

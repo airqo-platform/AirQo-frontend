@@ -30,7 +30,9 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
           <Loader2 className="w-6 h-6 animate-spin" />
         </div>
       ) : statusFeed.error ? (
-        <div className="p-6 text-sm text-center text-muted-foreground">{statusFeed.error.message || "Failed to load status."}</div>
+        <div className="p-6 text-sm text-center text-muted-foreground">
+          Could not fetch device status. Please try refreshing.
+        </div>
       ) : statusFeed.data ? (
         <>
           <div className="text-sm text-muted-foreground mb-1 px-3 py-2">
