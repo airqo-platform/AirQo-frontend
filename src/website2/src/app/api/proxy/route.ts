@@ -149,9 +149,10 @@ export async function POST(request: NextRequest) {
 
   let controller: AbortController | undefined;
   let timeout: NodeJS.Timeout | undefined;
+  let body: any = null;
 
   try {
-    const body = await request.json();
+    body = await request.json();
     const { endpoint, method = 'POST', data } = body;
 
     // Validate endpoint input
@@ -259,15 +260,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Log actual errors (not client disconnections)
-    console.error('API proxy error:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack:
-        process.env.NODE_ENV === 'development' && error instanceof Error
-          ? error.stack
-          : undefined,
-      url: request.url,
-    });
+    // Log actual errors (not client disconnections) with better context
+    const errorMessage =
+      error instanceof Error ? error.message : 'Unknown error';
+    const isApiNotFound = errorMessage.includes('Not Found');
+
+    // Only log as warning for API not found (404), as error for other cases
+    if (isApiNotFound) {
+      console.warn('API endpoint not found:', {
+        message: errorMessage,
+        url: request.url,
+        endpoint: body?.endpoint || 'unknown',
+      });
+      return NextResponse.json(
+        { error: 'API endpoint not found' },
+        { status: 404 },
+      );
+    } else {
+      console.error('API proxy error:', {
+        message: errorMessage,
+        stack:
+          process.env.NODE_ENV === 'development' && error instanceof Error
+            ? error.stack
+            : undefined,
+        url: request.url,
+        endpoint: body?.endpoint || 'unknown',
+      });
+    }
 
     return NextResponse.json(
       { error: 'Failed to proxy API request' },

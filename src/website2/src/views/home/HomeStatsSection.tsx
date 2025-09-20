@@ -6,13 +6,15 @@ import { useState } from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useImpactNumbers } from '@/hooks/useApiHooks';
+import { useImpactNumbers } from '@/services/hooks/endpoints';
 
 import { Accordion } from './Accordion';
 import { accordionItems, partnerLogos, statItems } from './data';
 
 const HomeStatsSection: React.FC = () => {
-  const { data: impactNumbers } = useImpactNumbers();
+  const { data: impactNumbersResponse } = useImpactNumbers();
+  // v2 endpoints return a paginated response: { results: [ ... ] }
+  const impactNumbers = impactNumbersResponse?.results?.[0] ?? null;
   const [activeTab, setActiveTab] = useState<'cities' | 'communities'>(
     'cities',
   );
@@ -133,6 +135,7 @@ const StatisticsSection: React.FC<{ impactNumbers: any }> = ({
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
       {statItems.map((stat, index) => {
         const IconComponent = stat.icon;
+        const value = impactNumbers ? (impactNumbers[stat.key] ?? 0) : 0;
         return (
           <div
             key={index}
@@ -140,7 +143,7 @@ const StatisticsSection: React.FC<{ impactNumbers: any }> = ({
           >
             <div className="text-left flex flex-col items-start">
               <p className="text-3xl font-bold">
-                {formatStatValue(stat.key, impactNumbers?.[stat.key] ?? 0)}
+                {formatStatValue(stat.key, value)}
               </p>
               <p className="text-gray-600">{stat.label}</p>
             </div>

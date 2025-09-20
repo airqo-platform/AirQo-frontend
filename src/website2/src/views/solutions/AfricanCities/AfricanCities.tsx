@@ -2,46 +2,77 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
 import mainConfig from '@/configs/mainConfigs';
-import { useAfricanCountries } from '@/hooks/useApiHooks';
+import { useInfiniteAfricanCountries } from '@/services/hooks/endpoints';
+import { useAfricanCountryDetail } from '@/services/hooks/endpoints';
+import type { AfricanCountry, City } from '@/services/types/api';
 
 const AfricanCities: React.FC = () => {
-  const { data: africanCountries } = useAfricanCountries();
-  const [selectedCountry, setSelectedCountry] = useState<any | null>(null);
-  const [selectedCity, setSelectedCity] = useState<any | null>(null);
+  // Use infinite loading to get all countries with pagination support
+  const {
+    results: africanCountries,
+    isLoadingInitialData,
+    isReachingEnd,
+    setSize,
+  } = useInfiniteAfricanCountries({ page_size: 1000 });
 
-  // Set default country and city when data loads
+  const [selectedCountry, setSelectedCountry] = useState<AfricanCountry | null>(
+    null,
+  );
+  const [selectedCity, setSelectedCity] = useState<City | null>(null);
+
+  // Fetch country details when a country is selected
+  const { data: countryDetail } = useAfricanCountryDetail(
+    selectedCountry?.id || null,
+  );
+
+  // Load all countries on mount (if there are more pages)
   useEffect(() => {
-    if (africanCountries && africanCountries.length > 0) {
+    if (!isLoadingInitialData && !isReachingEnd) {
+      setSize((prevSize) => prevSize + 1);
+    }
+  }, [isLoadingInitialData, isReachingEnd, setSize]);
+
+  // Set default country when data loads
+  useEffect(() => {
+    // Only set a default country if the user hasn't selected one yet.
+    if (!selectedCountry && africanCountries && africanCountries.length > 0) {
       const defaultCountry = africanCountries[0];
       setSelectedCountry(defaultCountry);
-      if (defaultCountry.city && defaultCountry.city.length > 0) {
-        setSelectedCity(defaultCountry.city[0]);
-      }
     }
-  }, [africanCountries]);
+  }, [africanCountries, selectedCountry]);
 
-  // Handle country selection
-  const handleCountrySelect = (country: any) => {
-    setSelectedCountry(country);
-    if (country.city && country.city.length > 0) {
-      setSelectedCity(country.city[0]);
+  // Set default city when country detail loads
+  useEffect(() => {
+    if (countryDetail && countryDetail.city && countryDetail.city.length > 0) {
+      setSelectedCity(countryDetail.city[0]);
     } else {
       setSelectedCity(null);
     }
+  }, [countryDetail]);
+
+  // Handle country selection
+  const handleCountrySelect = (country: AfricanCountry) => {
+    setSelectedCountry(country);
+    setSelectedCity(null); // Reset city selection when country changes
   };
 
   // Handle city selection
-  const handleCitySelect = (city: any) => {
+  const handleCitySelect = (city: City) => {
     setSelectedCity(city);
   };
 
-  if (!africanCountries) return null;
+  if (
+    isLoadingInitialData ||
+    !africanCountries ||
+    africanCountries.length === 0
+  )
+    return null;
 
   return (
     <div className={`${mainConfig.containerClass} p-4 lg:p-0`}>
       {/* Top Section: Countries List */}
       <div className="flex gap-4 flex-wrap pb-4">
-        {africanCountries.map((country: any) => (
+        {africanCountries.map((country: AfricanCountry) => (
           <button
             key={country.id}
             className={`flex items-center space-x-2 px-4 py-2 rounded-full border ${
@@ -64,10 +95,10 @@ const AfricanCities: React.FC = () => {
       </div>
 
       {/* Middle Section: Cities List for the selected country */}
-      {selectedCountry && selectedCountry.city.length > 0 && (
+      {countryDetail && countryDetail.city && countryDetail.city.length > 0 && (
         <div className="mt-6 border-t border-gray-300 w-full pt-4 pb-8">
           <div className="flex space-x-4">
-            {selectedCountry.city.map((city: any) => (
+            {countryDetail.city.map((city: City) => (
               <button
                 key={city.id}
                 className={`px-4 py-2 rounded-full border ${
@@ -93,7 +124,7 @@ const AfricanCities: React.FC = () => {
               {selectedCity.content[0].title}
             </h2>
             <div className="space-y-4">
-              {selectedCity.content[0].description.map((desc: any) => (
+              {selectedCity.content[0].description.map((desc) => (
                 <p key={desc.id} className="text-lg text-gray-700">
                   {desc.paragraph}
                 </p>
@@ -103,7 +134,7 @@ const AfricanCities: React.FC = () => {
 
           {/* Right Section: Responsive Images */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {selectedCity.content[0].image.map((img: any, index: number) => (
+            {selectedCity.content[0].image.map((img, index: number) => (
               // On mobile, only show the first image; on sm and above, show all images.
               <div
                 key={img.id}

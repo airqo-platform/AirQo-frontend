@@ -55,22 +55,26 @@ const LogisticsPage = () => {
   }
 
   return (
-    <div className="px-4 prose max-w-none lg:px-0">
-      {/* Render additional Logistics Sections, if any */}
-      {logisticsSections && logisticsSections.length > 0 && (
-        <>
-          {logisticsSections.map((section: any) => (
-            <React.Fragment key={section.id}>
-              <section className="py-2">
-                <SectionDisplay section={section} />
-              </section>
-            </React.Fragment>
-          ))}
-        </>
-      )}
+    <div className="w-full">
+      <div className="max-w-5xl mx-auto px-4 lg:px-0">
+        <div className="prose max-w-none">
+          {/* Render additional Logistics Sections, if any */}
+          {logisticsSections && logisticsSections.length > 0 && (
+            <>
+              {logisticsSections.map((section: any) => (
+                <React.Fragment key={section.id}>
+                  <section className="py-2">
+                    <SectionDisplay section={section} />
+                  </section>
+                </React.Fragment>
+              ))}
+            </>
+          )}
 
-      {/* Final divider */}
-      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+          {/* Final divider */}
+          <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+        </div>
+      </div>
     </div>
   );
 };

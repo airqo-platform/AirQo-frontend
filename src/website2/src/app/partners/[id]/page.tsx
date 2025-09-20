@@ -4,13 +4,15 @@ import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
 
-import { usePartnerDetails } from '@/hooks/useApiHooks';
+import { usePartnerDetail } from '@/services/hooks/endpoints';
 
 const PartnerDetailsPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
   const { id } = params as { id: string };
-  const { data: partner, isLoading, isError } = usePartnerDetails(id);
+
+  // fetch partner detail by public_identifier
+  const { data: partner, isLoading, error } = usePartnerDetail(id);
 
   // Skeleton loader component
   const SkeletonLoader = () => (
@@ -32,7 +34,7 @@ const PartnerDetailsPage: React.FC = () => {
   }
 
   // Handle error state
-  if (isError) {
+  if (error) {
     return (
       <div className="flex flex-col justify-center items-center h-screen bg-white">
         <p className="text-red-500 text-xl">Failed to load partner details.</p>

@@ -2,7 +2,7 @@
 import { motion, useAnimation } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useState } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
@@ -20,7 +20,6 @@ import {
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
-import TabNavigation from '@/views/cleanAirNetwork/TabNavigation';
 
 import { trackEvent } from '../GoogleAnalytics';
 import NotificationBanner from './NotificationBanner';
@@ -90,7 +89,7 @@ const menuItems: MenuItems = {
     { title: 'Events', href: '/events' },
     { title: 'Press', href: '/press' },
     { title: 'FAQs', href: '/faqs' },
-    { title: 'CLEAN-Air Forum', href: '/clean-air-forum/about' },
+    { title: 'CLEAN-Air Forum', href: '/clean-air-forum' },
   ],
 };
 
@@ -155,7 +154,6 @@ const DropdownMenuContent: React.FC<{ title: string; items: MenuItem[] }> = ({
 
 const Navbar: React.FC = () => {
   const dispatch = useDispatch();
-  const pathname = usePathname();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
@@ -186,7 +184,7 @@ const Navbar: React.FC = () => {
       animate={controls}
       className="w-full bg-white sticky top-0 left-0 z-50"
     >
-      {!pathname.startsWith('/clean-air-network') && <NotificationBanner />}
+      <NotificationBanner />
       <nav className="w-full bg-white p-4">
         <div
           className={`flex items-center justify-between ${mainConfig.containerClass}`}
@@ -317,7 +315,7 @@ const Navbar: React.FC = () => {
           )}
         </div>
       </nav>
-      {pathname.startsWith('/clean-air-network') && <TabNavigation />}
+      {/* Removed clean-air-network tab navigation */}
     </motion.nav>
   );
 };

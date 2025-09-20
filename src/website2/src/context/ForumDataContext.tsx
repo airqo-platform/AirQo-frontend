@@ -2,10 +2,12 @@
 import { createContext, ReactNode, useContext } from 'react';
 
 import { ForumEvent, ForumTitlesResponse } from '@/types/forum';
+import { NormalizedForumData } from '@/utils/forumDataNormalizer';
 import logger from '@/utils/logger';
 
 export interface ForumData {
   selectedEvent: ForumEvent | null;
+  normalizedData: NormalizedForumData | null;
   // eventTitles can be an array of ForumEvent or a ForumTitlesResponse object.
   eventTitles: ForumEvent[] | ForumTitlesResponse | null;
   // Loading states
@@ -24,6 +26,7 @@ export const useForumData = () => {
     );
     return {
       selectedEvent: null,
+      normalizedData: null,
       eventTitles: null,
       isLoading: false,
       isError: true,

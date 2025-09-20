@@ -6,9 +6,11 @@ import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useCareerDetails } from '@/hooks/useApiHooks';
+import { useCareerDetail } from '@/services/hooks/endpoints';
+
 const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
-  const { data: careerDetails, isLoading, isError } = useCareerDetails(id);
+  const { data: careerDetails, isLoading, error } = useCareerDetail(id);
+
   const router = useRouter();
   if (isLoading) {
     return (
@@ -43,7 +45,7 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
       </div>
     );
   }
-  if (isError) {
+  if (error) {
     return (
       <div className="text-center text-xl text-red-500 p-8">
         {' '}
@@ -84,12 +86,11 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
             Job Type: {careerDetails.type}{' '}
           </p>{' '}
           <p className="text-lg text-gray-700">
-            {' '}
-            Closing Date: {format(
-              new Date(careerDetails.closing_date),
-              'PPP',
-            )}{' '}
-          </p>{' '}
+            Closing Date:{' '}
+            {careerDetails.closing_date
+              ? format(new Date(careerDetails.closing_date), 'PPP')
+              : 'N/A'}
+          </p>
         </div>{' '}
       </header>{' '}
       {/* Job Details Section */}{' '}
