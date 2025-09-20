@@ -75,36 +75,73 @@ export async function GET(
     // eslint-disable-next-line no-console
     console.log('API URL:', apiUrl.toString());
 
-    const res = await fetch(apiUrl.toString(), {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      cache: 'no-store',
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort(new DOMException('TimeoutError', 'TimeoutError'));
+    }, 15000); // 15 second timeout
 
-    const text = await res.text();
-
-    // Try to parse JSON, if not return as text
-    let body: any = text;
     try {
-      body = JSON.parse(text);
-    } catch {
-      // leave as text
-    }
+      const res = await fetch(apiUrl.toString(), {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        cache: 'no-store',
+        signal: controller.signal,
+      });
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: body?.error || res.statusText || 'API error' },
-        { status: res.status },
-      );
-    }
+      clearTimeout(timeout);
 
-    return NextResponse.json(body, {
-      status: 200,
-      headers: {
-        'Cache-Control': 's-maxage=60, stale-while-revalidate',
-      },
-    });
+      const text = await res.text();
+
+      // Try to parse JSON, if not return as text
+      let body: any = text;
+      try {
+        body = JSON.parse(text);
+      } catch {
+        // leave as text
+      }
+
+      if (!res.ok) {
+        // Log 404s as warnings, other errors as errors
+        if (res.status === 404) {
+          console.warn('API endpoint not found:', {
+            endpoint: params.endpoint.join('/'),
+            status: res.status,
+            statusText: res.statusText,
+          });
+        } else {
+          console.error('API request failed:', {
+            endpoint: params.endpoint.join('/'),
+            status: res.status,
+            statusText: res.statusText,
+            body: body?.error || 'No error details',
+          });
+        }
+
+        return NextResponse.json(
+          { error: body?.error || res.statusText || 'API error' },
+          { status: res.status },
+        );
+      }
+
+      return NextResponse.json(body, {
+        status: 200,
+        headers: {
+          'Cache-Control': 's-maxage=60, stale-while-revalidate',
+        },
+      });
+    } catch (fetchError) {
+      clearTimeout(timeout);
+
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.warn('API request timeout:', {
+          endpoint: params.endpoint.join('/'),
+        });
+        return NextResponse.json({ error: 'Request timeout' }, { status: 408 });
+      }
+
+      throw fetchError;
+    }
   } catch (error) {
     // Log server-side only
     // eslint-disable-next-line no-console
@@ -177,36 +214,73 @@ export async function POST(
 
     const body = await request.text();
 
-    const res = await fetch(apiUrl.toString(), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body,
-      cache: 'no-store',
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => {
+      controller.abort(new DOMException('TimeoutError', 'TimeoutError'));
+    }, 15000); // 15 second timeout
 
-    const text = await res.text();
-    let parsed: any = text;
     try {
-      parsed = JSON.parse(text);
-    } catch {
-      // keep text
-    }
+      const res = await fetch(apiUrl.toString(), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body,
+        cache: 'no-store',
+        signal: controller.signal,
+      });
 
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: parsed?.error || res.statusText || 'API error' },
-        { status: res.status },
-      );
-    }
+      clearTimeout(timeout);
 
-    return NextResponse.json(parsed, {
-      status: 200,
-      headers: {
-        'Cache-Control': 's-maxage=60, stale-while-revalidate',
-      },
-    });
+      const text = await res.text();
+      let parsed: any = text;
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        // keep text
+      }
+
+      if (!res.ok) {
+        // Log 404s as warnings, other errors as errors
+        if (res.status === 404) {
+          console.warn('API POST endpoint not found:', {
+            endpoint: params.endpoint.join('/'),
+            status: res.status,
+            statusText: res.statusText,
+          });
+        } else {
+          console.error('API POST request failed:', {
+            endpoint: params.endpoint.join('/'),
+            status: res.status,
+            statusText: res.statusText,
+            body: parsed?.error || 'No error details',
+          });
+        }
+
+        return NextResponse.json(
+          { error: parsed?.error || res.statusText || 'API error' },
+          { status: res.status },
+        );
+      }
+
+      return NextResponse.json(parsed, {
+        status: 200,
+        headers: {
+          'Cache-Control': 's-maxage=60, stale-while-revalidate',
+        },
+      });
+    } catch (fetchError) {
+      clearTimeout(timeout);
+
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        console.warn('API POST request timeout:', {
+          endpoint: params.endpoint.join('/'),
+        });
+        return NextResponse.json({ error: 'Request timeout' }, { status: 408 });
+      }
+
+      throw fetchError;
+    }
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('API Proxy Error:', error);

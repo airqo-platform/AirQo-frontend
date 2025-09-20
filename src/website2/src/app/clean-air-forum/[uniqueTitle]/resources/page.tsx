@@ -1,22 +1,10 @@
-import { Metadata } from 'next';
-
+import {
+  generateMetadata as createMetadata,
+  METADATA_CONFIGS,
+} from '@/lib/metadata';
 import ResourcesPage from '@/views/cleanairforum/resources/ResourcesPage';
 
-export const metadata: Metadata = {
-  title: 'Conference Resources & Materials',
-  description:
-    'Access presentations, papers, and materials from the Clean Air Forum. Download resources about air quality monitoring, research findings, and environmental solutions.',
-  keywords:
-    'Clean Air Forum resources, conference materials, presentation downloads, air quality research, environmental papers, forum documents',
-  alternates: {
-    canonical: 'https://airqo.net/clean-air-forum/resources',
-  },
-  openGraph: {
-    title: 'Conference Resources & Materials | Clean Air Forum 2024',
-    description:
-      "Download presentations and materials from Africa's premier air quality conference.",
-  },
-};
+export const metadata = createMetadata(METADATA_CONFIGS.cleanAirForumResources);
 
 const Page = () => {
   return <ResourcesPage />;

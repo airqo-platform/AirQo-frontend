@@ -16,9 +16,172 @@ interface MetadataConfig {
   modifiedTime?: string;
 }
 
+// All supported AirQo domains
+const SUPPORTED_DOMAINS = [
+  'https://airqo.net',
+  'https://www.airqo.net',
+  'https://airqo.africa',
+  'https://www.airqo.africa',
+  'https://airqo.org',
+  'https://www.airqo.org',
+  'https://airqo.mak.ac.ug',
+  'https://www.airqo.mak.ac.ug',
+];
+
+// Primary domains (fallback priority order)
+const PRIMARY_DOMAINS = [
+  'https://airqo.net',
+  'https://airqo.africa',
+  'https://airqo.org',
+  'https://airqo.mak.ac.ug',
+];
+
+/**
+ * Enhanced domain detection with multiple methods and proper fallbacks
+ * Tries multiple detection methods to ensure the correct domain is used
+ */
+const isDev = process.env.NODE_ENV === 'development';
+
+const devLog = (...args: any[]) => {
+  if (isDev) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+};
+
+const devWarn = (...args: any[]) => {
+  if (isDev) {
+    // eslint-disable-next-line no-console
+    console.warn(...args);
+  }
+};
+
+const getCurrentDomain = (): string => {
+  // Method 1: Client-side detection (most reliable when available)
+  if (typeof window !== 'undefined') {
+    try {
+      const origin = window.location.origin;
+      devLog('🌍 Client-side domain detected:', origin);
+
+      if (SUPPORTED_DOMAINS.includes(origin)) {
+        return origin;
+      }
+
+      // If current domain isn't in our list, log and fallback
+      devWarn('⚠️ Current domain not in supported list:', origin);
+    } catch (error) {
+      devWarn('⚠️ Client-side domain detection failed:', error);
+    }
+  }
+
+  // Method 2: Server-side environment variable detection
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+  if (siteUrl) {
+    try {
+      const normalizedUrl = siteUrl.replace(/\/$/, '');
+      devLog('🔧 Environment domain detected:', normalizedUrl);
+
+      if (SUPPORTED_DOMAINS.includes(normalizedUrl)) {
+        return normalizedUrl;
+      }
+
+      // Try to match partial domain (e.g., if env has different protocol)
+      const envDomain = new URL(normalizedUrl).hostname;
+      const matchedDomain = SUPPORTED_DOMAINS.find((domain) => {
+        return new URL(domain).hostname === envDomain;
+      });
+
+      if (matchedDomain) {
+        devLog('🔄 Matched domain from hostname:', matchedDomain);
+        return matchedDomain;
+      }
+
+      devWarn('⚠️ Environment domain not in supported list:', normalizedUrl);
+    } catch (error) {
+      devWarn('⚠️ Environment domain parsing failed:', error);
+    }
+  }
+
+  // Method 3: Header-based detection (for server-side rendering)
+  if (typeof process !== 'undefined' && process.env) {
+    try {
+      // Check for various header-based environment variables
+      const possibleHosts = [
+        process.env.VERCEL_URL,
+        process.env.RAILWAY_PUBLIC_DOMAIN,
+        process.env.RENDER_EXTERNAL_URL,
+        process.env.HOST,
+        process.env.HOSTNAME,
+      ].filter(Boolean);
+
+      for (const host of possibleHosts) {
+        if (host) {
+          const fullUrl = host.startsWith('http') ? host : `https://${host}`;
+          const normalizedUrl = fullUrl.replace(/\/$/, '');
+
+          if (SUPPORTED_DOMAINS.includes(normalizedUrl)) {
+            devLog('🌐 Header-based domain detected:', normalizedUrl);
+            return normalizedUrl;
+          }
+        }
+      }
+    } catch (error) {
+      devWarn('⚠️ Header-based domain detection failed:', error);
+    }
+  }
+
+  // Method 4: Request headers (Next.js specific)
+  try {
+    // This will be available in middleware and API routes
+    if (typeof Headers !== 'undefined') {
+      // In a real deployment, this would be set by the platform
+      const host =
+        process.env.NEXT_PUBLIC_VERCEL_URL ||
+        process.env.NEXT_PUBLIC_DEPLOYMENT_URL;
+      if (host) {
+        const fullUrl = host.startsWith('http') ? host : `https://${host}`;
+        const normalizedUrl = fullUrl.replace(/\/$/, '');
+
+        if (SUPPORTED_DOMAINS.includes(normalizedUrl)) {
+          devLog('🚀 Deployment domain detected:', normalizedUrl);
+          return normalizedUrl;
+        }
+      }
+    }
+  } catch (error) {
+    devWarn('⚠️ Deployment domain detection failed:', error);
+  }
+
+  // Fallback: Use primary domain priority order
+  const fallbackDomain = PRIMARY_DOMAINS[0]; // Default to airqo.net
+  devLog('🔄 Using fallback domain:', fallbackDomain);
+
+  return fallbackDomain;
+};
+
+/**
+ * Get domain for specific purposes (can override the detection)
+ */
+export const getDomainForContext = (
+  context?: 'social' | 'canonical' | 'api',
+): string => {
+  const detectedDomain = getCurrentDomain();
+
+  // For social media sharing, prefer main domains for better recognition
+  if (context === 'social') {
+    const hostname = new URL(detectedDomain).hostname;
+    if (hostname.includes('airqo.net')) return 'https://airqo.net';
+    if (hostname.includes('airqo.africa')) return 'https://airqo.africa';
+    if (hostname.includes('airqo.org')) return 'https://airqo.org';
+    if (hostname.includes('airqo.mak.ac.ug')) return 'https://airqo.mak.ac.ug';
+  }
+
+  return detectedDomain;
+};
+
 const DEFAULT_METADATA = {
   siteName: 'AirQo',
-  siteUrl: 'https://airqo.net',
+  siteUrl: getCurrentDomain(),
   defaultImage: {
     url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
     alt: 'AirQo - Clean Air for All African Cities',
@@ -30,9 +193,21 @@ const DEFAULT_METADATA = {
 
 export function generateMetadata(config: MetadataConfig): Metadata {
   const image = config.image || DEFAULT_METADATA.defaultImage;
+
+  // Use enhanced domain detection for different contexts
+  const canonicalDomain = getDomainForContext('canonical');
+  const socialDomain = getDomainForContext('social');
+
   const fullUrl = config.url.startsWith('http')
     ? config.url
-    : `${DEFAULT_METADATA.siteUrl}${config.url}`;
+    : `${canonicalDomain}${config.url}`;
+
+  const socialUrl = config.url.startsWith('http')
+    ? config.url
+    : `${socialDomain}${config.url}`;
+
+  // Intentionally keep metadata generation silent to avoid noisy logs during
+  // static generation. Only critical warnings/errors are logged elsewhere.
 
   return {
     title: config.title,
@@ -52,19 +227,27 @@ export function generateMetadata(config: MetadataConfig): Metadata {
     },
     alternates: {
       canonical: fullUrl,
+      // Add alternative domain links for SEO across all supported domains
+      languages: {
+        'en-US': fullUrl,
+        'en-GB': fullUrl,
+        'x-default': fullUrl,
+      },
     },
     openGraph: {
       type: config.type || 'website',
-      url: fullUrl,
+      url: socialUrl, // Use social-optimized URL for Open Graph
       title: config.title,
       description: config.description,
       siteName: DEFAULT_METADATA.siteName,
+      locale: 'en_US',
       images: [
         {
           url: image.url,
           width: image.width || DEFAULT_METADATA.defaultImage.width,
           height: image.height || DEFAULT_METADATA.defaultImage.height,
           alt: image.alt,
+          type: 'image/webp',
         },
       ],
       ...(config.publishedTime && { publishedTime: config.publishedTime }),
@@ -76,8 +259,43 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       creator: DEFAULT_METADATA.twitterHandle,
       title: config.title,
       description: config.description,
-      images: [image.url],
+      images: [
+        {
+          url: image.url,
+          alt: image.alt,
+          width: image.width || DEFAULT_METADATA.defaultImage.width,
+          height: image.height || DEFAULT_METADATA.defaultImage.height,
+        },
+      ],
     },
+    // Enhanced social media and search engine optimization
+    other: {
+      // Facebook specific
+      'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+      // LinkedIn specific
+      'article:publisher': 'https://www.linkedin.com/company/airqo/',
+      // Additional Twitter metadata
+      'twitter:domain': socialDomain.replace('https://', ''),
+      'twitter:url': socialUrl,
+      // Microsoft specific
+      'msapplication-TileColor': '#145DFF',
+      'msapplication-TileImage': `${canonicalDomain}/icon-192x192.png`,
+      // Apple specific
+      'apple-mobile-web-app-title': 'AirQo',
+      'apple-mobile-web-app-capable': 'yes',
+      'apple-mobile-web-app-status-bar-style': 'default',
+      // Theme color
+      'theme-color': '#145DFF',
+      // Additional SEO
+      'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION || '',
+      'p:domain_verify': process.env.PINTEREST_DOMAIN_VERIFY || '',
+      // Domain detection info (for debugging in development)
+      ...(process.env.NODE_ENV === 'development' && {
+        'airqo:detected-domain': canonicalDomain,
+        'airqo:social-domain': socialDomain,
+      }),
+    },
+    // Verification tokens
     ...(process.env.GOOGLE_SITE_VERIFICATION && {
       verification: {
         google: process.env.GOOGLE_SITE_VERIFICATION,
@@ -302,7 +520,103 @@ export const METADATA_CONFIGS = {
       alt: 'AirQo Open Data Policy and Licensing',
     },
   },
-  // Other pages
+  // CLEAN-Air Forum specific pages
+  cleanAirForumSessions: {
+    title: 'Conference Sessions & Schedule | CLEAN-Air Forum 2025',
+    description:
+      'Explore the CLEAN-Air Forum 2025 sessions, workshops, and schedule in Nairobi. Plan your attendance at key presentations and discussions on air quality monitoring, policy, and solutions.',
+    keywords:
+      'CLEAN-Air Forum sessions, conference schedule, air quality workshops, environmental presentations, conference agenda, forum timeline, Nairobi 2025',
+    url: '/clean-air-forum/clean-air-forum-2025/sessions',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'CLEAN-Air Forum 2025 Sessions',
+    },
+  },
+  cleanAirForumSpeakers: {
+    title: 'Speakers & Presenters | CLEAN-Air Forum 2025',
+    description:
+      'Meet our distinguished speakers and presenters at the CLEAN-Air Forum 2025 in Nairobi. Leading experts in air quality, environmental science, and policy sharing insights on partnerships for clean air solutions in Africa.',
+    keywords:
+      'CLEAN-Air Forum speakers, air quality experts, environmental scientists, conference presenters, air pollution experts, African environmental leaders, Nairobi 2025',
+    url: '/clean-air-forum/clean-air-forum-2025/speakers',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'CLEAN-Air Forum 2025 Speakers',
+    },
+  },
+  cleanAirForumResources: {
+    title: 'Resources & Downloads | CLEAN-Air Forum 2025',
+    description:
+      'Access resources, presentations, and materials from the CLEAN-Air Forum 2025. Download research papers, policy briefs, and tools for air quality improvement in African cities.',
+    keywords:
+      'CLEAN-Air Forum resources, air quality resources, conference materials, environmental research, policy briefs, African air quality tools',
+    url: '/clean-air-forum/clean-air-forum-2025/resources',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'CLEAN-Air Forum 2025 Resources',
+    },
+  },
+  cleanAirForumSponsorships: {
+    title: 'Sponsorships | CLEAN-Air Forum 2025',
+    description:
+      'Partner with the CLEAN-Air Forum 2025 in Nairobi. Explore sponsorship opportunities to support partnerships for clean air solutions across Africa.',
+    keywords:
+      'CLEAN-Air Forum sponsorship, air quality conference sponsorship, environmental partnership opportunities, Nairobi 2025',
+    url: '/clean-air-forum/clean-air-forum-2025/sponsorships',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'CLEAN-Air Forum 2025 Sponsorships',
+    },
+  },
+  cleanAirForumLogistics: {
+    title: 'Logistics & Travel | CLEAN-Air Forum 2025',
+    description:
+      'Plan your visit to the CLEAN-Air Forum 2025 in Nairobi, Kenya. Find information about venue, accommodation, travel, and logistics for the premier African air quality conference.',
+    keywords:
+      'CLEAN-Air Forum logistics, Nairobi conference venue, travel Kenya, conference accommodation, air quality forum travel',
+    url: '/clean-air-forum/clean-air-forum-2025/logistics',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'CLEAN-Air Forum 2025 Nairobi Venue',
+    },
+  },
+  cleanAirForumProgramCommittee: {
+    title: 'Program Committee | CLEAN-Air Forum 2025',
+    description:
+      'Meet the program committee organizing the CLEAN-Air Forum 2025. Leading researchers, policymakers, and practitioners shaping the agenda for clean air partnerships in Africa.',
+    keywords:
+      'CLEAN-Air Forum committee, conference organizers, air quality experts, environmental leadership, African research committee',
+    url: '/clean-air-forum/clean-air-forum-2025/program-committee',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'CLEAN-Air Forum 2025 Program Committee',
+    },
+  },
+  cleanAirForumGlossary: {
+    title: 'Glossary | CLEAN-Air Forum 2025',
+    description:
+      'Understand key terms and concepts related to air quality monitoring, pollution mitigation, and environmental policy. A comprehensive glossary for the CLEAN-Air Forum 2025.',
+    keywords:
+      'air quality glossary, environmental terms, pollution definitions, air monitoring terminology, clean air concepts',
+    url: '/clean-air-forum/clean-air-forum-2025/glossary',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'Air Quality Terms and Definitions',
+    },
+  },
+  cleanAirForumPartners: {
+    title: 'Partners | CLEAN-Air Forum 2025',
+    description:
+      'Meet our partners supporting the CLEAN-Air Forum 2025. Organizations working together to advance clean air solutions and partnerships across Africa.',
+    keywords:
+      'CLEAN-Air Forum partners, air quality partnerships, environmental collaboration, African organizations, clean air sponsors',
+    url: '/clean-air-forum/clean-air-forum-2025/partners',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
+      alt: 'CLEAN-Air Forum 2025 Partners',
+    },
+  },
   careers: {
     title: 'Careers at AirQo | Join the Fight Against Air Pollution',
     description:

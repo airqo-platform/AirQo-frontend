@@ -34,7 +34,9 @@ const interFont = localFont({
 
 // Default metadata - will be overridden by page-specific metadata
 export const metadata: Metadata = {
-  metadataBase: new URL('https://airqo.net'),
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') || 'https://airqo.net',
+  ),
   title: {
     default: 'AirQo | Bridging the Air Quality Data Gap in Africa',
     template: '%s | AirQo',
@@ -77,7 +79,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://airqo.net',
+    url:
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+      'https://airqo.net',
     siteName: 'AirQo',
     title: 'AirQo | Bridging the Air Quality Data Gap in Africa',
     description:
@@ -88,6 +92,7 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         alt: 'AirQo - Clean Air for All African Cities',
+        type: 'image/webp',
       },
     ],
   },
@@ -99,7 +104,12 @@ export const metadata: Metadata = {
     description:
       'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions.',
     images: [
-      'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      {
+        url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+        alt: 'AirQo - Clean Air for All African Cities',
+        width: 1200,
+        height: 630,
+      },
     ],
   },
   verification: {
@@ -108,6 +118,7 @@ export const metadata: Metadata = {
   other: {
     'apple-mobile-web-app-title': 'AirQo',
     'theme-color': '#145DFF',
+    'msapplication-TileColor': '#145DFF',
   },
 };
 
