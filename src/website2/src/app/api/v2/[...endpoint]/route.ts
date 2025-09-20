@@ -56,22 +56,6 @@ export async function GET(
     // Append token last (some backends expect token in query)
     apiUrl.searchParams.append('token', API_TOKEN);
 
-    // Redacted logging for debugging - do not print the token value
-    try {
-      const redacted = apiUrl
-        .toString()
-        .replace(/([?&])token=[^&]*/i, '$1token=***');
-      // eslint-disable-next-line no-console
-      console.debug(
-        '[v2-proxy] proxying GET to:',
-        redacted,
-        ' tokenPresent:',
-        apiUrl.searchParams.has('token'),
-      );
-    } catch {
-      // ignore logging errors
-    }
-
     // Redacted: print only in development to avoid leaking tokens/urls in logs
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
