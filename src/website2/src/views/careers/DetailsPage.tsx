@@ -6,28 +6,11 @@ import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useApiData } from '@/services/hooks/useApiData';
-import { Career } from '@/services/types/api';
+import { useCareerDetail } from '@/services/hooks/endpoints';
 
 const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
-  const {
-    data: careerData,
-    isLoading,
-    error,
-  } = useApiData<Career>(id ? `careers/${id}` : null);
+  const { data: careerDetails, isLoading, error } = useCareerDetail(id);
 
-  // Normalize to a single careerDetails object.
-  let careerDetails: any = null;
-  if (careerData) {
-    if (
-      (careerData as any).results &&
-      Array.isArray((careerData as any).results)
-    ) {
-      careerDetails = (careerData as any).results[0];
-    } else {
-      careerDetails = careerData;
-    }
-  }
   const router = useRouter();
   if (isLoading) {
     return (
@@ -103,12 +86,11 @@ const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
             Job Type: {careerDetails.type}{' '}
           </p>{' '}
           <p className="text-lg text-gray-700">
-            {' '}
-            Closing Date: {format(
-              new Date(careerDetails.closing_date),
-              'PPP',
-            )}{' '}
-          </p>{' '}
+            Closing Date:{' '}
+            {careerDetails.closing_date
+              ? format(new Date(careerDetails.closing_date), 'PPP')
+              : 'N/A'}
+          </p>
         </div>{' '}
       </header>{' '}
       {/* Job Details Section */}{' '}

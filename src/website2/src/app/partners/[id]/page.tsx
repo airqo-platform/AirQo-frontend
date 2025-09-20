@@ -4,36 +4,15 @@ import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
 
-import { useApiData } from '@/services/hooks/useApiData';
+import { usePartnerDetail } from '@/services/hooks/endpoints';
 
 const PartnerDetailsPage: React.FC = () => {
   const router = useRouter();
   const params = useParams();
   const { id } = params as { id: string };
 
-  // fetch partner detail by public_identifier or numeric id
-  const {
-    data: partnerData,
-    isLoading,
-    error,
-  } = useApiData<any>(id ? `partners/${id}` : null);
-
-  // Normalize possible paginated response or single object
-  const partner = React.useMemo(() => {
-    if (!partnerData) return null;
-
-    // If paginated response, take first result
-    if (Array.isArray(partnerData)) return partnerData[0] || null;
-
-    if (
-      (partnerData as any).results &&
-      Array.isArray((partnerData as any).results)
-    ) {
-      return (partnerData as any).results[0] || null;
-    }
-
-    return partnerData;
-  }, [partnerData]);
+  // fetch partner detail by public_identifier
+  const { data: partner, isLoading, error } = usePartnerDetail(id);
 
   // Skeleton loader component
   const SkeletonLoader = () => (

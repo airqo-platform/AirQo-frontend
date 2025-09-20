@@ -29,6 +29,10 @@ export const useCareers = (params?: QueryParams) =>
 export const useInfiniteCareers = (params?: QueryParams) =>
   useInfiniteApiData<Career>('careers', params);
 
+// Career Detail (by public_identifier)
+export const useCareerDetail = (publicIdentifier: string | null) =>
+  useApiItem<Career>(publicIdentifier ? `careers/${publicIdentifier}` : null);
+
 // Events
 export const useEvents = (params?: QueryParams) =>
   useApiData<Event>('events', { params });
@@ -70,6 +74,10 @@ export const usePartners = (params?: QueryParams) =>
   useApiData<Partner>('partners', { params });
 export const useInfinitePartners = (params?: QueryParams) =>
   useInfiniteApiData<Partner>('partners', params);
+
+// Partner Detail (by public_identifier)
+export const usePartnerDetail = (publicIdentifier: string | null) =>
+  useApiItem<Partner>(publicIdentifier ? `partners/${publicIdentifier}` : null);
 
 // Press
 export const usePress = (params?: QueryParams) =>

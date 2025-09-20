@@ -30,14 +30,31 @@ export interface BoardMember {
 export interface Career {
   id: string;
   title: string;
-  department: string;
-  location: string;
-  type: string;
-  description: string;
-  requirements: string[];
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  // department may sometimes be returned as an object (id/name) or as a string in some endpoints
+  department?: { id?: string; name?: string } | string;
+  location?: string;
+  type?: string;
+  // Short description (legacy)
+  description?: string;
+  // Detailed descriptions returned by v2 detail endpoints
+  descriptions?: Array<{ id: number; description: string }>;
+  // Structured bullet sections used by detail responses
+  bullets?: Array<{
+    id?: number;
+    name?: string;
+    bullet_points?: Array<{ id?: number; point?: string }>;
+  }>;
+  // Requirements may be either an array of strings or a rich structure in some responses
+  requirements?: string[];
+  // Public identifier for friendly URLs
+  public_identifier?: string;
+  // External/apply URL for the job posting
+  apply_url?: string;
+  // Closing date for the job (ISO string)
+  closing_date?: string;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Event {

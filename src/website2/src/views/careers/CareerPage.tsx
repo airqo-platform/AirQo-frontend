@@ -7,7 +7,7 @@ import { FiArrowRight } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useCareers, useDepartments } from '@/services/hooks/endpoints';
+import { useDepartments, useInfiniteCareers } from '@/services/hooks/endpoints';
 
 const CareerPage: React.FC = () => {
   const router = useRouter();
@@ -18,14 +18,16 @@ const CareerPage: React.FC = () => {
   } = useDepartments();
 
   const departments = departmentsPage?.results || [];
-  const {
-    data: careersPage,
-    isLoading: careersLoading,
-    error: careersError,
-  } = useCareers();
 
-  // careersPage is a paginated response; items are in careersPage.results
-  const careers = careersPage?.results || [];
+  const {
+    results: careers,
+    error: careersError,
+    isLoadingInitialData: careersLoading,
+    isLoadingMore: careersLoadingMore,
+    isReachingEnd: careersReachingEnd,
+    size: careersSize,
+    setSize: setCareersSize,
+  } = useInfiniteCareers({ page_size: 10 });
 
   const [selectedDepartmentId, setSelectedDepartmentId] =
     useState<string>('all'); // Default to All
@@ -37,14 +39,19 @@ const CareerPage: React.FC = () => {
   ];
 
   // Function to check if the position is still open (closing date in the future)
-  const isJobOpen = (closingDate: string) => {
-    return isBefore(new Date(), parseISO(closingDate));
+  const isJobOpen = (closingDate?: string) => {
+    if (!closingDate) return false; // treat missing dates as closed
+    try {
+      return isBefore(new Date(), parseISO(closingDate));
+    } catch {
+      return false;
+    }
   };
+
   // Filter jobs based on the selected department ID and show only open positions
   const filteredJobs = careers.filter((career: any) => {
     const isOpen = isJobOpen(career.closing_date);
     if (selectedDepartmentId === 'all') return isOpen;
-    // Fix: career.department is an object, we need to access career.department.id
     return isOpen && career.department?.id == selectedDepartmentId;
   });
 
@@ -183,6 +190,19 @@ const CareerPage: React.FC = () => {
                   </div>
                 ),
               )
+            )}
+
+            {/* Load More Button */}
+            {!careersReachingEnd && (
+              <div className="flex justify-center mt-8">
+                <CustomButton
+                  onClick={() => setCareersSize(careersSize + 1)}
+                  disabled={careersLoadingMore}
+                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                >
+                  {careersLoadingMore ? 'Loading...' : 'Load More Careers'}
+                </CustomButton>
+              </div>
             )}
           </section>
         )}

@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import { FaArrowRightLong } from 'react-icons/fa6';
 
@@ -10,10 +11,10 @@ import { CustomButton, Divider, MemberCard } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks/reduxHooks';
 import {
-  useBoardMembers,
   useExternalTeamMembers,
-  usePartners,
-  useTeamMembers,
+  useInfiniteBoardMembers,
+  useInfinitePartners,
+  useInfiniteTeamMembers,
 } from '@/services/hooks/endpoints';
 import { openModal } from '@/store/slices/modalSlice';
 
@@ -40,28 +41,72 @@ const SkeletonCard: React.FC = () => (
   </div>
 );
 
+/** Partners Skeleton Loader Component **/
+const PartnerSkeletonLoader: React.FC = () => (
+  <div className="grid grid-cols-1 lg:grid-cols-3 w-full pt-6">
+    {Array.from({ length: 9 }).map((_, idx) => (
+      <div
+        key={idx}
+        className="flex items-center justify-center p-6 border border-gray-200"
+      >
+        <div className="w-[150px] h-[80px] bg-gray-300 rounded animate-pulse"></div>
+      </div>
+    ))}
+  </div>
+);
+
 /** Main AboutPage Component **/
 
 const AboutPage: React.FC = () => {
-  const { data: boardMembersData, isLoading: loadingBoard } = useBoardMembers();
-  const { data: teamMembersData, isLoading: loadingTeam } = useTeamMembers();
-  const { data: externalTeamMembersData, isLoading: loadingExternalTeam } =
-    useExternalTeamMembers();
-  const { data: partnersData } = usePartners();
+  const dispatch = useDispatch();
+  const router = useRouter();
 
-  // normalize paginated responses (they may be arrays or paginated objects)
-  const boardMembers = normalizeList(boardMembersData);
-  const teamMembers = normalizeList(teamMembersData);
-  const externalTeamMembers = normalizeList(externalTeamMembersData);
-  const partners = normalizeList(partnersData);
+  // Use infinite hooks for load more functionality
+  const {
+    results: teamMembers,
+    size: teamSize,
+    setSize: setTeamSize,
+    isLoadingInitialData: teamLoading,
+    isLoadingMore: teamLoadingMore,
+    isReachingEnd: teamReachingEnd,
+  } = useInfiniteTeamMembers({ page_size: 6 });
 
-  // filter out partners whose website_category is cleanair
-  const filteredPartners = normalizeList(partners).filter((partner: any) => {
+  const {
+    results: boardMembers,
+    size: boardSize,
+    setSize: setBoardSize,
+    isLoadingInitialData: boardLoading,
+    isLoadingMore: boardLoadingMore,
+    isReachingEnd: boardReachingEnd,
+  } = useInfiniteBoardMembers({ page_size: 6 });
+
+  const {
+    results: allPartners,
+    size: partnersSize,
+    setSize: setPartnersSize,
+    isLoadingInitialData: partnersLoading,
+    isLoadingMore: partnersLoadingMore,
+    isReachingEnd: partnersReachingEnd,
+  } = useInfinitePartners({ page_size: 8 });
+
+  // External team members don't have infinite hook, so use regular one
+  const { data: externalTeamData, isLoading: externalLoading } =
+    useExternalTeamMembers({ page_size: 50 }); // Get more initially
+
+  const externalTeamMembers = normalizeList(externalTeamData);
+
+  // Filter out cleanair partners
+  const filteredPartners = allPartners.filter((partner: any) => {
     const cat = (partner.website_category || partner.category || '') as string;
     return cat.toLowerCase() !== 'cleanair';
   });
 
-  const dispatch = useDispatch();
+  // Handle partner click to navigate to details page
+  const handlePartnerClick = (partner: any) => {
+    if (partner.public_identifier) {
+      router.push(`/partners/${partner.public_identifier}`);
+    }
+  };
 
   /** Helper Function to Render Member Sections **/
   const renderMembersSection = (
@@ -69,6 +114,9 @@ const AboutPage: React.FC = () => {
     loading: boolean,
     sectionId: string,
     title: string,
+    loadingMore?: boolean,
+    hasMore?: boolean,
+    onLoadMore?: () => void,
   ) => {
     if (loading) {
       // Display Skeleton Loaders
@@ -143,6 +191,19 @@ const AboutPage: React.FC = () => {
               />
             ))}
           </div>
+
+          {/* Load More Button for Members */}
+          {hasMore && onLoadMore && (
+            <div className="flex justify-center mt-8">
+              <CustomButton
+                onClick={onLoadMore}
+                disabled={loadingMore}
+                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+              >
+                {loadingMore ? 'Loading...' : 'Load More'}
+              </CustomButton>
+            </div>
+          )}
         </section>
 
         <Divider className="bg-black w-full p-0 h-[1px] mx-auto" />
@@ -363,15 +424,18 @@ const AboutPage: React.FC = () => {
         {/* Team Section */}
         {renderMembersSection(
           teamMembers,
-          loadingTeam,
+          teamLoading,
           'team',
           'Meet the team',
+          teamLoadingMore,
+          !teamReachingEnd,
+          () => setTeamSize(teamSize + 1),
         )}
 
         {/* External Team Section */}
         {renderMembersSection(
           externalTeamMembers,
-          loadingExternalTeam,
+          externalLoading,
           'external-team',
           'External team',
         )}
@@ -379,50 +443,74 @@ const AboutPage: React.FC = () => {
         {/* Board Section */}
         {renderMembersSection(
           boardMembers,
-          loadingBoard,
+          boardLoading,
           'board',
           'Meet the Board',
+          boardLoadingMore,
+          !boardReachingEnd,
+          () => setBoardSize(boardSize + 1),
         )}
 
         {/* Partners Section */}
-        {partners && (
-          <section
-            id="partners"
-            className="w-full px-4 lg:px-0 space-y-8 scroll-mt-[200px]"
-          >
-            <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
-              {/* Title */}
-              <h2 className="text-3xl lg:text-[48px] font-medium flex-shrink-0 w-full text-left lg:w-1/3">
-                Our <br />
-                partners
-              </h2>
+        <section
+          id="partners"
+          className="w-full px-4 lg:px-0 space-y-8 scroll-mt-[200px]"
+        >
+          <div className="flex flex-col lg:flex-row items-start lg:space-x-12">
+            {/* Title */}
+            <h2 className="text-3xl lg:text-[48px] font-medium flex-shrink-0 w-full text-left lg:w-1/3">
+              Our <br />
+              partners
+            </h2>
 
-              {/* Content */}
-              <div className="space-y-6 w-full max-w-[556px]">
-                <p>
-                  Together with our partners, we are solving large, complex air
-                  quality monitoring challenges across Africa. We are providing
-                  much-needed air quality data to Governments and individuals in
-                  the continent to facilitate policy changes that combat air
-                  pollution.
-                </p>
-                <CustomButton
-                  onClick={() => dispatch(openModal())}
-                  className="bg-transparent p-0 m-0 flex items-center text-blue-700"
-                >
-                  <span>Partner with Us </span>
-                  <FaArrowRightLong className="inline-block ml-2 " />
-                </CustomButton>
-              </div>
+            {/* Content */}
+            <div className="space-y-6 w-full max-w-[556px]">
+              <p>
+                Together with our partners, we are solving large, complex air
+                quality monitoring challenges across Africa. We are providing
+                much-needed air quality data to Governments and individuals in
+                the continent to facilitate policy changes that combat air
+                pollution.
+              </p>
+              <CustomButton
+                onClick={() => dispatch(openModal())}
+                className="bg-transparent p-0 m-0 flex items-center text-blue-700"
+              >
+                <span>Partner with Us </span>
+                <FaArrowRightLong className="inline-block ml-2 " />
+              </CustomButton>
             </div>
-            <LogoDisplay
-              logos={filteredPartners.map((partner: any) => ({
-                id: partner.id,
-                logoUrl: partner.partner_logo_url || '',
-              }))}
-            />
-          </section>
-        )}
+          </div>
+
+          {/* Partners Content */}
+          {partnersLoading ? (
+            <PartnerSkeletonLoader />
+          ) : filteredPartners && filteredPartners.length > 0 ? (
+            <>
+              <LogoDisplay
+                logos={filteredPartners.map((partner: any) => ({
+                  id: partner.id,
+                  logoUrl: partner.partner_logo_url || '',
+                  onClick: () => handlePartnerClick(partner),
+                }))}
+                columns={3}
+              />
+
+              {/* Load More Button for Partners */}
+              {!partnersReachingEnd && (
+                <div className="flex justify-center mt-8">
+                  <CustomButton
+                    onClick={() => setPartnersSize(partnersSize + 1)}
+                    disabled={partnersLoadingMore}
+                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                  >
+                    {partnersLoadingMore ? 'Loading...' : 'Load More Partners'}
+                  </CustomButton>
+                </div>
+              )}
+            </>
+          ) : null}
+        </section>
       </div>
     </div>
   );
