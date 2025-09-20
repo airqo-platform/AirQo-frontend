@@ -1,34 +1,52 @@
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
+
+// Type definitions for better type safety
+interface ImageMetadata {
+  url: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  type?: string;
+}
 
 interface MetadataConfig {
   title: string;
   description: string;
   keywords?: string;
   url: string;
-  image?: {
-    url: string;
-    alt: string;
-    width?: number;
-    height?: number;
-  };
+  image?: ImageMetadata;
   type?: 'website' | 'article';
   publishedTime?: string;
   modifiedTime?: string;
+  author?: string;
+  section?: string;
 }
 
-// All supported AirQo domains
-const SUPPORTED_DOMAINS = [
-  'https://airqo.net',
-  'https://www.airqo.net',
-  'https://airqo.africa',
-  'https://www.airqo.africa',
-  'https://airqo.org',
-  'https://www.airqo.org',
-  'https://airqo.mak.ac.ug',
-  'https://www.airqo.mak.ac.ug',
+interface DomainConfig {
+  domain: string;
+  protocol: 'https';
+  www: boolean;
+}
+
+// Constants for domain configuration
+const DOMAIN_CONFIGS: DomainConfig[] = [
+  { domain: 'airqo.net', protocol: 'https', www: false },
+  { domain: 'airqo.net', protocol: 'https', www: true },
+  { domain: 'airqo.africa', protocol: 'https', www: false },
+  { domain: 'airqo.africa', protocol: 'https', www: true },
+  { domain: 'airqo.org', protocol: 'https', www: false },
+  { domain: 'airqo.org', protocol: 'https', www: true },
+  { domain: 'airqo.mak.ac.ug', protocol: 'https', www: false },
+  { domain: 'airqo.mak.ac.ug', protocol: 'https', www: true },
 ];
 
-// Primary domains (fallback priority order)
+// Generate supported domains from configs
+const SUPPORTED_DOMAINS = DOMAIN_CONFIGS.map(
+  (config) =>
+    `${config.protocol}://${config.www ? 'www.' : ''}${config.domain}`,
+);
+
+// Primary domains for fallback (without www)
 const PRIMARY_DOMAINS = [
   'https://airqo.net',
   'https://airqo.africa',
@@ -36,226 +54,362 @@ const PRIMARY_DOMAINS = [
   'https://airqo.mak.ac.ug',
 ];
 
-/**
- * Enhanced domain detection with multiple methods and proper fallbacks
- * Tries multiple detection methods to ensure the correct domain is used
- */
+// Cache for domain detection to avoid repeated calculations
+let cachedDomain: string | null = null;
+let cacheTimestamp: number = 0;
+const CACHE_DURATION = 60000; // 1 minute cache
+
+// Default metadata configuration
+const DEFAULT_METADATA = {
+  siteName: 'AirQo - Air Quality Monitoring Network Africa',
+  siteUrl: 'https://airqo.net', // Default fallback
+  defaultImage: {
+    url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+    alt: 'AirQo - Clean Air for All African Cities | Real-time Air Quality Monitoring',
+    width: 1200,
+    height: 630,
+    type: 'image/webp',
+  },
+  twitterHandle: '@AirQoProject',
+  locale: 'en_US',
+  themeColor: '#145DFF',
+} as const;
+
+// Utility: remove empty or falsy entries from an object (shallow)
+const compact = (obj: Record<string, any>) =>
+  Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== '' && v != null),
+  );
+
+// Enhanced logging utilities with environment checks
 const isDev = process.env.NODE_ENV === 'development';
+const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_METADATA === 'true';
 
-const devLog = (...args: any[]) => {
-  if (isDev) {
-    // eslint-disable-next-line no-console
-    console.log(...args);
+const logDebug = (...args: any[]): void => {
+  if (isDev && isDebugMode) {
+    console.log('[AirQo Metadata]', ...args);
   }
 };
 
-const devWarn = (...args: any[]) => {
+const logWarn = (...args: any[]): void => {
   if (isDev) {
-    // eslint-disable-next-line no-console
-    console.warn(...args);
+    console.warn('[AirQo Metadata Warning]', ...args);
   }
 };
 
+const logError = (...args: any[]): void => {
+  console.error('[AirQo Metadata Error]', ...args);
+};
+
+/**
+ * Validates if a URL is from a supported domain
+ * @param url - URL to validate
+ * @returns boolean indicating if URL is valid
+ */
+const isValidDomain = (url: string): boolean => {
+  try {
+    const urlObj = new URL(url);
+    return SUPPORTED_DOMAINS.some((domain) => {
+      const domainObj = new URL(domain);
+      return urlObj.hostname === domainObj.hostname;
+    });
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Sanitizes and normalizes URLs
+ * @param url - URL to sanitize
+ * @returns Sanitized URL string
+ */
+const sanitizeUrl = (url: string): string => {
+  try {
+    // Remove trailing slashes and normalize
+    const normalized = url.replace(/\/+$/, '');
+
+    // Validate against our domains
+    if (!isValidDomain(normalized)) {
+      logWarn(`URL not from supported domain: ${normalized}`);
+      return PRIMARY_DOMAINS[0]; // Fallback to primary
+    }
+
+    return normalized;
+  } catch (error) {
+    logError('URL sanitization failed:', error);
+    return PRIMARY_DOMAINS[0];
+  }
+};
+
+/**
+ * Enhanced domain detection with multiple methods and caching
+ * Implements fail-safe mechanisms and performance optimizations
+ */
 const getCurrentDomain = (): string => {
-  // Method 1: Client-side detection (most reliable when available)
-  if (typeof window !== 'undefined') {
+  // Check cache first
+  const now = Date.now();
+  if (cachedDomain && now - cacheTimestamp < CACHE_DURATION) {
+    return cachedDomain;
+  }
+
+  let detectedDomain: string | null = null;
+
+  // Method 1: Client-side detection (browser environment)
+  if (typeof window !== 'undefined' && window.location) {
     try {
       const origin = window.location.origin;
-      devLog('🌍 Client-side domain detected:', origin);
-
-      if (SUPPORTED_DOMAINS.includes(origin)) {
-        return origin;
+      if (origin && isValidDomain(origin)) {
+        detectedDomain = sanitizeUrl(origin);
+        logDebug('Client-side domain detected:', detectedDomain);
       }
-
-      // If current domain isn't in our list, log and fallback
-      devWarn('⚠️ Current domain not in supported list:', origin);
     } catch (error) {
-      devWarn('⚠️ Client-side domain detection failed:', error);
+      logWarn('Client-side domain detection failed:', error);
     }
   }
 
-  // Method 2: Server-side environment variable detection
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-  if (siteUrl) {
-    try {
-      const normalizedUrl = siteUrl.replace(/\/$/, '');
-      devLog('🔧 Environment domain detected:', normalizedUrl);
+  // Method 2: Environment variable detection
+  if (!detectedDomain) {
+    const envUrls = [
+      process.env.NEXT_PUBLIC_SITE_URL,
+      process.env.NEXT_PUBLIC_DOMAIN,
+      process.env.SITE_URL,
+      process.env.DOMAIN,
+    ].filter(Boolean);
 
-      if (SUPPORTED_DOMAINS.includes(normalizedUrl)) {
-        return normalizedUrl;
+    for (const envUrl of envUrls) {
+      if (envUrl) {
+        try {
+          const normalizedUrl = envUrl.replace(/\/$/, '');
+          if (isValidDomain(normalizedUrl)) {
+            detectedDomain = sanitizeUrl(normalizedUrl);
+            logDebug('Environment domain detected:', detectedDomain);
+            break;
+          }
+        } catch (error) {
+          logWarn(`Environment URL parsing failed for ${envUrl}:`, error);
+        }
       }
-
-      // Try to match partial domain (e.g., if env has different protocol)
-      const envDomain = new URL(normalizedUrl).hostname;
-      const matchedDomain = SUPPORTED_DOMAINS.find((domain) => {
-        return new URL(domain).hostname === envDomain;
-      });
-
-      if (matchedDomain) {
-        devLog('🔄 Matched domain from hostname:', matchedDomain);
-        return matchedDomain;
-      }
-
-      devWarn('⚠️ Environment domain not in supported list:', normalizedUrl);
-    } catch (error) {
-      devWarn('⚠️ Environment domain parsing failed:', error);
     }
   }
 
-  // Method 3: Header-based detection (for server-side rendering)
-  if (typeof process !== 'undefined' && process.env) {
-    try {
-      // Check for various header-based environment variables
-      const possibleHosts = [
-        process.env.VERCEL_URL,
-        process.env.RAILWAY_PUBLIC_DOMAIN,
-        process.env.RENDER_EXTERNAL_URL,
-        process.env.HOST,
-        process.env.HOSTNAME,
-      ].filter(Boolean);
+  // Method 3: Platform-specific detection (Vercel, Railway, Render, etc.)
+  if (!detectedDomain && typeof process !== 'undefined') {
+    const platformVars = [
+      process.env.VERCEL_URL,
+      process.env.RAILWAY_PUBLIC_DOMAIN,
+      process.env.RENDER_EXTERNAL_URL,
+      process.env.NEXT_PUBLIC_VERCEL_URL,
+    ].filter(Boolean);
 
-      for (const host of possibleHosts) {
-        if (host) {
+    for (const host of platformVars) {
+      if (host) {
+        try {
           const fullUrl = host.startsWith('http') ? host : `https://${host}`;
           const normalizedUrl = fullUrl.replace(/\/$/, '');
 
-          if (SUPPORTED_DOMAINS.includes(normalizedUrl)) {
-            devLog('🌐 Header-based domain detected:', normalizedUrl);
-            return normalizedUrl;
+          // Check if it matches our domains
+          const hostname = new URL(normalizedUrl).hostname;
+          const matchedDomain = SUPPORTED_DOMAINS.find((domain) => {
+            return new URL(domain).hostname === hostname;
+          });
+
+          if (matchedDomain) {
+            detectedDomain = sanitizeUrl(matchedDomain);
+            logDebug('Platform domain detected:', detectedDomain);
+            break;
           }
+        } catch (error) {
+          logWarn(`Platform URL parsing failed for ${host}:`, error);
+        }
+      }
+    }
+  }
+
+  // Method 4: Headers detection (for server-side rendering)
+  if (!detectedDomain && typeof Headers !== 'undefined') {
+    try {
+      // Check for host headers in Next.js context
+      const headerHost = process.env.HOST || process.env.HOSTNAME;
+      if (headerHost) {
+        const fullUrl = headerHost.startsWith('http')
+          ? headerHost
+          : `https://${headerHost}`;
+        if (isValidDomain(fullUrl)) {
+          detectedDomain = sanitizeUrl(fullUrl);
+          logDebug('Header-based domain detected:', detectedDomain);
         }
       }
     } catch (error) {
-      devWarn('⚠️ Header-based domain detection failed:', error);
+      logWarn('Header-based domain detection failed:', error);
     }
   }
 
-  // Method 4: Request headers (Next.js specific)
-  try {
-    // This will be available in middleware and API routes
-    if (typeof Headers !== 'undefined') {
-      // In a real deployment, this would be set by the platform
-      const host =
-        process.env.NEXT_PUBLIC_VERCEL_URL ||
-        process.env.NEXT_PUBLIC_DEPLOYMENT_URL;
-      if (host) {
-        const fullUrl = host.startsWith('http') ? host : `https://${host}`;
-        const normalizedUrl = fullUrl.replace(/\/$/, '');
-
-        if (SUPPORTED_DOMAINS.includes(normalizedUrl)) {
-          devLog('🚀 Deployment domain detected:', normalizedUrl);
-          return normalizedUrl;
-        }
-      }
-    }
-  } catch (error) {
-    devWarn('⚠️ Deployment domain detection failed:', error);
+  // Fallback to primary domain
+  if (!detectedDomain) {
+    detectedDomain = PRIMARY_DOMAINS[0];
+    logDebug('Using fallback domain:', detectedDomain);
   }
 
-  // Fallback: Use primary domain priority order
-  const fallbackDomain = PRIMARY_DOMAINS[0]; // Default to airqo.net
-  devLog('🔄 Using fallback domain:', fallbackDomain);
+  // Update cache
+  cachedDomain = detectedDomain;
+  cacheTimestamp = now;
 
-  return fallbackDomain;
+  return detectedDomain;
 };
 
 /**
- * Get domain for specific purposes (can override the detection)
+ * Get domain for specific contexts with optimization
+ * @param context - The context for which to get the domain
+ * @returns Optimized domain URL for the context
  */
 export const getDomainForContext = (
-  context?: 'social' | 'canonical' | 'api',
+  context?: 'social' | 'canonical' | 'api' | 'cdn',
 ): string => {
   const detectedDomain = getCurrentDomain();
 
-  // For social media sharing, prefer main domains for better recognition
+  // For social media, prefer main recognizable domains
   if (context === 'social') {
-    const hostname = new URL(detectedDomain).hostname;
-    if (hostname.includes('airqo.net')) return 'https://airqo.net';
-    if (hostname.includes('airqo.africa')) return 'https://airqo.africa';
-    if (hostname.includes('airqo.org')) return 'https://airqo.org';
-    if (hostname.includes('airqo.mak.ac.ug')) return 'https://airqo.mak.ac.ug';
+    try {
+      const hostname = new URL(detectedDomain).hostname;
+
+      // Prefer non-www versions for cleaner social sharing
+      if (hostname.includes('airqo.net')) return 'https://airqo.net';
+      if (hostname.includes('airqo.africa')) return 'https://airqo.africa';
+      if (hostname.includes('airqo.org')) return 'https://airqo.org';
+      if (hostname.includes('airqo.mak.ac.ug'))
+        return 'https://airqo.mak.ac.ug';
+    } catch (error) {
+      logError('Social domain context failed:', error);
+    }
+  }
+
+  // For API contexts, might want specific domain
+  if (context === 'api') {
+    // Could implement API-specific domain logic here if needed
+    return detectedDomain;
   }
 
   return detectedDomain;
 };
 
-const DEFAULT_METADATA = {
-  siteName: 'AirQo',
-  siteUrl: getCurrentDomain(),
-  defaultImage: {
-    url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-    alt: 'AirQo - Clean Air for All African Cities',
-    width: 1200,
-    height: 630,
-  },
-  twitterHandle: '@AirQoProject',
-};
+/**
+ * Generate viewport configuration separately (Next.js 14.2+ requirement)
+ * @returns Viewport configuration object
+ */
+export function generateViewport(): Viewport {
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+    viewportFit: 'cover',
+  };
+}
 
+/**
+ * Enhanced metadata generation with SEO optimization
+ * @param config - Metadata configuration object
+ * @returns Next.js Metadata object
+ */
 export function generateMetadata(config: MetadataConfig): Metadata {
+  // Input validation
+  if (!config.title || !config.description || !config.url) {
+    logError('Invalid metadata config: missing required fields', config);
+    throw new Error('Metadata config must include title, description, and url');
+  }
+
+  // Use provided image or default
   const image = config.image || DEFAULT_METADATA.defaultImage;
 
-  // Use enhanced domain detection for different contexts
+  // Get context-specific domains
   const canonicalDomain = getDomainForContext('canonical');
   const socialDomain = getDomainForContext('social');
 
+  // Build full URLs
   const fullUrl = config.url.startsWith('http')
-    ? config.url
+    ? sanitizeUrl(config.url)
     : `${canonicalDomain}${config.url}`;
 
   const socialUrl = config.url.startsWith('http')
-    ? config.url
+    ? sanitizeUrl(config.url)
     : `${socialDomain}${config.url}`;
 
-  // Intentionally keep metadata generation silent to avoid noisy logs during
-  // static generation. Only critical warnings/errors are logged elsewhere.
+  // Note: structured JSON-LD should be rendered as a <script type="application/ld+json"> in the
+  // page/layout (server component). We intentionally don't inject JSON-LD in `other` because
+  // Next's metadata `other` maps to <meta> tags. If you need JSON-LD, render it in `app/layout.tsx`.
 
   return {
+    // Basic metadata
     title: config.title,
     description: config.description,
     keywords: config.keywords,
-    authors: [{ name: 'AirQo' }],
+    authors: [
+      { name: 'AirQo' },
+      { name: 'Makerere University', url: 'https://mak.ac.ug' },
+    ],
+    creator: 'AirQo',
+    publisher: 'AirQo',
+
+    // Robots configuration for optimal crawling
     robots: {
       index: true,
       follow: true,
+      nocache: false,
       googleBot: {
         index: true,
         follow: true,
+        noimageindex: false,
         'max-video-preview': -1,
         'max-image-preview': 'large',
         'max-snippet': -1,
       },
     },
+
+    // Canonical and alternate URLs
     alternates: {
       canonical: fullUrl,
-      // Add alternative domain links for SEO across all supported domains
       languages: {
         'en-US': fullUrl,
         'en-GB': fullUrl,
+        'en-UG': fullUrl, // Uganda English
+        'en-KE': fullUrl, // Kenya English
+        'en-NG': fullUrl, // Nigeria English
+        'en-ZA': fullUrl, // South Africa English
+        'en-GH': fullUrl, // Ghana English
         'x-default': fullUrl,
       },
     },
+
+    // Open Graph metadata
     openGraph: {
       type: config.type || 'website',
-      url: socialUrl, // Use social-optimized URL for Open Graph
+      url: socialUrl,
       title: config.title,
       description: config.description,
       siteName: DEFAULT_METADATA.siteName,
-      locale: 'en_US',
+      locale: DEFAULT_METADATA.locale,
+      alternateLocale: ['en_GB', 'en_UG', 'en_KE'],
       images: [
         {
           url: image.url,
           width: image.width || DEFAULT_METADATA.defaultImage.width,
           height: image.height || DEFAULT_METADATA.defaultImage.height,
           alt: image.alt,
-          type: 'image/webp',
+          type: image.type || DEFAULT_METADATA.defaultImage.type,
+          secureUrl: image.url, // Ensure HTTPS
         },
       ],
       ...(config.publishedTime && { publishedTime: config.publishedTime }),
       ...(config.modifiedTime && { modifiedTime: config.modifiedTime }),
+      ...(config.author && { authors: [config.author] }),
+      ...(config.section && { section: config.section }),
     },
+
+    // Twitter/X metadata
     twitter: {
       card: 'summary_large_image',
       site: DEFAULT_METADATA.twitterHandle,
+      // siteId/creatorId can be added if available
       creator: DEFAULT_METADATA.twitterHandle,
       title: config.title,
       description: config.description,
@@ -263,431 +417,631 @@ export function generateMetadata(config: MetadataConfig): Metadata {
         {
           url: image.url,
           alt: image.alt,
-          width: image.width || DEFAULT_METADATA.defaultImage.width,
-          height: image.height || DEFAULT_METADATA.defaultImage.height,
         },
       ],
     },
-    // Enhanced social media and search engine optimization
-    other: {
+
+    // Additional metadata for enhanced SEO and social sharing
+    other: compact({
       // Facebook specific
       'fb:app_id': process.env.NEXT_PUBLIC_FACEBOOK_APP_ID || '',
+      'fb:pages': process.env.NEXT_PUBLIC_FACEBOOK_PAGE_ID || '',
+
       // LinkedIn specific
       'article:publisher': 'https://www.linkedin.com/company/airqo/',
-      // Additional Twitter metadata
+
+      // Pinterest
+      'p:domain_verify': process.env.NEXT_PUBLIC_PINTEREST_DOMAIN_VERIFY || '',
+
+      // Twitter additional
       'twitter:domain': socialDomain.replace('https://', ''),
       'twitter:url': socialUrl,
-      // Microsoft specific
-      'msapplication-TileColor': '#145DFF',
-      'msapplication-TileImage': `${canonicalDomain}/icon-192x192.png`,
+
       // Apple specific
       'apple-mobile-web-app-title': 'AirQo',
       'apple-mobile-web-app-capable': 'yes',
-      'apple-mobile-web-app-status-bar-style': 'default',
-      // Theme color
-      'theme-color': '#145DFF',
-      // Additional SEO
-      'google-site-verification': process.env.GOOGLE_SITE_VERIFICATION || '',
-      'p:domain_verify': process.env.PINTEREST_DOMAIN_VERIFY || '',
-      // Domain detection info (for debugging in development)
-      ...(process.env.NODE_ENV === 'development' && {
-        'airqo:detected-domain': canonicalDomain,
-        'airqo:social-domain': socialDomain,
-      }),
-    },
-    // Verification tokens
-    ...(process.env.GOOGLE_SITE_VERIFICATION && {
-      verification: {
-        google: process.env.GOOGLE_SITE_VERIFICATION,
-      },
+      'apple-mobile-web-app-status-bar-style': 'black-translucent',
+      'apple-touch-icon': '/apple-touch-icon.png',
+
+      // Microsoft specific
+      'msapplication-TileColor': DEFAULT_METADATA.themeColor,
+      'msapplication-TileImage': '/mstile-144x144.png',
+      'msapplication-config': '/browserconfig.xml',
+
+      // PWA and mobile
+      'theme-color': DEFAULT_METADATA.themeColor,
+      'mobile-web-app-capable': 'yes',
+      'application-name': 'AirQo',
+
+      // Additional SEO / verification
+      'google-site-verification':
+        process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
+      'yandex-verification': process.env.NEXT_PUBLIC_YANDEX_VERIFICATION || '',
+      'bing-verification': process.env.NEXT_PUBLIC_BING_VERIFICATION || '',
+
+      // Content Security
+      referrer: 'origin-when-cross-origin',
+      'format-detection': 'telephone=no',
+
+      // Development/Debug info (only in dev mode)
+      ...(isDev &&
+        isDebugMode && {
+          'airqo:detected-domain': canonicalDomain,
+          'airqo:social-domain': socialDomain,
+          'airqo:environment': process.env.NODE_ENV,
+        }),
     }),
+
+    // Verification tokens
+    verification: {
+      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+      yandex: process.env.NEXT_PUBLIC_YANDEX_VERIFICATION,
+      me: process.env.NEXT_PUBLIC_WEBMASTER_VERIFICATION,
+    },
+
+    // App links for mobile apps
+    appLinks: {
+      ios: {
+        url: fullUrl,
+        app_store_id: process.env.NEXT_PUBLIC_IOS_APP_ID || '',
+        app_name: 'AirQo',
+      },
+      android: {
+        package: process.env.NEXT_PUBLIC_ANDROID_PACKAGE || 'com.airqo.app',
+        app_name: 'AirQo',
+        url: fullUrl,
+      },
+      web: {
+        url: fullUrl,
+        should_fallback: true,
+      },
+    },
+
+    // Additional metadata
+    metadataBase: new URL(canonicalDomain),
+    category: 'Environment',
+    classification: 'Air Quality Monitoring',
   };
 }
 
-// Separate viewport export function to fix Next.js 14.2+ warnings
-export function generateViewport() {
-  return {
-    width: 'device-width',
-    initialScale: 1,
-  };
-}
-
-// Page-specific metadata configurations
+// Page-specific metadata configurations with enhanced SEO
 export const METADATA_CONFIGS = {
   home: {
-    title: 'AirQo | Bridging the Air Quality Data Gap in Africa',
+    title:
+      'AirQo | Bridging the Air Quality Data Gap in Africa - Real-time Monitoring Network',
     description:
-      'AirQo empowers African communities with accurate, hyperlocal, and timely air quality data to drive pollution mitigation actions. We deploy low-cost sensors and provide real-time insights where 9 out of 10 people breathe polluted air.',
+      'AirQo empowers African communities with accurate, hyperlocal air quality data through 200+ low-cost sensors across 16+ cities. Access real-time pollution insights where 9 out of 10 people breathe polluted air. Partner with Google.org and World Bank.',
     keywords:
-      'AirQo, air quality monitoring Africa, air pollution data, hyperlocal air quality, African cities air quality, real-time pollution data, low-cost air sensors, clean air Africa, air quality analytics, pollution mitigation, environmental monitoring Africa',
+      'AirQo, air quality monitoring Africa, air pollution data, hyperlocal air quality, African cities pollution, real-time air monitoring, low-cost air sensors, clean air Africa, air quality analytics, pollution mitigation, environmental monitoring Africa, PM2.5 monitoring, air quality API, Makerere University, Google.org partner, World Bank air quality',
     url: '/',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-      alt: 'AirQo Air Quality Monitoring Network Across Africa',
+      alt: 'AirQo Air Quality Monitoring Network - 200+ Sensors Across 16+ African Cities',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   about: {
-    title: 'About AirQo | Leading Air Quality Monitoring in Africa',
+    title:
+      'About AirQo | Leading Air Quality Innovation in Africa Since 2015 - Makerere University',
     description:
-      "Learn about AirQo's journey, mission, and impact in revolutionizing air quality monitoring across Africa. Discover our team, partnerships with Google.org, World Bank, and others, and how we're empowering communities to combat air pollution where 9 out of 10 people breathe polluted air.",
+      "Discover AirQo's journey from Makerere University research to Africa's leading air quality network. Learn about our $4.3M Google.org partnership, World Bank collaboration, and impact across 16+ African cities with 200+ monitors providing data access to 60+ million people.",
     keywords:
-      'AirQo, about AirQo, air quality Africa, AirQo team, AirQo mission, air pollution monitoring, African environmental initiative, clean air Africa, AirQo partners, AirQo impact, air quality research Africa',
+      'About AirQo, Makerere University AirQo, air quality Africa, AirQo team, Professor Bainomugisha, air pollution monitoring, African environmental initiative, clean air Africa, Google.org AI Impact Challenge, World Bank partnership, EPIC Air Quality Fund, air quality research Africa, environmental innovation Uganda',
     url: '/about-us',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
-      alt: 'AirQo Team Working on Air Quality Monitoring in Africa',
+      alt: 'AirQo Team at Makerere University - Leading Air Quality Research in Africa',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   monitor: {
-    title: 'Air Quality Monitoring Devices | AirQo Binos Monitor',
+    title:
+      'AirQo Binos Monitor | Low-Cost Air Quality Sensors Designed for African Cities',
     description:
-      "Deploy AirQo's cost-effective, reliable air quality monitoring devices designed specifically for African urban environments. Our Binos monitors provide accurate, hyperlocal data to identify pollution sources and trends.",
+      "Deploy AirQo's locally-designed Binos air quality monitors built to withstand African urban conditions. Cost-effective sensors with dust resistance, extreme weather durability, multiple power options, and real-time PM2.5, PM10, NO2 monitoring capabilities.",
     keywords:
-      'air quality monitors, pollution sensors, AirQo monitoring devices, Binos monitor, environmental monitoring equipment, African air quality sensors, urban pollution monitors, air quality measurement devices',
+      'AirQo Binos monitor, air quality sensors Africa, PM2.5 monitor, PM10 sensor, NO2 monitoring, low-cost air sensors, pollution monitoring devices, African air quality hardware, urban pollution sensors, dust-resistant monitors, weather-proof sensors, air quality IoT devices, environmental monitoring equipment',
     url: '/products/monitor',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
-      alt: 'AirQo Binos Air Quality Monitoring Device',
+      alt: 'AirQo Binos Air Quality Monitor - Locally Designed for African Cities',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   analytics: {
-    title: 'Air Quality Analytics Platform | AirQo Real-time Data',
+    title:
+      'Air Quality Analytics Platform | Real-time Data Dashboard for 16+ African Cities',
     description:
-      'Access and visualize real-time and historical air quality information across Africa through our easy-to-use air quality analytics dashboard. Get insights from our growing network of monitors.',
+      "Access AirQo's comprehensive analytics platform with real-time and historical air quality data from 200+ monitors across Africa. Visualize PM2.5 trends, pollution hotspots, and air quality insights through our user-friendly dashboard at platform.airqo.net.",
     keywords:
-      'air quality analytics, air quality dashboard, real-time air data, African air quality platform, air pollution visualization, environmental data analytics, air quality insights',
+      'AirQo analytics platform, air quality dashboard Africa, real-time air data, PM2.5 visualization, pollution data analytics, environmental monitoring dashboard, air quality insights, platform.airqo.net, African cities air data, air pollution trends, data visualization tools, air quality API access',
     url: '/products/analytics',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
-      alt: 'AirQo Air Quality Analytics Platform Dashboard',
+      alt: 'AirQo Analytics Platform - Real-time Air Quality Dashboard for Africa',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
   api: {
-    title: 'Air Quality API | Open Air Quality Data for Developers',
+    title:
+      'AirQo API | Open Air Quality Data Access for Developers - Free Tier Available',
     description:
-      "Leverage AirQo's open air quality data through our comprehensive API. Access real-time and historical air quality information to build applications that impact African communities.",
+      "Integrate AirQo's comprehensive air quality data into your applications. Access real-time and historical PM2.5, PM10, NO2 data from 200+ monitors across 16+ African cities. RESTful API with documentation, SDKs, and free tier for developers.",
     keywords:
-      'air quality API, open air data, developer API, air quality data access, environmental API, African air quality data, pollution data API',
+      'AirQo API, air quality API Africa, open air data, developer API, environmental data API, PM2.5 API, pollution data access, RESTful API, air quality SDK, African cities data, real-time air API, historical air data, free API tier, environmental monitoring API',
     url: '/products/api',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1729071534/website/photos/wrapper_zpnvdw.png',
-      alt: 'AirQo Air Quality API for Developers',
+      alt: 'AirQo Developer API - Open Access to African Air Quality Data',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
   mobileApp: {
-    title: 'AirQo Mobile App | Air Quality in Your Pocket',
+    title:
+      'AirQo Mobile App | Real-time Air Quality for African Cities - iOS & Android',
     description:
-      'Discover the quality of air you are breathing with the AirQo mobile app. Get real-time air quality information, personalized insights, and health recommendations for African cities.',
+      'Download the AirQo mobile app for real-time air quality updates, personalized health recommendations, and pollution alerts for African cities. Available on iOS and Android. Track PM2.5 levels, get daily forecasts, and protect your health with actionable insights.',
     keywords:
-      'AirQo mobile app, air quality app, mobile air quality, air pollution app, air quality mobile, African air quality app, real-time air quality mobile',
+      'AirQo mobile app, air quality app Africa, pollution monitoring app, PM2.5 tracker, air quality iOS app, air quality Android app, health recommendations, pollution alerts, African cities app, real-time air quality, air quality forecast, environmental health app',
     url: '/products/mobile-app',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
-      alt: 'AirQo Mobile App Interface',
+      alt: 'AirQo Mobile App - Air Quality Monitoring in Your Pocket',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
   calibrate: {
-    title: 'AirQalibrate | Air Quality Sensor Calibration Platform',
+    title:
+      'AirQalibrate | Advanced Sensor Calibration Platform for Air Quality Networks',
     description:
-      'Ensure the accuracy of your air quality sensors with AirQalibrate, our advanced calibration platform designed to maintain data quality and reliability across monitoring networks.',
+      'Ensure data accuracy with AirQalibrate - our advanced calibration platform for air quality sensors. Machine learning-based calibration, drift correction, and quality assurance for maintaining reliable air quality monitoring networks across Africa.',
     keywords:
-      'air quality calibration, sensor calibration, AirQalibrate, air quality data quality, sensor accuracy, environmental monitoring calibration',
+      'AirQalibrate, sensor calibration, air quality calibration, data quality assurance, sensor accuracy, ML calibration, drift correction, sensor maintenance, environmental monitoring QA, calibration platform, sensor network management, data validation',
     url: '/products/calibrate',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-      alt: 'AirQalibrate Sensor Calibration Platform',
+      alt: 'AirQalibrate - Advanced Sensor Calibration Platform',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   contact: {
-    title: "Contact AirQo | Get in Touch with Africa's Air Quality Experts",
+    title:
+      "Contact AirQo | Partner with Africa's Leading Air Quality Network - Get Support",
     description:
-      'Contact AirQo for air quality monitoring solutions, partnerships, or support. Reach out to our team of experts working to improve air quality across African cities.',
+      'Contact AirQo for air quality monitoring solutions, research partnerships, or technical support. Connect with our team at Makerere University, Uganda. Email, phone, and office location details for collaboration inquiries.',
     keywords:
-      'contact AirQo, air quality support, AirQo partnerships, air quality consultation, AirQo team contact, environmental monitoring support, air quality solutions inquiry',
+      'Contact AirQo, AirQo support, partnership inquiries, Makerere University contact, air quality consultation, technical support, research collaboration, AirQo office Uganda, environmental monitoring support, sensor deployment inquiry',
     url: '/contact',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
-      alt: 'Contact AirQo Team - Air Quality Experts',
+      alt: 'Contact AirQo Team - Air Quality Experts at Makerere University',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   exploreData: {
-    title: 'Explore Air Quality Data | Live Air Quality Map Across Africa',
+    title:
+      'Explore Air Quality Data | Interactive Map of 200+ Monitors Across Africa',
     description:
-      'Explore real-time air quality data across African cities. View live air quality maps, historical trends, and detailed pollution insights from our extensive monitoring network.',
+      'Explore real-time air quality across African cities with our interactive map. View live PM2.5 readings from 200+ monitors, analyze historical trends, compare pollution levels, and download datasets for research. Coverage in Uganda, Kenya, Nigeria, Ghana, and more.',
     keywords:
-      'air quality data, air quality map, African air quality, real-time air pollution, air quality explorer, live air data, environmental data visualization',
+      'Air quality map Africa, real-time pollution data, PM2.5 map, African cities air quality, interactive air quality, pollution explorer, environmental data map, live air monitoring, Uganda air quality, Kenya pollution data, Nigeria air quality, Ghana PM2.5',
     url: '/explore-data',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
-      alt: 'AirQo Air Quality Data Explorer Map',
+      alt: 'AirQo Interactive Air Quality Map - Explore Data Across Africa',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
   cleanAirForum: {
-    title: 'CLEAN-Air Forum 2025 | Partnerships for Clean Air Solutions',
+    title:
+      "CLEAN-Air Forum 2025 Nairobi | Africa's Premier Air Quality Conference - Register Now",
     description:
-      "Join the CLEAN-Air Forum 2025 in Nairobi, Kenya - Africa's premier air quality convening. Learn about partnerships for clean air solutions, knowledge sharing, and multi-regional collaboration to tackle air pollution in African cities.",
+      "Join the CLEAN-Air Forum 2025 in Nairobi, Kenya - Africa's leading air quality convening. Network with 500+ experts, policymakers, and innovators. Explore partnerships for clean air solutions, cutting-edge research, and multi-regional collaboration to tackle air pollution.",
     keywords:
-      'CLEAN-Air Forum 2025, Nairobi air quality conference, African air quality forum, clean air partnerships, air pollution solutions Africa, environmental conference Kenya, air quality knowledge sharing',
+      'CLEAN-Air Forum 2025, Nairobi conference, air quality conference Africa, clean air summit, environmental conference Kenya, air pollution solutions, African air quality forum, climate conference 2025, environmental policy forum, air quality partnerships',
     url: '/clean-air-forum/about',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Nairobi',
+      alt: 'CLEAN-Air Forum 2025 Nairobi - Partnerships for Clean Air in Africa',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
-  // Solutions pages
+  // Solutions pages with enhanced SEO
   solutionsAfricanCities: {
-    title: 'Air Quality Solutions for African Cities | AirQo',
+    title:
+      'Air Quality Solutions for African Cities | Smart City Monitoring - AirQo',
     description:
-      "Discover AirQo's comprehensive air quality monitoring and data solutions designed specifically for African cities. Empowering city governments with real-time data to tackle urban air pollution.",
+      "Transform your city with AirQo's comprehensive air quality monitoring network. Deploy cost-effective sensors, access real-time dashboards, and make data-driven decisions. Trusted by 16+ African cities including Kampala, Lagos, Nairobi, and Accra.",
     keywords:
-      'African cities air quality, urban air pollution solutions, city air monitoring, African urban environment, smart city air quality, municipal air quality management',
+      'Smart city air quality, African urban monitoring, city pollution solutions, municipal air quality, urban environmental management, city government solutions, smart city sensors, urban planning data, city air quality dashboard, African smart cities',
     url: '/solutions/african-cities',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
-      alt: 'Air Quality Solutions for African Cities',
+      alt: 'Air Quality Solutions for African Smart Cities',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   solutionsCommunities: {
-    title: 'Community Air Quality Solutions | AirQo',
+    title:
+      'Community Air Quality Solutions | Citizen Science & Local Action - AirQo',
     description:
-      'Empower African communities with accessible air quality data and tools. AirQo provides hyperlocal air quality insights to help communities understand and address air pollution in their neighborhoods.',
+      'Empower communities with hyperlocal air quality data and citizen science tools. AirQo provides accessible monitoring, education programs, and actionable insights to help neighborhoods tackle air pollution. Join 60+ million people accessing our data.',
     keywords:
-      'community air quality, grassroots air monitoring, community air pollution, local air quality data, African community empowerment, neighborhood air quality',
+      'Community air monitoring, citizen science Africa, grassroots environmental action, local air quality, community empowerment, neighborhood pollution, environmental justice, community health data, participatory monitoring, air quality education',
     url: '/solutions/communities',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/community/Rectangle_411_toaajz.webp',
-      alt: 'Community Air Quality Solutions',
+      alt: 'Community-Driven Air Quality Monitoring Solutions',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   solutionsResearch: {
-    title: 'Air Quality Research Solutions | AirQo',
+    title:
+      'Air Quality Research Solutions | Academic Data Access & Tools - AirQo',
     description:
-      'Access comprehensive air quality datasets and research tools for academic and policy research. AirQo supports researchers across Africa with reliable environmental data and analytics.',
+      'Access comprehensive air quality datasets for academic research and policy analysis. AirQo provides researchers with validated data from 200+ monitors, API access, collaboration opportunities, and publications support for environmental studies across Africa.',
     keywords:
-      'air quality research, environmental research Africa, air pollution data research, academic air quality tools, policy research air quality, environmental monitoring research',
+      'Air quality research data, academic environmental data, research API access, scientific air quality, policy research tools, environmental datasets Africa, research collaboration, academic partnerships, peer-reviewed data, environmental science',
     url: '/solutions/research',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
-      alt: 'Air Quality Research Solutions',
+      alt: 'Air Quality Research Data and Tools for Academia',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
-  // Legal pages
+  // Legal pages with proper SEO
   privacyPolicy: {
-    title: 'Privacy Policy | AirQo',
+    title: 'Privacy Policy | AirQo - Data Protection & User Privacy',
     description:
-      'Learn how AirQo collects, uses, and protects your personal information. Our privacy policy outlines our commitment to data security and user privacy.',
+      'AirQo privacy policy outlines how we collect, use, and protect your personal information. Learn about data security, user rights, GDPR compliance, and our commitment to protecting your privacy while providing air quality services.',
     keywords:
-      'AirQo privacy policy, data privacy, personal information protection, data security, privacy terms',
+      'AirQo privacy policy, data protection, GDPR compliance, user privacy, personal data security, privacy rights, data collection policy, information security',
     url: '/legal/privacy-policy',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
-      alt: 'AirQo Privacy and Data Protection',
+      alt: 'AirQo Privacy Policy and Data Protection',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   termsOfService: {
-    title: 'Terms of Service | AirQo',
+    title: 'Terms of Service | AirQo Platform Usage Agreement',
     description:
-      "Read AirQo's terms of service for using our air quality monitoring platform, mobile app, and data services.",
+      "Read AirQo's terms of service for using our air quality monitoring platform, mobile app, API, and data services. Understand usage rights, limitations, and responsibilities for accessing African air quality data.",
     keywords:
-      'AirQo terms of service, terms and conditions, service agreement, platform terms',
+      'AirQo terms of service, usage agreement, platform terms, service conditions, API terms, data usage rights, legal terms, user agreement',
     url: '/legal/terms-of-service',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
-      alt: 'AirQo Terms of Service Agreement',
+      alt: 'AirQo Terms of Service',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   paymentRefundPolicy: {
-    title: 'Payment & Refund Policy | AirQo',
+    title: 'Payment & Refund Policy | AirQo Services Billing Terms',
     description:
-      "Understand AirQo's payment processing and refund policies for our services and products.",
+      "Understand AirQo's payment processing, billing cycles, and refund policies for premium services, API access, and monitoring solutions. Clear terms for transactions and dispute resolution.",
     keywords:
-      'AirQo payment policy, refund policy, billing terms, payment processing',
+      'AirQo payment policy, refund terms, billing policy, payment processing, transaction terms, refund process, service billing',
     url: '/legal/payment-refund-policy',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
-      alt: 'AirQo Payment and Billing Policies',
+      alt: 'AirQo Payment and Refund Policies',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   airqoDataPolicy: {
-    title: 'AirQo Data Policy | Open Air Quality Data',
+    title:
+      'AirQo Open Data Policy | Creative Commons License & Usage Guidelines',
     description:
-      "Learn about AirQo's data sharing policy, licensing terms, and how our open air quality data can be used by researchers, developers, and organizations.",
+      "Access AirQo's open air quality data under Creative Commons license. Learn about data usage rights, attribution requirements, API access terms, and how researchers and developers can leverage our environmental data for impact.",
     keywords:
-      'AirQo data policy, open data, air quality data licensing, data usage terms, environmental data sharing',
+      'AirQo open data, Creative Commons license, data usage policy, open data access, attribution requirements, research data rights, API licensing, environmental data sharing',
     url: '/legal/airqo-data',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
       alt: 'AirQo Open Data Policy and Licensing',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
-  // CLEAN-Air Forum specific pages
+  // CLEAN-Air Forum pages with event-specific SEO
   cleanAirForumSessions: {
-    title: 'Conference Sessions & Schedule | CLEAN-Air Forum 2025',
+    title: 'Sessions & Agenda | CLEAN-Air Forum 2025 Nairobi - 3-Day Program',
     description:
-      'Explore the CLEAN-Air Forum 2025 sessions, workshops, and schedule in Nairobi. Plan your attendance at key presentations and discussions on air quality monitoring, policy, and solutions.',
+      'Explore 50+ sessions at CLEAN-Air Forum 2025 including keynotes, panel discussions, workshops, and networking events. Topics cover air quality monitoring, policy frameworks, health impacts, and clean air solutions for African cities.',
     keywords:
-      'CLEAN-Air Forum sessions, conference schedule, air quality workshops, environmental presentations, conference agenda, forum timeline, Nairobi 2025',
+      'CLEAN-Air Forum agenda, conference sessions, air quality workshops, Nairobi 2025 program, environmental panels, policy discussions, technical workshops, networking events',
     url: '/clean-air-forum/clean-air-forum-2025/sessions',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Sessions',
+      alt: 'CLEAN-Air Forum 2025 Conference Sessions',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   cleanAirForumSpeakers: {
-    title: 'Speakers & Presenters | CLEAN-Air Forum 2025',
+    title:
+      'Speakers & Experts | CLEAN-Air Forum 2025 - 100+ Environmental Leaders',
     description:
-      'Meet our distinguished speakers and presenters at the CLEAN-Air Forum 2025 in Nairobi. Leading experts in air quality, environmental science, and policy sharing insights on partnerships for clean air solutions in Africa.',
+      'Meet 100+ distinguished speakers at CLEAN-Air Forum 2025 including government ministers, WHO officials, researchers, and innovators. Leading voices in air quality science, policy, and technology sharing insights on African air pollution solutions.',
     keywords:
-      'CLEAN-Air Forum speakers, air quality experts, environmental scientists, conference presenters, air pollution experts, African environmental leaders, Nairobi 2025',
+      'CLEAN-Air Forum speakers, air quality experts, environmental leaders, conference presenters, WHO officials, African ministers, research scientists, policy makers',
     url: '/clean-air-forum/clean-air-forum-2025/speakers',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Speakers',
+      alt: 'CLEAN-Air Forum 2025 Distinguished Speakers',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   cleanAirForumResources: {
-    title: 'Resources & Downloads | CLEAN-Air Forum 2025',
+    title: 'Resources & Materials | CLEAN-Air Forum 2025 - Download Center',
     description:
-      'Access resources, presentations, and materials from the CLEAN-Air Forum 2025. Download research papers, policy briefs, and tools for air quality improvement in African cities.',
+      'Access presentations, research papers, policy briefs, and tools from CLEAN-Air Forum 2025. Download air quality datasets, monitoring guides, implementation frameworks, and best practices for clean air initiatives in African cities.',
     keywords:
-      'CLEAN-Air Forum resources, air quality resources, conference materials, environmental research, policy briefs, African air quality tools',
+      'CLEAN-Air Forum resources, conference materials, research downloads, policy documents, air quality tools, presentation slides, implementation guides, best practices',
     url: '/clean-air-forum/clean-air-forum-2025/resources',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Resources',
+      alt: 'CLEAN-Air Forum 2025 Resources and Downloads',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   cleanAirForumSponsorships: {
-    title: 'Sponsorships | CLEAN-Air Forum 2025',
+    title: 'Sponsorship Opportunities | CLEAN-Air Forum 2025 - Partner with Us',
     description:
-      'Partner with the CLEAN-Air Forum 2025 in Nairobi. Explore sponsorship opportunities to support partnerships for clean air solutions across Africa.',
+      'Partner with CLEAN-Air Forum 2025 to showcase your commitment to clean air in Africa. Sponsorship packages include exhibition space, speaking opportunities, branding, and networking with 500+ environmental leaders and decision-makers.',
     keywords:
-      'CLEAN-Air Forum sponsorship, air quality conference sponsorship, environmental partnership opportunities, Nairobi 2025',
+      'CLEAN-Air Forum sponsorship, partnership opportunities, conference sponsors, exhibition packages, environmental partnerships, corporate sponsorship, event partnership',
     url: '/clean-air-forum/clean-air-forum-2025/sponsorships',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Sponsorships',
+      alt: 'CLEAN-Air Forum 2025 Sponsorship Opportunities',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   cleanAirForumLogistics: {
-    title: 'Logistics & Travel | CLEAN-Air Forum 2025',
+    title:
+      'Venue & Travel Info | CLEAN-Air Forum 2025 Nairobi - Plan Your Visit',
     description:
-      'Plan your visit to the CLEAN-Air Forum 2025 in Nairobi, Kenya. Find information about venue, accommodation, travel, and logistics for the premier African air quality conference.',
+      'Plan your trip to CLEAN-Air Forum 2025 in Nairobi, Kenya. Find venue details, recommended hotels, visa information, local transportation, and travel tips. Special rates available at partner hotels near the conference center.',
     keywords:
-      'CLEAN-Air Forum logistics, Nairobi conference venue, travel Kenya, conference accommodation, air quality forum travel',
+      'CLEAN-Air Forum venue, Nairobi conference location, travel Kenya, conference hotels, visa information, airport transfers, accommodation Nairobi, travel logistics',
     url: '/clean-air-forum/clean-air-forum-2025/logistics',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Nairobi Venue',
+      alt: 'CLEAN-Air Forum 2025 Venue in Nairobi',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   cleanAirForumProgramCommittee: {
-    title: 'Program Committee | CLEAN-Air Forum 2025',
+    title: 'Program Committee | CLEAN-Air Forum 2025 Organizing Team',
     description:
-      'Meet the program committee organizing the CLEAN-Air Forum 2025. Leading researchers, policymakers, and practitioners shaping the agenda for clean air partnerships in Africa.',
+      'Meet the distinguished program committee organizing CLEAN-Air Forum 2025. Leading researchers, policymakers, and practitioners from WHO, UNEP, African governments, and academia shaping the conference agenda for maximum impact.',
     keywords:
-      'CLEAN-Air Forum committee, conference organizers, air quality experts, environmental leadership, African research committee',
+      'CLEAN-Air Forum committee, conference organizers, program committee, scientific committee, organizing team, conference leadership, advisory board',
     url: '/clean-air-forum/clean-air-forum-2025/program-committee',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
       alt: 'CLEAN-Air Forum 2025 Program Committee',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   cleanAirForumGlossary: {
-    title: 'Glossary | CLEAN-Air Forum 2025',
+    title:
+      'Air Quality Glossary | CLEAN-Air Forum 2025 - Key Terms & Definitions',
     description:
-      'Understand key terms and concepts related to air quality monitoring, pollution mitigation, and environmental policy. A comprehensive glossary for the CLEAN-Air Forum 2025.',
+      'Comprehensive glossary of air quality terms, monitoring technologies, and policy concepts. Understand PM2.5, PM10, AQI, WHO guidelines, and technical terminology used in air pollution science and clean air initiatives.',
     keywords:
-      'air quality glossary, environmental terms, pollution definitions, air monitoring terminology, clean air concepts',
+      'Air quality glossary, PM2.5 definition, AQI explained, air pollution terms, monitoring terminology, WHO guidelines, environmental definitions, technical glossary',
     url: '/clean-air-forum/clean-air-forum-2025/glossary',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'Air Quality Terms and Definitions',
+      alt: 'Air Quality Terms and Definitions Glossary',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   cleanAirForumPartners: {
-    title: 'Partners | CLEAN-Air Forum 2025',
+    title:
+      'Partners & Collaborators | CLEAN-Air Forum 2025 - Global Support Network',
     description:
-      'Meet our partners supporting the CLEAN-Air Forum 2025. Organizations working together to advance clean air solutions and partnerships across Africa.',
+      'CLEAN-Air Forum 2025 partners include WHO, UNEP, World Bank, Google.org, African governments, and leading environmental organizations. Together advancing clean air solutions through collaboration and knowledge sharing.',
     keywords:
-      'CLEAN-Air Forum partners, air quality partnerships, environmental collaboration, African organizations, clean air sponsors',
+      'CLEAN-Air Forum partners, conference collaborators, WHO partnership, UNEP support, World Bank, Google.org, environmental partners, African organizations',
     url: '/clean-air-forum/clean-air-forum-2025/partners',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
-      alt: 'CLEAN-Air Forum 2025 Partners',
+      alt: 'CLEAN-Air Forum 2025 Partners and Collaborators',
+      width: 1200,
+      height: 630,
+      type: 'image/jpeg',
     },
   },
   careers: {
-    title: 'Careers at AirQo | Join the Fight Against Air Pollution',
+    title:
+      'Careers at AirQo | Environmental Tech Jobs in Africa - Join Our Mission',
     description:
-      "Join AirQo's mission to combat air pollution in Africa. Explore career opportunities in environmental monitoring, data science, engineering, and community impact.",
+      "Join AirQo's growing team of 50+ professionals working to combat air pollution across Africa. Open positions in data science, engineering, research, community engagement, and policy. Work from Uganda or remotely with competitive benefits.",
     keywords:
-      'AirQo careers, environmental jobs Africa, air quality jobs, impact careers, sustainability jobs, African environmental careers',
+      'AirQo careers, environmental jobs Africa, air quality careers, data science jobs, engineering positions, research opportunities, Uganda tech jobs, remote environmental work, impact careers, sustainability jobs',
     url: '/careers',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png',
-      alt: 'AirQo Team Careers',
+      alt: 'Join AirQo Team - Environmental Careers in Africa',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
   events: {
-    title: 'Events | AirQo',
+    title:
+      'Events & Conferences | AirQo Air Quality Workshops & Community Engagement',
     description:
-      'Stay updated with AirQo events, conferences, workshops, and community engagements focused on air quality improvement across Africa.',
+      'Stay updated with AirQo events including CLEAN-Air Forum, community workshops, hackathons, training sessions, and webinars. Join us at conferences across Africa to learn about air quality monitoring and clean air solutions.',
     keywords:
-      'AirQo events, air quality conferences, environmental events Africa, air pollution workshops, community events',
+      'AirQo events, air quality conferences, environmental workshops, community events, hackathons, training sessions, webinars, African environmental events',
     url: '/events',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp',
-      alt: 'AirQo Events',
+      alt: 'AirQo Events and Conferences',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   press: {
-    title: 'Press & Media | AirQo',
+    title: 'Press & Media Coverage | AirQo in the News - Media Resources',
     description:
-      'Access AirQo press releases, media coverage, and resources for journalists covering air quality and environmental issues in Africa.',
+      'Access AirQo press releases, media coverage, and journalist resources. Featured in CNN, BBC, Reuters, and leading African media. Download press kits, high-resolution images, and expert quotes on air quality in Africa.',
     keywords:
-      'AirQo press, media coverage, press releases, environmental journalism, air quality news Africa',
+      'AirQo press, media coverage, press releases, journalist resources, news coverage, media kit, expert quotes, air quality news, environmental journalism Africa',
     url: '/press',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
-      alt: 'AirQo Press and Media',
+      alt: 'AirQo Press and Media Resources',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   resources: {
-    title: 'Resources | AirQo',
+    title: 'Resources & Publications | AirQo Research Papers, Reports & Guides',
     description:
-      "Access AirQo's comprehensive library of air quality resources, research publications, reports, and educational materials for better understanding of air pollution in Africa.",
+      "Access AirQo's library of 50+ research publications, technical reports, policy briefs, and educational materials. Download air quality datasets, monitoring guides, and case studies from our work across 16+ African cities.",
     keywords:
-      'AirQo resources, air quality resources, environmental publications, air pollution research, educational materials Africa',
+      'AirQo resources, research publications, air quality reports, technical guides, policy briefs, educational materials, case studies, datasets, monitoring guides',
     url: '/resources',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-      alt: 'AirQo Resources',
+      alt: 'AirQo Resources and Publications Library',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
   faqs: {
-    title: 'Frequently Asked Questions | AirQo',
+    title:
+      'FAQs | Frequently Asked Questions About AirQo Air Quality Monitoring',
     description:
-      'Find answers to common questions about AirQo, our air quality monitoring services, data access, and how we help African communities combat air pollution.',
+      'Find answers to common questions about AirQo sensors, data access, mobile app, API usage, partnerships, and air quality basics. Learn how to interpret PM2.5 readings, access our data, and collaborate with us.',
     keywords:
-      'AirQo FAQ, frequently asked questions, air quality questions, AirQo help, air monitoring questions, air quality data FAQ',
+      'AirQo FAQ, frequently asked questions, air quality help, sensor questions, data access FAQ, API documentation, PM2.5 explained, partnership inquiries',
     url: '/faqs',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
       alt: 'AirQo Frequently Asked Questions',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
-  // Partners page
   partners: {
-    title: 'Partners | AirQo',
+    title:
+      'Partners & Collaborators | Google.org, World Bank, WHO & More - AirQo',
     description:
-      "Meet AirQo's partners and collaborators working together to improve air quality across Africa. Learn about our partnerships with Google.org, World Bank, and other organizations.",
+      "Meet AirQo's strategic partners including Google.org ($4.3M AI Impact Challenge), World Bank, WHO, UNEP, and 20+ organizations. Together we're scaling air quality monitoring to protect 60+ million people across Africa.",
     keywords:
-      'AirQo partners, air quality partnerships, environmental collaboration, African partnerships, Google.org partnership, World Bank partnership',
+      'AirQo partners, Google.org partnership, World Bank collaboration, WHO partnership, UNEP, environmental partnerships, African collaborations, strategic partners, funding partners',
     url: '/partners',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
-      alt: 'AirQo Partners',
+      alt: 'AirQo Strategic Partners and Collaborators',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
     },
   },
 } as const;
+
+// Type guard for metadata configs
+export type MetadataConfigKey = keyof typeof METADATA_CONFIGS;
+
+/**
+ * Helper function to get metadata config with validation
+ * @param key - The metadata config key
+ * @returns The metadata configuration or null if not found
+ */
+export function getMetadataConfig(
+  key: MetadataConfigKey,
+): MetadataConfig | null {
+  if (key in METADATA_CONFIGS) {
+    return METADATA_CONFIGS[key];
+  }
+  logWarn(`Metadata config not found for key: ${key}`);
+  return null;
+}
+
+/**
+ * Generate metadata for a specific page
+ * @param page - The page key from METADATA_CONFIGS
+ * @returns Generated metadata object
+ */
+export function getPageMetadata(page: MetadataConfigKey): Metadata {
+  const config = getMetadataConfig(page);
+  if (!config) {
+    logError(`No metadata config found for page: ${page}`);
+    // Return default metadata as fallback
+    return generateMetadata(METADATA_CONFIGS.home);
+  }
+  return generateMetadata(config);
+}
+
+// Export utility functions for external use
+export const metadataUtils = {
+  getCurrentDomain,
+  getDomainForContext,
+  sanitizeUrl,
+  isValidDomain,
+  generateMetadata,
+  generateViewport,
+  getMetadataConfig,
+  getPageMetadata,
+} as const;
+
+// Export types for TypeScript support
+export type { DomainConfig, ImageMetadata, MetadataConfig };

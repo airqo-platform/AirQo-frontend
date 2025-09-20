@@ -72,8 +72,19 @@ export async function GET(
       // ignore logging errors
     }
 
-    // eslint-disable-next-line no-console
-    console.log('API URL:', apiUrl.toString());
+    // Redacted: print only in development to avoid leaking tokens/urls in logs
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('API URL:', apiUrl.toString());
+    } else {
+      // Use debug for non-production development environments
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('[v2-proxy] constructed API URL (redacted for prod)');
+      } catch {
+        // ignore
+      }
+    }
 
     const controller = new AbortController();
     const timeout = setTimeout(() => {
