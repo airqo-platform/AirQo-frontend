@@ -285,10 +285,11 @@ export const devices = {
     site_name: string;
     network: string;
     user_id: string;
+    deployment_date?: string;
   }) => {
     try {
       const deploymentPayload = [{
-        date: new Date().toISOString(),
+        date: deviceData.deployment_date || new Date().toISOString(),
         mountType: deviceData.mountType,
         powerType: deviceData.powerType,
         isPrimaryInLocation: deviceData.isPrimaryInLocation,
