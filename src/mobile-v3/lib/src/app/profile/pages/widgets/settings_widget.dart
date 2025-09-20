@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
 import 'package:airqo/src/app/debug/slack_logger_test_screen.dart';
+import 'package:airqo/src/app/profile/pages/location_access_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -19,14 +20,12 @@ class SettingsWidget extends StatefulWidget {
 
 class _SettingsWidgetState extends State<SettingsWidget> {
   String _appVersion = '';
-  bool _locationEnabled = false;
   //bool _notificationsEnabled = true;
 
   @override
   void initState() {
     super.initState();
     _getAppVersion();
-    _checkLocationStatus();
   }
 
   Future<void> _getAppVersion() async {
@@ -36,54 +35,6 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     });
   }
 
-  Future<void> _checkLocationStatus() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    LocationPermission permission = await Geolocator.checkPermission();
-
-    setState(() {
-      _locationEnabled = serviceEnabled &&
-          permission != LocationPermission.denied &&
-          permission != LocationPermission.deniedForever;
-    });
-  }
-
-  Future<void> _toggleLocation(bool value) async {
-    if (value) {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-
-        bool openedSettings = await Geolocator.openLocationSettings();
-        if (!openedSettings) {
-          _showSnackBar('Please enable location services in settings.');
-          return;
-        }
-
-        serviceEnabled = await Geolocator.isLocationServiceEnabled();
-        if (!serviceEnabled) {
-          return;
-        }
-      }
-
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          _showSnackBar('Location permission denied.');
-          return;
-        } else if (permission == LocationPermission.deniedForever) {
-          _showSnackBar(
-              'Location permission permanently denied. Please enable it in settings.');
-          await Geolocator.openAppSettings();
-          return;
-        }
-      }
-    }
-
-    setState(() {
-      _locationEnabled = value;
-    });
-  }
 
   void _showSnackBar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -213,10 +164,15 @@ void _showLogoutConfirmation() {
             SizedBox(height: screenHeight * 0.02),
 
             SettingsTile(
-              switchValue: _locationEnabled,
               iconPath: "assets/images/shared/location_icon.svg",
               title: "Location",
-              onChanged: _toggleLocation,
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const LocationAccessScreen(),
+                  ),
+                );
+              },
               description:
                   "AirQo to use your precise location to locate the Air Quality of your nearest location",
             ),
