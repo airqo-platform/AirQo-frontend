@@ -1,16 +1,12 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { Device, DeviceSite } from "@/app/types/devices";
+import { Device } from "@/app/types/devices";
 import { useRouter } from "next/navigation";
-import ReusableTable, {
-  TableColumn,
-  TableItem,
-  SortingState,
-} from "@/components/shared/table/ReusableTable";
-import moment from "moment";
+import ReusableTable, { SortingState } from "@/components/shared/table/ReusableTable";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices } from "@/core/hooks/useDevices";
+import { getColumns, type TableDevice } from "./utils/table-columns";
 
 interface DevicesTableProps {
   itemsPerPage?: number;
@@ -18,126 +14,6 @@ interface DevicesTableProps {
   multiSelect?: boolean;
   className?: string;
 }
-
-type TableDevice = TableItem<unknown> & Device;
-
-const getColumns = (isInternalView: boolean): TableColumn<TableDevice>[] => {
-  const columns: TableColumn<TableDevice>[] = [
-    {
-      key: "long_name",
-      label: "Device Name",
-      render: (value, device) => {
-        const name = typeof value === "string" ? value : "";
-        const description = device.description ?? "";
-        return (
-          <div className="flex flex-col gap-1">
-            <span className="font-medium uppercase truncate" title={name}>
-              {name}
-            </span>
-            <span
-              className="text-sm text-muted-foreground max-w-[200px] truncate lowercase"
-              title={description}
-            >
-              {description}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      key: "isOnline",
-      label: "Online Status",
-      render: (isOnline) => {
-        const status = Boolean(isOnline);
-        return (
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-            }`}
-          >
-            {status ? "Online" : "Offline"}
-          </span>
-        );
-      },
-    },
-    {
-      key: "site",
-      label: "Site",
-      render: (siteData) => {
-        const sites = siteData as DeviceSite[] | undefined;
-        const siteName = sites?.[0]?.name || sites?.[0]?.location_name;
-        return (
-          <span className="uppercase max-w-40 w-full truncate" title={siteName}>
-            {siteName || "Not assigned"}
-          </span>
-        );
-      },
-    },
-    {
-      key: "status",
-      label: "Deployment Status",
-      render: (status) => {
-        const value = String(status || "").replace(" ", "_");
-        const statusClasses: Record<string, string> = {
-          deployed: "bg-green-100 text-green-800",
-          recalled: "bg-yellow-100 text-yellow-800",
-          not_deployed: "bg-red-100 text-red-800",
-        };
-        return (
-          <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-              statusClasses[value] || "bg-gray-100 text-gray-800"
-            }`}
-          >
-            {String(status || "").replace("_", " ")}
-          </span>
-        );
-      },
-    },
-    {
-      key: "createdAt",
-      label: "Created On",
-      render: (value) => {
-        const date = new Date(value as string);
-        return moment(date).format("MMM D YYYY, h:mm A");
-      },
-    },
-  ];
-
-  if (isInternalView) {
-    const groupsColumn: TableColumn<TableDevice> = {
-      key: "groups",
-      label: "Organization",
-      render: (value, item) => {
-        const groups = item.groups as string[] | undefined;
-
-        if (!groups || groups.length === 0) {
-          return <span className="text-muted-foreground">-</span>;
-        }
-
-        return (
-          <div className="flex flex-wrap gap-1 max-w-[200px]">
-            {groups.map((groupName) => {
-              const formattedName = groupName.replace(/_/g, " ");
-              return (
-                <span
-                  key={groupName}
-                  title={formattedName}
-                  className="bg-gray-200 text-gray-800 text-xs font-medium px-2 py-0.5 rounded-full truncate capitalize"
-                >
-                  {formattedName}
-                </span>
-              );
-            })}
-          </div>
-        );
-      },
-    };
-    columns.splice(3, 0, groupsColumn); // Insert after 'Site'
-  }
-
-  return columns;
-};
 
 export default function DevicesTable({
   itemsPerPage = 25,
