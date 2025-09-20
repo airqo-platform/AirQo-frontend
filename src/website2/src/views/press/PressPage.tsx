@@ -100,7 +100,9 @@ const PressPage: React.FC = () => {
                   </h2>
                   <p className="text-sm">{article.article_intro}</p>
                   <CustomButton
-                    onClick={() => window.open(articleLink, '_blank')}
+                    onClick={() =>
+                      window.open(articleLink, '_blank', 'noopener,noreferrer')
+                    }
                     className="text-black px-4 py-2 bg-transparent border border-black transition-colors mt-4"
                   >
                     Read article →

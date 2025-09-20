@@ -10,7 +10,16 @@ const AboutPage = dynamic(
   { ssr: false },
 );
 
-export const metadata = createMetadata(METADATA_CONFIGS.cleanAirForum);
+export function generateMetadata({
+  params,
+}: {
+  params: { uniqueTitle: string };
+}) {
+  return createMetadata({
+    ...METADATA_CONFIGS.cleanAirForum,
+    url: `/clean-air-forum/${params.uniqueTitle}/about`,
+  });
+}
 
 const Page = () => {
   return (

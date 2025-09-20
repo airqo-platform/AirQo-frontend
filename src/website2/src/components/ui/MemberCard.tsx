@@ -1,6 +1,7 @@
 'use client';
 
 import PlaceholderImage from '@public/assets/images/placeholder.webp';
+import DOMPurify from 'dompurify';
 import Image from 'next/image';
 import React from 'react';
 import { FaLinkedinIn, FaTwitter } from 'react-icons/fa';
@@ -68,9 +69,11 @@ const MemberCard: React.FC<MemberCardProps> = ({
     return detailData;
   }, [detailData, member]);
 
-  const renderContent = (content: string) => {
-    const isHtml = content?.trim().startsWith('<');
-    return convertDeltaToHtml(isHtml ? content : convertDeltaToHtml(content));
+  const renderContent = (content?: string) => {
+    const raw = (content || '').trim();
+    const isHtml = raw.startsWith('<');
+    const html = isHtml ? raw : convertDeltaToHtml(raw);
+    return DOMPurify.sanitize(html);
   };
 
   return (

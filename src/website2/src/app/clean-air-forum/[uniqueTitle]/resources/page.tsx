@@ -4,7 +4,16 @@ import {
 } from '@/lib/metadata';
 import ResourcesPage from '@/views/cleanairforum/resources/ResourcesPage';
 
-export const metadata = createMetadata(METADATA_CONFIGS.cleanAirForumResources);
+export function generateMetadata({
+  params,
+}: {
+  params: { uniqueTitle: string };
+}) {
+  return createMetadata({
+    ...METADATA_CONFIGS.cleanAirForumResources,
+    url: `/clean-air-forum/${params.uniqueTitle}/resources`,
+  });
+}
 
 const Page = () => {
   return <ResourcesPage />;

@@ -14,11 +14,14 @@ const TabNavigation: React.FC = () => {
 
   // Function to check if the tab is active based on the current pathname.
   const isActiveTab = (path: string) => {
-    if (!uniqueTitle) return pathname === path || pathname.startsWith(path);
-
-    // Build the full path with uniqueTitle and check if current path ends with the target path
-    const fullPath = `/clean-air-forum/${uniqueTitle}${path}`;
-    return pathname === fullPath;
+    const target = buildHref(path);
+    // Normalize for trailing slashes
+    const norm = (p: string) =>
+      p.endsWith('/') && p !== '/' ? p.slice(0, -1) : p;
+    return (
+      norm(pathname) === norm(target) ||
+      norm(pathname).startsWith(`${norm(target)}/`)
+    );
   };
 
   // Define the tabs list.

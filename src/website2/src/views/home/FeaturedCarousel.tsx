@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
 import mainConfig from '@/configs/mainConfigs';
@@ -15,6 +15,7 @@ const FeaturedCarousel = () => {
   // when we change pages via the arrows we may want to land on a specific index
   // e.g. when going to previous page land on the last item of the loaded page.
   const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const lastAppliedPageRef = useRef<number | null>(null);
 
   const { data: highlightsResponse, isLoading } = useHighlights({
     page,
@@ -25,25 +26,35 @@ const FeaturedCarousel = () => {
   const totalPages = highlightsResponse?.total_pages ?? 1;
 
   useEffect(() => {
-    // When highlights for a new page arrive, if there's a pending index requested
-    // (for example -1 meaning "last item") apply it. Otherwise default to 0.
-    if (pendingIndex !== null) {
-      if (pendingIndex === -1) {
-        setCurrentIndex(highlights.length > 0 ? highlights.length - 1 : 0);
-      } else {
-        setCurrentIndex(
-          Math.min(
-            Math.max(0, pendingIndex),
-            Math.max(0, highlights.length - 1),
-          ),
-        );
-      }
+    // Only act when the response corresponds to the currently requested page
+    if (highlightsResponse?.current_page !== page) return;
+
+    const pageChanged = lastAppliedPageRef.current !== page;
+
+    if (pendingIndex !== null && pageChanged) {
+      const target =
+        pendingIndex === -1
+          ? Math.max(0, highlights.length - 1)
+          : Math.min(
+              Math.max(0, pendingIndex),
+              Math.max(0, highlights.length - 1),
+            );
+      setCurrentIndex(target);
       setPendingIndex(null);
+      lastAppliedPageRef.current = page;
       return;
     }
 
-    setCurrentIndex(0);
+    if (pageChanged) {
+      setCurrentIndex(0);
+      lastAppliedPageRef.current = page;
+    }
   }, [page, highlightsResponse?.current_page, highlights.length, pendingIndex]);
+
+  // Clamp index when highlights length changes without resetting user position
+  useEffect(() => {
+    setCurrentIndex((i) => Math.min(i, Math.max(0, highlights.length - 1)));
+  }, [highlights.length]);
 
   const nextSlide = () => {
     if (isLoading) return;

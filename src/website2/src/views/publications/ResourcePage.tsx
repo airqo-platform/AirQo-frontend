@@ -24,8 +24,15 @@ const ResourcePage: React.FC = () => {
   );
 
   // State management
+  const initialTabParam = (searchParams?.get('tab') as string) || 'policy';
+  const initialSelected = initialTabParam.includes(',')
+    ? initialTabParam
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean)
+    : initialTabParam;
   const [selectedTab, setSelectedTab] = useState<string | string[]>(
-    (searchParams?.get('tab') as string) || 'policy',
+    initialSelected,
   );
   const [currentPage, setCurrentPage] = useState<number>(1);
 
@@ -81,14 +88,27 @@ const ResourcePage: React.FC = () => {
                 key={typeof tab.value === 'string' ? tab.value : tab.name}
                 onClick={() => handleTabClick(tab.value)}
                 className={`pb-2 text-lg ${
-                  (Array.isArray(selectedTab) &&
-                    selectedTab.includes('guide') &&
-                    selectedTab.includes('manual') &&
-                    (Array.isArray(tab.value)
-                      ? tab.value.includes('guide') &&
-                        tab.value.includes('manual')
-                      : false)) ||
-                  selectedTab === tab.value
+                  (() => {
+                    // Normalize selectedTab to array for comparison
+                    const selectedTabArray = Array.isArray(selectedTab)
+                      ? selectedTab
+                      : typeof selectedTab === 'string'
+                        ? selectedTab.split(',').map((t) => t.trim())
+                        : [];
+
+                    if (Array.isArray(tab.value)) {
+                      // For combined tabs like ['guide', 'manual']
+                      return tab.value.every((v) =>
+                        selectedTabArray.includes(v),
+                      );
+                    } else {
+                      // For single value tabs
+                      return (
+                        selectedTab === tab.value ||
+                        selectedTabArray.includes(tab.value)
+                      );
+                    }
+                  })()
                     ? 'text-black border-b-2 border-black font-semibold'
                     : 'text-gray-500'
                 } transition-colors duration-300`}

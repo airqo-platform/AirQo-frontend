@@ -463,13 +463,7 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       referrer: 'origin-when-cross-origin',
       'format-detection': 'telephone=no',
 
-      // Development/Debug info (only in dev mode)
-      ...(isDev &&
-        isDebugMode && {
-          'airqo:detected-domain': canonicalDomain,
-          'airqo:social-domain': socialDomain,
-          'airqo:environment': process.env.NODE_ENV,
-        }),
+      // Never expose debug info in metadata tags
     }),
 
     // Verification tokens

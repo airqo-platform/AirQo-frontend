@@ -57,6 +57,17 @@ export interface Career {
   updated_at?: string;
 }
 
+// Helper function to normalize department field
+export function normalizeDepartment(
+  department: Career['department'],
+): { id?: string; name?: string } | null {
+  if (!department) return null;
+  if (typeof department === 'string') {
+    return { name: department };
+  }
+  return department;
+}
+
 export interface Event {
   id: string;
   title: string;

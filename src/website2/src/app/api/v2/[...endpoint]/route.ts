@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const API_URL = process.env.API_URL;
-const API_TOKEN = process.env.API_TOKEN;
-
 function isValidUrl(url: string) {
   try {
     const u = new URL(url);
@@ -17,6 +14,9 @@ export async function GET(
   { params }: { params: { endpoint: string[] } },
 ) {
   try {
+    const API_URL = process.env.API_URL;
+    const API_TOKEN = process.env.API_TOKEN;
+
     if (!API_URL || !API_TOKEN) {
       return NextResponse.json(
         { error: 'API configuration missing' },
@@ -56,19 +56,11 @@ export async function GET(
     // Append token last (some backends expect token in query)
     apiUrl.searchParams.append('token', API_TOKEN);
 
-    // Redacted: print only in development to avoid leaking tokens/urls in logs
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('API URL:', apiUrl.toString());
-    } else {
-      // Use debug for non-production development environments
-      try {
-        // eslint-disable-next-line no-console
-        console.debug('[v2-proxy] constructed API URL (redacted for prod)');
-      } catch {
-        // ignore
-      }
-    }
+    // Redacted: always sanitize tokens in logs
+    const redactedUrl = apiUrl
+      .toString()
+      .replace(/([?&])token=[^&]*/i, '$1token=***');
+    console.log('[v2-proxy] API URL:', redactedUrl);
 
     const controller = new AbortController();
     const timeout = setTimeout(() => {
@@ -153,6 +145,9 @@ export async function POST(
   { params }: { params: { endpoint: string[] } },
 ) {
   try {
+    const API_URL = process.env.API_URL;
+    const API_TOKEN = process.env.API_TOKEN;
+
     if (!API_URL || !API_TOKEN) {
       return NextResponse.json(
         { error: 'API configuration missing' },

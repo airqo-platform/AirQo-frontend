@@ -1,3 +1,5 @@
+'use client';
+
 import { format, isValid } from 'date-fns';
 import Image from 'next/image';
 import Link from 'next/link';

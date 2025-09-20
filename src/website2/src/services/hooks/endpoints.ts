@@ -122,23 +122,24 @@ export const useForumEventDetail = (uniqueTitle: string | null) =>
     uniqueTitle ? `forum-events/${uniqueTitle}` : null,
   );
 export const useEventInquiries = (params?: QueryParams) =>
-  useApiData('event-inquiries', { params });
+  useApiData<any>('event-inquiries', { params }); // TODO: Add EventInquiry type
 export const useEventPrograms = (params?: QueryParams) =>
-  useApiData('event-programs', { params });
+  useApiData<any>('event-programs', { params }); // TODO: Add EventProgram type
 export const useEventSessions = (params?: QueryParams) =>
-  useApiData('event-sessions', { params });
+  useApiData<any>('event-sessions', { params }); // TODO: Add EventSession type
 export const useEventPartnerLogos = (params?: QueryParams) =>
-  useApiData('event-partner-logos', { params });
+  useApiData<any>('event-partner-logos', { params }); // TODO: Add EventPartnerLogo type
 export const useEventResources = (params?: QueryParams) =>
-  useApiData('event-resources', { params });
+  useApiData<any>('event-resources', { params }); // TODO: Add EventResource type
 export const useExternalTeamMembers = (params?: QueryParams) =>
-  useApiData('external-team-members', { params });
+  useApiData<TeamMember>('external-team-members', { params });
 export const useExternalTeamBiographies = (params?: QueryParams) =>
-  useApiData('external-team-biographies', { params });
-export const useTags = (params?: QueryParams) => useApiData('tags', { params });
+  useApiData<any>('external-team-biographies', { params }); // TODO: Add ExternalTeamBiography type
+export const useTags = (params?: QueryParams) =>
+  useApiData<any>('tags', { params }); // TODO: Add Tag type
 export const useHighlights = (params?: QueryParams) =>
-  useApiData('highlights', { params });
+  useApiData<any>('highlights', { params }); // TODO: Add Highlight type
 export const usePartnerDescriptions = (params?: QueryParams) =>
-  useApiData('partner-descriptions', { params });
+  useApiData<any>('partner-descriptions', { params }); // TODO: Add PartnerDescription type
 export const useTeamBiographies = (params?: QueryParams) =>
-  useApiData('team-biographies', { params });
+  useApiData<any>('team-biographies', { params }); // TODO: Add TeamBiography type

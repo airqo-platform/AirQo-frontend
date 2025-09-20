@@ -16,13 +16,15 @@ class SecureApiClient {
     endpoint: string,
     params?: Record<string, string | number | boolean>,
   ): string {
-    // Use origin-relative URL so SWR fetcher can accept full path or relative
-    const url = new URL(
-      `${this.baseUrl}/${endpoint}`,
+    const path = `${this.baseUrl}/${endpoint}`;
+    // In SSR, prefer configured site URL; in browser, use origin.
+    const origin =
       typeof window !== 'undefined'
         ? window.location.origin
-        : 'http://localhost',
-    );
+        : process.env.NEXT_PUBLIC_SITE_URL ||
+          process.env.SITE_URL ||
+          'http://localhost:3000';
+    const url = new URL(path, origin);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {

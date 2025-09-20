@@ -186,10 +186,10 @@ const EventPage: React.FC = () => {
                     alt={firstFeaturedEvent.title || ''}
                     width={800}
                     height={600}
-                    layout="responsive"
-                    objectFit="cover"
+                    sizes="(min-width: 1024px) 500px, (min-width: 768px) 70vw, 100vw"
                     priority
                     className="rounded-lg shadow-md w-full max-h-[400px] max-w-[500px] object-cover h-auto transition-transform duration-500 ease-in-out transform lg:hover:scale-110 cursor-pointer"
+                    style={{ objectFit: 'cover' }}
                   />
                 )}
               </div>
