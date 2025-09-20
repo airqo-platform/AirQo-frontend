@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+  Dispatch,
   useState,
   useMemo,
   useRef,
@@ -8,6 +9,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
+import type { SetStateAction } from "react";
 import Fuse from "fuse.js";
 import {
   AqSearchSm,
@@ -43,6 +45,8 @@ export type TableColumn<T, K extends keyof T = keyof T> = {
   sortable?: boolean;
   className?: string;
 };
+
+export type SortingState = Array<{ id: string; desc: boolean }>;
 
 interface TableAction {
   label: string;
@@ -548,6 +552,16 @@ interface ReusableTableProps<T extends TableItem> {
   emptyState?: ReactNode;
   className?: string;
   tableId?: string | boolean;
+
+  // Server-side operation props
+  serverSidePagination?: boolean;
+  pageCount?: number;
+  totalItems?: number;
+  pagination?: { pageIndex: number; pageSize: number };
+  onPaginationChange?: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number }>>;
+  sorting?: SortingState;
+  onSortingChange?: Dispatch<SetStateAction<SortingState>>;
+  onSearchChange?: (searchTerm: string) => void;
 }
 
 // Normalize any value to a searchable string
@@ -597,6 +611,15 @@ const ReusableTable = <T extends TableItem>({
   emptyState = "No data available",
   className = "",
   tableId: tableIdProp,
+  // Server-side props
+  serverSidePagination = false,
+  pageCount = 0,
+  totalItems: totalItemsProp,
+  pagination: paginationProp,
+  onPaginationChange,
+  sorting: sortingProp,
+  onSortingChange,
+  onSearchChange,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -693,12 +716,17 @@ const ReusableTable = <T extends TableItem>({
 
   useEffect(() => {
     const timer = setTimeout(() => {
+      if (serverSidePagination) {
+        onSearchChange?.(searchInput);
+        return;
+      }
+
       if (searchInput !== searchTerm) {
         if (tableId) {
           updateUrlState({ search: searchInput, page: 1 });
         } else {
           setLocalSearchTerm(searchInput);
-          setLocalCurrentPage(1);
+          if (!serverSidePagination) setLocalCurrentPage(1);
         }
       }
     }, 300); // 300ms debounce delay
@@ -711,6 +739,8 @@ const ReusableTable = <T extends TableItem>({
     updateUrlState,
     setLocalSearchTerm,
     setLocalCurrentPage,
+    serverSidePagination,
+    onSearchChange,
   ]);
 
   const handleClearSearch = useCallback(() => {
@@ -737,6 +767,10 @@ const ReusableTable = <T extends TableItem>({
   };
 
   const filteredData = useMemo(() => {
+    if (serverSidePagination) {
+      return data;
+    }
+
     let result = [...data];
 
     Object.entries(filterValues).forEach(([key, value]) => {
@@ -867,8 +901,8 @@ const ReusableTable = <T extends TableItem>({
     return result;
   }, [data, filterValues, searchableColumns, searchTerm, columns]);
 
-  const sortedData = useMemo(() => {
-    if (!sortConfig.key) return filteredData;
+  const clientSortedData = useMemo(() => {
+    if (serverSidePagination || !sortConfig.key) return filteredData;
     return [...filteredData].sort((a, b) => {
       const aValue = a[sortConfig.key!];
       const bValue = b[sortConfig.key!];
@@ -884,32 +918,55 @@ const ReusableTable = <T extends TableItem>({
       }
       return 0;
     });
-  }, [filteredData, sortConfig]);
+  }, [filteredData, sortConfig, serverSidePagination]);
 
-  const paginatedData = useMemo(() => {
+  const clientPaginatedData = useMemo(() => {
+    if (serverSidePagination) return clientSortedData;
     const start = (currentPage - 1) * currentPageSize;
     const end = start + currentPageSize;
-    return sortedData.slice(start, end);
-  }, [sortedData, currentPage, currentPageSize]);
+    return clientSortedData.slice(start, end);
+  }, [clientSortedData, currentPage, currentPageSize, serverSidePagination]);
 
-  const totalPages = Math.ceil(sortedData.length / Math.max(1, currentPageSize || 1));
+  const clientTotalPages = Math.ceil(clientSortedData.length / Math.max(1, currentPageSize || 1));
 
-  const handlePageChange = useCallback((page: number) => {
-    const clamped = Math.max(1, Math.min(page, Math.max(1, totalPages)));
+  const finalPaginatedData = serverSidePagination ? data : clientPaginatedData;
+  const finalTotalPages = serverSidePagination ? pageCount : clientTotalPages;
+  const finalCurrentPage = serverSidePagination ? (paginationProp?.pageIndex ?? 0) + 1 : currentPage;
+  const finalCurrentPageSize = serverSidePagination ? paginationProp?.pageSize ?? pageSize : currentPageSize;
+  const finalTotalItems = serverSidePagination ? totalItemsProp ?? data.length : clientSortedData.length;
+
+  const handleClientPageChange = useCallback((page: number) => {
+    const clamped = Math.max(1, Math.min(page, Math.max(1, clientTotalPages)));
     if (tableId) {
       updateUrlState({ page: clamped });
     } else {
       setLocalCurrentPage(clamped);
     }
-  }, [tableId, updateUrlState, totalPages]);
+  }, [clientTotalPages, tableId, updateUrlState]);
+
+  const handleServerPageChange = useCallback((page: number) => {
+    onPaginationChange?.(old => ({ ...old, pageIndex: page - 1 }));
+  }, [onPaginationChange]);
+
+  const handlePageChange = serverSidePagination ? handleServerPageChange : handleClientPageChange;
+
+  const totalPages = serverSidePagination ? pageCount : clientTotalPages;
 
   useEffect(() => {
-    if (currentPage > totalPages || currentPage < 1 || !Number.isFinite(currentPage)) {
-      handlePageChange(totalPages > 0 ? Math.min(Math.max(1, currentPage), totalPages) : 1);
+    // Don't run validation while loading, as `totalPages` might be stale from `keepPreviousData`.
+    if (loading) return;
+
+    if (finalCurrentPage > totalPages || finalCurrentPage < 1 || !Number.isFinite(finalCurrentPage)) {
+      handlePageChange(totalPages > 0 ? Math.min(Math.max(1, finalCurrentPage), totalPages) : 1);
     }
-  }, [currentPage, totalPages, handlePageChange]);
+  }, [finalCurrentPage, totalPages, handlePageChange, loading]);
 
   const handlePageSizeChange = useCallback((newPageSize: number) => {
+    if (serverSidePagination) {
+      onPaginationChange?.({ pageIndex: 0, pageSize: newPageSize });
+      return;
+    }
+
     const normalized = Array.isArray(pageSizeOptions) && pageSizeOptions.length > 0
       ? (pageSizeOptions.includes(newPageSize) ? newPageSize : pageSizeOptions[0])
       : Math.max(1, newPageSize || 1);
@@ -919,11 +976,22 @@ const ReusableTable = <T extends TableItem>({
       setLocalCurrentPageSize(normalized);
       setLocalCurrentPage(1);
     }
-  }, [tableId, updateUrlState, pageSizeOptions]);
+  }, [tableId, updateUrlState, pageSizeOptions, serverSidePagination, onPaginationChange]);
 
   const handleSort = useCallback(
     (key: string) => {
       if (!sortable) return;
+
+      if (serverSidePagination) {
+        onSortingChange?.(old => {
+          const currentSort = old?.[0];
+          if (currentSort?.id === key) {
+            return [{ id: key, desc: !currentSort.desc }];
+          }
+          return [{ id: key, desc: false }];
+        });
+        return;
+      }
       const newSortConfig = {
         key,
         direction: sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc",
@@ -934,7 +1002,7 @@ const ReusableTable = <T extends TableItem>({
         setLocalSortConfig(newSortConfig);
       }
     },
-    [sortable, tableId, updateUrlState, sortConfig]
+    [sortable, tableId, updateUrlState, sortConfig, serverSidePagination, onSortingChange]
   );
 
   const handleFilterChange = useCallback((key: string, value: FilterValue) => {
@@ -949,17 +1017,27 @@ const ReusableTable = <T extends TableItem>({
 
   const getSortIcon = useCallback(
     (key: string): ReactNode => {
-      if (sortConfig.key !== key)
-        return (
-          <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />
+      if (serverSidePagination) {
+        const sort = sortingProp?.[0];
+        if (sort?.id !== key) {
+          return <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />;
+        }
+        return !sort.desc ? (
+          <AqChevronUp className="w-3 h-3 text-primary" />
+        ) : (
+          <AqChevronDown className="w-3 h-3 text-primary" />
         );
-      return sortConfig.direction === "asc" ? (
-        <AqChevronUp className="w-3 h-3 text-primary" />
-      ) : (
-        <AqChevronDown className="w-3 h-3 text-primary" />
-      );
+      } else {
+        if (sortConfig.key !== key)
+          return <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />;
+        return sortConfig.direction === "asc" ? (
+          <AqChevronUp className="w-3 h-3 text-primary" />
+        ) : (
+          <AqChevronDown className="w-3 h-3 text-primary" />
+        );
+      }
     },
-    [sortConfig]
+    [sortConfig, serverSidePagination, sortingProp]
   );
 
   const renderCell = useCallback(
@@ -977,7 +1055,7 @@ const ReusableTable = <T extends TableItem>({
   const handleSelectAll = useCallback(
     (isChecked: boolean) => {
       if (isChecked) {
-        const currentPageIds = paginatedData.map((item) => item.id);
+        const currentPageIds = finalPaginatedData.map((item) => item.id);
         setSelectedItems((prevSelected) => {
           const newItems = currentPageIds.filter(
             (id) => !prevSelected.includes(id)
@@ -987,7 +1065,7 @@ const ReusableTable = <T extends TableItem>({
           return updatedSelected;
         });
       } else {
-        const currentPageIds = paginatedData.map((item) => item.id);
+        const currentPageIds = finalPaginatedData.map((item) => item.id);
         setSelectedItems((prevSelected) => {
           const updatedSelected = prevSelected.filter(
             (id) => !currentPageIds.includes(id)
@@ -997,7 +1075,7 @@ const ReusableTable = <T extends TableItem>({
         });
       }
     },
-    [paginatedData, onSelectedItemsChange]
+    [finalPaginatedData, onSelectedItemsChange]
   );
 
   const handleSelectItem = useCallback(
@@ -1021,17 +1099,17 @@ const ReusableTable = <T extends TableItem>({
 
   const isAllSelectedOnPage = useMemo(
     () =>
-      paginatedData.length > 0 &&
-      paginatedData.every((item) => selectedItems.includes(item.id)),
-    [paginatedData, selectedItems]
+      finalPaginatedData.length > 0 &&
+      finalPaginatedData.every((item) => selectedItems.includes(item.id)),
+    [finalPaginatedData, selectedItems]
   );
 
   const isIndeterminate = useMemo(
     () =>
-      paginatedData.length > 0 &&
-      paginatedData.some((item) => selectedItems.includes(item.id)) &&
+      finalPaginatedData.length > 0 &&
+      finalPaginatedData.some((item) => selectedItems.includes(item.id)) &&
       !isAllSelectedOnPage,
-    [paginatedData, selectedItems, isAllSelectedOnPage]
+    [finalPaginatedData, selectedItems, isAllSelectedOnPage]
   );
 
   useEffect(() => {
@@ -1129,11 +1207,11 @@ const ReusableTable = <T extends TableItem>({
         {loading ? (
           loadingComponent ? (
             loadingComponent
-          ) : (
-            <TableSkeleton columns={displayColumns} pageSize={currentPageSize} />
+          ) : ( 
+            <TableSkeleton columns={displayColumns} pageSize={finalCurrentPageSize} />
           )
         ) : (
-          <table className="w-full">
+          <table className="w-full table-fixed border-collapse">
             <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
               <tr>
                 {displayColumns.map((column) => (
@@ -1141,7 +1219,7 @@ const ReusableTable = <T extends TableItem>({
                     key={String(column.key)}
                     className={`${column.key === "checkbox"
                         ? "w-4 p-4"
-                        : "max-w-sm px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
+                        : "w-52 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider truncate"
                       } ${column.className || ""} ${sortable &&
                         column.sortable !== false &&
                         column.key !== "checkbox"
@@ -1170,8 +1248,8 @@ const ReusableTable = <T extends TableItem>({
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
-              {paginatedData.length > 0 ? (
-                paginatedData.map((item, index) => (
+              {finalPaginatedData.length > 0 ? (
+                finalPaginatedData.map((item, index) => (
                   <tr
                     key={item.id ?? index}
                     onClick={(e) => {
@@ -1200,7 +1278,7 @@ const ReusableTable = <T extends TableItem>({
                         key={String(column.key)}
                         className={`break-words ${column.key === "checkbox"
                             ? "w-4 p-4"
-                            : "px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
+                            : "w-52 truncate px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
                           } ${column.className || ""}`}
                       >
                         {renderCell(item, column)}
@@ -1229,12 +1307,12 @@ const ReusableTable = <T extends TableItem>({
       </div>
 
       {/* Pagination */}
-      {!loading && showPagination && sortedData.length > 0 && (
+      {!loading && showPagination && finalPaginatedData.length > 0 && (
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={currentPageSize}
-          totalItems={sortedData.length}
+          currentPage={finalCurrentPage}
+          totalPages={finalTotalPages}
+          pageSize={finalCurrentPageSize}
+          totalItems={finalTotalItems}
           pageSizeOptions={pageSizeOptions}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}

@@ -108,17 +108,33 @@ export interface MaintenanceActivitiesResponse {
   site_activities: MaintenanceActivity[];
 }
 
+export interface GetDevicesSummaryParams {
+  network: string;
+  group?: string;
+  limit?: number;
+  skip?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
 export const devices = {
-  getDevicesSummaryApi: async (networkId: string, groupName: string) => {
+  getDevicesSummaryApi: async (params: GetDevicesSummaryParams) => {
     try {
-      const queryParams = new URLSearchParams({
-        network: networkId,
-        ...(groupName && groupName !== 'airqo' && { group: groupName })
-      });
+      const { network, group, limit, skip, search, sortBy, order } = params;
+      const queryParams = new URLSearchParams();
+
+      if (network) queryParams.set("network", network);
+      if (group && group !== "airqo") queryParams.set("group", group);
+      if (limit !== undefined) queryParams.set("limit", String(limit));
+      if (skip !== undefined) queryParams.set("skip", String(skip));
+      if (search) queryParams.set("search", search);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (order) queryParams.set("order", order);
 
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
         `/devices/summary?${queryParams.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
@@ -137,10 +153,14 @@ export const devices = {
     }
   },
 
-  getDevicesApi: async (networkId: string,) => {
+  getDevicesApi: async (networkId: string, limit?: number) => {
     try {
+      const queryParams = new URLSearchParams({ network: networkId });
+      if (limit) {
+        queryParams.set("limit", String(limit));
+      }
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
-        `/devices/summary?network=${networkId}`,
+        `/devices/summary?${queryParams.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
