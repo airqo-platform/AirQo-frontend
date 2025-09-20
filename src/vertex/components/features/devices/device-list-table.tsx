@@ -1,82 +1,38 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { Device } from "@/app/types/devices";
+import { Device, DeviceSite } from "@/app/types/devices";
 import { useRouter } from "next/navigation";
 import ReusableTable, {
   TableColumn,
   TableItem,
+  SortingState,
 } from "@/components/shared/table/ReusableTable";
 import moment from "moment";
-import { useState } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { useDevices } from "@/core/hooks/useDevices";
 
 interface DevicesTableProps {
-  devices: Device[];
-  isLoading?: boolean;
-  error?: Error | null;
   itemsPerPage?: number;
   onDeviceClick?: (device: Device) => void;
   multiSelect?: boolean;
+  className?: string;
 }
 
-type TableDevice = TableItem<unknown>;
+type TableDevice = TableItem<unknown> & Device;
 
-interface Site {
-  name: string;
-  id?: string;
-}
-
-export default function DevicesTable({
-  devices,
-  isLoading = false,
-  error = null,
-  itemsPerPage = 10,
-  onDeviceClick,
-  multiSelect = true,
-}: DevicesTableProps) {
-  const router = useRouter();
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
-  const [showAssignDialog, setShowAssignDialog] = useState(false);
-  const { userContext } = useUserContext();
-  const isInternalView = userContext === "airqo-internal";
-
-  const handleDeviceClick = (item: unknown) => {
-    const device = item as Device;
-    if (onDeviceClick) onDeviceClick(device);
-    else router.push(`/devices/overview/${device._id}`);
-  };
-
-  const handleAssignSuccess = () => {
-    setSelectedDevices([]);
-    setShowAssignDialog(false);
-  };
-
-  const handleActionSubmit = (selectedIds: (string | number)[]) => {
-    setSelectedDevices(selectedIds as string[]);
-    setShowAssignDialog(true);
-  };
-
-  const devicesWithId: TableDevice[] = devices
-    .filter(
-      (device): device is Device & { _id: string } =>
-        typeof device._id === "string" && device._id.trim() !== ""
-    )
-    .map((device) => ({
-      ...device,
-      id: device._id,
-    }));
-
-  const columns: TableColumn<TableDevice, string>[] = [
+const getColumns = (isInternalView: boolean): TableColumn<TableDevice>[] => {
+  const columns: TableColumn<TableDevice>[] = [
     {
       key: "long_name",
       label: "Device Name",
       render: (value, device) => {
         const name = typeof value === "string" ? value : "";
-        const description = (device as Device).description ?? "";
+        const description = device.description ?? "";
         return (
           <div className="flex flex-col gap-1">
-            <span className="font-medium uppercase">
-              {name.length > 25 ? `${name.slice(0, 25)}...` : name}
+            <span className="font-medium uppercase truncate" title={name}>
+              {name}
             </span>
             <span
               className="text-sm text-muted-foreground max-w-[200px] truncate lowercase"
@@ -99,14 +55,7 @@ export default function DevicesTable({
               status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
             }`}
           >
-            {status ? (
-              <>
-                Online
-                <span className="ml-1 w-2 h-2 bg-green-500 rounded-full inline-block" />
-              </>
-            ) : (
-              "Offline"
-            )}
+            {status ? "Online" : "Offline"}
           </span>
         );
       },
@@ -114,12 +63,12 @@ export default function DevicesTable({
     {
       key: "site",
       label: "Site",
-      render: (siteData, device) => {
-        const site = (siteData as Site)?.name || device?.description;
-
+      render: (siteData) => {
+        const sites = siteData as DeviceSite[] | undefined;
+        const siteName = sites?.[0]?.name || sites?.[0]?.location_name;
         return (
-          <span className="uppercase max-w-40 w-full">
-            {typeof site === 'string' ? site : "Not assigned"}
+          <span className="uppercase max-w-40 w-full truncate" title={siteName}>
+            {siteName || "Not assigned"}
           </span>
         );
       },
@@ -128,20 +77,19 @@ export default function DevicesTable({
       key: "status",
       label: "Deployment Status",
       render: (status) => {
-        const value = typeof status === "string" ? status : "";
-        const statusMap: Record<string, string> = {
-          deployed: "text-green-800",
-          recalled: "text-yellow-800",
-          not_deployed: "text-red-800",
+        const value = String(status || "").replace(" ", "_");
+        const statusClasses: Record<string, string> = {
+          deployed: "bg-green-100 text-green-800",
+          recalled: "bg-yellow-100 text-yellow-800",
+          not_deployed: "bg-red-100 text-red-800",
         };
-
         return (
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-              statusMap[value] ?? "text-gray-500"
+              statusClasses[value] || "bg-gray-100 text-gray-800"
             }`}
           >
-            {value.replace("_", " ")}
+            {String(status || "").replace("_", " ")}
           </span>
         );
       },
@@ -157,12 +105,11 @@ export default function DevicesTable({
   ];
 
   if (isInternalView) {
-    const groupsColumn: TableColumn<TableDevice, string> = {
+    const groupsColumn: TableColumn<TableDevice> = {
       key: "groups",
       label: "Organization",
       render: (value, item) => {
-        const device = item as Device;
-        const groups = device.groups as string[] | undefined;
+        const groups = item.groups as string[] | undefined;
 
         if (!groups || groups.length === 0) {
           return <span className="text-muted-foreground">-</span>;
@@ -186,16 +133,86 @@ export default function DevicesTable({
         );
       },
     };
-    columns.splice(5, 0, groupsColumn);
+    columns.splice(3, 0, groupsColumn); // Insert after 'Site'
   }
 
+  return columns;
+};
+
+export default function DevicesTable({
+  itemsPerPage = 25,
+  onDeviceClick,
+  multiSelect = true,
+  className,
+}: DevicesTableProps) {
+  const router = useRouter();
+  const tableRef = useRef<HTMLDivElement>(null);
+  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const { userContext } = useUserContext();
+  const isInternalView = userContext === "airqo-internal";
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: itemsPerPage,
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const { devices, meta, isFetching, error } = useDevices({
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+    search: searchTerm,
+    sortBy: sorting[0]?.id,
+    order: sorting[0]?.desc ? "desc" : "asc",
+  });
+
+  // Scroll to top of table when page changes
+  useEffect(() => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [pagination.pageIndex]);
+
+  const pageCount = meta?.totalPages ?? 0;
+
+  const handleDeviceClick = (item: unknown) => {
+    const device = item as Device;
+    if (onDeviceClick) onDeviceClick(device);
+    else router.push(`/devices/overview/${device._id}`);
+  };
+
+  const handleAssignSuccess = () => {
+    setSelectedDevices([]);
+    setShowAssignDialog(false);
+  };
+
+  const handleActionSubmit = (selectedIds: (string | number)[]) => {
+    setSelectedDevices(selectedIds as string[]);
+    setShowAssignDialog(true);
+  };
+
+  const devicesWithId: TableDevice[] = useMemo(() => {
+    return devices
+      .filter(
+        (device: Device): device is Device & { _id: string } =>
+          typeof device._id === "string" && device._id.trim() !== ""
+      )
+      .map((device: Device) => ({
+        ...device,
+        id: device._id,
+      }));
+  }, [devices]);
+
+  const columns = useMemo(() => getColumns(isInternalView), [isInternalView]);
+
   return (
-    <div className="space-y-4">
+    <div ref={tableRef} className={`space-y-4 ${className}`}>
       <ReusableTable
         title="Devices"
         data={devicesWithId}
         columns={columns}
-        loading={isLoading}
+        loading={isFetching}
         pageSize={itemsPerPage}
         onRowClick={handleDeviceClick}
         multiSelect={multiSelect}
@@ -212,17 +229,24 @@ export default function DevicesTable({
             : []
         }
         emptyState={
-          error ? (
+          error ? ( 
             <div className="flex flex-col items-center gap-2">
               <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
               <p className="text-muted-foreground">Unable to load devices</p>
-              <p className="text-sm text-muted-foreground">{error.message}</p>
+              <p className="text-sm text-muted-foreground">{error.message || "An unknown error occurred"}</p>
             </div>
           ) : (
             "No devices available"
           )
         }
-        searchableColumns={["long_name", "site.name", "description"]}
+        serverSidePagination
+        pageCount={pageCount}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        onSearchChange={setSearchTerm}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        searchable
       />
 
       {/* Assign to Cohort Dialog */}
