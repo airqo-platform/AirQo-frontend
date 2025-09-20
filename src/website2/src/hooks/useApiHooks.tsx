@@ -95,7 +95,7 @@ export const useHighlights = () => useFetch('highlights', getHighlights, []);
  * ------------------------------------- */
 export const useCareers = () => useFetch('careers', getCareers, []);
 
-export const useCareerDetails = (id: string | null) =>
+export const useCareerDetail = (id: string | null) =>
   useFetch(
     id ? `careerDetails/${id}` : null,
     () => getCareerDetails(id!),

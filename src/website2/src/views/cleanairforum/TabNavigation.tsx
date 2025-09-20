@@ -2,38 +2,47 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import React from 'react';
 
 const TabNavigation: React.FC = () => {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  // Read the current slug, if it exists.
-  const currentSlug = searchParams.get('slug');
+  const params = useParams();
+
+  // Get the uniqueTitle from the current URL params
+  const uniqueTitle = params.uniqueTitle as string;
 
   // Function to check if the tab is active based on the current pathname.
-  const isActiveTab = (path: string) =>
-    pathname === path || pathname.startsWith(path);
+  const isActiveTab = (path: string) => {
+    const target = buildHref(path);
+    // Normalize for trailing slashes
+    const norm = (p: string) =>
+      p.endsWith('/') && p !== '/' ? p.slice(0, -1) : p;
+    return (
+      norm(pathname) === norm(target) ||
+      norm(pathname).startsWith(`${norm(target)}/`)
+    );
+  };
 
   // Define the tabs list.
   const tabs = [
-    { href: '/clean-air-forum/about', text: 'About' },
-    { href: '/clean-air-forum/program-committee', text: 'Programme Committee' },
-    { href: '/clean-air-forum/sessions', text: 'Schedule' },
-    { href: '/clean-air-forum/speakers', text: 'Speakers' },
-    { href: '/clean-air-forum/partners', text: 'Partners' },
-    { href: '/clean-air-forum/sponsorships', text: 'Sponsorships' },
-    { href: '/clean-air-forum/logistics', text: 'Travel Logistics' },
-    { href: '/clean-air-forum/glossary', text: 'Glossary' },
-    { href: '/clean-air-forum/resources', text: 'Resources' },
+    { href: '/about', text: 'About' },
+    { href: '/program-committee', text: 'Programme Committee' },
+    { href: '/sessions', text: 'Schedule' },
+    { href: '/speakers', text: 'Speakers' },
+    { href: '/partners', text: 'Partners' },
+    { href: '/sponsorships', text: 'Sponsorships' },
+    { href: '/logistics', text: 'Travel Logistics' },
+    { href: '/glossary', text: 'Glossary' },
+    { href: '/resources', text: 'Resources' },
   ];
 
-  // If currentSlug exists, append it to the URL as a query parameter.
+  // Build href with uniqueTitle if it exists
   const buildHref = (href: string) => {
-    if (currentSlug) {
-      return `${href}?slug=${encodeURIComponent(currentSlug)}`;
+    if (uniqueTitle) {
+      return `/clean-air-forum/${uniqueTitle}${href}`;
     }
-    return href;
+    return `/clean-air-forum${href}`;
   };
 
   return (

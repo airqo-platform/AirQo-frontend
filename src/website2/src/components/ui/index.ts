@@ -40,6 +40,8 @@ export {
   DropdownMenuTrigger,
 } from './dropdown-menu';
 export { default as ErrorBoundary } from './ErrorBoundary';
+export { default as ForumDetailSkeleton } from './ForumDetailSkeleton';
+export { default as ForumListSkeleton } from './ForumListSkeleton';
 export { default as ForumLoading } from './ForumLoading';
 export { Input } from './input';
 export { default as MediaContentSection } from './MediaContentSection';

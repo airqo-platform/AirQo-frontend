@@ -44,11 +44,6 @@ const nextConfig = {
     return [
       { source: '/', destination: '/home', permanent: false },
       {
-        source: '/clean-air-forum',
-        destination: '/clean-air-forum/about',
-        permanent: true,
-      },
-      {
         source: '/clean-air-network',
         destination: '/clean-air-network/about',
         permanent: true,

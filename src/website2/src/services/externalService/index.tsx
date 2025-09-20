@@ -29,22 +29,34 @@ const apiClient: AxiosInstance = axios.create({
 if (process.env.NODE_ENV === 'development') {
   apiClient.interceptors.request.use(
     (config) => {
-      console.log(`Making API request to: ${config.baseURL}${config.url}`);
+      if (process.env.NODE_ENV === 'development') {
+        // Use debug level so it's easier to filter in console
+        console.debug(`Making API request to: ${config.baseURL}${config.url}`);
+      }
       return config;
     },
     (error) => {
-      console.error('Request interceptor error:', error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Request interceptor error:', error);
+      }
       return Promise.reject(error);
     },
   );
 
   apiClient.interceptors.response.use(
     (response) => {
-      console.log(`API response from: ${response.config.url}`, response.status);
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(
+          `API response from: ${response.config.url}`,
+          response.status,
+        );
+      }
       return response;
     },
     (error) => {
-      console.error(`API error from: ${error.config?.url}`, error.message);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`API error from: ${error.config?.url}`, error.message);
+      }
       return Promise.reject(error);
     },
   );
@@ -70,6 +82,10 @@ const postRequest = async (
     return response.data;
   } catch (error) {
     handleError(error, `POST ${endpoint}`);
+    if (process.env.NODE_ENV === 'development') {
+      // Keep a lightweight warning in development for easier debugging
+      console.warn('POST request failed for endpoint:', endpoint);
+    }
     return null;
   }
 };
@@ -80,16 +96,24 @@ const postRequest = async (
 const handleError = (error: unknown, context: string) => {
   if (axios.isAxiosError(error)) {
     const axiosError = error as AxiosError;
-    console.error(`Error in ${context}:`, axiosError.message);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Error in ${context}:`, axiosError.message);
+    }
     if (axiosError.response) {
-      console.error('Response data:', axiosError.response.data);
-      console.error('Response status:', axiosError.response.status);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Response data:', axiosError.response.data);
+        console.error('Response status:', axiosError.response.status);
+      }
     } else if (axiosError.request) {
-      console.error('Network error - no response received');
-      console.error('Request config:', axiosError.config);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Network error - no response received');
+        console.error('Request config:', axiosError.config);
+      }
     }
   } else {
-    console.error(`Unexpected error in ${context}:`, error);
+    if (process.env.NODE_ENV === 'development') {
+      console.error(`Unexpected error in ${context}:`, error);
+    }
   }
 };
 
@@ -125,7 +149,9 @@ export const getGridsSummary = async (): Promise<any | null> => {
     return response.data;
   } catch (error) {
     handleError(error, 'GET /devices/grids/summary');
-    console.warn('Failed to fetch grids summary from API');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Failed to fetch grids summary from API');
+    }
     return null; // Return null so components can show "no data" message
   }
 };
