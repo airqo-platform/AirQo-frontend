@@ -26,6 +26,11 @@ const DataContent = ({
   isLoadingVisualizationData,
   onViewDataClick,
   deviceCategory, // Add device category prop
+  // New pagination props
+  paginationMeta,
+  onLoadMore,
+  canLoadMore,
+  hasNextPage,
 }) => {
   // Animation variants for content area
   const contentVariants = {
@@ -174,6 +179,12 @@ const DataContent = ({
           enableColumnFilters={true}
           defaultSortColumn="name"
           defaultSortDirection="asc"
+          // Pagination props
+          enableInfiniteScroll={true}
+          paginationMeta={paginationMeta}
+          onLoadMore={onLoadMore}
+          canLoadMore={canLoadMore}
+          hasNextPage={hasNextPage}
         />
       </motion.div>
     </motion.div>

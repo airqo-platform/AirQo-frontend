@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSitesSummary } from '@/core/hooks/analyticHooks';
+import { usePaginatedSitesSummary } from '@/core/hooks/usePaginatedData';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
 
@@ -25,7 +25,13 @@ export const useAddLocationsData = () => {
     isLoading,
     isError,
     error,
-  } = useSitesSummary((groupTitle || 'AirQo').toLowerCase(), {});
+    meta,
+    hasNextPage,
+    loadMore,
+    canLoadMore,
+  } = usePaginatedSitesSummary((groupTitle || 'AirQo').toLowerCase(), {
+    enableInfiniteScroll: true,
+  });
 
   const filteredSites = useMemo(() => {
     if (!Array.isArray(sitesSummaryData) || sitesSummaryData.length === 0) {
@@ -47,5 +53,9 @@ export const useAddLocationsData = () => {
     isLoading,
     isError,
     error,
+    meta,
+    hasNextPage,
+    loadMore,
+    canLoadMore,
   };
 };

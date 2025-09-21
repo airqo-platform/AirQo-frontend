@@ -31,11 +31,18 @@ export const getSiteSummaryDetails = () =>
     })
     .then((response) => response.data);
 
-// Get site summary details with API token auth
-export const getSiteSummaryDetailsWithToken = () =>
+// Get site summary details with API token auth and pagination support
+export const getSiteSummaryDetailsWithToken = (
+  token,
+  { skip = 0, limit = 30 } = {},
+) =>
   secureApiProxy
     .get(`${SITES_URL}/summary`, {
+      params: { skip, limit },
       authType: AUTH_TYPES.API_TOKEN,
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     })
     .then((response) => response.data);
 

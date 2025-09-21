@@ -28,22 +28,36 @@ export const shareReportApi = async (body) => {
 };
 
 // Get sites summary data
-export const getSitesSummaryApi = async ({ group = undefined } = {}) => {
-  const params =
-    group !== undefined && group !== null && group !== '' ? { group } : {};
+export const getSitesSummaryApi = async ({
+  group = undefined,
+  skip = 0,
+  limit = 30,
+} = {}) => {
+  const params = {
+    skip,
+    limit,
+    ...(group !== undefined && group !== null && group !== '' ? { group } : {}),
+  };
+
   return secureApiProxy
     .get(SITES_SUMMARY_URL, {
       params,
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
-    .catch(() => ({ sites: [] }));
+    .catch(() => ({ sites: [], meta: { total: 0, totalPages: 0 } }));
 };
 
 // Get device summary data
-export const getDeviceSummaryApi = async ({ group = null }) => {
+export const getDeviceSummaryApi = async ({
+  group = null,
+  skip = 0,
+  limit = 30,
+} = {}) => {
   const params = {
     status: 'deployed',
+    skip,
+    limit,
     ...(group ? { group } : {}),
   };
 
@@ -53,12 +67,20 @@ export const getDeviceSummaryApi = async ({ group = null }) => {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
-    .catch(() => ({ devices: [] }));
+    .catch(() => ({ devices: [], meta: { total: 0, totalPages: 0 } }));
 };
 
 // Get grid summary data
-export const getGridSummaryApi = async ({ admin_level = null }) => {
-  const params = admin_level ? { admin_level } : {};
+export const getGridSummaryApi = async ({
+  admin_level = null,
+  skip = 0,
+  limit = 30,
+} = {}) => {
+  const params = {
+    skip,
+    limit,
+    ...(admin_level ? { admin_level } : {}),
+  };
 
   return secureApiProxy
     .get(GRID_SUMMARY_URL, {
@@ -66,7 +88,7 @@ export const getGridSummaryApi = async ({ admin_level = null }) => {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
-    .catch(() => ({ grids: [] }));
+    .catch(() => ({ grids: [], meta: { total: 0, totalPages: 0 } }));
 };
 
 // Fetch analytics data

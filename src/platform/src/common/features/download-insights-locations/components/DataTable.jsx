@@ -308,6 +308,12 @@ const DataTable = ({
   enableColumnFilters = true,
   defaultSortColumn = null,
   defaultSortDirection = 'asc',
+  // Pagination props
+  paginationMeta = {},
+  onLoadMore = null,
+  canLoadMore = false,
+  hasNextPage = false,
+  enableInfiniteScroll = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
@@ -855,6 +861,31 @@ const DataTable = ({
           >
             {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
           </Button>
+        </div>
+      )}
+
+      {/* Load More button for infinite scroll */}
+      {enableInfiniteScroll && !loading && canLoadMore && hasNextPage && (
+        <div className="flex justify-center py-4">
+          <Button
+            variant="outlined"
+            onClick={onLoadMore}
+            className="flex items-center gap-2 px-6 py-2"
+          >
+            Load More Data
+          </Button>
+        </div>
+      )}
+
+      {/* Show total count when using pagination */}
+      {paginationMeta?.total > 0 && (
+        <div className="flex justify-center py-2 text-sm text-gray-500">
+          Showing {data.length} of {paginationMeta.total} items
+          {paginationMeta.totalPages > 1 && (
+            <span className="ml-2">
+              (Page {paginationMeta.page || 1} of {paginationMeta.totalPages})
+            </span>
+          )}
         </div>
       )}
     </div>

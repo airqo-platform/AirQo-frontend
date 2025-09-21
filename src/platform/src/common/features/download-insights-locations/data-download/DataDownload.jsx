@@ -14,10 +14,10 @@ import {
 } from './constants';
 
 import {
-  useSitesSummary,
-  useDeviceSummary,
-  useGridSummary,
   useSiteAndDeviceIds,
+  usePaginatedSitesSummary,
+  usePaginatedDevicesSummary,
+  usePaginatedGridsSummary,
 } from '@/core/hooks/analyticHooks';
 
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
@@ -199,7 +199,7 @@ const DataDownload = ({
     isError: isSiteIdsError,
   } = useSiteAndDeviceIds(selectedGridId);
 
-  // Data fetching hooks with dependencies
+  // Data fetching hooks with dependencies using paginated versions
   // For countries/cities visualization, we need all sites without group filtering
   // For other cases, we use group-filtered sites
   const isGridSelection =
@@ -212,7 +212,13 @@ const DataDownload = ({
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {});
+    meta: sitesMeta,
+    loadMore: loadMoreSites,
+    canLoadMore: canLoadMoreSites,
+    hasNextPage: sitesHasNextPage,
+  } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {
+    enableInfiniteScroll: true,
+  });
 
   const {
     data: devicesData,
@@ -220,7 +226,13 @@ const DataDownload = ({
     isError: devicesError,
     error: devicesErrorMsg,
     refresh: refreshDevices,
-  } = useDeviceSummary(groupTitle || 'AirQo', {});
+    meta: devicesMeta,
+    loadMore: loadMoreDevices,
+    canLoadMore: canLoadMoreDevices,
+    hasNextPage: devicesHasNextPage,
+  } = usePaginatedDevicesSummary(groupTitle || 'AirQo', {
+    enableInfiniteScroll: true,
+  });
 
   const {
     data: countriesData,
@@ -228,7 +240,13 @@ const DataDownload = ({
     isError: countriesError,
     error: countriesErrorMsg,
     refresh: refreshCountries,
-  } = useGridSummary('country');
+    meta: countriesMeta,
+    loadMore: loadMoreCountries,
+    canLoadMore: canLoadMoreCountries,
+    hasNextPage: countriesHasNextPage,
+  } = usePaginatedGridsSummary('country', {
+    enableInfiniteScroll: true,
+  });
 
   const {
     data: citiesData,
@@ -236,7 +254,13 @@ const DataDownload = ({
     isError: citiesError,
     error: citiesErrorMsg,
     refresh: refreshCities,
-  } = useGridSummary('city,state,county,district,region,province');
+    meta: citiesMeta,
+    loadMore: loadMoreCities,
+    canLoadMore: canLoadMoreCities,
+    hasNextPage: citiesHasNextPage,
+  } = usePaginatedGridsSummary('city,state,county,district,region,province', {
+    enableInfiniteScroll: true,
+  });
 
   // Close mobile sidebar when resizing to larger screen
   useEffect(() => {
@@ -577,6 +601,68 @@ const DataDownload = ({
     citiesLoading,
     devicesLoading,
     sitesLoading,
+  ]);
+
+  // Get pagination metadata for current filter
+  const currentPaginationMeta = useMemo(() => {
+    const metaMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesMeta,
+      [FILTER_TYPES.CITIES]: citiesMeta,
+      [FILTER_TYPES.DEVICES]: devicesMeta,
+      [FILTER_TYPES.SITES]: sitesMeta,
+    };
+    return metaMap[activeFilterKey] || {};
+  }, [activeFilterKey, countriesMeta, citiesMeta, devicesMeta, sitesMeta]);
+
+  // Get load more function for current filter
+  const currentLoadMore = useMemo(() => {
+    const loadMoreMap = {
+      [FILTER_TYPES.COUNTRIES]: loadMoreCountries,
+      [FILTER_TYPES.CITIES]: loadMoreCities,
+      [FILTER_TYPES.DEVICES]: loadMoreDevices,
+      [FILTER_TYPES.SITES]: loadMoreSites,
+    };
+    return loadMoreMap[activeFilterKey];
+  }, [
+    activeFilterKey,
+    loadMoreCountries,
+    loadMoreCities,
+    loadMoreDevices,
+    loadMoreSites,
+  ]);
+
+  // Get can load more state for current filter
+  const currentCanLoadMore = useMemo(() => {
+    const canLoadMoreMap = {
+      [FILTER_TYPES.COUNTRIES]: canLoadMoreCountries,
+      [FILTER_TYPES.CITIES]: canLoadMoreCities,
+      [FILTER_TYPES.DEVICES]: canLoadMoreDevices,
+      [FILTER_TYPES.SITES]: canLoadMoreSites,
+    };
+    return canLoadMoreMap[activeFilterKey] || false;
+  }, [
+    activeFilterKey,
+    canLoadMoreCountries,
+    canLoadMoreCities,
+    canLoadMoreDevices,
+    canLoadMoreSites,
+  ]);
+
+  // Get has next page state for current filter
+  const currentHasNextPage = useMemo(() => {
+    const hasNextPageMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesHasNextPage,
+      [FILTER_TYPES.CITIES]: citiesHasNextPage,
+      [FILTER_TYPES.DEVICES]: devicesHasNextPage,
+      [FILTER_TYPES.SITES]: sitesHasNextPage,
+    };
+    return hasNextPageMap[activeFilterKey] || false;
+  }, [
+    activeFilterKey,
+    countriesHasNextPage,
+    citiesHasNextPage,
+    devicesHasNextPage,
+    sitesHasNextPage,
   ]);
 
   // Use utility hooks for computed values
@@ -1173,6 +1259,11 @@ const DataDownload = ({
           isLoadingVisualizationData={isLoadingVisualizationData}
           onViewDataClick={onViewDataClick}
           deviceCategory={formData.deviceCategory} // Pass device category
+          // Pagination props
+          paginationMeta={currentPaginationMeta}
+          onLoadMore={currentLoadMore}
+          canLoadMore={currentCanLoadMore}
+          hasNextPage={currentHasNextPage}
         />
       </motion.div>
     );
@@ -1202,6 +1293,10 @@ const DataDownload = ({
     handleRetryLoad,
     onViewDataClick,
     formData.deviceCategory,
+    currentPaginationMeta,
+    currentLoadMore,
+    currentCanLoadMore,
+    currentHasNextPage,
   ]);
 
   return (

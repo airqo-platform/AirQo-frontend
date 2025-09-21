@@ -167,15 +167,6 @@ export const setupUserSession = async (
     // Note: Only apply this when pathname is explicitly "/" not when undefined/empty during session setup
     const isRootPageRedirect = pathname === '/';
 
-    // NEW: Check if we're on a protected route that should NOT be redirected
-    const isProtectedRoute =
-      typeof pathname === 'string' &&
-      (pathname.startsWith('/user/analytics') ||
-        pathname.startsWith('/user/data-export') ||
-        pathname.startsWith('/user/profile') ||
-        pathname.startsWith('/user/settings') ||
-        pathname.startsWith('/user/map'));
-
     if (isRootPageRedirect) {
       // Force user flow with AirQo group for root page access
       const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
@@ -205,25 +196,6 @@ export const setupUserSession = async (
         );
       }
       redirectPath = '/user/Home';
-    } else if (isProtectedRoute && !isDomainUpdate) {
-      // For protected routes (analytics, data-export, etc.), set up user session
-      // but don't override the current path to prevent redirect loops
-      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
-      if (airqoGroup) {
-        activeGroup = airqoGroup;
-        logger.info(
-          'Protected route: Setting AirQo as active group without redirect',
-          {
-            groupId: airqoGroup._id,
-            groupName: airqoGroup.grp_title || airqoGroup.grp_name,
-            loginContext: 'protected_route',
-            pathname,
-          },
-        );
-      } else {
-        activeGroup = user.groups[0];
-      }
-      redirectPath = null; // Don't redirect, stay on current protected route
     } else if (typeof pathname === 'string' && pathname.startsWith('/admin')) {
       // ADMIN ROUTES: Set AirQo group and stay on current admin path
       logger.info('Admin route detected, setting up admin session...');

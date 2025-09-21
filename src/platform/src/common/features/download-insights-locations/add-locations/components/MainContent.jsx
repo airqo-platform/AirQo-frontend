@@ -57,6 +57,10 @@ export const MainContent = ({
   isError,
   fetchError,
   handleToggleSite,
+  meta,
+  hasNextPage,
+  loadMore,
+  canLoadMore,
 }) => {
   if (isError) {
     return (
@@ -111,6 +115,11 @@ export const MainContent = ({
         enableColumnFilters={true}
         defaultSortColumn="name"
         defaultSortDirection="asc"
+        enableInfiniteScroll={true}
+        paginationMeta={meta}
+        hasNextPage={hasNextPage}
+        onLoadMore={loadMore}
+        canLoadMore={canLoadMore}
       />
     </motion.div>
   );

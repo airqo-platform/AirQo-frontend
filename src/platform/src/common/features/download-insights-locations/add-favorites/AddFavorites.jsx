@@ -38,6 +38,10 @@ export const AddFavorites = ({ onClose }) => {
     isLoading,
     isError,
     error,
+    meta,
+    hasNextPage,
+    loadMore,
+    canLoadMore,
   } = useAddLocationsData();
 
   const {
@@ -194,6 +198,10 @@ export const AddFavorites = ({ onClose }) => {
               isError={isError}
               fetchError={error}
               handleToggleSite={handleToggleSite}
+              meta={meta}
+              hasNextPage={hasNextPage}
+              loadMore={loadMore}
+              canLoadMore={canLoadMore}
             />
           </motion.div>
 
