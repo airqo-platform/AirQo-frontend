@@ -40,7 +40,7 @@ export default function DevicesTable({
     limit: pagination.pageSize,
     search: searchTerm,
     sortBy: sorting[0]?.id,
-    order: sorting[0]?.desc ? "desc" : "asc",
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined
   });
 
   // Scroll to top of table when page changes
