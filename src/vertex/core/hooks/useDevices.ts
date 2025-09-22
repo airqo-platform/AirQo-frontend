@@ -17,7 +17,8 @@ import type {
   MyDevicesResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
-import { useEffect, useMemo } from "react";import { useDispatch } from "react-redux";
+import { useEffect, useMemo } from "react";
+import { useDispatch } from "react-redux";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 
@@ -41,7 +42,9 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   const { page = 1, limit = 100, search, sortBy, order } = options;
-  const skip = (page - 1) * limit;
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const skip = (safePage - 1) * safeLimit;
 
   const devicesQuery = useQuery<
     DevicesSummaryResponse,
@@ -52,7 +55,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
       const params: GetDevicesSummaryParams = {
         network: activeNetwork?.net_name || "",
         group: activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || ""),
-        limit,
+        limit: safeLimit,
         skip,
         ...(search && { search }),
         ...(sortBy && { sortBy }),
@@ -77,7 +80,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
 
 export const useMyDevices = (userId: string, organizationId?: string) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  
+
   return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
     queryKey: ["myDevices", userId, organizationId || activeGroup?._id],
     queryFn: () => devices.getMyDevices(userId),
@@ -110,9 +113,9 @@ export function useDeviceStatus() {
   });
 
   const summary = useMemo(() => data?.data[0], [data]);
-  const allDevices = useMemo(() => 
+  const allDevices = useMemo(() =>
     summary ? [...summary.online_devices, ...summary.offline_devices] : []
-  , [summary]);
+    , [summary]);
 
   useEffect(() => {
     if (data) {
@@ -310,7 +313,7 @@ export const useDeviceStatusFeed = (deviceNumber?: number) => {
     enabled: !!deviceNumber,
     refetchOnWindowFocus: false,
   });
-}; 
+};
 
 export const useUpdateDeviceGroup = () => {
 
@@ -346,7 +349,7 @@ export const useCreateDevice = () => {
     category: string;
     description?: string;
     network: string;
-  }>({ 
+  }>({
     mutationFn: devices.createDevice,
     onSuccess: (data, variables) => {
       ReusableToast({
@@ -384,7 +387,7 @@ export const useImportDevice = () => {
     readKey?: string;
     description?: string;
     serial_number: string;
-  }>({ 
+  }>({
     mutationFn: devices.importDevice,
     onSuccess: (data, variables) => {
       ReusableToast({
