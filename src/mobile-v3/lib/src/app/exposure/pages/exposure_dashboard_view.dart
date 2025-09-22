@@ -125,6 +125,7 @@ class ExposureDashboardView extends StatefulWidget {
 class _ExposureDashboardViewState extends State<ExposureDashboardView> {
   int _selectedTabIndex = 0; // 0 for Today, 1 for This week
   bool _isRequestingPermission = false;
+  bool _showGuide = false;
   final EnhancedLocationServiceManager _locationService = EnhancedLocationServiceManager();
   
   DailyExposureSummary? _todayExposure;
@@ -283,79 +284,147 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
               ),
             ],
           ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
+          child: Stack(
             children: [
-              // Circular chart
-              SizedBox(
-                width: 220,
-                height: 220,
-                child: Stack(
-                  alignment: Alignment.center,
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Custom 24-hour clock painter with data
-                    CustomPaint(
-                      size: const Size(220, 220),
-                      painter: ClockExposurePainter(
-                        exposureData: currentData,
-                        showData: currentData != null,
+                    // Title and description
+                    Text(
+                      'Low exposure day',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
                       ),
                     ),
                     
-                    // Inner circle with user icon (matching Figma design)
-                    Container(
-                      width: 120,
-                      height: 120,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: const Color(0xFFFFA6A1).withValues(alpha: 0.3),
+                    const SizedBox(height: 12),
+                    
+                    Text(
+                      'In the past 24 hours, you\'ve had low pollution exposure with minimal health impact',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade600,
+                        height: 1.4,
                       ),
-                      child: Center(
-                        child: Container(
-                          width: 80,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFFFA6A1),
-                          ),
-                          child: Icon(
-                            Icons.person,
-                            size: 40,
-                            color: Colors.white,
-                          ),
+                    ),
+                    
+                    const SizedBox(height: 32),
+                    
+                    // Circular chart
+                    Center(
+                      child: SizedBox(
+                        width: 220,
+                        height: 220,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Custom 24-hour clock painter with data
+                            CustomPaint(
+                              size: const Size(220, 220),
+                              painter: ClockExposurePainter(
+                                exposureData: currentData,
+                                showData: currentData != null,
+                              ),
+                            ),
+                            
+                            // Inner circle with user icon (matching Figma design)
+                            Container(
+                              width: 120,
+                              height: 120,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFFFA6A1).withValues(alpha: 0.3),
+                              ),
+                              child: Center(
+                                child: Container(
+                                  width: 80,
+                                  height: 80,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: const Color(0xFFFFA6A1),
+                                  ),
+                                  child: Icon(
+                                    Icons.person,
+                                    size: 40,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                     
-                    // Guide button (top right of chart)
-                    Positioned(
-                      top: 8,
-                      right: 8,
+                    const SizedBox(height: 24),
+                    
+                    // Guide button
+                    Align(
+                      alignment: Alignment.centerLeft,
                       child: GestureDetector(
-                        onTap: _showExposureGuide,
+                        onTap: () => setState(() => _showGuide = !_showGuide),
                         child: Container(
-                          width: 32,
-                          height: 32,
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFF6F87A1),
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(25),
                           ),
-                          child: Icon(
-                            Icons.info_outline,
-                            size: 18,
-                            color: Colors.white,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.grey.shade600, width: 1.5),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    'i',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Guide',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
                     ),
+                    
+                    const SizedBox(height: 24),
+                    
+                    // Summary statistics
+                    // if (currentData != null) _buildSummaryStats(currentData),
                   ],
                 ),
               ),
               
-              const SizedBox(height: 24),
-              
-              // Summary statistics
-              if (currentData != null) _buildSummaryStats(currentData),
+              // Guide popup overlay
+              if (_showGuide)
+                Positioned(
+                  bottom: 100,
+                  left: 24,
+                  right: 24,
+                  child: _buildGuidePopup(),
+                ),
             ],
           ),
         ),
@@ -382,39 +451,39 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
     );
   }
 
-  Widget _buildSummaryStats(DailyExposureSummary data) {
-    // Calculate low exposure hours (Good + Moderate categories)
-    final lowExposureTime = data.timeByAqiCategory.entries
-        .where((entry) => ['good', 'moderate'].contains(entry.key.toLowerCase()))
-        .fold(Duration.zero, (sum, entry) => sum + entry.value);
+  // Widget _buildSummaryStats(DailyExposureSummary data) {
+  //   // Calculate low exposure hours (Good + Moderate categories)
+  //   final lowExposureTime = data.timeByAqiCategory.entries
+  //       .where((entry) => ['good', 'moderate'].contains(entry.key.toLowerCase()))
+  //       .fold(Duration.zero, (sum, entry) => sum + entry.value);
     
-    final lowExposureHours = lowExposureTime.inHours;
-    final totalOutdoorHours = data.totalOutdoorTime.inHours;
+  //   final lowExposureHours = lowExposureTime.inHours;
+  //   final totalOutdoorHours = data.totalOutdoorTime.inHours;
     
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildStatCard(
-          'Low exposure',
-          lowExposureHours.toString().padLeft(2, '0'),
-          'hours',
-          const Color(0xFF8FE6A4),
-        ),
-        _buildStatCard(
-          'Total outdoor',
-          totalOutdoorHours.toString(),
-          'hours',
-          AppColors.primaryColor,
-        ),
-        _buildStatCard(
-          'Risk level',
-          data.riskLevel.displayName,
-          '',
-          _getRiskLevelColor(data.riskLevel),
-        ),
-      ],
-    );
-  }
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+  //     children: [
+  //       _buildStatCard(
+  //         'Low exposure',
+  //         lowExposureHours.toString().padLeft(2, '0'),
+  //         'hours',
+  //         const Color(0xFF8FE6A4),
+  //       ),
+  //       _buildStatCard(
+  //         'Total outdoor',
+  //         totalOutdoorHours.toString(),
+  //         'hours',
+  //         AppColors.primaryColor,
+  //       ),
+  //       _buildStatCard(
+  //         'Risk level',
+  //         data.riskLevel.displayName,
+  //         '',
+  //         _getRiskLevelColor(data.riskLevel),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Widget _buildStatCard(String label, String value, String unit, Color color) {
     return Column(
@@ -775,53 +844,104 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
     }
   }
 
-  void _showExposureGuide() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Exposure Guide'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'This 24-hour chart shows your air pollution exposure throughout the day.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            _buildLegendItem('Good', const Color(0xFF8FE6A4)),
-            _buildLegendItem('Moderate', const Color(0xFFFFEC89)),
-            _buildLegendItem('Unhealthy for Sensitive', const Color(0xFFFFC170)),
-            _buildLegendItem('Unhealthy', const Color(0xFFF0B1D8)),
-            _buildLegendItem('Very Unhealthy', const Color(0xFFDBB6F1)),
-            _buildLegendItem('Hazardous', const Color(0xFFF7453C)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Got it'),
+  Widget _buildGuidePopup() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with border line
+              Container(
+                padding: const EdgeInsets.only(left: 4),
+                decoration: BoxDecoration(
+                  border: Border(
+                    left: BorderSide(
+                      color: Colors.grey.shade400,
+                      width: 4,
+                    ),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Concern levels',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'We use the different concentration levels of airquality that you experience at different times of the day to share your exposure per hour with a color from these concern level icons',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade600,
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // Concern levels list
+              _buildConcernLevelItem('Good', "assets/images/shared/airquality_indicators/good.svg", const Color(0xFF8FE6A4)),
+              _buildConcernLevelItem('Moderate', "assets/images/shared/airquality_indicators/moderate.svg", const Color(0xFFFFEC89)),
+              _buildConcernLevelItem('Unhealthy for Sensitive Groups', "assets/images/shared/airquality_indicators/unhealthy-sensitive.svg", const Color(0xFFFFC170)),
+              _buildConcernLevelItem('Unhealthy', "assets/images/shared/airquality_indicators/unhealthy.svg", const Color(0xFFF0B1D8)),
+              _buildConcernLevelItem('Very Unhealthy', "assets/images/shared/airquality_indicators/very-unhealthy.svg", const Color(0xFFDBB6F1)),
+              _buildConcernLevelItem('Hazardous', "assets/images/shared/airquality_indicators/hazardous.svg", const Color(0xFFF7453C)),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildLegendItem(String label, Color color) {
+  Widget _buildConcernLevelItem(String label, String iconPath, Color color) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
         children: [
-          Container(
-            width: 16,
-            height: 16,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
+              ),
             ),
           ),
-          const SizedBox(width: 8),
-          Text(label),
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: Center(
+              child: SvgPicture.asset(
+                iconPath,
+                width: 18,
+                height: 18,
+              ),
+            ),
+          ),
         ],
       ),
     );
