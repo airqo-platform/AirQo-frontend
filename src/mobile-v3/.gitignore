@@ -61,6 +61,7 @@ app.*.map.json
 /android/gradlew.bat
 /android/local.properties
 /android/gradle-wrapper.jar
+/android/app/.cxx/
 
 # Android secrets and properties
 /android/secrets.properties
@@ -75,7 +76,7 @@ app.*.map.json
 /ios/Flutter/Generated.xcconfig
 /ios/Flutter/flutter_export_environment.sh
 /ios/Podfile.lock
-
+ios/Flutter/ApiKeys.xcconfig
 
 # Environment files
 .env
