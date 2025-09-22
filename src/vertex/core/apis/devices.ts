@@ -133,12 +133,12 @@ export const devices = {
       const queryParams = new URLSearchParams();
 
       if (network) queryParams.set("network", network);
-      if (group && group !== "airqo") queryParams.set("group", group);
+      if (group) queryParams.set("group", group);
       if (limit !== undefined) queryParams.set("limit", String(limit));
       if (skip !== undefined) queryParams.set("skip", String(skip));
       if (search) queryParams.set("search", search);
       if (sortBy) queryParams.set("sortBy", sortBy);
-      if (order) queryParams.set("order", order);
+      if (sortBy && order) queryParams.set("order", order);
 
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
         `/devices/summary?${queryParams.toString()}`,
