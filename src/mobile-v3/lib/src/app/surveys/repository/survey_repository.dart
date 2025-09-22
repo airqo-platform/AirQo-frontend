@@ -145,7 +145,12 @@ class SurveyRepository extends BaseRepository with UiLoggy {
   }
 
 
-  Future<List<SurveyResponse>> getSurveyResponses({String? surveyId}) async {
+  Future<List<SurveyResponse>> getSurveyResponses({
+    String? surveyId,
+    int? limit,
+    int? skip,
+    String? status,
+  }) async {
     try {
       // Get cached responses
       final cachedResponses = await _getCachedSurveyResponses();
@@ -154,13 +159,22 @@ class SurveyRepository extends BaseRepository with UiLoggy {
           ? cachedResponses.where((r) => r.surveyId == surveyId).toList()
           : cachedResponses;
 
-
       try {
-        final endpoint = surveyId != null 
-            ? '$_surveyResponsesEndpoint?surveyId=$surveyId'
-            : _surveyResponsesEndpoint;
-            
-        final apiResponse = await createAuthenticatedGetRequest(endpoint, {});
+        final queryParams = <String, String>{};
+        if (surveyId != null) {
+          queryParams['surveyId'] = surveyId;
+        }
+        if (limit != null) {
+          queryParams['limit'] = limit.toString();
+        }
+        if (skip != null) {
+          queryParams['skip'] = skip.toString();
+        }
+        if (status != null) {
+          queryParams['status'] = status;
+        }
+        
+        final apiResponse = await createAuthenticatedGetRequest(_surveyResponsesEndpoint, queryParams);
         final data = json.decode(apiResponse.body);
 
         if (data['success'] == true && data['responses'] != null) {
