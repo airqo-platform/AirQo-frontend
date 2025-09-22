@@ -1,13 +1,16 @@
 import 'dart:convert';
 
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/profile/models/profile_response_model.dart';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
-import 'package:airqo/src/app/shared/repository/hive_repository.dart';
+import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
 
 abstract class UserRepository extends BaseRepository {
   Future<ProfileResponseModel> loadUserProfile();
+  Future<ProfileResponseModel> loadUserProfileFromToken();
   Future<ProfileResponseModel> updateUserProfile({
     required String firstName,
     required String lastName,
@@ -19,17 +22,70 @@ abstract class UserRepository extends BaseRepository {
 class UserImpl extends UserRepository with UiLoggy {
   @override
   Future<ProfileResponseModel> loadUserProfile() async {
-    final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
-    if (userId == null) {
-      throw Exception("User ID not found");
+    try {
+      // Try to load from JWT token first (faster and more reliable)
+      return await loadUserProfileFromToken();
+    } catch (e) {
+      loggy.warning("Failed to load profile from JWT token");
+      
+      // Fallback to API call
+      final userId = await AuthHelper.getCurrentUserId();
+      if (userId == null) {
+        throw Exception("User ID not found - user may not be authenticated");
+      }
+
+      http.Response profileResponse =
+          await createAuthenticatedGetRequest("/api/v2/users/$userId", {});
+
+      ProfileResponseModel model =
+          profileResponseModelFromJson(profileResponse.body);
+      return model;
+    }
+  }
+
+  @override
+  Future<ProfileResponseModel> loadUserProfileFromToken() async {
+    final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+    
+    if (token == null || token.isEmpty) {
+      throw Exception("No authentication token found");
     }
 
-    http.Response profileResponse =
-        await createAuthenticatedGetRequest("/api/v2/users/$userId", {});
+    try {
+      final Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+      loggy.info('Loading user profile from JWT token');
+      
+      // Create User object from JWT payload matching your provided structure
+      final user = User(
+        id: decodedToken["_id"] ?? "",
+        firstName: decodedToken["firstName"] ?? "",
+        lastName: decodedToken["lastName"] ?? "",
+        profilePicture: decodedToken["profilePicture"], // Allow null
+        lastLogin: decodedToken["lastLogin"] != null 
+            ? DateTime.parse(decodedToken["lastLogin"]) 
+            : DateTime.now(),
+        isActive: true, // Default since not in JWT
+        loginCount: decodedToken["nrp"] ?? 1, // Use 'nrp' field from JWT
+        userName: decodedToken["userName"] ?? decodedToken["email"] ?? "",
+        email: decodedToken["email"] ?? "",
+        verified: true, // Default since user is authenticated
+        analyticsVersion: 1, // Default
+        privilege: decodedToken["privilege"] ?? "user",
+        updatedAt: decodedToken["updatedAt"] != null 
+            ? DateTime.parse(decodedToken["updatedAt"]) 
+            : DateTime.now(),
+      );
 
-    ProfileResponseModel model =
-        profileResponseModelFromJson(profileResponse.body);
-    return model;
+      // Return as ProfileResponseModel format
+      return ProfileResponseModel(
+        success: true,
+        message: "Profile loaded from JWT token",
+        users: [user],
+      );
+    } catch (e) {
+      loggy.error("Failed to parse JWT token for user profile");
+      throw Exception("Failed to extract user profile from token");
+    }
   }
 
   @override
@@ -39,9 +95,9 @@ class UserImpl extends UserRepository with UiLoggy {
     required String email,
     String? profilePicture,
   }) async {
-    final userId = await HiveRepository.getData("userId", HiveBoxNames.authBox);
+    final userId = await AuthHelper.getCurrentUserId();
     if (userId == null) {
-      throw Exception("User ID not found");
+      throw Exception("User ID not found - user may not be authenticated");
     }
 
     // Prepare the request body with the updated fields
@@ -75,8 +131,8 @@ class UserImpl extends UserRepository with UiLoggy {
 
       return await loadUserProfile();
     } catch (e) {
-      loggy.warning("Error parsing update response: $e");
-      throw Exception("Failed to update profile: $e");
+      loggy.warning("Error parsing update response");
+      throw Exception("Failed to update profile");
     }
   }
 }

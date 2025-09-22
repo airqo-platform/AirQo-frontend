@@ -3,11 +3,11 @@ import 'package:airqo/core/utils/logging_bloc_observer.dart';
 import 'package:airqo/src/app/auth/bloc/ForgotPasswordBloc/forgot_password_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/shared/repository/global_auth_manager.dart';
 import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
-import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
 import 'package:airqo/src/app/learn/repository/kya_repository.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -28,7 +28,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:airqo/src/app/shared/pages/no_internet_banner.dart';
-import 'package:airqo/src/app/shared/services/navigation_service.dart';
 import 'package:loggy/loggy.dart';
 import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
@@ -36,34 +35,26 @@ import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 
-final GlobalKey<NavigatorState> navigatorKey = NavigationService.navigatorKey;
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  try {
-    await EnhancedLocationServiceManager().initialize();
-  } catch (error, stackTrace) {
-    debugPrint('Location service initialization failed: $error');
-    debugPrint('Stack trace: $stackTrace');
-  }
-
-  await CacheManager().initialize();
-
-  const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
-  AppLoggySetup.init(isDevelopment: !kReleaseMode);
-
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    Object()
-        .logError('Unhandled Flutter error', details.exception, details.stack);
-  };
-
-  await dotenv.load(fileName: ".env.prod");
-
   runZonedGuarded(
     () async {
       try {
-        Object().logInfo('Application initialized successfully');
+        WidgetsFlutterBinding.ensureInitialized();
+
+        await CacheManager().initialize();
+
+        const bool kReleaseMode = bool.fromEnvironment('dart.vm.product');
+        AppLoggySetup.init(isDevelopment: !kReleaseMode);
+
+        FlutterError.onError = (FlutterErrorDetails details) {
+          FlutterError.presentError(details);
+          Object()
+              .logError('Unhandled Flutter error', details.exception, details.stack);
+        };
+
+        await dotenv.load(fileName: ".env.prod");
+
 
         Bloc.observer = LoggingBlocObserver();
 
@@ -115,7 +106,11 @@ class AirqoMobile extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(
-          create: (context) => AuthBloc(authRepository)..add(AppStarted()),
+          create: (context) {
+            final authBloc = AuthBloc(authRepository)..add(AppStarted());
+            GlobalAuthManager.instance.setAuthBloc(authBloc);
+            return authBloc;
+          },
         ),
         BlocProvider(
           create: (context) => ForecastBloc(forecastRepository),
