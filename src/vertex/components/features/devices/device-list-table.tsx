@@ -74,7 +74,7 @@ export default function DevicesTable({
         (device: Device): device is Device & { _id: string } =>
           typeof device._id === "string" && device._id.trim() !== ""
       )
-      .map((device: Device) => ({
+      .map((device) => ({
         ...device,
         id: device._id,
       }));
