@@ -17,13 +17,6 @@ import type {
 const jwtApiClient = createSecureApiClient();
 const tokenApiClient = createSecureApiClient();
 
-interface ErrorResponse {
-  message: string;
-  errors?: {
-    message: string;
-  }
-}
-
 interface DeviceStatusSummary {
   _id: string;
   created_at: string;
@@ -326,17 +319,25 @@ export const devices = {
     deployment_date: string | undefined;
   }) => {
     try {
+      const toIso = (d?: string) =>
+        d ? new Date(d).toISOString() : new Date().toISOString();
+      const latitude = Number(deviceData.latitude);
+      const longitude = Number(deviceData.longitude);
+      const height = Number(deviceData.height);
+      if (Number.isNaN(latitude) || Number.isNaN(longitude) || Number.isNaN(height)) {
+        throw new Error("Invalid numeric values for latitude, longitude or height.");
+      }
       const deploymentPayload = [{
-        date: deviceData.deployment_date || new Date().toISOString(),
+        date: toIso(deviceData.deployment_date),
         mountType: deviceData.mountType,
         powerType: deviceData.powerType,
         isPrimaryInLocation: deviceData.isPrimaryInLocation,
-        latitude: parseFloat(deviceData.latitude),
-        longitude: parseFloat(deviceData.longitude),
+        latitude,
+        longitude,
         site_name: deviceData.site_name,
         network: deviceData.network,
         deviceName: deviceData.deviceName,
-        height: parseFloat(deviceData.height),
+        height,
         user_id: deviceData.user_id
       }];
 
