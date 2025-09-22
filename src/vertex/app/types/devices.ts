@@ -94,10 +94,22 @@ export interface Device {
   api_code?: string;
 }
 
+export interface PaginationMeta {
+  total: number;
+  totalResults: number;
+  limit: number;
+  skip: number;
+  page: number;
+  totalPages: number;
+  detailLevel: string;
+  usedCache: boolean;
+}
+
 export interface DevicesSummaryResponse {
   success: boolean;
   message: string;
   devices: Device[];
+  meta: PaginationMeta;
 }
 
 interface HealthTip {

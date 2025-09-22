@@ -141,8 +141,13 @@ export const useAuth = () => {
           const resolvedGroupName = defaultGroup?.grp_title || "";
 
           void queryClient.prefetchQuery({
-            queryKey: ["devices", resolvedNetworkName, resolvedGroupName],
-            queryFn: () => devices.getDevicesSummaryApi(resolvedNetworkName, resolvedGroupName),
+            queryKey: ["devices", resolvedNetworkName, resolvedGroupName, { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined }],
+            queryFn: () => devices.getDevicesSummaryApi({
+              network: resolvedNetworkName, 
+              group: resolvedGroupName,
+              limit: 100,
+              skip: 0,
+            }),
             staleTime: 300_000,
           });
         }

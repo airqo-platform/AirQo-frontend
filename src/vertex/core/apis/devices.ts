@@ -17,13 +17,6 @@ import type {
 const jwtApiClient = createSecureApiClient();
 const tokenApiClient = createSecureApiClient();
 
-interface ErrorResponse {
-  message: string;
-  errors?: {
-    message: string;
-  }
-}
-
 interface DeviceStatusSummary {
   _id: string;
   created_at: string;
@@ -43,6 +36,21 @@ interface DeviceStatusSummary {
 export interface DeviceStatusResponse {
   message: string;
   data: DeviceStatusSummary[];
+}
+
+export interface DeviceCountSummary {
+  deployed: number;
+  recalled: number;
+  undeployed: number;
+  online: number;
+  offline: number;
+  maintenance_overdue: number;
+}
+
+export interface DeviceCountResponse {
+  success: boolean;
+  message: string;
+  summary: DeviceCountSummary;
 }
 
 export interface DeviceDetailsResponse {
@@ -108,17 +116,56 @@ export interface MaintenanceActivitiesResponse {
   site_activities: MaintenanceActivity[];
 }
 
+export interface GetDevicesSummaryParams {
+  network: string;
+  group?: string;
+  limit?: number;
+  skip?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
 export const devices = {
-  getDevicesSummaryApi: async (networkId: string, groupName: string) => {
+  getDevicesSummaryApi: async (params: GetDevicesSummaryParams) => {
     try {
-      const queryParams = new URLSearchParams({
-        network: networkId,
-        ...(groupName && groupName !== 'airqo' && { group: groupName })
-      });
+      const { network, group, limit, skip, search, sortBy, order } = params;
+      const queryParams = new URLSearchParams();
+
+      if (network) queryParams.set("network", network);
+      if (group) queryParams.set("group", group);
+      if (limit !== undefined) queryParams.set("limit", String(limit));
+      if (skip !== undefined) queryParams.set("skip", String(skip));
+      if (search) queryParams.set("search", search);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortBy && order) queryParams.set("order", order);
 
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
         `/devices/summary?${queryParams.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getDeviceCountApi: async (params: {
+    groupId?: string;
+    cohortId?: string;
+  }): Promise<DeviceCountResponse> => {
+    try {
+      const { groupId, cohortId } = params;
+      const queryParams = new URLSearchParams();
+
+      if (groupId) {
+        queryParams.set("group_id", groupId);
+      } else if (cohortId) {
+        queryParams.set("cohort_id", cohortId);
+      }
+
+      const response = await jwtApiClient.get<DeviceCountResponse>(
+        `/devices/summary/count?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
@@ -137,10 +184,14 @@ export const devices = {
     }
   },
 
-  getDevicesApi: async (networkId: string,) => {
+  getDevicesApi: async (networkId: string, limit?: number) => {
     try {
+      const queryParams = new URLSearchParams({ network: networkId });
+      if (limit) {
+        queryParams.set("limit", String(limit));
+      }
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
-        `/devices/summary?network=${networkId}`,
+        `/devices/summary?${queryParams.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
@@ -265,19 +316,28 @@ export const devices = {
     site_name: string;
     network: string;
     user_id: string;
+    deployment_date: string | undefined;
   }) => {
     try {
+      const toIso = (d?: string) =>
+        d ? new Date(d).toISOString() : new Date().toISOString();
+      const latitude = Number(deviceData.latitude);
+      const longitude = Number(deviceData.longitude);
+      const height = Number(deviceData.height);
+      if (Number.isNaN(latitude) || Number.isNaN(longitude) || Number.isNaN(height)) {
+        throw new Error("Invalid numeric values for latitude, longitude or height.");
+      }
       const deploymentPayload = [{
-        date: new Date().toISOString(),
+        date: toIso(deviceData.deployment_date),
         mountType: deviceData.mountType,
         powerType: deviceData.powerType,
         isPrimaryInLocation: deviceData.isPrimaryInLocation,
-        latitude: parseFloat(deviceData.latitude),
-        longitude: parseFloat(deviceData.longitude),
+        latitude,
+        longitude,
         site_name: deviceData.site_name,
         network: deviceData.network,
         deviceName: deviceData.deviceName,
-        height: parseFloat(deviceData.height),
+        height,
         user_id: deviceData.user_id
       }];
 
