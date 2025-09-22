@@ -1,6 +1,6 @@
 "use client";
 
-import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
+import { useMyDevices, useDeviceCount } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -105,14 +105,13 @@ export const DashboardStatsCards = () => {
   // Use useMyDevices for personal context
   const myDevicesQuery = useMyDevices(userDetails?._id || "", activeGroup?._id);
 
-  // Use useDevices for airqo-internal and external-org contexts
-  const organizationDevicesQuery = useDevices();
-
-  const currentDevicesData = isPersonalContext ? myDevicesQuery.data : null;
-
-  const isLoading = isPersonalContext
-    ? myDevicesQuery.isLoading
-    : organizationDevicesQuery.isLoading;
+  // Use useDeviceCount for airqo-internal and external-org contexts
+  const deviceCountQuery = useDeviceCount({
+    groupId:
+      activeGroup?.grp_title && activeGroup.grp_title !== "airqo"
+        ? activeGroup.grp_title
+        : undefined,
+  });
 
   const calculateDeviceStats = useCallback((devices: Device[]) => {
     const online = devices.filter(
@@ -136,50 +135,39 @@ export const DashboardStatsCards = () => {
     };
   }, []);
 
+  const isLoading = isPersonalContext
+    ? myDevicesQuery.isLoading : deviceCountQuery.isLoading;
+
   const metrics = useMemo(() => {
     let totalMonitors = 0;
     let activeMonitors = 0;
     let pendingDeployments = 0;
     let recentAlerts = 0;
 
-    if (isPersonalContext && currentDevicesData) {
-      totalMonitors = currentDevicesData.total_devices || 0;
+    if (isPersonalContext) {
+      const myDevicesData = myDevicesQuery.data;
+      if (myDevicesData) {
+        totalMonitors = myDevicesData.total_devices || 0;
 
-      const deviceStats = calculateDeviceStats(
-        currentDevicesData.devices || []
-      );
-      activeMonitors = deviceStats.online;
-
-      pendingDeployments =
-        currentDevicesData.devices?.filter(
+        const deviceStats = calculateDeviceStats(
+          myDevicesData.devices || []
+        );
+        activeMonitors = deviceStats.online;
+        pendingDeployments = myDevicesData.devices?.filter(
           (device) =>
             device.claim_status === "claimed" && device.status !== "deployed"
         ).length || 0;
-
-      recentAlerts =
-        deviceStats.offline +
-        deviceStats.maintenance.due +
-        deviceStats.maintenance.overdue;
-    } else if (
-      !isPersonalContext &&
-      organizationDevicesQuery.devices?.length > 0
-    ) {
-      const orgDevices = organizationDevicesQuery.devices;
-
-      const deviceStats = calculateDeviceStats(orgDevices);
-      totalMonitors = deviceStats.total;
-      activeMonitors = deviceStats.online;
-
-      pendingDeployments = orgDevices.filter(
-        (device:Device) =>
-          device.status === "not deployed" ||
-          (device.claim_status === "claimed" && device.status !== "deployed")
-      ).length;
-
-      recentAlerts =
-        deviceStats.offline +
-        deviceStats.maintenance.due +
-        deviceStats.maintenance.overdue;
+        recentAlerts =
+          deviceStats.maintenance.overdue;
+      }
+    } else {
+      const summary = deviceCountQuery.data?.summary;
+      if (summary) {
+        totalMonitors = summary.deployed + summary.undeployed + summary.recalled;
+        activeMonitors = summary.online;
+        pendingDeployments = summary.undeployed;
+        recentAlerts = summary.maintenance_overdue;
+      }
     }
 
     return {
@@ -190,8 +178,8 @@ export const DashboardStatsCards = () => {
     };
   }, [
     isPersonalContext,
-    currentDevicesData,
-    organizationDevicesQuery.devices,
+    myDevicesQuery.data,
+    deviceCountQuery.data,
     calculateDeviceStats,
   ]);
 
@@ -201,9 +189,8 @@ export const DashboardStatsCards = () => {
         <StatCard
           title="Total Devices"
           value={metrics.totalMonitors}
-          description={`All ${
-            isPersonalContext ? "your" : "organization"
-          } devices`}
+          description={`All ${isPersonalContext ? "your" : "organization"
+            } devices`}
           icon={<AqCollocation className="w-6 h-6 text-primary" />}
           isLoading={isLoading}
         />
@@ -227,7 +214,7 @@ export const DashboardStatsCards = () => {
         <StatCard
           title="Recent Alerts"
           value={metrics.recentAlerts}
-          description="Devices needing attention"
+          description="Devices needing maintenance"
           icon={<AqAlertCircle className="w-6 h-6 text-primary" />}
           isLoading={isLoading}
         />

@@ -45,6 +45,21 @@ export interface DeviceStatusResponse {
   data: DeviceStatusSummary[];
 }
 
+export interface DeviceCountSummary {
+  deployed: number;
+  recalled: number;
+  undeployed: number;
+  online: number;
+  offline: number;
+  maintenance_overdue: number;
+}
+
+export interface DeviceCountResponse {
+  success: boolean;
+  message: string;
+  summary: DeviceCountSummary;
+}
+
 export interface DeviceDetailsResponse {
   message: string;
   data: {
@@ -134,6 +149,29 @@ export const devices = {
 
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
         `/devices/summary?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getDeviceCountApi: async (params: {
+    groupId?: string;
+    cohortId?: string;
+  }): Promise<DeviceCountResponse> => {
+    try {
+      const { groupId, cohortId } = params;
+      const queryParams = new URLSearchParams();
+
+      if (groupId) {
+        queryParams.set("group_id", groupId);
+      } else if (cohortId) {
+        queryParams.set("cohort_id", cohortId);
+      }
+
+      const response = await jwtApiClient.get<DeviceCountResponse>(
+        `/devices/summary/count?${queryParams.toString()}`,
         { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;

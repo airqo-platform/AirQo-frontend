@@ -1,5 +1,5 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
-import { DeviceDetailsResponse, devices, type MaintenanceActivitiesResponse, GetDevicesSummaryParams } from "../apis/devices";
+import { DeviceDetailsResponse, devices, type MaintenanceActivitiesResponse, GetDevicesSummaryParams, DeviceCountResponse } from "../apis/devices";
 import { setDevices, setError } from "@/core/redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -83,6 +83,20 @@ export const useMyDevices = (userId: string, organizationId?: string) => {
     queryFn: () => devices.getMyDevices(userId),
     enabled: !!userId,
     staleTime: 60000, // 1 minute
+  });
+};
+
+export const useDeviceCount = (params: { groupId?: string; cohortId?: string }) => {
+  const { groupId, cohortId } = params;
+  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+
+  return useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["deviceCount", activeNetwork?.net_name, groupId, cohortId],
+    queryFn: () => devices.getDeviceCountApi({ groupId, cohortId }),
+    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+    staleTime: 300_000, // 5 minutes
+    refetchOnWindowFocus: false,
   });
 };
 
