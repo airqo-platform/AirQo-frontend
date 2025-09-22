@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Plus, Upload } from "lucide-react";
-import { useDevices } from "@/core/hooks/useDevices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
@@ -14,7 +13,6 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useRouter } from "next/navigation";
 
 export default function DevicesPage() {
-  const { devices, isLoading, error } = useDevices();
   const { isAirQoInternal, isExternalOrg } = useUserContext();
   const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
@@ -37,7 +35,7 @@ export default function DevicesPage() {
             {isAirQoInternal && (
               <>
                 <ReusableButton
-                  disabled={isLoading || !!error || !canUpdateDevice}
+                  disabled={!canUpdateDevice}
                   onClick={() => setCreateDeviceOpen(true)}
                   Icon={Plus}
                   permission={PERMISSIONS.DEVICE.UPDATE}
@@ -47,7 +45,7 @@ export default function DevicesPage() {
 
                 <ReusableButton
                   variant="outlined"
-                  disabled={isLoading || !!error || !canUpdateDevice}
+                  disabled={!canUpdateDevice}
                   onClick={() => setImportDeviceOpen(true)}
                   Icon={Upload}
                   permission={PERMISSIONS.DEVICE.UPDATE}
@@ -58,7 +56,6 @@ export default function DevicesPage() {
             )}
             {isExternalOrg && (
               <ReusableButton
-                disabled={isLoading || !!error}
                 onClick={() => router.push("/devices/claim")}
                 permission={PERMISSIONS.DEVICE.CLAIM}
               >
@@ -78,12 +75,7 @@ export default function DevicesPage() {
           onOpenChange={setCreateDeviceOpen}
         />
 
-        <DevicesTable
-          devices={devices}
-          isLoading={isLoading}
-          error={error}
-          multiSelect={true}
-        />
+        <DevicesTable multiSelect={true} />
       </div>
     </RouteGuard>
   );

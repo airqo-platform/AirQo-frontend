@@ -69,7 +69,7 @@ export function AssignResourcesButton({
   const { data: assignedDevicesData, isLoading: isLoadingAssignedDevices } = useQuery({
     queryKey: ["devices-summary", networkId, organizationName],
     queryFn: async () => {
-      const response = await devices.getDevicesSummaryApi(networkId, organizationName)
+      const response = await devices.getDevicesSummaryApi({network: networkId, group: organizationName})
       return response.devices || []
     },
     enabled:
