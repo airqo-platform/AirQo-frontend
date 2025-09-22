@@ -63,7 +63,6 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
-    keepPreviousData: true,
   });
 
   return {
@@ -410,6 +409,7 @@ export const useDeployDevice = () => {
       site_name: string;
       network: string;
       user_id: string;
+      deployment_date: string | undefined;
     }) => devices.deployDevice(deviceData),
     onSuccess: (data, variables) => {
       ReusableToast({

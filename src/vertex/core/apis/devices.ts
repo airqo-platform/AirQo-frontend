@@ -285,7 +285,7 @@ export const devices = {
     site_name: string;
     network: string;
     user_id: string;
-    deployment_date?: string;
+    deployment_date: string | undefined;
   }) => {
     try {
       const deploymentPayload = [{
