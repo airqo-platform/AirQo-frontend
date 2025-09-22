@@ -28,6 +28,8 @@ class _PasswordResetPage extends State<PasswordResetPage> {
   late TextEditingController passwordController = TextEditingController();
   late TextEditingController resetController= TextEditingController();
   late GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  bool _isPasswordVisible = false;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void initState() {
@@ -112,6 +114,19 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                                 height: 10,
                               ),
                             ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: AppColors.primaryColor,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isPasswordVisible = !_isPasswordVisible;
+                                });
+                              },
+                            ),
                             validator: (value) {
 
                               if (value == null || value.isEmpty) {
@@ -125,8 +140,8 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                             },
                             hintText: "Enter your password",
                             label: "Password",
-                            isPassword: true,
-                            controller: passwordController),
+                            isPassword: !_isPasswordVisible,
+                            controller: passwordController, onChanged: (value) {  },),
                         SizedBox(height: 16),
                         FormFieldWidget(
                             prefixIcon: Container(
@@ -135,6 +150,19 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                                 "assets/icons/password.svg",
                                 height: 10,
                               ),
+                            ),
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _isConfirmPasswordVisible
+                                    ? Icons.visibility
+                                    : Icons.visibility_off,
+                                color: AppColors.primaryColor,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                                });
+                              },
                             ),
                             validator: (value) {
                               if(value != passwordController.text){
@@ -148,8 +176,8 @@ class _PasswordResetPage extends State<PasswordResetPage> {
                             },
                             hintText: "Re-enter your new password",
                             label: "Confirm Password",
-                            isPassword: true,
-                            controller: passwordConfirmController),
+                            isPassword: !_isConfirmPasswordVisible,
+                            controller: passwordConfirmController, onChanged: (value) {  },),
                         SizedBox(height: 16),
                       ],
                     ),

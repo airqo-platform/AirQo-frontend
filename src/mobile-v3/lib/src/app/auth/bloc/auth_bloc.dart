@@ -4,7 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
 
-import '../../shared/repository/hive_repository.dart';
+import '../../shared/repository/secure_storage_repository.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -21,6 +21,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LogoutUser>(_onLogoutUser);
 
+    on<SessionExpired>(_onSessionExpired);
+
     on<UseAsGuest>((event, emit) => emit(GuestUser()));
 
     on<VerifyEmailCode>(_onVerifyEmailCode);
@@ -29,10 +31,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onAppStarted(AppStarted event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      final token = await HiveRepository.getData('token', HiveBoxNames.authBox);
+      final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
-        emit(AuthLoaded(AuthPurpose.LOGIN));
+        emit(AuthLoaded(AuthPurpose.login));
       } else {
         emit(GuestUser());
       }
@@ -45,11 +47,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLoginUser(LoginUser event, Emitter<AuthState> emit) async {
   emit(AuthLoading());
   try {
-    final token = await authRepository.loginWithEmailAndPassword(
+    await authRepository.loginWithEmailAndPassword(
         event.username, event.password);
-    await HiveRepository.saveData(HiveBoxNames.authBox, 'token', token);
 
-    emit(AuthLoaded(AuthPurpose.LOGIN));
+    emit(AuthLoaded(AuthPurpose.login));
   } catch (e) {
     debugPrint("Login error: $e");
     
@@ -70,7 +71,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
-      emit(AuthLoaded(AuthPurpose.REGISTER));
+      emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
       debugPrint("Registration error: $e");
       emit(AuthLoadingError(_extractErrorMessage(e)));
@@ -94,12 +95,23 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLogoutUser(LogoutUser event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
-      await HiveRepository.deleteData(
-          'token', HiveBoxNames.authBox);
+      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
+      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
       emit(GuestUser()); 
     } catch (e) {
       debugPrint("Logout error: $e");
       emit(AuthLoadingError("Failed to log out. Please try again."));
+    }
+  }
+
+  Future<void> _onSessionExpired(SessionExpired event, Emitter<AuthState> emit) async {
+    try {
+      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
+      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+      emit(GuestUser()); 
+    } catch (e) {
+      debugPrint("Session expiry cleanup error: $e");
+      emit(GuestUser());
     }
   }
 

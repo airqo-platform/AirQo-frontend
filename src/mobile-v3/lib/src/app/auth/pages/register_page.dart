@@ -30,6 +30,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   GlobalKey<FormState> dataKey = GlobalKey<FormState>();
 
   AuthBloc? authBloc;
+  bool _isPasswordVisible = false;
 
   void changeIndex(int index) {
     setState(() {
@@ -54,7 +55,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is AuthLoaded && state.authPurpose == AuthPurpose.REGISTER) {
+        if (state is AuthLoaded && state.authPurpose == AuthPurpose.register) {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
               builder: (context) => EmailVerificationScreen(
@@ -120,7 +121,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 },
                                 hintText: "Enter your first name",
                                 label: "First Name*",
-                                controller: firstNameController),
+                                controller: firstNameController, onChanged: (value) {  },),
                             SizedBox(height: 16),
                             FormFieldWidget(
                                 validator: (value) {
@@ -131,7 +132,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                 },
                                 hintText: "Enter your last name",
                                 label: "Last Name*",
-                                controller: lastNameController),
+                                controller: lastNameController, onChanged: (value) {  },),
                             SizedBox(height: 32),
                             InkWell(
                               onTap: () {
@@ -181,7 +182,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   }
                                   return null;
                                 },
-                                controller: emailController),
+                                controller: emailController, onChanged: (value) {  },),
                             SizedBox(height: 16),
                             FormFieldWidget(
                               prefixIcon: Container(
@@ -190,6 +191,19 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                                   "assets/icons/password.svg",
                                   height: 10,
                                 ),
+                              ),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: AppColors.primaryColor,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
                               ),
                               validator: (value) {
                                 String val = value ?? "";
@@ -212,8 +226,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                               },
                               hintText: "Create your password",
                               label: "Password",
-                              isPassword: true,
-                              controller: passwordController,
+                              isPassword: !_isPasswordVisible,
+                              controller: passwordController, onChanged: (value) {  },
                             ),
                             SizedBox(height: 32),
                             BlocBuilder<AuthBloc, AuthState>(
@@ -320,7 +334,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                             ),
                             hintText: emailController.text,
                             enabled: false,
-                            controller: TextEditingController(),
+                            controller: TextEditingController(), onChanged: (value) {  },
                           ),
                           SizedBox(height: 32),
                           InkWell(

@@ -1,4 +1,4 @@
-import 'package:airqo/src/app/shared/repository/hive_repository.dart';
+import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'dart:convert';
 import 'package:loggy/loggy.dart';
@@ -11,7 +11,7 @@ class TokenDebugger {
     _logger.info('Performing detailed token expiration check');
     
     try {
-      final token = await HiveRepository.getData('token', HiveBoxNames.authBox);
+      final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
       
       if (token == null) {
         _logger.warning('Token is null - not found in storage');

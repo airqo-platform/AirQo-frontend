@@ -199,7 +199,7 @@ class _LoginPageState extends State<LoginPage> {
                             },
                             hintText: "Enter your email",
                             label: "Email*",
-                            controller: emailController,
+                            controller: emailController, onChanged: (value) {  },
                           ),
                           
                           SizedBox(height: isSmallScreen ? 12 : 16),
@@ -234,7 +234,7 @@ class _LoginPageState extends State<LoginPage> {
                             hintText: "Enter your password",
                             label: "Password",
                             isPassword: !_isPasswordVisible,
-                            controller: passwordController,
+                            controller: passwordController, onChanged: (value) {  },
                           ),
                           
                           if (error != null)
