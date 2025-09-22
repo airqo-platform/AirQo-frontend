@@ -22,8 +22,9 @@ class ClockExposurePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2;
-    final strokeWidth = 12.0;
+    final outerRadius = size.width / 2;
+    final strokeWidth = 16.0;
+    final innerRadius = outerRadius - strokeWidth;
     
     // Calculate angle per hour (360° / 24 hours = 15° per hour)
     final anglePerHour = 2 * math.pi / 24;
@@ -63,24 +64,60 @@ class ClockExposurePainter extends CustomPainter {
           ..color = _getExposureColor(exposure, category)
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round;
+          ..strokeCap = StrokeCap.butt;
       } else {
         // Default inactive color
         paint = Paint()
-          ..color = Colors.grey.withValues(alpha: 0.2)
+          ..color = Colors.grey.withValues(alpha: 0.3)
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round;
+          ..strokeCap = StrokeCap.butt;
       }
       
       canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
+        Rect.fromCircle(center: center, radius: outerRadius - strokeWidth / 2),
         startAngle,
         sweepAngle,
         false,
         paint,
       );
     }
+    
+    // Draw hour numbers
+    final textPainter = TextPainter(
+      textAlign: TextAlign.center,
+      textDirection: TextDirection.ltr,
+    );
+    
+    final numberRadius = outerRadius + 20;
+    
+    for (int hour = 0; hour < 24; hour++) {
+      final angle = (hour * anglePerHour) - (math.pi / 2);
+      final x = center.dx + numberRadius * math.cos(angle);
+      final y = center.dy + numberRadius * math.sin(angle);
+      
+      // Format hour display (00, 01, 02, etc.)
+      final hourText = hour.toString().padLeft(2, '0');
+      
+      textPainter.text = TextSpan(
+        text: hourText,
+        style: TextStyle(
+          color: Colors.grey.shade700,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+      );
+      
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          x - textPainter.width / 2,
+          y - textPainter.height / 2,
+        ),
+      );
+    }
+    
   }
   
   Color _getExposureColor(double exposure, String aqiCategory) {
@@ -284,148 +321,145 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
               ),
             ],
           ),
-          child: Stack(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title and description
-                    Text(
-                      'Low exposure day',
-                      style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    Text(
-                      'In the past 24 hours, you\'ve had low pollution exposure with minimal health impact',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey.shade600,
-                        height: 1.4,
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // Circular chart
-                    Center(
-                      child: SizedBox(
-                        width: 220,
-                        height: 220,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            // Custom 24-hour clock painter with data
-                            CustomPaint(
-                              size: const Size(220, 220),
-                              painter: ClockExposurePainter(
-                                exposureData: currentData,
-                                showData: currentData != null,
-                              ),
-                            ),
-                            
-                            // Inner circle with user icon (matching Figma design)
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xFFFFA6A1).withValues(alpha: 0.3),
-                              ),
-                              child: Center(
-                                child: Container(
-                                  width: 80,
-                                  height: 80,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: const Color(0xFFFFA6A1),
-                                  ),
-                                  child: Icon(
-                                    Icons.person,
-                                    size: 40,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
+          child: GestureDetector(
+            onTap: () {
+              if (_showGuide) {
+                setState(() => _showGuide = false);
+              }
+            },
+            child: Stack(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title and description
+                      Text(
+                        'Low exposure day',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Guide button
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: GestureDetector(
-                        onTap: () => setState(() => _showGuide = !_showGuide),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                      
+                      const SizedBox(height: 12),
+                      
+                      Text(
+                        'In the past 24 hours, you\'ve had low pollution exposure with minimal health impact',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                          height: 1.4,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 32),
+                      
+                      // Circular chart
+                      Center(
+                        child: SizedBox(
+                          width: 220,
+                          height: 220,
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Container(
-                                width: 20,
-                                height: 20,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: Colors.grey.shade600, width: 1.5),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'i',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  ),
+                              // Custom 24-hour clock painter with data
+                              CustomPaint(
+                                size: const Size(220, 220),
+                                painter: ClockExposurePainter(
+                                  exposureData: currentData,
+                                  showData: currentData != null,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Guide',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.grey.shade700,
+                              
+                              // SVG pointer for current time
+                              // _buildCurrentTimePointer(),
+                              
+                              // Air quality icon for current hour  
+                              Center(
+                                child: SvgPicture.asset(
+                                  _getCurrentHourAirQualityIcon(currentData),
+                                  width: 80,
+                                  height: 80,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Guide button
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _showGuide = !_showGuide),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(25),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 20,
+                                  height: 20,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.grey.shade600, width: 1.5),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      'i',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Guide',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Summary statistics
+                      // if (currentData != null) _buildSummaryStats(currentData),
+                    ],
+                  ),
+                ),
+                
+                // Guide popup overlay
+                if (_showGuide)
+                  Positioned(
+                    bottom: 100,
+                    left: 24,
+                    right: 24,
+                    child: GestureDetector(
+                      onTap: () {}, // Prevent tap from propagating to parent
+                      child: _buildGuidePopup(),
                     ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Summary statistics
-                    // if (currentData != null) _buildSummaryStats(currentData),
-                  ],
-                ),
-              ),
-              
-              // Guide popup overlay
-              if (_showGuide)
-                Positioned(
-                  bottom: 100,
-                  left: 24,
-                  right: 24,
-                  child: _buildGuidePopup(),
-                ),
-            ],
+                  ),
+              ],
+            ),
           ),
         ),
         
@@ -694,6 +728,73 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
       default:
         return "assets/images/shared/airquality_indicators/unavailable.svg";
     }
+  }
+
+  String _getCurrentHourAirQualityIcon(DailyExposureSummary? exposureData) {
+    if (exposureData == null) {
+      return "assets/images/shared/airquality_indicators/unavailable.svg";
+    }
+    
+    final currentHour = DateTime.now().hour;
+    
+    // Find exposure data for current hour
+    for (final point in exposureData.dataPoints) {
+      if (point.timestamp.hour == currentHour) {
+        return _getAirQualityIconPath(
+          point.aqiCategory ?? 'Unknown', 
+          point.pm25Value ?? 0.0
+        );
+      }
+    }
+    
+    // Default if no data for current hour
+    return "assets/images/shared/airquality_indicators/moderate.svg";
+  }
+
+  Widget _buildCurrentTimePointer() {
+    final currentHour = DateTime.now().hour;
+    final currentMinute = DateTime.now().minute;
+    
+    // Calculate angle for current time (360° / 24 hours = 15° per hour)
+    // Subtract π/2 to start from top (12 o'clock position) instead of right (3 o'clock)
+    final anglePerHour = 2 * math.pi / 24;
+    final currentAngle = ((currentHour + currentMinute / 60) * anglePerHour) - (math.pi / 2);
+    
+    // Position the pointer to point from inside toward the hour numbers
+    final pointerDistance = 60.0; // Distance from center where pointer starts
+    final x = pointerDistance * math.cos(currentAngle);
+    final y = pointerDistance * math.sin(currentAngle);
+    
+    return Positioned(
+      left: 110 + x - 12, // Center (110) + offset - half pointer width
+      top: 110 + y - 12,  // Center (110) + offset - half pointer height
+      child: Transform.rotate(
+        angle: currentAngle + (math.pi / 2), // Adjust rotation to align with direction
+        child: SvgPicture.asset(
+          'assets/icons/pointer.svg',
+          width: 24,
+          height: 24,
+        ),
+      ),
+    );
+  }
+
+  Color _getCurrentHourBackgroundColor(DailyExposureSummary? exposureData) {
+    if (exposureData == null) {
+      return const Color(0xFFFFEC89); // Default moderate color
+    }
+    
+    final currentHour = DateTime.now().hour;
+    
+    // Find exposure data for current hour
+    for (final point in exposureData.dataPoints) {
+      if (point.timestamp.hour == currentHour) {
+        return _getPeakCategoryColor(point.aqiCategory ?? 'moderate');
+      }
+    }
+    
+    // Default moderate color if no data for current hour
+    return const Color(0xFFFFEC89);
   }
 
   Color _getPeakCategoryColor(String category) {
