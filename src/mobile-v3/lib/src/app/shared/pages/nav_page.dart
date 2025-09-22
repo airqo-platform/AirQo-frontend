@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/dashboard/pages/dashboard_page.dart';
+import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       body: IndexedStack(index: currentIndex, children: [
         DashboardPage(),
         MapScreen(),
+        ExposureDashboardView(),
         KyaPage(),
       ]),
       bottomNavigationBar: BottomNavigationBar(
@@ -61,9 +63,19 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
               label: ""), // Empty label
           BottomNavigationBarItem(
               icon: _buildNavIcon(
+                "assets/icons/exposure_icon.svg", 
+                "Exposure", 
+                2,
+                Theme.of(context).brightness == Brightness.dark
+                    ? "assets/icons/exposure_icon.svg"
+                    : "assets/icons/exposure_icon.svg",
+              ),
+              label: ""),
+          BottomNavigationBarItem(
+              icon: _buildNavIcon(
                 "assets/icons/learn_icon.svg", 
                 "Learn", 
-                2,
+                3,
                 Theme.of(context).brightness == Brightness.dark
                     ? "assets/icons/learn_icon.svg"
                     : "assets/icons/learn_icon_white.svg",
@@ -81,7 +93,7 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       children: [
         SvgPicture.asset(
           iconPath,
-          height: index == 2 ? 23 : (index == 0 ? 18 : 20),
+          height: index == 3 ? 23 : (index == 0 ? 18 : 20),
           // Use the primary color when selected
           color: isSelected ? Theme.of(context).primaryColor : null,
         ),

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
+import 'package:airqo/src/meta/utils/utils.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_app_bar.dart';
 import 'package:airqo/src/app/dashboard/widgets/dashboard_header.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/exposure/services/mock_exposure_data.dart';
 
@@ -353,14 +356,28 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
               
               // Summary statistics
               if (currentData != null) _buildSummaryStats(currentData),
-              
-              const SizedBox(height: 24),
-              
-              // Today's exposure peak
-              if (currentData != null) _buildExposurePeak(currentData),
             ],
           ),
         ),
+        
+        const SizedBox(height: 24),
+        
+        // Today's exposure peak - separate card
+        if (currentData != null) ...[
+          // Title outside the card
+          Text(
+            'Today\'s peak exposure',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          
+          const SizedBox(height: 12),
+          
+          _buildExposurePeak(currentData),
+        ],
       ],
     );
   }
@@ -466,127 +483,148 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
     final peakColor = _getPeakCategoryColor(peakCategory);
     
     return Container(
-      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: Theme.of(context).highlightColor,
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Today\'s exposure peak',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+          Padding(
+            padding: const EdgeInsets.only(
+                left: 16, right: 16, bottom: 16, top: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        SvgPicture.asset(Theme.of(context).brightness ==
+                                Brightness.light
+                            ? "assets/images/shared/pm_rating_white.svg"
+                            : 'assets/images/shared/pm_rating.svg'),
+                        const SizedBox(width: 2),
+                        Text(
+                          " PM2.5",
+                          style: TextStyle(
+                            color: Theme.of(context)
+                                .textTheme
+                                .headlineSmall
+                                ?.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(children: [
+                      Text(
+                        peakPm25.toStringAsFixed(2),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 36,
+                            color: Theme.of(context)
+                                .textTheme
+                                .headlineLarge
+                                ?.color),
+                      ),
+                      Text(" μg/m³",
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 18,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .headlineLarge
+                                  ?.color))
+                    ]),
+                  ],
+                ),
+                SizedBox(
+                  child: Center(
+                    child: SvgPicture.asset(
+                      _getAirQualityIconPath(peakCategory, peakPm25),
+                      height: 86,
+                      width: 86,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          
-          const SizedBox(height: 16),
-          
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Time display with PM2.5 label
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        timeString.split(' ')[0], // Time part
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      Text(
-                        ' ${timeString.split(' ')[1]}2.5', // Period + "2.5"
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Peak time',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(width: 32),
-              
-              // PM2.5 value
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    peakPm25.toStringAsFixed(1),
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: peakColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'PM2.5 µg/m³',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-              
-              const Spacer(),
-              
-              // Status badge
+          Padding(
+            padding: const EdgeInsets.only(left: 16, right: 16, bottom: 4),
+            child: Wrap(children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                margin: EdgeInsets.only(bottom: 12),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: peakColor.withValues(alpha: 0.1),
+                  color: peakColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: peakColor.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
                 ),
                 child: Text(
                   peakCategory,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: peakColor,
                   ),
+                  maxLines: 1,
                 ),
               ),
-            ],
+            ]),
+          ),
+          Divider(
+              thickness: .5,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black
+                  : Colors.white),
+          Padding(
+            padding: const EdgeInsets.only(
+                left: 16, right: 16, bottom: 16, top: 12),
+            child: Text(
+              'Peak occurred at $timeString near Kawangware Rd',
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withOpacity(0.7),
+              ),
+            ),
           ),
         ],
       ),
     );
+  }
+  
+  String _getAirQualityIconPath(String category, double value) {
+    switch (category.toLowerCase()) {
+      case 'good':
+        return "assets/images/shared/airquality_indicators/good.svg";
+      case 'moderate':
+        return "assets/images/shared/airquality_indicators/moderate.svg";
+      case 'unhealthy for sensitive groups':
+        return "assets/images/shared/airquality_indicators/unhealthy-sensitive.svg";
+      case 'unhealthy':
+        return "assets/images/shared/airquality_indicators/unhealthy.svg";
+      case 'very unhealthy':
+        return "assets/images/shared/airquality_indicators/very-unhealthy.svg";
+      case 'hazardous':
+        return "assets/images/shared/airquality_indicators/hazardous.svg";
+      default:
+        return "assets/images/shared/airquality_indicators/unavailable.svg";
+    }
   }
 
   Color _getPeakCategoryColor(String category) {
