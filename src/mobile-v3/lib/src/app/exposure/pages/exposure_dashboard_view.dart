@@ -283,22 +283,21 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Title
-        Text(
-          _selectedTabIndex == 0 ? 'Today\'s exposure summary' : 'This week\'s exposure',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        
-        const SizedBox(height: 12),
+      //  Text(
+          // _selectedTabIndex == 0 ? 'Today\'s exposure summary' : 'This week\'s exposure',
+          // style: TextStyle(
+          //   fontSize: 20,
+          //   fontWeight: FontWeight.w600,
+          //   color: Colors.black87,
+          // ),
+        //),
+
         
         // Subtitle with time range
         Text(
           _selectedTabIndex == 0 
-              ? 'Track your air pollution exposure throughout the day'
-              : 'Weekly trends and patterns in your exposure',
+              ? 'Summary'
+              : 'Summary',
           style: TextStyle(
             fontSize: 16,
             color: const Color.fromARGB(137, 10, 6, 6),
