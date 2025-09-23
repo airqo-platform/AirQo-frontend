@@ -92,14 +92,20 @@ function useNetworkStatus() {
     (typeof downlink === 'number' && downlink > 0 && downlink < 0.8) || // < ~0.8 Mbps
     (typeof rtt === 'number' && rtt > 500); // > 500ms round trip
 
-  return { isOnline, isSlow, effectiveType, downlink, rtt };
+  // Very slow tier (stricter thresholds)
+  const isVerySlow =
+    ['slow-2g', '2g'].includes((effectiveType || '').toLowerCase()) ||
+    (typeof downlink === 'number' && downlink > 0 && downlink < 0.3) || // < ~0.3 Mbps
+    (typeof rtt === 'number' && rtt > 1000); // > 1000ms RTT
+
+  return { isOnline, isSlow, isVerySlow, effectiveType, downlink, rtt };
 }
 
 // =============================================================================
 // BANNER CONFIG
 // =============================================================================
 
-function getBannerConfig({ isOnline, isSlow }) {
+function getBannerConfig({ isOnline, isSlow, isVerySlow }) {
   if (!isOnline) {
     return {
       message: 'You are offline. Check your internet connection.',
@@ -108,6 +114,16 @@ function getBannerConfig({ isOnline, isSlow }) {
       severity: 'critical',
     };
   }
+  // Very slow has precedence
+  if (isVerySlow) {
+    return {
+      message: 'Very slow connection detected. Experience may be degraded.',
+      bgClass: 'bg-amber-700',
+      Icon: AqSignal02,
+      severity: 'warning',
+    };
+  }
+
   if (isSlow) {
     return {
       message: 'Slow connection detected. Some features may be limited.',
@@ -140,9 +156,10 @@ export default function NetworkStatusBanner({
   autoHideDelay = AUTO_HIDE_DELAY,
 }) {
   const [dismissed, setDismissed] = useState(false);
-  const { isOnline, isSlow, effectiveType, downlink, rtt } = useNetworkStatus();
+  const { isOnline, isSlow, isVerySlow, effectiveType, downlink, rtt } =
+    useNetworkStatus();
 
-  const hasIssue = !isOnline || isSlow;
+  const hasIssue = !isOnline || isVerySlow || isSlow;
   const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
   const config = getBannerConfig({ isOnline, isSlow });
 
@@ -172,7 +189,7 @@ export default function NetworkStatusBanner({
       aria-live="assertive"
       aria-atomic="true"
       className={`
-        fixed left-1/2 transform -translate-x-1/2 z-50
+      fixed left-1/2 transform -translate-x-1/2 z-[2000]
         ${positionClasses}
         max-w-md mx-4 min-w-[320px]
         ${config.bgClass} text-white
