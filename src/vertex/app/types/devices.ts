@@ -74,7 +74,10 @@ export interface Device {
   generation_count?: number | undefined | string;
   previous_sites?: string[];
   grids?: DeviceGrid[];
-  site?: DeviceSite[];
+  site?: DeviceSite[] | {
+    _id: string;
+    name: string;
+  };
   status?: "not deployed" | "deployed" | "recalled" | "online" | "offline";
   maintenance_status?: "good" | "due" | "overdue" | -1;
   powerType?: "solar" | "alternator" | "mains";

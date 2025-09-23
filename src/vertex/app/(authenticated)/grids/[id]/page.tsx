@@ -11,8 +11,8 @@ import { AqArrowLeft } from "@airqo/icons-react";
 import GridDetailsCard from "@/components/features/grids/grid-details-card";
 import GridMeasurementsApiCard from "@/components/features/grids/grid-measurements-api-card";
 import EditGridDetailsDialog from "@/components/features/grids/edit-grid-details-dialog";
-import SitesTable from "@/components/features/sites/sites-list-table";
 import { PERMISSIONS } from "@/core/permissions/constants";
+import ClientPaginatedSitesTable from "@/components/features/sites/client-paginated-sites-table";
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -63,7 +63,7 @@ export default function GridDetailsPage() {
                 <GridMeasurementsApiCard grid={gridDetails} loading={isLoading} />
               </div>
             </div>
-            <SitesTable sites={gridDetails.sites} isLoading={isLoading} error={error} />
+            <ClientPaginatedSitesTable sites={gridDetails.sites} isLoading={isLoading} error={error} />
 
             <div className="grid gap-6 md:grid-cols-2">
               {/* Data Summary Report */}

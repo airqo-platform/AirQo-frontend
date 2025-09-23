@@ -206,37 +206,6 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
   );
 };
 
-// --- PageSizeSelector Component ---
-interface PageSizeSelectorProps {
-  pageSize: number;
-  onPageSizeChange: (size: number) => void;
-  options?: number[];
-}
-
-const PageSizeSelector: React.FC<PageSizeSelectorProps> = ({
-  pageSize,
-  onPageSizeChange,
-  options = [5, 10, 20, 50, 100],
-}) => {
-  return (
-    <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-      <span>Show</span>
-      <select
-        value={pageSize}
-        onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
-        className="border border-primary/30 dark:border-primary/40 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-      >
-        {options.map((size) => (
-          <option key={size} value={size}>
-            {size}
-          </option>
-        ))}
-      </select>
-      <span>entries</span>
-    </div>
-  );
-};
-
 // --- TableHeader Component ---
 type FilterValue = string | number | boolean | (string | number | boolean)[];
 
@@ -364,21 +333,13 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  pageSize: number;
-  totalItems: number;
-  pageSizeOptions: number[];
   onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
-  pageSize,
-  totalItems,
-  pageSizeOptions,
   onPageChange,
-  onPageSizeChange,
 }) => {
   const generatePageNumbers = useCallback((): (number | string)[] => {
     const pages: (number | string)[] = [];
@@ -416,19 +377,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20]">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <PageSizeSelector
-            pageSize={pageSize}
-            onPageSizeChange={onPageSizeChange}
-            options={pageSizeOptions}
-          />
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            Showing {Math.min((currentPage - 1) * pageSize + 1, totalItems)} to{" "}
-            {Math.min(currentPage * pageSize, totalItems)} of {totalItems}{" "}
-            results
-          </div>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
         {totalPages > 1 && (
           <div className="flex items-center space-x-2">
             <button
@@ -556,12 +505,12 @@ interface ReusableTableProps<T extends TableItem> {
   // Server-side operation props
   serverSidePagination?: boolean;
   pageCount?: number;
-  totalItems?: number;
   pagination?: { pageIndex: number; pageSize: number };
   onPaginationChange?: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number }>>;
   sorting?: SortingState;
   onSortingChange?: Dispatch<SetStateAction<SortingState>>;
   onSearchChange?: (searchTerm: string) => void;
+  searchTerm?: string;
 }
 
 // Normalize any value to a searchable string
@@ -614,12 +563,12 @@ const ReusableTable = <T extends TableItem>({
   // Server-side props
   serverSidePagination = false,
   pageCount = 0,
-  totalItems: totalItemsProp,
   pagination: paginationProp,
   onPaginationChange,
   sorting: sortingProp,
   onSortingChange,
   onSearchChange,
+  searchTerm: searchTermProp,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -656,7 +605,6 @@ const ReusableTable = <T extends TableItem>({
 
   const [localSearchTerm, setLocalSearchTerm] = useState("");
   const [localCurrentPage, setLocalCurrentPage] = useState(1);
-  const [localCurrentPageSize, setLocalCurrentPageSize] = useState(pageSize);
   const [localSortConfig, setLocalSortConfig] = useState<SortConfig>({ key: null, direction: "asc" });
   const [localFilterValues, setLocalFilterValues] = useState(initialFilters);
 
@@ -684,15 +632,19 @@ const ReusableTable = <T extends TableItem>({
     }
   }, [tableId, searchParams, pageSize, pageSizeOptions, initialFilters]);
 
-  const searchTerm = tableId ? urlState!.searchTerm : localSearchTerm;
+  const searchTerm = serverSidePagination
+    ? searchTermProp ?? ""
+    : tableId
+    ? urlState!.searchTerm
+    : localSearchTerm;
   const currentPage = tableId ? urlState!.currentPage : localCurrentPage;
-  const currentPageSize = tableId ? urlState!.currentPageSize : localCurrentPageSize;
+  const currentPageSize = tableId ? urlState!.currentPageSize : pageSize;
   const sortConfig = tableId ? urlState!.sortConfig : localSortConfig;
   const filterValues = tableId ? urlState!.filterValues : localFilterValues;
 
   const updateUrlState = useCallback((updates: Partial<{ search: string; page: number; pageSize: number; sort: SortConfig; filters: Record<string, FilterValue> }>) => {
     if (!tableId) return;
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, value]) => {
       const fullKey = `${tableId}_${key}`;
       if (value === undefined) return;
@@ -716,13 +668,13 @@ const ReusableTable = <T extends TableItem>({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (serverSidePagination) {
-        onSearchChange?.(searchInput);
-        return;
-      }
-
       if (searchInput !== searchTerm) {
-        if (tableId) {
+        if (serverSidePagination) {
+          onSearchChange?.(searchInput);
+          return;
+        }
+
+        if (tableId) { // client-side with URL persistence
           updateUrlState({ search: searchInput, page: 1 });
         } else {
           setLocalSearchTerm(searchInput);
@@ -899,7 +851,7 @@ const ReusableTable = <T extends TableItem>({
     }
 
     return result;
-  }, [data, filterValues, searchableColumns, searchTerm, columns]);
+  }, [data, filterValues, searchableColumns, searchTerm, columns, serverSidePagination]);
 
   const clientSortedData = useMemo(() => {
     if (serverSidePagination || !sortConfig.key) return filteredData;
@@ -933,7 +885,6 @@ const ReusableTable = <T extends TableItem>({
   const finalTotalPages = serverSidePagination ? pageCount : clientTotalPages;
   const finalCurrentPage = serverSidePagination ? (paginationProp?.pageIndex ?? 0) + 1 : currentPage;
   const finalCurrentPageSize = serverSidePagination ? paginationProp?.pageSize ?? pageSize : currentPageSize;
-  const finalTotalItems = serverSidePagination ? totalItemsProp ?? data.length : clientSortedData.length;
 
   const handleClientPageChange = useCallback((page: number) => {
     const clamped = Math.max(1, Math.min(page, Math.max(1, clientTotalPages)));
@@ -960,23 +911,6 @@ const ReusableTable = <T extends TableItem>({
       handlePageChange(totalPages > 0 ? Math.min(Math.max(1, finalCurrentPage), totalPages) : 1);
     }
   }, [finalCurrentPage, totalPages, handlePageChange, loading]);
-
-  const handlePageSizeChange = useCallback((newPageSize: number) => {
-    if (serverSidePagination) {
-      onPaginationChange?.({ pageIndex: 0, pageSize: newPageSize });
-      return;
-    }
-
-    const normalized = Array.isArray(pageSizeOptions) && pageSizeOptions.length > 0
-      ? (pageSizeOptions.includes(newPageSize) ? newPageSize : pageSizeOptions[0])
-      : Math.max(1, newPageSize || 1);
-    if (tableId) {
-      updateUrlState({ pageSize: normalized, page: 1 });
-    } else {
-      setLocalCurrentPageSize(normalized);
-      setLocalCurrentPage(1);
-    }
-  }, [tableId, updateUrlState, pageSizeOptions, serverSidePagination, onPaginationChange]);
 
   const handleSort = useCallback(
     (key: string) => {
@@ -1311,11 +1245,7 @@ const ReusableTable = <T extends TableItem>({
         <Pagination
           currentPage={finalCurrentPage}
           totalPages={finalTotalPages}
-          pageSize={finalCurrentPageSize}
-          totalItems={finalTotalItems}
-          pageSizeOptions={pageSizeOptions}
           onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
         />
       )}
     </div>
