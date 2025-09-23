@@ -276,7 +276,7 @@ const GlobalTopbar = ({
             )}
 
             {/* Application Refresh Button (desktop) */}
-            <Tooltip content="Refresh application" placement="bottom">
+            <Tooltip content="Refresh" placement="bottom">
               <div className="relative inline-block">
                 <Button
                   onClick={handleRefresh}
