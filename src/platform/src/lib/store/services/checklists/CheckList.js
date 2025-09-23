@@ -9,6 +9,20 @@ const initialState = {
   lastUpdated: null,
 };
 
+// State sanitization to handle corrupted persist data
+const sanitizeChecklistState = (state) => {
+  if (!state || typeof state !== 'object') {
+    return initialState;
+  }
+
+  return {
+    checklist: Array.isArray(state.checklist) ? state.checklist : [],
+    status: state.status || 'idle',
+    error: state.error || null,
+    lastUpdated: state.lastUpdated || null,
+  };
+};
+
 // Fetch user checklist; initialize if none and refetch for _id
 export const fetchUserChecklists = createAsyncThunk(
   'checklists/fetchUserChecklists',
@@ -180,8 +194,16 @@ export const updateTaskProgress = createAsyncThunk(
 
 export const checklistSlice = createSlice({
   name: 'cardChecklist',
-  initialState,
-  reducers: {},
+  initialState: sanitizeChecklistState(initialState),
+  reducers: {
+    // Add a reducer to manually clear corrupted state
+    clearChecklistState: (state) => {
+      state.checklist = [];
+      state.status = 'idle';
+      state.error = null;
+      state.lastUpdated = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchUserChecklists.pending, (state) => {
@@ -189,7 +211,8 @@ export const checklistSlice = createSlice({
       })
       .addCase(fetchUserChecklists.fulfilled, (state, { payload }) => {
         state.status = 'succeeded';
-        state.checklist = payload;
+        // Ensure payload is always an array
+        state.checklist = Array.isArray(payload) ? payload : [];
         state.error = null;
         state.lastUpdated = new Date().toISOString();
       })

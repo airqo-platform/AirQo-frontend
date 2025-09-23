@@ -90,6 +90,7 @@ const persistConfig = {
   key: 'root',
   storage,
   whitelist: ['login', 'cardChecklist', 'groups', 'organizationTheme', 'map'],
+  version: 1, // Increment this to force state migration
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);

@@ -19,6 +19,8 @@ import {
   usePaginatedDevicesSummary,
   usePaginatedGridsSummary,
   usePaginatedMobileDevices,
+  usePaginatedBAMDevices,
+  usePaginatedLowCostDevices,
 } from '@/core/hooks/analyticHooks';
 
 import { getAssignedSitesForGrid } from '@/core/apis/DeviceRegistry';
@@ -228,20 +230,13 @@ const DataDownload = ({
     search: searchQuery,
   });
 
-  const {
-    data: devicesData,
-    isLoading: devicesLoading,
-    isError: devicesError,
-    error: devicesErrorMsg,
-    refresh: refreshDevices,
-    meta: devicesMeta,
-    loadMore: loadMoreDevices,
-    canLoadMore: canLoadMoreDevices,
-    hasNextPage: devicesHasNextPage,
-  } = usePaginatedDevicesSummary(groupTitle || 'AirQo', {
-    enableInfiniteScroll: true,
-    search: searchQuery,
-  });
+  const { data: devicesData } = usePaginatedDevicesSummary(
+    groupTitle || 'AirQo',
+    {
+      enableInfiniteScroll: true,
+      search: searchQuery,
+    },
+  );
 
   const {
     data: countriesData,
@@ -287,6 +282,34 @@ const DataDownload = ({
     enableInfiniteScroll: true,
   });
 
+  const {
+    data: bamDevicesData,
+    isLoading: bamDevicesLoading,
+    isError: bamDevicesError,
+    error: bamDevicesErrorMsg,
+    refresh: refreshBAMDevices,
+    meta: bamDevicesMeta,
+    loadMore: loadMoreBAMDevices,
+    canLoadMore: canLoadMoreBAMDevices,
+    hasNextPage: bamDevicesHasNextPage,
+  } = usePaginatedBAMDevices({
+    enableInfiniteScroll: true,
+  });
+
+  const {
+    data: lowCostDevicesData,
+    isLoading: lowCostDevicesLoading,
+    isError: lowCostDevicesError,
+    error: lowCostDevicesErrorMsg,
+    refresh: refreshLowCostDevices,
+    meta: lowCostDevicesMeta,
+    loadMore: loadMoreLowCostDevices,
+    canLoadMore: canLoadMoreLowCostDevices,
+    hasNextPage: lowCostDevicesHasNextPage,
+  } = usePaginatedLowCostDevices({
+    enableInfiniteScroll: true,
+  });
+
   // Close mobile sidebar when resizing to larger screen
   useEffect(() => {
     const handleResize = () => {
@@ -303,11 +326,14 @@ const DataDownload = ({
   useEffect(() => {
     setFilterErrors({
       sites: sitesError ? sitesErrorMsg?.message || 'Error loading sites' : '',
-      devices: devicesError
-        ? devicesErrorMsg?.message || 'Error loading devices'
-        : '',
       mobileDevices: mobileDevicesError
         ? mobileDevicesErrorMsg?.message || 'Error loading mobile devices'
+        : '',
+      bamDevices: bamDevicesError
+        ? bamDevicesErrorMsg?.message || 'Error loading BAM devices'
+        : '',
+      lowCostDevices: lowCostDevicesError
+        ? lowCostDevicesErrorMsg?.message || 'Error loading LowCost devices'
         : '',
       countries: countriesError
         ? countriesErrorMsg?.message || 'Error loading countries'
@@ -319,10 +345,12 @@ const DataDownload = ({
   }, [
     sitesError,
     sitesErrorMsg,
-    devicesError,
-    devicesErrorMsg,
     mobileDevicesError,
     mobileDevicesErrorMsg,
+    bamDevicesError,
+    bamDevicesErrorMsg,
+    lowCostDevicesError,
+    lowCostDevicesErrorMsg,
     countriesError,
     countriesErrorMsg,
     citiesError,
@@ -474,14 +502,26 @@ const DataDownload = ({
   const handleRetryLoad = useCallback(
     (filterKey) => {
       if (filterKey === FILTER_TYPES.DEVICES) {
-        // For devices, check if mobile category is selected
-        if (
-          formData.deviceCategory &&
-          formData.deviceCategory.name.toLowerCase() === 'mobile'
-        ) {
-          refreshMobileDevices();
+        // For devices, check which category is selected
+        if (formData.deviceCategory) {
+          const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+          switch (selectedCategory) {
+            case 'mobile':
+              refreshMobileDevices();
+              break;
+            case 'bam':
+              refreshBAMDevices();
+              break;
+            case 'lowcost':
+              refreshLowCostDevices();
+              break;
+            default:
+              refreshLowCostDevices();
+              break;
+          }
         } else {
-          refreshDevices();
+          refreshLowCostDevices();
         }
       } else {
         const refreshMap = {
@@ -501,8 +541,9 @@ const DataDownload = ({
       formData.deviceCategory,
       refreshCountries,
       refreshCities,
-      refreshDevices,
       refreshMobileDevices,
+      refreshBAMDevices,
+      refreshLowCostDevices,
       refreshSites,
       setActiveFilterKey,
     ],
@@ -595,40 +636,24 @@ const DataDownload = ({
 
     // Apply special filtering for devices
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      // Check if mobile category is selected
-      if (
-        formData.deviceCategory &&
-        formData.deviceCategory.name.toLowerCase() === 'mobile'
-      ) {
-        // Use dedicated mobile devices data instead of filtering
-        return mobileDevicesData || [];
+      // Use category-specific endpoints instead of filtering from general devices
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesData || [];
+          case 'bam':
+            return bamDevicesData || [];
+          case 'lowcost':
+            return lowCostDevicesData || [];
+          default:
+            // Fallback to lowcost if unknown category
+            return lowCostDevicesData || [];
+        }
       } else {
-        // Filter regular devices data by category (excluding mobile devices from general devices)
-        return baseData.filter((device) => {
-          // Filter by device category if specified
-          let matchesCategory = true;
-          if (formData.deviceCategory) {
-            const selectedCategory = formData.deviceCategory.name.toLowerCase();
-            const deviceCategory = String(device.category || '').toLowerCase();
-
-            // For non-mobile categories, direct match and exclude mobile devices
-            matchesCategory =
-              deviceCategory === selectedCategory &&
-              !(
-                deviceCategory === 'lowcost' &&
-                (device.mobility === true || device.mobility === 'true')
-              );
-          } else {
-            // If no category selected, exclude mobile devices from general view
-            const deviceCategory = String(device.category || '').toLowerCase();
-            matchesCategory = !(
-              deviceCategory === 'lowcost' &&
-              (device.mobility === true || device.mobility === 'true')
-            );
-          }
-
-          return matchesCategory;
-        });
+        // Default to lowcost when no category is selected
+        return lowCostDevicesData || [];
       }
     }
 
@@ -640,20 +665,30 @@ const DataDownload = ({
     devicesData,
     sitesData,
     mobileDevicesData,
+    bamDevicesData,
+    lowCostDevicesData,
     formData.deviceCategory,
   ]);
 
   // Get loading state for current filter
   const isLoading = useMemo(() => {
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      // For devices filter, check if mobile category is selected
-      if (
-        formData.deviceCategory &&
-        formData.deviceCategory.name.toLowerCase() === 'mobile'
-      ) {
-        return mobileDevicesLoading;
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesLoading;
+          case 'bam':
+            return bamDevicesLoading;
+          case 'lowcost':
+            return lowCostDevicesLoading;
+          default:
+            return lowCostDevicesLoading;
+        }
       } else {
-        return devicesLoading;
+        return lowCostDevicesLoading;
       }
     }
 
@@ -668,22 +703,31 @@ const DataDownload = ({
     formData.deviceCategory,
     countriesLoading,
     citiesLoading,
-    devicesLoading,
     mobileDevicesLoading,
+    bamDevicesLoading,
+    lowCostDevicesLoading,
     sitesLoading,
   ]);
 
   // Get pagination metadata for current filter
   const currentPaginationMeta = useMemo(() => {
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      // For devices filter, check if mobile category is selected
-      if (
-        formData.deviceCategory &&
-        formData.deviceCategory.name.toLowerCase() === 'mobile'
-      ) {
-        return mobileDevicesMeta || {};
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesMeta || {};
+          case 'bam':
+            return bamDevicesMeta || {};
+          case 'lowcost':
+            return lowCostDevicesMeta || {};
+          default:
+            return lowCostDevicesMeta || {};
+        }
       } else {
-        return devicesMeta || {};
+        return lowCostDevicesMeta || {};
       }
     }
 
@@ -698,22 +742,31 @@ const DataDownload = ({
     formData.deviceCategory,
     countriesMeta,
     citiesMeta,
-    devicesMeta,
     mobileDevicesMeta,
+    bamDevicesMeta,
+    lowCostDevicesMeta,
     sitesMeta,
   ]);
 
   // Get load more function for current filter
   const currentLoadMore = useMemo(() => {
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      // For devices filter, check if mobile category is selected
-      if (
-        formData.deviceCategory &&
-        formData.deviceCategory.name.toLowerCase() === 'mobile'
-      ) {
-        return loadMoreMobileDevices;
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return loadMoreMobileDevices;
+          case 'bam':
+            return loadMoreBAMDevices;
+          case 'lowcost':
+            return loadMoreLowCostDevices;
+          default:
+            return loadMoreLowCostDevices;
+        }
       } else {
-        return loadMoreDevices;
+        return loadMoreLowCostDevices;
       }
     }
 
@@ -728,22 +781,31 @@ const DataDownload = ({
     formData.deviceCategory,
     loadMoreCountries,
     loadMoreCities,
-    loadMoreDevices,
     loadMoreMobileDevices,
+    loadMoreBAMDevices,
+    loadMoreLowCostDevices,
     loadMoreSites,
   ]);
 
   // Get can load more state for current filter
   const currentCanLoadMore = useMemo(() => {
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      // For devices filter, check if mobile category is selected
-      if (
-        formData.deviceCategory &&
-        formData.deviceCategory.name.toLowerCase() === 'mobile'
-      ) {
-        return canLoadMoreMobileDevices;
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return canLoadMoreMobileDevices;
+          case 'bam':
+            return canLoadMoreBAMDevices;
+          case 'lowcost':
+            return canLoadMoreLowCostDevices;
+          default:
+            return canLoadMoreLowCostDevices;
+        }
       } else {
-        return canLoadMoreDevices;
+        return canLoadMoreLowCostDevices;
       }
     }
 
@@ -758,22 +820,31 @@ const DataDownload = ({
     formData.deviceCategory,
     canLoadMoreCountries,
     canLoadMoreCities,
-    canLoadMoreDevices,
     canLoadMoreMobileDevices,
+    canLoadMoreBAMDevices,
+    canLoadMoreLowCostDevices,
     canLoadMoreSites,
   ]);
 
   // Get has next page state for current filter
   const currentHasNextPage = useMemo(() => {
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      // For devices filter, check if mobile category is selected
-      if (
-        formData.deviceCategory &&
-        formData.deviceCategory.name.toLowerCase() === 'mobile'
-      ) {
-        return mobileDevicesHasNextPage;
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesHasNextPage;
+          case 'bam':
+            return bamDevicesHasNextPage;
+          case 'lowcost':
+            return lowCostDevicesHasNextPage;
+          default:
+            return lowCostDevicesHasNextPage;
+        }
       } else {
-        return devicesHasNextPage;
+        return lowCostDevicesHasNextPage;
       }
     }
 
@@ -788,8 +859,9 @@ const DataDownload = ({
     formData.deviceCategory,
     countriesHasNextPage,
     citiesHasNextPage,
-    devicesHasNextPage,
     mobileDevicesHasNextPage,
+    bamDevicesHasNextPage,
+    lowCostDevicesHasNextPage,
     sitesHasNextPage,
   ]);
 
@@ -1333,23 +1405,44 @@ const DataDownload = ({
 
   // Render main content area with error handling
   const renderMainContent = useCallback(() => {
-    // Check for errors based on current filter and mobile device selection
+    // Check for errors based on current filter and device category selection
     let isError, errorMessage;
 
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      // For devices filter, check specific error based on mobile category selection
-      if (
-        formData.deviceCategory &&
-        formData.deviceCategory.name.toLowerCase() === 'mobile'
-      ) {
-        isError = mobileDevicesError;
-        errorMessage =
-          mobileDevicesErrorMsg?.message ||
-          'Error loading mobile devices. Please try again.';
+      // For devices filter, check specific error based on device category selection
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            isError = mobileDevicesError;
+            errorMessage =
+              mobileDevicesErrorMsg?.message ||
+              'Error loading mobile devices. Please try again.';
+            break;
+          case 'bam':
+            isError = bamDevicesError;
+            errorMessage =
+              bamDevicesErrorMsg?.message ||
+              'Error loading BAM devices. Please try again.';
+            break;
+          case 'lowcost':
+            isError = lowCostDevicesError;
+            errorMessage =
+              lowCostDevicesErrorMsg?.message ||
+              'Error loading LowCost devices. Please try again.';
+            break;
+          default:
+            isError = lowCostDevicesError;
+            errorMessage =
+              lowCostDevicesErrorMsg?.message ||
+              'Error loading devices. Please try again.';
+            break;
+        }
       } else {
-        isError = devicesError;
+        isError = lowCostDevicesError;
         errorMessage =
-          devicesErrorMsg?.message ||
+          lowCostDevicesErrorMsg?.message ||
           'Error loading devices. Please try again.';
       }
     } else {
@@ -1434,13 +1527,15 @@ const DataDownload = ({
     activeFilterKey,
     formData.deviceCategory,
     sitesError,
-    devicesError,
     mobileDevicesError,
+    bamDevicesError,
+    lowCostDevicesError,
     countriesError,
     citiesError,
     sitesErrorMsg,
-    devicesErrorMsg,
     mobileDevicesErrorMsg,
+    bamDevicesErrorMsg,
+    lowCostDevicesErrorMsg,
     countriesErrorMsg,
     citiesErrorMsg,
     isLoading,

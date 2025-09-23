@@ -425,4 +425,42 @@ export const usePaginatedMobileDevices = (options = {}) => {
   });
 };
 
+/**
+ * Specialized hook for BAM devices with pagination
+ */
+export const usePaginatedBAMDevices = (options = {}) => {
+  const fetcher = useCallback(async (params) => {
+    const { getBAMDevices } = await import('../apis/DeviceRegistry');
+    return getBAMDevices({
+      skip: params.skip,
+      limit: params.limit,
+    });
+  }, []);
+
+  return usePaginatedData(['bam-devices-paginated'], fetcher, {
+    initialLimit: 20,
+    maxLimit: 80,
+    ...options,
+  });
+};
+
+/**
+ * Specialized hook for LowCost devices with pagination
+ */
+export const usePaginatedLowCostDevices = (options = {}) => {
+  const fetcher = useCallback(async (params) => {
+    const { getLowCostDevices } = await import('../apis/DeviceRegistry');
+    return getLowCostDevices({
+      skip: params.skip,
+      limit: params.limit,
+    });
+  }, []);
+
+  return usePaginatedData(['lowcost-devices-paginated'], fetcher, {
+    initialLimit: 20,
+    maxLimit: 80,
+    ...options,
+  });
+};
+
 export default usePaginatedData;

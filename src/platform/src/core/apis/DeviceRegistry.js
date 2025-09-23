@@ -4,6 +4,8 @@ import {
   READINGS_URL,
   DEVICES,
   MOBILE_DEVICES_URL,
+  BAM_DEVICES_URL,
+  LOWCOST_DEVICES_URL,
   GRID_LOCATIONS_URL,
   NEAREST_SITE_URL,
   GRIDS_SUMMARY_URL,
@@ -133,3 +135,31 @@ export const getMobileDevices = ({ skip = 0, limit = 30 } = {}) =>
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
+
+// BAM devices endpoints
+export const getBAMDevices = ({ skip = 0, limit = 30 } = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  return secureApiProxy
+    .get(BAM_DEVICES_URL, {
+      params: { skip: sanitizedSkip, limit: sanitizedLimit },
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+};
+
+// LowCost devices endpoints
+export const getLowCostDevices = ({ skip = 0, limit = 30 } = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  return secureApiProxy
+    .get(LOWCOST_DEVICES_URL, {
+      params: { skip: sanitizedSkip, limit: sanitizedLimit },
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+};
