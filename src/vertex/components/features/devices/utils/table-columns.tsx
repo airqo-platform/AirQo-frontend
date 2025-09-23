@@ -53,7 +53,7 @@ export const getColumns = (
       label: "Site",
       render: (siteData) => {
         const sites = siteData as DeviceSite[] | undefined;
-        const siteName = sites?.[0]?.name || sites?.[0]?.location_name;
+        const siteName = sites?.[0]?.name || sites?.[0]?.location_name || sites?.name;
         return (
           <span className="uppercase max-w-40 w-full truncate" title={siteName}>
             {siteName || "Not assigned"}
