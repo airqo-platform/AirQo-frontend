@@ -1,12 +1,13 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { Device } from "@/app/types/devices";
 import { useRouter } from "next/navigation";
-import ReusableTable, { SortingState } from "@/components/shared/table/ReusableTable";
+import ReusableTable from "@/components/shared/table/ReusableTable";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices } from "@/core/hooks/useDevices";
 import { getColumns, type TableDevice } from "./utils/table-columns";
+import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 
 interface DevicesTableProps {
   itemsPerPage?: number;
@@ -28,12 +29,11 @@ export default function DevicesTable({
   const { userContext } = useUserContext();
   const isInternalView = userContext === "airqo-internal";
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: itemsPerPage,
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const {
+    pagination, setPagination,
+    searchTerm, setSearchTerm,
+    sorting, setSorting
+  } = useServerSideTableState({ initialPageSize: itemsPerPage });
 
   const { devices, meta, isFetching, error } = useDevices({
     page: pagination.pageIndex + 1,
@@ -120,6 +120,7 @@ export default function DevicesTable({
         pagination={pagination}
         onPaginationChange={setPagination}
         onSearchChange={setSearchTerm}
+        searchTerm={searchTerm}
         sorting={sorting}
         onSortingChange={setSorting}
         searchable

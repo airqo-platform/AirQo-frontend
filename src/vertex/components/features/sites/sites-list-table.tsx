@@ -1,13 +1,10 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import ReusableTable, {
-  TableColumn,
-  TableItem,
-  SortingState,
-} from "@/components/shared/table/ReusableTable";
+import ReusableTable, { TableColumn, TableItem } from "@/components/shared/table/ReusableTable";
 import { useRouter } from "next/navigation";
 import { Site } from "@/app/types/sites";
 import { useSites } from "@/core/hooks/useSites";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useMemo, useRef, useEffect } from "react";
+import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 
 interface SitesTableProps {
   itemsPerPage?: number;
@@ -29,12 +26,11 @@ export default function SitesTable({
   const router = useRouter();
   const tableRef = useRef<HTMLDivElement>(null);
 
-  const [pagination, setPagination] = useState({
-    pageIndex: 0,
-    pageSize: itemsPerPage,
-  });
-  const [searchTerm, setSearchTerm] = useState("");
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const {
+    pagination, setPagination,
+    searchTerm, setSearchTerm,
+    sorting, setSorting
+  } = useServerSideTableState({ initialPageSize: itemsPerPage });
 
   const { sites, meta, isFetching, error } = useSites({
     page: pagination.pageIndex + 1,
@@ -156,6 +152,7 @@ export default function SitesTable({
         pagination={pagination}
         onPaginationChange={setPagination}
         onSearchChange={setSearchTerm}
+        searchTerm={searchTerm}
         sorting={sorting}
         onSortingChange={setSorting}
         searchable

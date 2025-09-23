@@ -562,6 +562,7 @@ interface ReusableTableProps<T extends TableItem> {
   sorting?: SortingState;
   onSortingChange?: Dispatch<SetStateAction<SortingState>>;
   onSearchChange?: (searchTerm: string) => void;
+  searchTerm?: string;
 }
 
 // Normalize any value to a searchable string
@@ -620,6 +621,7 @@ const ReusableTable = <T extends TableItem>({
   sorting: sortingProp,
   onSortingChange,
   onSearchChange,
+  searchTerm: searchTermProp,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -684,7 +686,11 @@ const ReusableTable = <T extends TableItem>({
     }
   }, [tableId, searchParams, pageSize, pageSizeOptions, initialFilters]);
 
-  const searchTerm = tableId ? urlState!.searchTerm : localSearchTerm;
+  const searchTerm = serverSidePagination
+    ? searchTermProp ?? ""
+    : tableId
+    ? urlState!.searchTerm
+    : localSearchTerm;
   const currentPage = tableId ? urlState!.currentPage : localCurrentPage;
   const currentPageSize = tableId ? urlState!.currentPageSize : localCurrentPageSize;
   const sortConfig = tableId ? urlState!.sortConfig : localSortConfig;
@@ -692,7 +698,7 @@ const ReusableTable = <T extends TableItem>({
 
   const updateUrlState = useCallback((updates: Partial<{ search: string; page: number; pageSize: number; sort: SortConfig; filters: Record<string, FilterValue> }>) => {
     if (!tableId) return;
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams.toString());
     Object.entries(updates).forEach(([key, value]) => {
       const fullKey = `${tableId}_${key}`;
       if (value === undefined) return;
@@ -716,13 +722,13 @@ const ReusableTable = <T extends TableItem>({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (serverSidePagination) {
-        onSearchChange?.(searchInput);
-        return;
-      }
-
       if (searchInput !== searchTerm) {
-        if (tableId) {
+        if (serverSidePagination) {
+          onSearchChange?.(searchInput);
+          return;
+        }
+
+        if (tableId) { // client-side with URL persistence
           updateUrlState({ search: searchInput, page: 1 });
         } else {
           setLocalSearchTerm(searchInput);
