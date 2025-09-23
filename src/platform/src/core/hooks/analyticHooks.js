@@ -260,3 +260,14 @@ export const useSiteAndDeviceIds = (grid_id) => {
   };
 };
 // (no-op) analytic hooks implementation only — removed accidental re-export
+
+// Export the new pagination hooks for enhanced data loading
+export {
+  usePaginatedData,
+  usePaginatedSitesSummary,
+  usePaginatedDevicesSummary,
+  usePaginatedGridsSummary,
+  usePaginatedMobileDevices,
+  usePaginatedBAMDevices,
+  usePaginatedLowCostDevices,
+} from './usePaginatedData';

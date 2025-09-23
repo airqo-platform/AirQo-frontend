@@ -24,24 +24,20 @@ const Checklist = ({ openVideoModal }) => {
     (state) => state.cardChecklist.checklist || [],
   );
   const reduxStatus = useSelector((state) => state.cardChecklist.status);
+
   const totalSteps = 4;
 
   // Create static steps - use useMemo to avoid recreating on each render
-  const staticSteps = useMemo(() => createSteps(() => {}), []);
-
-  // Derived states using useMemo to avoid unnecessary calculations on re-renders
-  const stepCount = useMemo(() => {
-    return reduxChecklist.filter((item) => item.completed).length;
-  }, [reduxChecklist]);
-
-  const allCompleted = useMemo(() => {
-    return stepCount === totalSteps && stepCount > 0;
-  }, [stepCount, totalSteps]);
+  const staticSteps = useMemo(() => createSteps(), []);
 
   // Get user ID from NextAuth session when component mounts
   useEffect(() => {
     if (session?.user?.id) {
       setUserId(session.user.id);
+    } else if (session?.user?._id) {
+      setUserId(session.user._id);
+    } else if (session?.user?.userId) {
+      setUserId(session.user.userId);
     }
   }, [session]);
 
@@ -119,6 +115,16 @@ const Checklist = ({ openVideoModal }) => {
     const safeChecklist = Array.isArray(reduxChecklist) ? reduxChecklist : [];
     return mergeStepsWithChecklist(staticSteps, safeChecklist);
   }, [staticSteps, reduxChecklist]);
+
+  // Calculate completed steps count from merged steps
+  const stepCount = useMemo(() => {
+    return mergedSteps.filter((item) => item.completed).length;
+  }, [mergedSteps]);
+
+  // Check if all steps are completed
+  const allCompleted = useMemo(() => {
+    return stepCount === totalSteps && stepCount > 0;
+  }, [stepCount, totalSteps]);
 
   const handleStepClick = useCallback(
     async (stepItem) => {

@@ -28,7 +28,7 @@ export {
 } from './withSessionAuth';
 
 // Export auth utilities
-export { checkAccess, usePermissions } from './authUtils';
+export { checkAccess, usePermissions } from '@/core/utils/permissionUtils';
 
 // Export logout utilities
 export { default as LogoutUser } from './LogoutUser';

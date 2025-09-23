@@ -39,7 +39,16 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
       ? currentMoreInsightsSites
       : moreInsightsSites;
 
-  const { filteredSites, isLoading, isError, error } = useAddLocationsData();
+  const {
+    filteredSites,
+    isLoading,
+    isError,
+    error,
+    meta,
+    hasNextPage,
+    loadMore,
+    canLoadMore,
+  } = useAddLocationsData();
 
   const {
     selectedSites,
@@ -181,6 +190,10 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
               isError={isError}
               fetchError={error}
               handleToggleSite={handleToggleSite}
+              meta={meta}
+              hasNextPage={hasNextPage}
+              loadMore={loadMore}
+              canLoadMore={canLoadMore}
             />
           </motion.div>
 

@@ -1,4 +1,8 @@
-import { getUserDetails, getUserThemeApi } from '@/core/apis/Account';
+import {
+  getUserDetails,
+  getUserThemeApi,
+  getUserGroupPermissionsApi,
+} from '@/core/apis/Account';
 import { getOrganizationThemePreferencesApi } from '@/core/apis/Organizations';
 import {
   setUserInfo,
@@ -17,6 +21,11 @@ import {
   setOrganizationThemeError,
   clearOrganizationTheme,
 } from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
+import {
+  setPermissionsData,
+  setPermissionsError,
+  clearPermissions,
+} from '@/lib/store/services/permissions/PermissionsSlice';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
@@ -167,15 +176,6 @@ export const setupUserSession = async (
     // Note: Only apply this when pathname is explicitly "/" not when undefined/empty during session setup
     const isRootPageRedirect = pathname === '/';
 
-    // NEW: Check if we're on a protected route that should NOT be redirected
-    const isProtectedRoute =
-      typeof pathname === 'string' &&
-      (pathname.startsWith('/user/analytics') ||
-        pathname.startsWith('/user/data-export') ||
-        pathname.startsWith('/user/profile') ||
-        pathname.startsWith('/user/settings') ||
-        pathname.startsWith('/user/map'));
-
     if (isRootPageRedirect) {
       // Force user flow with AirQo group for root page access
       const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
@@ -205,25 +205,6 @@ export const setupUserSession = async (
         );
       }
       redirectPath = '/user/Home';
-    } else if (isProtectedRoute && !isDomainUpdate) {
-      // For protected routes (analytics, data-export, etc.), set up user session
-      // but don't override the current path to prevent redirect loops
-      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
-      if (airqoGroup) {
-        activeGroup = airqoGroup;
-        logger.info(
-          'Protected route: Setting AirQo as active group without redirect',
-          {
-            groupId: airqoGroup._id,
-            groupName: airqoGroup.grp_title || airqoGroup.grp_name,
-            loginContext: 'protected_route',
-            pathname,
-          },
-        );
-      } else {
-        activeGroup = user.groups[0];
-      }
-      redirectPath = null; // Don't redirect, stay on current protected route
     } else if (typeof pathname === 'string' && pathname.startsWith('/admin')) {
       // ADMIN ROUTES: Set AirQo group and stay on current admin path
       logger.info('Admin route detected, setting up admin session...');
@@ -624,6 +605,49 @@ export const setupUserSession = async (
       }
     }
 
+    // Step 6: Fetch user permissions and roles (NEW CENTRALIZED APPROACH)
+    // This replaces individual permission checks throughout the app
+    logger.info('Fetching user permissions and roles...');
+    try {
+      const permissionsRes = await getUserGroupPermissionsApi();
+      if (permissionsRes?.success && permissionsRes?.user_roles) {
+        // Pass the full API response to the reducer for proper normalization
+        dispatch(setPermissionsData(permissionsRes));
+
+        const { groups = [], networks = [] } = permissionsRes.user_roles;
+        logger.info('User permissions cached successfully', {
+          groupsCount: groups.length,
+          networksCount: networks.length,
+          groups: groups.map((group) => ({
+            groupId: group.group_id,
+            groupName: group.group_name,
+            roleName: group.role_name,
+            permissionsCount: (group.permissions || []).length,
+          })),
+          networks: networks.map((network) => ({
+            networkId: network.network_id,
+            networkName: network.network_name,
+            roleName: network.role_name,
+            permissionsCount: (network.permissions || []).length,
+          })),
+        });
+      } else {
+        logger.warn(
+          'No user roles found in permissions response',
+          permissionsRes,
+        );
+        dispatch(setPermissionsError('No user roles found'));
+      }
+    } catch (error) {
+      logger.error('Failed to fetch user permissions:', error);
+      dispatch(
+        setPermissionsError(
+          error.message || 'Failed to fetch user permissions',
+        ),
+      );
+      // Don't fail the entire login process for permissions - they can be retried later
+    }
+
     // Store theme in global context for immediate access by theme hooks
     // Always set the loaded flag, even if no theme was found
     if (typeof window !== 'undefined') {
@@ -688,6 +712,7 @@ export const setupUserSession = async (
     dispatch(setError(error.message || 'Error setting up user session'));
     dispatch(resetStore());
     dispatch(clearAllGroupData());
+    dispatch(clearPermissions());
 
     return {
       success: false,
@@ -710,6 +735,7 @@ export const clearUserSession = (dispatch) => {
     dispatch(resetStore());
     dispatch(clearAllGroupData());
     dispatch(clearOrganizationTheme());
+    dispatch(clearPermissions());
     dispatch(setUserInfo(null));
     dispatch(setActiveGroup(null));
     dispatch(setUserGroups([]));

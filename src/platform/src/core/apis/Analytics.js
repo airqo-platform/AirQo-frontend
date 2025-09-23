@@ -28,45 +28,95 @@ export const shareReportApi = async (body) => {
 };
 
 // Get sites summary data
-export const getSitesSummaryApi = async ({ group = undefined } = {}) => {
-  const params =
-    group !== undefined && group !== null && group !== '' ? { group } : {};
+export const getSitesSummaryApi = async ({
+  group = undefined,
+  skip = 0,
+  limit = 80,
+  search = undefined,
+  signal,
+} = {}) => {
+  const params = {
+    skip,
+    limit,
+    ...(group !== undefined && group !== null && group !== '' ? { group } : {}),
+    ...(search !== undefined && search !== null && search.trim() !== ''
+      ? { search: search.trim() }
+      : {}),
+  };
+
   return secureApiProxy
     .get(SITES_SUMMARY_URL, {
       params,
       authType: AUTH_TYPES.JWT,
+      signal,
     })
     .then((response) => response.data)
-    .catch(() => ({ sites: [] }));
+    .catch((error) => {
+      logger.error('getSitesSummaryApi error:', error);
+      // Re-throw the error so it can be handled by SWR and components
+      throw error;
+    });
 };
 
 // Get device summary data
-export const getDeviceSummaryApi = async ({ group = null }) => {
+export const getDeviceSummaryApi = async ({
+  group = null,
+  skip = 0,
+  limit = 80,
+  search = undefined,
+  signal,
+} = {}) => {
   const params = {
     status: 'deployed',
+    skip,
+    limit,
     ...(group ? { group } : {}),
+    ...(search !== undefined && search !== null && search.trim() !== ''
+      ? { search: search.trim() }
+      : {}),
   };
 
   return secureApiProxy
     .get(DEVICE_SUMMARY_URL, {
       params,
       authType: AUTH_TYPES.JWT,
+      signal,
     })
     .then((response) => response.data)
-    .catch(() => ({ devices: [] }));
+    .catch((error) => {
+      logger.error('getDeviceSummaryApi error:', error);
+      throw error;
+    });
 };
 
 // Get grid summary data
-export const getGridSummaryApi = async ({ admin_level = null }) => {
-  const params = admin_level ? { admin_level } : {};
+export const getGridSummaryApi = async ({
+  admin_level = null,
+  skip = 0,
+  limit = 80,
+  search = undefined,
+  signal,
+} = {}) => {
+  const params = {
+    skip,
+    limit,
+    ...(admin_level ? { admin_level } : {}),
+    ...(search !== undefined && search !== null && search.trim() !== ''
+      ? { search: search.trim() }
+      : {}),
+  };
 
   return secureApiProxy
     .get(GRID_SUMMARY_URL, {
       params,
       authType: AUTH_TYPES.JWT,
+      signal,
     })
     .then((response) => response.data)
-    .catch(() => ({ grids: [] }));
+    .catch((error) => {
+      logger.error('getGridSummaryApi error:', error);
+      throw error;
+    });
 };
 
 // Fetch analytics data
@@ -133,7 +183,10 @@ export const getRecentMeasurements = async (params) => {
       authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data)
-    .catch(() => ({}));
+    .catch((error) => {
+      logger.error('getRecentMeasurements error:', error);
+      throw error;
+    });
 };
 
 // Generate site and device IDs for a grid

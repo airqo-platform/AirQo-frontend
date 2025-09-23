@@ -20,12 +20,18 @@ const DataContent = ({
   columnsByFilter,
   filters,
   handleFilter,
-  searchKeysByFilter,
+  searchQuery,
+  onSearchChange,
   handleRetryLoad,
   showViewDataButton,
   isLoadingVisualizationData,
   onViewDataClick,
   deviceCategory, // Add device category prop
+  // New pagination props
+  paginationMeta,
+  onLoadMore,
+  canLoadMore,
+  hasNextPage,
 }) => {
   // Animation variants for content area
   const contentVariants = {
@@ -165,7 +171,8 @@ const DataContent = ({
           columnsByFilter={columnsByFilter}
           filters={filters}
           onFilter={handleFilter}
-          searchKeys={searchKeysByFilter}
+          searchValue={searchQuery}
+          onSearchChange={onSearchChange}
           showViewDataButton={showViewDataButton}
           isLoadingVisualizationData={isLoadingVisualizationData}
           onViewDataClick={onViewDataClick}
@@ -174,6 +181,12 @@ const DataContent = ({
           enableColumnFilters={true}
           defaultSortColumn="name"
           defaultSortDirection="asc"
+          // Pagination props
+          enableInfiniteScroll={true}
+          paginationMeta={paginationMeta}
+          onLoadMore={onLoadMore}
+          canLoadMore={canLoadMore}
+          hasNextPage={hasNextPage}
         />
       </motion.div>
     </motion.div>
