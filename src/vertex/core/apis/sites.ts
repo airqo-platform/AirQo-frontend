@@ -1,5 +1,4 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
-import { AxiosError } from "axios";
 import { Site } from "@/app/types/sites";
 
 interface ApproximateCoordinatesResponse {
@@ -13,10 +12,6 @@ interface ApproximateCoordinatesResponse {
     provided_latitude?: number;
     provided_longitude?: number;
   };
-}
-
-interface ErrorResponse {
-  message: string;
 }
 
 interface SiteDetailsResponse {
