@@ -161,10 +161,8 @@ export default function NetworkStatusBanner({
       setShowBackOnline(true);
       // Clear any dismissal so future offline events can be shown
       setDismissed(false);
-      const t = setTimeout(() => setShowBackOnline(false), 3000);
-      // update prev then cleanup
-      prevOnlineRef.current = isOnline;
-      return () => clearTimeout(t);
+      // Respect autoHide: auto-hide effect will hide the pulse when
+      // appropriate (based on autoHide and autoHideDelay).
     }
     prevOnlineRef.current = isOnline;
     return undefined;
@@ -190,7 +188,7 @@ export default function NetworkStatusBanner({
       <div
         role="status"
         aria-live="polite"
-        className={`fixed left-1/2 transform -translate-x-1/2 z-[2000] top-4 max-w-md mx-4 min-w-[320px] bg-green-600 text-white rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 ease-out ${className}`}
+        className={`fixed left-1/2 transform -translate-x-1/2 z-[2000] ${position === 'top' ? 'top-4' : 'bottom-6'} max-w-md mx-4 min-w-[320px] bg-green-600 text-white rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 ease-out ${className}`}
       >
         <div className="flex items-center gap-3 px-4 py-3">
           <div className="flex-shrink-0">
