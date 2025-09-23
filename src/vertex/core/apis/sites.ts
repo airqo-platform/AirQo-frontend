@@ -1,6 +1,6 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
-import { AxiosError } from "axios";
 import { Site } from "@/app/types/sites";
+import { PaginationMeta } from "@/app/types/devices";
 
 interface ApproximateCoordinatesResponse {
   success: boolean;
@@ -15,13 +15,26 @@ interface ApproximateCoordinatesResponse {
   };
 }
 
-interface ErrorResponse {
-  message: string;
-}
-
 interface SiteDetailsResponse {
   message: string;
   data: Site;
+}
+
+export interface SitesSummaryResponse {
+  success: boolean;
+  message: string;
+  sites: Site[];
+  meta: PaginationMeta;
+}
+
+export interface GetSitesSummaryParams {
+  network: string;
+  group?: string;
+  limit?: number;
+  skip?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
 }
 
 interface UpdateSiteRequest {
@@ -40,12 +53,18 @@ interface UpdateSiteRequest {
 }
 
 export const sites = {
-  getSitesSummary: async (networkId: string, groupName: string) => {
+  getSitesSummary: async (params: GetSitesSummaryParams): Promise<SitesSummaryResponse> => {
     try {
-      const queryParams = new URLSearchParams({
-        network: networkId,
-        ...(groupName && groupName !== "airqo" && { group: groupName }),
-      });
+      const { network, group, limit, skip, search, sortBy, order } = params;
+      const queryParams = new URLSearchParams();
+
+      if (network) queryParams.set("network", network);
+      if (group) queryParams.set("group", group);
+      if (limit !== undefined) queryParams.set("limit", String(limit));
+      if (skip !== undefined) queryParams.set("skip", String(skip));
+      if (search) queryParams.set("search", search);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortBy && order) queryParams.set("order", order);
 
       const response = await createSecureApiClient().get(
         `/devices/sites/summary?${queryParams.toString()}`,
@@ -56,17 +75,7 @@ export const sites = {
       throw error;
     }
   },
-  getSitesApi: async (networkId: string) => {
-    try {
-      const response = await createSecureApiClient().get(
-        `/devices/sites/summary?network=${networkId}`,
-        { headers: { "X-Auth-Type": "JWT" } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+
   createSite: async (data: {
     name: string;
     latitude: string;
@@ -126,6 +135,7 @@ export const sites = {
       throw error;
     }
   },
+  
   bulkUpdate: async (data: { siteIds: string[]; updateData: { groups?: string[] } }) => {
     try {
       const response = await createSecureApiClient().put(

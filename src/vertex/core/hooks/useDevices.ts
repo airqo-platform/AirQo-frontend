@@ -1,6 +1,6 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DeviceDetailsResponse, devices, type MaintenanceActivitiesResponse, GetDevicesSummaryParams, DeviceCountResponse } from "../apis/devices";
-import { setDevices, setError } from "@/core/redux/slices/devicesSlice";
+import { setError } from "@/core/redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
   DevicesSummaryResponse,
@@ -17,7 +17,6 @@ import type {
   MyDevicesResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
-import { useEffect, useMemo } from "react";
 import { useDispatch } from "react-redux";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
@@ -102,54 +101,6 @@ export const useDeviceCount = (params: { groupId?: string; cohortId?: string }) 
     refetchOnWindowFocus: false,
   });
 };
-
-export function useDeviceStatus() {
-  const dispatch = useDispatch();
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["deviceStatus"],
-    queryFn: devices.getDevicesStatus,
-    refetchInterval: 30000,
-  });
-
-  const summary = useMemo(() => data?.data[0], [data]);
-  const allDevices = useMemo(() =>
-    summary ? [...summary.online_devices, ...summary.offline_devices] : []
-    , [summary]);
-
-  useEffect(() => {
-    if (data) {
-      dispatch(setDevices(allDevices));
-    }
-    if (error) {
-      dispatch(setError((error as Error).message));
-    }
-  }, [data, error, dispatch, allDevices]);
-
-  const deviceStats = useMemo(() => ({
-    total: summary?.total_active_device_count || 0,
-    online: summary?.count_of_online_devices || 0,
-    offline: summary?.count_of_offline_devices || 0,
-    maintenance: {
-      good: allDevices.filter(d => d.maintenance_status === "good").length,
-      due: summary?.count_due_maintenance || 0,
-      overdue: summary?.count_overdue_maintenance || 0,
-      unspecified: summary?.count_unspecified_maintenance || 0,
-    },
-    powerSource: {
-      solar: summary?.count_of_solar_devices || 0,
-      alternator: summary?.count_of_alternator_devices || 0,
-      mains: summary?.count_of_mains || 0,
-    },
-  }), [summary, allDevices]);
-
-  return {
-    devices: allDevices,
-    stats: deviceStats,
-    isLoading,
-    error: error ? (error as Error).message : null,
-  };
-}
 
 export const useMapReadings = () => {
   const dispatch = useDispatch();
@@ -435,7 +386,6 @@ export const useDeployDevice = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["claimedDevices"] });
-      queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
     onError: (error) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -64,6 +64,7 @@ interface DeviceDetailsStepProps {
   onDeviceSelect: (deviceName: string) => void;
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
+  isDevicePrefilled: boolean;
 }
 
 interface LocationStepProps {
@@ -112,7 +113,8 @@ const DeviceDetailsStep = ({
   availableDevices,
   onDeviceSelect,
   onClaimDevice,
-  isLoadingDevices
+  isLoadingDevices,
+  isDevicePrefilled,
 }: DeviceDetailsStepProps) => {
   return (
     <div className="space-y-4">
@@ -120,7 +122,7 @@ const DeviceDetailsStep = ({
         <Label htmlFor="deviceName">Device to Deploy</Label>
         <ComboBox
           options={availableDevices.map((dev) => ({
-            value: dev.long_name || dev.name,
+            value: dev.name,
             label: dev.long_name || dev.name,
           }))}
           value={deviceData.deviceName}
@@ -128,10 +130,10 @@ const DeviceDetailsStep = ({
           placeholder={isLoadingDevices ? "Loading devices..." : "Select or type device name"}
           searchPlaceholder="Search or type device name..."
           emptyMessage="No devices found"
-          disabled={isLoadingDevices}
-          allowCustomInput={true}
-          onCustomAction={onClaimDevice}
-          customActionLabel="Device not listed? Claim a new device"
+          disabled={isLoadingDevices || isDevicePrefilled}
+          allowCustomInput={!isDevicePrefilled}
+          onCustomAction={!isDevicePrefilled ? onClaimDevice : undefined}
+          customActionLabel={!isDevicePrefilled ? "Device not listed? Claim a new device" : undefined}
           className="w-full"
         />
       </div>
@@ -211,14 +213,14 @@ const DeviceDetailsStep = ({
   );
 };
 
-const LocationStep = ({ 
-  deviceData, 
-  onCoordinateChange, 
-  onSiteNameChange, 
-  inputMode, 
-  onToggleInputMode 
+const LocationStep = ({
+  deviceData,
+  onCoordinateChange,
+  onSiteNameChange,
+  inputMode,
+  onToggleInputMode
 }: LocationStepProps) => {
-  
+
   return (
     <div>
       <div className="space-y-4">
@@ -281,14 +283,14 @@ const LocationStep = ({
           </div>
         )}
       </div>
-      
+
       <div className="space-y-2">
         <Label>Interactive Map</Label>
         <p className="text-sm text-muted-foreground">
-          Click on the map to set location or drag the marker. The site name will be automatically 
+          Click on the map to set location or drag the marker. The site name will be automatically
           updated with the location name from Mapbox when you interact with the map.
-          {inputMode === 'siteName' 
-            ? ' You can also search for locations by name.' 
+          {inputMode === 'siteName'
+            ? ' You can also search for locations by name.'
             : ' Switch to Site Name mode to search by location name.'}
         </p>
         <React.Suspense fallback={<div className="w-full h-72 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse" />}>
@@ -322,7 +324,7 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
         <CardHeader className="cursor-pointer select-none py-0 px-2" onClick={() => onHeaderClick(stepIndex)}>
           <CardTitle className="text-lg font-semibold flex items-center justify-between">
             {title}
-            <span className="ml-2 text-base">{currentStep === stepIndex ? <AqChevronUp/> : <AqChevronDown />}</span>
+            <span className="ml-2 text-base">{currentStep === stepIndex ? <AqChevronUp /> : <AqChevronDown />}</span>
           </CardTitle>
         </CardHeader>
       </CollapsibleTrigger>
@@ -334,21 +336,22 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
   </Card>
 );
 
-const DeployDeviceComponent = ({ 
-  prefilledDevice, 
-  onClose, 
+const DeployDeviceComponent = ({
+  prefilledDevice,
+  onClose,
   availableDevices: externalAvailableDevices = [],
   onDeploymentSuccess,
-  onDeploymentError 
+  onDeploymentError
 }: DeployDeviceComponentProps) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const queryClient = useQueryClient();
   const { isPersonalContext, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices();
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
-  
+
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
-    deviceName: prefilledDevice?.long_name || prefilledDevice?.name || "",
+    deviceName: prefilledDevice?.name || "",
     deployment_date: undefined,
     height: prefilledDevice?.height?.toString() || "",
     mountType: prefilledDevice?.mountType || "",
@@ -381,6 +384,20 @@ const DeployDeviceComponent = ({
   const availableDevices = isPersonalContext ? claimedDevices : filteredAirQoDevices;
   const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : false;
 
+  const devicesForSelection = React.useMemo(() => {
+    if (prefilledDevice) {
+      // Check if the prefilled device is already in the list of available devices
+      const isDeviceInList = availableDevices.some(
+        (device: Device) => device.name === prefilledDevice.name,
+      );
+      // If not, add it to the beginning of the list for display purposes
+      if (!isDeviceInList) {
+        return [prefilledDevice, ...availableDevices];
+      }
+    }
+    return availableDevices;
+  }, [prefilledDevice, availableDevices]);
+
   // When returning from claim page, refresh device list (only for personal context)
   React.useEffect(() => {
     if (isPersonalContext) {
@@ -395,9 +412,9 @@ const DeployDeviceComponent = ({
 
   const handleSelectChange =
     (name: string) =>
-    (value: string): void => {
-      setDeviceData((prev) => ({ ...prev, [name]: value }));
-    };
+      (value: string): void => {
+        setDeviceData((prev) => ({ ...prev, [name]: value }));
+      };
 
   const handleDateChange = (date: Date | undefined): void => {
     setDeviceData((prev) => ({ ...prev, deployment_date: date }));
@@ -449,10 +466,10 @@ const DeployDeviceComponent = ({
   const validateDeviceDetails = (): boolean => {
     return Boolean(
       deviceData.deviceName &&
-        deviceData.deployment_date &&
-        deviceData.height &&
-        deviceData.mountType &&
-        deviceData.powerType
+      deviceData.deployment_date &&
+      deviceData.height &&
+      deviceData.mountType &&
+      deviceData.powerType
     );
   };
 
@@ -487,6 +504,10 @@ const DeployDeviceComponent = ({
       },
       {
         onSuccess: () => {
+          if (prefilledDevice?._id) {
+            queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice._id] });
+          }
+
           // On successful deployment, reset form fields
           setDeviceData({
             deviceName: "",
@@ -530,10 +551,11 @@ const DeployDeviceComponent = ({
           onDateChange={handleDateChange}
           onSelectChange={handleSelectChange}
           onCheckboxChange={handleCheckboxChange}
-          availableDevices={availableDevices}
+          availableDevices={devicesForSelection}
           onDeviceSelect={handleDeviceSelect}
           onClaimDevice={handleClaimDevice}
           isLoadingDevices={isLoadingDevices}
+          isDevicePrefilled={!!prefilledDevice}
         />
       ),
       footer: (
@@ -555,8 +577,8 @@ const DeployDeviceComponent = ({
         <>
           <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
           <ReusableButton
-            onClick={handleDeploy} 
-            className="w-32" 
+            onClick={handleDeploy}
+            className="w-32"
             disabled={!(validateDeviceDetails() && validateLocation())}
             loading={deployDevice.isPending}
           >

@@ -6,7 +6,7 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 interface DeployDeviceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  device: Device;
+  device?: Device;
 }
 
 const DeployDeviceModal: React.FC<DeployDeviceModalProps> = ({ open, onOpenChange, device }) => {
@@ -24,7 +24,11 @@ const DeployDeviceModal: React.FC<DeployDeviceModalProps> = ({ open, onOpenChang
       maxHeight="h-full"
       showFooter={false}
     >
-      <DeployDeviceComponent prefilledDevice={device} onClose={handleClose} />
+      <DeployDeviceComponent
+        key={device?._id || device?.name}
+        prefilledDevice={device}
+        onClose={handleClose}
+      />
     </ReusableDialog>
   );
 };

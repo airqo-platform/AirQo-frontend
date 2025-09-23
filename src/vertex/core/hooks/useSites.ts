@@ -1,9 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
-import { sites, ApproximateCoordinatesResponse } from "../apis/sites";
-import { setSites, setError } from "../redux/slices/sitesSlice";
+import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse } from "../apis/sites";
 import { useAppSelector } from "../redux/hooks";
-import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
@@ -15,36 +12,52 @@ interface ErrorResponse {
   };
 }
 
-export const useSites = () => {
-  const dispatch = useDispatch();
+export interface SiteListingOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
+export const useSites = (options: SiteListingOptions = {}) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["sites", activeNetwork?.net_name, activeGroup?.grp_title],
-    queryFn: () =>
-      sites.getSitesSummary(
-        activeNetwork?.net_name || "",
-        activeGroup?.grp_title || ""
-      ),
+  const { page = 1, limit = 100, search, sortBy, order } = options;
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const skip = (safePage - 1) * safeLimit;
+
+  const sitesQuery = useQuery<
+    SitesSummaryResponse,
+    AxiosError<ErrorResponse>
+  >({
+    queryKey: ["sites", activeNetwork?.net_name, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
+    queryFn: () => {
+      const params: GetSitesSummaryParams = {
+        network: activeNetwork?.net_name || "",
+        group: activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || ""),
+        limit: safeLimit,
+        skip,
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(order && { order }),
+      };
+      return sites.getSitesSummary(params);
+    },
     enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
 
-  React.useEffect(() => {
-    if (data?.sites) {
-      dispatch(setSites(data.sites));
-    }
-    if (error) {
-      dispatch(setError(error.message));
-    }
-  }, [data, error, dispatch]);
-
   return {
-    sites: data?.sites || [],
-    isLoading,
-    error: error as Error | null,
+    data: sitesQuery.data,
+    sites: sitesQuery.data?.sites || [],
+    meta: sitesQuery.data?.meta,
+    isLoading: sitesQuery.isLoading,
+    isFetching: sitesQuery.isFetching,
+    error: sitesQuery.error,
   };
 };
 
