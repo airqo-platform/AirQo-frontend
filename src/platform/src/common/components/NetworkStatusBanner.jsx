@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { AqWifiOff, AqSignal02, AqXClose } from '@airqo/icons-react';
 
 // =============================================================================
@@ -105,35 +105,9 @@ function useNetworkStatus() {
 // BANNER CONFIG
 // =============================================================================
 
-function getBannerConfig({ isOnline, isSlow, isVerySlow }) {
-  if (!isOnline) {
-    return {
-      message: 'You are offline. Check your internet connection.',
-      bgClass: 'bg-red-600',
-      Icon: AqWifiOff,
-      severity: 'critical',
-    };
-  }
-  // Very slow has precedence
-  if (isVerySlow) {
-    return {
-      message: 'Very slow connection detected. Experience may be degraded.',
-      bgClass: 'bg-amber-700',
-      Icon: AqSignal02,
-      severity: 'warning',
-    };
-  }
-
-  if (isSlow) {
-    return {
-      message: 'Slow connection detected. Some features may be limited.',
-      bgClass: 'bg-amber-600',
-      Icon: AqSignal02,
-      severity: 'warning',
-    };
-  }
-  return null;
-}
+// getBannerConfig intentionally removed — we only display offline/back-online
+// banners. Slow/very-slow detection is retained in telemetry but not
+// surfaced to the user as per product request.
 
 // =============================================================================
 // COMPONENT
@@ -156,30 +130,81 @@ export default function NetworkStatusBanner({
   autoHideDelay = AUTO_HIDE_DELAY,
 }) {
   const [dismissed, setDismissed] = useState(false);
-  const { isOnline, isSlow, isVerySlow, effectiveType, downlink, rtt } =
-    useNetworkStatus();
+  const [showBackOnline, setShowBackOnline] = useState(false);
+  const { isOnline, effectiveType, downlink, rtt } = useNetworkStatus();
 
-  const hasIssue = !isOnline || isVerySlow || isSlow;
+  // Only consider offline as an issue to inform the user; slow/very-slow
+  // telemetry is kept but not surfaced in the UI per product request.
+  const hasIssue = !isOnline;
   const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
-  const config = useMemo(
-    () => getBannerConfig({ isOnline, isSlow, isVerySlow }),
-    [isOnline, isSlow, isVerySlow],
-  );
 
-  // Reset dismissal when fully OK again
-  useEffect(() => {
-    if (isOnline && !isSlow) setDismissed(false);
-  }, [isOnline, isSlow]);
+  const config = useMemo(() => {
+    // Only return an offline banner config when offline
+    if (!isOnline) {
+      return {
+        message: 'You are offline. Check your internet connection.',
+        bgClass: 'bg-red-600',
+        Icon: AqWifiOff,
+        severity: 'critical',
+      };
+    }
+    return null;
+  }, [isOnline]);
 
-  // Auto-hide slow-warning (not offline)
+  // Track previous online state to show a brief "back online" pulse when
+  // the connection is restored. This is useful to notify users after
+  // transient network interruptions.
+  const prevOnlineRef = useRef(isOnline);
   useEffect(() => {
-    if (!autoHide || !config || config.severity === 'critical' || !shouldShow)
-      return;
-    const t = setTimeout(() => setDismissed(true), autoHideDelay);
+    if (prevOnlineRef.current === false && isOnline === true) {
+      // We transitioned from offline -> online
+      setShowBackOnline(true);
+      // Clear any dismissal so future offline events can be shown
+      setDismissed(false);
+      const t = setTimeout(() => setShowBackOnline(false), 3000);
+      // update prev then cleanup
+      prevOnlineRef.current = isOnline;
+      return () => clearTimeout(t);
+    }
+    prevOnlineRef.current = isOnline;
+    return undefined;
+  }, [isOnline]);
+
+  // Reset dismissal when fully OK again (i.e., online)
+  useEffect(() => {
+    if (isOnline) setDismissed(false);
+  }, [isOnline]);
+
+  // Auto-hide is only relevant for the transient "back online" pulse here.
+  useEffect(() => {
+    if (!autoHide || !showBackOnline) return;
+    const t = setTimeout(() => setShowBackOnline(false), autoHideDelay);
     return () => clearTimeout(t);
-  }, [config, shouldShow, autoHide, autoHideDelay]);
+  }, [autoHide, showBackOnline, autoHideDelay]);
 
   const handleDismiss = useCallback(() => setDismissed(true), []);
+
+  // Show the transient back-online pulse first if present
+  if (showBackOnline) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className={`fixed left-1/2 transform -translate-x-1/2 z-[2000] top-4 max-w-md mx-4 min-w-[320px] bg-green-600 text-white rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 ease-out ${className}`}
+      >
+        <div className="flex items-center gap-3 px-4 py-3">
+          <div className="flex-shrink-0">
+            <AqSignal02 className="w-5 h-5" aria-hidden="true" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium leading-tight">
+              You&apos;re back online. Connection restored.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!shouldShow || !config) return null;
 
