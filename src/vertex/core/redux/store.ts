@@ -4,7 +4,6 @@ import sitesReducer from "./slices/sitesSlice";
 import devicesReducer from "./slices/devicesSlice";
 import cohortsReducer from "./slices/cohortsSlice";
 import gridsReducer from "./slices/gridsSlice";
-import clientsRudcer from "./slices/clientsSlice";
 import groupsReducer from "./slices/groupsSlice";
 
 
@@ -15,7 +14,6 @@ export const store = configureStore({
     devices: devicesReducer,
     grids: gridsReducer,
     cohorts: cohortsReducer,
-    clients: clientsRudcer,
     groups: groupsReducer,
   },
 });
