@@ -218,8 +218,6 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuSeparator />
-
                 <DropdownMenuItem
                   onClick={toggleDarkMode}
                   className="flex items-center gap-2"
