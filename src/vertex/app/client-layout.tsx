@@ -13,7 +13,7 @@ export default function ClientLayout({
 
   return (
       <body
-      className={"min-h-screen bg-background antialiased"}
+      className="min-h-screen bg-background antialiased"
       >
         <Providers>{children}</Providers>
         <Toaster />

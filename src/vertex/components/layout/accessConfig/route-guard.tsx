@@ -8,7 +8,8 @@ import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Lock } from "lucide-react";
-import { useUserContext } from "@/core/hooks/useUserContext";
+import { useAppSelector } from "@/core/redux/hooks";
+import { useUserContext } from "@/core/hooks/useUserContext"; 
 import { UserContext } from "@/core/redux/slices/userSlice";
 import SessionLoadingState from "../loading/session-loading";
 
@@ -35,22 +36,23 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   resourceContext,
 }) => {
   const router = useRouter();
-  const { userContext } = useUserContext();
+  const { userContext } = useUserContext(); 
+  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
   const hasPermission = usePermission(permission, { resourceContext });
   const permissionCheck = usePermissionCheck(permission, { resourceContext });
 
+  if (isContextLoading) {
+    return <SessionLoadingState />;
+  }
+
   const hasValidContext = !allowedContexts || (userContext !== null && allowedContexts.includes(userContext));
-  
   const hasAccess = hasPermission && hasValidContext;
 
   useEffect(() => {
     if (!hasAccess) {
+      // If redirection is needed and showError is false, it should be handled here.
     }
   }, [hasAccess, router, redirectTo]);
-
-  if(!userContext) {
-    return <SessionLoadingState />
-  }
 
   if (!hasAccess) {
     if (showError) {

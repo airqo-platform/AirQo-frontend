@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUserContext, SidebarConfig } from './useUserContext';
+import { useAppSelector } from '../redux/hooks';
 
 // Map routes to sidebar config properties
 const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
@@ -17,13 +18,14 @@ const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
 export const useContextAwareRouting = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { getSidebarConfig, userContext, isLoading } = useUserContext();
+  const { getSidebarConfig, userContext } = useUserContext();
+  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
   const previousContextRef = useRef<string | null>(null);
   const initializedRef = useRef(false);
 
   useEffect(() => {
-    // Don't validate during loading
-    if (isLoading || !userContext) {
+    // Don't run routing logic until the user context is fully initialized.
+    if (isContextLoading || !userContext) {
       return;
     }
 
@@ -71,5 +73,5 @@ export const useContextAwareRouting = () => {
       // logger.debug('Context-aware redirect', { from: pathname, to: '/home', userContext, sidebarConfig })
       router.push('/home');
     }
-  }, [userContext, pathname, isLoading, getSidebarConfig, router]);
+  }, [userContext, pathname, isContextLoading, getSidebarConfig, router]);
 }; 
