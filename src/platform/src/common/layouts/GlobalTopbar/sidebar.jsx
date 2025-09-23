@@ -36,15 +36,9 @@ const GlobalSideBarDrawer = () => {
   const { hasAnyPermission, isLoading } = usePermissions();
   const { id: activeGroupID } = useGetActiveGroup();
   const canViewAdminPanel = hasAnyPermission(
-    [
-      'SUPER_ADMIN',
-      'SYSTEM_ADMIN',
-      'GROUP_MANAGEMENT',
-      'USER_MANAGEMENT',
-      'ROLE_VIEW',
-    ],
-    activeGroupID,
     'AIRQO_ADMIN',
+    activeGroupID,
+    null,
     true,
   );
   const params = useParams();
