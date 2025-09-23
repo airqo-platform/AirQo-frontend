@@ -116,59 +116,6 @@ const NavItem = ({
   );
 };
 
-const SubMenuItem = ({
-  href,
-  label,
-  disabled = false,
-  tooltip,
-  activeOverride,
-}: {
-  href: string;
-  label: string;
-  disabled?: boolean;
-  tooltip?: string;
-  activeOverride?: boolean;
-}) => {
-  const pathname = usePathname();
-  const isActive =
-    typeof activeOverride === "boolean"
-      ? activeOverride
-      : pathname.startsWith(href);
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Link
-            href={disabled ? "#" : href}
-            tabIndex={disabled ? -1 : 0}
-            aria-disabled={disabled}
-            className={`relative flex items-center gap-3 px-4 py-2 rounded-lg transition text-sm
-                ${
-                  isActive
-                    ? "bg-blue-50 font-semibold text-blue-700"
-                    : "hover:bg-muted text-foreground"
-                }
-                ${
-                  disabled
-                    ? "opacity-50 pointer-events-none cursor-not-allowed"
-                    : ""
-                }`}
-            style={{ position: "relative" }}
-          >
-            {/* {isActive && (
-              <span className="absolute -left-1 top-[13px] bottom-1 w-1 h-3 rounded-full bg-blue-600" />
-            )} */}
-            <span>{label}</span>
-          </Link>
-        </TooltipTrigger>
-        {disabled && tooltip && (
-          <TooltipContent side="right">{tooltip}</TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
   activeModule,
