@@ -53,6 +53,7 @@ export const useUserContext = (): UserContextState => {
   const userDetails = useAppSelector((state) => state.user.userDetails);
   const isInitialized = useAppSelector((state) => state.user.isInitialized);
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
 
   // Permission checks with loading states
   const canViewDevices = usePermission(PERMISSIONS.DEVICE.VIEW);
@@ -79,11 +80,6 @@ export const useUserContext = (): UserContextState => {
     
     return false;
   }, [isInitialized, isAuthenticated, userDetails, userContext]);
-
-  const isContextLoading = useMemo(() => {
-    // Context is loading if we have user details but no context
-    return !isLoading && userDetails && !userContext;
-  }, [isLoading, userDetails, userContext]);
 
   const isPermissionsLoading = useMemo(() => {
     // Permissions are loading if we have context but permissions aren't ready
@@ -237,7 +233,7 @@ export const useUserContext = (): UserContextState => {
     
     // Loading states
     isLoading,
-    isContextLoading: isContextLoading || false,
+    isContextLoading,
     isPermissionsLoading: isPermissionsLoading || false,
     
     // Error states
