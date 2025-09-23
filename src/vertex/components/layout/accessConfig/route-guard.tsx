@@ -41,18 +41,22 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const hasPermission = usePermission(permission, { resourceContext });
   const permissionCheck = usePermissionCheck(permission, { resourceContext });
 
-  if (isContextLoading) {
-    return <SessionLoadingState />;
-  }
-
   const hasValidContext = !allowedContexts || (userContext !== null && allowedContexts.includes(userContext));
   const hasAccess = hasPermission && hasValidContext;
 
   useEffect(() => {
-    if (!hasAccess) {
-      // If redirection is needed and showError is false, it should be handled here.
+    if (isContextLoading) {
+      return;
     }
-  }, [hasAccess, router, redirectTo]);
+
+    if (!hasAccess && !showError) {
+      router.push(redirectTo);
+    }
+  }, [hasAccess, isContextLoading, router, redirectTo, showError]);
+
+  if (isContextLoading) {
+    return <SessionLoadingState />;
+  }
 
   if (!hasAccess) {
     if (showError) {
