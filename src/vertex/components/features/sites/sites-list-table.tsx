@@ -2,32 +2,56 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import ReusableTable, {
   TableColumn,
   TableItem,
+  SortingState,
 } from "@/components/shared/table/ReusableTable";
 import { useRouter } from "next/navigation";
-import { Site } from "@/core/redux/slices/sitesSlice";
+import { Site } from "@/app/types/sites";
+import { useSites } from "@/core/hooks/useSites";
+import { useState, useMemo, useRef, useEffect } from "react";
 
 interface SitesTableProps {
-  sites: Site[];
-  isLoading?: boolean;
-  error?: Error | null;
   itemsPerPage?: number;
   onSiteClick?: (site: Site) => void;
   multiSelect?: boolean;
   onSelectedSitesChange?: (selectedSites: Site[]) => void;
+  className?: string;
 }
 
 type TableSite = TableItem<unknown>;
 
 export default function SitesTable({
-  sites,
-  isLoading = false,
-  error = null,
-  itemsPerPage = 10,
+  itemsPerPage = 25,
   onSiteClick,
   multiSelect = false,
   onSelectedSitesChange,
+  className,
 }: SitesTableProps) {
   const router = useRouter();
+  const tableRef = useRef<HTMLDivElement>(null);
+
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: itemsPerPage,
+  });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const { sites, meta, isFetching, error } = useSites({
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+    search: searchTerm,
+    sortBy: sorting[0]?.id,
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+  });
+
+  // Scroll to top of table when page changes
+  useEffect(() => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [pagination.pageIndex]);
+
+  const pageCount = meta?.totalPages ?? 0;
 
   const handleSiteClick = (item: unknown) => {
     const site = item as Site;
@@ -42,14 +66,16 @@ export default function SitesTable({
     }
   };
 
-  const sitesWithId: TableSite[] = sites
-    .filter(
-      (s): s is Site & { _id: string } => typeof s._id === "string" && s._id.trim() !== ""
-    )
-    .map((s) => ({
-      ...s,
-      id: s._id,
-    }));
+  const sitesWithId: TableSite[] = useMemo(
+    () =>
+      sites
+        .filter(
+          (s): s is Site & { _id: string } =>
+            typeof s._id === "string" && s._id.trim() !== ""
+        )
+        .map((s) => ({ ...s, id: s._id })),
+    [sites]
+  );
 
   const columns: TableColumn<TableSite>[] = [
     {
@@ -115,16 +141,24 @@ export default function SitesTable({
   ];
 
   return (
-    <div className="space-y-4">
+    <div ref={tableRef} className={`space-y-4 ${className}`}>
       <ReusableTable
         title="Sites"
         data={sitesWithId}
         columns={columns}
-        loading={isLoading}
+        loading={isFetching}
         pageSize={itemsPerPage}
         onRowClick={handleSiteClick}
         multiSelect={multiSelect}
         onSelectedItemsChange={handleSelectedItemsChange}
+        serverSidePagination
+        pageCount={pageCount}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        onSearchChange={setSearchTerm}
+        sorting={sorting}
+        onSortingChange={setSorting}
+        searchable
         actions={multiSelect ? [
           {
             label: "Export Selected",
@@ -137,21 +171,14 @@ export default function SitesTable({
             <div className="flex flex-col items-center gap-2">
               <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
               <p className="text-muted-foreground">Unable to load sites</p>
-              <p className="text-sm text-muted-foreground">{error.message}</p>
+              <p className="text-sm text-muted-foreground">
+                {error?.message || "An unknown error occurred"}
+              </p>
             </div>
           ) : (
             "No sites available"
           )
         }
-        searchableColumns={[
-          "name",
-          "location_name",
-          "generated_name",
-          "formatted_name",
-          "description",
-          "country",
-          "district",
-        ]}
       />
     </div>
   );
