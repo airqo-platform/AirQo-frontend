@@ -75,17 +75,7 @@ export const sites = {
       throw error;
     }
   },
-  getSitesApi: async (networkId: string) => {
-    try {
-      const response = await createSecureApiClient().get(
-        `/devices/sites/summary?network=${networkId}`,
-        { headers: { "X-Auth-Type": "JWT" } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+
   createSite: async (data: {
     name: string;
     latitude: string;
@@ -145,6 +135,7 @@ export const sites = {
       throw error;
     }
   },
+  
   bulkUpdate: async (data: { siteIds: string[]; updateData: { groups?: string[] } }) => {
     try {
       const response = await createSecureApiClient().put(

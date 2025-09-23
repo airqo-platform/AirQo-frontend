@@ -29,7 +29,6 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     if (
       pathname.startsWith("/user-management") ||
-      pathname.startsWith("/organizations") ||
       pathname.startsWith("/access-control")
     ) {
       setActiveModule("admin");

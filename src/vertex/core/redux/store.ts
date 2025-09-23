@@ -6,8 +6,6 @@ import cohortsReducer from "./slices/cohortsSlice";
 import gridsReducer from "./slices/gridsSlice";
 import clientsRudcer from "./slices/clientsSlice";
 import groupsReducer from "./slices/groupsSlice";
-import teamReducer from "./slices/teamSlice";
-import groupDetailsReducer from "./slices/groupDetailsSlice";
 
 
 export const store = configureStore({
@@ -19,9 +17,6 @@ export const store = configureStore({
     cohorts: cohortsReducer,
     clients: clientsRudcer,
     groups: groupsReducer,
-    team: teamReducer,
-    groupDetailsReducer: groupDetailsReducer,
-
   },
 });
 
