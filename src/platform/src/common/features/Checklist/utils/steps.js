@@ -16,7 +16,6 @@ export const createSteps = () => [
     description: 'Watch a short video explaining AirQo Analytics features',
     time: '1 min',
     link: '#',
-    func: () => handleStepClick(1),
     icon: 'video',
   },
   {
@@ -25,7 +24,6 @@ export const createSteps = () => [
     description: 'Set up your preferred locations for air quality monitoring',
     time: '2 min',
     link: '/user/analytics',
-    func: () => handleStepClick(2),
     icon: 'location',
   },
   {
@@ -35,7 +33,6 @@ export const createSteps = () => [
       'Customize your profile settings for a personalized experience',
     time: '4 min',
     link: '/user/profile',
-    func: () => handleStepClick(3),
     icon: 'profile',
   },
   {
@@ -45,7 +42,6 @@ export const createSteps = () => [
       'Learn actionable steps to improve air quality in your community',
     time: '1 min',
     link: 'https://blog.airqo.net/',
-    func: () => handleStepClick(4),
     icon: 'blog',
     isExternal: true,
   },

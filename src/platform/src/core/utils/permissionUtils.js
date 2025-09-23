@@ -376,27 +376,39 @@ export const useGroupPermissions = (groupId) => {
  * Legacy compatibility function for existing code
  * @deprecated Use usePermissions hook instead
  */
-export const checkAccess = (
-  userPermissions,
-  requiredPermissions,
-  mode = 'some',
-) => {
+export const checkAccess = (...args) => {
   logger.warn('checkAccess is deprecated, use usePermissions hook instead');
 
+  // Backward-compat mode: checkAccess(permission, session)
+  if (
+    typeof args[0] === 'string' &&
+    args[1] &&
+    typeof args[1] === 'object' &&
+    args[1].user
+  ) {
+    const permission = args[0];
+    const session = args[1];
+    const rolePerms =
+      session.user?.role?.role_permissions?.map((p) => p.permission) || [];
+    return rolePerms.includes(permission);
+  }
+
+  // New mode: checkAccess(userPermissions, requiredPermissions, mode='some')
+  const [userPermissions, requiredPermissions, mode = 'some'] = args;
   if (!userPermissions || !requiredPermissions) return false;
 
   const permissions = Array.isArray(userPermissions)
     ? userPermissions
-    : [userPermissions];
+    : [userPermissions].filter(Boolean);
   const required = Array.isArray(requiredPermissions)
     ? requiredPermissions
-    : [requiredPermissions];
+    : [requiredPermissions].filter(Boolean);
 
-  if (mode === 'every') {
-    return required.every((permission) => permissions.includes(permission));
-  }
+  if (required.length === 0 || permissions.length === 0) return false;
 
-  return required.some((permission) => permissions.includes(permission));
+  return mode === 'every'
+    ? required.every((perm) => permissions.includes(perm))
+    : required.some((perm) => permissions.includes(perm));
 };
 
 /**

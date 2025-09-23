@@ -128,13 +128,24 @@ export const getGridsSummaryApi = () =>
     .then((response) => response.data);
 
 // Mobile devices endpoints
-export const getMobileDevices = ({ skip = 0, limit = 30 } = {}) =>
-  secureApiProxy
-    .get(MOBILE_DEVICES_URL, {
-      params: { skip, limit },
-      authType: AUTH_TYPES.JWT,
-    })
+export const getMobileDevices = ({ skip = 0, limit = 30, signal } = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  const config = {
+    params: { skip: sanitizedSkip, limit: sanitizedLimit },
+    authType: AUTH_TYPES.JWT,
+  };
+
+  if (signal && !signal.aborted) {
+    config.signal = signal;
+  }
+
+  return secureApiProxy
+    .get(MOBILE_DEVICES_URL, config)
     .then((response) => response.data);
+};
 
 // BAM devices endpoints
 export const getBAMDevices = ({ skip = 0, limit = 30 } = {}) => {

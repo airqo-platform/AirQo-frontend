@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { AqWifiOff, AqSignal02, AqXClose } from '@airqo/icons-react';
 
 // =============================================================================
@@ -161,7 +161,10 @@ export default function NetworkStatusBanner({
 
   const hasIssue = !isOnline || isVerySlow || isSlow;
   const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
-  const config = getBannerConfig({ isOnline, isSlow });
+  const config = useMemo(
+    () => getBannerConfig({ isOnline, isSlow, isVerySlow }),
+    [isOnline, isSlow, isVerySlow],
+  );
 
   // Reset dismissal when fully OK again
   useEffect(() => {

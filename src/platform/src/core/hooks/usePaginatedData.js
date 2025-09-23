@@ -72,7 +72,12 @@ export const usePaginatedData = (
         const result = await fetcher(params, abortController.current.signal);
         return result;
       } catch (error) {
-        if (error.name === 'AbortError') {
+        if (
+          error.name === 'AbortError' ||
+          error.name === 'CanceledError' ||
+          error.code === 'ERR_CANCELED' ||
+          error.code === 'ECONNABORTED'
+        ) {
           logger.debug?.('Request aborted');
           return undefined; // do not update SWR cache on abort
         }
