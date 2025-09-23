@@ -388,16 +388,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       tooltip="You do not have permission to view access control."
                     />
                   )}
-                  {sidebarConfig.showOrganizations && (
-                    <NavItem
-                      href="/organizations"
-                      icon={AqHomeSmile}
-                      label="Organizations"
-                      isCollapsed={isCollapsed}
-                      disabled={!contextPermissions.canViewOrganizations}
-                      tooltip="You do not have permission to view organizations."
-                    />
-                  )}
                 </>
               )}
             </>

@@ -7,7 +7,6 @@ const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   '/sites': 'showSites',
   '/user-management': 'showUserManagement',
   '/access-control': 'showAccessControl',
-  '/organizations': 'showOrganizations',
   '/devices/my-devices': 'showMyDevices',
   '/devices/overview': 'showDeviceOverview',
   '/devices/claim': 'showClaimDevice',

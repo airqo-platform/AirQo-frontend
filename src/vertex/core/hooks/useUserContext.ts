@@ -12,7 +12,6 @@ export interface SidebarConfig {
   showCohorts: boolean;
   showUserManagement: boolean;
   showAccessControl: boolean;
-  showOrganizations: boolean;
   showMyDevices: boolean;
   showDeviceOverview: boolean;
   showClaimDevice: boolean;
@@ -60,7 +59,6 @@ export const useUserContext = (): UserContextState => {
   const canViewSites = usePermission(PERMISSIONS.SITE.VIEW);
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
-  const canViewOrganizations = usePermission(PERMISSIONS.ORGANIZATION.VIEW);
 
   // Determine loading states
   const isLoading = useMemo(() => {
@@ -136,7 +134,6 @@ export const useUserContext = (): UserContextState => {
         showCohorts: false,
         showUserManagement: false,
         showAccessControl: false,
-        showOrganizations: false,
         showMyDevices: true,
         showDeviceOverview: false,
         showClaimDevice: true,
@@ -155,7 +152,6 @@ export const useUserContext = (): UserContextState => {
           showCohorts: false,
           showUserManagement: false,
           showAccessControl: false,
-          showOrganizations: false,
           showMyDevices: true,
           showDeviceOverview: false,
           showClaimDevice: true,
@@ -172,7 +168,6 @@ export const useUserContext = (): UserContextState => {
           showCohorts: canViewDevices,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
-          showOrganizations: canViewOrganizations,
           showMyDevices: false,
           showDeviceOverview: canViewDevices,
           showClaimDevice: true,
@@ -189,7 +184,6 @@ export const useUserContext = (): UserContextState => {
           showCohorts: false,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
-          showOrganizations: false,
           showMyDevices: false,
           showDeviceOverview: canViewDevices,
           showClaimDevice: true,
@@ -206,7 +200,6 @@ export const useUserContext = (): UserContextState => {
           showCohorts: false,
           showUserManagement: false,
           showAccessControl: false,
-          showOrganizations: false,
           showMyDevices: true,
           showDeviceOverview: false,
           showClaimDevice: true,
@@ -231,7 +224,6 @@ export const useUserContext = (): UserContextState => {
       canViewSites,
       canViewUserManagement,
       canViewAccessControl,
-      canViewOrganizations,
     };
   };
 
