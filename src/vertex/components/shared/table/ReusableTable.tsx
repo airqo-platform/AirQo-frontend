@@ -854,7 +854,7 @@ const ReusableTable = <T extends TableItem>({
     }
 
     return result;
-  }, [data, filterValues, searchableColumns, searchTerm, columns]);
+  }, [data, filterValues, searchableColumns, searchTerm, columns, serverSidePagination]);
 
   const clientSortedData = useMemo(() => {
     if (serverSidePagination || !sortConfig.key) return filteredData;
@@ -888,7 +888,6 @@ const ReusableTable = <T extends TableItem>({
   const finalTotalPages = serverSidePagination ? pageCount : clientTotalPages;
   const finalCurrentPage = serverSidePagination ? (paginationProp?.pageIndex ?? 0) + 1 : currentPage;
   const finalCurrentPageSize = serverSidePagination ? paginationProp?.pageSize ?? pageSize : currentPageSize;
-  const finalTotalItems = serverSidePagination ? totalItemsProp ?? data.length : clientSortedData.length;
 
   const handleClientPageChange = useCallback((page: number) => {
     const clamped = Math.max(1, Math.min(page, Math.max(1, clientTotalPages)));
@@ -915,23 +914,6 @@ const ReusableTable = <T extends TableItem>({
       handlePageChange(totalPages > 0 ? Math.min(Math.max(1, finalCurrentPage), totalPages) : 1);
     }
   }, [finalCurrentPage, totalPages, handlePageChange, loading]);
-
-  const handlePageSizeChange = useCallback((newPageSize: number) => {
-    if (serverSidePagination) {
-      onPaginationChange?.({ pageIndex: 0, pageSize: newPageSize });
-      return;
-    }
-
-    const normalized = Array.isArray(pageSizeOptions) && pageSizeOptions.length > 0
-      ? (pageSizeOptions.includes(newPageSize) ? newPageSize : pageSizeOptions[0])
-      : Math.max(1, newPageSize || 1);
-    if (tableId) {
-      updateUrlState({ pageSize: normalized, page: 1 });
-    } else {
-      setLocalCurrentPageSize(normalized);
-      setLocalCurrentPage(1);
-    }
-  }, [tableId, updateUrlState, pageSizeOptions, serverSidePagination, onPaginationChange]);
 
   const handleSort = useCallback(
     (key: string) => {
