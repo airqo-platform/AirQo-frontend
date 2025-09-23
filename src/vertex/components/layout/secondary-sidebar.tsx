@@ -12,7 +12,6 @@ import {
 import {
   AqHomeSmile,
   AqMonitor,
-  AqGlobe05,
   AqUser03,
   AqAirQlouds,
   AqMarkerPin01,
@@ -298,17 +297,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                     disabled={false}
                   />
-
-                  {/* Network Map - only for AirQo Internal */}
-                  {sidebarConfig.showNetworkMap && (
-                    <NavItem
-                      href="/network-map"
-                      icon={AqGlobe05}
-                      label="Network Map"
-                      isCollapsed={isCollapsed}
-                      disabled={false}
-                    />
-                  )}
 
                   {/* Network Section Heading */}
                   <SidebarSectionHeading isCollapsed={isCollapsed}>

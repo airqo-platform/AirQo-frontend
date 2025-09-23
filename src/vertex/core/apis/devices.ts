@@ -200,22 +200,6 @@ export const devices = {
     }
   },
 
-  getDevicesStatus: async (): Promise<DeviceStatusResponse> => {
-    // Get today's date and yesterday's date
-    const endDate = new Date().toISOString();
-    const startDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const limit = 1;
-    try {
-      const response = await jwtApiClient.get(
-        `/monitor/devices/status?tenant=airqo&startDate=${startDate}&endDate=${endDate}&limit=${limit}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
   checkDeviceAvailability: async (deviceName: string): Promise<DeviceAvailabilityResponse> => {
     try {
       const response = await jwtApiClient.get<DeviceAvailabilityResponse>(

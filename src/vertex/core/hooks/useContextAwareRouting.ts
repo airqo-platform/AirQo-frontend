@@ -4,7 +4,6 @@ import { useUserContext, SidebarConfig } from './useUserContext';
 
 // Map routes to sidebar config properties
 const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
-  '/network-map': 'showNetworkMap',
   '/sites': 'showSites',
   '/user-management': 'showUserManagement',
   '/access-control': 'showAccessControl',
