@@ -14,7 +14,7 @@ const CreateSiteForm = dynamic(() =>
 );
 
 export default function SitesPage() {
-  const { sites, isLoading, error } = useSites();
+  const { isLoading, error } = useSites();
 
   return (
     <RouteGuard
@@ -37,9 +37,6 @@ export default function SitesPage() {
 
         <div className="border rounded-lg">
           <SitesTable
-            sites={sites}
-            isLoading={isLoading}
-            error={error}
           />
         </div>
       </div>
