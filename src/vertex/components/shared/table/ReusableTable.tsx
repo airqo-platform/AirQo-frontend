@@ -505,7 +505,6 @@ interface ReusableTableProps<T extends TableItem> {
   // Server-side operation props
   serverSidePagination?: boolean;
   pageCount?: number;
-  totalItems?: number;
   pagination?: { pageIndex: number; pageSize: number };
   onPaginationChange?: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number }>>;
   sorting?: SortingState;
@@ -564,7 +563,6 @@ const ReusableTable = <T extends TableItem>({
   // Server-side props
   serverSidePagination = false,
   pageCount = 0,
-  totalItems: totalItemsProp,
   pagination: paginationProp,
   onPaginationChange,
   sorting: sortingProp,
@@ -607,7 +605,6 @@ const ReusableTable = <T extends TableItem>({
 
   const [localSearchTerm, setLocalSearchTerm] = useState("");
   const [localCurrentPage, setLocalCurrentPage] = useState(1);
-  const [localCurrentPageSize, setLocalCurrentPageSize] = useState(pageSize);
   const [localSortConfig, setLocalSortConfig] = useState<SortConfig>({ key: null, direction: "asc" });
   const [localFilterValues, setLocalFilterValues] = useState(initialFilters);
 
@@ -641,7 +638,7 @@ const ReusableTable = <T extends TableItem>({
     ? urlState!.searchTerm
     : localSearchTerm;
   const currentPage = tableId ? urlState!.currentPage : localCurrentPage;
-  const currentPageSize = tableId ? urlState!.currentPageSize : localCurrentPageSize;
+  const currentPageSize = tableId ? urlState!.currentPageSize : pageSize;
   const sortConfig = tableId ? urlState!.sortConfig : localSortConfig;
   const filterValues = tableId ? urlState!.filterValues : localFilterValues;
 
