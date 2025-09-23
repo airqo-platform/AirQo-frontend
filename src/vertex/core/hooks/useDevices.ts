@@ -386,7 +386,6 @@ export const useDeployDevice = () => {
       });
       queryClient.invalidateQueries({ queryKey: ["devices"] });
       queryClient.invalidateQueries({ queryKey: ["claimedDevices"] });
-      queryClient.invalidateQueries({ queryKey: ["device-details"] });
       queryClient.invalidateQueries({ queryKey: ["myDevices"] });
     },
     onError: (error) => {

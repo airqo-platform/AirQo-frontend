@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -64,6 +64,7 @@ interface DeviceDetailsStepProps {
   onDeviceSelect: (deviceName: string) => void;
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
+  isDevicePrefilled: boolean;
 }
 
 interface LocationStepProps {
@@ -112,7 +113,8 @@ const DeviceDetailsStep = ({
   availableDevices,
   onDeviceSelect,
   onClaimDevice,
-  isLoadingDevices
+  isLoadingDevices,
+  isDevicePrefilled,
 }: DeviceDetailsStepProps) => {
   return (
     <div className="space-y-4">
@@ -120,7 +122,7 @@ const DeviceDetailsStep = ({
         <Label htmlFor="deviceName">Device to Deploy</Label>
         <ComboBox
           options={availableDevices.map((dev) => ({
-            value: dev.long_name || dev.name,
+            value: dev.name,
             label: dev.long_name || dev.name,
           }))}
           value={deviceData.deviceName}
@@ -128,10 +130,10 @@ const DeviceDetailsStep = ({
           placeholder={isLoadingDevices ? "Loading devices..." : "Select or type device name"}
           searchPlaceholder="Search or type device name..."
           emptyMessage="No devices found"
-          disabled={isLoadingDevices}
-          allowCustomInput={true}
-          onCustomAction={onClaimDevice}
-          customActionLabel="Device not listed? Claim a new device"
+          disabled={isLoadingDevices || isDevicePrefilled}
+          allowCustomInput={!isDevicePrefilled}
+          onCustomAction={!isDevicePrefilled ? onClaimDevice : undefined}
+          customActionLabel={!isDevicePrefilled ? "Device not listed? Claim a new device" : undefined}
           className="w-full"
         />
       </div>
@@ -342,13 +344,14 @@ const DeployDeviceComponent = ({
   onDeploymentError 
 }: DeployDeviceComponentProps) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const queryClient = useQueryClient();
   const { isPersonalContext, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices();
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
   
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
-    deviceName: prefilledDevice?.long_name || prefilledDevice?.name || "",
+    deviceName: prefilledDevice?.name || "",
     deployment_date: undefined,
     height: prefilledDevice?.height?.toString() || "",
     mountType: prefilledDevice?.mountType || "",
@@ -380,6 +383,20 @@ const DeployDeviceComponent = ({
   // Choose which devices to show based on context
   const availableDevices = isPersonalContext ? claimedDevices : filteredAirQoDevices;
   const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : false;
+
+  const devicesForSelection = React.useMemo(() => {
+    if (prefilledDevice) {
+      // Check if the prefilled device is already in the list of available devices
+      const isDeviceInList = availableDevices.some(
+        (device: Device) => device.name === prefilledDevice.name,
+      );
+      // If not, add it to the beginning of the list for display purposes
+      if (!isDeviceInList) {
+        return [prefilledDevice, ...availableDevices];
+      }
+    }
+    return availableDevices;
+  }, [prefilledDevice, availableDevices]);
 
   // When returning from claim page, refresh device list (only for personal context)
   React.useEffect(() => {
@@ -487,6 +504,8 @@ const DeployDeviceComponent = ({
       },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ["deviceDetails", prefilledDevice?._id] });
+
           // On successful deployment, reset form fields
           setDeviceData({
             deviceName: "",
@@ -530,10 +549,11 @@ const DeployDeviceComponent = ({
           onDateChange={handleDateChange}
           onSelectChange={handleSelectChange}
           onCheckboxChange={handleCheckboxChange}
-          availableDevices={availableDevices}
+          availableDevices={devicesForSelection}
           onDeviceSelect={handleDeviceSelect}
           onClaimDevice={handleClaimDevice}
           isLoadingDevices={isLoadingDevices}
+          isDevicePrefilled={!!prefilledDevice}
         />
       ),
       footer: (
