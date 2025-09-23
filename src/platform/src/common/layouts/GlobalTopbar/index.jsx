@@ -19,6 +19,7 @@ import {
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import GroupLogo from '@/common/components/GroupLogo';
 import CardWrapper from '@/common/components/CardWrapper';
+import LoadingOverlay from '@/common/components/LoadingOverlay';
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import { setupUserSession } from '@/core/utils/loginSetup';
@@ -240,6 +241,12 @@ const GlobalTopbar = ({
 
   return (
     <div className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-0 left-0 right-0 z-[999]">
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isRefreshing}
+        subtitle="Refreshing application data and permissions"
+      />
+
       {/* Main Topbar */}
       <CardWrapper
         className={`w-full ${styles.background}`}
@@ -283,7 +290,7 @@ const GlobalTopbar = ({
                   disabled={isRefreshing}
                   variant="outlined"
                   className={`
-                    p-2 h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 
+                    p-2 h-9 w-9 flex items-center justify-center rounded-lg border border-gray-200 
                     focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
                     dark:border-gray-600 dark:focus:ring-primary/70 
                     dark:focus:ring-offset-gray-800 transition-colors duration-200

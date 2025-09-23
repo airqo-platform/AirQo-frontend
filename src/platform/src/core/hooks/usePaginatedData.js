@@ -93,8 +93,6 @@ export const usePaginatedData = (
     paginatedFetcher,
     {
       ...SWR_CONFIG,
-      revalidateOnMount: true,
-      dedupingInterval: 5000, // Prevent duplicate requests within 5 seconds
       ...swrOptions,
     },
   );
