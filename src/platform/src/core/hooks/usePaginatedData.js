@@ -365,4 +365,23 @@ export const usePaginatedGridsSummary = (adminLevel, options = {}) => {
   );
 };
 
+/**
+ * Specialized hook for mobile devices with pagination
+ */
+export const usePaginatedMobileDevices = (options = {}) => {
+  const fetcher = useCallback(async (params) => {
+    const { getMobileDevices } = await import('../apis/DeviceRegistry');
+    return getMobileDevices({
+      skip: params.skip,
+      limit: params.limit,
+    });
+  }, []);
+
+  return usePaginatedData(['mobile-devices-paginated'], fetcher, {
+    initialLimit: 20,
+    maxLimit: 100,
+    ...options,
+  });
+};
+
 export default usePaginatedData;

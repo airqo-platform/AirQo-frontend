@@ -3,6 +3,7 @@ import {
   SITES_URL,
   READINGS_URL,
   DEVICES,
+  MOBILE_DEVICES_URL,
   GRID_LOCATIONS_URL,
   NEAREST_SITE_URL,
   GRIDS_SUMMARY_URL,
@@ -110,6 +111,15 @@ export const getAssignedSitesForGrid = (gridID) =>
 export const getGridsSummaryApi = () =>
   secureApiProxy
     .get(`${DEVICES}/grids/summary`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+// Mobile devices endpoints
+export const getMobileDevices = ({ skip = 0, limit = 30 } = {}) =>
+  secureApiProxy
+    .get(MOBILE_DEVICES_URL, {
+      params: { skip, limit },
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);

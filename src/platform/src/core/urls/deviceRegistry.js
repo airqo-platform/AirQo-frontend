@@ -1,4 +1,5 @@
 export const DEVICES = '/devices';
+export const MOBILE_DEVICES_URL = '/devices/mobile';
 export const GRIDS_SUMMARY_URL = '/devices/grids/summary';
 export const GRID_LOCATIONS_URL = '/devices/grids';
 export const GRID_ASSIGNED_SITES_URL =

@@ -267,4 +267,5 @@ export {
   usePaginatedSitesSummary,
   usePaginatedDevicesSummary,
   usePaginatedGridsSummary,
+  usePaginatedMobileDevices,
 } from './usePaginatedData';
