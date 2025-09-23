@@ -12,7 +12,7 @@ import DashboardPageSkeleton from '@/common/components/Skeleton/DashboardPageSke
 import ErrorState from '@/common/components/ErrorState';
 import { getGroupAnalyticsApi } from '@/core/apis/Account';
 import PermissionDenied from '@/common/components/PermissionDenied';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 
 import {
   AqUsers01,

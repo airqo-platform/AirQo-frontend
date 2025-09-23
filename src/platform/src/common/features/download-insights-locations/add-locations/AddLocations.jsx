@@ -29,6 +29,7 @@ export const AddLocations = ({ onClose }) => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const {
     activeGroupId,
@@ -38,7 +39,12 @@ export const AddLocations = ({ onClose }) => {
     isLoading,
     isError,
     error,
-  } = useAddLocationsData();
+    meta,
+    hasNextPage,
+    loadMore,
+    canLoadMore,
+    refresh,
+  } = useAddLocationsData(searchQuery);
 
   const {
     selectedSites,
@@ -184,6 +190,13 @@ export const AddLocations = ({ onClose }) => {
               isError={isError}
               fetchError={error}
               handleToggleSite={handleToggleSite}
+              meta={meta}
+              hasNextPage={hasNextPage}
+              loadMore={loadMore}
+              canLoadMore={canLoadMore}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onRetry={refresh}
             />
           </motion.div>
 

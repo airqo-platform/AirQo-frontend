@@ -16,6 +16,7 @@ import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeC
 import UnifiedGroupProvider from './UnifiedGroupProvider';
 import { TourProvider } from '@/common/features/tours/contexts/TourProvider';
 import { useThemeInitialization } from '@/core/hooks';
+import NetworkStatusBanner from '@/common/components/NetworkStatusBanner';
 
 /**
  * Component that initializes theme settings for authenticated users
@@ -158,6 +159,7 @@ function ClientProvidersInner({ children }) {
       <ThemeProvider>
         <UnifiedGroupProvider>
           <TourProvider>
+            <NetworkStatusBanner />
             <ThemeInitializer />
             {children}
           </TourProvider>

@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import DataTable from '../../components/DataTable';
 import InfoMessage from '@/components/Messages/InfoMessage';
+import Button from '@/common/components/Button';
 import { itemVariants } from '../animations';
 import { getFieldWithFallback } from '../utils/getFieldWithFallback';
 import { AqMarkerPin01 } from '@airqo/icons-react';
+import { MdRefresh, MdClear } from 'react-icons/md';
 
 const columns = [
   {
@@ -57,6 +59,13 @@ export const MainContent = ({
   isError,
   fetchError,
   handleToggleSite,
+  meta,
+  hasNextPage,
+  loadMore,
+  canLoadMore,
+  searchQuery,
+  onSearchChange,
+  onRetry,
 }) => {
   if (isError) {
     return (
@@ -65,6 +74,18 @@ export const MainContent = ({
           title="Error Loading Data"
           description={fetchError?.message || 'Unable to fetch locations data.'}
           variant="error"
+          action={
+            onRetry && (
+              <Button
+                variant="filled"
+                size="sm"
+                onClick={onRetry}
+                Icon={MdRefresh}
+              >
+                Try Again
+              </Button>
+            )
+          }
         />
       </motion.div>
     );
@@ -75,8 +96,36 @@ export const MainContent = ({
       <motion.div variants={itemVariants}>
         <InfoMessage
           title="No Locations Found"
-          description="No locations are currently available for selection."
+          description={
+            searchQuery
+              ? `No locations found for "${searchQuery}". Try different search terms.`
+              : 'No locations are currently available for selection.'
+          }
           variant="info"
+          action={
+            <div className="flex gap-2 flex-wrap justify-center">
+              {onRetry && (
+                <Button
+                  variant="filled"
+                  size="sm"
+                  onClick={onRetry}
+                  Icon={MdRefresh}
+                >
+                  Refresh
+                </Button>
+              )}
+              {searchQuery && onSearchChange && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSearchChange('')}
+                  Icon={MdClear}
+                >
+                  Clear Search
+                </Button>
+              )}
+            </div>
+          }
         />
       </motion.div>
     );
@@ -92,15 +141,17 @@ export const MainContent = ({
         loading={loading}
         error={isError}
         errorMessage={fetchError?.message || 'Unable to fetch locations data.'}
+        onRetry={onRetry}
         onToggleRow={handleToggleSite}
         filters={filters}
         columnsByFilter={{ all: columns, favorites: columns }}
         onFilter={(data, activeFilter) =>
           handleFilter(data, activeFilter, selectedSites)
         }
+        enableSearch={true}
         searchKeys={[
-          'location_name',
           'search_name',
+          'location_name',
           'name',
           'city',
           'country',
@@ -108,9 +159,17 @@ export const MainContent = ({
           'owner',
           'organization',
         ]}
+        searchValue={searchQuery}
+        onSearchChange={onSearchChange}
+        searchPlaceholder="Search locations..."
         enableColumnFilters={true}
         defaultSortColumn="name"
         defaultSortDirection="asc"
+        enableInfiniteScroll={true}
+        paginationMeta={meta}
+        hasNextPage={hasNextPage}
+        onLoadMore={loadMore}
+        canLoadMore={canLoadMore}
       />
     </motion.div>
   );

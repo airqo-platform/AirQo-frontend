@@ -70,14 +70,7 @@ const TopbarOrganizationDropdown = ({ showTitle = true, className = '' }) => {
 
   // No groups available
   if (isEmpty(userGroups)) {
-    return (
-      <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
-        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
-          <span className="text-xs">?</span>
-        </div>
-        {showTitle && <span>No Organizations</span>}
-      </div>
-    );
+    return;
   }
 
   // Render the button

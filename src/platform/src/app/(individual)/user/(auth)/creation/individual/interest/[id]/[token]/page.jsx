@@ -127,14 +127,39 @@ export default function IndividualAccountInterest() {
         });
 
       try {
-        const siteResponse = await getSiteSummaryDetailsWithToken(token);
-        if (isMounted && siteResponse?.success) {
-          setSites(siteResponse.sites || []);
-        } else if (isMounted) {
-          CustomToast({
-            message: 'Could not load all locations.',
-            type: 'warning',
+        let allSites = [];
+        let skip = 0;
+        const limit = 30;
+        let hasMoreData = true;
+
+        // Fetch all sites with pagination
+        while (hasMoreData) {
+          const siteResponse = await getSiteSummaryDetailsWithToken(token, {
+            skip,
+            limit,
           });
+
+          if (isMounted && siteResponse?.success && siteResponse.sites) {
+            allSites = [...allSites, ...siteResponse.sites];
+
+            // Check if there are more pages
+            const meta = siteResponse.meta || {};
+            hasMoreData =
+              meta.nextPage || (meta.totalPages && skip + limit < meta.total);
+            skip += limit;
+          } else {
+            hasMoreData = false;
+          }
+        }
+
+        if (isMounted) {
+          setSites(allSites);
+          if (allSites.length === 0) {
+            CustomToast({
+              message: 'No locations available.',
+              type: 'warning',
+            });
+          }
         }
       } catch {
         if (isMounted) {

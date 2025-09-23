@@ -54,17 +54,28 @@ export const SidebarContent = ({
       initial="hidden"
       animate="visible"
     >
-      {sidebarSites.map((site) => (
-        <motion.div key={site._id} variants={itemVariants} layout>
-          <LocationCard
-            site={site}
-            onToggle={() => handleToggleSite(site)}
-            isLoading={false}
-            isSelected={selectedSites.some((s) => s._id === site._id)}
-            disableToggle={false}
-          />
-        </motion.div>
-      ))}
+      {sidebarSites.map((site) => {
+        // Check if site is both selected AND visible in current filtered data
+        const isCurrentlySelected = selectedSites.some(
+          (s) => s._id === site._id,
+        );
+        const isVisibleInCurrentTab = filteredSites.some(
+          (s) => s._id === site._id,
+        );
+        const shouldBeChecked = isCurrentlySelected && isVisibleInCurrentTab;
+
+        return (
+          <motion.div key={site._id} variants={itemVariants} layout>
+            <LocationCard
+              site={site}
+              onToggle={() => handleToggleSite(site)}
+              isLoading={false}
+              isSelected={shouldBeChecked}
+              disableToggle={false}
+            />
+          </motion.div>
+        );
+      })}
     </motion.div>
   );
 };

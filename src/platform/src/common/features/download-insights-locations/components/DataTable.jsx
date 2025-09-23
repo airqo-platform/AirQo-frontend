@@ -301,6 +301,8 @@ const DataTable = ({
   clearSelectionTrigger,
   onToggleRow,
   searchKeys = [],
+  searchValue = '',
+  onSearchChange = null,
   showViewDataButton = false,
   isLoadingVisualizationData = false,
   onViewDataClick = () => {},
@@ -308,6 +310,12 @@ const DataTable = ({
   enableColumnFilters = true,
   defaultSortColumn = null,
   defaultSortDirection = 'asc',
+  // Pagination props
+  paginationMeta = {},
+  onLoadMore = null,
+  canLoadMore = false,
+  hasNextPage = false,
+  enableInfiniteScroll = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
@@ -597,13 +605,15 @@ const DataTable = ({
           </p>
           <p className="text-sm text-red-600 mt-1">{errorText}</p>
           {onRetry && (
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               onClick={() => onRetry(activeFilter.key)}
-              className="inline-flex items-center px-3 py-1.5 mt-2 space-x-1 text-xs text-white bg-primary rounded-md hover:bg-primary/80 transition-colors"
+              className="mt-2"
+              Icon={MdRefresh}
             >
-              <MdRefresh size={14} />
-              <span>Retry</span>
-            </button>
+              Retry
+            </Button>
           )}
         </div>
       </div>
@@ -619,13 +629,15 @@ const DataTable = ({
         </h3>
         <p className="text-red-700 text-sm max-w-sm">{errorMessage}</p>
         {onRetry && (
-          <button
+          <Button
+            variant="filled"
+            size="md"
             onClick={onRetry}
-            className="inline-flex items-center px-4 py-2 space-x-2 text-sm text-white bg-primary rounded-md hover:bg-primary/80 transition-colors"
+            className="inline-flex items-center"
+            Icon={MdRefresh}
           >
-            <MdRefresh size={16} />
-            <span>Try Again</span>
-          </button>
+            Try Again
+          </Button>
         )}
       </div>
     );
@@ -655,9 +667,11 @@ const DataTable = ({
         )}
         <TopBarSearch
           data={uniqueData}
-          onSearch={handleSearch}
-          onClearSearch={handleClearSearch}
-          searchKeys={searchKeys}
+          onSearch={onSearchChange ? null : handleSearch}
+          onClearSearch={onSearchChange ? null : handleClearSearch}
+          searchKeys={onSearchChange ? [] : searchKeys}
+          searchValue={onSearchChange ? searchValue : undefined}
+          onSearchChange={onSearchChange}
           placeholder="Search..."
         />
       </div>
@@ -678,6 +692,41 @@ const DataTable = ({
                 : 'No data to display. Please adjust your filters or refresh the page.'
             }
             variant="info"
+            action={
+              <div className="flex gap-2 flex-wrap justify-center">
+                {onRetry && (
+                  <Button
+                    variant="filled"
+                    size="sm"
+                    onClick={() => onRetry(activeFilter?.key)}
+                    Icon={MdRefresh}
+                    className=""
+                  >
+                    Refresh
+                  </Button>
+                )}
+                {isSearchActive && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (onSearchChange) {
+                        onSearchChange('');
+                      } else {
+                        handleClearSearch();
+                        setCurrentSearchTerm('');
+                        setIsSearchActive(false);
+                        setSearchResults([]);
+                      }
+                    }}
+                    Icon={MdClear}
+                    className=""
+                  >
+                    Clear Search
+                  </Button>
+                )}
+              </div>
+            }
           />
         ) : (
           <div className="overflow-x-auto">
@@ -855,6 +904,31 @@ const DataTable = ({
           >
             {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
           </Button>
+        </div>
+      )}
+
+      {/* Load More button for infinite scroll */}
+      {enableInfiniteScroll && !loading && canLoadMore && hasNextPage && (
+        <div className="flex justify-center py-4">
+          <Button
+            variant="outlined"
+            onClick={onLoadMore}
+            className="flex items-center gap-2 px-6 py-2"
+          >
+            Load More Data
+          </Button>
+        </div>
+      )}
+
+      {/* Show total count when using pagination */}
+      {paginationMeta?.total > 0 && (
+        <div className="flex justify-center py-2 text-sm text-gray-500">
+          Showing {data.length} of {paginationMeta.total} items
+          {paginationMeta.totalPages > 1 && (
+            <span className="ml-2">
+              (Page {paginationMeta.page || 1} of {paginationMeta.totalPages})
+            </span>
+          )}
         </div>
       )}
     </div>

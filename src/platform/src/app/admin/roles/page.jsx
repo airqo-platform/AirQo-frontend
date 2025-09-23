@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { PageHeader } from '@/common/components/Header';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import Button from '@/common/components/Button';
 import ReusableTable from '@/common/components/Table/ReusableTable';
 import PermissionDenied from '@/common/components/PermissionDenied';
@@ -264,8 +264,8 @@ const RolesPermissionsPage = () => {
             />
           </div>
           {canCreate && (
-            <Button onClick={handleAddRole} variant="filled">
-              <AqPlus className="mr-2" /> Add Role
+            <Button Icon={AqPlus} onClick={handleAddRole} variant="filled">
+              Add Role
             </Button>
           )}
         </div>

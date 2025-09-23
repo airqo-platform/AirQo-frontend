@@ -3,14 +3,19 @@
  * @param {Function} handleStepClick - Function to handle step clicks
  * @returns {Array} Array of step objects
  */
-export const createSteps = (handleStepClick) => [
+import logger from '@/lib/logger';
+
+/**
+ * Create default checklist steps
+ * @returns {Array} Array of step objects
+ */
+export const createSteps = () => [
   {
     id: 1,
     label: 'Introduction AirQo Analytics demo video',
     description: 'Watch a short video explaining AirQo Analytics features',
     time: '1 min',
     link: '#',
-    func: () => handleStepClick(1),
     icon: 'video',
   },
   {
@@ -19,7 +24,6 @@ export const createSteps = (handleStepClick) => [
     description: 'Set up your preferred locations for air quality monitoring',
     time: '2 min',
     link: '/user/analytics',
-    func: () => handleStepClick(2),
     icon: 'location',
   },
   {
@@ -29,7 +33,6 @@ export const createSteps = (handleStepClick) => [
       'Customize your profile settings for a personalized experience',
     time: '4 min',
     link: '/user/profile',
-    func: () => handleStepClick(3),
     icon: 'profile',
   },
   {
@@ -39,7 +42,6 @@ export const createSteps = (handleStepClick) => [
       'Learn actionable steps to improve air quality in your community',
     time: '1 min',
     link: 'https://blog.airqo.net/',
-    func: () => handleStepClick(4),
     icon: 'blog',
     isExternal: true,
   },
@@ -54,8 +56,7 @@ export const createSteps = (handleStepClick) => [
 export const mergeStepsWithChecklist = (steps, checklistItems) => {
   // Safety check for invalid inputs
   if (!Array.isArray(steps)) {
-    /* eslint-disable no-console */
-    console.error('Invalid steps provided to mergeStepsWithChecklist');
+    logger.error('Invalid steps provided to mergeStepsWithChecklist');
     return [];
   }
 

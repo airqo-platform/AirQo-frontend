@@ -14,7 +14,7 @@ import {
   getNavigationItems,
   USER_TYPES,
 } from '../../layouts/SideBar/sidebarConfig';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
@@ -36,13 +36,7 @@ const GlobalSideBarDrawer = () => {
   const { hasAnyPermission, isLoading } = usePermissions();
   const { id: activeGroupID } = useGetActiveGroup();
   const canViewAdminPanel = hasAnyPermission(
-    [
-      'SUPER_ADMIN',
-      'SYSTEM_ADMIN',
-      'GROUP_MANAGEMENT',
-      'USER_MANAGEMENT',
-      'ROLE_VIEW',
-    ],
+    ['GROUP_MANAGEMENT', 'USER_MANAGEMENT'],
     activeGroupID,
     'AIRQO_ADMIN',
     true,

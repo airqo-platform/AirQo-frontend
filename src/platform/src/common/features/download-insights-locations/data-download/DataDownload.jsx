@@ -14,11 +14,16 @@ import {
 } from './constants';
 
 import {
-  useSitesSummary,
-  useDeviceSummary,
-  useGridSummary,
   useSiteAndDeviceIds,
+  usePaginatedSitesSummary,
+  usePaginatedDevicesSummary,
+  usePaginatedGridsSummary,
+  usePaginatedMobileDevices,
+  usePaginatedBAMDevices,
+  usePaginatedLowCostDevices,
 } from '@/core/hooks/analyticHooks';
+
+import { getAssignedSitesForGrid } from '@/core/apis/DeviceRegistry';
 
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
@@ -114,9 +119,13 @@ const DataDownload = ({
     clearPreview,
   } = useDataPreview();
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Mobile UI state
   const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [isFetchingAssignedSites, setIsFetchingAssignedSites] = useState(false);
 
   // Form state with defaults
   const [formData, setFormData] = useState(getDefaultFormData());
@@ -199,7 +208,7 @@ const DataDownload = ({
     isError: isSiteIdsError,
   } = useSiteAndDeviceIds(selectedGridId);
 
-  // Data fetching hooks with dependencies
+  // Data fetching hooks with dependencies using paginated versions
   // For countries/cities visualization, we need all sites without group filtering
   // For other cases, we use group-filtered sites
   const isGridSelection =
@@ -212,15 +221,22 @@ const DataDownload = ({
     isError: sitesError,
     error: sitesErrorMsg,
     refresh: refreshSites,
-  } = useSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {});
+    meta: sitesMeta,
+    loadMore: loadMoreSites,
+    canLoadMore: canLoadMoreSites,
+    hasNextPage: sitesHasNextPage,
+  } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {
+    enableInfiniteScroll: true,
+    search: searchQuery,
+  });
 
-  const {
-    data: devicesData,
-    isLoading: devicesLoading,
-    isError: devicesError,
-    error: devicesErrorMsg,
-    refresh: refreshDevices,
-  } = useDeviceSummary(groupTitle || 'AirQo', {});
+  const { data: devicesData } = usePaginatedDevicesSummary(
+    groupTitle || 'AirQo',
+    {
+      enableInfiniteScroll: true,
+      search: searchQuery,
+    },
+  );
 
   const {
     data: countriesData,
@@ -228,7 +244,14 @@ const DataDownload = ({
     isError: countriesError,
     error: countriesErrorMsg,
     refresh: refreshCountries,
-  } = useGridSummary('country');
+    meta: countriesMeta,
+    loadMore: loadMoreCountries,
+    canLoadMore: canLoadMoreCountries,
+    hasNextPage: countriesHasNextPage,
+  } = usePaginatedGridsSummary('country', {
+    enableInfiniteScroll: true,
+    search: searchQuery,
+  });
 
   const {
     data: citiesData,
@@ -236,7 +259,56 @@ const DataDownload = ({
     isError: citiesError,
     error: citiesErrorMsg,
     refresh: refreshCities,
-  } = useGridSummary('city,state,county,district,region,province');
+    meta: citiesMeta,
+    loadMore: loadMoreCities,
+    canLoadMore: canLoadMoreCities,
+    hasNextPage: citiesHasNextPage,
+  } = usePaginatedGridsSummary('city,state,county,district,region,province', {
+    enableInfiniteScroll: true,
+    search: searchQuery,
+  });
+
+  const {
+    data: mobileDevicesData,
+    isLoading: mobileDevicesLoading,
+    isError: mobileDevicesError,
+    error: mobileDevicesErrorMsg,
+    refresh: refreshMobileDevices,
+    meta: mobileDevicesMeta,
+    loadMore: loadMoreMobileDevices,
+    canLoadMore: canLoadMoreMobileDevices,
+    hasNextPage: mobileDevicesHasNextPage,
+  } = usePaginatedMobileDevices({
+    enableInfiniteScroll: true,
+  });
+
+  const {
+    data: bamDevicesData,
+    isLoading: bamDevicesLoading,
+    isError: bamDevicesError,
+    error: bamDevicesErrorMsg,
+    refresh: refreshBAMDevices,
+    meta: bamDevicesMeta,
+    loadMore: loadMoreBAMDevices,
+    canLoadMore: canLoadMoreBAMDevices,
+    hasNextPage: bamDevicesHasNextPage,
+  } = usePaginatedBAMDevices({
+    enableInfiniteScroll: true,
+  });
+
+  const {
+    data: lowCostDevicesData,
+    isLoading: lowCostDevicesLoading,
+    isError: lowCostDevicesError,
+    error: lowCostDevicesErrorMsg,
+    refresh: refreshLowCostDevices,
+    meta: lowCostDevicesMeta,
+    loadMore: loadMoreLowCostDevices,
+    canLoadMore: canLoadMoreLowCostDevices,
+    hasNextPage: lowCostDevicesHasNextPage,
+  } = usePaginatedLowCostDevices({
+    enableInfiniteScroll: true,
+  });
 
   // Close mobile sidebar when resizing to larger screen
   useEffect(() => {
@@ -254,8 +326,14 @@ const DataDownload = ({
   useEffect(() => {
     setFilterErrors({
       sites: sitesError ? sitesErrorMsg?.message || 'Error loading sites' : '',
-      devices: devicesError
-        ? devicesErrorMsg?.message || 'Error loading devices'
+      mobileDevices: mobileDevicesError
+        ? mobileDevicesErrorMsg?.message || 'Error loading mobile devices'
+        : '',
+      bamDevices: bamDevicesError
+        ? bamDevicesErrorMsg?.message || 'Error loading BAM devices'
+        : '',
+      lowCostDevices: lowCostDevicesError
+        ? lowCostDevicesErrorMsg?.message || 'Error loading LowCost devices'
         : '',
       countries: countriesError
         ? countriesErrorMsg?.message || 'Error loading countries'
@@ -267,8 +345,12 @@ const DataDownload = ({
   }, [
     sitesError,
     sitesErrorMsg,
-    devicesError,
-    devicesErrorMsg,
+    mobileDevicesError,
+    mobileDevicesErrorMsg,
+    bamDevicesError,
+    bamDevicesErrorMsg,
+    lowCostDevicesError,
+    lowCostDevicesErrorMsg,
     countriesError,
     countriesErrorMsg,
     citiesError,
@@ -419,23 +501,49 @@ const DataDownload = ({
   // Retry loading data for a specific filter
   const handleRetryLoad = useCallback(
     (filterKey) => {
-      const refreshMap = {
-        [FILTER_TYPES.COUNTRIES]: refreshCountries,
-        [FILTER_TYPES.CITIES]: refreshCities,
-        [FILTER_TYPES.DEVICES]: refreshDevices,
-        [FILTER_TYPES.SITES]: refreshSites,
-      };
+      if (filterKey === FILTER_TYPES.DEVICES) {
+        // For devices, check which category is selected
+        if (formData.deviceCategory) {
+          const selectedCategory = formData.deviceCategory.name.toLowerCase();
 
-      if (refreshMap[filterKey]) {
-        refreshMap[filterKey]();
+          switch (selectedCategory) {
+            case 'mobile':
+              refreshMobileDevices();
+              break;
+            case 'bam':
+              refreshBAMDevices();
+              break;
+            case 'lowcost':
+              refreshLowCostDevices();
+              break;
+            default:
+              refreshLowCostDevices();
+              break;
+          }
+        } else {
+          refreshLowCostDevices();
+        }
+      } else {
+        const refreshMap = {
+          [FILTER_TYPES.COUNTRIES]: refreshCountries,
+          [FILTER_TYPES.CITIES]: refreshCities,
+          [FILTER_TYPES.SITES]: refreshSites,
+        };
+
+        if (refreshMap[filterKey]) {
+          refreshMap[filterKey]();
+        }
       }
 
       setActiveFilterKey(filterKey);
     },
     [
+      formData.deviceCategory,
       refreshCountries,
       refreshCities,
-      refreshDevices,
+      refreshMobileDevices,
+      refreshBAMDevices,
+      refreshLowCostDevices,
       refreshSites,
       setActiveFilterKey,
     ],
@@ -524,32 +632,29 @@ const DataDownload = ({
       [FILTER_TYPES.SITES]: sitesData || [],
     };
 
-    const baseData = baseDataMap[activeFilterKey] || [];
+    let baseData = baseDataMap[activeFilterKey] || [];
 
     // Apply special filtering for devices
     if (activeFilterKey === FILTER_TYPES.DEVICES) {
-      return baseData.filter((device) => {
-        // Filter by device category if specified
-        let matchesCategory = true;
-        if (formData.deviceCategory) {
-          const selectedCategory = formData.deviceCategory.name.toLowerCase();
-          const deviceCategory = String(device.category || '').toLowerCase();
+      // Use category-specific endpoints instead of filtering from general devices
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
 
-          // Special handling for mobile devices
-          if (selectedCategory === 'mobile') {
-            // For mobile devices, check that category is 'lowcost' AND mobility is true
-            const isMobileDevice =
-              deviceCategory === 'lowcost' &&
-              (device.mobility === true || device.mobility === 'true');
-            matchesCategory = isMobileDevice;
-          } else {
-            // For other categories, direct match
-            matchesCategory = deviceCategory === selectedCategory;
-          }
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesData || [];
+          case 'bam':
+            return bamDevicesData || [];
+          case 'lowcost':
+            return lowCostDevicesData || [];
+          default:
+            // Fallback to lowcost if unknown category
+            return lowCostDevicesData || [];
         }
-
-        return matchesCategory;
-      });
+      } else {
+        // Default to lowcost when no category is selected
+        return lowCostDevicesData || [];
+      }
     }
 
     return baseData;
@@ -559,24 +664,205 @@ const DataDownload = ({
     citiesData,
     devicesData,
     sitesData,
+    mobileDevicesData,
+    bamDevicesData,
+    lowCostDevicesData,
     formData.deviceCategory,
   ]);
 
   // Get loading state for current filter
   const isLoading = useMemo(() => {
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesLoading;
+          case 'bam':
+            return bamDevicesLoading;
+          case 'lowcost':
+            return lowCostDevicesLoading;
+          default:
+            return lowCostDevicesLoading;
+        }
+      } else {
+        return lowCostDevicesLoading;
+      }
+    }
+
     const loadingMap = {
       [FILTER_TYPES.COUNTRIES]: countriesLoading,
       [FILTER_TYPES.CITIES]: citiesLoading,
-      [FILTER_TYPES.DEVICES]: devicesLoading,
       [FILTER_TYPES.SITES]: sitesLoading,
     };
     return loadingMap[activeFilterKey] || false;
   }, [
     activeFilterKey,
+    formData.deviceCategory,
     countriesLoading,
     citiesLoading,
-    devicesLoading,
+    mobileDevicesLoading,
+    bamDevicesLoading,
+    lowCostDevicesLoading,
     sitesLoading,
+  ]);
+
+  // Get pagination metadata for current filter
+  const currentPaginationMeta = useMemo(() => {
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesMeta || {};
+          case 'bam':
+            return bamDevicesMeta || {};
+          case 'lowcost':
+            return lowCostDevicesMeta || {};
+          default:
+            return lowCostDevicesMeta || {};
+        }
+      } else {
+        return lowCostDevicesMeta || {};
+      }
+    }
+
+    const metaMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesMeta,
+      [FILTER_TYPES.CITIES]: citiesMeta,
+      [FILTER_TYPES.SITES]: sitesMeta,
+    };
+    return metaMap[activeFilterKey] || {};
+  }, [
+    activeFilterKey,
+    formData.deviceCategory,
+    countriesMeta,
+    citiesMeta,
+    mobileDevicesMeta,
+    bamDevicesMeta,
+    lowCostDevicesMeta,
+    sitesMeta,
+  ]);
+
+  // Get load more function for current filter
+  const currentLoadMore = useMemo(() => {
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return loadMoreMobileDevices;
+          case 'bam':
+            return loadMoreBAMDevices;
+          case 'lowcost':
+            return loadMoreLowCostDevices;
+          default:
+            return loadMoreLowCostDevices;
+        }
+      } else {
+        return loadMoreLowCostDevices;
+      }
+    }
+
+    const loadMoreMap = {
+      [FILTER_TYPES.COUNTRIES]: loadMoreCountries,
+      [FILTER_TYPES.CITIES]: loadMoreCities,
+      [FILTER_TYPES.SITES]: loadMoreSites,
+    };
+    return loadMoreMap[activeFilterKey];
+  }, [
+    activeFilterKey,
+    formData.deviceCategory,
+    loadMoreCountries,
+    loadMoreCities,
+    loadMoreMobileDevices,
+    loadMoreBAMDevices,
+    loadMoreLowCostDevices,
+    loadMoreSites,
+  ]);
+
+  // Get can load more state for current filter
+  const currentCanLoadMore = useMemo(() => {
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return canLoadMoreMobileDevices;
+          case 'bam':
+            return canLoadMoreBAMDevices;
+          case 'lowcost':
+            return canLoadMoreLowCostDevices;
+          default:
+            return canLoadMoreLowCostDevices;
+        }
+      } else {
+        return canLoadMoreLowCostDevices;
+      }
+    }
+
+    const canLoadMoreMap = {
+      [FILTER_TYPES.COUNTRIES]: canLoadMoreCountries,
+      [FILTER_TYPES.CITIES]: canLoadMoreCities,
+      [FILTER_TYPES.SITES]: canLoadMoreSites,
+    };
+    return canLoadMoreMap[activeFilterKey] || false;
+  }, [
+    activeFilterKey,
+    formData.deviceCategory,
+    canLoadMoreCountries,
+    canLoadMoreCities,
+    canLoadMoreMobileDevices,
+    canLoadMoreBAMDevices,
+    canLoadMoreLowCostDevices,
+    canLoadMoreSites,
+  ]);
+
+  // Get has next page state for current filter
+  const currentHasNextPage = useMemo(() => {
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      // For devices filter, check which category is selected
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesHasNextPage;
+          case 'bam':
+            return bamDevicesHasNextPage;
+          case 'lowcost':
+            return lowCostDevicesHasNextPage;
+          default:
+            return lowCostDevicesHasNextPage;
+        }
+      } else {
+        return lowCostDevicesHasNextPage;
+      }
+    }
+
+    const hasNextPageMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesHasNextPage,
+      [FILTER_TYPES.CITIES]: citiesHasNextPage,
+      [FILTER_TYPES.SITES]: sitesHasNextPage,
+    };
+    return hasNextPageMap[activeFilterKey] || false;
+  }, [
+    activeFilterKey,
+    formData.deviceCategory,
+    countriesHasNextPage,
+    citiesHasNextPage,
+    mobileDevicesHasNextPage,
+    bamDevicesHasNextPage,
+    lowCostDevicesHasNextPage,
+    sitesHasNextPage,
   ]);
 
   // Use utility hooks for computed values
@@ -619,6 +905,9 @@ const DataDownload = ({
   const onViewDataClick = useCallback(async () => {
     if (selectedItems.length === 0) return;
 
+    // Prevent duplicate visualize actions while fetching assigned sites
+    if (isFetchingAssignedSites) return;
+
     try {
       let visualizationData = [];
       let modalTitle = 'Air Quality Insights';
@@ -632,51 +921,61 @@ const DataDownload = ({
 
         case FILTER_TYPES.COUNTRIES:
         case FILTER_TYPES.CITIES:
-          // Enhanced handling for countries and cities with better error management
-          // IMPORTANT: We fetch all sites (not group-filtered) to ensure we can find
-          // all sites returned by the grid API, which may span multiple organizations
-          if (siteAndDeviceIds?.site_ids?.length > 0) {
-            // Map site IDs to actual site objects from the available sites data
-            const availableSites = sitesData || [];
+          // Optimized handling for countries and cities using the dedicated assigned sites API
+          setIsFetchingAssignedSites(true);
+          try {
+            // Get all assigned sites for the selected grids (countries/cities)
+            const assignedSitesPromises = selectedItems.map(
+              async (gridItem) => {
+                try {
+                  const response = await getAssignedSitesForGrid(gridItem._id);
 
-            // Debug logging to track the data mapping issue
-            if (process.env.NODE_ENV === 'development') {
-              // eslint-disable-next-line no-console
-              logger.debug(
-                'Grid API returned site IDs:',
-                siteAndDeviceIds.site_ids.length,
-              );
-              // eslint-disable-next-line no-console
-              logger.debug(
-                'Available sites for mapping:',
-                availableSites.length,
-              );
-            }
+                  // Debug logging for development
+                  if (process.env.NODE_ENV === 'development') {
+                    logger.debug(
+                      `Retrieved ${response?.assigned_grids?.length || 0} sites for grid ${gridItem.name}`,
+                      response?.assigned_grids,
+                    );
+                  }
 
-            // Use a more efficient approach for large datasets
-            const siteMap = new Map(
-              availableSites.map((site) => [site._id, site]),
+                  return {
+                    gridItem,
+                    sites: response?.assigned_grids || [],
+                  };
+                } catch (error) {
+                  logger.error(
+                    `Error fetching sites for grid ${gridItem.name}:`,
+                    error,
+                  );
+                  return {
+                    gridItem,
+                    sites: [],
+                  };
+                }
+              },
             );
 
-            visualizationData = siteAndDeviceIds.site_ids
-              .map((siteId) => siteMap.get(siteId))
-              .filter(Boolean); // Remove any undefined entries
+            const assignedSitesResults = await Promise.all(
+              assignedSitesPromises,
+            );
 
-            // Debug logging to track successful mappings
-            if (process.env.NODE_ENV === 'development') {
-              const unmappedCount =
-                siteAndDeviceIds.site_ids.length - visualizationData.length;
-              if (unmappedCount > 0) {
-                // eslint-disable-next-line no-console
-                logger.warn(
-                  `Could not map ${unmappedCount} site IDs to site objects. This may indicate sites from different organizations.`,
-                );
-              }
-              // eslint-disable-next-line no-console
-              logger.debug(
-                'Successfully mapped sites for visualization:',
-                visualizationData.length,
+            // Flatten all sites from all selected grids
+            const allAssignedSites = assignedSitesResults.reduce(
+              (acc, result) => {
+                return acc.concat(result.sites);
+              },
+              [],
+            );
+
+            if (allAssignedSites.length === 0) {
+              const locationTypeText =
+                activeFilterKey === FILTER_TYPES.COUNTRIES
+                  ? 'country'
+                  : 'cities';
+              setFormError(
+                `No monitoring sites found for the selected ${locationTypeText}. This may be due to data availability or connectivity issues.`,
               );
+              return;
             }
 
             // Format location name properly (remove underscores/hyphens, capitalize)
@@ -696,37 +995,43 @@ const DataDownload = ({
             } else {
               locationLabel = `${selectedItems.length} ${activeFilterKey === FILTER_TYPES.COUNTRIES ? 'Countries' : 'Cities'}`;
             }
-            modalTitle = `Air Quality Insights - ${locationLabel} (${visualizationData.length} Site${visualizationData.length > 1 ? 's' : ''})`;
+            modalTitle = `Air Quality Insights - ${locationLabel} (${allAssignedSites.length} Site${allAssignedSites.length > 1 ? 's' : ''})`;
 
-            // For performance and to avoid sending overly large payloads to the modal,
-            // send a minimal representation of each site (only the fields needed for display)
-            // but do not arbitrarily discard sites here. The More Insights UI will
-            // handle pagination/limits when rendering charts.
-            visualizationData = visualizationData.map((site) => ({
+            // Map to the expected visualization data structure
+            visualizationData = allAssignedSites.map((site) => ({
               _id: site._id,
-              name: site.name || site.location_name || site.location || '',
-              location_name: site.location_name || site.name || '',
-              city: site.city || site.city_name || '',
+              name: site.name || site.description || '',
+              location_name: site.name || site.description || '',
+              city: site.district || '',
               country: site.country || '',
+              region: site.region || '',
+              district: site.district || '',
+              generated_name: site.generated_name || '',
+              description: site.description || '',
+              createdAt: site.createdAt || '',
             }));
 
-            // Check if we have any sites after mapping
-            if (visualizationData.length === 0) {
-              const locationTypeText =
-                activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city';
-              setFormError(
-                `No site details available for visualization in the selected ${locationTypeText}. The sites exist but detailed information may not be accessible due to permissions or data synchronization.`,
+            // Debug logging for development
+            if (process.env.NODE_ENV === 'development') {
+              logger.debug(
+                'Successfully prepared sites for visualization:',
+                visualizationData.length,
+                visualizationData,
               );
-              return;
             }
-          } else {
-            // No sites found, show error
+          } catch (error) {
+            logger.error(
+              'Error fetching assigned sites for visualization:',
+              error,
+            );
             const locationTypeText =
               activeFilterKey === FILTER_TYPES.COUNTRIES ? 'country' : 'city';
             setFormError(
-              `No monitoring sites found for the selected ${locationTypeText}. This may be due to data availability or connectivity issues.`,
+              `Failed to load site data for the selected ${locationTypeText}. Please try again or contact support if the issue persists.`,
             );
             return;
+          } finally {
+            setIsFetchingAssignedSites(false);
           }
           break;
 
@@ -917,14 +1222,14 @@ const DataDownload = ({
   }, [
     selectedItems,
     activeFilterKey,
-    siteAndDeviceIds,
-    sitesData,
+    sitesData, // Still needed for devices case
     dispatch,
     backToDownload,
     setFormError,
     // Note: setStatusMessage and setMessageType are intentionally omitted
     // because they are not referenced inside this callback. Including them
     // causes unnecessary linter warnings and re-creations of the callback.
+    isFetchingAssignedSites,
   ]);
 
   // Columns config for each filter type
@@ -1047,23 +1352,6 @@ const DataDownload = ({
     [],
   );
 
-  // Search keys for each filter type
-  const searchKeysByFilter = useMemo(
-    () => ({
-      countries: ['name', 'long_name'],
-      cities: ['name', 'long_name', 'network'],
-      sites: [
-        'location_name',
-        'search_name',
-        'city',
-        'country',
-        'data_provider',
-      ],
-      devices: ['name', 'long_name', 'network', 'category', 'serial_number'],
-    }),
-    [],
-  );
-
   // Render sidebar content based on loading state
   const renderSidebarContent = useCallback(() => {
     if (!activeGroup?.name) {
@@ -1117,13 +1405,68 @@ const DataDownload = ({
 
   // Render main content area with error handling
   const renderMainContent = useCallback(() => {
-    const isError = sitesError || devicesError || countriesError || citiesError;
-    const errorMessage =
-      sitesErrorMsg?.message ||
-      devicesErrorMsg?.message ||
-      countriesErrorMsg?.message ||
-      citiesErrorMsg?.message ||
-      'Error loading data. Please try again.';
+    // Check for errors based on current filter and device category selection
+    let isError, errorMessage;
+
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      // For devices filter, check specific error based on device category selection
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+
+        switch (selectedCategory) {
+          case 'mobile':
+            isError = mobileDevicesError;
+            errorMessage =
+              mobileDevicesErrorMsg?.message ||
+              'Error loading mobile devices. Please try again.';
+            break;
+          case 'bam':
+            isError = bamDevicesError;
+            errorMessage =
+              bamDevicesErrorMsg?.message ||
+              'Error loading BAM devices. Please try again.';
+            break;
+          case 'lowcost':
+            isError = lowCostDevicesError;
+            errorMessage =
+              lowCostDevicesErrorMsg?.message ||
+              'Error loading LowCost devices. Please try again.';
+            break;
+          default:
+            isError = lowCostDevicesError;
+            errorMessage =
+              lowCostDevicesErrorMsg?.message ||
+              'Error loading devices. Please try again.';
+            break;
+        }
+      } else {
+        isError = lowCostDevicesError;
+        errorMessage =
+          lowCostDevicesErrorMsg?.message ||
+          'Error loading devices. Please try again.';
+      }
+    } else {
+      // For other filters, check their respective errors
+      const errorMap = {
+        [FILTER_TYPES.SITES]: {
+          error: sitesError,
+          message: sitesErrorMsg?.message,
+        },
+        [FILTER_TYPES.COUNTRIES]: {
+          error: countriesError,
+          message: countriesErrorMsg?.message,
+        },
+        [FILTER_TYPES.CITIES]: {
+          error: citiesError,
+          message: citiesErrorMsg?.message,
+        },
+      };
+
+      const currentError = errorMap[activeFilterKey];
+      isError = currentError?.error;
+      errorMessage =
+        currentError?.message || 'Error loading data. Please try again.';
+    }
 
     if (isError && !isLoading) {
       return (
@@ -1142,12 +1485,9 @@ const DataDownload = ({
       );
     }
 
-    // Enable View Data for all filter types with selections, but disable when fetching sites data for countries/cities
-    const isLoadingVisualizationData =
-      (activeFilterKey === FILTER_TYPES.COUNTRIES ||
-        activeFilterKey === FILTER_TYPES.CITIES) &&
-      selectedItems.length > 0 &&
-      isLoadingSiteIds;
+    // Enable View Data for all filter types with selections
+    // Include assigned-sites fetching flag so the table shows loading while sites are fetched
+    const isLoadingVisualizationData = isFetchingAssignedSites;
 
     const showViewDataButton = selectedItems.length > 0;
 
@@ -1167,30 +1507,41 @@ const DataDownload = ({
           columnsByFilter={columnsByFilter}
           filters={filters}
           handleFilter={handleFilter}
-          searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           handleRetryLoad={handleRetryLoad}
           showViewDataButton={showViewDataButton}
           isLoadingVisualizationData={isLoadingVisualizationData}
           onViewDataClick={onViewDataClick}
           deviceCategory={formData.deviceCategory} // Pass device category
+          // Pagination props
+          enableInfiniteScroll={true}
+          paginationMeta={currentPaginationMeta}
+          onLoadMore={currentLoadMore}
+          canLoadMore={currentCanLoadMore}
+          hasNextPage={currentHasNextPage}
         />
       </motion.div>
     );
   }, [
+    activeFilterKey,
+    formData.deviceCategory,
     sitesError,
-    devicesError,
+    mobileDevicesError,
+    bamDevicesError,
+    lowCostDevicesError,
     countriesError,
     citiesError,
     sitesErrorMsg,
-    devicesErrorMsg,
+    mobileDevicesErrorMsg,
+    bamDevicesErrorMsg,
+    lowCostDevicesErrorMsg,
     countriesErrorMsg,
     citiesErrorMsg,
     isLoading,
-    isLoadingSiteIds,
     selectedItems,
     clearSelections,
     currentFilterData,
-    activeFilterKey,
     setSelectedItems,
     clearSelected,
     filterErrors,
@@ -1198,10 +1549,14 @@ const DataDownload = ({
     columnsByFilter,
     filters,
     handleFilter,
-    searchKeysByFilter,
+    searchQuery,
     handleRetryLoad,
     onViewDataClick,
-    formData.deviceCategory,
+    isFetchingAssignedSites,
+    currentPaginationMeta,
+    currentLoadMore,
+    currentCanLoadMore,
+    currentHasNextPage,
   ]);
 
   return (

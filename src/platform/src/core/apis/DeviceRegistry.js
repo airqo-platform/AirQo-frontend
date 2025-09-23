@@ -3,6 +3,9 @@ import {
   SITES_URL,
   READINGS_URL,
   DEVICES,
+  MOBILE_DEVICES_URL,
+  BAM_DEVICES_URL,
+  LOWCOST_DEVICES_URL,
   GRID_LOCATIONS_URL,
   NEAREST_SITE_URL,
   GRIDS_SUMMARY_URL,
@@ -31,13 +34,30 @@ export const getSiteSummaryDetails = () =>
     })
     .then((response) => response.data);
 
-// Get site summary details with API token auth
-export const getSiteSummaryDetailsWithToken = () =>
-  secureApiProxy
-    .get(`${SITES_URL}/summary`, {
-      authType: AUTH_TYPES.API_TOKEN,
-    })
+// Get site summary details with API token auth and pagination support
+export const getSiteSummaryDetailsWithToken = (
+  token,
+  { skip = 0, limit = 30 } = {},
+) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  const params = { skip: sanitizedSkip, limit: sanitizedLimit };
+  const config = { params };
+
+  // Only add Authorization header when token is truthy
+  if (token) {
+    config.headers = {
+      'X-Auth-Type': AUTH_TYPES.API_TOKEN,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
+  return secureApiProxy
+    .get(`${SITES_URL}/summary`, config)
     .then((response) => response.data);
+};
 
 export const getGridsSummaryDetails = () =>
   secureApiProxy
@@ -92,9 +112,65 @@ export const getNearestSite = (params) =>
     })
     .then((response) => response.data);
 
+// Get sites assigned to a specific grid
+export const getAssignedSitesForGrid = (gridID) =>
+  secureApiProxy
+    .get(`${GRID_LOCATIONS_URL}/${gridID}/assigned-sites`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
 export const getGridsSummaryApi = () =>
   secureApiProxy
     .get(`${DEVICES}/grids/summary`, {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
+
+// Mobile devices endpoints
+export const getMobileDevices = ({ skip = 0, limit = 30, signal } = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  const config = {
+    params: { skip: sanitizedSkip, limit: sanitizedLimit },
+    authType: AUTH_TYPES.JWT,
+  };
+
+  if (signal && !signal.aborted) {
+    config.signal = signal;
+  }
+
+  return secureApiProxy
+    .get(MOBILE_DEVICES_URL, config)
+    .then((response) => response.data);
+};
+
+// BAM devices endpoints
+export const getBAMDevices = ({ skip = 0, limit = 30 } = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  return secureApiProxy
+    .get(BAM_DEVICES_URL, {
+      params: { skip: sanitizedSkip, limit: sanitizedLimit },
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+};
+
+// LowCost devices endpoints
+export const getLowCostDevices = ({ skip = 0, limit = 30 } = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  return secureApiProxy
+    .get(LOWCOST_DEVICES_URL, {
+      params: { skip: sanitizedSkip, limit: sanitizedLimit },
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+};
