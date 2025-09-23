@@ -25,7 +25,7 @@ export const useGroupResources = (groupId: string) => {
     queryFn: async () => {
       try {
 
-        const response = await sites.getSitesSummary(networkId, groupTitle)
+        const response = await sites.getSitesSummary({network: networkId, group: groupTitle})
 
         return {
           hasSites: Array.isArray(response.sites) && response.sites.length > 0,

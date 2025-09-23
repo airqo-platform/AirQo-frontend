@@ -60,7 +60,7 @@ export function AssignResourcesButton({
   const { data: assignedSitesData, isLoading: isLoadingAssignedSites } = useQuery({
     queryKey: ["sites-summary", networkId, organizationName],
     queryFn: async () => {
-      const response = await sites.getSitesSummary(networkId, organizationName)
+      const response = await sites.getSitesSummary({network: networkId, group: organizationName})
       return response.sites || []
     },
     enabled: !!networkId && !!organizationName && isModalOpen && (resourceType === "sites" || resourceType === "both"),
