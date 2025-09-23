@@ -99,6 +99,14 @@ export const getNearestSite = (params) =>
     })
     .then((response) => response.data);
 
+// Get sites assigned to a specific grid
+export const getAssignedSitesForGrid = (gridID) =>
+  secureApiProxy
+    .get(`${GRID_LOCATIONS_URL}/${gridID}/assigned-sites`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
 export const getGridsSummaryApi = () =>
   secureApiProxy
     .get(`${DEVICES}/grids/summary`, {
