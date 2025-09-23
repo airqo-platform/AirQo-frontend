@@ -1,7 +1,6 @@
 "use client";
 
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
-import { useSites } from "@/core/hooks/useSites";
 import SitesTable from "@/components/features/sites/sites-list-table";
 import dynamic from "next/dynamic";
 
@@ -14,8 +13,6 @@ const CreateSiteForm = dynamic(() =>
 );
 
 export default function SitesPage() {
-  const { isLoading, error } = useSites();
-
   return (
     <RouteGuard
       permission="SITE_VIEW"
@@ -31,7 +28,7 @@ export default function SitesPage() {
           </div>
 
           <div className="flex gap-2">
-            <CreateSiteForm disabled={isLoading || !!error} />
+            <CreateSiteForm />
           </div>
         </div>
 
