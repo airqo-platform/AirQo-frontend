@@ -32,6 +32,7 @@ export const getSitesSummaryApi = async ({
   group = undefined,
   skip = 0,
   limit = 30,
+  signal,
 } = {}) => {
   const params = {
     skip,
@@ -43,6 +44,7 @@ export const getSitesSummaryApi = async ({
     .get(SITES_SUMMARY_URL, {
       params,
       authType: AUTH_TYPES.JWT,
+      signal,
     })
     .then((response) => response.data)
     .catch(() => ({ sites: [], meta: { total: 0, totalPages: 0 } }));
@@ -53,6 +55,7 @@ export const getDeviceSummaryApi = async ({
   group = null,
   skip = 0,
   limit = 30,
+  signal,
 } = {}) => {
   const params = {
     status: 'deployed',
@@ -65,6 +68,7 @@ export const getDeviceSummaryApi = async ({
     .get(DEVICE_SUMMARY_URL, {
       params,
       authType: AUTH_TYPES.JWT,
+      signal,
     })
     .then((response) => response.data)
     .catch(() => ({ devices: [], meta: { total: 0, totalPages: 0 } }));
@@ -75,6 +79,7 @@ export const getGridSummaryApi = async ({
   admin_level = null,
   skip = 0,
   limit = 30,
+  signal,
 } = {}) => {
   const params = {
     skip,
@@ -86,6 +91,7 @@ export const getGridSummaryApi = async ({
     .get(GRID_SUMMARY_URL, {
       params,
       authType: AUTH_TYPES.JWT,
+      signal,
     })
     .then((response) => response.data)
     .catch(() => ({ grids: [], meta: { total: 0, totalPages: 0 } }));

@@ -36,16 +36,26 @@ export const getSiteSummaryDetails = () =>
 export const getSiteSummaryDetailsWithToken = (
   token,
   { skip = 0, limit = 30 } = {},
-) =>
-  secureApiProxy
-    .get(`${SITES_URL}/summary`, {
-      params: { skip, limit },
-      authType: AUTH_TYPES.API_TOKEN,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  const params = { skip: sanitizedSkip, limit: sanitizedLimit };
+  const config = { params };
+
+  // Only add Authorization header when token is truthy
+  if (token) {
+    config.headers = {
+      'X-Auth-Type': AUTH_TYPES.API_TOKEN,
+      Authorization: `Bearer ${token}`,
+    };
+  }
+
+  return secureApiProxy
+    .get(`${SITES_URL}/summary`, config)
     .then((response) => response.data);
+};
 
 export const getGridsSummaryDetails = () =>
   secureApiProxy

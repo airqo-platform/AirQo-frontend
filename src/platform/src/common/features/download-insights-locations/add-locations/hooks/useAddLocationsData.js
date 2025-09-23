@@ -29,7 +29,7 @@ export const useAddLocationsData = () => {
     hasNextPage,
     loadMore,
     canLoadMore,
-  } = usePaginatedSitesSummary((groupTitle || 'AirQo').toLowerCase(), {
+  } = usePaginatedSitesSummary(groupTitle || 'AirQo', {
     enableInfiniteScroll: true,
   });
 

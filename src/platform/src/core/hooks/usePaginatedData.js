@@ -70,8 +70,8 @@ export const usePaginatedData = (
         return result;
       } catch (error) {
         if (error.name === 'AbortError') {
-          logger.info('Request was aborted');
-          return null;
+          logger.debug?.('Request aborted');
+          return undefined; // do not update SWR cache on abort
         }
         throw error;
       }
@@ -123,7 +123,7 @@ export const usePaginatedData = (
   }, [enableInfiniteScroll, currentPageData, currentPage]);
 
   // Effect to update combined data when new data arrives
-  useMemo(() => {
+  useEffect(() => {
     if (currentPageData.length > 0) {
       handleDataUpdate();
     }
@@ -162,7 +162,10 @@ export const usePaginatedData = (
 
   // Load more data method for infinite scroll
   const loadMore = useCallback(async () => {
-    if (isLoadingMore || isLoading || !meta.nextPage) return;
+    const hasMore = Boolean(
+      meta.nextPage || (meta.totalPages && currentPage < meta.totalPages),
+    );
+    if (isLoadingMore || isLoading || !hasMore) return;
 
     setIsLoadingMore(true);
     try {
@@ -171,7 +174,14 @@ export const usePaginatedData = (
     } finally {
       setIsLoadingMore(false);
     }
-  }, [isLoadingMore, isLoading, meta.nextPage, nextPage]);
+  }, [
+    isLoadingMore,
+    isLoading,
+    meta.nextPage,
+    meta.totalPages,
+    currentPage,
+    nextPage,
+  ]);
 
   // Update page size
   const updateLimit = useCallback(
@@ -204,7 +214,7 @@ export const usePaginatedData = (
   }, [initialLimit]);
 
   // Cleanup effect
-  useMemo(() => {
+  useEffect(() => {
     return () => {
       if (abortController.current) {
         abortController.current.abort();
@@ -283,13 +293,14 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
     typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
   const fetcher = useCallback(
-    async (params) => {
+    async (params, signal) => {
       const { getSitesSummaryApi } = await import('../apis/Analytics');
       const groupParam = normalizedGroup || undefined;
       return getSitesSummaryApi({
         group: groupParam,
         skip: params.skip,
         limit: params.limit,
+        signal,
       });
     },
     [normalizedGroup],
@@ -314,7 +325,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
     typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
   const fetcher = useCallback(
-    async (params) => {
+    async (params, signal) => {
       const { getDeviceSummaryApi } = await import('../apis/Analytics');
       const groupParam = normalizedGroup || undefined;
       return getDeviceSummaryApi({
@@ -322,6 +333,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
         status: 'deployed',
         skip: params.skip,
         limit: params.limit,
+        signal,
       });
     },
     [normalizedGroup],
@@ -343,12 +355,13 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
  */
 export const usePaginatedGridsSummary = (adminLevel, options = {}) => {
   const fetcher = useCallback(
-    async (params) => {
+    async (params, signal) => {
       const { getGridSummaryApi } = await import('../apis/Analytics');
       return getGridSummaryApi({
         admin_level: adminLevel,
         skip: params.skip,
         limit: params.limit,
+        signal,
       });
     },
     [adminLevel],

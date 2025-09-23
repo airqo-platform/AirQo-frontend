@@ -1431,6 +1431,7 @@ const DataDownload = ({
           onViewDataClick={onViewDataClick}
           deviceCategory={formData.deviceCategory} // Pass device category
           // Pagination props
+          enableInfiniteScroll={true}
           paginationMeta={currentPaginationMeta}
           onLoadMore={currentLoadMore}
           canLoadMore={currentCanLoadMore}

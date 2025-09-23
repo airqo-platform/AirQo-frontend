@@ -88,13 +88,17 @@ const Modal = ({ isOpen, onClose }) => {
         <motion.div
           {...backdropAnimationConfig}
           className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-black/80"
-          aria-hidden="true"
+          onClick={onClose}
+          aria-label="Close modal backdrop"
         >
           <motion.div
             {...modalAnimationConfig}
             className="modal-container w-full max-w-6xl bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative 
                        h-[85vh] max-h-[800px] min-h-[500px]
                        flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Download insights modal"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Fixed Header */}

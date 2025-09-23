@@ -8,7 +8,7 @@ import React, {
   useMemo,
 } from 'react';
 import { useSession } from 'next-auth/react';
-import { useRouter, usePathname } from 'next/navigation'; // Import usePathname
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'; // Import usePathname and useSearchParams
 import { useDispatch, useSelector } from 'react-redux';
 import { checkAccess } from './authUtils';
 import { setupUserSession, clearUserSession } from '@/core/utils/loginSetup';
@@ -109,13 +109,21 @@ const useAuthStateProcessor = (protectionLevel, permissions = []) => {
               setupResult.error || 'Failed to setup user session',
             );
           }
-          // Only redirect if we're not already on the target path and a redirect path is provided
-          if (
-            setupResult.redirectPath &&
-            setupResult.redirectPath !== pathname
-          ) {
-            router.replace(setupResult.redirectPath);
-            return { success: true, ready: false, redirecting: true };
+          // Only redirect if target (path + search) differs from current
+          if (setupResult.redirectPath) {
+            const target = new URL(
+              setupResult.redirectPath,
+              window.location.origin,
+            );
+            const currentSearch = searchParams?.toString() || '';
+            const samePath = target.pathname === pathname;
+            const sameSearch =
+              (target.search || '') ===
+              (currentSearch ? `?${currentSearch}` : '');
+            if (!(samePath && sameSearch)) {
+              router.replace(setupResult.redirectPath);
+              return { success: true, ready: false, redirecting: true };
+            }
           }
         }
 
@@ -186,6 +194,7 @@ export const withSessionAuth = (
     const SessionAuthComponent = (props) => {
       const { processAuthState, session, status, pathname } =
         useAuthStateProcessor(protectionLevel, permissions); // Destructure pathname
+      const searchParams = useSearchParams();
       const handleLogout = useLogoutHandler();
 
       const [isReady, setIsReady] = useState(false);
@@ -247,7 +256,7 @@ export const withSessionAuth = (
         };
 
         processAuth();
-      }, [status, pathname, session, processAuthState]); // Now pathname is defined
+      }, [status, pathname, searchParams, session, processAuthState]); // Include searchParams in deps
 
       // --- Cleanup Effect ---
       useEffect(() => {
