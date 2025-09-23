@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AqXClose } from '@airqo/icons-react';
@@ -49,23 +49,16 @@ const Modal = ({ isOpen, onClose }) => {
     MODAL_CONFIGURATIONS[modalType]?.body ||
     (() => <div className="dark:text-white">No content available</div>);
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose],
-  );
-
   useEffect(() => {
+    // Keep body scroll locked while modal is open. Do not close modal on Escape key
+    // and do not close on backdrop clicks — only explicit close button/actions should close it.
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [isOpen, handleKeyDown]);
+  }, [isOpen]);
 
   const modalAnimationConfig = {
     initial: { opacity: 0, y: 20, scale: 0.98 },
@@ -95,8 +88,7 @@ const Modal = ({ isOpen, onClose }) => {
         <motion.div
           {...backdropAnimationConfig}
           className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-2 sm:p-4 bg-black/40 dark:bg-black/80"
-          onClick={onClose}
-          aria-label="Close modal backdrop"
+          aria-hidden="true"
         >
           <motion.div
             {...modalAnimationConfig}
