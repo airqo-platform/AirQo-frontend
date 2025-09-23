@@ -264,8 +264,8 @@ const RolesPermissionsPage = () => {
             />
           </div>
           {canCreate && (
-            <Button onClick={handleAddRole} variant="filled">
-              <AqPlus className="mr-2" /> Add Role
+            <Button Icon={AqPlus} onClick={handleAddRole} variant="filled">
+              Add Role
             </Button>
           )}
         </div>
