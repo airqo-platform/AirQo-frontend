@@ -206,37 +206,6 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
   );
 };
 
-// --- PageSizeSelector Component ---
-interface PageSizeSelectorProps {
-  pageSize: number;
-  onPageSizeChange: (size: number) => void;
-  options?: number[];
-}
-
-const PageSizeSelector: React.FC<PageSizeSelectorProps> = ({
-  pageSize,
-  onPageSizeChange,
-  options = [5, 10, 20, 50, 100],
-}) => {
-  return (
-    <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-      <span>Show</span>
-      <select
-        value={pageSize}
-        onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
-        className="border border-primary/30 dark:border-primary/40 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-      >
-        {options.map((size) => (
-          <option key={size} value={size}>
-            {size}
-          </option>
-        ))}
-      </select>
-      <span>entries</span>
-    </div>
-  );
-};
-
 // --- TableHeader Component ---
 type FilterValue = string | number | boolean | (string | number | boolean)[];
 
@@ -364,21 +333,13 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  pageSize: number;
-  totalItems: number;
-  pageSizeOptions: number[];
   onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
-  pageSize,
-  totalItems,
-  pageSizeOptions,
   onPageChange,
-  onPageSizeChange,
 }) => {
   const generatePageNumbers = useCallback((): (number | string)[] => {
     const pages: (number | string)[] = [];
@@ -1305,11 +1266,7 @@ const ReusableTable = <T extends TableItem>({
         <Pagination
           currentPage={finalCurrentPage}
           totalPages={finalTotalPages}
-          pageSize={finalCurrentPageSize}
-          totalItems={finalTotalItems}
-          pageSizeOptions={pageSizeOptions}
           onPageChange={handlePageChange}
-          onPageSizeChange={handlePageSizeChange}
         />
       )}
     </div>
