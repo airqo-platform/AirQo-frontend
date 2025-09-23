@@ -4,9 +4,9 @@ import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
 
 /**
- * Returns all data needed by AddLocations.
+ * Returns all data needed by AddLocations with search support.
  */
-export const useAddLocationsData = () => {
+export const useAddLocationsData = (searchQuery = '') => {
   const { id: activeGroupId, title: groupTitle, userID } = useGetActiveGroup();
 
   const preferencesData = useSelector(
@@ -29,18 +29,26 @@ export const useAddLocationsData = () => {
     hasNextPage,
     loadMore,
     canLoadMore,
+    refresh,
   } = usePaginatedSitesSummary(groupTitle || 'AirQo', {
     enableInfiniteScroll: true,
+    search: searchQuery,
   });
 
   const filteredSites = useMemo(() => {
     if (!Array.isArray(sitesSummaryData) || sitesSummaryData.length === 0) {
       return [];
     }
-    if ('isOnline' in sitesSummaryData[0]) {
-      const online = sitesSummaryData.filter((s) => s.isOnline === true);
-      return online.length > 0 ? online : sitesSummaryData;
+
+    // Check if any sites have the isOnline property
+    if (sitesSummaryData.some((site) => 'isOnline' in site)) {
+      const onlineSites = sitesSummaryData.filter((s) => s.isOnline === true);
+      // If there are online sites, return them; otherwise return all sites
+      // This prevents showing empty data when all sites are offline
+      return onlineSites.length > 0 ? onlineSites : sitesSummaryData;
     }
+
+    // If no isOnline property, return all sites
     return sitesSummaryData;
   }, [sitesSummaryData]);
 
@@ -57,5 +65,6 @@ export const useAddLocationsData = () => {
     hasNextPage,
     loadMore,
     canLoadMore,
+    refresh,
   };
 };

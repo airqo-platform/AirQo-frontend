@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import useSWR from 'swr';
 import { SWR_CONFIG } from '../swrConfigs';
 import logger from '@/lib/logger';
@@ -15,6 +15,7 @@ import logger from '@/lib/logger';
  * @param {Object} options.swrOptions - Additional SWR options
  * @param {boolean} options.enableInfiniteScroll - Enable infinite scroll behavior
  * @param {Object} options.baseParams - Base parameters to include in all requests
+ * @param {string} options.search - Search query parameter
  * @returns {Object} Pagination state and methods
  */
 export const usePaginatedData = (
@@ -26,6 +27,7 @@ export const usePaginatedData = (
     swrOptions = {},
     enableInfiniteScroll = false,
     baseParams = {},
+    search = '',
   } = {},
 ) => {
   // State for pagination
@@ -51,9 +53,10 @@ export const usePaginatedData = (
         skip,
         limit,
         page: currentPage,
+        ...(search ? { search } : {}),
       },
     ];
-  }, [baseKey, baseParams, skip, limit, currentPage]);
+  }, [baseKey, baseParams, skip, limit, currentPage, search]);
 
   // SWR fetcher with abort controller
   const paginatedFetcher = useCallback(
@@ -99,34 +102,41 @@ export const usePaginatedData = (
     if (data?.sites) return data.sites;
     if (data?.grids) return data.grids;
     if (Array.isArray(data)) return data;
+
+    // Additional safety check for empty/undefined data
     return [];
   }, [data]);
 
   // Update allData for infinite scroll
   const handleDataUpdate = useCallback(() => {
-    if (!enableInfiniteScroll || !currentPageData.length) return;
-
     setAllData((prevAll) => {
       // For first page or reset, replace all data
       if (currentPage === 1 || prevAll.length === 0) {
-        return [...currentPageData];
+        return [...(currentPageData || [])];
       }
 
-      // For subsequent pages, append new data (avoiding duplicates)
-      const existingIds = new Set(prevAll.map((item) => item._id || item.id));
-      const newItems = currentPageData.filter(
-        (item) => !existingIds.has(item._id || item.id),
-      );
+      // For infinite scroll: append new data (avoiding duplicates)
+      if (enableInfiniteScroll) {
+        if (!currentPageData || currentPageData.length === 0) {
+          return prevAll; // Keep existing data if no new data
+        }
 
-      return [...prevAll, ...newItems];
+        const existingIds = new Set(prevAll.map((item) => item._id || item.id));
+        const newItems = currentPageData.filter(
+          (item) => !existingIds.has(item._id || item.id),
+        );
+
+        return [...prevAll, ...newItems];
+      } else {
+        // For regular pagination: just return current page data
+        return [...(currentPageData || [])];
+      }
     });
   }, [enableInfiniteScroll, currentPageData, currentPage]);
 
   // Effect to update combined data when new data arrives
   useEffect(() => {
-    if (currentPageData.length > 0) {
-      handleDataUpdate();
-    }
+    handleDataUpdate();
   }, [currentPageData, handleDataUpdate]);
 
   // Navigation methods
@@ -202,6 +212,7 @@ export const usePaginatedData = (
       setAllData([]);
       setCurrentPage(1);
     }
+    setIsLoadingMore(false);
     return mutate();
   }, [mutate, enableInfiniteScroll]);
 
@@ -221,6 +232,13 @@ export const usePaginatedData = (
       }
     };
   }, []);
+
+  // Reset pagination when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setIsLoadingMore(false);
+    // Don't clear allData here - let the new API response populate it
+  }, [search]);
 
   // Computed values
   const hasNextPage = useMemo(
@@ -289,6 +307,7 @@ export const usePaginatedData = (
  * Specialized hook for sites summary with pagination
  */
 export const usePaginatedSitesSummary = (group, options = {}) => {
+  const { search = '', ...restOptions } = options;
   const normalizedGroup =
     typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
@@ -300,6 +319,7 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
         group: groupParam,
         skip: params.skip,
         limit: params.limit,
+        search: params.search,
         signal,
       });
     },
@@ -307,12 +327,13 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
   );
 
   return usePaginatedData(
-    ['sites-summary-paginated', normalizedGroup || 'all'],
+    ['sites-summary-paginated', normalizedGroup || 'all', search || ''],
     fetcher,
     {
       initialLimit: 20,
-      maxLimit: 100,
-      ...options,
+      maxLimit: 80,
+      ...restOptions,
+      search,
     },
   );
 };
@@ -321,6 +342,7 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
  * Specialized hook for devices summary with pagination
  */
 export const usePaginatedDevicesSummary = (group, options = {}) => {
+  const { search = '', ...restOptions } = options;
   const normalizedGroup =
     typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
@@ -333,6 +355,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
         status: 'deployed',
         skip: params.skip,
         limit: params.limit,
+        search: params.search,
         signal,
       });
     },
@@ -340,12 +363,13 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
   );
 
   return usePaginatedData(
-    ['devices-summary-paginated', normalizedGroup || 'all'],
+    ['devices-summary-paginated', normalizedGroup || 'all', search || ''],
     fetcher,
     {
       initialLimit: 20,
-      maxLimit: 100,
-      ...options,
+      maxLimit: 80,
+      ...restOptions,
+      search,
     },
   );
 };
@@ -354,6 +378,8 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
  * Specialized hook for grids summary with pagination
  */
 export const usePaginatedGridsSummary = (adminLevel, options = {}) => {
+  const { search = '', ...restOptions } = options;
+
   const fetcher = useCallback(
     async (params, signal) => {
       const { getGridSummaryApi } = await import('../apis/Analytics');
@@ -361,6 +387,7 @@ export const usePaginatedGridsSummary = (adminLevel, options = {}) => {
         admin_level: adminLevel,
         skip: params.skip,
         limit: params.limit,
+        search: params.search,
         signal,
       });
     },
@@ -368,12 +395,13 @@ export const usePaginatedGridsSummary = (adminLevel, options = {}) => {
   );
 
   return usePaginatedData(
-    ['grids-summary-paginated', adminLevel || 'all'],
+    ['grids-summary-paginated', adminLevel || 'all', search || ''],
     fetcher,
     {
       initialLimit: 20,
-      maxLimit: 100,
-      ...options,
+      maxLimit: 80,
+      ...restOptions,
+      search,
     },
   );
 };
@@ -392,7 +420,7 @@ export const usePaginatedMobileDevices = (options = {}) => {
 
   return usePaginatedData(['mobile-devices-paginated'], fetcher, {
     initialLimit: 20,
-    maxLimit: 100,
+    maxLimit: 80,
     ...options,
   });
 };

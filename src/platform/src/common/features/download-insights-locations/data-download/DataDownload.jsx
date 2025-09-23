@@ -117,6 +117,9 @@ const DataDownload = ({
     clearPreview,
   } = useDataPreview();
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Mobile UI state
   const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -222,6 +225,7 @@ const DataDownload = ({
     hasNextPage: sitesHasNextPage,
   } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {
     enableInfiniteScroll: true,
+    search: searchQuery,
   });
 
   const {
@@ -236,6 +240,7 @@ const DataDownload = ({
     hasNextPage: devicesHasNextPage,
   } = usePaginatedDevicesSummary(groupTitle || 'AirQo', {
     enableInfiniteScroll: true,
+    search: searchQuery,
   });
 
   const {
@@ -250,6 +255,7 @@ const DataDownload = ({
     hasNextPage: countriesHasNextPage,
   } = usePaginatedGridsSummary('country', {
     enableInfiniteScroll: true,
+    search: searchQuery,
   });
 
   const {
@@ -264,6 +270,7 @@ const DataDownload = ({
     hasNextPage: citiesHasNextPage,
   } = usePaginatedGridsSummary('city,state,county,district,region,province', {
     enableInfiniteScroll: true,
+    search: searchQuery,
   });
 
   const {
@@ -1273,23 +1280,6 @@ const DataDownload = ({
     [],
   );
 
-  // Search keys for each filter type
-  const searchKeysByFilter = useMemo(
-    () => ({
-      countries: ['name', 'long_name'],
-      cities: ['name', 'long_name', 'network'],
-      sites: [
-        'location_name',
-        'search_name',
-        'city',
-        'country',
-        'data_provider',
-      ],
-      devices: ['name', 'long_name', 'network', 'category', 'serial_number'],
-    }),
-    [],
-  );
-
   // Render sidebar content based on loading state
   const renderSidebarContent = useCallback(() => {
     if (!activeGroup?.name) {
@@ -1424,7 +1414,8 @@ const DataDownload = ({
           columnsByFilter={columnsByFilter}
           filters={filters}
           handleFilter={handleFilter}
-          searchKeysByFilter={searchKeysByFilter[activeFilterKey]}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
           handleRetryLoad={handleRetryLoad}
           showViewDataButton={showViewDataButton}
           isLoadingVisualizationData={isLoadingVisualizationData}
@@ -1463,7 +1454,7 @@ const DataDownload = ({
     columnsByFilter,
     filters,
     handleFilter,
-    searchKeysByFilter,
+    searchQuery,
     handleRetryLoad,
     onViewDataClick,
     isFetchingAssignedSites,

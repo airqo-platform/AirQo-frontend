@@ -31,13 +31,17 @@ export const shareReportApi = async (body) => {
 export const getSitesSummaryApi = async ({
   group = undefined,
   skip = 0,
-  limit = 30,
+  limit = 80,
+  search = undefined,
   signal,
 } = {}) => {
   const params = {
     skip,
     limit,
     ...(group !== undefined && group !== null && group !== '' ? { group } : {}),
+    ...(search !== undefined && search !== null && search.trim() !== ''
+      ? { search: search.trim() }
+      : {}),
   };
 
   return secureApiProxy
@@ -47,14 +51,19 @@ export const getSitesSummaryApi = async ({
       signal,
     })
     .then((response) => response.data)
-    .catch(() => ({ sites: [], meta: { total: 0, totalPages: 0 } }));
+    .catch((error) => {
+      logger.error('getSitesSummaryApi error:', error);
+      // Re-throw the error so it can be handled by SWR and components
+      throw error;
+    });
 };
 
 // Get device summary data
 export const getDeviceSummaryApi = async ({
   group = null,
   skip = 0,
-  limit = 30,
+  limit = 80,
+  search = undefined,
   signal,
 } = {}) => {
   const params = {
@@ -62,6 +71,9 @@ export const getDeviceSummaryApi = async ({
     skip,
     limit,
     ...(group ? { group } : {}),
+    ...(search !== undefined && search !== null && search.trim() !== ''
+      ? { search: search.trim() }
+      : {}),
   };
 
   return secureApiProxy
@@ -71,20 +83,27 @@ export const getDeviceSummaryApi = async ({
       signal,
     })
     .then((response) => response.data)
-    .catch(() => ({ devices: [], meta: { total: 0, totalPages: 0 } }));
+    .catch((error) => {
+      logger.error('getDeviceSummaryApi error:', error);
+      throw error;
+    });
 };
 
 // Get grid summary data
 export const getGridSummaryApi = async ({
   admin_level = null,
   skip = 0,
-  limit = 30,
+  limit = 80,
+  search = undefined,
   signal,
 } = {}) => {
   const params = {
     skip,
     limit,
     ...(admin_level ? { admin_level } : {}),
+    ...(search !== undefined && search !== null && search.trim() !== ''
+      ? { search: search.trim() }
+      : {}),
   };
 
   return secureApiProxy
@@ -94,7 +113,10 @@ export const getGridSummaryApi = async ({
       signal,
     })
     .then((response) => response.data)
-    .catch(() => ({ grids: [], meta: { total: 0, totalPages: 0 } }));
+    .catch((error) => {
+      logger.error('getGridSummaryApi error:', error);
+      throw error;
+    });
 };
 
 // Fetch analytics data
@@ -161,7 +183,10 @@ export const getRecentMeasurements = async (params) => {
       authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data)
-    .catch(() => ({}));
+    .catch((error) => {
+      logger.error('getRecentMeasurements error:', error);
+      throw error;
+    });
 };
 
 // Generate site and device IDs for a grid

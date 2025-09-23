@@ -15,6 +15,8 @@ const TopBarSearch = React.memo(
     onSearch,
     onClearSearch = () => {},
     searchKeys = ['name'],
+    searchValue,
+    onSearchChange,
     placeholder = 'Search...',
     className = '',
     debounceTime = 300,
@@ -29,12 +31,25 @@ const TopBarSearch = React.memo(
     const mountedRef = useRef(true);
     const suggestionsRef = useRef(null);
 
+    // Use server-side search if onSearchChange is provided
+    const isServerSideSearch = Boolean(onSearchChange);
+    const currentSearchTerm = isServerSideSearch
+      ? searchValue || ''
+      : searchTerm;
+
     useEffect(() => {
       return () => {
         mountedRef.current = false;
         if (debounceRef.current) clearTimeout(debounceRef.current);
       };
     }, []);
+
+    // Sync external searchValue with local searchTerm for server-side search
+    useEffect(() => {
+      if (isServerSideSearch && searchValue !== undefined) {
+        setSearchTerm(searchValue);
+      }
+    }, [isServerSideSearch, searchValue]);
 
     // Enhanced search configuration
     // --- FIX: Handle empty searchKeys correctly for Fuse.js ---
@@ -107,28 +122,67 @@ const TopBarSearch = React.memo(
     const handleSearch = useCallback(
       (e) => {
         const value = e.target.value;
+
+        // Always update local state immediately for UI responsiveness
         setSearchTerm(value);
-        setShowSuggestions(value.length > 0 && !disabled);
+        setShowSuggestions(
+          value.length > 0 && !disabled && !isServerSideSearch,
+        );
+
         if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          if (mountedRef.current) {
-            executeSearch(value);
-          }
-        }, debounceTime);
+
+        if (isServerSideSearch) {
+          // For server-side search, debounce the onSearchChange call
+          debounceRef.current = setTimeout(() => {
+            if (mountedRef.current && onSearchChange) {
+              onSearchChange(value);
+            }
+          }, debounceTime);
+        } else {
+          // For client-side search, debounce the executeSearch call
+          debounceRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              executeSearch(value);
+            }
+          }, debounceTime);
+        }
       },
-      [executeSearch, debounceTime, disabled],
+      [
+        executeSearch,
+        debounceTime,
+        disabled,
+        isServerSideSearch,
+        onSearchChange,
+      ],
     );
 
     const clearSearch = useCallback(() => {
       if (!mountedRef.current) return;
       if (debounceRef.current) clearTimeout(debounceRef.current);
+
+      // Always clear local search term first
       setSearchTerm('');
       setShowSuggestions(false);
-      // --- CHANGE: Pass an object with results and term ---
-      onSearch({ results: [], term: '' });
-      onClearSearch();
+
+      if (isServerSideSearch) {
+        // For server-side search, clear via onSearchChange
+        if (onSearchChange) {
+          onSearchChange('');
+        }
+      } else {
+        // For client-side search, notify with empty results
+        if (onSearch) {
+          onSearch({ results: [], term: '' });
+        }
+      }
+
+      // Call onClearSearch if provided
+      if (onClearSearch) {
+        onClearSearch();
+      }
+
       if (inputRef.current) inputRef.current.focus();
-    }, [onSearch, onClearSearch]);
+    }, [onSearch, onClearSearch, isServerSideSearch, onSearchChange]);
 
     const handleSuggestionClick = useCallback(
       (suggestion) => {
@@ -142,7 +196,7 @@ const TopBarSearch = React.memo(
     const handleKeyDown = useCallback(
       (e) => {
         if (e.key === 'Escape') {
-          if (searchTerm) {
+          if (currentSearchTerm) {
             e.preventDefault();
             clearSearch();
           } else {
@@ -152,10 +206,24 @@ const TopBarSearch = React.memo(
           e.preventDefault();
           setShowSuggestions(false);
           if (debounceRef.current) clearTimeout(debounceRef.current);
-          executeSearch(searchTerm);
+          if (isServerSideSearch) {
+            // For server-side search, trigger the search change
+            if (onSearchChange) {
+              onSearchChange(currentSearchTerm);
+            }
+          } else {
+            // For client-side search, execute search
+            executeSearch(currentSearchTerm);
+          }
         }
       },
-      [searchTerm, clearSearch, executeSearch],
+      [
+        currentSearchTerm,
+        clearSearch,
+        executeSearch,
+        isServerSideSearch,
+        onSearchChange,
+      ],
     );
 
     useEffect(() => {
@@ -176,16 +244,25 @@ const TopBarSearch = React.memo(
 
     // --- IMPROVEMENT: Dynamic Suggestions using Fuse ---
     // Filter suggestions based on current input using Fuse for accuracy
+    // Only show suggestions for client-side search
     const filteredSuggestions = useMemo(() => {
-      if (!fuseRef.current || !searchTerm || searchTerm.trim().length < 2) {
+      if (
+        isServerSideSearch ||
+        !fuseRef.current ||
+        !currentSearchTerm ||
+        currentSearchTerm.trim().length < 2
+      ) {
         return [];
       }
 
       try {
         // Perform a search for suggestions based on the current term
-        const suggestionResults = fuseRef.current.search(searchTerm.trim(), {
-          limit: 3,
-        });
+        const suggestionResults = fuseRef.current.search(
+          currentSearchTerm.trim(),
+          {
+            limit: 3,
+          },
+        );
         const uniqueSuggestions = new Set();
 
         suggestionResults.forEach((result) => {
@@ -199,7 +276,7 @@ const TopBarSearch = React.memo(
             const value = result.item?.[key];
             if (typeof value === 'string') {
               const lowerValue = value.toLowerCase();
-              const lowerTerm = searchTerm.trim().toLowerCase();
+              const lowerTerm = currentSearchTerm.trim().toLowerCase();
 
               // Add the full value if it starts with the term
               if (lowerValue.startsWith(lowerTerm)) {
@@ -221,7 +298,7 @@ const TopBarSearch = React.memo(
         logger.warn('Error generating dynamic suggestions:', e);
         return [];
       }
-    }, [searchTerm, fuseRef, fuseOptions.keys]);
+    }, [currentSearchTerm, fuseRef, fuseOptions.keys, isServerSideSearch]);
     // --- END IMPROVEMENT ---
 
     return (

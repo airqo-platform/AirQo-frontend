@@ -20,7 +20,8 @@ const DataContent = ({
   columnsByFilter,
   filters,
   handleFilter,
-  searchKeysByFilter,
+  searchQuery,
+  onSearchChange,
   handleRetryLoad,
   showViewDataButton,
   isLoadingVisualizationData,
@@ -170,7 +171,8 @@ const DataContent = ({
           columnsByFilter={columnsByFilter}
           filters={filters}
           onFilter={handleFilter}
-          searchKeys={searchKeysByFilter}
+          searchValue={searchQuery}
+          onSearchChange={onSearchChange}
           showViewDataButton={showViewDataButton}
           isLoadingVisualizationData={isLoadingVisualizationData}
           onViewDataClick={onViewDataClick}
