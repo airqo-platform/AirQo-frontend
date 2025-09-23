@@ -14,7 +14,7 @@ import {
   getNavigationItems,
   USER_TYPES,
 } from '../../layouts/SideBar/sidebarConfig';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**

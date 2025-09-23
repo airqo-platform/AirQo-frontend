@@ -1,4 +1,8 @@
-import { getUserDetails, getUserThemeApi } from '@/core/apis/Account';
+import {
+  getUserDetails,
+  getUserThemeApi,
+  getUserGroupPermissionsApi,
+} from '@/core/apis/Account';
 import { getOrganizationThemePreferencesApi } from '@/core/apis/Organizations';
 import {
   setUserInfo,
@@ -17,6 +21,11 @@ import {
   setOrganizationThemeError,
   clearOrganizationTheme,
 } from '@/lib/store/services/organizationTheme/OrganizationThemeSlice';
+import {
+  setPermissionsData,
+  setPermissionsError,
+  clearPermissions,
+} from '@/lib/store/services/permissions/PermissionsSlice';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
@@ -596,6 +605,49 @@ export const setupUserSession = async (
       }
     }
 
+    // Step 6: Fetch user permissions and roles (NEW CENTRALIZED APPROACH)
+    // This replaces individual permission checks throughout the app
+    logger.info('Fetching user permissions and roles...');
+    try {
+      const permissionsRes = await getUserGroupPermissionsApi();
+      if (permissionsRes?.success && permissionsRes?.user_roles) {
+        // Pass the full API response to the reducer for proper normalization
+        dispatch(setPermissionsData(permissionsRes));
+
+        const { groups = [], networks = [] } = permissionsRes.user_roles;
+        logger.info('User permissions cached successfully', {
+          groupsCount: groups.length,
+          networksCount: networks.length,
+          groups: groups.map((group) => ({
+            groupId: group.group_id,
+            groupName: group.group_name,
+            roleName: group.role_name,
+            permissionsCount: (group.permissions || []).length,
+          })),
+          networks: networks.map((network) => ({
+            networkId: network.network_id,
+            networkName: network.network_name,
+            roleName: network.role_name,
+            permissionsCount: (network.permissions || []).length,
+          })),
+        });
+      } else {
+        logger.warn(
+          'No user roles found in permissions response',
+          permissionsRes,
+        );
+        dispatch(setPermissionsError('No user roles found'));
+      }
+    } catch (error) {
+      logger.error('Failed to fetch user permissions:', error);
+      dispatch(
+        setPermissionsError(
+          error.message || 'Failed to fetch user permissions',
+        ),
+      );
+      // Don't fail the entire login process for permissions - they can be retried later
+    }
+
     // Store theme in global context for immediate access by theme hooks
     // Always set the loaded flag, even if no theme was found
     if (typeof window !== 'undefined') {
@@ -660,6 +712,7 @@ export const setupUserSession = async (
     dispatch(setError(error.message || 'Error setting up user session'));
     dispatch(resetStore());
     dispatch(clearAllGroupData());
+    dispatch(clearPermissions());
 
     return {
       success: false,
@@ -682,6 +735,7 @@ export const clearUserSession = (dispatch) => {
     dispatch(resetStore());
     dispatch(clearAllGroupData());
     dispatch(clearOrganizationTheme());
+    dispatch(clearPermissions());
     dispatch(setUserInfo(null));
     dispatch(setActiveGroup(null));
     dispatch(setUserGroups([]));

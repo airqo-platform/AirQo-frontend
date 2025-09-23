@@ -27,7 +27,7 @@ import {
 
 // Import utilities
 import logger from '@/lib/logger';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 // Import Components

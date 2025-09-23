@@ -3,10 +3,11 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useDispatch } from 'react-redux';
+import { useSession } from 'next-auth/react';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import PropTypes from 'prop-types';
 import Button from '@/common/components/Button';
-import { AqMenu02, AqMenu04 } from '@airqo/icons-react';
+import { AqMenu02, AqMenu04, AqRefreshCw04 } from '@airqo/icons-react';
 import MyProfileDropdown from '../components/UserProfileDropdown';
 import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
 import AppDropdown from '../components/AppDropdown';
@@ -19,6 +20,7 @@ import GroupLogo from '@/common/components/GroupLogo';
 import CardWrapper from '@/common/components/CardWrapper';
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
+import { setupUserSession } from '@/core/utils/loginSetup';
 import logger from '@/lib/logger';
 
 /**
@@ -37,8 +39,12 @@ const GlobalTopbar = ({
   const pathname = usePathname();
   const { width } = useWindowSize();
   const dispatch = useDispatch();
+  const { data: session } = useSession();
   const { theme, systemTheme } = useTheme();
   const { activeGroup, userGroups, switchToGroup } = useUnifiedGroup();
+
+  // State for refresh functionality
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const isDarkMode = useMemo(
     () => theme === 'dark' || (theme === 'system' && systemTheme === 'dark'),
@@ -117,6 +123,35 @@ const GlobalTopbar = ({
       router.push(homeNavPath);
     }
   }, [onLogoClick, router, homeNavPath]);
+
+  // Refresh functionality - refreshes user session and permissions
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing || !session) return;
+
+    setIsRefreshing(true);
+
+    try {
+      logger.info('Refreshing user session and permissions...');
+
+      // Re-run the login setup to refresh all user data and permissions
+      const result = await setupUserSession(session, dispatch, pathname, {
+        maintainActiveGroup: true,
+        preferredGroupId: activeGroup?._id,
+      });
+
+      if (result.success) {
+        logger.info('User session and permissions refreshed successfully');
+        // Optionally show a success toast here
+      } else {
+        logger.error('Failed to refresh user session:', result.error);
+        // Optionally show an error toast here
+      }
+    } catch (error) {
+      logger.error('Error refreshing user session:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, session, dispatch, pathname, activeGroup]);
 
   const LogoComponent = useCallback(
     ({ className = '', buttonProps = {} }) => (
@@ -233,11 +268,34 @@ const GlobalTopbar = ({
             </div>
           </div>
 
-          {/* Desktop Right: Org dropdown, app dropdown, custom actions, profile */}
+          {/* Desktop Right: Org dropdown, refresh button, app dropdown, custom actions, profile */}
           <div className="hidden lg:flex gap-2 items-center justify-center h-full">
             {!isCreateOrganizationRoute && !isAdminRoute && (
               <TopbarOrganizationDropdown className="topBarOrganizationSelector" />
             )}
+
+            {/* Application Refresh Button */}
+            <Button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              variant="outlined"
+              className={`
+                p-2 h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 
+                hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
+                dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-primary/70 
+                dark:focus:ring-offset-gray-800 transition-colors duration-200
+                ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+              title="Refresh application data and permissions"
+              aria-label="Refresh application data"
+            >
+              <AqRefreshCw04
+                className={`h-4 w-4 text-gray-600 dark:text-gray-300 ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+              />
+            </Button>
+
             <AppDropdown className="topBarAppDropdown" />
             {customActions && (
               <div className="flex items-center">{customActions}</div>
@@ -282,6 +340,29 @@ const GlobalTopbar = ({
             {!isCreateOrganizationRoute && !isAdminRoute && (
               <TopbarOrganizationDropdown showTitle={false} className="mr-2" />
             )}
+
+            {/* Mobile Refresh Button */}
+            <Button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              variant="outlined"
+              className={`
+                p-1.5 h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 
+                hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 
+                dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-primary/70 
+                dark:focus:ring-offset-gray-800 transition-colors duration-200 mr-2
+                ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
+              `}
+              title="Refresh application data"
+              aria-label="Refresh application data"
+            >
+              <AqRefreshCw04
+                className={`h-3 w-3 text-gray-600 dark:text-gray-300 ${
+                  isRefreshing ? 'animate-spin' : ''
+                }`}
+              />
+            </Button>
+
             {customActions && <div className="flex gap-1">{customActions}</div>}
           </div>
         </CardWrapper>

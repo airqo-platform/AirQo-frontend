@@ -17,7 +17,7 @@ import {
   AqXClose,
 } from '@airqo/icons-react';
 import Dropdown from '@/common/components/Dropdowns/Dropdown';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import logger from '@/lib/logger';
 import CustomToast from '@/common/components/Toast/CustomToast';
 import AddRoleDialog from '@/common/components/roles-permissions/AddRoleDialog';

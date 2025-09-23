@@ -17,7 +17,7 @@ import RuntimeErrorBoundary from '@/common/components/ErrorBoundary/RuntimeError
 
 // Import logger
 import logger from '@/lib/logger';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { RolesPermissionsPageSkeleton } from '@/common/components/Skeleton';

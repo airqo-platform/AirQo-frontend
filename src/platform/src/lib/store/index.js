@@ -40,7 +40,6 @@ import { gridsSlice } from './services/deviceRegistry/GridsSlice';
 import defaultsReducer from './services/account/UserDefaultsSlice';
 import recentMeasurementReducer from './services/deviceRegistry/RecentMeasurementsSlice';
 import cardReducer from './services/checklists/CheckList';
-import checklistsReducer from './services/checklists/CheckData';
 import analyticsReducer from './services/charts/ChartData';
 import groupsReducer from './services/groups/GroupsSlice';
 import { mapSlice } from './services/map/MapSlice';
@@ -52,6 +51,7 @@ import sitesSummaryReducer from './services/sitesSummarySlice';
 import { organisationRequestsSlice } from './services/admin/OrgRequestsSlice';
 import organizationThemeReducer from './services/organizationTheme/OrganizationThemeSlice';
 import moreInsightsReducer from './services/moreInsights';
+import permissionsReducer from './services/permissions/PermissionsSlice';
 
 // Combine all the reducers
 const rootReducer = combineReducers({
@@ -66,7 +66,6 @@ const rootReducer = combineReducers({
   cardChecklist: cardReducer,
   map: mapSlice.reducer,
   recentMeasurements: recentMeasurementReducer,
-  checklists: checklistsReducer,
   analytics: analyticsReducer,
   groups: groupsReducer,
   locationSearch: locationSearchSlice.reducer,
@@ -75,6 +74,7 @@ const rootReducer = combineReducers({
   organisationRequests: organisationRequestsSlice.reducer,
   organizationTheme: organizationThemeReducer,
   moreInsights: moreInsightsReducer,
+  permissions: permissionsReducer,
 });
 
 // Root reducer wrapper to handle state reset on logout
@@ -89,7 +89,7 @@ const appReducer = (state, action) => {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['login', 'checklists', 'groups', 'organizationTheme', 'map'],
+  whitelist: ['login', 'cardChecklist', 'groups', 'organizationTheme', 'map'],
 };
 
 const persistedReducer = persistReducer(persistConfig, appReducer);

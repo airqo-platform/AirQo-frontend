@@ -24,6 +24,15 @@ const Checklist = ({ openVideoModal }) => {
     (state) => state.cardChecklist.checklist || [],
   );
   const reduxStatus = useSelector((state) => state.cardChecklist.status);
+
+  // Debug Redux state (keep for monitoring)
+  useEffect(() => {
+    logger.info('Checklist Redux state:', {
+      status: reduxStatus,
+      checklistLength: reduxChecklist?.length,
+      hasItems: reduxChecklist?.length > 0,
+    });
+  }, [reduxChecklist, reduxStatus]);
   const totalSteps = 4;
 
   // Create static steps - use useMemo to avoid recreating on each render
@@ -42,6 +51,10 @@ const Checklist = ({ openVideoModal }) => {
   useEffect(() => {
     if (session?.user?.id) {
       setUserId(session.user.id);
+    } else if (session?.user?._id) {
+      setUserId(session.user._id);
+    } else if (session?.user?.userId) {
+      setUserId(session.user.userId);
     }
   }, [session]);
 

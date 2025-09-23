@@ -16,10 +16,13 @@ export const fetchUserChecklists = createAsyncThunk(
     try {
       if (!userId) throw new Error('User ID is required');
 
+      logger.info('Fetching user checklists for userId:', userId);
+
       let response;
       try {
         // Try fetching existing checklists
         response = await getUserChecklists(userId);
+        logger.info('API response received:', { userId, response });
       } catch (fetchError) {
         // If the request fails with 404 or other errors, we'll initialize
         logger.warn('Checklist fetch failed, will initialize:', {
@@ -59,6 +62,8 @@ export const fetchUserChecklists = createAsyncThunk(
             items: initialItems,
           });
 
+          logger.info('Upsert response:', { userId, upsertResponse });
+
           if (!upsertResponse.success) {
             logger.error('Failed to initialize checklist:', {
               userId,
@@ -71,11 +76,13 @@ export const fetchUserChecklists = createAsyncThunk(
           // Refetch to retrieve generated _id values
           try {
             const newResp = await getUserChecklists(userId);
+            logger.info('Refetch response after init:', { userId, newResp });
             if (newResp.success && newResp.checklists?.length > 0) {
               const items = newResp.checklists[0].items || [];
               logger.info('Successfully initialized and fetched checklist:', {
                 userId,
                 itemCount: items.length,
+                items,
               });
               return items;
             }
@@ -103,6 +110,8 @@ export const fetchUserChecklists = createAsyncThunk(
       logger.info('Fetched existing checklist:', {
         userId,
         itemCount: items.length,
+        items,
+        checklists: response.checklists,
       });
       return items;
     } catch (error) {

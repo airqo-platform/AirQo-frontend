@@ -10,7 +10,7 @@ import React, {
 import { useSession } from 'next-auth/react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'; // Import usePathname and useSearchParams
 import { useDispatch, useSelector } from 'react-redux';
-import { checkAccess } from './authUtils';
+import { checkAccess } from '@/core/utils/permissionUtils';
 import { setupUserSession, clearUserSession } from '@/core/utils/loginSetup';
 import { getLoginRedirectPath } from '@/app/api/auth/[...nextauth]/options';
 import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
