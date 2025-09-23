@@ -5,9 +5,11 @@ export default function UserManagementPage() {
   return (
     <RouteGuard 
       permission={PERMISSIONS.USER.VIEW}
-      allowedContexts={['airqo-internal', 'external-org']}
+      allowedContexts={['airqo-internal']}
     >
-      <main className="min-h-screen bg-gray-50"></main>
+      <main className="min-h-screen bg-gray-50">
+        <p>Coming soon</p>
+      </main>
     </RouteGuard>
   )
 }
