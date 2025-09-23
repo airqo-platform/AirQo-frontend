@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useWindowSize } from '@/core/hooks/useWindowSize';
 import PropTypes from 'prop-types';
 import Button from '@/common/components/Button';
+import { Tooltip } from 'flowbite-react';
 import { AqMenu02, AqMenu04, AqRefreshCw04 } from '@airqo/icons-react';
 import MyProfileDropdown from '../components/UserProfileDropdown';
 import TopbarOrganizationDropdown from '../components/TopbarOrganizationDropdown';
@@ -274,27 +275,32 @@ const GlobalTopbar = ({
               <TopbarOrganizationDropdown className="topBarOrganizationSelector" />
             )}
 
-            {/* Application Refresh Button */}
-            <Button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              variant="outlined"
-              className={`
-                p-2 h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 
-                hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
-                dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-primary/70 
-                dark:focus:ring-offset-gray-800 transition-colors duration-200
-                ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
-              title="Refresh application data and permissions"
-              aria-label="Refresh application data"
-            >
-              <AqRefreshCw04
-                className={`h-4 w-4 text-gray-600 dark:text-gray-300 ${
-                  isRefreshing ? 'animate-spin' : ''
-                }`}
-              />
-            </Button>
+            {/* Application Refresh Button (desktop) */}
+            <Tooltip content="Refresh application" placement="bottom">
+              <div className="relative inline-block">
+                <Button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  variant="outlined"
+                  className={`
+                    p-2 h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 
+                    focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
+                    dark:border-gray-600 dark:focus:ring-primary/70 
+                    dark:focus:ring-offset-gray-800 transition-colors duration-200
+                    hover:bg-transparent hover:text-current focus:bg-transparent
+                    ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
+                  title="Refresh application data and permissions"
+                  aria-label="Refresh application data"
+                >
+                  <AqRefreshCw04
+                    className={`h-4 w-4 text-gray-600 dark:text-gray-300 ${
+                      isRefreshing ? 'animate-spin' : ''
+                    }`}
+                  />
+                </Button>
+              </div>
+            </Tooltip>
 
             <AppDropdown className="topBarAppDropdown" />
             {customActions && (
@@ -342,26 +348,31 @@ const GlobalTopbar = ({
             )}
 
             {/* Mobile Refresh Button */}
-            <Button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              variant="outlined"
-              className={`
-                p-1.5 h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 
-                hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 
-                dark:border-gray-600 dark:hover:bg-gray-700 dark:focus:ring-primary/70 
-                dark:focus:ring-offset-gray-800 transition-colors duration-200 mr-2
-                ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
-              `}
-              title="Refresh application data"
-              aria-label="Refresh application data"
-            >
-              <AqRefreshCw04
-                className={`h-3 w-3 text-gray-600 dark:text-gray-300 ${
-                  isRefreshing ? 'animate-spin' : ''
-                }`}
-              />
-            </Button>
+            <Tooltip content="Refresh application data" placement="bottom">
+              <div className="relative inline-block">
+                <Button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  variant="outlined"
+                  className={`
+                    p-1.5 h-8 w-8 flex items-center justify-center rounded-lg border border-gray-200 
+                    focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1 
+                    dark:border-gray-600 dark:focus:ring-primary/70 
+                    dark:focus:ring-offset-gray-800 transition-colors duration-200 mr-2
+                    hover:bg-transparent hover:text-current focus:bg-transparent
+                    ${isRefreshing ? 'opacity-50 cursor-not-allowed' : ''}
+                  `}
+                  title="Refresh application data"
+                  aria-label="Refresh application data"
+                >
+                  <AqRefreshCw04
+                    className={`h-3 w-3 text-gray-600 dark:text-gray-300 ${
+                      isRefreshing ? 'animate-spin' : ''
+                    }`}
+                  />
+                </Button>
+              </div>
+            </Tooltip>
 
             {customActions && <div className="flex gap-1">{customActions}</div>}
           </div>
