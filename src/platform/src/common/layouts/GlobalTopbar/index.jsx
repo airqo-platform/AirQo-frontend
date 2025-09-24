@@ -133,25 +133,48 @@ const GlobalTopbar = ({
     setIsRefreshing(true);
 
     try {
-      logger.info('Refreshing user session and permissions...');
+      logger.info('Starting comprehensive application refresh...');
 
-      // Re-run the login setup to refresh all user data and permissions
+      // 1. Clear and refresh SWR cache first
+      const { mutate } = await import('swr');
+      await mutate(() => true, undefined, { revalidate: false });
+      logger.debug('SWR cache cleared');
+
+      // 2. Refresh user session and permissions
       const result = await setupUserSession(session, dispatch, pathname, {
         maintainActiveGroup: true,
         preferredGroupId: activeGroup?._id,
       });
 
       if (result.success) {
-        logger.info('User session and permissions refreshed successfully');
-        // Optionally show a success toast here
+        logger.info('User session refreshed successfully');
+
+        // 3. Refresh SWR data with revalidation
+        await mutate(() => true, undefined, { revalidate: true });
+        logger.debug('SWR cache revalidated');
+
+        // 4. Trigger logo refresh
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new window.Event('logoRefresh'));
+          window.dispatchEvent(new window.Event('groupDataUpdated'));
+        }
+
+        // 5. Show success feedback briefly
+        setTimeout(() => {
+          logger.debug('Application refresh completed successfully');
+        }, 500);
       } else {
         logger.error('Failed to refresh user session:', result.error);
-        // Optionally show an error toast here
+        // Show error feedback or toast here if needed
       }
     } catch (error) {
-      logger.error('Error refreshing user session:', error);
+      logger.error('Error during application refresh:', error);
+      // Show error feedback or toast here if needed
     } finally {
-      setIsRefreshing(false);
+      // Always clear refreshing state after a delay
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 1000); // Minimum 1 second to show loading feedback
     }
   }, [isRefreshing, session, dispatch, pathname, activeGroup]);
 
@@ -164,7 +187,7 @@ const GlobalTopbar = ({
         className={`inline-flex items-center justify-center ${className}`}
         {...buttonProps}
       >
-        <GroupLogo size="lg" />
+        <GroupLogo size="md" />
       </Button>
     ),
     [handleLogoClick],

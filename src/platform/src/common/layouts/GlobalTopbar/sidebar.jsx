@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
 import { usePathname, useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
 import { AqBarChart07, AqXClose } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
@@ -33,14 +34,36 @@ const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
   const pathname = usePathname();
   const router = useRouter();
+  const { data: session } = useSession();
   const { hasAnyPermission, isLoading } = usePermissions();
   const { id: activeGroupID } = useGetActiveGroup();
-  const canViewAdminPanel = hasAnyPermission(
-    ['GROUP_MANAGEMENT', 'USER_MANAGEMENT'],
-    activeGroupID,
-    'AIRQO_ADMIN',
-    true,
-  );
+
+  // Fix permission check for admin panel access
+  // Only allow access if user has admin permissions AND either:
+  // 1. Has @airqo.net email (AirQo staff), OR
+  // 2. Has AIRQO_ADMIN role (which should be checked by the permission system)
+  const canViewAdminPanel = useMemo(() => {
+    if (isLoading) return false;
+
+    // Check if user has required permissions
+    const hasAdminPermissions = hasAnyPermission(
+      ['GROUP_MANAGEMENT', 'USER_MANAGEMENT'],
+      activeGroupID,
+    );
+
+    if (!hasAdminPermissions) return false;
+
+    // Additional domain restriction: Only allow @airqo.net emails
+    const userEmail = session?.user?.email;
+    const isAirQoStaff = userEmail && userEmail.endsWith('@airqo.net');
+
+    if (!isAirQoStaff) {
+      // For now, restrict to @airqo.net emails only
+      return false;
+    }
+
+    return true;
+  }, [hasAnyPermission, activeGroupID, isLoading, session?.user?.email]);
   const params = useParams();
   const isGlobalSidebarOpen = useSelector((state) => {
     try {

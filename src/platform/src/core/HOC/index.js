@@ -1,37 +1,15 @@
 /**
  * Session Authentication HOC Index
  *
- * Simplified entry point for the session-aware authentication system.
- * All HOCs use a single, optimized session management approach.
+ * Clean entry point for NextAuth session authentication system.
+ * Only exports functions that actually exist.
  */
 
-// Export everything from the main session auth HOC
+// Export the main session auth HOC and its constants
 export {
-  withSessionAuth,
+  default as withSessionAuth,
   PROTECTION_LEVELS,
-  // Convenience HOCs
-  withAuth,
-  withAuthRoute,
-  withPublicRoute,
-  withPermission,
-  withAdminAccess,
-  // Session-aware permission utilities (consolidated)
-  withSessionAwarePermissions,
-  useSessionAwarePermissions,
-  // Backward compatibility aliases
-  withUserAuth,
-  withOrgAuth,
-  withUserAuthRoute,
-  withOrgAuthRoute,
-  withUserPermission,
-  withOrgPermission,
 } from './withSessionAuth';
-
-// Export auth utilities
-export { checkAccess, usePermissions } from '@/core/utils/permissionUtils';
 
 // Export logout utilities
 export { default as LogoutUser } from './LogoutUser';
-
-// Default export
-export { default } from './withSessionAuth';

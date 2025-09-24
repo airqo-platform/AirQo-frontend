@@ -6,7 +6,6 @@ import { useSession } from 'next-auth/react';
 import { AqUser02, AqKey01, AqLock02 } from '@airqo/icons-react';
 import { SettingsTabNavigation } from '@/common/components/Tabs';
 import { getAssignedGroupMembers } from '@/core/apis/Account';
-import { useSessionAwarePermissions } from '@/core/HOC';
 import { useThemeSafe } from '@/common/features/theme-customizer/hooks/useThemeSafe';
 import { THEME_MODES } from '@/common/features/theme-customizer/constants/themeConstants';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
@@ -33,7 +32,7 @@ const Settings = () => {
   );
 
   const { data: session } = useSession();
-  const { isLoading: permissionsLoading } = useSessionAwarePermissions();
+  const [permissionsLoading] = useState(false); // Simplified - no longer using complex permissions
 
   // Determine if we're in dark mode
   const isDarkMode =

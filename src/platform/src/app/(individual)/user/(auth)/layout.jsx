@@ -33,6 +33,7 @@ function AuthRouteGroupLayout({ children }) {
   return <AuthLayout>{children}</AuthLayout>;
 }
 
-export default withSessionAuth(PROTECTION_LEVELS.AUTH_ONLY)(
+export default withSessionAuth(
   AuthRouteGroupLayout,
+  PROTECTION_LEVELS.AUTH_ONLY,
 );

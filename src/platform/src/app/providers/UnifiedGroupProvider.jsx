@@ -28,6 +28,7 @@ import {
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
+import { setupUserSession } from '@/core/utils/loginSetup';
 import LoadingSpinner from '@/common/components/LoadingSpinner';
 import OrganizationNotFound from '@/common/components/Organization/OrganizationNotFound';
 import OrganizationSwitchLoader from '@/common/components/Organization/OrganizationSwitchLoader';
@@ -76,6 +77,7 @@ const initialState = {
   error: null,
   isSwitching: false,
   initialGroupSet: false,
+  sessionInitialized: false,
   organization: null,
   organizationTheme: null,
   organizationLoading: false,
@@ -96,6 +98,8 @@ const reducer = (state, action) => {
       return { ...state, isSwitching: action.payload };
     case 'SET_INITIAL_GROUP_SET':
       return { ...state, initialGroupSet: true };
+    case 'SET_SESSION_INITIALIZED':
+      return { ...state, sessionInitialized: action.payload };
     case 'SET_ORG_LOADING':
       return { ...state, organizationLoading: true, organizationError: null };
     case 'SET_ORG_DATA':
@@ -424,9 +428,48 @@ export function UnifiedGroupProvider({ children }) {
     state.isLoading,
   ]);
 
-  // Set initial active group
+  // Initialize user session (setup Redux store with user data and groups)
   useEffect(() => {
-    if (userGroupsLength === 0 || state.initialGroupSet || lock.current) return;
+    if (
+      sessionStatus === 'authenticated' &&
+      session?.user?.id &&
+      userGroupsLength > 0 && // Wait for groups to be loaded
+      !state.sessionInitialized &&
+      !lock.current
+    ) {
+      logger.info('Initializing user session with setupUserSession');
+
+      setupUserSession(session, rdxDispatch, pathname)
+        .then((result) => {
+          if (result.success) {
+            logger.info('User session setup completed successfully');
+            dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+          } else {
+            logger.error('User session setup failed:', result.error);
+          }
+        })
+        .catch((error) => {
+          logger.error('setupUserSession error:', error);
+        });
+    }
+  }, [
+    sessionStatus,
+    session,
+    userGroupsLength,
+    state.sessionInitialized,
+    rdxDispatch,
+    pathname,
+  ]);
+
+  // Set initial active group - wait for session to be initialized first
+  useEffect(() => {
+    if (
+      userGroupsLength === 0 ||
+      state.initialGroupSet ||
+      lock.current ||
+      !state.sessionInitialized // Wait for session to be initialized
+    )
+      return;
 
     let target = null;
 
@@ -446,6 +489,7 @@ export function UnifiedGroupProvider({ children }) {
   }, [
     userGroupsLength,
     state.initialGroupSet,
+    state.sessionInitialized, // Add dependency on session initialization
     organizationSlug,
     isOrganizationContext,
     session?.user?.activeGroup,
@@ -677,6 +721,28 @@ export function UnifiedGroupProvider({ children }) {
     !state.isSwitching &&
     (state.organizationLoading ||
       (!themeComplete && !state.organizationError && state.organization));
+
+  // Session initialization loader (show while setting up user session)
+  // Also show while initial group is being set to prevent premature UI display
+  if (
+    sessionStatus === 'authenticated' &&
+    session?.user?.id &&
+    userGroupsLength > 0 &&
+    (!state.sessionInitialized || !state.initialGroupSet)
+  ) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner
+          size="lg"
+          text={
+            !state.sessionInitialized
+              ? 'Setting up your session…'
+              : 'Loading your workspace…'
+          }
+        />
+      </div>
+    );
+  }
 
   // Organization switch loader (highest priority)
   if (state.isSwitching && activeGroup) {

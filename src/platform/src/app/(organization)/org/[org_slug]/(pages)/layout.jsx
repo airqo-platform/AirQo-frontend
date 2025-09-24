@@ -7,6 +7,7 @@ export function OrganizationPagesLayoutWrapper({ children }) {
   return <>{children}</>;
 }
 
-export default withSessionAuth(PROTECTION_LEVELS.PROTECTED)(
+export default withSessionAuth(
   OrganizationPagesLayoutWrapper,
+  PROTECTION_LEVELS.PROTECTED,
 );
