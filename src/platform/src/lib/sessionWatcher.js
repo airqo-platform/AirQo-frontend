@@ -1,4 +1,4 @@
-import { jwtDecode } from 'jwt-decode';
+import jwtDecode from 'jwt-decode';
 import logger from './logger';
 
 const LOGOUT_SAFETY_MARGIN = 60000; // 1 minute
