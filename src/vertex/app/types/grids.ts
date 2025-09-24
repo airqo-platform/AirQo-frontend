@@ -21,4 +21,19 @@ export interface Grid {
   createdAt: string;
   sites: Site[];
   numberOfSites: number;
+  groups?: any[];
+}
+
+export interface GridsSummaryResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+    nextPage?: string;
+  };
+  grids: Grid[];
 }
