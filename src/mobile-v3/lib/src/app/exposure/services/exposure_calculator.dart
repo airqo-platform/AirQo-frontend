@@ -15,7 +15,7 @@ class ExposureCalculator with UiLoggy {
 
   static const String _exposureDataBoxName = 'exposure_data';
   static const String _dailySummariesKey = 'daily_summaries';
-  static const Duration _locationProximityThreshold = Duration(minutes: 10);
+  static const Duration _locationProximityThreshold = Duration(hours: 2);
   static const double _proximityRadiusMeters = 1000; // 1km radius for AQ matching
 
   /// Calculate exposure data points from location history and air quality data
