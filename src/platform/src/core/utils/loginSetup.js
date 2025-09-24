@@ -320,7 +320,7 @@ export const setupUserSession = async (
       redirectPath,
     });
 
-    // Update Redux with complete data
+    // Update Redux with complete data - but delay activeGroup setting to allow loading state to show
     const completeUserData = {
       ...basicUserData,
       ...user,
@@ -328,10 +328,15 @@ export const setupUserSession = async (
     };
 
     dispatch(setUserInfo(completeUserData));
-    dispatch(setActiveGroup(activeGroup));
     dispatch(setUserGroups(userGroups));
     dispatch(setSuccess(true));
     dispatch(setError(''));
+
+    // Delay setting activeGroup to ensure "Setting up your session..." message is visible
+    // before root page triggers redirect
+    setTimeout(() => {
+      dispatch(setActiveGroup(activeGroup));
+    }, 300);
 
     // Load additional data in background (don't block)
     Promise.allSettled([

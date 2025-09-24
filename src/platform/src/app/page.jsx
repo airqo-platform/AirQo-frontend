@@ -1,30 +1,61 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { selectActiveGroup } from '@/lib/store/services/groups';
+import LoadingSpinner from '@/common/components/LoadingSpinner';
 
 const HomePage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const activeGroup = useSelector(selectActiveGroup);
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') return; // Wait for session to load
+    if (status === 'loading' || hasRedirected) return; // Wait for session to load
+
+    if (status === 'unauthenticated') {
+      setHasRedirected(true);
+      router.replace('/user/login');
+      return;
+    }
 
     if (status === 'authenticated' && session?.user) {
-      router.replace('/user/Home');
-    } else {
-      router.replace('/user/login');
-    }
-  }, [status, session, router]);
+      // Wait for active group to be set before redirecting
+      // This ensures the user session is fully initialized
+      if (activeGroup && activeGroup._id) {
+        setHasRedirected(true);
 
-  // Show loading state while redirecting
+        // Redirect based on the active group context
+        if (session.requestedOrgSlug || session.orgSlug) {
+          // User came from organization login - redirect to org dashboard
+          const orgSlug = session.requestedOrgSlug || session.orgSlug;
+          router.replace(`/org/${orgSlug}/dashboard`);
+        } else {
+          // Default redirect to user home
+          router.replace('/user/Home');
+        }
+      }
+      // If no active group yet, keep showing loading until UnifiedGroupProvider sets it
+    }
+  }, [status, session, activeGroup, router, hasRedirected]);
+
+  // Show loading state while waiting for session and active group setup
+  const getLoadingText = () => {
+    if (status === 'loading') {
+      return 'Loading...';
+    }
+    if (status === 'authenticated' && !activeGroup) {
+      return 'Setting up your workspace...';
+    }
+    return 'Redirecting...';
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading...</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <LoadingSpinner size="lg" text={getLoadingText()} />
     </div>
   );
 };

@@ -439,18 +439,31 @@ export function UnifiedGroupProvider({ children }) {
     ) {
       logger.info('Initializing user session with setupUserSession');
 
-      setupUserSession(session, rdxDispatch, pathname)
-        .then((result) => {
-          if (result.success) {
-            logger.info('User session setup completed successfully');
-            dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
-          } else {
-            logger.error('User session setup failed:', result.error);
-          }
-        })
-        .catch((error) => {
-          logger.error('setupUserSession error:', error);
-        });
+      // Add a small delay to ensure the "Setting up your session..." message is displayed
+      // before activeGroup is set (which would trigger redirect in root page)
+      const setupSessionWithDelay = async () => {
+        // First, ensure loading state is visible
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        const result = await setupUserSession(session, rdxDispatch, pathname);
+
+        if (result.success) {
+          logger.info('User session setup completed successfully');
+          // Add another brief delay before marking session as initialized
+          // to ensure smooth UX transition
+          setTimeout(() => {
+            if (mountedRef.current) {
+              dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+            }
+          }, 200);
+        } else {
+          logger.error('User session setup failed:', result.error);
+        }
+      };
+
+      setupSessionWithDelay().catch((error) => {
+        logger.error('setupUserSession error:', error);
+      });
     }
   }, [
     sessionStatus,
@@ -467,10 +480,19 @@ export function UnifiedGroupProvider({ children }) {
       userGroupsLength === 0 ||
       state.initialGroupSet ||
       lock.current ||
-      !state.sessionInitialized // Wait for session to be initialized
+      !state.sessionInitialized || // Wait for session to be initialized
+      !activeGroup // Wait for activeGroup to be set by setupUserSession
     )
       return;
 
+    // Additional check - if activeGroup is already set by setupUserSession,
+    // just mark initial group as set
+    if (activeGroup && activeGroup._id) {
+      dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+      return;
+    }
+
+    // Fallback logic (shouldn't be needed with new flow)
     let target = null;
 
     if (isOrganizationContext && organizationSlug) {
@@ -490,6 +512,7 @@ export function UnifiedGroupProvider({ children }) {
     userGroupsLength,
     state.initialGroupSet,
     state.sessionInitialized, // Add dependency on session initialization
+    activeGroup, // Add dependency on activeGroup
     organizationSlug,
     isOrganizationContext,
     session?.user?.activeGroup,
@@ -730,16 +753,15 @@ export function UnifiedGroupProvider({ children }) {
     userGroupsLength > 0 &&
     (!state.sessionInitialized || !state.initialGroupSet)
   ) {
+    const loadingText = !state.sessionInitialized
+      ? 'Setting up your session…'
+      : !activeGroup
+        ? 'Loading your workspace…'
+        : 'Preparing your dashboard…';
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <LoadingSpinner
-          size="lg"
-          text={
-            !state.sessionInitialized
-              ? 'Setting up your session…'
-              : 'Loading your workspace…'
-          }
-        />
+        <LoadingSpinner size="lg" text={loadingText} />
       </div>
     );
   }

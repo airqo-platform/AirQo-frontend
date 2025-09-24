@@ -39,13 +39,30 @@ function SessionWatchProvider({ children }) {
       // Only redirect if not already on login page
       const currentPath = window.location.pathname;
       if (!currentPath.includes('/login')) {
-        router.push('/user/login?expired=true');
+        // Check if we're in an organization context
+        const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
+        if (orgSlugMatch && orgSlugMatch[1]) {
+          const orgSlug = orgSlugMatch[1];
+          logger.info(
+            `Redirecting to organization login: /org/${orgSlug}/login`,
+          );
+          router.push(`/org/${orgSlug}/login?expired=true`);
+        } else {
+          logger.info('Redirecting to user login');
+          router.push('/user/login?expired=true');
+        }
       }
     } catch (error) {
       logger.error('Error during session cleanup:', error);
-      // Fallback: force navigation to login
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/user/login?expired=true';
+      // Fallback: force navigation to appropriate login
+      const currentPath = window.location.pathname;
+      if (!currentPath.includes('/login')) {
+        const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
+        if (orgSlugMatch && orgSlugMatch[1]) {
+          window.location.href = `/org/${orgSlugMatch[1]}/login?expired=true`;
+        } else {
+          window.location.href = '/user/login?expired=true';
+        }
       }
     }
   }, [dispatch, router, isClient]);

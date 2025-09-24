@@ -9,6 +9,37 @@ const CONFIG = Object.freeze({
   TOKEN_MAX_AGE: 24 * 60 * 60, // 24 hours in seconds
 });
 
+// Status code to user-friendly message mapping
+const AUTH_ERROR_MESSAGES = {
+  400: 'Invalid request. Please check your credentials.',
+  401: 'Invalid email or password. Please try again.',
+  403: 'Access denied. Your account may be suspended.',
+  404: 'Account not found. Please check your email address.',
+  408: 'Request timed out. Please try again.',
+  409: 'Account conflict. Please contact support.',
+  422: 'Invalid email or password format.',
+  429: 'Too many login attempts. Please wait and try again.',
+  500: 'Server error. Please try again later.',
+  502: 'Service temporarily unavailable. Please try again.',
+  503: 'Service temporarily unavailable. Please try again.',
+  504: 'Request timed out. Please try again.',
+  default: 'Login failed. Please try again.',
+};
+
+// Get user-friendly error message based on status code
+const getAuthErrorMessage = (statusCode, apiMessage = null) => {
+  // Use API message if it's user-friendly, otherwise use predefined message
+  if (
+    apiMessage &&
+    typeof apiMessage === 'string' &&
+    apiMessage.length > 0 &&
+    apiMessage.length < 100
+  ) {
+    return apiMessage;
+  }
+  return AUTH_ERROR_MESSAGES[statusCode] || AUTH_ERROR_MESSAGES.default;
+};
+
 // Login redirect utility
 export const getLoginRedirectPath = (pathname, orgSlug = null) => {
   if (!pathname?.includes('/org/')) return '/user/login';
@@ -48,11 +79,18 @@ async function authenticateUser(userName, password) {
     const data = await response.json();
 
     if (!response.ok) {
+      const errorMessage = getAuthErrorMessage(response.status, data?.message);
       logger.warn('[NextAuth] Authentication failed:', {
         status: response.status,
-        message: data?.message || 'Authentication failed',
+        message: errorMessage,
+        originalMessage: data?.message,
       });
-      return null;
+
+      // Create a structured error that includes both status code and message
+      const error = new Error(errorMessage);
+      error.status = response.status;
+      error.statusCode = response.status;
+      throw error;
     }
 
     if (!data?._id || !data?.email || !data?.token) {
@@ -69,10 +107,25 @@ async function authenticateUser(userName, password) {
   } catch (error) {
     if (error.name === 'AbortError') {
       logger.error('[NextAuth] Authentication timeout');
+      const timeoutError = new Error(getAuthErrorMessage(408));
+      timeoutError.status = 408;
+      timeoutError.statusCode = 408;
+      throw timeoutError;
+    } else if (error.status || error.statusCode) {
+      // Re-throw structured errors from API response
+      throw error;
     } else {
       logger.error('[NextAuth] Authentication error:', error.message);
+      const networkError = new Error(
+        getAuthErrorMessage(
+          503,
+          'Connection failed. Please check your internet and try again.',
+        ),
+      );
+      networkError.status = 503;
+      networkError.statusCode = 503;
+      throw networkError;
     }
-    return null;
   }
 }
 
@@ -92,7 +145,12 @@ export const authOptions = {
 
       async authorize(credentials) {
         if (!credentials?.userName?.trim() || !credentials?.password) {
-          throw new Error('Email and password are required');
+          const error = new Error(
+            getAuthErrorMessage(422, 'Email and password are required'),
+          );
+          error.status = 422;
+          error.statusCode = 422;
+          throw error;
         }
 
         try {
@@ -102,7 +160,10 @@ export const authOptions = {
           );
 
           if (!apiData) {
-            return null;
+            const error = new Error(getAuthErrorMessage(401));
+            error.status = 401;
+            error.statusCode = 401;
+            throw error;
           }
 
           // Clean token (remove prefixes if any)
@@ -140,8 +201,18 @@ export const authOptions = {
             isOrgLogin: Boolean(credentials.orgSlug),
           };
         } catch (error) {
-          logger.error('[NextAuth] Authorization failed:', error.message);
-          throw new Error(error.message);
+          logger.error('[NextAuth] Authorization failed:', {
+            message: error.message,
+            status: error.status || error.statusCode,
+          });
+
+          // Create a structured error for NextAuth
+          const authError = new Error(
+            error.message || getAuthErrorMessage(500),
+          );
+          authError.status = error.status || error.statusCode || 500;
+          authError.statusCode = error.status || error.statusCode || 500;
+          throw authError;
         }
       },
     }),
@@ -234,8 +305,9 @@ export const authOptions = {
         return url;
       }
 
-      // Default redirect to home
-      return `${baseUrl}/user/Home`;
+      // DO NOT auto-redirect - let our root page handle it after full session setup
+      // This prevents NextAuth from interfering with our controlled flow
+      return `${baseUrl}/`;
     },
   },
 

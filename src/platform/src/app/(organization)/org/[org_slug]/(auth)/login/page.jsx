@@ -62,27 +62,62 @@ const OrganizationLogin = () => {
         });
 
         if (result?.error) {
-          // Parse the error message to extract status code information
+          // Enhanced error handling with better status code detection and user-friendly messages
           let statusCode = 401; // Default to unauthorized
           let customMessage = null;
 
+          const errorMsg = result.error.toLowerCase();
+
           if (
-            result.error.includes('Invalid credentials') ||
-            result.error.includes('Authentication failed') ||
-            result.error.includes('HTTP 401')
+            errorMsg.includes('invalid credentials') ||
+            errorMsg.includes('authentication failed') ||
+            errorMsg.includes('incorrect password') ||
+            errorMsg.includes('unauthorized')
           ) {
             statusCode = 401;
-            customMessage = null; // Use default status message
+            customMessage =
+              'Invalid email or password. Please check your credentials and try again.';
           } else if (
-            result.error.includes('Network Error') ||
-            result.error.includes('fetch') ||
-            result.error.includes('connection')
+            errorMsg.includes('user not found') ||
+            errorMsg.includes('account does not exist')
+          ) {
+            statusCode = 404;
+            customMessage = 'No account found with this email address.';
+          } else if (
+            errorMsg.includes('account locked') ||
+            errorMsg.includes('account disabled') ||
+            errorMsg.includes('account suspended')
+          ) {
+            statusCode = 403;
+            customMessage =
+              'Your account has been suspended. Please contact support.';
+          } else if (
+            errorMsg.includes('too many attempts') ||
+            errorMsg.includes('rate limit') ||
+            errorMsg.includes('throttled')
+          ) {
+            statusCode = 429;
+            customMessage =
+              'Too many login attempts. Please wait a moment and try again.';
+          } else if (
+            errorMsg.includes('network error') ||
+            errorMsg.includes('fetch') ||
+            errorMsg.includes('connection') ||
+            errorMsg.includes('timeout')
           ) {
             statusCode = 503;
-            customMessage = null; // Use default status message
-          } else {
+            customMessage =
+              'Connection problem. Please check your internet and try again.';
+          } else if (
+            errorMsg.includes('server error') ||
+            errorMsg.includes('internal error')
+          ) {
             statusCode = 500;
-            customMessage = result.error;
+            customMessage =
+              'Server error occurred. Please try again in a moment.';
+          } else {
+            statusCode = 400;
+            customMessage = result.error; // Use original error message as fallback
           }
 
           NotificationService.error(statusCode, customMessage);
@@ -98,13 +133,24 @@ const OrganizationLogin = () => {
             if (typeof window !== 'undefined') {
               window.dispatchEvent(new window.Event('focus'));
             }
-            NotificationService.success(200, 'Login successful!');
+
+            // Show setup message - NO REDIRECT, let UnifiedGroupProvider handle everything
+            NotificationService.success(
+              200,
+              'Login successful! Setting up your workspace...',
+            );
+
+            // DO NOT REDIRECT - Let the root page and UnifiedGroupProvider handle the redirect
+            // after complete session setup, permissions loading, and active group setting
           } else {
-            NotificationService.error(500, 'Session data is incomplete');
+            NotificationService.error(
+              500,
+              'Session setup failed. Please try logging in again.',
+            );
             return;
           }
         } else {
-          NotificationService.error(500, 'Login failed without specific error');
+          NotificationService.error(500, 'Login failed. Please try again.');
         }
       } catch (err) {
         logger.error('Organization login error:', err);
