@@ -10,7 +10,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import DevicesTable from "@/components/features/devices/device-list-table";
+import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -118,7 +118,7 @@ const MyDevicesPage = () => {
           </div>
         </div>
 
-        <DevicesTable
+        <ClientPaginatedDevicesTable
           devices={devicesData?.devices || []}
           isLoading={isLoading}
           error={error}

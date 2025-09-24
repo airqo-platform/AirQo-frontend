@@ -52,6 +52,7 @@ const useAuthStateProcessor = (protectionLevel, permissions = []) => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname(); // Get pathname here
+  const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const reduxLoginState = useSelector((state) => state.login);
 
@@ -158,6 +159,7 @@ const useAuthStateProcessor = (protectionLevel, permissions = []) => {
     dispatch,
     reduxLoginState,
     pathname,
+    searchParams,
   ]); // Add pathname to deps
 
   return { processAuthState, session, status, pathname }; // Return pathname

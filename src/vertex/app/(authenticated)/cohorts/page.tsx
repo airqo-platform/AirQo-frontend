@@ -43,7 +43,7 @@ export default function CohortsPage() {
     if (!net || !activeGroup?.grp_title) return;
     return queryClient.prefetchQuery({
       queryKey: ["devices", net, activeGroup?.grp_title],
-      queryFn: () => devicesApi.getDevicesSummaryApi(net, grp),
+      queryFn: () => devicesApi.getDevicesSummaryApi({network: net, group: grp}),
       staleTime: 300_000,
     });
   }, [queryClient, activeNetwork?.net_name, activeGroup?.grp_title]);

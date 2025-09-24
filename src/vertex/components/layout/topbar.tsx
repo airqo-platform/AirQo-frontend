@@ -2,7 +2,6 @@
 
 import type React from "react";
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
 import {
   Moon,
   Sun,
@@ -10,7 +9,7 @@ import {
   BookOpen,
   Settings,
 } from "lucide-react";
-import { AqMenu02, AqDotsGrid, AqUser02 } from "@airqo/icons-react";
+import { AqMenu02, AqDotsGrid } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -216,15 +215,6 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                     </p>
                   </div>
                 </div>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem asChild>
-                  <Link href="/profile" className="flex items-center gap-2">
-                    <AqUser02 className="h-4 w-4" />
-                    My Profile
-                  </Link>
-                </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 

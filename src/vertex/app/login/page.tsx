@@ -72,10 +72,7 @@ export default function LoginPage() {
       const message = getApiErrorMessage(error);
       logger.error("Sign-in failed", { error: message });
       ReusableToast({ message, type: "ERROR" });
-    } finally {
-      if (isMounted.current) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   }, [router]);
 
