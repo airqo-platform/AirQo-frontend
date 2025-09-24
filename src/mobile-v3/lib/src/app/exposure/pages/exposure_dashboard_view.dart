@@ -11,6 +11,8 @@ import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/exposure/services/mock_exposure_data.dart';
 import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
+import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
+import 'package:loggy/loggy.dart';
 
 class ClockExposurePainter extends CustomPainter {
   final DailyExposureSummary? exposureData;
@@ -161,7 +163,7 @@ class ExposureDashboardView extends StatefulWidget {
   State<ExposureDashboardView> createState() => _ExposureDashboardViewState();
 }
 
-class _ExposureDashboardViewState extends State<ExposureDashboardView> {
+class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLoggy {
   int _selectedTabIndex = 0; // 0 for Today, 1 for This week
   bool _isRequestingPermission = false;
   bool _showGuide = false;
@@ -804,7 +806,159 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
   }
 
   Widget _buildExposurePeak(DailyExposureSummary data) {
-    // Find peak PM2.5 value and its time
+    // Get peak air quality reading from nearby sensors, but keep original card design
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getPeakAirQualityReading(),
+      builder: (context, snapshot) {
+        // Use sensor data if available, otherwise fallback to original logic
+        String timeString;
+        String locationDescription;
+        String peakCategory;
+        double peakPm25;
+        Color peakColor;
+        
+        if (snapshot.hasData && snapshot.data != null) {
+          // Use real sensor data
+          final peakData = snapshot.data!;
+          peakPm25 = peakData['pm25'] as double;
+          timeString = peakData['timeString'] as String;
+          peakCategory = peakData['category'] as String;
+          locationDescription = 'near ${peakData['location'] as String}';
+          peakColor = _getPeakCategoryColor(peakCategory);
+        } else {
+          // Fallback to original personal exposure logic
+          ExposureDataPoint? peakPoint;
+          double tempPeakPm25 = 0.0;
+          
+          for (final point in data.dataPoints) {
+            if (point.pm25Value != null && point.pm25Value! > tempPeakPm25) {
+              tempPeakPm25 = point.pm25Value!;
+              peakPoint = point;
+            }
+          }
+          
+          if (peakPoint == null) return const SizedBox.shrink();
+          
+          // Format time in 12-hour format  
+          final hour = peakPoint.timestamp.hour;
+          final minute = peakPoint.timestamp.minute;
+          final period = hour >= 12 ? 'PM' : 'AM';
+          final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+          timeString = '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+          
+          peakPm25 = tempPeakPm25;
+          peakCategory = peakPoint.aqiCategory ?? 'Unknown';
+          locationDescription = _getLocationDescription(peakPoint);
+          peakColor = _getPeakCategoryColor(peakCategory);
+        }
+        
+        // Your ACTUAL original design restored
+        return Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: Theme.of(context).highlightColor,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Top row: PM2.5 label and air quality icon
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.air, size: 20, color: Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Text(
+                          'PM2.5',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SvgPicture.asset(
+                      _getAirQualityIconPath(peakCategory, peakPm25),
+                      width: 48,
+                      height: 48,
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Large PM2.5 value
+                Text(
+                  '${peakPm25.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                    height: 1.0,
+                  ),
+                ),
+                
+                // μg/m³ unit
+                Text(
+                  'μg/m³',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                
+                const SizedBox(height: 16),
+                
+                // Category badge
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: peakColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    peakCategory,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: peakColor,
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Location and time description
+                Text(
+                  'Peak occurred at $timeString $locationDescription',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPersonalExposurePeak(DailyExposureSummary data) {
+    // Original personal exposure peak logic as fallback
     ExposureDataPoint? peakPoint;
     double peakPm25 = 0.0;
     
@@ -1424,6 +1578,67 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
         return 'Moderate exposure day';
       case ExposureRiskLevel.high:
         return 'High exposure day';
+    }
+  }
+
+  Future<Map<String, dynamic>?> _getPeakAirQualityReading() async {
+    try {
+      // Get air quality data from nearby sensors (same as Near You view)
+      final dashboardRepository = DashboardImpl();
+      final response = await dashboardRepository.fetchAirQualityReadings();
+      
+      if (response.measurements == null || response.measurements!.isEmpty) {
+        return null;
+      }
+      
+      // Find the measurement with highest PM2.5 from nearby sensors
+      Measurement? peakMeasurement;
+      double peakPm25 = 0.0;
+      
+      for (final measurement in response.measurements!) {
+        if (measurement.pm25?.value != null && measurement.pm25!.value! > peakPm25) {
+          peakPm25 = measurement.pm25!.value!;
+          peakMeasurement = measurement;
+        }
+      }
+      
+      if (peakMeasurement == null) return null;
+      
+      // Get location name from site details
+      String locationName = 'unknown location';
+      if (peakMeasurement.siteDetails != null) {
+        locationName = peakMeasurement.siteDetails!.formattedName ?? 
+                     peakMeasurement.siteDetails!.locationName ?? 
+                     peakMeasurement.siteDetails!.name ?? 
+                     peakMeasurement.siteDetails!.searchName ??
+                     peakMeasurement.siteDetails!.district ??
+                     peakMeasurement.siteDetails!.subCounty ??
+                     peakMeasurement.siteDetails!.city ??
+                     'monitoring station';
+      }
+      
+      // Format time from measurement timestamp
+      String timeString = 'Unknown time';
+      if (peakMeasurement.time != null) {
+        final measurementTime = DateTime.tryParse(peakMeasurement.time!);
+        if (measurementTime != null) {
+          final hour = measurementTime.hour;
+          final minute = measurementTime.minute;
+          final period = hour >= 12 ? 'PM' : 'AM';
+          final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+          timeString = '$displayHour:${minute.toString().padLeft(2, '0')} $period';
+        }
+      }
+      
+      return {
+        'pm25': peakPm25,
+        'timeString': timeString,
+        'category': peakMeasurement.aqiCategory ?? 'Unknown',
+        'location': locationName,
+      };
+    } catch (e) {
+      loggy.error('Error getting peak air quality reading: $e');
+      return null;
     }
   }
 
