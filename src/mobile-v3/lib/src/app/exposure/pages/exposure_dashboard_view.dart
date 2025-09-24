@@ -938,7 +938,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
             padding: const EdgeInsets.only(
                 left: 16, right: 16, bottom: 16, top: 12),
             child: Text(
-              'Peak occurred at $timeString at ${_getLocationDescription(peakPoint)}',
+              'Peak occurred at $timeString ${_getLocationDescription(peakPoint)}',
               style: TextStyle(
                 fontSize: 14,
                 color: Theme.of(context)
@@ -1428,7 +1428,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
   }
 
   String _getLocationDescription(ExposureDataPoint? point) {
-    if (point == null) return 'unknown location';
+    if (point == null) return 'at unknown location';
     
     // Use the actual site name if available
     if (point.siteName != null && point.siteName!.isNotEmpty) {
@@ -1436,7 +1436,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
     }
     
     // Fallback to general area description
-    return 'in the area';
+    return 'in your area';
   }
 
   String _getDynamicDescription(DailyExposureSummary? data) {
