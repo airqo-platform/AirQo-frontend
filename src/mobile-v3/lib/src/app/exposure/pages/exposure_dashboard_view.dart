@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -9,6 +10,7 @@ import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manag
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/exposure/services/mock_exposure_data.dart';
+import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
 
 class ClockExposurePainter extends CustomPainter {
   final DailyExposureSummary? exposureData;
@@ -169,22 +171,59 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
   List<DailyExposureSummary> _weeklyData = [];
   bool _hasLocationPermission = false;
   bool _isLoadingData = false;
+  String? _errorMessage;
+
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _checkLocationPermissionAndLoadData();
+    _startPeriodicRefresh();
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startPeriodicRefresh() {
+    // Refresh exposure data every 10 minutes if location tracking is active
+    _refreshTimer = Timer.periodic(Duration(minutes: 10), (timer) {
+      if (_hasLocationPermission && !_isLoadingData) {
+        _loadExposureData();
+      }
+    });
   }
 
   Future<void> _checkLocationPermissionAndLoadData() async {
     try {
-      // For now, assume no permission initially
-      // The user will need to explicitly grant permission via the button
+      // Check if we already have location permission
+      final permissionResult = await _locationService.checkLocationPermission();
+      
+      if (permissionResult.isSuccess) {
+        // We have permission, initialize and start tracking
+        await _locationService.initialize();
+        await _locationService.startLocationTracking();
+        
+        setState(() {
+          _hasLocationPermission = true;
+        });
+        
+        // Load exposure data
+        await _loadExposureData();
+      } else {
+        // No permission - user will need to grant it via the button
+        setState(() {
+          _hasLocationPermission = false;
+        });
+      }
+    } catch (e) {
+      // Handle silently - user will see permission request UI
       setState(() {
         _hasLocationPermission = false;
       });
-    } catch (e) {
-      // Handle silently - user will see permission request UI
     }
   }
 
@@ -193,25 +232,46 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
     
     setState(() {
       _isLoadingData = true;
+      _errorMessage = null; // Clear previous errors
     });
 
     try {
-      // For demo purposes, we'll use mock data
-      // In production, this would use real exposure data
-      final todayData = MockExposureData.generateTodayExposure();
-      final weeklyData = MockExposureData.generateWeeklyData();
+      final calculator = ExposureCalculator();
+      
+      // Try to get real exposure data first
+      final todayData = await calculator.getTodayExposure();
+      
+      // Get weekly data
+      final weeklyTrend = await calculator.getCurrentWeekTrend();
+      final weeklyData = weeklyTrend?.dailySummaries ?? [];
       
       if (mounted) {
-        setState(() {
-          _todayExposure = todayData;
-          _weeklyData = weeklyData;
-          _isLoadingData = false;
-        });
+        if (todayData != null && todayData.dataPoints.isNotEmpty) {
+          // Use real calculated data
+          setState(() {
+            _todayExposure = todayData;
+            _weeklyData = weeklyData;
+            _isLoadingData = false;
+            _errorMessage = null;
+          });
+        } else {
+          // Fall back to mock data if no real data available
+          final mockTodayData = MockExposureData.generateTodayExposure();
+          final mockWeeklyData = MockExposureData.generateWeeklyData();
+          
+          setState(() {
+            _todayExposure = mockTodayData;
+            _weeklyData = mockWeeklyData;
+            _isLoadingData = false;
+            _errorMessage = null;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingData = false;
+          _errorMessage = 'Failed to load exposure data. Please check your location settings and internet connection.';
         });
       }
     }
@@ -261,7 +321,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
                 const SizedBox(height: 25),
                 
                 // Content based on permission status
-                if (_hasLocationPermission && _todayExposure != null)
+                if (_isLoadingData)
+                  _buildLoadingContent()
+                else if (_errorMessage != null)
+                  _buildErrorContent()
+                else if (_hasLocationPermission && _todayExposure != null)
                   _buildExposureContent()
                 else
                   _buildPermissionContent(),
@@ -273,6 +337,182 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLoadingContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title
+        Text(
+          _selectedTabIndex == 0 
+              ? 'Today\'s exposure summary'
+              : 'Weekly exposure summary',
+          style: TextStyle(
+            fontSize: 16,
+            color: const Color.fromARGB(137, 10, 6, 6),
+          ),
+        ),
+        
+        const SizedBox(height: 32),
+        
+        // Loading container with same styling as actual content
+        Container(
+          width: double.infinity,
+          height: 400,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Loading indicator
+              CircularProgressIndicator(
+                color: AppColors.primaryColor,
+                strokeWidth: 3,
+              ),
+              
+              const SizedBox(height: 16),
+              
+              Text(
+                'Loading exposure data...',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              
+              const SizedBox(height: 8),
+              
+              Text(
+                'Analyzing your pollution exposure',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title
+        Text(
+          _selectedTabIndex == 0 
+              ? 'Today\'s exposure summary'
+              : 'Weekly exposure summary',
+          style: TextStyle(
+            fontSize: 16,
+            color: const Color.fromARGB(137, 10, 6, 6),
+          ),
+        ),
+        
+        const SizedBox(height: 32),
+        
+        // Error container with same styling as actual content
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Error icon
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    size: 32,
+                    color: Colors.red.shade400,
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                Text(
+                  'Unable to load exposure data',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                const SizedBox(height: 12),
+                
+                Text(
+                  _errorMessage ?? 'An unexpected error occurred',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // Retry button
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _errorMessage = null;
+                    });
+                    _loadExposureData();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Try Again',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -296,8 +536,8 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
         // Subtitle with time range
         Text(
           _selectedTabIndex == 0 
-              ? 'Summary'
-              : 'Summary',
+              ? 'Today\'s exposure summary'
+              : 'Weekly exposure summary',
           style: TextStyle(
             fontSize: 16,
             color: const Color.fromARGB(137, 10, 6, 6),
@@ -335,7 +575,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
                     children: [
                       // Title and description
                       Text(
-                        'Low exposure day',
+                        _getDynamicTitle(currentData),
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -346,7 +586,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
                       const SizedBox(height: 12),
                       
                       Text(
-                        'In the past 24 hours, you\'ve had low pollution exposure with minimal health impact',
+                        _getDynamicDescription(currentData),
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.grey.shade600,
@@ -374,7 +614,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
                               ),
                               
                               // SVG pointer for current time
-                              // _buildCurrentTimePointer(),
+                              _buildCurrentTimePointer(),
                               
                               // Air quality icon for current hour  
                               Center(
@@ -396,6 +636,10 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
                         alignment: Alignment.centerLeft,
                         child: GestureDetector(
                           onTap: () => setState(() => _showGuide = !_showGuide),
+                          onLongPress: () {
+                            // Debug feature: force refresh data on long press
+                            _loadExposureData();
+                          },
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                             decoration: BoxDecoration(
@@ -441,7 +685,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
                       const SizedBox(height: 24),
                       
                       // Summary statistics
-                      // if (currentData != null) _buildSummaryStats(currentData),
+                      if (currentData != null) _buildSummaryStats(currentData),
                     ],
                   ),
                 ),
@@ -484,39 +728,39 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
     );
   }
 
-  // Widget _buildSummaryStats(DailyExposureSummary data) {
-  //   // Calculate low exposure hours (Good + Moderate categories)
-  //   final lowExposureTime = data.timeByAqiCategory.entries
-  //       .where((entry) => ['good', 'moderate'].contains(entry.key.toLowerCase()))
-  //       .fold(Duration.zero, (sum, entry) => sum + entry.value);
+  Widget _buildSummaryStats(DailyExposureSummary data) {
+    // Calculate low exposure hours (Good + Moderate categories)
+    final lowExposureTime = data.timeByAqiCategory.entries
+        .where((entry) => ['good', 'moderate'].contains(entry.key.toLowerCase()))
+        .fold(Duration.zero, (sum, entry) => sum + entry.value);
     
-  //   final lowExposureHours = lowExposureTime.inHours;
-  //   final totalOutdoorHours = data.totalOutdoorTime.inHours;
+    final lowExposureHours = lowExposureTime.inHours;
+    final totalOutdoorHours = data.totalOutdoorTime.inHours;
     
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceAround,
-  //     children: [
-  //       _buildStatCard(
-  //         'Low exposure',
-  //         lowExposureHours.toString().padLeft(2, '0'),
-  //         'hours',
-  //         const Color(0xFF8FE6A4),
-  //       ),
-  //       _buildStatCard(
-  //         'Total outdoor',
-  //         totalOutdoorHours.toString(),
-  //         'hours',
-  //         AppColors.primaryColor,
-  //       ),
-  //       _buildStatCard(
-  //         'Risk level',
-  //         data.riskLevel.displayName,
-  //         '',
-  //         _getRiskLevelColor(data.riskLevel),
-  //       ),
-  //     ],
-  //   );
-  // }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _buildStatCard(
+          'Low exposure',
+          lowExposureHours.toString().padLeft(2, '0'),
+          'hours',
+          const Color(0xFF8FE6A4),
+        ),
+        _buildStatCard(
+          'Total outdoor',
+          totalOutdoorHours.toString(),
+          'hours',
+          AppColors.primaryColor,
+        ),
+        _buildStatCard(
+          'Risk level',
+          data.riskLevel.displayName,
+          '',
+          _getRiskLevelColor(data.riskLevel),
+        ),
+      ],
+    );
+  }
 
   Widget _buildStatCard(String label, String value, String unit, Color color) {
     return Column(
@@ -591,7 +835,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: Offset(0, 2),
           ),
@@ -670,7 +914,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
                 padding:
                     EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 decoration: BoxDecoration(
-                  color: peakColor.withOpacity(0.15),
+                  color: peakColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -694,14 +938,14 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
             padding: const EdgeInsets.only(
                 left: 16, right: 16, bottom: 16, top: 12),
             child: Text(
-              'Peak occurred at $timeString near Kawangware Rd',
+              'Peak occurred at $timeString at ${_getLocationDescription(peakPoint)}',
               style: TextStyle(
                 fontSize: 14,
                 color: Theme.of(context)
                     .textTheme
                     .bodyMedium
                     ?.color
-                    ?.withOpacity(0.7),
+                    ?.withValues(alpha: 0.7),
               ),
             ),
           ),
@@ -765,36 +1009,34 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
     final y = pointerDistance * math.sin(currentAngle);
     
     return Positioned(
-      left: 110 + x - 12, // Center (110) + offset - half pointer width
-      top: 110 + y - 12,  // Center (110) + offset - half pointer height
+      left: 110 + x - 6, // Center (110) + offset - half pointer width
+      top: 110 + y - 6,  // Center (110) + offset - half pointer height
       child: Transform.rotate(
         angle: currentAngle + (math.pi / 2), // Adjust rotation to align with direction
-        child: SvgPicture.asset(
-          'assets/icons/pointer.svg',
-          width: 24,
-          height: 24,
+        child: Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(
+            Icons.circle,
+            size: 8,
+            color: Colors.white,
+          ),
         ),
       ),
     );
   }
 
-  Color _getCurrentHourBackgroundColor(DailyExposureSummary? exposureData) {
-    if (exposureData == null) {
-      return const Color(0xFFFFEC89); // Default moderate color
-    }
-    
-    final currentHour = DateTime.now().hour;
-    
-    // Find exposure data for current hour
-    for (final point in exposureData.dataPoints) {
-      if (point.timestamp.hour == currentHour) {
-        return _getPeakCategoryColor(point.aqiCategory ?? 'moderate');
-      }
-    }
-    
-    // Default moderate color if no data for current hour
-    return const Color(0xFFFFEC89);
-  }
 
   Color _getPeakCategoryColor(String category) {
     switch (category.toLowerCase()) {
@@ -1073,11 +1315,15 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
           ),
         );
         
-        // Initialize location service and load exposure data
+        // Initialize location service and start tracking
         await _locationService.initialize();
+        await _locationService.startLocationTracking();
+        
         setState(() {
           _hasLocationPermission = true;
         });
+        
+        // Load exposure data after starting location tracking
         await _loadExposureData();
       } else {
         // Handle different error states
@@ -1164,6 +1410,55 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> {
         ],
       ),
     );
+  }
+
+  String _getDynamicTitle(DailyExposureSummary? data) {
+    if (data == null) return 'No exposure data';
+    
+    switch (data.riskLevel) {
+      case ExposureRiskLevel.minimal:
+        return 'Minimal exposure day';
+      case ExposureRiskLevel.low:
+        return 'Low exposure day';
+      case ExposureRiskLevel.moderate:
+        return 'Moderate exposure day';
+      case ExposureRiskLevel.high:
+        return 'High exposure day';
+    }
+  }
+
+  String _getLocationDescription(ExposureDataPoint? point) {
+    if (point == null) return 'unknown location';
+    
+    // Use the actual site name if available
+    if (point.siteName != null && point.siteName!.isNotEmpty) {
+      return 'near ${point.siteName}';
+    }
+    
+    // Fallback to general area description
+    return 'in the area';
+  }
+
+  String _getDynamicDescription(DailyExposureSummary? data) {
+    if (data == null) return 'Unable to load exposure data. Please check your location settings.';
+    
+    final timeFrame = _selectedTabIndex == 0 ? 'past 24 hours' : 'this week';
+    final outdoorHours = data.totalOutdoorTime.inHours;
+    final outdoorMinutes = data.totalOutdoorTime.inMinutes % 60;
+    final timeSpent = outdoorHours > 0 
+        ? '${outdoorHours}h ${outdoorMinutes}m' 
+        : '${outdoorMinutes}m';
+    
+    switch (data.riskLevel) {
+      case ExposureRiskLevel.minimal:
+        return 'In the $timeFrame, you\'ve had minimal pollution exposure with no health impact. You spent $timeSpent outdoors.';
+      case ExposureRiskLevel.low:
+        return 'In the $timeFrame, you\'ve had low pollution exposure with minimal health impact. You spent $timeSpent outdoors.';
+      case ExposureRiskLevel.moderate:
+        return 'In the $timeFrame, you\'ve experienced moderate pollution exposure. Consider limiting outdoor activities. You spent $timeSpent outdoors.';
+      case ExposureRiskLevel.high:
+        return 'In the $timeFrame, you\'ve had high pollution exposure. Consider avoiding unnecessary outdoor activities. You spent $timeSpent outdoors.';
+    }
   }
 
   Widget _buildTabButton({

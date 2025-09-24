@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 
 class ExposureCalculator with UiLoggy {
@@ -206,16 +207,32 @@ class ExposureCalculator with UiLoggy {
 
   Future<List<Measurement>> _getAirQualityData(DateTime startDate, DateTime endDate) async {
     try {
-      // This would typically come from the air quality repository
-      // For now, we'll try to get cached data or return empty list
+      // Import the dashboard repository to get live air quality data
+      final DashboardImpl dashboardRepository = DashboardImpl();
       
-      // TODO: Implement proper air quality data retrieval based on the existing repository
-      // The AirQualityRepository would need to be extended to support date range queries
+      // Get the current air quality readings
+      final AirQualityResponse response = await dashboardRepository.fetchAirQualityReadings(forceRefresh: false);
       
-      loggy.warning('Air quality data retrieval not fully implemented - using mock data');
-      return [];
+      if (response.measurements != null && response.measurements!.isNotEmpty) {
+        // Filter measurements within the date range
+        final filteredMeasurements = response.measurements!.where((measurement) {
+          if (measurement.time == null) return false;
+          
+          final measurementTime = DateTime.tryParse(measurement.time!);
+          if (measurementTime == null) return false;
+          
+          return measurementTime.isAfter(startDate) && measurementTime.isBefore(endDate);
+        }).toList();
+        
+        loggy.info('Retrieved ${filteredMeasurements.length} air quality measurements');
+        return filteredMeasurements;
+      } else {
+        loggy.warning('No air quality measurements available');
+        return [];
+      }
     } catch (e) {
       loggy.error('Error getting air quality data: $e');
+      // Return empty list so exposure calculation can still work with location data only
       return [];
     }
   }

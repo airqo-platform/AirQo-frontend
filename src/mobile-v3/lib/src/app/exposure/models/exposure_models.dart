@@ -17,6 +17,7 @@ class ExposureDataPoint extends Equatable {
   final String? aqiColor;
   final double? accuracy;
   final Duration? durationAtLocation;
+  final String? siteName;
 
   const ExposureDataPoint({
     required this.id,
@@ -30,6 +31,7 @@ class ExposureDataPoint extends Equatable {
     this.aqiColor,
     this.accuracy,
     this.durationAtLocation,
+    this.siteName,
   });
 
   @override
@@ -45,6 +47,7 @@ class ExposureDataPoint extends Equatable {
         aqiColor,
         accuracy,
         durationAtLocation,
+        siteName,
       ];
 
   /// Create from location data point and measurement
@@ -53,6 +56,18 @@ class ExposureDataPoint extends Equatable {
     required Measurement measurement,
     Duration? duration,
   }) {
+    // Get the best available site name
+    String? siteName;
+    if (measurement.siteDetails != null) {
+      siteName = measurement.siteDetails!.formattedName ?? 
+                measurement.siteDetails!.locationName ?? 
+                measurement.siteDetails!.name ?? 
+                measurement.siteDetails!.searchName ??
+                measurement.siteDetails!.district ??
+                measurement.siteDetails!.subCounty ??
+                measurement.siteDetails!.city;
+    }
+    
     return ExposureDataPoint(
       id: '${locationPoint.id}_${measurement.id ?? "unknown"}',
       timestamp: locationPoint.timestamp,
@@ -65,6 +80,7 @@ class ExposureDataPoint extends Equatable {
       aqiColor: measurement.aqiColor,
       accuracy: locationPoint.accuracy,
       durationAtLocation: duration,
+      siteName: siteName,
     );
   }
 
@@ -113,6 +129,7 @@ class ExposureDataPoint extends Equatable {
       if (aqiColor != null) 'aqiColor': aqiColor,
       if (accuracy != null) 'accuracy': accuracy,
       if (durationAtLocation != null) 'durationAtLocation': durationAtLocation!.inSeconds,
+      if (siteName != null) 'siteName': siteName,
     };
   }
 
@@ -131,6 +148,7 @@ class ExposureDataPoint extends Equatable {
       durationAtLocation: json['durationAtLocation'] != null
           ? Duration(seconds: json['durationAtLocation'])
           : null,
+      siteName: json['siteName'],
     );
   }
 }
