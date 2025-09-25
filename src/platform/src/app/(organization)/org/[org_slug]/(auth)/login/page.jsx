@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import Button from '@/common/components/Button';
 import { signIn, getSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -14,6 +14,7 @@ import ErrorBoundary from '@/common/components/ErrorBoundary';
 import NotificationService from '@/core/utils/notificationService';
 import logger from '@/lib/logger';
 import { formatOrgSlug } from '@/core/utils/strings';
+import setupUserSession from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -28,6 +29,7 @@ const OrganizationLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
+  const router = useRouter();
   const { getDisplayName, primaryColor } = useOrganization();
   const orgSlug = params.org_slug;
 
@@ -125,30 +127,28 @@ const OrganizationLogin = () => {
         }
 
         if (result?.ok) {
-          // Force session refresh after successful login
+          // Get the session and run client-side setup so user lands in app with data
           const session = await getSession();
 
-          if (session?.user && session?.accessToken) {
-            // Force NextAuth to update the session context immediately
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new window.Event('focus'));
+          if (session?.user) {
+            try {
+              await setupUserSession(session, null, '/');
+
+              const redirectOrg = session.requestedOrgSlug || session.orgSlug;
+              if (redirectOrg) router.replace(`/org/${redirectOrg}/dashboard`);
+              else router.replace('/user/Home');
+              return;
+            } catch (err) {
+              NotificationService.error(500, err.message || 'Login setup failed');
+              return;
             }
-
-            // Show setup message - NO REDIRECT, let UnifiedGroupProvider handle everything
-            NotificationService.success(
-              200,
-              'Login successful! Setting up your workspace...',
-            );
-
-            // DO NOT REDIRECT - Let the root page and UnifiedGroupProvider handle the redirect
-            // after complete session setup, permissions loading, and active group setting
-          } else {
-            NotificationService.error(
-              500,
-              'Session setup failed. Please try logging in again.',
-            );
-            return;
           }
+
+          NotificationService.error(
+            500,
+            'Session setup failed. Please try logging in again.',
+          );
+          return;
         } else {
           NotificationService.error(500, 'Login failed. Please try again.');
         }
@@ -164,7 +164,7 @@ const OrganizationLogin = () => {
         setIsLoading(false);
       }
     },
-    [userName, password, orgSlug],
+    [userName, password, orgSlug, router],
   );
 
   const togglePasswordVisibility = useCallback(() => {

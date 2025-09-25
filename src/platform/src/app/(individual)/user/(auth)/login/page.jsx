@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
@@ -13,6 +14,7 @@ import Button from '@/common/components/Button';
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
 import NotificationService from '@/core/utils/notificationService';
+import setupUserSession from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -25,6 +27,7 @@ const UserLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
   const { userData } = useSelector((state) => state.login);
   const isMountedRef = useRef(true);
 
@@ -146,14 +149,35 @@ const UserLogin = () => {
         }
 
         if (result?.ok) {
-          // Success notification
-          NotificationService.success(
-            200,
-            'Welcome back! Setting up your workspace...',
-          );
+          // Success notification (kept simple)
+          NotificationService.success(200, 'Welcome back!');
 
-          // Let the root page and UnifiedGroupProvider handle the redirect
-          // after proper session setup is complete
+          // Get the freshly minted session and run the client-side setup
+          try {
+            const session = await getSession();
+            if (session?.user) {
+              // Run setup which will populate Redux with user/groups/etc.
+              // We await this so the user lands on the app with data loaded.
+              await setupUserSession(session, dispatch, '/');
+
+              // Redirect based on organization context in session
+              const orgSlug = session.requestedOrgSlug || session.orgSlug;
+              if (orgSlug) {
+                router.replace(`/org/${orgSlug}/dashboard`);
+              } else {
+                router.replace('/user/Home');
+              }
+              return;
+            }
+            NotificationService.error(
+              500,
+              'Session setup failed. Please try logging in again.',
+            );
+            return;
+          } catch (setupErr) {
+            NotificationService.error(500, setupErr.message || 'Login setup failed');
+            return;
+          }
         } else {
           NotificationService.error(500, 'Login failed. Please try again.');
         }
@@ -171,7 +195,7 @@ const UserLogin = () => {
         }
       }
     },
-    [userData, loading],
+    [userData, loading, dispatch, router],
   );
 
   const handleInputChange = useCallback(

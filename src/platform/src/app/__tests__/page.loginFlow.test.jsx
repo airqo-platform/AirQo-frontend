@@ -64,33 +64,14 @@ describe('Login setup and redirect full flow', () => {
   });
 
   test('authenticated flow: shows setting up then redirects when activeGroup ready', async () => {
-    // Start as authenticated but unified session not ready
-    useSession.mockReturnValue({
-      data: { user: { id: 'u1' } },
-      status: 'authenticated',
-    });
-    unifiedMock.sessionInitialized = false;
-    unifiedMock.initialGroupSet = false;
-    unifiedMock.activeGroup = null;
+    // With the new flow HomePage redirects immediately when NextAuth reports
+    // an authenticated session. The login page is responsible for running
+    // setupUserSession now, so HomePage no longer blocks on provider flags.
+    useSession.mockReturnValue({ data: { user: { id: 'u1' } }, status: 'authenticated' });
 
-    const { getByText } = render(<HomePage />);
+    render(<HomePage />);
 
-    // Should show loading dashboard message (updated to match new loading text)
-    expect(getByText(/Loading your dashboard.../i)).toBeTruthy();
-
-    // Simulate setupUserSession finished and activeGroup set
-    unifiedMock.sessionInitialized = true;
-    unifiedMock.initialGroupSet = true;
-    unifiedMock.activeGroup = { _id: 'g123' };
-
-    // Re-render to let useEffect notice the change
-    await act(async () => {
-      render(<HomePage />);
-    });
-
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalled();
-    });
+    await waitFor(() => expect(mockReplace).toHaveBeenCalled());
   });
 
   test('delayed setup: no redirect until activeGroup appears', async () => {
@@ -106,35 +87,11 @@ describe('Login setup and redirect full flow', () => {
       };
     });
 
-    useSession.mockReturnValue({
-      data: { user: { id: 'u2' } },
-      status: 'authenticated',
-    });
-    // initial provider state: not initialized
-    unifiedMock.sessionInitialized = false;
-    unifiedMock.initialGroupSet = false;
-    unifiedMock.activeGroup = null;
-
-    const { rerender } = render(<HomePage />);
-
-    // Wait a bit to allow setupUserSession to resolve and to ensure no immediate redirect
-    await new Promise((r) => setTimeout(r, 20));
-    expect(mockReplace).not.toHaveBeenCalled();
-
-    // Simulate provider gets updated after setup finishes
-    await act(async () => {
-      unifiedMock.sessionInitialized = true;
-      unifiedMock.initialGroupSet = true;
-      unifiedMock.activeGroup = { _id: 'delayed' };
-      // Force the component to re-render so hooks read the new values
-      rerender(<HomePage />);
-    });
-
-    await waitFor(() => {
-      expect(mockReplace).toHaveBeenCalled();
-    });
-
-    LoginSetup.setupUserSession.mockReset();
+    // HomePage now redirects immediately on authentication; the delayed setup
+    // behavior is the responsibility of the login flow. Ensure redirect occurs.
+    useSession.mockReturnValue({ data: { user: { id: 'u2' } }, status: 'authenticated' });
+    render(<HomePage />);
+    await waitFor(() => expect(mockReplace).toHaveBeenCalled());
   });
 
   test('setup failure: do not redirect when setupUserSession fails', async () => {

@@ -4,18 +4,15 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import LoadingSpinner from '@/common/components/LoadingSpinner';
-import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 
 const HomePage = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { activeGroup, sessionInitialized } = useUnifiedGroup();
   const [hasRedirected, setHasRedirected] = useState(false);
 
-  // Faster redirect logic - don't wait for all flags to be true
-  // Just check if we have the essential data needed for redirect
-  const canRedirect = sessionInitialized && activeGroup?._id;
-
+  // Redirect immediately when authenticated. The login pages are now
+  // responsible for running client-side setup so the app doesn't need to
+  // wait for provider-level initialization here.
   useEffect(() => {
     if (status === 'loading' || hasRedirected) return;
 
@@ -25,36 +22,18 @@ const HomePage = () => {
       return;
     }
 
-    if (status === 'authenticated' && session?.user && canRedirect) {
+    if (status === 'authenticated' && session?.user) {
       setHasRedirected(true);
-
-      // Redirect based on the active group context or session data
-      if (session.requestedOrgSlug || session.orgSlug) {
-        // User came from organization login - redirect to org dashboard
-        const orgSlug = session.requestedOrgSlug || session.orgSlug;
-        router.replace(`/org/${orgSlug}/dashboard`);
-      } else {
-        // Default redirect to user home
-        router.replace('/user/Home');
-      }
+      const target = session.requestedOrgSlug || session.orgSlug
+        ? `/org/${(session.requestedOrgSlug || session.orgSlug)}/dashboard`
+        : '/user/Home';
+      router.replace(target);
     }
-  }, [status, session, canRedirect, router, hasRedirected]);
-
-  // Show loading state while waiting for session and active group setup
-  const getLoadingText = () => {
-    if (status === 'loading') {
-      return 'Authenticating...';
-    }
-    // Show faster, more specific loading messages
-    if (status === 'authenticated' && !canRedirect) {
-      return 'Loading your dashboard...';
-    }
-    return 'Redirecting...';
-  };
+  }, [status, session, router, hasRedirected]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <LoadingSpinner size="lg" text={getLoadingText()} />
+      <LoadingSpinner size="lg" text={status === 'loading' ? 'Authenticating...' : 'Redirecting...'} />
     </div>
   );
 };
