@@ -1,3 +1,0 @@
-Pidgin Translations
-Bug Fixes
-Performance enhancements

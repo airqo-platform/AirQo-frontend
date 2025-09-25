@@ -1,1 +1,0 @@
-- [AirQo](https://airqo.net/)
