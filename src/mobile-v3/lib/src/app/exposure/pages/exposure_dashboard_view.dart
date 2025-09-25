@@ -1432,11 +1432,13 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
   Widget _buildGuidePopup() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).highlightColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.black.withValues(alpha: 0.15),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -1450,44 +1452,72 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header with border line
-              Container(
-                padding: const EdgeInsets.only(left: 4),
-                decoration: BoxDecoration(
-                  border: Border(
-                    left: BorderSide(
-                      color: Colors.grey.shade400,
-                      width: 4,
+              // Header with close button and border line
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.only(left: 4),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          left: BorderSide(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.dividerColordark
+                                : Colors.grey.shade400,
+                            width: 4,
+                          ),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Concern levels',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context)
+                                  .textTheme
+                                  .headlineMedium
+                                  ?.color,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'We use the different concentration levels of airquality that you experience at different times of the day to share your exposure per hour with a color from these concern level icons',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color
+                    ?.withValues(alpha: 0.7),
+
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Concern levels',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'We use the different concentration levels of airquality that you experience at different times of the day to share your exposure per hour with a color from these concern level icons',
-                      style: TextStyle(
-                        fontSize: 10,
+                  // Close button
+                  GestureDetector(
+                    onTap: () => setState(() => _showGuide = false),
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(
+                        Icons.close,
+                        size: 20,
                         color: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.color
-              ?.withValues(alpha: 0.7),
-
-                        height: 1.3,
+                            .textTheme
+                            .bodyMedium
+                            ?.color
+                            ?.withValues(alpha: 0.6),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
               
               const SizedBox(height: 16),
@@ -1517,7 +1547,10 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.black87,
+                color: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.color,
               ),
             ),
           ),
