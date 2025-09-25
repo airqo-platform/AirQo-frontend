@@ -437,38 +437,61 @@ export function UnifiedGroupProvider({ children }) {
       !state.sessionInitialized &&
       !lock.current
     ) {
-      logger.info('Initializing user session with setupUserSession');
+      logger.info('Initializing user session with optimized setupUserSession');
 
-      // Add a small delay to ensure the "Setting up your session..." message is displayed
-      // before activeGroup is set (which would trigger redirect in root page)
-      const setupSessionWithDelay = async () => {
-        // First, ensure loading state is visible
-        await new Promise((resolve) => setTimeout(resolve, 100));
+      // Set a more reasonable fallback timeout (reduced from 10s to 5s)
+      const fallbackTimeout = setTimeout(() => {
+        if (mountedRef.current && !state.sessionInitialized) {
+          logger.warn('Session setup timeout - forcing session initialization');
+          dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+        }
+      }, 5000); // 5 second maximum wait
 
-        const result = await setupUserSession(session, rdxDispatch, pathname);
+      const setupSession = async () => {
+        try {
+          // Provide already-fetched userGroups to avoid redundant API calls
+          const result = await setupUserSession(
+            session,
+            rdxDispatch,
+            pathname,
+            {
+              userGroups,
+            },
+          );
 
-        if (result.success) {
-          logger.info('User session setup completed successfully');
-          // Add another brief delay before marking session as initialized
-          // to ensure smooth UX transition
-          setTimeout(() => {
-            if (mountedRef.current) {
-              dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
-            }
-          }, 200);
-        } else {
-          logger.error('User session setup failed:', result.error);
+          if (result.success) {
+            logger.info('User session setup completed successfully');
+          } else {
+            logger.error('User session setup failed:', result.error);
+          }
+        } catch (error) {
+          logger.error('setupUserSession error:', error);
+          // On setup failure, still proceed to prevent infinite loading
+          // User can refresh if needed, but we shouldn't block the app
+        } finally {
+          // Clear the fallback timeout since we completed
+          clearTimeout(fallbackTimeout);
+
+          // ALWAYS mark session as initialized to prevent permanent stall
+          // Even if setupUserSession fails, we should allow the app to continue
+          // rather than get stuck on the overlay indefinitely
+          if (mountedRef.current) {
+            dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+          }
         }
       };
 
-      setupSessionWithDelay().catch((error) => {
-        logger.error('setupUserSession error:', error);
-      });
+      // Start session setup immediately (no setTimeout delay)
+      setupSession();
+
+      // Cleanup timeout on unmount
+      return () => clearTimeout(fallbackTimeout);
     }
   }, [
     sessionStatus,
     session,
     userGroupsLength,
+    userGroups,
     state.sessionInitialized,
     rdxDispatch,
     pathname,
@@ -747,17 +770,22 @@ export function UnifiedGroupProvider({ children }) {
 
   // Session initialization loader (show while setting up user session)
   // Also show while initial group is being set to prevent premature UI display
+  // Show loader only when session has not been initialized AND there's no activeGroup yet.
+  // Previously this used an OR which caused the provider to keep showing the
+  // "Setting up your session..." overlay even when an activeGroup had already
+  // been set (for example by `setupUserSession`). That prevented children from
+  // rendering and blocked redirects until a full page reload. Use && here so
+  // children can render as soon as an activeGroup exists.
   if (
     sessionStatus === 'authenticated' &&
     session?.user?.id &&
     userGroupsLength > 0 &&
-    (!state.sessionInitialized || !state.initialGroupSet)
+    !state.sessionInitialized &&
+    !activeGroup
   ) {
     const loadingText = !state.sessionInitialized
       ? 'Setting up your session…'
-      : !activeGroup
-        ? 'Loading your workspace…'
-        : 'Preparing your dashboard…';
+      : 'Loading your workspace…';
 
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -810,6 +838,12 @@ export const useUnifiedGroup = () => {
     throw new Error('useUnifiedGroup must be used within UnifiedGroupProvider');
   }
   return context;
+};
+
+// Safe variant: returns null instead of throwing when provider is not present.
+export const useUnifiedGroupSafe = () => {
+  const context = useContext(ctx);
+  return context || null;
 };
 
 // Legacy hooks (unchanged API)

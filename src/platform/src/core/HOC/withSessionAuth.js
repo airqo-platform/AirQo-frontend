@@ -4,6 +4,7 @@ import React from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useUnifiedGroupSafe } from '@/app/providers/UnifiedGroupProvider';
 
 // Protection levels
 export const PROTECTION_LEVELS = {
@@ -31,31 +32,47 @@ const withSessionAuth = (
     const { data: session, status } = useSession();
     const router = useRouter();
 
+    const unified = useUnifiedGroupSafe();
+    const sessionInitialized = unified?.sessionInitialized ?? true;
+    const initialGroupSet = unified?.initialGroupSet ?? true;
+
     useEffect(() => {
       if (status === 'loading') return; // Wait for session to load
 
-      // Handle different protection levels
-      if (protectionLevel === PROTECTION_LEVELS.PUBLIC) {
-        // Public routes - no authentication required
-        return;
-      }
+      // Handle public routes
+      if (protectionLevel === PROTECTION_LEVELS.PUBLIC) return;
 
+      // For auth-only pages (like login/register): only redirect when the
+      // entire unified session (including active group) is initialized. This
+      // prevents NextAuth from causing an early redirect to /user/Home which
+      // leads to UI flicker while the rest of the app is still setting up.
       if (protectionLevel === PROTECTION_LEVELS.AUTH_ONLY) {
-        // Auth-only routes (like login/register) - redirect if already authenticated
         if (status === 'authenticated') {
+          if (!sessionInitialized || !initialGroupSet) {
+            // Still setting up session - do not redirect yet
+            return;
+          }
           router.replace('/user/Home');
           return;
         }
       }
 
       if (protectionLevel === PROTECTION_LEVELS.PROTECTED) {
-        // Protected routes - require authentication
         if (status === 'unauthenticated') {
           router.replace('/user/login');
           return;
         }
+
+        // If authenticated but unified session hasn't fully initialized,
+        // keep showing loader until ready to avoid rendering protected UI
+        if (
+          status === 'authenticated' &&
+          (!sessionInitialized || !initialGroupSet)
+        ) {
+          return;
+        }
       }
-    }, [status, router]);
+    }, [status, router, sessionInitialized, initialGroupSet]);
 
     // Show loading state while session is loading
     if (status === 'loading') {

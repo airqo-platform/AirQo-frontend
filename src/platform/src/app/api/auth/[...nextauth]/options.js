@@ -305,8 +305,7 @@ export const authOptions = {
         return url;
       }
 
-      // DO NOT auto-redirect - let our root page handle it after full session setup
-      // This prevents NextAuth from interfering with our controlled flow
+      // Redirect to root page which will handle proper routing
       return `${baseUrl}/`;
     },
   },
