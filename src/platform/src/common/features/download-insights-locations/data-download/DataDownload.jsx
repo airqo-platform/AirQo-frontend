@@ -225,13 +225,13 @@ const DataDownload = ({
     loadMore: loadMoreSites,
     canLoadMore: canLoadMoreSites,
     hasNextPage: sitesHasNextPage,
-  } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {
+  } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'airqo', {
     enableInfiniteScroll: true,
     search: searchQuery,
   });
 
   const { data: devicesData } = usePaginatedDevicesSummary(
-    groupTitle || 'AirQo',
+    groupTitle || 'airqo',
     {
       enableInfiniteScroll: true,
       search: searchQuery,
@@ -280,6 +280,8 @@ const DataDownload = ({
     hasNextPage: mobileDevicesHasNextPage,
   } = usePaginatedMobileDevices({
     enableInfiniteScroll: true,
+    search: searchQuery,
+    group: groupTitle,
   });
 
   const {
@@ -294,6 +296,8 @@ const DataDownload = ({
     hasNextPage: bamDevicesHasNextPage,
   } = usePaginatedBAMDevices({
     enableInfiniteScroll: true,
+    search: searchQuery,
+    group: groupTitle,
   });
 
   const {
@@ -308,6 +312,8 @@ const DataDownload = ({
     hasNextPage: lowCostDevicesHasNextPage,
   } = usePaginatedLowCostDevices({
     enableInfiniteScroll: true,
+    search: searchQuery,
+    group: groupTitle,
   });
 
   // Close mobile sidebar when resizing to larger screen
