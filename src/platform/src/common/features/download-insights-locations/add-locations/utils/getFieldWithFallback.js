@@ -6,7 +6,15 @@
  */
 export const getFieldWithFallback = (item, fields) => {
   for (const field of fields) {
-    if (item[field]) return item[field];
+    const val = item?.[field];
+    if (val && typeof val === 'string') {
+      const lower = val.trim().toLowerCase();
+      if (lower && lower !== 'n/a' && lower !== 'na' && lower !== 'unknown') {
+        return val;
+      }
+    } else if (val != null && val !== '') {
+      return val;
+    }
   }
-  return 'N/A';
+  return '--';
 };

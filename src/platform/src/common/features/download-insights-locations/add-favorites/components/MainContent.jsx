@@ -17,7 +17,7 @@ const columns = [
           <AqMarkerPin01 size={16} />
         </span>
         <span className="ml-2">
-          {item.search_name || item.location_name || item.name || '--'}
+          {getFieldWithFallback(item, ['search_name', 'name', 'location_name'])}
         </span>
       </div>
     ),
@@ -174,7 +174,7 @@ export const MainContent = ({
         enableColumnFilters={true}
         defaultSortColumn="search_name"
         defaultSortDirection="asc"
-        enableInfiniteScroll={true}
+        enableInfiniteScroll={false}
         paginationMeta={meta}
         hasNextPage={hasNextPage}
         onLoadMore={loadMore}

@@ -229,9 +229,10 @@ const DataDownload = ({
     nextPage: sitesNextPage,
     prevPage: sitesPrevPage,
   } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'airqo', {
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,
+    swrOptions: { revalidateOnMount: true },
   });
 
   const { data: devicesData } = usePaginatedDevicesSummary(
@@ -255,7 +256,7 @@ const DataDownload = ({
     nextPage: countriesNextPage,
     prevPage: countriesPrevPage,
   } = usePaginatedGridsSummary('country', {
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,
   });
@@ -273,7 +274,7 @@ const DataDownload = ({
     nextPage: citiesNextPage,
     prevPage: citiesPrevPage,
   } = usePaginatedGridsSummary('city,state,county,district,region,province', {
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,
   });
@@ -291,7 +292,7 @@ const DataDownload = ({
     nextPage: mobileDevicesNextPage,
     prevPage: mobileDevicesPrevPage,
   } = usePaginatedMobileDevices({
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,
     group: groupTitle,
@@ -310,7 +311,7 @@ const DataDownload = ({
     nextPage: bamDevicesNextPage,
     prevPage: bamDevicesPrevPage,
   } = usePaginatedBAMDevices({
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,
     group: groupTitle,
@@ -329,7 +330,7 @@ const DataDownload = ({
     nextPage: lowCostDevicesNextPage,
     prevPage: lowCostDevicesPrevPage,
   } = usePaginatedLowCostDevices({
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,
     group: groupTitle,
@@ -1611,7 +1612,7 @@ const DataDownload = ({
           onViewDataClick={onViewDataClick}
           deviceCategory={formData.deviceCategory} // Pass device category
           // Pagination props
-          enableInfiniteScroll={true}
+          enableInfiniteScroll={false}
           paginationMeta={currentPaginationMeta}
           onLoadMore={currentLoadMore}
           onNextPage={currentNextPage}

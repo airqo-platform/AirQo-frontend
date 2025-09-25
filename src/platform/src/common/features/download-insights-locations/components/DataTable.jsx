@@ -346,6 +346,9 @@ const DataTable = ({
     [],
   );
 
+  // Determine whether the table is backed by server-side pagination
+  const serverPaged = Boolean(paginationMeta && paginationMeta.totalPages);
+
   const uniqueData = useMemo(() => {
     if (!Array.isArray(data)) return [];
     const seen = new Set();
@@ -483,9 +486,6 @@ const DataTable = ({
     },
     [enableSorting],
   );
-
-  // Determine whether the table is backed by server-side pagination
-  const serverPaged = Boolean(paginationMeta && paginationMeta.totalPages);
 
   // When server paged, reflect server page values instead of local state
   const displayedTotalPages = serverPaged
