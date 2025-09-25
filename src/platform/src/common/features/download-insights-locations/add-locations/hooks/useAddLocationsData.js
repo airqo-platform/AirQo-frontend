@@ -30,8 +30,11 @@ export const useAddLocationsData = (searchQuery = '') => {
     loadMore,
     canLoadMore,
     refresh,
+    nextPage,
+    prevPage,
   } = usePaginatedSitesSummary(groupTitle || 'AirQo', {
     enableInfiniteScroll: true,
+    initialLimit: 6,
     search: searchQuery,
   });
 
@@ -65,6 +68,8 @@ export const useAddLocationsData = (searchQuery = '') => {
     hasNextPage,
     loadMore,
     canLoadMore,
+    nextPage,
+    prevPage,
     refresh,
   };
 };

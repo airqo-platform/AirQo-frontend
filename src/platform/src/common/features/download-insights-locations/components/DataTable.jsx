@@ -313,9 +313,11 @@ const DataTable = ({
   // Pagination props
   paginationMeta = {},
   onLoadMore = null,
-  canLoadMore = false,
-  hasNextPage = false,
-  enableInfiniteScroll = false,
+  onNextPage = null,
+  onPrevPage = null,
+  _canLoadMore = false,
+  _hasNextPage = false,
+  _enableInfiniteScroll = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
@@ -481,6 +483,54 @@ const DataTable = ({
     },
     [enableSorting],
   );
+
+  // Determine whether the table is backed by server-side pagination
+  const serverPaged = Boolean(paginationMeta && paginationMeta.totalPages);
+
+  // When server paged, reflect server page values instead of local state
+  const displayedTotalPages = serverPaged
+    ? paginationMeta.totalPages
+    : totalPages;
+  const displayedCurrentPage = serverPaged
+    ? paginationMeta.page || 1
+    : currentPage;
+
+  const handlePrev = useCallback(() => {
+    if (serverPaged) {
+      if (typeof onPrevPage === 'function') return onPrevPage();
+      if (typeof onLoadMore === 'function') return onLoadMore('prev');
+      return;
+    }
+    handlePageChange(displayedCurrentPage - 1);
+  }, [
+    serverPaged,
+    onPrevPage,
+    onLoadMore,
+    handlePageChange,
+    displayedCurrentPage,
+  ]);
+
+  const handleNext = useCallback(() => {
+    if (serverPaged) {
+      if (typeof onNextPage === 'function') return onNextPage();
+      if (typeof onLoadMore === 'function') return onLoadMore('next');
+      return;
+    }
+    handlePageChange(displayedCurrentPage + 1);
+  }, [
+    serverPaged,
+    onNextPage,
+    onLoadMore,
+    handlePageChange,
+    displayedCurrentPage,
+  ]);
+
+  // Use these to avoid unused variable linting for legacy props
+  // They are intentionally no-ops here because server pagination replaces load-more UX
+  void onLoadMore;
+  void _canLoadMore;
+  void _hasNextPage;
+  void _enableInfiniteScroll;
 
   const handleColumnFilter = useCallback((columnKey, filterValues) => {
     setColumnFilters((prev) => ({ ...prev, [columnKey]: filterValues }));
@@ -845,7 +895,7 @@ const DataTable = ({
         )}
       </div>
 
-      {!loading && totalPages > 1 && (
+      {!loading && displayedTotalPages > 1 && (
         <div className="flex items-center justify-between">
           {showViewDataButton && (
             <Button
@@ -866,20 +916,20 @@ const DataTable = ({
           )}
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-sm text-gray-500">
-              Page {currentPage} of {totalPages}
+              Page {displayedCurrentPage} of {displayedTotalPages}
             </span>
             <Button
               variant="outlined"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={handlePrev}
+              disabled={displayedCurrentPage === 1}
               padding="p-2"
             >
               <AqChevronLeft size={16} />
             </Button>
             <Button
               variant="outlined"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={handleNext}
+              disabled={displayedCurrentPage === displayedTotalPages}
               padding="p-2"
             >
               <AqChevronRight size={16} />
@@ -907,18 +957,7 @@ const DataTable = ({
         </div>
       )}
 
-      {/* Load More button for infinite scroll */}
-      {enableInfiniteScroll && !loading && canLoadMore && hasNextPage && (
-        <div className="flex justify-center py-4">
-          <Button
-            variant="outlined"
-            onClick={onLoadMore}
-            className="flex items-center gap-2 px-6 py-2"
-          >
-            Load More Data
-          </Button>
-        </div>
-      )}
+      {/* Previously used 'Load More' button removed. Pagination now uses Prev/Next controls. */}
 
       {/* Show total count when using pagination */}
       {paginationMeta?.total > 0 && (

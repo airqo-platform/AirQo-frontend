@@ -59,6 +59,8 @@ export const MainContent = ({
   meta,
   hasNextPage,
   loadMore,
+  nextPage,
+  prevPage,
   canLoadMore,
   searchQuery,
   onSearchChange,
@@ -176,6 +178,8 @@ export const MainContent = ({
         paginationMeta={meta}
         hasNextPage={hasNextPage}
         onLoadMore={loadMore}
+        onNextPage={nextPage}
+        onPrevPage={prevPage}
         canLoadMore={canLoadMore}
       />
     </motion.div>

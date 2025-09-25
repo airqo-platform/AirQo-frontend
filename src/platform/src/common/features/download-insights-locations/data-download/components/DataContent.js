@@ -32,6 +32,8 @@ const DataContent = ({
   onLoadMore,
   canLoadMore,
   hasNextPage,
+  onNextPage,
+  onPrevPage,
 }) => {
   // Animation variants for content area
   const contentVariants = {
@@ -185,6 +187,8 @@ const DataContent = ({
           enableInfiniteScroll={true}
           paginationMeta={paginationMeta}
           onLoadMore={onLoadMore}
+          onNextPage={onNextPage}
+          onPrevPage={onPrevPage}
           canLoadMore={canLoadMore}
           hasNextPage={hasNextPage}
         />
