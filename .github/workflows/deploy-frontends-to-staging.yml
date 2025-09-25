@@ -35,8 +35,6 @@ jobs:
     if: github.event.pull_request.merged == true
     name: check for changed frontends
     outputs:
-      run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # netmanager
-      run_website: ${{ steps.check_files.outputs.run_website }} # website
       run_website2: ${{ steps.check_files.outputs.run_website2 }} # website2
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate app
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
@@ -62,8 +60,6 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_netmanager=false" >>$GITHUB_OUTPUT
-          echo "run_website=false" >>$GITHUB_OUTPUT
           echo "run_website2=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
@@ -76,14 +72,6 @@ jobs:
           while IFS= read -r file
           do
             echo $file
-            if [[ $file == src/netmanager/* ]]; then
-              echo "run_netmanager=true" >>$GITHUB_OUTPUT
-            fi
-
-            if [[ $file == src/website/* ]]; then
-              echo "run_website=true" >>$GITHUB_OUTPUT
-            fi
-
             if [[ $file == src/website2/* ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
             fi            
@@ -119,8 +107,6 @@ jobs:
             fi       
 
             if [[ $file == workflow-trigger ]]; then
-              echo "run_netmanager=true" >>$GITHUB_OUTPUT
-              echo "run_website=true" >>$GITHUB_OUTPUT
               echo "run_website2=true" >>$GITHUB_OUTPUT
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
@@ -132,75 +118,6 @@ jobs:
             fi
 
           done < files.txt
-
-  ### build and push netmanager image ###
-  netmanager:
-    name: build-push-netmanager-image
-    needs: [check, image-tag]
-    if: needs.check.outputs.run_netmanager == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-netmanager" > src/netmanager/.env
-
-      - name: NPM Setup and Build
-        uses: actions/setup-node@v3
-        with:
-          node-version: "12"
-      - run: |
-          cd src/netmanager/
-          npm install
-          CI=false npm run build
-
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
-
-      - name: Build and Push Docker Image
-        run: |
-          cd src/netmanager/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-platform-frontend:latest
-
-      - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
-        with:
-          action: fjogeleit/yaml-update-action@main # Action to retry
-          with: |
-            valueFile: "k8s/netmanager/values-stage.yaml"
-            propertyPath: "image.tag"
-            value: ${{ needs.image-tag.outputs.build_id }}
-            branch: ${{ env.DEPLOY_BRANCH }}
-            token: ${{ secrets.YAML_UPDATER_TOKEN }}
-            message: "Update netmanger staging image tag to ${{ needs.image-tag.outputs.build_id }}"
-            createPR: false
-
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_STAGE }}
-
-      - name: Update the corresponding configmap
-        run: |
-          kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/netmanager/.env env-platform-staging | kubectl replace -f - -n staging
 
   ### deploy website ###
   # website:
