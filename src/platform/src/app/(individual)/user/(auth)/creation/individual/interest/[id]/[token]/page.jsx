@@ -29,9 +29,10 @@ const radioOptions = [
 ];
 
 // --- Enhanced Site Card ---
-const SiteCard = ({ site, isSelected, onSelect, isDisabled }) => (
-  <div
-    onClick={() => !isDisabled && onSelect(site)}
+const SiteCard = ({ site, isSelected, onSelect, isDisabled }) => {
+  return (
+    <div
+      onClick={() => !isDisabled && onSelect(site)}
     className={`p-3 rounded-md border cursor-pointer transition-all duration-150 ease-in-out ${
       isSelected
         ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
@@ -56,7 +57,8 @@ const SiteCard = ({ site, isSelected, onSelect, isDisabled }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default function IndividualAccountInterest() {
   const router = useRouter();
@@ -178,12 +180,16 @@ export default function IndividualAccountInterest() {
   }, [userId, token]);
 
   const handleSiteSelect = useCallback((site) => {
+    const id = site._id || site.id || site.site_id || site.siteId;
+    if (!id) return;
+
     setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
+      const isSelected = prev.some((s) => s._id === id || s.id === id || s.site_id === id || s.siteId === id);
       if (isSelected) {
-        return prev.filter((s) => s._id !== site._id);
+        return prev.filter((s) => !(s._id === id || s.id === id || s.site_id === id || s.siteId === id));
       } else {
         if (prev.length >= 4) return prev;
+        // keep full site object so backend gets required fields like name and search_name
         return [...prev, site];
       }
     });
@@ -201,12 +207,20 @@ export default function IndividualAccountInterest() {
 
     try {
       // Prepare payload for PATCH request
+      // Backend expects full site objects with fields like name and search_name
+      const normalizedSites = selectedSites.map((s) => ({
+        _id: s._id || s.id || s.site_id || s.siteId,
+        name: s.name || s.location_name || s.search_name || '',
+        search_name: s.search_name || s.name || s.location_name || '',
+        country: s.country || s.country_name || '',
+      }));
+
       const payload = {
-        selected_sites: selectedSites,
+        selected_sites: normalizedSites,
         user_id: userId,
       };
 
-      // Use PATCH instead of POST
+      // Use PATCH instead of POST; pass token so proxy can forward auth header when needed
       const response = await patchUserPreferencesApiWithToken(payload, token);
       if (response?.success) {
         setCurrentStep(2);
@@ -248,11 +262,8 @@ export default function IndividualAccountInterest() {
         interestsDescription: interestDetails.trim(),
       };
 
-      // call API wrapper (wrapper handles API_TOKEN auth); token argument is not required
-      const response = await updateUserCreationDetailsWithToken(
-        payload,
-        userId,
-      );
+      // call API wrapper; pass the route token so the proxy can forward Authorization
+      const response = await updateUserCreationDetailsWithToken(payload, userId, token);
 
       if (response?.success) {
         CustomToast({
