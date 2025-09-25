@@ -13,6 +13,7 @@ import 'package:airqo/src/app/exposure/services/mock_exposure_data.dart';
 import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:loggy/loggy.dart';
+import 'package:geolocator/geolocator.dart';
 
 class ClockExposurePainter extends CustomPainter {
   final DailyExposureSummary? exposureData;
@@ -852,7 +853,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
           peakColor = _getPeakCategoryColor(peakCategory);
         }
         
-        // Your ACTUAL original design restored
+        // Match analytics card layout exactly
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
@@ -866,91 +867,113 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
               ),
             ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top row: PM2.5 label and air quality icon
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Divider(
+                thickness: .5,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black
+                    : Colors.white),
+              Padding(
+                padding: const EdgeInsets.only(
+                    left: 16, right: 16, bottom: 16, top: 4),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Icon(Icons.air, size: 20, color: Colors.grey.shade600),
-                        const SizedBox(width: 8),
-                        Text(
-                          'PM2.5',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.grey.shade600,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                            Row(
+                              children: [
+                                SvgPicture.asset(Theme.of(context).brightness ==
+                                        Brightness.light
+                                    ? "assets/images/shared/pm_rating_white.svg"
+                                    : 'assets/images/shared/pm_rating.svg'),
+                                const SizedBox(width: 2),
+                                Text(
+                                  " PM2.5",
+                                  style: TextStyle(
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.color,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(children: [
+                              Text(
+                                peakPm25.toStringAsFixed(1),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 36,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .headlineLarge
+                                        ?.color),
+                              ),
+                              Text(" μg/m³",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .headlineLarge
+                                          ?.color)),
+                            ]),
+                            Container(
+                              margin: EdgeInsets.only(bottom: 12, top: 8),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: peakColor.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                peakCategory,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: peakColor,
+                                ),
+                              ),
+                            ),
+                          ],
                           ),
+                        ),
+                        SizedBox(width: 8),
+                        SvgPicture.asset(
+                          _getAirQualityIconPath(peakCategory, peakPm25),
+                          width: 86,
+                          height: 86,
                         ),
                       ],
                     ),
-                    SvgPicture.asset(
-                      _getAirQualityIconPath(peakCategory, peakPm25),
-                      width: 48,
-                      height: 48,
+                    SizedBox(height: 12),
+                    Divider(
+                      thickness: 0.5,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withValues(alpha: 0.2)
+                          : Colors.black.withValues(alpha: 0.1),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Peak occurred at $timeString $locationDescription',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                   ],
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Large PM2.5 value
-                Text(
-                  '${peakPm25.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    fontSize: 48,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    height: 1.0,
-                  ),
-                ),
-                
-                // μg/m³ unit
-                Text(
-                  'μg/m³',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-                
-                const SizedBox(height: 16),
-                
-                // Category badge
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: peakColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    peakCategory,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: peakColor,
-                    ),
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // Location and time description
-                Text(
-                  'Peak occurred at $timeString $locationDescription',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
@@ -1591,12 +1614,48 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         return null;
       }
       
-      // Find the measurement with highest PM2.5 from nearby sensors
+      // Get user's current location to filter nearby sensors only
+      final locationService = EnhancedLocationServiceManager();
+      final locationResult = await locationService.getCurrentPosition();
+      
+      if (!locationResult.isSuccess || locationResult.position == null) {
+        loggy.warning('Could not get user location for peak exposure filtering');
+        return null;
+      }
+      
+      final userPosition = locationResult.position!;
+      const double maxDistanceKm = 10.0; // Same radius as Near You view
+      
+      // Find the measurement with highest PM2.5 from NEARBY sensors only
       Measurement? peakMeasurement;
       double peakPm25 = 0.0;
       
       for (final measurement in response.measurements!) {
-        if (measurement.pm25?.value != null && measurement.pm25!.value! > peakPm25) {
+        // Skip if no PM2.5 data
+        if (measurement.pm25?.value == null) continue;
+        
+        // Skip if no location data
+        final siteDetails = measurement.siteDetails;
+        if (siteDetails == null) continue;
+        
+        double? latitude = siteDetails.approximateLatitude ?? siteDetails.siteCategory?.latitude;
+        double? longitude = siteDetails.approximateLongitude ?? siteDetails.siteCategory?.longitude;
+        
+        if (latitude == null || longitude == null) continue;
+        
+        // Calculate distance from user
+        final distance = Geolocator.distanceBetween(
+          userPosition.latitude,
+          userPosition.longitude,
+          latitude,
+          longitude,
+        ) / 1000; // Convert to km
+        
+        // Only consider nearby sensors (within 10km like Near You view)
+        if (distance > maxDistanceKm) continue;
+        
+        // Check if this is the highest PM2.5 value among nearby sensors
+        if (measurement.pm25!.value! > peakPm25) {
           peakPm25 = measurement.pm25!.value!;
           peakMeasurement = measurement;
         }
