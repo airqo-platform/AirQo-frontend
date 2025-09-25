@@ -354,7 +354,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
               : 'Weekly exposure summary',
           style: TextStyle(
             fontSize: 16,
-            color: const Color.fromARGB(137, 10, 6, 6),
+            color: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.color
+                ?.withValues(alpha: 0.7),
           ),
         ),
         
@@ -391,7 +395,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
+                  color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.7),
                 ),
               ),
               
@@ -401,7 +409,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                 'Analyzing your pollution exposure',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade500,
+                  color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.6),
                 ),
               ),
             ],
@@ -422,7 +434,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
               : 'Weekly exposure summary',
           style: TextStyle(
             fontSize: 16,
-            color: const Color.fromARGB(137, 10, 6, 6),
+            color: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.color
+                ?.withValues(alpha: 0.7),
           ),
         ),
         
@@ -480,7 +496,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                   _errorMessage ?? 'An unexpected error occurred',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey.shade600,
+                    color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -543,7 +563,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
               : 'Weekly exposure summary',
           style: TextStyle(
             fontSize: 16,
-            color: const Color.fromARGB(137, 10, 6, 6),
+            color: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.color
+                ?.withValues(alpha: 0.7),
           ),
         ),
         
@@ -553,11 +577,13 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).highlightColor,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.08),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -582,7 +608,10 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                         style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: Theme.of(context)
+                              .textTheme
+                              .headlineLarge
+                              ?.color,
                         ),
                       ),
                       
@@ -592,7 +621,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                         _getDynamicDescription(currentData),
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey.shade600,
+                          color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.7),
                           height: 1.4,
                         ),
                       ),
@@ -646,7 +679,9 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? AppColors.darkHighlight
+                                  : Colors.grey.shade200,
                               borderRadius: BorderRadius.circular(25),
                             ),
                             child: Row(
@@ -657,7 +692,13 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                                   height: 20,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.grey.shade600, width: 1.5),
+                                    border: Border.all(
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.color
+                                            ?.withValues(alpha: 0.6) ?? Colors.grey.shade600, 
+                                        width: 1.5),
                                   ),
                                   child: Center(
                                     child: Text(
@@ -665,7 +706,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                                       style: TextStyle(
                                         fontSize: 12,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade600,
+                                        color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.7),
                                       ),
                                     ),
                                   ),
@@ -676,7 +721,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w500,
-                                    color: Colors.grey.shade700,
+                                    color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.8),
                                   ),
                                 ),
                               ],
@@ -719,7 +768,10 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Colors.black87,
+              color: Theme.of(context)
+                  .textTheme
+                  .headlineMedium
+                  ?.color,
             ),
           ),
           
@@ -798,7 +850,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade600,
+            color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.7),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -861,7 +917,9 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.1),
                 blurRadius: 4,
                 offset: Offset(0, 2),
               ),
@@ -873,8 +931,8 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
               Divider(
                 thickness: .5,
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : Colors.white),
+                    ? AppColors.dividerColordark
+                    : AppColors.dividerColorlight),
               Padding(
                 padding: const EdgeInsets.only(
                     left: 16, right: 16, bottom: 16, top: 4),
@@ -959,15 +1017,19 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                     Divider(
                       thickness: 0.5,
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.2)
-                          : Colors.black.withValues(alpha: 0.1),
+                          ? AppColors.dividerColordark
+                          : AppColors.dividerColorlight,
                     ),
                     SizedBox(height: 8),
                     Text(
                       'Peak occurred at $timeString $locationDescription',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -1257,7 +1319,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
           'Allow access to your location to start.',
           style: TextStyle(
             fontSize: 16,
-            color: const Color.fromARGB(137, 10, 6, 6),
+            color: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.color
+                ?.withValues(alpha: 0.7),
           ),
           textAlign: TextAlign.left,
         ),
@@ -1411,7 +1477,11 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
                       'We use the different concentration levels of airquality that you experience at different times of the day to share your exposure per hour with a color from these concern level icons',
                       style: TextStyle(
                         fontSize: 10,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.color
+              ?.withValues(alpha: 0.7),
                         height: 1.3,
                       ),
                     ),
