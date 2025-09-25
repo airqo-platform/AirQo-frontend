@@ -160,7 +160,7 @@ export const getMobileDevices = ({
 };
 
 // BAM devices endpoints
-export const getBAMDevices = ({ skip = 0, limit = 30 } = {}) => {
+export const getBAMDevices = ({ skip = 0, limit = 30, search, group } = {}) => {
   // Sanitize pagination parameters
   const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
   const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
