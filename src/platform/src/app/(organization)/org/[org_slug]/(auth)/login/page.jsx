@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
 import Button from '@/common/components/Button';
 import { signIn, getSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
@@ -14,7 +15,7 @@ import ErrorBoundary from '@/common/components/ErrorBoundary';
 import NotificationService from '@/core/utils/notificationService';
 import logger from '@/lib/logger';
 import { formatOrgSlug } from '@/core/utils/strings';
-import setupUserSession from '@/core/utils/loginSetup';
+import { setupUserSession } from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -24,6 +25,7 @@ const loginSchema = Yup.object().shape({
 });
 
 const OrganizationLogin = () => {
+  const dispatch = useDispatch();
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -132,7 +134,7 @@ const OrganizationLogin = () => {
 
           if (session?.user) {
             try {
-              await setupUserSession(session, null, '/');
+              await setupUserSession(session, dispatch, '/');
 
               const redirectOrg = session.requestedOrgSlug || session.orgSlug;
               if (redirectOrg) router.replace(`/org/${redirectOrg}/dashboard`);
@@ -164,7 +166,7 @@ const OrganizationLogin = () => {
         setIsLoading(false);
       }
     },
-    [userName, password, orgSlug, router],
+    [userName, password, orgSlug, router, dispatch],
   );
 
   const togglePasswordVisibility = useCallback(() => {

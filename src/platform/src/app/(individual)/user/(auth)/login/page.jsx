@@ -14,7 +14,7 @@ import Button from '@/common/components/Button';
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
 import NotificationService from '@/core/utils/notificationService';
-import setupUserSession from '@/core/utils/loginSetup';
+import { setupUserSession } from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()

@@ -11,6 +11,7 @@ module.exports = {
   },
   webServer: {
     command: 'yarn dev',
+    cwd: __dirname,
     port: 3000,
     timeout: 120000,
     reuseExistingServer: true,

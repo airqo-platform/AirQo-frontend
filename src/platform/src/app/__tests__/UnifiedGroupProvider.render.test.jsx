@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, act } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import UnifiedGroupProvider from '@/app/providers/UnifiedGroupProvider';
 import * as nextAuth from 'next-auth/react';
 import { Provider } from 'react-redux';
@@ -29,15 +29,13 @@ describe('UnifiedGroupProvider rendering behaviors', () => {
         status: 'authenticated',
       });
 
-    const { getByText } = await act(async () => {
-      return render(
-        <Provider store={store}>
-          <UnifiedGroupProvider>
-            <div>CHILDREN_RENDERED</div>
-          </UnifiedGroupProvider>
-        </Provider>,
-      );
-    });
+    const { getByText } = render(
+      <Provider store={store}>
+        <UnifiedGroupProvider>
+          <div>CHILDREN_RENDERED</div>
+        </UnifiedGroupProvider>
+      </Provider>,
+    );
 
     expect(getByText('CHILDREN_RENDERED')).toBeTruthy();
   });
