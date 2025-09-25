@@ -495,6 +495,10 @@ const DataTable = ({
     ? paginationMeta.page || 1
     : currentPage;
 
+  const paginationVisible = Boolean(
+    displayedTotalPages && displayedTotalPages > 1,
+  );
+
   const handlePrev = useCallback(() => {
     if (serverPaged) {
       if (typeof onPrevPage === 'function') return onPrevPage();
@@ -738,9 +742,7 @@ const DataTable = ({
       <div className={tableContainerClass}>
         {/* If loading, show the loading skeleton in the table area but keep the search visible */}
         {loading ? (
-          <div className="p-4">
-            <TableLoadingSkeleton />
-          </div>
+          <TableLoadingSkeleton />
         ) : currentPageData.length === 0 ? (
           <InfoMessage
             title="No data available"
@@ -903,7 +905,7 @@ const DataTable = ({
         )}
       </div>
 
-      {!loading && displayedTotalPages > 1 && (
+      {!loading && paginationVisible && (
         <div className="flex items-center justify-between">
           {showViewDataButton && (
             <Button
@@ -946,8 +948,8 @@ const DataTable = ({
         </div>
       )}
 
-      {/* Show View Data button even when pagination is not visible */}
-      {!loading && totalPages <= 1 && showViewDataButton && (
+      {/* Show View Data button when pagination is not visible */}
+      {!loading && !paginationVisible && showViewDataButton && (
         <div className="flex justify-start py-2">
           <Button
             variant="text"
