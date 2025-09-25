@@ -102,6 +102,10 @@ const JWT_PREFIX_REGEX = /^JWT\s+/;
 const DOUBLE_JWT_REGEX = /^JWT\s+JWT\s+/;
 
 // Cached API token and origin
+// Keep API token undefined on the client to avoid accidental leakage.
+// The server-side proxy (`/api/[...path]`) is responsible for adding
+// the token when required. Only read API token from env when running
+// in a server context.
 let cachedApiToken = null;
 let cachedOrigin = null;
 
@@ -115,7 +119,14 @@ const createSecureApiClient = () => {
   }
 
   if (!cachedApiToken) {
-    cachedApiToken = getApiToken();
+    // Only resolve API token on the server. Calling getApiToken() on the
+    // client can return a NEXT_PUBLIC_* value and cause the token to be
+    // embedded in bundled client code or appended to requests. Avoid that.
+    if (typeof window === 'undefined') {
+      cachedApiToken = getApiToken();
+    } else {
+      cachedApiToken = null;
+    }
   }
 
   const instance = axios.create({
@@ -200,7 +211,7 @@ const createSecureApiClient = () => {
           break;
 
         case AUTH_TYPES.API_TOKEN:
-          if (cachedApiToken) {
+          if (cachedApiToken && typeof window === 'undefined') {
             const separator = config.url.includes('?') ? '&' : '?';
             config.url = `${config.url}${separator}token=${cachedApiToken}`;
           }
