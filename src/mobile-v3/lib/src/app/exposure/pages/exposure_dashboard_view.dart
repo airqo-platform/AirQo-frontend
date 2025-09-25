@@ -802,7 +802,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
           const Color(0xFF8FE6A4),
         ),
         _buildStatCard(
-          'Total outdoor',
+          'Total exposure time',
           totalOutdoorHours.toString(),
           'hours',
           AppColors.primaryColor,
@@ -1482,6 +1482,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
               .bodyMedium
               ?.color
               ?.withValues(alpha: 0.7),
+
                         height: 1.3,
                       ),
                     ),
@@ -1795,13 +1796,13 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
     
     switch (data.riskLevel) {
       case ExposureRiskLevel.minimal:
-        return 'In the $timeFrame, you\'ve had minimal pollution exposure with no health impact. You spent $timeSpent outdoors.';
+        return 'In the $timeFrame, you\'ve had minimal pollution exposure with no health impact. You spent $timeSpent in tracked areas.';
       case ExposureRiskLevel.low:
-        return 'In the $timeFrame, you\'ve had low pollution exposure with minimal health impact. You spent $timeSpent outdoors.';
+        return 'In the $timeFrame, you\'ve had low pollution exposure with minimal health impact. You spent $timeSpent in tracked areas.';
       case ExposureRiskLevel.moderate:
-        return 'In the $timeFrame, you\'ve experienced moderate pollution exposure. Consider limiting outdoor activities. You spent $timeSpent outdoors.';
+        return 'In the $timeFrame, you\'ve experienced moderate pollution exposure. Consider limiting outdoor activities. You spent $timeSpent in tracked areas.';
       case ExposureRiskLevel.high:
-        return 'In the $timeFrame, you\'ve had high pollution exposure. Consider avoiding unnecessary outdoor activities. You spent $timeSpent outdoors.';
+        return 'In the $timeFrame, you\'ve had high pollution exposure. Consider avoiding unnecessary outdoor activities. You spent $timeSpent in tracked areas.';
     }
   }
 
