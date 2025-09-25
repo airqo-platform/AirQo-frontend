@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import DataTable from '../../components/DataTable';
 import InfoMessage from '@/components/Messages/InfoMessage';
+import ErrorState from '@/common/components/ErrorState';
 import Button from '@/common/components/Button';
 import { itemVariants } from '../animations';
 import { getFieldWithFallback } from '../utils/getFieldWithFallback';
@@ -40,15 +41,7 @@ const columns = [
   },
 ];
 
-const filters = [
-  { key: 'all', label: 'All' },
-  { key: 'favorites', label: 'Favorites' },
-];
-
-const handleFilter = (data, activeFilter, selectedSites) =>
-  activeFilter.key === 'favorites'
-    ? data.filter((site) => selectedSites.some((s) => s._id === site._id))
-    : data;
+// No filters for this view - we want the search on the right and no All/Favorites buttons
 
 export const MainContent = ({
   filteredSites,
@@ -72,22 +65,13 @@ export const MainContent = ({
   if (isError) {
     return (
       <motion.div variants={itemVariants}>
-        <InfoMessage
+        <ErrorState
+          type={ErrorState.Types.GENERIC}
           title="Error Loading Data"
           description={fetchError?.message || 'Unable to fetch locations data.'}
-          variant="error"
-          action={
-            onRetry && (
-              <Button
-                variant="filled"
-                size="sm"
-                onClick={onRetry}
-                Icon={MdRefresh}
-              >
-                Try Again
-              </Button>
-            )
-          }
+          primaryAction="Try Again"
+          onPrimaryAction={onRetry}
+          variant="minimal"
         />
       </motion.div>
     );
@@ -137,6 +121,7 @@ export const MainContent = ({
     <motion.div variants={itemVariants}>
       <DataTable
         data={filteredSites}
+        columns={columns}
         selectedRows={selectedSites}
         setSelectedRows={setSelectedSites}
         clearSelectionTrigger={clearSelected}
@@ -145,11 +130,6 @@ export const MainContent = ({
         errorMessage={fetchError?.message || 'Unable to fetch locations data.'}
         onRetry={onRetry}
         onToggleRow={handleToggleSite}
-        filters={filters}
-        columnsByFilter={{ all: columns, favorites: columns }}
-        onFilter={(data, activeFilter) =>
-          handleFilter(data, activeFilter, selectedSites)
-        }
         enableSearch={true}
         searchKeys={[
           'search_name',

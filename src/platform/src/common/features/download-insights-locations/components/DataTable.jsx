@@ -595,6 +595,12 @@ const DataTable = ({
     [columnFilters],
   );
 
+  // When loading we don't want the border around the table
+  // to make the loading skeleton look like an inner area rather than a bordered tab.
+  const tableContainerClass = loading
+    ? `relative rounded-lg ${darkMode ? 'bg-transparent' : 'bg-transparent'}`
+    : `relative border rounded-lg ${darkMode ? 'border-gray-700 bg-transparent' : 'border-gray-200 bg-white'}`;
+
   useEffect(() => {
     if (!mountedRef.current || !currentPageData.length) {
       setSelectAll(false);
@@ -670,6 +676,8 @@ const DataTable = ({
     );
   };
 
+  // Keep the TopBarSearch visible during loading to allow users to continue typing.
+  // Render the loading skeleton inside the table region instead of returning early.
   if (error && !activeFilter) {
     return (
       <div className="flex flex-col items-center justify-center p-6 space-y-4 bg-red-50 border border-red-200 rounded-lg text-center">
@@ -693,14 +701,10 @@ const DataTable = ({
     );
   }
 
-  if (loading && !activeFilter) {
-    return <TableLoadingSkeleton />;
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        {filters.length > 0 && (
+        {filters.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {filters.map((filterDef) => (
               <Button
@@ -714,6 +718,9 @@ const DataTable = ({
               </Button>
             ))}
           </div>
+        ) : (
+          // spacer keeps the search on the right when there are no filter buttons
+          <div className="w-full sm:w-0 flex-shrink-0" aria-hidden="true" />
         )}
         <TopBarSearch
           data={uniqueData}
@@ -728,11 +735,12 @@ const DataTable = ({
 
       {renderFilterError()}
 
-      <div
-        className={`relative border rounded-lg ${darkMode ? 'border-gray-700 bg-transparent' : 'border-gray-200 bg-white'}`}
-      >
-        {loading && activeFilter ? (
-          <TableLoadingSkeleton />
+      <div className={tableContainerClass}>
+        {/* If loading, show the loading skeleton in the table area but keep the search visible */}
+        {loading ? (
+          <div className="p-4">
+            <TableLoadingSkeleton />
+          </div>
         ) : currentPageData.length === 0 ? (
           <InfoMessage
             title="No data available"
