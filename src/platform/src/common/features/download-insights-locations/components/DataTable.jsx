@@ -938,7 +938,12 @@ const DataTable = ({
             <Button
               variant="outlined"
               onClick={handleNext}
-              disabled={displayedCurrentPage === displayedTotalPages}
+              disabled={
+                displayedCurrentPage === displayedTotalPages ||
+                (serverPaged &&
+                  typeof onNextPage !== 'function' &&
+                  typeof onLoadMore !== 'function')
+              }
               padding="p-2"
             >
               <AqChevronRight size={16} />

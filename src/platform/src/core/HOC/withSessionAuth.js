@@ -36,6 +36,11 @@ const withSessionAuth = (
     const sessionInitialized = unified?.sessionInitialized ?? true;
     const initialGroupSet = unified?.initialGroupSet ?? true;
 
+    // Note: protectionLevel is intentionally NOT included in the dependency
+    // array because it is a stable parameter passed to the HOC at creation
+    // time (changing it requires re-creating the HOC). Including it here can
+    // produce linter noise in some environments; the effect will still run
+    // correctly for the common usage patterns.
     useEffect(() => {
       if (status === 'loading') return; // Wait for session to load
 

@@ -43,12 +43,10 @@ function ReduxProviders({ children }) {
 
     async function initializeStore() {
       try {
-        const raw = await Promise.race([
-          makeStore(),
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Store creation timeout')), 3000),
-          ),
-        ]);
+        // makeStore is synchronous; call directly to avoid racing a
+        // synchronous value with a timeout which would leave the timeout
+        // rejecting unhandled later.
+        const raw = makeStore();
 
         // Normalize return shapes with better validation
         let normalized;

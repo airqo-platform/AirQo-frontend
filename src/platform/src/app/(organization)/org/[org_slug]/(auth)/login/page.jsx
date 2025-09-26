@@ -134,10 +134,20 @@ const OrganizationLogin = () => {
 
           if (session?.user) {
             try {
-              await setupUserSession(session, dispatch, '/');
+              // Compute resolved organization slug and path first so setupUserSession
+              // can select the correct active group based on the intended route.
+              const redirectOrg =
+                session.requestedOrgSlug || session.orgSlug || orgSlug;
+              const setupPath = redirectOrg
+                ? `/org/${redirectOrg}`
+                : '/user/Home';
 
-              const redirectOrg = session.requestedOrgSlug || session.orgSlug;
-              if (redirectOrg) router.replace(`/org/${redirectOrg}/dashboard`);
+              await setupUserSession(session, dispatch, setupPath);
+
+              const dest = redirectOrg
+                ? `/org/${redirectOrg}/dashboard`
+                : '/user/Home';
+              if (redirectOrg) router.replace(dest);
               else router.replace('/user/Home');
               return;
             } catch (err) {

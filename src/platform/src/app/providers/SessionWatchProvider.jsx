@@ -76,6 +76,10 @@ function SessionWatchProvider({ children }) {
     // otherwise overwrite the authenticated fingerprint and prevent cleanup handlers from running.
     if (status === 'loading') return;
 
+    // Note: For hasAccessToken to be meaningful, NextAuth must copy the
+    // provider token into the session object (e.g. in callbacks.session):
+    // session.accessToken = token.accessToken
+    // Without this, !!session?.accessToken will always be false.
     const currentSessionState = {
       status,
       userId: session?.user?.id || null,

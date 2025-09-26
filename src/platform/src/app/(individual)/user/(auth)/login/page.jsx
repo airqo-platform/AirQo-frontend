@@ -156,17 +156,19 @@ const UserLogin = () => {
           try {
             const session = await getSession();
             if (session?.user) {
+              // Compute destination before initializing session so setupUserSession
+              // can pick the correct active group based on the intended route.
+              const redirectOrg = session.requestedOrgSlug || session.orgSlug;
+              const dest = redirectOrg
+                ? `/org/${redirectOrg}/dashboard`
+                : '/user/Home';
+
               // Run setup which will populate Redux with user/groups/etc.
               // We await this so the user lands on the app with data loaded.
-              await setupUserSession(session, dispatch, '/');
+              await setupUserSession(session, dispatch, dest);
 
-              // Redirect based on organization context in session
-              const orgSlug = session.requestedOrgSlug || session.orgSlug;
-              if (orgSlug) {
-                router.replace(`/org/${orgSlug}/dashboard`);
-              } else {
-                router.replace('/user/Home');
-              }
+              // Redirect to the computed destination
+              router.replace(dest);
               return;
             }
             NotificationService.error(

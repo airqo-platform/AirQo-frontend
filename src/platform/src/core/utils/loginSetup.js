@@ -23,6 +23,9 @@ import {
 } from '@/lib/store/services/permissions/PermissionsSlice';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
+import { isAirQoGroup } from '@/core/utils/organizationUtils';
+import logger from '@/lib/logger';
+
 // Simple route type constants (replacing removed sessionUtils.js)
 const ROUTE_TYPES = {
   USER: 'user',
@@ -53,8 +56,6 @@ const getRouteType = (pathname) => {
 
   return ROUTE_TYPES.PUBLIC;
 };
-import { isAirQoGroup } from '@/core/utils/organizationUtils';
-import logger from '@/lib/logger';
 
 /**
  * Utility function to convert organization title to URL slug
