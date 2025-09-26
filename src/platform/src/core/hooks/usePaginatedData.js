@@ -93,8 +93,6 @@ export const usePaginatedData = (
     paginatedFetcher,
     {
       ...SWR_CONFIG,
-      revalidateOnMount: true,
-      dedupingInterval: 5000, // Prevent duplicate requests within 5 seconds
       ...swrOptions,
     },
   );
@@ -415,57 +413,108 @@ export const usePaginatedGridsSummary = (adminLevel, options = {}) => {
  * Specialized hook for mobile devices with pagination
  */
 export const usePaginatedMobileDevices = (options = {}) => {
-  const fetcher = useCallback(async (params) => {
-    const { getMobileDevices } = await import('../apis/DeviceRegistry');
-    return getMobileDevices({
-      skip: params.skip,
-      limit: params.limit,
-    });
-  }, []);
+  const { search = '', group = '', ...rest } = options;
 
-  return usePaginatedData(['mobile-devices-paginated'], fetcher, {
-    initialLimit: 20,
-    maxLimit: 80,
-    ...options,
-  });
+  const normalizedGroup =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
+
+  const fetcher = useCallback(
+    async (params, signal) => {
+      const { getMobileDevices } = await import('../apis/DeviceRegistry');
+      return getMobileDevices({
+        skip: params.skip,
+        limit: params.limit,
+        search: params.search || search,
+        group: normalizedGroup || undefined,
+        signal,
+      });
+    },
+    [search, normalizedGroup],
+  );
+
+  return usePaginatedData(
+    ['mobile-devices-paginated', normalizedGroup || 'all', search || ''],
+    fetcher,
+    {
+      initialLimit: 20,
+      maxLimit: 80,
+      ...rest,
+      search,
+      baseParams: { group: normalizedGroup || undefined },
+    },
+  );
 };
 
 /**
  * Specialized hook for BAM devices with pagination
  */
 export const usePaginatedBAMDevices = (options = {}) => {
-  const fetcher = useCallback(async (params) => {
-    const { getBAMDevices } = await import('../apis/DeviceRegistry');
-    return getBAMDevices({
-      skip: params.skip,
-      limit: params.limit,
-    });
-  }, []);
+  const { search = '', group = '', ...rest } = options;
+  const normalizedGroup =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
-  return usePaginatedData(['bam-devices-paginated'], fetcher, {
-    initialLimit: 20,
-    maxLimit: 80,
-    ...options,
-  });
+  const fetcher = useCallback(
+    async (params, signal) => {
+      const { getBAMDevices } = await import('../apis/DeviceRegistry');
+      return getBAMDevices({
+        skip: params.skip,
+        limit: params.limit,
+        // getBAMDevices currently doesn't accept search/group but keep pattern
+        // in place for future compatibility by passing through params.search
+        ...(params.search ? { search: params.search } : {}),
+        ...(normalizedGroup ? { group: normalizedGroup } : {}),
+        signal,
+      });
+    },
+    [normalizedGroup],
+  );
+
+  return usePaginatedData(
+    ['bam-devices-paginated', normalizedGroup || 'all', search || ''],
+    fetcher,
+    {
+      initialLimit: 20,
+      maxLimit: 80,
+      ...rest,
+      search,
+      baseParams: { group: normalizedGroup || undefined },
+    },
+  );
 };
 
 /**
  * Specialized hook for LowCost devices with pagination
  */
 export const usePaginatedLowCostDevices = (options = {}) => {
-  const fetcher = useCallback(async (params) => {
-    const { getLowCostDevices } = await import('../apis/DeviceRegistry');
-    return getLowCostDevices({
-      skip: params.skip,
-      limit: params.limit,
-    });
-  }, []);
+  const { search = '', group = '', ...rest } = options;
+  const normalizedGroup =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
-  return usePaginatedData(['lowcost-devices-paginated'], fetcher, {
-    initialLimit: 20,
-    maxLimit: 80,
-    ...options,
-  });
+  const fetcher = useCallback(
+    async (params, signal) => {
+      const { getLowCostDevices } = await import('../apis/DeviceRegistry');
+      return getLowCostDevices({
+        skip: params.skip,
+        limit: params.limit,
+        search: params.search || search,
+        group: normalizedGroup || undefined,
+        signal,
+      });
+    },
+    [search, normalizedGroup],
+  );
+
+  return usePaginatedData(
+    ['lowcost-devices-paginated', normalizedGroup || 'all', search || ''],
+    fetcher,
+    {
+      initialLimit: 20,
+      maxLimit: 80,
+      ...rest,
+      search,
+      baseParams: { group: normalizedGroup || undefined },
+    },
+  );
 };
 
 export default usePaginatedData;

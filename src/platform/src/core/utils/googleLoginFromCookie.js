@@ -5,7 +5,6 @@ import {
   setSuccess,
   setError,
 } from '@/lib/store/services/account/LoginSlice';
-import { setActiveGroup } from '@/lib/store/services/groups';
 import { getUserDetails, recentUserPreferencesAPI } from '@/core/apis/Account';
 import logger from '../../lib/logger';
 
@@ -134,9 +133,9 @@ export const handleGoogleLoginFromCookie = async (dispatch, router) => {
     // Step 3: Resolve active group with preferences
     const activeGroup = await resolveActiveGroup(user);
 
-    // Step 4: Update Redux state
+    // Step 4: Update Redux state with user info only. Defer activeGroup setting
+    // to the centralized session setup flow to avoid premature navigation.
     dispatch(setUserInfo(user));
-    dispatch(setActiveGroup(activeGroup));
     dispatch(setSuccess(true));
 
     // Step 5: Cleanup and redirect

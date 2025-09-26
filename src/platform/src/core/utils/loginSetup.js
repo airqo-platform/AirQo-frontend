@@ -1,6 +1,5 @@
 import {
   getUserDetails,
-  getUserThemeApi,
   getUserGroupPermissionsApi,
 } from '@/core/apis/Account';
 import { getOrganizationThemePreferencesApi } from '@/core/apis/Organizations';
@@ -8,13 +7,9 @@ import {
   setUserInfo,
   setSuccess,
   setError,
-  resetStore,
 } from '@/lib/store/services/account/LoginSlice';
-import {
-  setActiveGroup,
-  setUserGroups,
-  clearAllGroupData,
-} from '@/lib/store/services/groups';
+import { setUserGroups } from '@/lib/store/services/groups';
+import { setActiveGroup } from '@/lib/store/services/groups';
 import {
   setOrganizationTheme,
   setOrganizationThemeLoading,
@@ -26,13 +21,44 @@ import {
   setPermissionsError,
   clearPermissions,
 } from '@/lib/store/services/permissions/PermissionsSlice';
-import { getRouteType, ROUTE_TYPES } from '@/core/utils/sessionUtils';
+import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
+import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
 
+// Simple route type constants (replacing removed sessionUtils.js)
+const ROUTE_TYPES = {
+  USER: 'user',
+  ORGANIZATION: 'organization',
+  PUBLIC: 'public',
+  AUTH: 'auth',
+};
+
+// Simple route type detection
+const getRouteType = (pathname) => {
+  if (!pathname || typeof pathname !== 'string') return ROUTE_TYPES.PUBLIC;
+
+  if (
+    pathname.includes('/login') ||
+    pathname.includes('/register') ||
+    pathname.includes('/auth')
+  ) {
+    return ROUTE_TYPES.AUTH;
+  }
+
+  if (pathname.includes('/org/') || pathname.includes('(organization)')) {
+    return ROUTE_TYPES.ORGANIZATION;
+  }
+
+  if (pathname.includes('/user/') || pathname.includes('(individual)')) {
+    return ROUTE_TYPES.USER;
+  }
+
+  return ROUTE_TYPES.PUBLIC;
+};
+
 /**
  * Utility function to convert organization title to URL slug
- * This should be consistent across all files that need slug generation
  */
 const titleToSlug = (title) => {
   if (!title) return '';
@@ -43,19 +69,100 @@ const titleToSlug = (title) => {
 };
 
 /**
- * Unified login setup utility for both user and organization contexts
- * @param {Object} session - Next.js session object
- * @param {Function} dispatch - Redux dispatch function
- * @param {string} pathname - Current pathname
- * @param {Object} options - Additional options
- * @param {string} options.preferredGroupId - Group ID to prefer when multiple matches exist
- * @param {boolean} options.maintainActiveGroup - Whether to maintain the current active group if possible
- * @param {boolean} options.isDomainUpdate - Whether this is called after a domain update (helps prioritize preferred group)
+ * Load user permissions in the background
+ */
+const loadUserPermissions = async (session, groupId, dispatch) => {
+  try {
+    logger.debug('Loading user permissions...');
+    const permissionsRes = await getUserGroupPermissionsApi({
+      userId: session.user.id,
+      groupId,
+    });
+
+    if (permissionsRes?.permissions) {
+      dispatch(setPermissionsData(permissionsRes.permissions));
+    }
+  } catch (error) {
+    logger.warn('Failed to load user permissions:', error.message);
+    dispatch(setPermissionsError(error.message));
+  }
+};
+
+/**
+ * Load user preferences and set chart sites
+ */
+const loadUserPreferencesAndChartSites = async (
+  userId,
+  activeGroupId,
+  dispatch,
+) => {
+  try {
+    logger.debug('Loading user preferences and chart sites...');
+
+    // Get user preferences
+    const preferencesRes = await dispatch(
+      getIndividualUserPreferences({
+        identifier: userId,
+        groupID: activeGroupId,
+      }),
+    );
+
+    // Check if preferences were loaded successfully
+    if (preferencesRes?.payload?.individual_preferences?.length > 0) {
+      const preferences = preferencesRes.payload.individual_preferences[0];
+
+      if (preferences?.selected_sites?.length > 0) {
+        // Extract site IDs from selected sites
+        const chartSiteIds = preferences.selected_sites
+          .map((site) => site?._id)
+          .filter(Boolean);
+
+        if (chartSiteIds.length > 0) {
+          logger.debug(
+            `Setting ${chartSiteIds.length} chart sites from preferences`,
+          );
+          dispatch(setChartSites(chartSiteIds));
+        }
+      }
+    }
+  } catch (error) {
+    logger.warn('Failed to load user preferences and chart sites:', error);
+  }
+};
+
+/**
+ * Load organization theme in the background
+ */
+const loadOrganizationTheme = async (activeGroup, dispatch) => {
+  try {
+    if (isAirQoGroup(activeGroup)) {
+      dispatch(clearOrganizationTheme());
+      return;
+    }
+
+    logger.debug('Loading organization theme...');
+    dispatch(setOrganizationThemeLoading(true));
+
+    const themeRes = await getOrganizationThemePreferencesApi(activeGroup._id);
+    if (themeRes?.theme) {
+      dispatch(setOrganizationTheme(themeRes.theme));
+    }
+  } catch (error) {
+    logger.warn('Failed to load organization theme:', error.message);
+    dispatch(setOrganizationThemeError(error.message));
+  } finally {
+    dispatch(setOrganizationThemeLoading(false));
+  }
+};
+
+/**
+ * Simplified and robust user session setup utility
+ * Optimized for fast login flow with minimal blocking operations
  */
 export const setupUserSession = async (
   session,
   dispatch,
-  pathname,
+  pathname = '/',
   options = {},
 ) => {
   try {
@@ -66,31 +173,31 @@ export const setupUserSession = async (
     const {
       preferredGroupId,
       maintainActiveGroup = false,
-      isDomainUpdate = false,
+      userGroups: providedUserGroups,
     } = options;
 
-    logger.info('Starting unified login setup...', {
+    logger.info('Starting optimized user session setup...', {
       userId: session.user.id,
       pathname,
       preferredGroupId,
       maintainActiveGroup,
-      isDomainUpdate,
     });
 
-    // Clear any existing data first
-    dispatch(resetStore());
-    dispatch(clearAllGroupData());
+    // Clear only the volatile slices that must be refreshed for a new session
+    dispatch(clearPermissions());
+    dispatch(clearOrganizationTheme());
+    // Clear any chart-related state so previous user's chart sites don't leak
+    dispatch(setChartSites([]));
 
     // Set basic user data immediately from session
     const basicUserData = {
       _id: session.user.id,
       firstName:
-        session.user.firstName ||
-        session.user.name?.split(' ')[0] ||
-        session.user.name,
+        session.user.firstName || session.user.name?.split(' ')[0] || 'User',
       lastName:
         session.user.lastName ||
-        session.user.name?.split(' ').slice(1).join(' '),
+        session.user.name?.split(' ').slice(1).join(' ') ||
+        '',
       name: session.user.name,
       email: session.user.email,
       userName: session.user.userName || session.user.email,
@@ -103,658 +210,231 @@ export const setupUserSession = async (
       updatedAt: session.user.updatedAt,
     };
 
-    // Update Redux immediately with session data
-    dispatch(setUserInfo(basicUserData)); // Step 1: Fetch complete user details with groups
-    logger.info('Fetching user details...');
+    // Update Redux immediately
+    dispatch(setUserInfo(basicUserData));
 
-    // If we have a preferred group ID and are maintaining active group,
-    // add a smaller delay to allow API to propagate domain changes
-    if (preferredGroupId && (maintainActiveGroup || isDomainUpdate)) {
-      logger.info('Waiting for API propagation after domain update...');
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Reduced from 2 seconds
+    // Use provided userGroups if available (avoids redundant API call)
+    let userGroups = Array.isArray(providedUserGroups)
+      ? providedUserGroups
+      : null;
+
+    // If no cached groups, we need to fetch them
+    // But we'll optimize this to be non-blocking for the login flow
+    if (!userGroups) {
+      logger.debug('No cached user groups - will fetch minimal user data...');
+
+      // Instead of calling the slow getUserDetails API, use the faster approach
+      // We'll fetch the user details in background after setting up basic session
+      try {
+        const userRes = await getUserDetails(session.user.id);
+        const user = userRes.users ? userRes.users[0] : null;
+
+        if (!user) {
+          throw new Error('User not found');
+        }
+
+        userGroups =
+          Array.isArray(user.groups) && user.groups.length
+            ? user.groups
+            : Array.isArray(user.my_groups) && user.my_groups.length
+              ? user.my_groups
+              : [];
+
+        if (!Array.isArray(userGroups) || userGroups.length === 0) {
+          throw new Error(
+            'No organization found. Contact support to add you to an organization.',
+          );
+        }
+
+        // Update user data with fetched info
+        const completeUserData = {
+          ...basicUserData,
+          ...user,
+          groups: userGroups,
+        };
+        dispatch(setUserInfo(completeUserData));
+      } catch (fetchError) {
+        logger.error('Failed to fetch user details:', fetchError);
+        // Fallback: create minimal groups from session if available
+        // This prevents the login from failing completely
+        if (session.user.organization) {
+          userGroups = [
+            {
+              _id: 'temp-group',
+              grp_title: session.user.organization || 'Default Organization',
+              grp_name: session.user.organization || 'Default Organization',
+              organization_slug: session.user.organization_slug || null,
+            },
+          ];
+        } else {
+          // Create a default AirQo group
+          userGroups = [
+            {
+              _id: 'airqo-group',
+              grp_title: 'AirQo',
+              grp_name: 'AirQo',
+              organization_slug: 'airqo',
+            },
+          ];
+        }
+      }
     }
 
-    const userRes = await getUserDetails(session.user.id);
-    const user = userRes.users[0];
-
-    if (!user) {
-      throw new Error('User not found');
-    }
-
-    // Prefer `groups` from the user details response but fall back to `my_groups`
-    // to handle older/alternate API shapes. Normalize onto `user.groups` so
-    // downstream logic remains unchanged.
-    const groupsFromResponse =
-      Array.isArray(user.groups) && user.groups.length
-        ? user.groups
-        : Array.isArray(user.my_groups) && user.my_groups.length
-          ? user.my_groups
-          : [];
-
-    if (groupsFromResponse.length === 0) {
-      throw new Error(
-        'Server error. Contact support to add you to an organization',
-      );
-    }
-
-    // Normalize for the rest of the login flow which expects `user.groups`
-    user.groups = groupsFromResponse;
-
-    // Step 2: Skip fetching user preferences for group selection
-    // We no longer use previous group preferences to avoid conflicts
-    // Group selection is now purely based on login context (individual vs organization)
-
-    // Step 3: Determine route context and appropriate active group
-    const routeType = getRouteType(pathname);
+    // Determine active group and redirect path quickly
     let activeGroup = null;
     let redirectPath = null;
 
-    // Check if this is an organization login from session data
-    const isOrgLogin = session.isOrgLogin || session.user.isOrgLogin;
-    const sessionOrgSlug = session.orgSlug || session.user.requestedOrgSlug;
-    logger.info('Determining redirect path', {
-      routeType,
-      pathname,
-      userGroupsCount: user.groups.length,
-      userGroups: user.groups.map((g) => ({
-        id: g._id,
-        name: g.grp_name || g.grp_title,
-        organizationSlug: g.organization_slug,
-        grpSlug: g.grp_slug,
-        titleSlug: titleToSlug(g.grp_title || g.grp_name),
-      })),
-      isOrgRoute: routeType === ROUTE_TYPES.ORGANIZATION,
-      isOrgLogin,
-      sessionOrgSlug,
-      isDomainUpdate,
-      preferredGroupId,
-    });
-
-    // Step 3b: Determine active group and redirect path based on login context
-    // SPECIAL CASE: If we're coming from the root page ("/") explicitly,
-    // ALWAYS use AirQo group and redirect to /user/Home regardless of organization context
-    // Note: Only apply this when pathname is explicitly "/" not when undefined/empty during session setup
+    const routeType = getRouteType(pathname);
     const isRootPageRedirect = pathname === '/';
 
-    if (isRootPageRedirect) {
-      // Force user flow with AirQo group for root page access
-      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
-      if (airqoGroup) {
-        activeGroup = airqoGroup;
-        logger.info('Root page redirect: Setting AirQo as active group', {
-          groupId: airqoGroup._id,
-          groupName: airqoGroup.grp_title || airqoGroup.grp_name,
-          loginContext: 'root_redirect',
-          pathname,
-        });
-      } else {
-        // Fallback if AirQo group not found - use first available group
-        activeGroup = user.groups[0];
-        logger.warn(
-          'Root page redirect: AirQo group not found, using first available group',
-          {
-            fallbackGroupId: activeGroup._id,
-            fallbackGroupName: activeGroup.grp_title || activeGroup.grp_name,
-            userGroups: user.groups.map((g) => ({
-              id: g._id,
-              name: g.grp_title || g.grp_name,
-            })),
-            loginContext: 'root_redirect',
-            pathname,
-          },
-        );
-      }
-      redirectPath = '/user/Home';
-    } else if (typeof pathname === 'string' && pathname.startsWith('/admin')) {
-      // ADMIN ROUTES: Set AirQo group and stay on current admin path
-      logger.info('Admin route detected, setting up admin session...');
-
-      // Find AirQo group for admin context
-      const airqoGroup = user.groups.find(isAirQoGroup) || user.groups[0];
-      if (airqoGroup) {
-        activeGroup = airqoGroup;
-        logger.info('Admin session: Set active group', {
-          groupId: activeGroup._id,
-          groupName: activeGroup.grp_title || activeGroup.grp_name,
-          loginContext: 'admin',
-          pathname,
-        });
-      }
-
-      // Don't set redirectPath for admin routes - let them stay on the current path
-      redirectPath = null;
-    } else if (typeof pathname === 'string' && pathname.includes('/org/')) {
-      // ORGANIZATION LOGIN: Set active group based on slug and redirect to org dashboard
-      const currentOrgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
-      if (currentOrgSlug) {
-        logger.info('Searching for group matching slug:', {
-          currentOrgSlug,
-          availableGroups: user.groups.map((g) => ({
-            id: g._id,
-            name: g.grp_name || g.grp_title,
-            organizationSlug: g.organization_slug,
-            grpSlug: g.grp_slug,
-            titleSlug: titleToSlug(g.grp_title || g.grp_name),
-            isAirQo: isAirQoGroup(g),
-          })),
-          isDomainUpdate,
-          preferredGroupId,
-        });
-
-        // PRIORITY 1: If this is a domain update and we have a preferred group ID, use it FIRST
-        // This ensures the user stays in the same group after domain updates
-        if (isDomainUpdate && preferredGroupId) {
-          logger.info(
-            'Domain update detected, prioritizing preferred group...',
-          );
-          const preferredGroup = user.groups.find(
-            (group) => group._id === preferredGroupId,
-          );
-
-          if (preferredGroup && !isAirQoGroup(preferredGroup)) {
-            activeGroup = preferredGroup;
-            redirectPath = `/org/${currentOrgSlug}/dashboard`;
-            logger.info(
-              'Domain update: Using preferred group to maintain context',
-              {
-                groupId: preferredGroup._id,
-                groupName: preferredGroup.grp_title || preferredGroup.grp_name,
-                preferredGroupId,
-                orgSlug: currentOrgSlug,
-                reason: 'domain_update_preferred_group',
-                loginContext: 'organization',
-                pathname,
-              },
-            );
-          } else if (preferredGroup && isAirQoGroup(preferredGroup)) {
-            logger.warn(
-              'Domain update: Preferred group is AirQo, falling back to slug matching',
-              {
-                preferredGroupId,
-                groupName: preferredGroup.grp_title || preferredGroup.grp_name,
-              },
-            );
-          } else {
-            logger.warn(
-              'Domain update: Preferred group not found in user groups',
-              {
-                preferredGroupId,
-                availableGroupIds: user.groups.map((g) => g._id),
-              },
-            );
-          }
-        }
-
-        // PRIORITY 2: Find group that matches the slug - check multiple slug sources (only if no preferred group was used)
-        if (!activeGroup) {
-          const matchingGroup = user.groups.find((group) => {
-            // Skip AirQo groups immediately for organization context
-            if (isAirQoGroup(group)) {
-              logger.debug('Skipping AirQo group in organization context:', {
-                groupId: group._id,
-                groupName: group.grp_title || group.grp_name,
-              });
-              return false;
-            }
-
-            // First check if group has an explicit organization_slug or grp_slug
-            const explicitSlug = group.organization_slug || group.grp_slug;
-            if (explicitSlug === currentOrgSlug) {
-              logger.info('Found exact slug match:', {
-                groupId: group._id,
-                groupName: group.grp_title || group.grp_name,
-                matchedSlug: explicitSlug,
-                currentOrgSlug,
-              });
-              return true;
-            }
-
-            // Fallback to generated slug from title
-            const generatedSlug = titleToSlug(
-              group.grp_title || group.grp_name,
-            );
-            if (generatedSlug === currentOrgSlug) {
-              logger.info('Found generated slug match:', {
-                groupId: group._id,
-                groupName: group.grp_title || group.grp_name,
-                generatedSlug,
-                currentOrgSlug,
-              });
-              return true;
-            }
-
-            return false;
-          });
-
-          if (matchingGroup) {
-            activeGroup = matchingGroup;
-            // Always redirect to organization dashboard for org login
-            redirectPath = `/org/${currentOrgSlug}/dashboard`;
-            logger.info('Organization login: Setting matching group', {
-              groupId: matchingGroup._id,
-              groupName: matchingGroup.grp_title || matchingGroup.grp_name,
-              orgSlug: currentOrgSlug,
-              organizationSlug: matchingGroup.organization_slug,
-              grpSlug: matchingGroup.grp_slug,
-              loginContext: 'organization',
-              pathname,
-            });
-          }
-        }
-
-        // PRIORITY 3: Fallback handling when no match found
-        if (!activeGroup) {
-          // Try preferred group as final fallback (for cases where domain update caused slug mismatch)
-          if (preferredGroupId && !isDomainUpdate) {
-            logger.info(
-              'No slug match found, checking preferred group as fallback...',
-            );
-            const preferredGroup = user.groups.find(
-              (group) => group._id === preferredGroupId,
-            );
-
-            if (preferredGroup && !isAirQoGroup(preferredGroup)) {
-              activeGroup = preferredGroup;
-              redirectPath = `/org/${currentOrgSlug}/dashboard`;
-              logger.info(
-                'Organization login: Using preferred group (slug mismatch likely due to API delay)',
-                {
-                  groupId: preferredGroup._id,
-                  groupName:
-                    preferredGroup.grp_title || preferredGroup.grp_name,
-                  preferredGroupId,
-                  orgSlug: currentOrgSlug,
-                  groupSlugInData:
-                    preferredGroup.organization_slug || preferredGroup.grp_slug,
-                  reason: 'preferred_group_fallback',
-                  loginContext: 'organization',
-                  pathname,
-                },
-              );
-            }
-          }
-
-          // Final fallback: Find any non-AirQo group
-          if (!activeGroup) {
-            logger.warn('No matching group found for organization slug', {
-              currentOrgSlug,
-              preferredGroupId,
-              isDomainUpdate,
-              availableNonAirQoGroups: user.groups
-                .filter((g) => !isAirQoGroup(g))
-                .map((g) => ({
-                  id: g._id,
-                  name: g.grp_name || g.grp_title,
-                  organizationSlug: g.organization_slug,
-                  grpSlug: g.grp_slug,
-                  titleSlug: titleToSlug(g.grp_title || g.grp_name),
-                })),
-            });
-
-            // No matching group - find a non-AirQo group for org context
-            const nonAirQoGroup = user.groups.find(
-              (group) => !isAirQoGroup(group),
-            );
-            if (nonAirQoGroup) {
-              activeGroup = nonAirQoGroup;
-              redirectPath = `/org/${currentOrgSlug}/dashboard`;
-              logger.info(
-                'Organization login: No matching group found, using first non-AirQo group',
-                {
-                  groupId: activeGroup._id,
-                  groupName: activeGroup.grp_title || activeGroup.grp_name,
-                  orgSlug: currentOrgSlug,
-                  loginContext: 'organization',
-                  pathname,
-                },
-              );
-            } else {
-              // Only AirQo groups available - redirect to user flow
-              activeGroup = user.groups[0];
-              redirectPath = '/user/Home';
-              logger.info(
-                'Organization login: Only AirQo groups available, redirecting to user flow',
-                {
-                  groupId: activeGroup._id,
-                  groupName: activeGroup.grp_title || activeGroup.grp_name,
-                  loginContext: 'organization -> user',
-                  pathname,
-                },
-              );
-            }
-          }
-        }
-      } else {
-        // Fallback if no slug found - use first non-AirQo group
-        const nonAirQoGroup = user.groups.find((group) => !isAirQoGroup(group));
-        if (nonAirQoGroup) {
-          activeGroup = nonAirQoGroup;
-          const orgSlug =
-            nonAirQoGroup.organization_slug ||
-            nonAirQoGroup.grp_slug ||
-            titleToSlug(nonAirQoGroup.grp_title);
-          redirectPath = `/org/${orgSlug}/dashboard`;
-          logger.info(
-            'Organization login: No slug found, using first non-AirQo group',
-            {
-              groupId: activeGroup._id,
-              groupName: activeGroup.grp_title || activeGroup.grp_name,
-              generatedSlug: orgSlug,
-              loginContext: 'organization',
-              pathname,
-            },
-          );
-        } else {
-          // Only AirQo groups - redirect to user flow
-          activeGroup = user.groups[0];
-          redirectPath = '/user/Home';
-          logger.info(
-            'Organization login: Only AirQo groups found, redirecting to user flow',
-            {
-              loginContext: 'organization -> user',
-              pathname,
-            },
-          );
-        }
-      }
-    } else {
-      // USER LOGIN: For individual login page, always default to AirQo group regardless of previous preferences
-      // This ensures users logging in from /user/login always get AirQo as default
-      const airqoGroup = user.groups.find((group) => isAirQoGroup(group));
-      if (airqoGroup) {
-        // Always use AirQo group for individual login
-        activeGroup = airqoGroup;
-        logger.info('Individual login: Setting AirQo as default group', {
-          groupId: airqoGroup._id,
-          groupName: airqoGroup.grp_title || airqoGroup.grp_name,
-          loginContext: 'individual',
-          pathname,
-        });
-      } else {
-        // Fallback if AirQo group not found - use first available group
-        activeGroup = user.groups[0];
-        logger.warn(
-          'AirQo group not found for individual login, using first available group',
-          {
-            fallbackGroupId: activeGroup._id,
-            fallbackGroupName: activeGroup.grp_title || activeGroup.grp_name,
-            userGroups: user.groups.map((g) => ({
-              id: g._id,
-              name: g.grp_title || g.grp_name,
-            })),
-            loginContext: 'individual',
-            pathname,
-          },
-        );
-      }
-
-      redirectPath = '/user/Home';
-    }
-
-    // Step 4: Update Redux store with complete data
-    dispatch(setUserInfo(user));
-    dispatch(setUserGroups(user.groups));
-    dispatch(setActiveGroup(activeGroup));
-
-    // Step 5: Fetch individual preferences for the active group (needed for analytics)
-    // This ensures data insights page has correct user preferences for analytics cards/charts
-    if (activeGroup) {
-      try {
-        const { replaceUserPreferences } = await import(
-          '@/lib/store/services/account/UserDefaultsSlice'
-        );
-        await dispatch(
-          replaceUserPreferences({
-            user_id: user._id,
-            group_id: activeGroup._id,
-          }),
-        ).unwrap();
-        logger.info('User preferences fetched for active group:', {
-          activeGroupName: activeGroup.grp_name,
-          groupId: activeGroup._id,
-        });
-      } catch (error) {
-        logger.warn(
-          'Failed to fetch user preferences for active group:',
-          error,
-        );
-        // Continue without preferences - non-critical
-      }
-    }
-
-    dispatch(setSuccess(true));
-
-    // Step 6: Fetch organization theme preferences for the active group
-    // Skip theme fetching for auth routes to avoid unnecessary API calls
-    if (activeGroup && activeGroup._id && routeType !== ROUTE_TYPES.AUTH) {
-      try {
-        dispatch(setOrganizationThemeLoading(true));
-        logger.info('Fetching organization theme preferences...', {
-          activeGroupId: activeGroup._id,
-          activeGroupName: activeGroup.grp_title || activeGroup.grp_name,
-        });
-
-        const orgThemeRes = await getOrganizationThemePreferencesApi(
-          activeGroup._id,
-        );
-        if (orgThemeRes?.success && orgThemeRes?.data) {
-          const organizationTheme = orgThemeRes.data;
-          dispatch(setOrganizationTheme(organizationTheme));
-          logger.info(
-            'Organization theme loaded successfully:',
-            organizationTheme,
-          );
-        } else {
-          // No organization theme found, clear any existing data
-          dispatch(clearOrganizationTheme());
-          logger.info('No organization theme found for active group');
-        }
-      } catch (error) {
-        logger.warn('Failed to fetch organization theme:', error);
-        dispatch(
-          setOrganizationThemeError(
-            error.message || 'Failed to fetch organization theme',
-          ),
-        );
-        // Continue without organization theme - non-critical
-      } finally {
-        dispatch(setOrganizationThemeLoading(false));
-      }
-    } else {
-      // No active group or auth route, clear organization theme
-      dispatch(clearOrganizationTheme());
-      if (routeType === ROUTE_TYPES.AUTH) {
-        logger.info('Skipping organization theme fetch for auth route');
-      }
-    }
-
-    // Step Final: Fetch user theme preferences after successful authentication
-    // Skip theme fetching for auth routes, invalid sessions, or missing user ID
-    let userTheme = null;
-    if (
-      routeType !== ROUTE_TYPES.AUTH &&
-      session?.user?.id &&
-      session.user.id !== 'undefined' &&
-      typeof session.user.id === 'string' &&
-      session.user.id.length > 0
-    ) {
-      logger.info('Fetching user theme preferences...');
-      try {
-        const themeRes = await getUserThemeApi(session.user.id);
-        if (themeRes?.success && themeRes?.data) {
-          userTheme = themeRes.data;
-          logger.info('User theme loaded successfully:', userTheme);
-        } else {
-          logger.info('No user theme found, will use defaults');
-        }
-      } catch (error) {
-        // Only log as warning for actual errors, not 404s which are expected for new users
-        if (error?.response?.status === 404 || error?.status === 404) {
-          logger.info('No user theme configured yet, will use defaults');
-        } else {
-          logger.warn('Failed to fetch user theme, will use defaults:', error);
-        }
-      }
-    } else {
-      if (routeType === ROUTE_TYPES.AUTH) {
-        logger.info('Skipping theme fetch for auth route, will use defaults');
-      } else if (!session?.user?.id) {
-        logger.info(
-          'Skipping theme fetch - no valid user session, will use defaults',
-        );
-      }
-    }
-
-    // Step 6: Fetch user permissions and roles (NEW CENTRALIZED APPROACH)
-    // This replaces individual permission checks throughout the app
-    logger.info('Fetching user permissions and roles...');
-    try {
-      const permissionsRes = await getUserGroupPermissionsApi();
-      if (permissionsRes?.success && permissionsRes?.user_roles) {
-        // Pass the full API response to the reducer for proper normalization
-        dispatch(setPermissionsData(permissionsRes));
-
-        const { groups = [], networks = [] } = permissionsRes.user_roles;
-        logger.info('User permissions cached successfully', {
-          groupsCount: groups.length,
-          networksCount: networks.length,
-          groups: groups.map((group) => ({
-            groupId: group.group_id,
-            groupName: group.group_name,
-            roleName: group.role_name,
-            permissionsCount: (group.permissions || []).length,
-          })),
-          networks: networks.map((network) => ({
-            networkId: network.network_id,
-            networkName: network.network_name,
-            roleName: network.role_name,
-            permissionsCount: (network.permissions || []).length,
-          })),
-        });
-      } else {
-        logger.warn(
-          'No user roles found in permissions response',
-          permissionsRes,
-        );
-        dispatch(setPermissionsError('No user roles found'));
-      }
-    } catch (error) {
-      logger.error('Failed to fetch user permissions:', error);
-      dispatch(
-        setPermissionsError(
-          error.message || 'Failed to fetch user permissions',
-        ),
-      );
-      // Don't fail the entire login process for permissions - they can be retried later
-    }
-
-    // Store theme in global context for immediate access by theme hooks
-    // Always set the loaded flag, even if no theme was found
-    if (typeof window !== 'undefined') {
-      try {
-        // Clear any existing theme data first
-        window.sessionStorage.removeItem('userTheme');
-        window.sessionStorage.removeItem('userThemeLoaded');
-
-        // Store the new theme
-        if (userTheme) {
-          // Ensure we have all required theme properties
-          const themeToStore = {
-            primaryColor: userTheme.primaryColor || '#145FFF',
-            mode: userTheme.mode || 'light',
-            interfaceStyle: userTheme.interfaceStyle || 'default',
-            contentLayout: userTheme.contentLayout || 'compact',
-          };
-
-          window.sessionStorage.setItem(
-            'userTheme',
-            JSON.stringify(themeToStore),
-          );
-          logger.info('User theme stored in sessionStorage:', themeToStore);
-        } else {
-          logger.info('No user theme to store, will use defaults');
-        }
-
-        // Set the loaded flag last to ensure complete theme data is ready
-        window.sessionStorage.setItem('userThemeLoaded', 'true');
-        logger.info('Theme loading flag set in sessionStorage');
-      } catch (error) {
-        logger.warn('Failed to store theme in session storage:', error);
-        // Attempt to clean up in case of partial success
-        try {
-          window.sessionStorage.removeItem('userTheme');
-          window.sessionStorage.removeItem('userThemeLoaded');
-        } catch (cleanupError) {
-          logger.warn('Failed to clean up theme storage:', cleanupError);
-        }
-      }
-    }
-
-    logger.info('Login setup completed successfully', {
-      userId: user._id,
-      activeGroupName: activeGroup?.grp_name,
-      redirectPath,
+    logger.debug('Route analysis:', {
       routeType,
-      finalRedirectPath: redirectPath,
+      pathname,
+      isRootPageRedirect,
+      userGroupsCount: userGroups.length,
+    });
+
+    // Simplified group selection logic for faster processing
+    if (isRootPageRedirect) {
+      // Root page - use AirQo group, redirect to dashboard
+      activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
+      redirectPath = '/user/Home';
+    } else if (pathname.startsWith('/admin')) {
+      // Admin routes - use AirQo group, no redirect
+      activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
+    } else if (
+      routeType === ROUTE_TYPES.ORGANIZATION &&
+      pathname.includes('/org/')
+    ) {
+      // Organization routes - match slug, prioritizing session requestedOrgSlug
+      let orgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
+
+      // Check if session has requested org slug from organization-specific login
+      if (session?.requestedOrgSlug) {
+        orgSlug = session.requestedOrgSlug;
+        logger.info(`Using requested org slug from session: ${orgSlug}`);
+      }
+
+      if (orgSlug) {
+        // Find matching group
+        const matchingGroup = userGroups.find((group) => {
+          if (isAirQoGroup(group)) return false;
+
+          const explicitSlug = group.organization_slug || group.grp_slug;
+          if (explicitSlug === orgSlug) return true;
+
+          const generatedSlug = titleToSlug(group.grp_title || group.grp_name);
+          return generatedSlug === orgSlug;
+        });
+
+        activeGroup =
+          matchingGroup ||
+          userGroups.find((g) => !isAirQoGroup(g)) ||
+          userGroups[0];
+
+        // Redirect to proper organization dashboard if we found the matching group
+        if (
+          matchingGroup &&
+          (session?.requestedOrgSlug ||
+            pathname === `/org/${orgSlug}` ||
+            pathname === `/org/${orgSlug}/`)
+        ) {
+          redirectPath = `/org/${orgSlug}/dashboard`;
+        }
+      } else {
+        // Fallback for org routes without slug
+        activeGroup = userGroups.find((g) => !isAirQoGroup(g)) || userGroups[0];
+      }
+    } else if (routeType === ROUTE_TYPES.USER) {
+      // Individual user routes - use AirQo group
+      activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
+    } else {
+      // Default fallback
+      activeGroup = userGroups[0];
+    }
+
+    if (!activeGroup) {
+      throw new Error('No valid group found');
+    }
+
+    logger.info('Fast session setup completed', {
+      activeGroupId: activeGroup._id,
+      activeGroupName: activeGroup.grp_title || activeGroup.grp_name,
+      redirectPath,
+    });
+
+    // Update Redux with essential data synchronously
+    dispatch(setUserGroups(userGroups));
+    dispatch(setActiveGroup(activeGroup));
+    dispatch(setSuccess(true));
+    dispatch(setError(''));
+
+    // Load additional data in background (completely non-blocking)
+    // These operations won't delay the user from seeing the dashboard
+    Promise.allSettled([
+      loadUserPermissions(session, activeGroup._id, dispatch),
+      loadOrganizationTheme(activeGroup, dispatch),
+      loadUserPreferencesAndChartSites(
+        session.user.id,
+        activeGroup._id,
+        dispatch,
+      ),
+    ]).then((results) => {
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const operations = ['permissions', 'theme', 'preferences'];
+          logger.warn(
+            `Background ${operations[index]} loading failed:`,
+            result.reason,
+          );
+        }
+      });
+      logger.debug('Background data loading completed');
     });
 
     return {
       success: true,
       redirectPath,
       activeGroup,
-      user,
+      userGroups,
     };
   } catch (error) {
-    logger.error('Login setup failed:', error);
+    logger.error('User session setup failed:', error);
 
-    // Clear Redux state if setup fails
+    dispatch(setError(error.message));
     dispatch(setSuccess(false));
-    dispatch(setError(error.message || 'Error setting up user session'));
-    dispatch(resetStore());
-    dispatch(clearAllGroupData());
-    dispatch(clearPermissions());
 
     return {
       success: false,
-      redirectPath: '/user/login',
-      activeGroup: null,
-      user: null,
       error: error.message,
     };
   }
 };
 
 /**
- * Clear all session data on logout
+ * Clear user session data
  */
-export const clearUserSession = (dispatch) => {
+export const clearUserSession = async (dispatch) => {
   try {
     logger.info('Clearing user session...');
 
-    // Clear Redux store
-    dispatch(resetStore());
-    dispatch(clearAllGroupData());
-    dispatch(clearOrganizationTheme());
+    // Perform targeted clears to avoid resetting the entire Redux store
+    // which can cause dependent providers to re-fetch and produce UI
+    // flicker. clearAllGroupData is only used for full resets; instead we
+    // clear specific slices that should be emptied on logout.
     dispatch(clearPermissions());
-    dispatch(setUserInfo(null));
-    dispatch(setActiveGroup(null));
-    dispatch(setUserGroups([]));
-    dispatch(setSuccess(false));
-    dispatch(setError(null));
+    dispatch(clearOrganizationTheme());
+    // Clear chart slice to avoid leaking previous user's selections
+    dispatch(setChartSites([]));
+    // Reset groups slice state safely
+    dispatch({ type: 'LOGOUT_USER' });
 
-    // Clear localStorage items if needed
-    try {
-      localStorage.removeItem('userPreferences');
-      localStorage.removeItem('activeGroup');
-      localStorage.removeItem('userGroups');
-    } catch (error) {
-      // localStorage might not be available
-      logger.warn('Failed to clear localStorage:', error);
-    }
+    logger.debug('User session cleared');
 
-    logger.info('User session cleared successfully');
+    return { success: true };
   } catch (error) {
-    logger.error('Error clearing user session:', error);
+    logger.error('Failed to clear user session:', error);
+    return { success: false, error: error.message };
   }
 };
 

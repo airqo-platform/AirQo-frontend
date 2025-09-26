@@ -1,6 +1,6 @@
 'use client';
 
-import { withAdminAccess } from '@/core/HOC';
+import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import {
   UnifiedSidebarContent,
@@ -115,4 +115,4 @@ function AdminLayout({ children }) {
   );
 }
 
-export default withAdminAccess(AdminLayout);
+export default withSessionAuth(AdminLayout, PROTECTION_LEVELS.PROTECTED);

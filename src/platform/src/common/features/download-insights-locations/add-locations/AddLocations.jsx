@@ -43,6 +43,8 @@ export const AddLocations = ({ onClose }) => {
     hasNextPage,
     loadMore,
     canLoadMore,
+    nextPage,
+    prevPage,
     refresh,
   } = useAddLocationsData(searchQuery);
 
@@ -193,6 +195,8 @@ export const AddLocations = ({ onClose }) => {
               meta={meta}
               hasNextPage={hasNextPage}
               loadMore={loadMore}
+              nextPage={nextPage}
+              prevPage={prevPage}
               canLoadMore={canLoadMore}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}

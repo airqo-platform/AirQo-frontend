@@ -84,8 +84,9 @@ const DataDownload = ({
   // Use custom hooks for data download logic
   const {
     selectedItems,
-    clearSelected,
+    // pagination values are computed locally from paginated hooks below
     formError,
+    clearSelected,
     messageType,
     statusMessage,
     downloadLoading,
@@ -225,13 +226,17 @@ const DataDownload = ({
     loadMore: loadMoreSites,
     canLoadMore: canLoadMoreSites,
     hasNextPage: sitesHasNextPage,
-  } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'AirQo', {
-    enableInfiniteScroll: true,
+    nextPage: sitesNextPage,
+    prevPage: sitesPrevPage,
+  } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'airqo', {
+    enableInfiniteScroll: false,
+    initialLimit: 6,
     search: searchQuery,
+    swrOptions: { revalidateOnMount: true },
   });
 
   const { data: devicesData } = usePaginatedDevicesSummary(
-    groupTitle || 'AirQo',
+    groupTitle || 'airqo',
     {
       enableInfiniteScroll: true,
       search: searchQuery,
@@ -248,8 +253,11 @@ const DataDownload = ({
     loadMore: loadMoreCountries,
     canLoadMore: canLoadMoreCountries,
     hasNextPage: countriesHasNextPage,
+    nextPage: countriesNextPage,
+    prevPage: countriesPrevPage,
   } = usePaginatedGridsSummary('country', {
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
+    initialLimit: 6,
     search: searchQuery,
   });
 
@@ -263,8 +271,11 @@ const DataDownload = ({
     loadMore: loadMoreCities,
     canLoadMore: canLoadMoreCities,
     hasNextPage: citiesHasNextPage,
+    nextPage: citiesNextPage,
+    prevPage: citiesPrevPage,
   } = usePaginatedGridsSummary('city,state,county,district,region,province', {
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
+    initialLimit: 6,
     search: searchQuery,
   });
 
@@ -278,8 +289,13 @@ const DataDownload = ({
     loadMore: loadMoreMobileDevices,
     canLoadMore: canLoadMoreMobileDevices,
     hasNextPage: mobileDevicesHasNextPage,
+    nextPage: mobileDevicesNextPage,
+    prevPage: mobileDevicesPrevPage,
   } = usePaginatedMobileDevices({
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
+    initialLimit: 6,
+    search: searchQuery,
+    group: groupTitle,
   });
 
   const {
@@ -292,8 +308,13 @@ const DataDownload = ({
     loadMore: loadMoreBAMDevices,
     canLoadMore: canLoadMoreBAMDevices,
     hasNextPage: bamDevicesHasNextPage,
+    nextPage: bamDevicesNextPage,
+    prevPage: bamDevicesPrevPage,
   } = usePaginatedBAMDevices({
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
+    initialLimit: 6,
+    search: searchQuery,
+    group: groupTitle,
   });
 
   const {
@@ -306,8 +327,13 @@ const DataDownload = ({
     loadMore: loadMoreLowCostDevices,
     canLoadMore: canLoadMoreLowCostDevices,
     hasNextPage: lowCostDevicesHasNextPage,
+    nextPage: lowCostDevicesNextPage,
+    prevPage: lowCostDevicesPrevPage,
   } = usePaginatedLowCostDevices({
-    enableInfiniteScroll: true,
+    enableInfiniteScroll: false,
+    initialLimit: 6,
+    search: searchQuery,
+    group: groupTitle,
   });
 
   // Close mobile sidebar when resizing to larger screen
@@ -785,6 +811,77 @@ const DataDownload = ({
     loadMoreBAMDevices,
     loadMoreLowCostDevices,
     loadMoreSites,
+  ]);
+
+  // Get next/prev handlers for current filter (server pagination)
+  const currentNextPage = useMemo(() => {
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesNextPage;
+          case 'bam':
+            return bamDevicesNextPage;
+          case 'lowcost':
+            return lowCostDevicesNextPage;
+          default:
+            return lowCostDevicesNextPage;
+        }
+      }
+      return lowCostDevicesNextPage;
+    }
+
+    const nextMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesNextPage,
+      [FILTER_TYPES.CITIES]: citiesNextPage,
+      [FILTER_TYPES.SITES]: sitesNextPage,
+    };
+    return nextMap[activeFilterKey];
+  }, [
+    activeFilterKey,
+    formData.deviceCategory,
+    countriesNextPage,
+    citiesNextPage,
+    mobileDevicesNextPage,
+    bamDevicesNextPage,
+    lowCostDevicesNextPage,
+    sitesNextPage,
+  ]);
+
+  const currentPrevPage = useMemo(() => {
+    if (activeFilterKey === FILTER_TYPES.DEVICES) {
+      if (formData.deviceCategory) {
+        const selectedCategory = formData.deviceCategory.name.toLowerCase();
+        switch (selectedCategory) {
+          case 'mobile':
+            return mobileDevicesPrevPage;
+          case 'bam':
+            return bamDevicesPrevPage;
+          case 'lowcost':
+            return lowCostDevicesPrevPage;
+          default:
+            return lowCostDevicesPrevPage;
+        }
+      }
+      return lowCostDevicesPrevPage;
+    }
+
+    const prevMap = {
+      [FILTER_TYPES.COUNTRIES]: countriesPrevPage,
+      [FILTER_TYPES.CITIES]: citiesPrevPage,
+      [FILTER_TYPES.SITES]: sitesPrevPage,
+    };
+    return prevMap[activeFilterKey];
+  }, [
+    activeFilterKey,
+    formData.deviceCategory,
+    countriesPrevPage,
+    citiesPrevPage,
+    mobileDevicesPrevPage,
+    bamDevicesPrevPage,
+    lowCostDevicesPrevPage,
+    sitesPrevPage,
   ]);
 
   // Get can load more state for current filter
@@ -1515,9 +1612,11 @@ const DataDownload = ({
           onViewDataClick={onViewDataClick}
           deviceCategory={formData.deviceCategory} // Pass device category
           // Pagination props
-          enableInfiniteScroll={true}
+          enableInfiniteScroll={false}
           paginationMeta={currentPaginationMeta}
           onLoadMore={currentLoadMore}
+          onNextPage={currentNextPage}
+          onPrevPage={currentPrevPage}
           canLoadMore={currentCanLoadMore}
           hasNextPage={currentHasNextPage}
         />
@@ -1540,8 +1639,8 @@ const DataDownload = ({
     citiesErrorMsg,
     isLoading,
     selectedItems,
-    clearSelections,
     currentFilterData,
+    clearSelections,
     setSelectedItems,
     clearSelected,
     filterErrors,
@@ -1557,6 +1656,8 @@ const DataDownload = ({
     currentLoadMore,
     currentCanLoadMore,
     currentHasNextPage,
+    currentNextPage,
+    currentPrevPage,
   ]);
 
   return (

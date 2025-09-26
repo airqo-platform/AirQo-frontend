@@ -41,6 +41,9 @@ build/Release
 node_modules/
 jspm_packages/
 
+# Lock files (we use yarn.lock, exclude npm)
+package-lock.json
+
 # TypeScript v1 declaration files
 typings/
 
@@ -104,9 +107,18 @@ dist
 # TernJS port file
 .tern-port
 
-# Cypress files
-cypress/videos
-cypress/screenshots
+
+
+# Test files and artifacts
+test-results/
+playwright-report/
+coverage/
+*.coverage
+.nyc_output
+jest-coverage/
+
+# Playwright browsers
+playwright/.local-browsers
 
 # Yarn add output
 .pnp.cjs

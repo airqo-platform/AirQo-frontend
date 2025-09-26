@@ -6,6 +6,7 @@ function OrganizationAuthLayout({ children }) {
   return <>{children}</>;
 }
 
-export default withSessionAuth(PROTECTION_LEVELS.AUTH_ONLY)(
+export default withSessionAuth(
   OrganizationAuthLayout,
+  PROTECTION_LEVELS.AUTH_ONLY,
 );

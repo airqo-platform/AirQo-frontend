@@ -28,6 +28,7 @@ import {
   resetChartStore,
 } from '@/lib/store/services/charts/ChartSlice';
 import { isAirQoGroup, titleToSlug } from '@/core/utils/organizationUtils';
+import { setupUserSession } from '@/core/utils/loginSetup';
 import LoadingSpinner from '@/common/components/LoadingSpinner';
 import OrganizationNotFound from '@/common/components/Organization/OrganizationNotFound';
 import OrganizationSwitchLoader from '@/common/components/Organization/OrganizationSwitchLoader';
@@ -76,6 +77,7 @@ const initialState = {
   error: null,
   isSwitching: false,
   initialGroupSet: false,
+  sessionInitialized: false,
   organization: null,
   organizationTheme: null,
   organizationLoading: false,
@@ -96,6 +98,8 @@ const reducer = (state, action) => {
       return { ...state, isSwitching: action.payload };
     case 'SET_INITIAL_GROUP_SET':
       return { ...state, initialGroupSet: true };
+    case 'SET_SESSION_INITIALIZED':
+      return { ...state, sessionInitialized: action.payload };
     case 'SET_ORG_LOADING':
       return { ...state, organizationLoading: true, organizationError: null };
     case 'SET_ORG_DATA':
@@ -424,10 +428,94 @@ export function UnifiedGroupProvider({ children }) {
     state.isLoading,
   ]);
 
-  // Set initial active group
+  // Initialize user session (setup Redux store with user data and groups)
   useEffect(() => {
-    if (userGroupsLength === 0 || state.initialGroupSet || lock.current) return;
+    if (
+      sessionStatus === 'authenticated' &&
+      session?.user?.id &&
+      userGroupsLength > 0 && // Wait for groups to be loaded
+      !state.sessionInitialized &&
+      !lock.current
+    ) {
+      logger.info('Initializing user session with optimized setupUserSession');
 
+      // Set a more reasonable fallback timeout (reduced from 10s to 5s)
+      const fallbackTimeout = setTimeout(() => {
+        if (mountedRef.current && !state.sessionInitialized) {
+          logger.warn('Session setup timeout - forcing session initialization');
+          dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+        }
+      }, 5000); // 5 second maximum wait
+
+      const setupSession = async () => {
+        try {
+          // Provide already-fetched userGroups to avoid redundant API calls
+          const result = await setupUserSession(
+            session,
+            rdxDispatch,
+            pathname,
+            {
+              userGroups,
+            },
+          );
+
+          if (result.success) {
+            logger.info('User session setup completed successfully');
+          } else {
+            logger.error('User session setup failed:', result.error);
+          }
+        } catch (error) {
+          logger.error('setupUserSession error:', error);
+          // On setup failure, still proceed to prevent infinite loading
+          // User can refresh if needed, but we shouldn't block the app
+        } finally {
+          // Clear the fallback timeout since we completed
+          clearTimeout(fallbackTimeout);
+
+          // ALWAYS mark session as initialized to prevent permanent stall
+          // Even if setupUserSession fails, we should allow the app to continue
+          // rather than get stuck on the overlay indefinitely
+          if (mountedRef.current) {
+            dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+          }
+        }
+      };
+
+      // Start session setup immediately (no setTimeout delay)
+      setupSession();
+
+      // Cleanup timeout on unmount
+      return () => clearTimeout(fallbackTimeout);
+    }
+  }, [
+    sessionStatus,
+    session,
+    userGroupsLength,
+    userGroups,
+    state.sessionInitialized,
+    rdxDispatch,
+    pathname,
+  ]);
+
+  // Set initial active group - wait for session to be initialized first
+  useEffect(() => {
+    if (
+      userGroupsLength === 0 ||
+      state.initialGroupSet ||
+      lock.current ||
+      !state.sessionInitialized || // Wait for session to be initialized
+      !activeGroup // Wait for activeGroup to be set by setupUserSession
+    )
+      return;
+
+    // Additional check - if activeGroup is already set by setupUserSession,
+    // just mark initial group as set
+    if (activeGroup && activeGroup._id) {
+      dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+      return;
+    }
+
+    // Fallback logic (shouldn't be needed with new flow)
     let target = null;
 
     if (isOrganizationContext && organizationSlug) {
@@ -446,6 +534,8 @@ export function UnifiedGroupProvider({ children }) {
   }, [
     userGroupsLength,
     state.initialGroupSet,
+    state.sessionInitialized, // Add dependency on session initialization
+    activeGroup, // Add dependency on activeGroup
     organizationSlug,
     isOrganizationContext,
     session?.user?.activeGroup,
@@ -678,6 +768,32 @@ export function UnifiedGroupProvider({ children }) {
     (state.organizationLoading ||
       (!themeComplete && !state.organizationError && state.organization));
 
+  // Session initialization loader (show while setting up user session)
+  // Also show while initial group is being set to prevent premature UI display
+  // Show loader only when session has not been initialized AND there's no activeGroup yet.
+  // Previously this used an OR which caused the provider to keep showing the
+  // "Setting up your session..." overlay even when an activeGroup had already
+  // been set (for example by `setupUserSession`). That prevented children from
+  // rendering and blocked redirects until a full page reload. Use && here so
+  // children can render as soon as an activeGroup exists.
+  if (
+    sessionStatus === 'authenticated' &&
+    session?.user?.id &&
+    userGroupsLength > 0 &&
+    !state.sessionInitialized &&
+    !activeGroup
+  ) {
+    const loadingText = !state.sessionInitialized
+      ? 'Setting up your session…'
+      : 'Loading your workspace…';
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner size="lg" text={loadingText} />
+      </div>
+    );
+  }
+
   // Organization switch loader (highest priority)
   if (state.isSwitching && activeGroup) {
     return (
@@ -722,6 +838,12 @@ export const useUnifiedGroup = () => {
     throw new Error('useUnifiedGroup must be used within UnifiedGroupProvider');
   }
   return context;
+};
+
+// Safe variant: returns null instead of throwing when provider is not present.
+export const useUnifiedGroupSafe = () => {
+  const context = useContext(ctx);
+  return context || null;
 };
 
 // Legacy hooks (unchanged API)

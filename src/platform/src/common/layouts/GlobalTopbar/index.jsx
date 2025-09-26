@@ -19,6 +19,7 @@ import {
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import GroupLogo from '@/common/components/GroupLogo';
 import CardWrapper from '@/common/components/CardWrapper';
+import LoadingOverlay from '@/common/components/LoadingOverlay';
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import { setupUserSession } from '@/core/utils/loginSetup';
@@ -118,39 +119,86 @@ const GlobalTopbar = ({
   );
 
   const handleLogoClick = useCallback(() => {
-    if (onLogoClick) {
+    if (typeof onLogoClick === 'function') {
       onLogoClick();
-    } else {
-      router.push(homeNavPath);
+      return;
+    }
+
+    // Default navigation to homeNavPath
+    try {
+      if (router && typeof router.push === 'function') {
+        router.push(homeNavPath);
+      } else if (typeof window !== 'undefined') {
+        window.location.href = homeNavPath;
+      }
+    } catch (e) {
+      logger.warn('Logo navigation failed, falling back to location.href', e);
+      if (typeof window !== 'undefined') window.location.href = homeNavPath;
     }
   }, [onLogoClick, router, homeNavPath]);
 
-  // Refresh functionality - refreshes user session and permissions
   const handleRefresh = useCallback(async () => {
     if (isRefreshing || !session) return;
 
     setIsRefreshing(true);
+    let mutateFn;
+    let cacheRevalidated = false;
 
     try {
-      logger.info('Refreshing user session and permissions...');
+      logger.info('Starting comprehensive application refresh...');
 
-      // Re-run the login setup to refresh all user data and permissions
+      // 1. Clear SWR cache without revalidation
+      const { mutate } = await import('swr');
+      mutateFn = mutate;
+      await mutateFn(() => true, undefined, { revalidate: false });
+      logger.debug('SWR cache cleared');
+
+      // 2. Refresh user session and permissions
       const result = await setupUserSession(session, dispatch, pathname, {
         maintainActiveGroup: true,
         preferredGroupId: activeGroup?._id,
       });
 
       if (result.success) {
-        logger.info('User session and permissions refreshed successfully');
-        // Optionally show a success toast here
+        logger.info('User session refreshed successfully');
+
+        // 3. Revalidate SWR cache
+        await mutateFn(() => true, undefined, { revalidate: true });
+        cacheRevalidated = true;
+        logger.debug('SWR cache revalidated');
+
+        // 4. Trigger logo/group refresh events
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new window.Event('logoRefresh'));
+          window.dispatchEvent(new window.Event('groupDataUpdated'));
+        }
+
+        // 5. Show success feedback briefly
+        setTimeout(() => {
+          logger.debug('Application refresh completed successfully');
+        }, 500);
       } else {
         logger.error('Failed to refresh user session:', result.error);
-        // Optionally show an error toast here
       }
     } catch (error) {
-      logger.error('Error refreshing user session:', error);
+      logger.error('Error during application refresh:', error);
     } finally {
-      setIsRefreshing(false);
+      // Ensure we revalidate at the end if it hasn't happened yet so subscribers are not left with undefined
+      if (mutateFn && !cacheRevalidated) {
+        try {
+          await mutateFn(() => true, undefined, { revalidate: true });
+        } catch (revalidateError) {
+          logger.warn(
+            'Failed to restore SWR cache after refresh error',
+            revalidateError,
+          );
+        }
+      }
+
+      // Always clear refreshing state after a delay
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 1000); // Minimum 1 second to show loading feedback
     }
   }, [isRefreshing, session, dispatch, pathname, activeGroup]);
 
@@ -163,7 +211,7 @@ const GlobalTopbar = ({
         className={`inline-flex items-center justify-center ${className}`}
         {...buttonProps}
       >
-        <GroupLogo size="lg" />
+        <GroupLogo size="md" />
       </Button>
     ),
     [handleLogoClick],
@@ -240,6 +288,12 @@ const GlobalTopbar = ({
 
   return (
     <div className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-0 left-0 right-0 z-[999]">
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isRefreshing}
+        subtitle="Refreshing application data and permissions"
+      />
+
       {/* Main Topbar */}
       <CardWrapper
         className={`w-full ${styles.background}`}
@@ -283,7 +337,7 @@ const GlobalTopbar = ({
                   disabled={isRefreshing}
                   variant="outlined"
                   className={`
-                    p-2 h-10 w-10 flex items-center justify-center rounded-lg border border-gray-200 
+                    p-2 h-9 w-9 flex items-center justify-center rounded-lg border border-gray-200 
                     focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 
                     dark:border-gray-600 dark:focus:ring-primary/70 
                     dark:focus:ring-offset-gray-800 transition-colors duration-200

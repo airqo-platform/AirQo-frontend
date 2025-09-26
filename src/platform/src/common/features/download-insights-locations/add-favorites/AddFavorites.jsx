@@ -43,6 +43,8 @@ export const AddFavorites = ({ onClose }) => {
     hasNextPage,
     loadMore,
     canLoadMore,
+    nextPage,
+    prevPage,
     refresh,
   } = useAddLocationsData(searchQuery);
 
@@ -203,6 +205,8 @@ export const AddFavorites = ({ onClose }) => {
               meta={meta}
               hasNextPage={hasNextPage}
               loadMore={loadMore}
+              nextPage={nextPage}
+              prevPage={prevPage}
               canLoadMore={canLoadMore}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}

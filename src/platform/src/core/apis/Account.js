@@ -63,11 +63,11 @@ export const getUserDetails = (userID) => {
   return secureApiProxy
     .get(`${USERS_URL}/${userID}`, {
       authType: AUTH_TYPES.JWT,
-      timeout: 15000, // 15 second timeout
+      timeout: 8000,
     })
     .then((response) => response.data)
     .catch((error) => {
-      // Enhanced error handling
+      // Enhanced error handling with better messages
       if (error.response) {
         const status = error.response.status;
         const message =
@@ -82,11 +82,16 @@ export const getUserDetails = (userID) => {
             throw new Error('Authentication required');
           case 500:
             throw new Error('Server error occurred');
+          case 408:
+          case 504:
+            throw new Error('Request timeout - server is slow');
           default:
             throw new Error(message);
         }
       } else if (error.request) {
         throw new Error('Network error - please check your connection');
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timeout - server response too slow');
       } else {
         throw new Error(error.message || 'Failed to fetch user details');
       }

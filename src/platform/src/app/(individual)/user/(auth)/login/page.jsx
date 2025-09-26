@@ -2,7 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
 import { AqEye, AqEyeOff } from '@airqo/icons-react';
@@ -13,6 +14,7 @@ import Button from '@/common/components/Button';
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
 import NotificationService from '@/core/utils/notificationService';
+import { setupUserSession } from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -25,6 +27,7 @@ const UserLogin = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
   const { userData } = useSelector((state) => state.login);
   const isMountedRef = useRef(true);
 
@@ -71,36 +74,74 @@ const UserLogin = () => {
         if (!isMountedRef.current) return;
 
         if (result?.error) {
-          // Parse the error message to extract status code information
+          // Enhanced error handling with better status code detection and user-friendly messages
           let statusCode = 401; // Default to unauthorized
           let customMessage = null;
 
+          const errorMsg = result.error.toLowerCase();
+
           if (
-            result.error.includes('Invalid credentials') ||
-            result.error.includes('Incorrect email or password')
+            errorMsg.includes('invalid credentials') ||
+            errorMsg.includes('authentication failed') ||
+            errorMsg.includes('incorrect password') ||
+            errorMsg.includes('incorrect email or password') ||
+            errorMsg.includes('unauthorized')
           ) {
             statusCode = 401;
-            customMessage = null; // Use default status message
+            customMessage =
+              'Invalid email or password. Please check your credentials and try again.';
           } else if (
-            result.error.includes('Network') ||
-            result.error.includes('connection')
+            errorMsg.includes('user not found') ||
+            errorMsg.includes('account does not exist')
+          ) {
+            statusCode = 404;
+            customMessage = 'No account found with this email address.';
+          } else if (
+            errorMsg.includes('account locked') ||
+            errorMsg.includes('account disabled') ||
+            errorMsg.includes('account suspended')
+          ) {
+            statusCode = 403;
+            customMessage =
+              'Your account has been suspended. Please contact support.';
+          } else if (
+            errorMsg.includes('too many attempts') ||
+            errorMsg.includes('rate limit') ||
+            errorMsg.includes('throttled')
+          ) {
+            statusCode = 429;
+            customMessage =
+              'Too many login attempts. Please wait a moment and try again.';
+          } else if (
+            errorMsg.includes('network') ||
+            errorMsg.includes('connection') ||
+            errorMsg.includes('timeout')
           ) {
             statusCode = 503;
-            customMessage = null; // Use default status message
+            customMessage =
+              'Connection problem. Please check your internet and try again.';
           } else if (
-            result.error.includes(
-              'Authentication service returned an unexpected response',
+            errorMsg.includes(
+              'authentication service returned an unexpected response',
             )
           ) {
             statusCode = 502;
-            customMessage = null; // Use default status message
-          } else if (result.error.includes('You do not have permission')) {
+            customMessage =
+              'Authentication service is temporarily unavailable. Please try again.';
+          } else if (errorMsg.includes('you do not have permission')) {
             statusCode = 403;
-            customMessage = null; // Use default status message
-          } else {
-            // For other errors, try to extract status code or default to 500
+            customMessage =
+              'Access denied. Please contact support if you believe this is an error.';
+          } else if (
+            errorMsg.includes('server error') ||
+            errorMsg.includes('internal error')
+          ) {
             statusCode = 500;
-            customMessage = result.error;
+            customMessage =
+              'Server error occurred. Please try again in a moment.';
+          } else {
+            statusCode = 400;
+            customMessage = result.error; // Use original error message as fallback
           }
 
           NotificationService.error(statusCode, customMessage);
@@ -108,8 +149,40 @@ const UserLogin = () => {
         }
 
         if (result?.ok) {
-          // Success notification
-          NotificationService.success(200, 'Login successful!');
+          // Success notification (kept simple)
+          NotificationService.success(200, 'Welcome back!');
+
+          // Get the freshly minted session and run the client-side setup
+          try {
+            const session = await getSession();
+            if (session?.user) {
+              // Compute destination before initializing session so setupUserSession
+              // can pick the correct active group based on the intended route.
+              const redirectOrg = session.requestedOrgSlug || session.orgSlug;
+              const dest = redirectOrg
+                ? `/org/${redirectOrg}/dashboard`
+                : '/user/Home';
+
+              // Run setup which will populate Redux with user/groups/etc.
+              // We await this so the user lands on the app with data loaded.
+              await setupUserSession(session, dispatch, dest);
+
+              // Redirect to the computed destination
+              router.replace(dest);
+              return;
+            }
+            NotificationService.error(
+              500,
+              'Session setup failed. Please try logging in again.',
+            );
+            return;
+          } catch (setupErr) {
+            NotificationService.error(
+              500,
+              setupErr.message || 'Login setup failed',
+            );
+            return;
+          }
         } else {
           NotificationService.error(500, 'Login failed. Please try again.');
         }
@@ -127,7 +200,7 @@ const UserLogin = () => {
         }
       }
     },
-    [userData, loading],
+    [userData, loading, dispatch, router],
   );
 
   const handleInputChange = useCallback(
