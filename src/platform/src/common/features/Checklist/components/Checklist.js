@@ -309,7 +309,7 @@ const Checklist = ({ openVideoModal }) => {
             </h2>
             <p className="text-sm md:text-base text-gray-500 dark:text-gray-300">
               {allCompleted
-                ? 'Great job! You&apos;ve completed all onboarding steps.'
+                ? 'Great job! You have completed all onboarding steps.'
                 : 'Continue with your onboarding journey.'}
             </p>
           </div>

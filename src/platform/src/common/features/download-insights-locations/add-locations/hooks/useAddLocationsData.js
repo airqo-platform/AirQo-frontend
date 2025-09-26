@@ -30,9 +30,13 @@ export const useAddLocationsData = (searchQuery = '') => {
     loadMore,
     canLoadMore,
     refresh,
-  } = usePaginatedSitesSummary(groupTitle || 'AirQo', {
-    enableInfiniteScroll: true,
+    nextPage,
+    prevPage,
+  } = usePaginatedSitesSummary(groupTitle || 'airqo', {
+    enableInfiniteScroll: false,
+    initialLimit: 6,
     search: searchQuery,
+    swrOptions: { revalidateOnMount: true },
   });
 
   const filteredSites = useMemo(() => {
@@ -42,10 +46,15 @@ export const useAddLocationsData = (searchQuery = '') => {
 
     // Check if any sites have the isOnline property
     if (sitesSummaryData.some((site) => 'isOnline' in site)) {
-      const onlineSites = sitesSummaryData.filter((s) => s.isOnline === true);
-      // If there are online sites, return them; otherwise return all sites
-      // This prevents showing empty data when all sites are offline
-      return onlineSites.length > 0 ? onlineSites : sitesSummaryData;
+      // If the server page includes an `isOnline` flag, prefer showing
+      // online sites first but keep the full page returned by the server.
+      // Previously we filtered to only online sites which reduced the
+      // visible rows (e.g. 4 instead of the server page size 6). To
+      // preserve the server page length, sort the page so online sites
+      // appear first but return the entire page array.
+      return [...sitesSummaryData].sort(
+        (a, b) => (b.isOnline === true ? 1 : 0) - (a.isOnline === true ? 1 : 0),
+      );
     }
 
     // If no isOnline property, return all sites
@@ -65,6 +74,8 @@ export const useAddLocationsData = (searchQuery = '') => {
     hasNextPage,
     loadMore,
     canLoadMore,
+    nextPage,
+    prevPage,
     refresh,
   };
 };

@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
 import Button from '@/common/components/Button';
 import { signIn, getSession } from 'next-auth/react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
@@ -14,6 +15,7 @@ import ErrorBoundary from '@/common/components/ErrorBoundary';
 import NotificationService from '@/core/utils/notificationService';
 import logger from '@/lib/logger';
 import { formatOrgSlug } from '@/core/utils/strings';
+import { setupUserSession } from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -23,11 +25,13 @@ const loginSchema = Yup.object().shape({
 });
 
 const OrganizationLogin = () => {
+  const dispatch = useDispatch();
   const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
+  const router = useRouter();
   const { getDisplayName, primaryColor } = useOrganization();
   const orgSlug = params.org_slug;
 
@@ -62,27 +66,62 @@ const OrganizationLogin = () => {
         });
 
         if (result?.error) {
-          // Parse the error message to extract status code information
+          // Enhanced error handling with better status code detection and user-friendly messages
           let statusCode = 401; // Default to unauthorized
           let customMessage = null;
 
+          const errorMsg = result.error.toLowerCase();
+
           if (
-            result.error.includes('Invalid credentials') ||
-            result.error.includes('Authentication failed') ||
-            result.error.includes('HTTP 401')
+            errorMsg.includes('invalid credentials') ||
+            errorMsg.includes('authentication failed') ||
+            errorMsg.includes('incorrect password') ||
+            errorMsg.includes('unauthorized')
           ) {
             statusCode = 401;
-            customMessage = null; // Use default status message
+            customMessage =
+              'Invalid email or password. Please check your credentials and try again.';
           } else if (
-            result.error.includes('Network Error') ||
-            result.error.includes('fetch') ||
-            result.error.includes('connection')
+            errorMsg.includes('user not found') ||
+            errorMsg.includes('account does not exist')
+          ) {
+            statusCode = 404;
+            customMessage = 'No account found with this email address.';
+          } else if (
+            errorMsg.includes('account locked') ||
+            errorMsg.includes('account disabled') ||
+            errorMsg.includes('account suspended')
+          ) {
+            statusCode = 403;
+            customMessage =
+              'Your account has been suspended. Please contact support.';
+          } else if (
+            errorMsg.includes('too many attempts') ||
+            errorMsg.includes('rate limit') ||
+            errorMsg.includes('throttled')
+          ) {
+            statusCode = 429;
+            customMessage =
+              'Too many login attempts. Please wait a moment and try again.';
+          } else if (
+            errorMsg.includes('network error') ||
+            errorMsg.includes('fetch') ||
+            errorMsg.includes('connection') ||
+            errorMsg.includes('timeout')
           ) {
             statusCode = 503;
-            customMessage = null; // Use default status message
-          } else {
+            customMessage =
+              'Connection problem. Please check your internet and try again.';
+          } else if (
+            errorMsg.includes('server error') ||
+            errorMsg.includes('internal error')
+          ) {
             statusCode = 500;
-            customMessage = result.error;
+            customMessage =
+              'Server error occurred. Please try again in a moment.';
+          } else {
+            statusCode = 400;
+            customMessage = result.error; // Use original error message as fallback
           }
 
           NotificationService.error(statusCode, customMessage);
@@ -90,21 +129,43 @@ const OrganizationLogin = () => {
         }
 
         if (result?.ok) {
-          // Force session refresh after successful login
+          // Get the session and run client-side setup so user lands in app with data
           const session = await getSession();
 
-          if (session?.user && session?.accessToken) {
-            // Force NextAuth to update the session context immediately
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new window.Event('focus'));
+          if (session?.user) {
+            try {
+              // Compute resolved organization slug and path first so setupUserSession
+              // can select the correct active group based on the intended route.
+              const redirectOrg =
+                session.requestedOrgSlug || session.orgSlug || orgSlug;
+              const setupPath = redirectOrg
+                ? `/org/${redirectOrg}`
+                : '/user/Home';
+
+              await setupUserSession(session, dispatch, setupPath);
+
+              const dest = redirectOrg
+                ? `/org/${redirectOrg}/dashboard`
+                : '/user/Home';
+              if (redirectOrg) router.replace(dest);
+              else router.replace('/user/Home');
+              return;
+            } catch (err) {
+              NotificationService.error(
+                500,
+                err.message || 'Login setup failed',
+              );
+              return;
             }
-            NotificationService.success(200, 'Login successful!');
-          } else {
-            NotificationService.error(500, 'Session data is incomplete');
-            return;
           }
+
+          NotificationService.error(
+            500,
+            'Session setup failed. Please try logging in again.',
+          );
+          return;
         } else {
-          NotificationService.error(500, 'Login failed without specific error');
+          NotificationService.error(500, 'Login failed. Please try again.');
         }
       } catch (err) {
         logger.error('Organization login error:', err);
@@ -118,7 +179,7 @@ const OrganizationLogin = () => {
         setIsLoading(false);
       }
     },
-    [userName, password, orgSlug],
+    [userName, password, orgSlug, router, dispatch],
   );
 
   const togglePasswordVisibility = useCallback(() => {

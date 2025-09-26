@@ -102,6 +102,10 @@ const JWT_PREFIX_REGEX = /^JWT\s+/;
 const DOUBLE_JWT_REGEX = /^JWT\s+JWT\s+/;
 
 // Cached API token and origin
+// Keep API token undefined on the client to avoid accidental leakage.
+// The server-side proxy (`/api/[...path]`) is responsible for adding
+// the token when required. Only read API token from env when running
+// in a server context.
 let cachedApiToken = null;
 let cachedOrigin = null;
 
@@ -115,7 +119,15 @@ const createSecureApiClient = () => {
   }
 
   if (!cachedApiToken) {
-    cachedApiToken = getApiToken();
+    // Server-only: prefer strictly server env var and avoid using NEXT_PUBLIC_* fallbacks
+    const getServerApiToken = () =>
+      typeof window === 'undefined' ? (process.env.API_TOKEN ?? null) : null;
+
+    cachedApiToken = getServerApiToken();
+    // Fallback to getApiToken() only if explicitly running in a trusted server
+    if (!cachedApiToken && typeof window === 'undefined') {
+      cachedApiToken = getApiToken();
+    }
   }
 
   const instance = axios.create({
@@ -200,9 +212,10 @@ const createSecureApiClient = () => {
           break;
 
         case AUTH_TYPES.API_TOKEN:
-          if (cachedApiToken) {
-            const separator = config.url.includes('?') ? '&' : '?';
-            config.url = `${config.url}${separator}token=${cachedApiToken}`;
+          // Send server token via header to avoid exposing it in URLs
+          if (cachedApiToken && typeof window === 'undefined') {
+            config.headers = config.headers || {};
+            config.headers['X-Api-Token'] = cachedApiToken;
           }
           break;
 

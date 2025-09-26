@@ -1,8 +1,11 @@
+'use client';
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { useMediaQuery } from 'react-responsive';
 import { AqLoading02 } from '@airqo/icons-react';
+import { useRouter } from 'next/navigation';
 
 const Button = React.forwardRef(
   (
@@ -20,11 +23,13 @@ const Button = React.forwardRef(
       Icon,
       children,
       showTextOnMobile = false,
+      path, // internal navigation path
       ...rest
     },
     ref,
   ) => {
     const isMobile = useMediaQuery({ maxWidth: 640 });
+    const router = useRouter();
 
     const isDisabled = disabled || loading || variant === 'disabled';
 
@@ -34,6 +39,14 @@ const Button = React.forwardRef(
         return;
       }
       onClick?.(e);
+
+      try {
+        if (path && !e.defaultPrevented) {
+          router.push(path);
+        }
+      } catch (err) {
+        console.warn('Button navigation failed', err);
+      }
     };
 
     // Size -> padding and font-size
@@ -166,6 +179,7 @@ Button.propTypes = {
   onClick: PropTypes.func,
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
   dataTestId: PropTypes.string,
+  path: PropTypes.string,
   Icon: PropTypes.elementType,
   children: PropTypes.node,
   showTextOnMobile: PropTypes.bool,

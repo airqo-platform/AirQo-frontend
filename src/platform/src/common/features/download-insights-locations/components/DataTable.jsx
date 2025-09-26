@@ -313,9 +313,11 @@ const DataTable = ({
   // Pagination props
   paginationMeta = {},
   onLoadMore = null,
-  canLoadMore = false,
-  hasNextPage = false,
-  enableInfiniteScroll = false,
+  onNextPage = null,
+  onPrevPage = null,
+  _canLoadMore = false,
+  _hasNextPage = false,
+  _enableInfiniteScroll = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
@@ -343,6 +345,9 @@ const DataTable = ({
     },
     [],
   );
+
+  // Determine whether the table is backed by server-side pagination
+  const serverPaged = Boolean(paginationMeta && paginationMeta.totalPages);
 
   const uniqueData = useMemo(() => {
     if (!Array.isArray(data)) return [];
@@ -482,6 +487,51 @@ const DataTable = ({
     [enableSorting],
   );
 
+  // When server paged, reflect server page values instead of local state
+  const displayedTotalPages = serverPaged
+    ? paginationMeta.totalPages
+    : totalPages;
+  const displayedCurrentPage = serverPaged
+    ? paginationMeta.page || 1
+    : currentPage;
+
+  const paginationVisible = Boolean(
+    displayedTotalPages && displayedTotalPages > 1,
+  );
+
+  const handlePrev = useCallback(() => {
+    if (serverPaged) {
+      if (typeof onPrevPage === 'function') {
+        onPrevPage();
+      }
+      // If no onPrevPage is provided, do nothing. Keep control disabled instead of falling back to loadMore.
+      return;
+    }
+    handlePageChange(displayedCurrentPage - 1);
+  }, [serverPaged, onPrevPage, handlePageChange, displayedCurrentPage]);
+
+  const handleNext = useCallback(() => {
+    if (serverPaged) {
+      if (typeof onNextPage === 'function') return onNextPage();
+      if (typeof onLoadMore === 'function') return onLoadMore('next');
+      return;
+    }
+    handlePageChange(displayedCurrentPage + 1);
+  }, [
+    serverPaged,
+    onNextPage,
+    onLoadMore,
+    handlePageChange,
+    displayedCurrentPage,
+  ]);
+
+  // Use these to avoid unused variable linting for legacy props
+  // They are intentionally no-ops here because server pagination replaces load-more UX
+  void onLoadMore;
+  void _canLoadMore;
+  void _hasNextPage;
+  void _enableInfiniteScroll;
+
   const handleColumnFilter = useCallback((columnKey, filterValues) => {
     setColumnFilters((prev) => ({ ...prev, [columnKey]: filterValues }));
     setCurrentPage(1);
@@ -544,6 +594,12 @@ const DataTable = ({
     () => Object.values(columnFilters).some((filters) => filters?.length > 0),
     [columnFilters],
   );
+
+  // When loading we don't want the border around the table
+  // to make the loading skeleton look like an inner area rather than a bordered tab.
+  const tableContainerClass = loading
+    ? `relative rounded-lg ${darkMode ? 'bg-transparent' : 'bg-transparent'}`
+    : `relative border rounded-lg ${darkMode ? 'border-gray-700 bg-transparent' : 'border-gray-200 bg-white'}`;
 
   useEffect(() => {
     if (!mountedRef.current || !currentPageData.length) {
@@ -620,6 +676,8 @@ const DataTable = ({
     );
   };
 
+  // Keep the TopBarSearch visible during loading to allow users to continue typing.
+  // Render the loading skeleton inside the table region instead of returning early.
   if (error && !activeFilter) {
     return (
       <div className="flex flex-col items-center justify-center p-6 space-y-4 bg-red-50 border border-red-200 rounded-lg text-center">
@@ -643,14 +701,10 @@ const DataTable = ({
     );
   }
 
-  if (loading && !activeFilter) {
-    return <TableLoadingSkeleton />;
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        {filters.length > 0 && (
+        {filters.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {filters.map((filterDef) => (
               <Button
@@ -664,6 +718,9 @@ const DataTable = ({
               </Button>
             ))}
           </div>
+        ) : (
+          // spacer keeps the search on the right when there are no filter buttons
+          <div className="w-full sm:w-0 flex-shrink-0" aria-hidden="true" />
         )}
         <TopBarSearch
           data={uniqueData}
@@ -678,10 +735,9 @@ const DataTable = ({
 
       {renderFilterError()}
 
-      <div
-        className={`relative border rounded-lg ${darkMode ? 'border-gray-700 bg-transparent' : 'border-gray-200 bg-white'}`}
-      >
-        {loading && activeFilter ? (
+      <div className={tableContainerClass}>
+        {/* If loading, show the loading skeleton in the table area but keep the search visible */}
+        {loading ? (
           <TableLoadingSkeleton />
         ) : currentPageData.length === 0 ? (
           <InfoMessage
@@ -845,7 +901,7 @@ const DataTable = ({
         )}
       </div>
 
-      {!loading && totalPages > 1 && (
+      {!loading && paginationVisible && (
         <div className="flex items-center justify-between">
           {showViewDataButton && (
             <Button
@@ -866,20 +922,28 @@ const DataTable = ({
           )}
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-sm text-gray-500">
-              Page {currentPage} of {totalPages}
+              Page {displayedCurrentPage} of {displayedTotalPages}
             </span>
             <Button
               variant="outlined"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={handlePrev}
+              disabled={
+                displayedCurrentPage === 1 ||
+                (serverPaged && typeof onPrevPage !== 'function')
+              }
               padding="p-2"
             >
               <AqChevronLeft size={16} />
             </Button>
             <Button
               variant="outlined"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={handleNext}
+              disabled={
+                displayedCurrentPage === displayedTotalPages ||
+                (serverPaged &&
+                  typeof onNextPage !== 'function' &&
+                  typeof onLoadMore !== 'function')
+              }
               padding="p-2"
             >
               <AqChevronRight size={16} />
@@ -888,8 +952,8 @@ const DataTable = ({
         </div>
       )}
 
-      {/* Show View Data button even when pagination is not visible */}
-      {!loading && totalPages <= 1 && showViewDataButton && (
+      {/* Show View Data button when pagination is not visible */}
+      {!loading && !paginationVisible && showViewDataButton && (
         <div className="flex justify-start py-2">
           <Button
             variant="text"
@@ -907,18 +971,7 @@ const DataTable = ({
         </div>
       )}
 
-      {/* Load More button for infinite scroll */}
-      {enableInfiniteScroll && !loading && canLoadMore && hasNextPage && (
-        <div className="flex justify-center py-4">
-          <Button
-            variant="outlined"
-            onClick={onLoadMore}
-            className="flex items-center gap-2 px-6 py-2"
-          >
-            Load More Data
-          </Button>
-        </div>
-      )}
+      {/* Previously used 'Load More' button removed. Pagination now uses Prev/Next controls. */}
 
       {/* Show total count when using pagination */}
       {paginationMeta?.total > 0 && (

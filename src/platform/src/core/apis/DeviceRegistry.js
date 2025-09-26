@@ -128,13 +128,25 @@ export const getGridsSummaryApi = () =>
     .then((response) => response.data);
 
 // Mobile devices endpoints
-export const getMobileDevices = ({ skip = 0, limit = 30, signal } = {}) => {
+export const getMobileDevices = ({
+  skip = 0,
+  limit = 30,
+  search,
+  group,
+  signal,
+} = {}) => {
   // Sanitize pagination parameters
   const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
   const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
 
+  const params = { skip: sanitizedSkip, limit: sanitizedLimit };
+  if (typeof search === 'string' && search.trim().length > 0)
+    params.search = search.trim();
+  if (typeof group === 'string' && group.trim().length > 0)
+    params.group = group.trim();
+
   const config = {
-    params: { skip: sanitizedSkip, limit: sanitizedLimit },
+    params,
     authType: AUTH_TYPES.JWT,
   };
 
@@ -148,28 +160,43 @@ export const getMobileDevices = ({ skip = 0, limit = 30, signal } = {}) => {
 };
 
 // BAM devices endpoints
-export const getBAMDevices = ({ skip = 0, limit = 30 } = {}) => {
+export const getBAMDevices = ({ skip = 0, limit = 30, search, group } = {}) => {
   // Sanitize pagination parameters
   const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
   const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+  const params = { skip: sanitizedSkip, limit: sanitizedLimit };
+  if (typeof search === 'string' && search.trim().length > 0)
+    params.search = search.trim();
+  if (typeof group === 'string' && group.trim().length > 0)
+    params.group = group.trim();
 
   return secureApiProxy
     .get(BAM_DEVICES_URL, {
-      params: { skip: sanitizedSkip, limit: sanitizedLimit },
+      params,
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
 };
 
 // LowCost devices endpoints
-export const getLowCostDevices = ({ skip = 0, limit = 30 } = {}) => {
+export const getLowCostDevices = ({
+  skip = 0,
+  limit = 30,
+  search,
+  group,
+} = {}) => {
   // Sanitize pagination parameters
   const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
   const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+  const params = { skip: sanitizedSkip, limit: sanitizedLimit };
+  if (typeof search === 'string' && search.trim().length > 0)
+    params.search = search.trim();
+  if (typeof group === 'string' && group.trim().length > 0)
+    params.group = group.trim();
 
   return secureApiProxy
     .get(LOWCOST_DEVICES_URL, {
-      params: { skip: sanitizedSkip, limit: sanitizedLimit },
+      params,
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
