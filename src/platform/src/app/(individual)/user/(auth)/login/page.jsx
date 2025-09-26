@@ -175,7 +175,10 @@ const UserLogin = () => {
             );
             return;
           } catch (setupErr) {
-            NotificationService.error(500, setupErr.message || 'Login setup failed');
+            NotificationService.error(
+              500,
+              setupErr.message || 'Login setup failed',
+            );
             return;
           }
         } else {

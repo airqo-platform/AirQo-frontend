@@ -119,13 +119,14 @@ const createSecureApiClient = () => {
   }
 
   if (!cachedApiToken) {
-    // Only resolve API token on the server. Calling getApiToken() on the
-    // client can return a NEXT_PUBLIC_* value and cause the token to be
-    // embedded in bundled client code or appended to requests. Avoid that.
-    if (typeof window === 'undefined') {
+    // Server-only: prefer strictly server env var and avoid using NEXT_PUBLIC_* fallbacks
+    const getServerApiToken = () =>
+      typeof window === 'undefined' ? (process.env.API_TOKEN ?? null) : null;
+
+    cachedApiToken = getServerApiToken();
+    // Fallback to getApiToken() only if explicitly running in a trusted server
+    if (!cachedApiToken && typeof window === 'undefined') {
       cachedApiToken = getApiToken();
-    } else {
-      cachedApiToken = null;
     }
   }
 
@@ -211,9 +212,10 @@ const createSecureApiClient = () => {
           break;
 
         case AUTH_TYPES.API_TOKEN:
+          // Send server token via header to avoid exposing it in URLs
           if (cachedApiToken && typeof window === 'undefined') {
-            const separator = config.url.includes('?') ? '&' : '?';
-            config.url = `${config.url}${separator}token=${cachedApiToken}`;
+            config.headers = config.headers || {};
+            config.headers['X-Api-Token'] = cachedApiToken;
           }
           break;
 

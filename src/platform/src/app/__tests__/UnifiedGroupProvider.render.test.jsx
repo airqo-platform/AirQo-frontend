@@ -22,12 +22,10 @@ describe('UnifiedGroupProvider rendering behaviors', () => {
       },
     });
 
-    jest
-      .spyOn(nextAuth, 'useSession')
-      .mockReturnValue({
-        data: { user: { id: 'u1' } },
-        status: 'authenticated',
-      });
+    jest.spyOn(nextAuth, 'useSession').mockReturnValue({
+      data: { user: { id: 'u1' } },
+      status: 'authenticated',
+    });
 
     const { getByText } = render(
       <Provider store={store}>

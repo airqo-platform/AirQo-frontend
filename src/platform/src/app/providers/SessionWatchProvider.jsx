@@ -71,6 +71,11 @@ function SessionWatchProvider({ children }) {
   useEffect(() => {
     if (!isClient) return;
 
+    // Do not update session fingerprint while NextAuth is in transient 'loading' state.
+    // NextAuth emits authenticated -> loading -> unauthenticated during sign-out which would
+    // otherwise overwrite the authenticated fingerprint and prevent cleanup handlers from running.
+    if (status === 'loading') return;
+
     const currentSessionState = {
       status,
       userId: session?.user?.id || null,
@@ -84,8 +89,6 @@ function SessionWatchProvider({ children }) {
       return;
     }
 
-    setLastSessionCheck(sessionStateKey);
-
     // Only handle explicit session termination or errors
     if (
       status === 'unauthenticated' &&
@@ -95,6 +98,9 @@ function SessionWatchProvider({ children }) {
       logger.info('Session became unauthenticated - performing cleanup');
       handleSessionEnd();
     }
+
+    // Update fingerprint after handling unauthenticated transition so we don't clobber the previous state
+    setLastSessionCheck(sessionStateKey);
   }, [
     status,
     session?.user?.id,

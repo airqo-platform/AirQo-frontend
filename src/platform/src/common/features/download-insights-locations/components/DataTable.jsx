@@ -501,18 +501,14 @@ const DataTable = ({
 
   const handlePrev = useCallback(() => {
     if (serverPaged) {
-      if (typeof onPrevPage === 'function') return onPrevPage();
-      if (typeof onLoadMore === 'function') return onLoadMore('prev');
+      if (typeof onPrevPage === 'function') {
+        onPrevPage();
+      }
+      // If no onPrevPage is provided, do nothing. Keep control disabled instead of falling back to loadMore.
       return;
     }
     handlePageChange(displayedCurrentPage - 1);
-  }, [
-    serverPaged,
-    onPrevPage,
-    onLoadMore,
-    handlePageChange,
-    displayedCurrentPage,
-  ]);
+  }, [serverPaged, onPrevPage, handlePageChange, displayedCurrentPage]);
 
   const handleNext = useCallback(() => {
     if (serverPaged) {
@@ -931,7 +927,10 @@ const DataTable = ({
             <Button
               variant="outlined"
               onClick={handlePrev}
-              disabled={displayedCurrentPage === 1}
+              disabled={
+                displayedCurrentPage === 1 ||
+                (serverPaged && typeof onPrevPage !== 'function')
+              }
               padding="p-2"
             >
               <AqChevronLeft size={16} />

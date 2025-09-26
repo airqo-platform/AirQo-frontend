@@ -92,6 +92,11 @@ const withSessionAuth = (
       if (status === 'unauthenticated') {
         return <AuthLoader message="Redirecting to login..." />;
       }
+      // If authenticated but unified session hasn't fully initialized,
+      // keep showing loader until ready to avoid rendering protected UI
+      if (!sessionInitialized || !initialGroupSet) {
+        return <AuthLoader message="Setting up your workspace..." />;
+      }
       return <WrappedComponent {...props} session={session} />;
     }
 

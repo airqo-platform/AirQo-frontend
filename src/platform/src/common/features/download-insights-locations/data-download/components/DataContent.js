@@ -34,6 +34,7 @@ const DataContent = ({
   hasNextPage,
   onNextPage,
   onPrevPage,
+  enableInfiniteScroll = true,
 }) => {
   // Animation variants for content area
   const contentVariants = {
@@ -184,7 +185,7 @@ const DataContent = ({
           defaultSortColumn="name"
           defaultSortDirection="asc"
           // Pagination props
-          enableInfiniteScroll={true}
+          enableInfiniteScroll={enableInfiniteScroll}
           paginationMeta={paginationMeta}
           onLoadMore={onLoadMore}
           onNextPage={onNextPage}

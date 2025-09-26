@@ -90,7 +90,13 @@ function ReduxProviders({ children }) {
       mounted = false;
       clearTimeout(initTimeout);
     };
-  }, [isInitialized]); // Include isInitialized in dependencies
+    // We intentionally omit 'isInitialized' from the dependency array so this
+    // initialization runs once on mount. Including it causes a second run when
+    // the flag flips to true which can create multiple stores. If you change
+    // the initializer to close over external values, refactor into a stable
+    // callback and include it here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Show loading during initialization
   if (!isInitialized) {

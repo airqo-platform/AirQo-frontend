@@ -67,7 +67,10 @@ describe('Login setup and redirect full flow', () => {
     // With the new flow HomePage redirects immediately when NextAuth reports
     // an authenticated session. The login page is responsible for running
     // setupUserSession now, so HomePage no longer blocks on provider flags.
-    useSession.mockReturnValue({ data: { user: { id: 'u1' } }, status: 'authenticated' });
+    useSession.mockReturnValue({
+      data: { user: { id: 'u1' } },
+      status: 'authenticated',
+    });
 
     render(<HomePage />);
 
@@ -89,7 +92,10 @@ describe('Login setup and redirect full flow', () => {
 
     // HomePage now redirects immediately on authentication; the delayed setup
     // behavior is the responsibility of the login flow. Ensure redirect occurs.
-    useSession.mockReturnValue({ data: { user: { id: 'u2' } }, status: 'authenticated' });
+    useSession.mockReturnValue({
+      data: { user: { id: 'u2' } },
+      status: 'authenticated',
+    });
     render(<HomePage />);
     await waitFor(() => expect(mockReplace).toHaveBeenCalled());
   });

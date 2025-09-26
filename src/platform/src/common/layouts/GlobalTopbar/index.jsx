@@ -119,25 +119,38 @@ const GlobalTopbar = ({
   );
 
   const handleLogoClick = useCallback(() => {
-    if (onLogoClick) {
+    if (typeof onLogoClick === 'function') {
       onLogoClick();
-    } else {
-      router.push(homeNavPath);
+      return;
+    }
+
+    // Default navigation to homeNavPath
+    try {
+      if (router && typeof router.push === 'function') {
+        router.push(homeNavPath);
+      } else if (typeof window !== 'undefined') {
+        window.location.href = homeNavPath;
+      }
+    } catch (e) {
+      logger.warn('Logo navigation failed, falling back to location.href', e);
+      if (typeof window !== 'undefined') window.location.href = homeNavPath;
     }
   }, [onLogoClick, router, homeNavPath]);
 
-  // Refresh functionality - refreshes user session and permissions
   const handleRefresh = useCallback(async () => {
     if (isRefreshing || !session) return;
 
     setIsRefreshing(true);
+    let mutateFn;
+    let cacheRevalidated = false;
 
     try {
       logger.info('Starting comprehensive application refresh...');
 
-      // 1. Clear and refresh SWR cache first
+      // 1. Clear SWR cache without revalidation
       const { mutate } = await import('swr');
-      await mutate(() => true, undefined, { revalidate: false });
+      mutateFn = mutate;
+      await mutateFn(() => true, undefined, { revalidate: false });
       logger.debug('SWR cache cleared');
 
       // 2. Refresh user session and permissions
@@ -149,11 +162,12 @@ const GlobalTopbar = ({
       if (result.success) {
         logger.info('User session refreshed successfully');
 
-        // 3. Refresh SWR data with revalidation
-        await mutate(() => true, undefined, { revalidate: true });
+        // 3. Revalidate SWR cache
+        await mutateFn(() => true, undefined, { revalidate: true });
+        cacheRevalidated = true;
         logger.debug('SWR cache revalidated');
 
-        // 4. Trigger logo refresh
+        // 4. Trigger logo/group refresh events
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new window.Event('logoRefresh'));
           window.dispatchEvent(new window.Event('groupDataUpdated'));
@@ -165,12 +179,22 @@ const GlobalTopbar = ({
         }, 500);
       } else {
         logger.error('Failed to refresh user session:', result.error);
-        // Show error feedback or toast here if needed
       }
     } catch (error) {
       logger.error('Error during application refresh:', error);
-      // Show error feedback or toast here if needed
     } finally {
+      // Ensure we revalidate at the end if it hasn't happened yet so subscribers are not left with undefined
+      if (mutateFn && !cacheRevalidated) {
+        try {
+          await mutateFn(() => true, undefined, { revalidate: true });
+        } catch (revalidateError) {
+          logger.warn(
+            'Failed to restore SWR cache after refresh error',
+            revalidateError,
+          );
+        }
+      }
+
       // Always clear refreshing state after a delay
       setTimeout(() => {
         setIsRefreshing(false);

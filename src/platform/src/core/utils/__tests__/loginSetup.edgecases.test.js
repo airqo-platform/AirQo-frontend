@@ -1,4 +1,5 @@
 import { setupUserSession } from '@/core/utils/loginSetup';
+import { waitFor } from '@testing-library/react';
 
 // reuse the same mock dispatch helper
 const makeMockDispatch = () => {
@@ -182,9 +183,10 @@ describe('setupUserSession edge cases', () => {
     // Should still succeed in setting session (permissions loaded in background should not break main flow)
     expect(result.success).toBe(true);
 
-    // Permissions failure should have dispatched a permissions error action
-    const hasPermError = calls.some((c) => c && c.type === 'SET_PERMS_ERROR');
-    expect(hasPermError).toBe(true);
+    // Permissions failure is handled in background; wait for the dispatch
+    await waitFor(() =>
+      expect(calls.some((c) => c && c.type === 'SET_PERMS_ERROR')).toBe(true),
+    );
   });
 
   test('organization theme API failure is handled and sets organization theme error', async () => {
@@ -208,9 +210,10 @@ describe('setupUserSession edge cases', () => {
 
     expect(result.success).toBe(true);
 
-    const hasOrgThemeError = calls.some(
-      (c) => c && c.type === 'SET_ORG_THEME_ERROR',
+    await waitFor(() =>
+      expect(calls.some((c) => c && c.type === 'SET_ORG_THEME_ERROR')).toBe(
+        true,
+      ),
     );
-    expect(hasOrgThemeError).toBe(true);
   });
 });

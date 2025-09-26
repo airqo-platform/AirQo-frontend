@@ -91,9 +91,12 @@ const LocationCard = ({
     for (const v of vals) {
       if (v == null) continue;
       const s = String(v).trim();
+      const normalized = s.toLowerCase();
       if (
         !s ||
-        ['n/a', 'na', 'unknown', 'unknown location'].includes(s.toLowerCase())
+        ['n/a', 'na', 'unknown', 'unknown location', '-', '--'].includes(
+          normalized,
+        )
       )
         continue;
       return s;

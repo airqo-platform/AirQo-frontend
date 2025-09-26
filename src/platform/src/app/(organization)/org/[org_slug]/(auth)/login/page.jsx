@@ -141,7 +141,10 @@ const OrganizationLogin = () => {
               else router.replace('/user/Home');
               return;
             } catch (err) {
-              NotificationService.error(500, err.message || 'Login setup failed');
+              NotificationService.error(
+                500,
+                err.message || 'Login setup failed',
+              );
               return;
             }
           }

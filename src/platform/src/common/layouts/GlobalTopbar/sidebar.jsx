@@ -53,9 +53,11 @@ const GlobalSideBarDrawer = () => {
 
     if (!hasAdminPermissions) return false;
 
-    // Additional domain restriction: Only allow @airqo.net emails
-    const userEmail = session?.user?.email;
-    const isAirQoStaff = userEmail && userEmail.endsWith('@airqo.net');
+    // Additional domain restriction: Only allow @airqo.net emails (normalize for casing/whitespace)
+    const rawEmail = session?.user?.email;
+    const normalizedEmail =
+      typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
+    const isAirQoStaff = normalizedEmail.endsWith('@airqo.net');
 
     if (!isAirQoStaff) {
       // For now, restrict to @airqo.net emails only

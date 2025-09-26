@@ -185,6 +185,8 @@ export const setupUserSession = async (
     // Clear only the volatile slices that must be refreshed for a new session
     dispatch(clearPermissions());
     dispatch(clearOrganizationTheme());
+    // Clear any chart-related state so previous user's chart sites don't leak
+    dispatch(setChartSites([]));
 
     // Set basic user data immediately from session
     const basicUserData = {
@@ -421,6 +423,8 @@ export const clearUserSession = async (dispatch) => {
     // clear specific slices that should be emptied on logout.
     dispatch(clearPermissions());
     dispatch(clearOrganizationTheme());
+    // Clear chart slice to avoid leaking previous user's selections
+    dispatch(setChartSites([]));
     // Reset groups slice state safely
     dispatch({ type: 'LOGOUT_USER' });
 
