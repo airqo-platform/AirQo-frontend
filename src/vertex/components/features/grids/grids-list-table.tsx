@@ -69,7 +69,7 @@ export default function GridsTable({
   ];
 
   return (
-    <div ref={tableRef} className={`space-y-4 ${className}`}>
+    <div ref={tableRef} className={className ? `space-y-4 ${className}` : "space-y-4"}>
       <ReusableTable
         title="Grids"
         data={data}
