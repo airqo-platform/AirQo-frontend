@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import DataTable from '../../components/DataTable';
 import InfoMessage from '@/components/Messages/InfoMessage';
+import Button from '@/common/components/Button';
 import { itemVariants } from '../../add-locations/animations';
 import { getFieldWithFallback } from '../../add-locations/utils/getFieldWithFallback';
 import { AqMarkerPin01 } from '@airqo/icons-react';
+import { MdRefresh, MdClear } from 'react-icons/md';
 
 const columns = [
   {
@@ -15,7 +17,7 @@ const columns = [
           <AqMarkerPin01 size={16} />
         </span>
         <span className="ml-2">
-          {item.search_name || item.location_name || item.name || '--'}
+          {getFieldWithFallback(item, ['search_name', 'name', 'location_name'])}
         </span>
       </div>
     ),
@@ -54,6 +56,15 @@ export const MainContent = ({
   isError = false,
   fetchError = null,
   handleToggleSite,
+  meta,
+  hasNextPage,
+  loadMore,
+  nextPage,
+  prevPage,
+  canLoadMore,
+  searchQuery,
+  onSearchChange,
+  onRetry,
 }) => {
   if (isError) {
     return (
@@ -65,6 +76,18 @@ export const MainContent = ({
             'Unable to load location data. Please try again later.'
           }
           variant="error"
+          action={
+            onRetry && (
+              <Button
+                variant="filled"
+                size="sm"
+                onClick={onRetry}
+                Icon={MdRefresh}
+              >
+                Try Again
+              </Button>
+            )
+          }
         />
       </motion.div>
     );
@@ -75,8 +98,36 @@ export const MainContent = ({
       <motion.div variants={itemVariants}>
         <InfoMessage
           title="No Locations Found"
-          description="No locations are currently available to add to your favorites."
+          description={
+            searchQuery
+              ? `No locations found for "${searchQuery}". Try different search terms.`
+              : 'No locations are currently available to add to your favorites.'
+          }
           variant="info"
+          action={
+            <div className="flex gap-2 flex-wrap justify-center">
+              {onRetry && (
+                <Button
+                  variant="filled"
+                  size="sm"
+                  onClick={onRetry}
+                  Icon={MdRefresh}
+                >
+                  Refresh
+                </Button>
+              )}
+              {searchQuery && onSearchChange && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSearchChange('')}
+                  Icon={MdClear}
+                >
+                  Clear Search
+                </Button>
+              )}
+            </div>
+          }
         />
       </motion.div>
     );
@@ -101,25 +152,35 @@ export const MainContent = ({
         loading={loading}
         error={isError}
         errorMessage={fetchError?.message || 'Unable to fetch favorites data.'}
+        onRetry={onRetry}
         onToggleRow={handleToggleSite}
         filters={filters}
         columnsByFilter={{ all: columns, selected: columns }}
         onFilter={(data, activeFilter) =>
           handleFilter(data, activeFilter, selectedSites)
         }
+        enableSearch={true}
         searchKeys={[
-          'location_name',
           'search_name',
+          'location_name',
           'name',
           'city',
           'country',
           'data_provider',
-          'owner',
-          'organization',
         ]}
+        searchValue={searchQuery}
+        onSearchChange={onSearchChange}
+        searchPlaceholder="Search favorites..."
         enableColumnFilters={true}
         defaultSortColumn="search_name"
         defaultSortDirection="asc"
+        enableInfiniteScroll={false}
+        paginationMeta={meta}
+        hasNextPage={hasNextPage}
+        onLoadMore={loadMore}
+        onNextPage={nextPage}
+        onPrevPage={prevPage}
+        canLoadMore={canLoadMore}
       />
     </motion.div>
   );

@@ -1,12 +1,12 @@
 'use client';
 
 import DOMPurify from 'dompurify';
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 
 import { Accordion, Input, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useFAQs } from '@/hooks/useApiHooks';
+import { useFAQs } from '@/services/hooks/endpoints';
 import { FAQ } from '@/types';
 
 // Configure DOMPurify once on the client to allow common tags/attributes
@@ -203,39 +203,58 @@ if (typeof window !== 'undefined') {
 }
 
 const FAQPage: React.FC = () => {
-  const { data: faqs, isLoading, isError } = useFAQs();
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [openAccordionId, setOpenAccordionId] = useState<number | null>(null);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
-  // Filter and search FAQs with null safety
-  const filteredFaqs = useMemo(() => {
-    const faqsList = faqs ?? [];
-    const activeFaqs = faqsList.filter((faq: FAQ) => faq.is_active);
+  // Use v2 API with server-side pagination normally, but the backend search
+  // parameter is unreliable for this endpoint. When the user searches we
+  // fetch a larger page (first page with a big page_size) and filter client-side.
+  const fetchParams = searchQuery
+    ? { page: 1, page_size: 1000 }
+    : { page: currentPage, page_size: itemsPerPage };
 
-    if (!searchQuery.trim()) {
-      return activeFaqs;
-    }
+  const { data, isLoading, error: isError } = useFAQs(fetchParams as any);
 
-    const needle = searchQuery.trim().toLowerCase();
-
-    return activeFaqs.filter((faq: FAQ) => {
-      const q = (faq.question || '').toLowerCase();
-      const a = (faq.answer || '').toLowerCase();
-      const aHtmlText = stripHtml(faq.answer_html || '').toLowerCase();
-      return (
-        q.includes(needle) || a.includes(needle) || aHtmlText.includes(needle)
-      );
-    });
-  }, [faqs, searchQuery]);
-
-  // Pagination logic
-  const totalPages = Math.ceil(filteredFaqs.length / itemsPerPage);
-  const displayedFaqs = filteredFaqs.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
+  // FAQs returned by API (only active ones)
+  const allFetched: FAQ[] = (data?.results ?? []).filter(
+    (f: any) => f.is_active,
   );
+
+  // If the user has entered a search query, perform client-side filtering
+  // against question and answer text (case-insensitive). Otherwise use the
+  // paginated results as-is.
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filtered = normalizedQuery
+    ? allFetched.filter((f) => {
+        const q = (f.question || '').toLowerCase();
+        const a = (f.answer || '').toLowerCase();
+        const ah = (f.answer_html || '').toLowerCase();
+
+        return (
+          q.includes(normalizedQuery) ||
+          a.includes(normalizedQuery) ||
+          ah.includes(normalizedQuery)
+        );
+      })
+    : allFetched;
+
+  // For UI pagination, when searching we paginate the filtered result client-side
+  const faqsList: FAQ[] = normalizedQuery
+    ? filtered.slice(
+        (currentPage - 1) * itemsPerPage,
+        currentPage * itemsPerPage,
+      )
+    : filtered;
+
+  const totalCount = normalizedQuery
+    ? filtered.length
+    : (data?.count ?? faqsList.length);
+
+  const totalPages = normalizedQuery
+    ? Math.max(1, Math.ceil(totalCount / itemsPerPage))
+    : (data?.total_pages ?? 1);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -258,12 +277,7 @@ const FAQPage: React.FC = () => {
     setOpenAccordionId(openAccordionId === faqId ? null : faqId);
   };
 
-  // Helper: strip simple HTML tags to text for search indexing
-  function stripHtml(input: string): string {
-    if (!input) return '';
-    // cheap and sufficient for search indexing
-    return input.replace(/<[^>]*>/g, ' ');
-  }
+  // (server-side search is used) -- local stripHtml no longer required
 
   // Simple Skeleton Loader component
   const FAQSkeleton = () => (
@@ -351,11 +365,9 @@ const FAQPage: React.FC = () => {
             {searchQuery && !isLoading && (
               <div className="mt-4">
                 <p className="text-sm text-gray-600">
-                  {filteredFaqs.length === 0
+                  {totalCount === 0
                     ? 'No FAQs found matching your search'
-                    : `${filteredFaqs.length} FAQ${
-                        filteredFaqs.length !== 1 ? 's' : ''
-                      } found`}
+                    : `${totalCount} FAQ${totalCount !== 1 ? 's' : ''} found`}
                 </p>
               </div>
             )}
@@ -370,11 +382,11 @@ const FAQPage: React.FC = () => {
             </div>
           ) : isError ? (
             <NoData message="Failed to load FAQs. Please try again later." />
-          ) : filteredFaqs.length > 0 ? (
+          ) : faqsList.length > 0 ? (
             <>
               {/* FAQ List */}
               <div className="w-full">
-                {displayedFaqs.map((faq: FAQ) => (
+                {faqsList.map((faq: FAQ) => (
                   <Accordion
                     key={faq.id}
                     title={faq.question || 'Untitled'}
@@ -403,8 +415,8 @@ const FAQPage: React.FC = () => {
                 <div className="text-center mt-6">
                   <p className="text-sm text-gray-500">
                     Showing {(currentPage - 1) * itemsPerPage + 1}-
-                    {Math.min(currentPage * itemsPerPage, filteredFaqs.length)}{' '}
-                    of {filteredFaqs.length} FAQs
+                    {Math.min(currentPage * itemsPerPage, totalCount)} of{' '}
+                    {totalCount} FAQs
                   </p>
                 </div>
               )}

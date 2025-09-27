@@ -1,4 +1,5 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 /* eslint-disable no-console */
 import { MAX_FAVORITES } from '../constants';
 
@@ -11,27 +12,57 @@ export const useFavoritesSelection = (
   filteredSites,
   initialSelectedIds = [],
 ) => {
-  const [selectedSites, setSelectedSites] = useState([]);
-  const [sidebarSites, setSidebarSites] = useState([]);
+  const [selectedSites, setSelectedSites] = useState([]); // All selected favorites
   const [clearSelected, setClearSelected] = useState(false);
   const [error, setError] = useState('');
 
-  // Initialise from preferences
-  useEffect(() => {
-    if (filteredSites.length && initialSelectedIds.length) {
-      const matching = filteredSites.filter((site) =>
-        initialSelectedIds.includes(site._id),
-      );
-      if (matching.length) {
-        setSelectedSites(matching);
-        setSidebarSites(matching);
+  // Get user preferences from Redux store to get the full site objects
+  const preferencesData = useSelector(
+    (state) => state.defaults.individual_preferences,
+  );
+
+  // Get the full site objects from preferences
+  const favoriteSitesFromPrefs = useMemo(() => {
+    const first = preferencesData?.[0];
+    return Array.isArray(first?.selected_sites) ? first.selected_sites : [];
+  }, [preferencesData]);
+
+  // Combine favorite sites from preferences with filtered sites for complete site data
+  const allKnownSites = useMemo(() => {
+    const siteMap = new Map();
+
+    // Add filtered sites (current search/page data)
+    filteredSites.forEach((site) => siteMap.set(site._id, site));
+
+    // Add favorite sites from preferences (may include sites not in current page)
+    favoriteSitesFromPrefs.forEach((site) => {
+      if (site._id && !siteMap.has(site._id)) {
+        siteMap.set(site._id, site);
       }
+    });
+
+    return Array.from(siteMap.values());
+  }, [filteredSites, favoriteSitesFromPrefs]);
+
+  // Initialize from preferences using the complete site data
+  useEffect(() => {
+    if (!initialSelectedIds.length) {
+      setSelectedSites([]);
+      return;
     }
-  }, [filteredSites, initialSelectedIds]);
+
+    // Find sites from all known sites (filtered + preferences)
+    const selectedFromAllKnown = allKnownSites.filter((site) =>
+      initialSelectedIds.includes(site._id),
+    );
+
+    if (selectedFromAllKnown.length > 0) {
+      setSelectedSites(selectedFromAllKnown);
+    }
+  }, [allKnownSites, initialSelectedIds]);
 
   const handleClearSelection = useCallback(() => {
     setSelectedSites([]);
-    setSidebarSites([]);
     setClearSelected(true);
     // reset trigger after render
     setTimeout(() => setClearSelected(false), 100);
@@ -50,7 +81,6 @@ export const useFavoritesSelection = (
       /* ---------- REMOVE ---------- */
       if (alreadySelected) {
         const removed = prev.filter((s) => s._id !== site._id);
-        setSidebarSites((sidebar) => sidebar.filter((s) => s._id !== site._id));
         setError('');
         return removed;
       }
@@ -62,18 +92,16 @@ export const useFavoritesSelection = (
       }
 
       const added = [...prev, site];
-      setSidebarSites((sidebar) =>
-        sidebar.some((s) => s._id === site._id) ? sidebar : [...sidebar, site],
-      );
       setError('');
       return added;
     });
   }, []);
 
+  // Return selectedSites as sidebarSites - they represent all favorites
   return {
     selectedSites,
     setSelectedSites,
-    sidebarSites,
+    sidebarSites: selectedSites, // All favorites should show in sidebar
     clearSelected,
     error,
     setError,

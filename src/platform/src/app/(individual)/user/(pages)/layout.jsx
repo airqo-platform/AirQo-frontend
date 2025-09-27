@@ -6,4 +6,4 @@ export function Layout({ children }) {
   return <div>{children}</div>;
 }
 
-export default withSessionAuth(PROTECTION_LEVELS.PROTECTED)(Layout);
+export default withSessionAuth(Layout, PROTECTION_LEVELS.PROTECTED);

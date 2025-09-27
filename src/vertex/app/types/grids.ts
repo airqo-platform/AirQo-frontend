@@ -1,5 +1,6 @@
 import { Position } from "@/core/redux/slices/gridsSlice";
 import { Site } from "./sites";
+import { Group } from "./groups";
 
 export interface CreateGrid {
   name: string;
@@ -21,4 +22,19 @@ export interface Grid {
   createdAt: string;
   sites: Site[];
   numberOfSites: number;
+  groups?: Group[];
+}
+
+export interface GridsSummaryResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+    nextPage?: string;
+  };
+  grids: Grid[];
 }

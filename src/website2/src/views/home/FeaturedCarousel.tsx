@@ -2,41 +2,112 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
 import mainConfig from '@/configs/mainConfigs';
-import { useHighlights } from '@/hooks/useApiHooks';
+import { useHighlights } from '@/services/hooks/endpoints';
 
 const FeaturedCarousel = () => {
-  const { data: highlights, isLoading } = useHighlights();
+  const [page, setPage] = useState(1);
+  const pageSize = 6; // fixed page size for highlights
   const [currentIndex, setCurrentIndex] = useState(0);
+  // when we change pages via the arrows we may want to land on a specific index
+  // e.g. when going to previous page land on the last item of the loaded page.
+  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
+  const lastAppliedPageRef = useRef<number | null>(null);
+
+  const { data: highlightsResponse, isLoading } = useHighlights({
+    page,
+    page_size: pageSize,
+  });
+
+  const highlights = highlightsResponse?.results || [];
+  const totalPages = highlightsResponse?.total_pages ?? 1;
+
+  useEffect(() => {
+    // Only act when the response corresponds to the currently requested page
+    if (highlightsResponse?.current_page !== page) return;
+
+    const pageChanged = lastAppliedPageRef.current !== page;
+
+    if (pendingIndex !== null && pageChanged) {
+      const target =
+        pendingIndex === -1
+          ? Math.max(0, highlights.length - 1)
+          : Math.min(
+              Math.max(0, pendingIndex),
+              Math.max(0, highlights.length - 1),
+            );
+      setCurrentIndex(target);
+      setPendingIndex(null);
+      lastAppliedPageRef.current = page;
+      return;
+    }
+
+    if (pageChanged) {
+      setCurrentIndex(0);
+      lastAppliedPageRef.current = page;
+    }
+  }, [page, highlightsResponse?.current_page, highlights.length, pendingIndex]);
+
+  // Clamp index when highlights length changes without resetting user position
+  useEffect(() => {
+    setCurrentIndex((i) => Math.min(i, Math.max(0, highlights.length - 1)));
+  }, [highlights.length]);
 
   const nextSlide = () => {
-    if (highlights?.length > 0) {
-      setCurrentIndex((prev) => (prev + 1) % highlights.length);
+    if (isLoading) return;
+    // advance within current page
+    if (currentIndex < highlights.length - 1) {
+      setCurrentIndex((prev) => prev + 1);
+      return;
+    }
+
+    // we're at the end of the items on this page
+    if (page < totalPages) {
+      // load next page; when it arrives default effect will set currentIndex to 0
+      setPage((p) => p + 1);
+    } else {
+      // wrap to first item on same page
+      setCurrentIndex(0);
     }
   };
 
   const prevSlide = () => {
-    if (highlights?.length > 0) {
-      setCurrentIndex(
-        (prev) => (prev - 1 + highlights.length) % highlights.length,
-      );
+    if (isLoading) return;
+    // move back within current page
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+      return;
+    }
+
+    // at first item of current page
+    if (page > 1) {
+      // request previous page and then land on its last item (-1 sentinel)
+      setPendingIndex(-1);
+      setPage((p) => p - 1);
+    } else {
+      // already on first page and first item -> wrap to last item of current page
+      setCurrentIndex(highlights.length > 0 ? highlights.length - 1 : 0);
     }
   };
+
+  const formatItemTags = (item: any) =>
+    item.tag_names?.join(', ') ||
+    (item.tags || []).map((t: any) => t.name).join(', ');
 
   if (isLoading) {
     return (
       <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
         <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
           <div className="flex space-x-4 animate-pulse">
-            <div className="w-1/2 h-64 bg-gray-300 rounded-lg"></div>
+            <div className="w-1/2 h-64 bg-gray-300 rounded-lg" />
             <div className="w-1/2 space-y-4">
-              <div className="h-12 bg-gray-300 rounded-lg"></div>
-              <div className="h-6 bg-gray-300 rounded-lg"></div>
-              <div className="h-6 bg-gray-300 rounded-lg"></div>
-              <div className="w-1/3 h-8 bg-gray-300 rounded-lg"></div>
+              <div className="h-12 bg-gray-300 rounded-lg" />
+              <div className="h-6 bg-gray-300 rounded-lg" />
+              <div className="h-6 bg-gray-300 rounded-lg" />
+              <div className="w-1/3 h-8 bg-gray-300 rounded-lg" />
             </div>
           </div>
         </div>
@@ -44,14 +115,14 @@ const FeaturedCarousel = () => {
     );
   }
 
-  if (!highlights || highlights.length === 0) {
-    return null;
-  }
+  if (!highlights || highlights.length === 0) return null;
 
   return (
     <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
       <div className={`${mainConfig.containerClass} px-4 sm:px-6 lg:px-8`}>
         <div className="relative">
+          <div className="mb-4" />
+
           {/* Carousel Track */}
           <div
             className="flex transition-transform duration-500 ease-in-out"
@@ -62,7 +133,6 @@ const FeaturedCarousel = () => {
                 key={item.id}
                 className="w-full flex-shrink-0 flex flex-col md:flex-row gap-8 md:gap-16"
               >
-                {/* Image Container */}
                 <div className="md:w-1/2">
                   <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
                     <Image
@@ -75,11 +145,10 @@ const FeaturedCarousel = () => {
                   </div>
                 </div>
 
-                {/* Content Container */}
                 <div className="md:w-1/2 flex flex-col justify-center">
                   <div className="flex gap-3 mb-4">
                     <span className="text-blue-600 bg-white rounded-full px-2 py-1 text-sm font-medium">
-                      {item.tags.map((tag: any) => tag.name).join(', ')}
+                      {formatItemTags(item)}
                     </span>
                   </div>
 
@@ -122,6 +191,7 @@ const FeaturedCarousel = () => {
               >
                 <HiArrowSmallLeft className="w-5 h-5" />
               </button>
+
               <button
                 onClick={nextSlide}
                 className="p-2 rounded-full border border-gray-200 hover:border-blue-600 hover:text-blue-600 transition-colors"

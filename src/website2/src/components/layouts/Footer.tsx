@@ -171,6 +171,19 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/faqs" className="text-gray-600 hover:underline">
+                  FAQs
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/clean-air-forum"
+                  className="text-gray-600 hover:underline"
+                >
+                  CLEAN-Air Forum
+                </Link>
+              </li>
+              <li>
                 <Link href="/press" className="text-gray-600 hover:underline">
                   Press
                 </Link>
@@ -219,6 +232,9 @@ const Footer = () => {
           &copy; 2025 AirQo
           <Link href="/legal/terms-of-service" className="hover:underline">
             Terms of service
+          </Link>
+          <Link href="/faqs" className="hover:underline">
+            FAQs
           </Link>
           <Link href="/legal/privacy-policy" className="hover:underline">
             Privacy Policy

@@ -1,10 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
-import { AqChevronDown, AqChevronUp } from "@airqo/icons-react";
+import { AqCalendar, AqChevronDown, AqChevronUp } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import {
   Card,
@@ -17,6 +21,7 @@ import ReusableInputField from "@/components/shared/inputfield/ReusableInputFiel
 import { Label } from "@/components/ui/label";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
@@ -39,6 +44,7 @@ interface PowerTypeOption {
 interface DeviceData {
   deviceName: string;
   height: string;
+  deployment_date: Date | undefined;
   mountType: string;
   powerType: string;
   isPrimarySite: boolean;
@@ -52,11 +58,13 @@ interface DeviceDetailsStepProps {
   deviceData: DeviceData;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSelectChange: (name: string) => (value: string) => void;
+  onDateChange: (date: Date | undefined) => void;
   onCheckboxChange: (checked: boolean) => void;
   availableDevices: Device[];
   onDeviceSelect: (deviceName: string) => void;
   onClaimDevice: () => void;
   isLoadingDevices: boolean;
+  isDevicePrefilled: boolean;
 }
 
 interface LocationStepProps {
@@ -100,11 +108,13 @@ const DeviceDetailsStep = ({
   deviceData,
   onInputChange,
   onSelectChange,
+  onDateChange,
   onCheckboxChange,
   availableDevices,
   onDeviceSelect,
   onClaimDevice,
-  isLoadingDevices
+  isLoadingDevices,
+  isDevicePrefilled,
 }: DeviceDetailsStepProps) => {
   return (
     <div className="space-y-4">
@@ -112,7 +122,7 @@ const DeviceDetailsStep = ({
         <Label htmlFor="deviceName">Device to Deploy</Label>
         <ComboBox
           options={availableDevices.map((dev) => ({
-            value: dev.long_name || dev.name,
+            value: dev.name,
             label: dev.long_name || dev.name,
           }))}
           value={deviceData.deviceName}
@@ -120,12 +130,41 @@ const DeviceDetailsStep = ({
           placeholder={isLoadingDevices ? "Loading devices..." : "Select or type device name"}
           searchPlaceholder="Search or type device name..."
           emptyMessage="No devices found"
-          disabled={isLoadingDevices}
-          allowCustomInput={true}
-          onCustomAction={onClaimDevice}
-          customActionLabel="Device not listed? Claim a new device"
+          disabled={isLoadingDevices || isDevicePrefilled}
+          allowCustomInput={!isDevicePrefilled}
+          onCustomAction={!isDevicePrefilled ? onClaimDevice : undefined}
+          customActionLabel={!isDevicePrefilled ? "Device not listed? Claim a new device" : undefined}
           className="w-full"
         />
+      </div>
+      <div className="grid gap-2">
+        <Label>Deployment Date</Label>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-full justify-start text-left rounded-xl border bg-white px-4 py-2.5 text-sm text-gray-700 border-gray-300 transition-colors duration-150 ease-in-out dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 hover:border-primary/50 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500 dark:disabled:border-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-400",
+                !deviceData.deployment_date && "text-muted-foreground"
+              )}
+            >
+              <AqCalendar className="mr-2 h-4 w-4" />
+              {deviceData.deployment_date ? (
+                format(deviceData.deployment_date, "PPP")
+              ) : (
+                <span>Pick a date</span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={deviceData.deployment_date}
+              onSelect={onDateChange}
+              disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
       <ReusableInputField
         label="Height (meters)"
@@ -174,14 +213,14 @@ const DeviceDetailsStep = ({
   );
 };
 
-const LocationStep = ({ 
-  deviceData, 
-  onCoordinateChange, 
-  onSiteNameChange, 
-  inputMode, 
-  onToggleInputMode 
+const LocationStep = ({
+  deviceData,
+  onCoordinateChange,
+  onSiteNameChange,
+  inputMode,
+  onToggleInputMode
 }: LocationStepProps) => {
-  
+
   return (
     <div>
       <div className="space-y-4">
@@ -244,14 +283,14 @@ const LocationStep = ({
           </div>
         )}
       </div>
-      
+
       <div className="space-y-2">
         <Label>Interactive Map</Label>
         <p className="text-sm text-muted-foreground">
-          Click on the map to set location or drag the marker. The site name will be automatically 
+          Click on the map to set location or drag the marker. The site name will be automatically
           updated with the location name from Mapbox when you interact with the map.
-          {inputMode === 'siteName' 
-            ? ' You can also search for locations by name.' 
+          {inputMode === 'siteName'
+            ? ' You can also search for locations by name.'
             : ' Switch to Site Name mode to search by location name.'}
         </p>
         <React.Suspense fallback={<div className="w-full h-72 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse" />}>
@@ -285,7 +324,7 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
         <CardHeader className="cursor-pointer select-none py-0 px-2" onClick={() => onHeaderClick(stepIndex)}>
           <CardTitle className="text-lg font-semibold flex items-center justify-between">
             {title}
-            <span className="ml-2 text-base">{currentStep === stepIndex ? <AqChevronUp/> : <AqChevronDown />}</span>
+            <span className="ml-2 text-base">{currentStep === stepIndex ? <AqChevronUp /> : <AqChevronDown />}</span>
           </CardTitle>
         </CardHeader>
       </CollapsibleTrigger>
@@ -297,21 +336,23 @@ const StepCard: React.FC<StepCardProps> = ({ title, stepIndex, currentStep, onHe
   </Card>
 );
 
-const DeployDeviceComponent = ({ 
-  prefilledDevice, 
-  onClose, 
+const DeployDeviceComponent = ({
+  prefilledDevice,
+  onClose,
   availableDevices: externalAvailableDevices = [],
   onDeploymentSuccess,
-  onDeploymentError 
+  onDeploymentError
 }: DeployDeviceComponentProps) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const queryClient = useQueryClient();
   const { isPersonalContext, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices();
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
-  
+
   const [deviceData, setDeviceData] = React.useState<DeviceData>({
-    deviceName: prefilledDevice?.long_name || prefilledDevice?.name || "",
+    deviceName: prefilledDevice?.name || "",
+    deployment_date: undefined,
     height: prefilledDevice?.height?.toString() || "",
     mountType: prefilledDevice?.mountType || "",
     powerType: prefilledDevice?.powerType || "",
@@ -327,7 +368,7 @@ const DeployDeviceComponent = ({
     if (externalAvailableDevices.length > 0) return externalAvailableDevices;
     if (isPersonalContext) return [];
     return allDevices.filter(
-      (dev) => dev.status === "not deployed" || dev.status === "recalled"
+      (dev: { status?: string }) => dev.status === "not deployed" || dev.status === "recalled"
     );
   }, [externalAvailableDevices, isPersonalContext, allDevices]);
 
@@ -343,6 +384,20 @@ const DeployDeviceComponent = ({
   const availableDevices = isPersonalContext ? claimedDevices : filteredAirQoDevices;
   const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : false;
 
+  const devicesForSelection = React.useMemo(() => {
+    if (prefilledDevice) {
+      // Check if the prefilled device is already in the list of available devices
+      const isDeviceInList = availableDevices.some(
+        (device: Device) => device.name === prefilledDevice.name,
+      );
+      // If not, add it to the beginning of the list for display purposes
+      if (!isDeviceInList) {
+        return [prefilledDevice, ...availableDevices];
+      }
+    }
+    return availableDevices;
+  }, [prefilledDevice, availableDevices]);
+
   // When returning from claim page, refresh device list (only for personal context)
   React.useEffect(() => {
     if (isPersonalContext) {
@@ -357,9 +412,13 @@ const DeployDeviceComponent = ({
 
   const handleSelectChange =
     (name: string) =>
-    (value: string): void => {
-      setDeviceData((prev) => ({ ...prev, [name]: value }));
-    };
+      (value: string): void => {
+        setDeviceData((prev) => ({ ...prev, [name]: value }));
+      };
+
+  const handleDateChange = (date: Date | undefined): void => {
+    setDeviceData((prev) => ({ ...prev, deployment_date: date }));
+  };
 
   const handleDeviceSelect = (deviceName: string) => {
     setDeviceData((prev) => ({ ...prev, deviceName }));
@@ -407,9 +466,10 @@ const DeployDeviceComponent = ({
   const validateDeviceDetails = (): boolean => {
     return Boolean(
       deviceData.deviceName &&
-        deviceData.height &&
-        deviceData.mountType &&
-        deviceData.powerType
+      deviceData.deployment_date &&
+      deviceData.height &&
+      deviceData.mountType &&
+      deviceData.powerType
     );
   };
 
@@ -431,6 +491,7 @@ const DeployDeviceComponent = ({
     deployDevice.mutate(
       {
         deviceName: deviceData.deviceName,
+        deployment_date: deviceData.deployment_date?.toISOString(),
         height: deviceData.height,
         mountType: deviceData.mountType,
         powerType: deviceData.powerType,
@@ -443,9 +504,14 @@ const DeployDeviceComponent = ({
       },
       {
         onSuccess: () => {
+          if (prefilledDevice?._id) {
+            queryClient.invalidateQueries({ queryKey: ["device-details", prefilledDevice._id] });
+          }
+
           // On successful deployment, reset form fields
           setDeviceData({
             deviceName: "",
+            deployment_date: undefined,
             height: "",
             mountType: "",
             powerType: "",
@@ -482,12 +548,14 @@ const DeployDeviceComponent = ({
         <DeviceDetailsStep
           deviceData={deviceData}
           onInputChange={handleInputChange}
+          onDateChange={handleDateChange}
           onSelectChange={handleSelectChange}
           onCheckboxChange={handleCheckboxChange}
-          availableDevices={availableDevices}
+          availableDevices={devicesForSelection}
           onDeviceSelect={handleDeviceSelect}
           onClaimDevice={handleClaimDevice}
           isLoadingDevices={isLoadingDevices}
+          isDevicePrefilled={!!prefilledDevice}
         />
       ),
       footer: (
@@ -509,8 +577,8 @@ const DeployDeviceComponent = ({
         <>
           <ReusableButton variant="outlined" onClick={handleBack} className="w-32 mr-3">Back</ReusableButton>
           <ReusableButton
-            onClick={handleDeploy} 
-            className="w-32" 
+            onClick={handleDeploy}
+            className="w-32"
             disabled={!(validateDeviceDetails() && validateLocation())}
             loading={deployDevice.isPending}
           >

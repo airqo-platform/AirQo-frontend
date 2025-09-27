@@ -29,6 +29,7 @@ export const AddFavorites = ({ onClose }) => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const {
     activeGroupId,
@@ -38,7 +39,14 @@ export const AddFavorites = ({ onClose }) => {
     isLoading,
     isError,
     error,
-  } = useAddLocationsData();
+    meta,
+    hasNextPage,
+    loadMore,
+    canLoadMore,
+    nextPage,
+    prevPage,
+    refresh,
+  } = useAddLocationsData(searchQuery);
 
   const {
     selectedSites,
@@ -194,6 +202,15 @@ export const AddFavorites = ({ onClose }) => {
               isError={isError}
               fetchError={error}
               handleToggleSite={handleToggleSite}
+              meta={meta}
+              hasNextPage={hasNextPage}
+              loadMore={loadMore}
+              nextPage={nextPage}
+              prevPage={prevPage}
+              canLoadMore={canLoadMore}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              onRetry={refresh}
             />
           </motion.div>
 

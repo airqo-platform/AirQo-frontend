@@ -74,7 +74,10 @@ export interface Device {
   generation_count?: number | undefined | string;
   previous_sites?: string[];
   grids?: DeviceGrid[];
-  site?: DeviceSite[];
+  site?: DeviceSite[] | {
+    _id: string;
+    name: string;
+  };
   status?: "not deployed" | "deployed" | "recalled" | "online" | "offline";
   maintenance_status?: "good" | "due" | "overdue" | -1;
   powerType?: "solar" | "alternator" | "mains";
@@ -94,10 +97,22 @@ export interface Device {
   api_code?: string;
 }
 
+export interface PaginationMeta {
+  total: number;
+  totalResults: number;
+  limit: number;
+  skip: number;
+  page: number;
+  totalPages: number;
+  detailLevel: string;
+  usedCache: boolean;
+}
+
 export interface DevicesSummaryResponse {
   success: boolean;
   message: string;
   devices: Device[];
+  meta: PaginationMeta;
 }
 
 interface HealthTip {

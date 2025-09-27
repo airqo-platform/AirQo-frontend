@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import PermissionDenied from '@/common/components/PermissionDenied';
 import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import Button from '@/common/components/Button';
 import EmptyState from '@/common/components/EmptyState';
 import ErrorState from '@/common/components/ErrorState';

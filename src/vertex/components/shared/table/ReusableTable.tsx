@@ -1,6 +1,7 @@
 "use client";
 
 import React, {
+  Dispatch,
   useState,
   useMemo,
   useRef,
@@ -8,6 +9,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
+import type { SetStateAction } from "react";
 import Fuse from "fuse.js";
 import {
   AqSearchSm,
@@ -18,8 +20,8 @@ import {
   AqFilterLines,
   AqXClose,
 } from "@airqo/icons-react";
-import { Loader2 } from "lucide-react";
 import SelectField from "@/components/ui/select-field";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
 // --- Type Definitions ---
@@ -41,7 +43,10 @@ export type TableColumn<T, K extends keyof T = keyof T> = {
   label?: React.ReactNode;
   render: (value: T[keyof T], item: T) => React.ReactNode;
   sortable?: boolean;
+  className?: string;
 };
+
+export type SortingState = Array<{ id: string; desc: boolean }>;
 
 interface TableAction {
   label: string;
@@ -172,15 +177,14 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
               <div
                 key={String(option.value)}
                 onClick={() => handleSelect(option)}
-                className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                  (
+                className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${(
                     isMulti
                       ? Array.isArray(value) && value.includes(option.value)
                       : value === option.value
                   )
                     ? "bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary"
                     : "text-gray-900 dark:text-gray-100"
-                }`}
+                  }`}
               >
                 {isMulti && (
                   <input
@@ -188,7 +192,7 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
                     checked={
                       Array.isArray(value) && value.includes(option.value)
                     }
-                    onChange={() => {}} // Handled by parent div click
+                    onChange={() => { }} // Handled by parent div click
                     className="mr-2 text-primary focus:ring-primary"
                   />
                 )}
@@ -198,37 +202,6 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
           </div>
         </div>
       )}
-    </div>
-  );
-};
-
-// --- PageSizeSelector Component ---
-interface PageSizeSelectorProps {
-  pageSize: number;
-  onPageSizeChange: (size: number) => void;
-  options?: number[];
-}
-
-const PageSizeSelector: React.FC<PageSizeSelectorProps> = ({
-  pageSize,
-  onPageSizeChange,
-  options = [5, 10, 20, 50, 100],
-}) => {
-  return (
-    <div className="flex items-center space-x-2 text-sm text-gray-700 dark:text-gray-300">
-      <span>Show</span>
-      <select
-        value={pageSize}
-        onChange={(e) => onPageSizeChange(parseInt(e.target.value))}
-        className="border border-primary/30 dark:border-primary/40 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-      >
-        {options.map((size) => (
-          <option key={size} value={size}>
-            {size}
-          </option>
-        ))}
-      </select>
-      <span>entries</span>
     </div>
   );
 };
@@ -360,21 +333,13 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  pageSize: number;
-  totalItems: number;
-  pageSizeOptions: number[];
   onPageChange: (page: number) => void;
-  onPageSizeChange: (size: number) => void;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
-  pageSize,
-  totalItems,
-  pageSizeOptions,
   onPageChange,
-  onPageSizeChange,
 }) => {
   const generatePageNumbers = useCallback((): (number | string)[] => {
     const pages: (number | string)[] = [];
@@ -412,19 +377,7 @@ const Pagination: React.FC<PaginationProps> = ({
 
   return (
     <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20]">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center space-x-4">
-          <PageSizeSelector
-            pageSize={pageSize}
-            onPageSizeChange={onPageSizeChange}
-            options={pageSizeOptions}
-          />
-          <div className="text-sm text-gray-700 dark:text-gray-300">
-            Showing {Math.min((currentPage - 1) * pageSize + 1, totalItems)} to{" "}
-            {Math.min(currentPage * pageSize, totalItems)} of {totalItems}{" "}
-            results
-          </div>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
         {totalPages > 1 && (
           <div className="flex items-center space-x-2">
             <button
@@ -442,13 +395,12 @@ const Pagination: React.FC<PaginationProps> = ({
                   key={index}
                   onClick={() => typeof page === "number" && onPageChange(page)}
                   disabled={typeof page !== "number"}
-                  className={`px-3 py-1 text-sm border rounded-md transition-colors ${
-                    page === currentPage
+                  className={`px-3 py-1 text-sm border rounded-md transition-colors ${page === currentPage
                       ? "bg-primary text-white border-primary"
                       : typeof page === "number"
-                      ? "border-primary/30 dark:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900"
-                      : "border-transparent cursor-default bg-transparent dark:bg-transparent text-gray-400 dark:text-gray-500"
-                  }`}
+                        ? "border-primary/30 dark:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900"
+                        : "border-transparent cursor-default bg-transparent dark:bg-transparent text-gray-400 dark:text-gray-500"
+                    }`}
                   type="button"
                 >
                   {page}
@@ -473,6 +425,60 @@ const Pagination: React.FC<PaginationProps> = ({
   );
 };
 
+// --- TableSkeleton Component ---
+interface TableSkeletonProps {
+  columns: { key: PropertyKey }[];
+  pageSize: number;
+}
+
+const TableSkeleton: React.FC<TableSkeletonProps> = ({
+  columns,
+  pageSize,
+}) => {
+  return (
+    <table className="w-full">
+      <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
+        <tr className="animate-pulse">
+          {columns.map((column) => (
+            <th
+              key={String(column.key)}
+              className={
+                column.key === "checkbox"
+                  ? "w-4 p-4"
+                  : "px-6 py-3 text-left"
+              }
+            >
+              {column.key === "checkbox" ? (
+                <div className="h-4 w-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+              ) : (
+                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4"></div>
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
+        {Array.from({ length: pageSize }).map((_, index) => (
+          <tr key={index} className="animate-pulse">
+            {columns.map((column) => (
+              <td
+                key={String(column.key)}
+                className={
+                  column.key === "checkbox"
+                    ? "w-4 p-4"
+                    : "px-6 py-4 whitespace-nowrap"
+                }
+              >
+                <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded"></div>
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+};
+
 // --- Main ReusableTable Component ---
 interface ReusableTableProps<T extends TableItem> {
   title?: string;
@@ -491,8 +497,20 @@ interface ReusableTableProps<T extends TableItem> {
   multiSelect?: boolean;
   actions?: TableAction[];
   onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
-  onRowClick?: (item: unknown) => void;
-  emptyState?: string | React.ReactNode;
+  onRowClick?: (item: T) => void;
+  emptyState?: ReactNode;
+  className?: string;
+  tableId?: string | boolean;
+
+  // Server-side operation props
+  serverSidePagination?: boolean;
+  pageCount?: number;
+  pagination?: { pageIndex: number; pageSize: number };
+  onPaginationChange?: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number }>>;
+  sorting?: SortingState;
+  onSortingChange?: Dispatch<SetStateAction<SortingState>>;
+  onSearchChange?: (searchTerm: string) => void;
+  searchTerm?: string;
 }
 
 // Normalize any value to a searchable string
@@ -539,18 +557,42 @@ const ReusableTable = <T extends TableItem>({
   actions = [],
   onSelectedItemsChange,
   onRowClick,
+  emptyState = "No data available",
+  className = "",
+  tableId: tableIdProp,
+  // Server-side props
+  serverSidePagination = false,
+  pageCount = 0,
+  pagination: paginationProp,
+  onPaginationChange,
+  sorting: sortingProp,
+  onSortingChange,
+  onSearchChange,
+  searchTerm: searchTermProp,
 }: ReusableTableProps<T>) => {
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    key: null,
-    direction: "asc",
-  });
-  const [currentPageSize, setCurrentPageSize] = useState<number>(pageSize);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
 
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
+
+  const slugify = (str: string) =>
+    str
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+
+  const tableId = useMemo(() => {
+    if (tableIdProp === false) return undefined;
+
+    if (typeof tableIdProp === "string") return tableIdProp;
+
+    const pathId = pathname.replace(/^\//, "").replace(/\//g, "-");
+    return `${pathId}-${slugify(title)}`;
+  }, [tableIdProp, title, pathname]);
 
   const initialFilters = useMemo(
     () =>
@@ -561,22 +603,101 @@ const ReusableTable = <T extends TableItem>({
     [filters]
   );
 
-  const [filterValues, setFilterValues] = useState(initialFilters);
+  const [localSearchTerm, setLocalSearchTerm] = useState("");
+  const [localCurrentPage, setLocalCurrentPage] = useState(1);
+  const [localSortConfig, setLocalSortConfig] = useState<SortConfig>({ key: null, direction: "asc" });
+  const [localFilterValues, setLocalFilterValues] = useState(initialFilters);
+
+  const urlState = useMemo(() => {
+    if (!tableId) return null;
+    try {
+      const s = searchParams.get(`${tableId}_search`) || "";
+      const rawP = Number.parseInt(searchParams.get(`${tableId}_page`) || "1", 10);
+      const rawPs = Number.parseInt(
+        searchParams.get(`${tableId}_pageSize`) || String(pageSize),
+        10,
+      );
+      const p = Number.isFinite(rawP) && rawP >= 1 ? rawP : 1;
+      const psUnsafe = Number.isFinite(rawPs) && rawPs > 0 ? rawPs : pageSize;
+      const ps = Array.isArray(pageSizeOptions) && pageSizeOptions.length > 0
+        ? (pageSizeOptions.includes(psUnsafe) ? psUnsafe : pageSize)
+        : psUnsafe;
+      const sortRaw = searchParams.get(`${tableId}_sort`);
+      const sort = sortRaw ? JSON.parse(sortRaw) : { key: null, direction: "asc" };
+      const filtersRaw = searchParams.get(`${tableId}_filters`);
+      const filters = filtersRaw ? JSON.parse(filtersRaw) : initialFilters;
+      return { searchTerm: s, currentPage: p, currentPageSize: ps, sortConfig: sort, filterValues: filters };
+    } catch {
+      return { searchTerm: "", currentPage: 1, currentPageSize: pageSize, sortConfig: { key: null, direction: "asc" }, filterValues: initialFilters };
+    }
+  }, [tableId, searchParams, pageSize, pageSizeOptions, initialFilters]);
+
+  const searchTerm = serverSidePagination
+    ? searchTermProp ?? ""
+    : tableId
+    ? urlState!.searchTerm
+    : localSearchTerm;
+  const currentPage = tableId ? urlState!.currentPage : localCurrentPage;
+  const currentPageSize = tableId ? urlState!.currentPageSize : pageSize;
+  const sortConfig = tableId ? urlState!.sortConfig : localSortConfig;
+  const filterValues = tableId ? urlState!.filterValues : localFilterValues;
+
+  const updateUrlState = useCallback((updates: Partial<{ search: string; page: number; pageSize: number; sort: SortConfig; filters: Record<string, FilterValue> }>) => {
+    if (!tableId) return;
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(updates).forEach(([key, value]) => {
+      const fullKey = `${tableId}_${key}`;
+      if (value === undefined) return;
+
+      const defaultValue = { search: "", page: 1, pageSize, sort: { key: null, direction: "asc" }, filters: initialFilters }[key as keyof typeof updates];
+
+      if (JSON.stringify(value) === JSON.stringify(defaultValue)) {
+        params.delete(fullKey);
+      } else {
+        params.set(fullKey, typeof value === 'object' ? JSON.stringify(value) : String(value));
+      }
+    });
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [tableId, searchParams, router, pathname, pageSize, initialFilters]);
+
+  const [searchInput, setSearchInput] = useState(searchTerm);
 
   useEffect(() => {
-    const addedOrShapeChanged = Object.keys(initialFilters).some(
-      (key) =>
-        !(key in filterValues) ||
-        Array.isArray(initialFilters[key]) !== Array.isArray(filterValues[key])
-    );
-    const removedKeys = Object.keys(filterValues).some(
-      (key) => !(key in initialFilters)
-    );
+    setSearchInput(searchTerm);
+  }, [searchTerm]);
 
-    if (addedOrShapeChanged || removedKeys) {
-      setFilterValues(initialFilters);
-    }
-  }, [filterValues, initialFilters]);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== searchTerm) {
+        if (serverSidePagination) {
+          onSearchChange?.(searchInput);
+          return;
+        }
+
+        if (tableId) { // client-side with URL persistence
+          updateUrlState({ search: searchInput, page: 1 });
+        } else {
+          setLocalSearchTerm(searchInput);
+          if (!serverSidePagination) setLocalCurrentPage(1);
+        }
+      }
+    }, 300); // 300ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [
+    searchInput,
+    searchTerm,
+    tableId,
+    updateUrlState,
+    setLocalSearchTerm,
+    setLocalCurrentPage,
+    serverSidePagination,
+    onSearchChange,
+  ]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchInput("");
+  }, []);
 
   const resolvePath = (obj: unknown, path: string): unknown => {
     const parts = path.split(".");
@@ -598,6 +719,10 @@ const ReusableTable = <T extends TableItem>({
   };
 
   const filteredData = useMemo(() => {
+    if (serverSidePagination) {
+      return data;
+    }
+
     let result = [...data];
 
     Object.entries(filterValues).forEach(([key, value]) => {
@@ -710,7 +835,7 @@ const ReusableTable = <T extends TableItem>({
 
       const fuseOptions = {
         keys: fuseKeys,
-        threshold: 0.3,
+        threshold: searchTerm.trim().length < 3 ? 0.4 : 0.3,
         ignoreLocation: true,
         minMatchCharLength: 1,
         isCaseSensitive: false,
@@ -722,23 +847,14 @@ const ReusableTable = <T extends TableItem>({
       };
       const fuse = new Fuse(fuseData, fuseOptions);
       const fuseResults = fuse.search(searchTerm.trim());
-
-      if (searchTerm.length === 1) {
-        result = fuseResults
-          .filter((res) => (res.score ?? 1) <= 0.9)
-          .map((searchResult) => result[searchResult.refIndex]);
-      } else {
-        result = fuseResults
-          .sort((a, b) => (a.score || 0) - (b.score || 0))
-          .map((searchResult) => result[searchResult.refIndex]);
-      }
+      result = fuseResults.map((searchResult) => result[searchResult.refIndex]);
     }
 
     return result;
-  }, [data, filterValues, searchableColumns, searchTerm, columns]);
+  }, [data, filterValues, searchableColumns, searchTerm, columns, serverSidePagination]);
 
-  const sortedData = useMemo(() => {
-    if (!sortConfig.key) return filteredData;
+  const clientSortedData = useMemo(() => {
+    if (serverSidePagination || !sortConfig.key) return filteredData;
     return [...filteredData].sort((a, b) => {
       const aValue = a[sortConfig.key!];
       const bValue = b[sortConfig.key!];
@@ -754,64 +870,108 @@ const ReusableTable = <T extends TableItem>({
       }
       return 0;
     });
-  }, [filteredData, sortConfig]);
+  }, [filteredData, sortConfig, serverSidePagination]);
 
-  const paginatedData = useMemo(() => {
+  const clientPaginatedData = useMemo(() => {
+    if (serverSidePagination) return clientSortedData;
     const start = (currentPage - 1) * currentPageSize;
     const end = start + currentPageSize;
-    return sortedData.slice(start, end);
-  }, [sortedData, currentPage, currentPageSize]);
+    return clientSortedData.slice(start, end);
+  }, [clientSortedData, currentPage, currentPageSize, serverSidePagination]);
 
-  const totalPages = Math.ceil(sortedData.length / currentPageSize);
+  const clientTotalPages = Math.ceil(clientSortedData.length / Math.max(1, currentPageSize || 1));
+
+  const finalPaginatedData = serverSidePagination ? data : clientPaginatedData;
+  const finalTotalPages = serverSidePagination ? pageCount : clientTotalPages;
+  const finalCurrentPage = serverSidePagination ? (paginationProp?.pageIndex ?? 0) + 1 : currentPage;
+  const finalCurrentPageSize = serverSidePagination ? paginationProp?.pageSize ?? pageSize : currentPageSize;
+
+  const handleClientPageChange = useCallback((page: number) => {
+    const clamped = Math.max(1, Math.min(page, Math.max(1, clientTotalPages)));
+    if (tableId) {
+      updateUrlState({ page: clamped });
+    } else {
+      setLocalCurrentPage(clamped);
+    }
+  }, [clientTotalPages, tableId, updateUrlState]);
+
+  const handleServerPageChange = useCallback((page: number) => {
+    onPaginationChange?.(old => ({ ...old, pageIndex: page - 1 }));
+  }, [onPaginationChange]);
+
+  const handlePageChange = serverSidePagination ? handleServerPageChange : handleClientPageChange;
+
+  const totalPages = serverSidePagination ? pageCount : clientTotalPages;
 
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, filterValues]);
+    // Don't run validation while loading, as `totalPages` might be stale from `keepPreviousData`.
+    if (loading) return;
 
-  const handlePageSizeChange = useCallback((newPageSize: number) => {
-    setCurrentPageSize(newPageSize);
-    setCurrentPage(1);
-  }, []);
+    if (finalCurrentPage > totalPages || finalCurrentPage < 1 || !Number.isFinite(finalCurrentPage)) {
+      handlePageChange(totalPages > 0 ? Math.min(Math.max(1, finalCurrentPage), totalPages) : 1);
+    }
+  }, [finalCurrentPage, totalPages, handlePageChange, loading]);
 
   const handleSort = useCallback(
     (key: string) => {
       if (!sortable) return;
-      setSortConfig((prev) => ({
+
+      if (serverSidePagination) {
+        onSortingChange?.(old => {
+          const currentSort = old?.[0];
+          if (currentSort?.id === key) {
+            return [{ id: key, desc: !currentSort.desc }];
+          }
+          return [{ id: key, desc: false }];
+        });
+        return;
+      }
+      const newSortConfig = {
         key,
-        direction:
-          prev.key === key && prev.direction === "asc" ? "desc" : "asc",
-      }));
+        direction: sortConfig.key === key && sortConfig.direction === "asc" ? "desc" : "asc",
+      } as SortConfig;
+      if (tableId) {
+        updateUrlState({ sort: newSortConfig });
+      } else {
+        setLocalSortConfig(newSortConfig);
+      }
     },
-    [sortable]
+    [sortable, tableId, updateUrlState, sortConfig, serverSidePagination, onSortingChange]
   );
 
-  const handleFilterChange = useCallback(
-    (
-      key: string,
-      value: string | number | boolean | (string | number | boolean)[]
-    ) => {
-      setFilterValues((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
-      setCurrentPage(1);
-    },
-    []
-  );
+  const handleFilterChange = useCallback((key: string, value: FilterValue) => {
+    const newFilters = { ...filterValues, [key]: value };
+    if (tableId) {
+      updateUrlState({ filters: newFilters, page: 1 });
+    } else {
+      setLocalFilterValues(newFilters);
+      setLocalCurrentPage(1);
+    }
+  }, [tableId, updateUrlState, filterValues]);
 
   const getSortIcon = useCallback(
     (key: string): ReactNode => {
-      if (sortConfig.key !== key)
-        return (
-          <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />
+      if (serverSidePagination) {
+        const sort = sortingProp?.[0];
+        if (sort?.id !== key) {
+          return <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />;
+        }
+        return !sort.desc ? (
+          <AqChevronUp className="w-3 h-3 text-primary" />
+        ) : (
+          <AqChevronDown className="w-3 h-3 text-primary" />
         );
-      return sortConfig.direction === "asc" ? (
-        <AqChevronUp className="w-3 h-3 text-primary" />
-      ) : (
-        <AqChevronDown className="w-3 h-3 text-primary" />
-      );
+      } else {
+        if (sortConfig.key !== key)
+          return <AqFilterLines className="w-3 h-3 text-gray-400 dark:text-gray-300" />;
+        return sortConfig.direction === "asc" ? (
+          <AqChevronUp className="w-3 h-3 text-primary" />
+        ) : (
+          <AqChevronDown className="w-3 h-3 text-primary" />
+        );
+      }
     },
-    [sortConfig]
+    [sortConfig, serverSidePagination, sortingProp]
   );
 
   const renderCell = useCallback(
@@ -829,7 +989,7 @@ const ReusableTable = <T extends TableItem>({
   const handleSelectAll = useCallback(
     (isChecked: boolean) => {
       if (isChecked) {
-        const currentPageIds = paginatedData.map((item) => item.id);
+        const currentPageIds = finalPaginatedData.map((item) => item.id);
         setSelectedItems((prevSelected) => {
           const newItems = currentPageIds.filter(
             (id) => !prevSelected.includes(id)
@@ -839,7 +999,7 @@ const ReusableTable = <T extends TableItem>({
           return updatedSelected;
         });
       } else {
-        const currentPageIds = paginatedData.map((item) => item.id);
+        const currentPageIds = finalPaginatedData.map((item) => item.id);
         setSelectedItems((prevSelected) => {
           const updatedSelected = prevSelected.filter(
             (id) => !currentPageIds.includes(id)
@@ -849,7 +1009,7 @@ const ReusableTable = <T extends TableItem>({
         });
       }
     },
-    [paginatedData, onSelectedItemsChange]
+    [finalPaginatedData, onSelectedItemsChange]
   );
 
   const handleSelectItem = useCallback(
@@ -873,17 +1033,17 @@ const ReusableTable = <T extends TableItem>({
 
   const isAllSelectedOnPage = useMemo(
     () =>
-      paginatedData.length > 0 &&
-      paginatedData.every((item) => selectedItems.includes(item.id)),
-    [paginatedData, selectedItems]
+      finalPaginatedData.length > 0 &&
+      finalPaginatedData.every((item) => selectedItems.includes(item.id)),
+    [finalPaginatedData, selectedItems]
   );
 
   const isIndeterminate = useMemo(
     () =>
-      paginatedData.length > 0 &&
-      paginatedData.some((item) => selectedItems.includes(item.id)) &&
+      finalPaginatedData.length > 0 &&
+      finalPaginatedData.some((item) => selectedItems.includes(item.id)) &&
       !isAllSelectedOnPage,
-    [paginatedData, selectedItems, isAllSelectedOnPage]
+    [finalPaginatedData, selectedItems, isAllSelectedOnPage]
   );
 
   useEffect(() => {
@@ -908,10 +1068,6 @@ const ReusableTable = <T extends TableItem>({
     setSelectedAction("");
   }, [selectedAction, actions, selectedItems]);
 
-  const handleClearSearch = useCallback(() => {
-    setSearchTerm("");
-  }, []);
-  
   const displayColumns = useMemo((): TableColumn<T>[] => {
     const cols = [...columns];
     if (multiSelect) {
@@ -953,13 +1109,15 @@ const ReusableTable = <T extends TableItem>({
   ]);
 
   return (
-    <div className="overflow-hidden shadow p-0 rounded-lg w-full bg-[#E9F7EF]">
+    <div
+      className={`overflow-hidden shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] ${className}`}
+    >
       {/* Header */}
       <TableHeader
         title={title}
         searchable={searchable}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchTerm={searchInput}
+        onSearchChange={setSearchInput}
         onClearSearch={handleClearSearch}
         filterable={filterable}
         filters={filters}
@@ -983,29 +1141,25 @@ const ReusableTable = <T extends TableItem>({
         {loading ? (
           loadingComponent ? (
             loadingComponent
-          ) : (
-            <div className="w-full py-12 flex justify-center items-center">
-              <Loader2 size={30} className="animate-spin" />
-            </div>
+          ) : ( 
+            <TableSkeleton columns={displayColumns} pageSize={finalCurrentPageSize} />
           )
         ) : (
-          <table className="w-full">
+          <table className="w-full table-fixed border-collapse">
             <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
               <tr>
                 {displayColumns.map((column) => (
                   <th
                     key={String(column.key)}
-                    className={`${
-                      column.key === "checkbox"
+                    className={`${column.key === "checkbox"
                         ? "w-4 p-4"
-                        : "px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider"
-                    } ${
-                      sortable &&
-                      column.sortable !== false &&
-                      column.key !== "checkbox"
+                        : "w-52 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider truncate"
+                      } ${column.className || ""} ${sortable &&
+                        column.sortable !== false &&
+                        column.key !== "checkbox"
                         ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
                         : ""
-                    }`}
+                      }`}
                     onClick={() =>
                       sortable &&
                       column.sortable !== false &&
@@ -1028,8 +1182,8 @@ const ReusableTable = <T extends TableItem>({
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
-              {paginatedData.length > 0 ? (
-                paginatedData.map((item, index) => (
+              {finalPaginatedData.length > 0 ? (
+                finalPaginatedData.map((item, index) => (
                   <tr
                     key={item.id ?? index}
                     onClick={(e) => {
@@ -1048,20 +1202,18 @@ const ReusableTable = <T extends TableItem>({
                         onRowClick(item);
                       }
                     }}
-                    className={`${
-                      selectedItems.includes(item.id)
+                    className={`${selectedItems.includes(item.id)
                         ? "bg-primary/10 dark:bg-primary/20"
                         : "hover:bg-primary/5 dark:hover:bg-primary/20"
-                    } ${onRowClick ? "cursor-pointer" : ""}`}
+                      } ${onRowClick ? "cursor-pointer" : ""}`}
                   >
                     {displayColumns.map((column) => (
                       <td
                         key={String(column.key)}
-                        className={`${
-                          column.key === "checkbox"
+                        className={`break-words ${column.key === "checkbox"
                             ? "w-4 p-4"
-                            : "px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-gray-100"
-                        }`}
+                            : "w-52 truncate px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
+                          } ${column.className || ""}`}
                       >
                         {renderCell(item, column)}
                       </td>
@@ -1075,11 +1227,11 @@ const ReusableTable = <T extends TableItem>({
                     className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
                   >
                     {searchTerm ||
-                    Object.values(filterValues).some(
-                      (v) => v && (Array.isArray(v) ? v.length > 0 : v !== "")
-                    )
+                      Object.values(filterValues).some(
+                        (v) => v && (Array.isArray(v) ? v.length > 0 : v !== "")
+                      )
                       ? "No matching results found"
-                      : "No data available"}
+                      : emptyState}
                   </td>
                 </tr>
               )}
@@ -1089,19 +1241,32 @@ const ReusableTable = <T extends TableItem>({
       </div>
 
       {/* Pagination */}
-      {!loading && showPagination && sortedData.length > 0 && (
+      {!loading && showPagination && finalPaginatedData.length > 0 && (
         <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={currentPageSize}
-          totalItems={sortedData.length}
-          pageSizeOptions={pageSizeOptions}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={handlePageSizeChange}
+          currentPage={finalCurrentPage}
+          totalPages={finalTotalPages}
+          onPageChange={handlePageChange}
         />
       )}
     </div>
   );
+};
+
+ReusableTable.defaultProps = {
+  title: "Table",
+  data: [],
+  columns: [],
+  searchable: true,
+  filterable: true,
+  filters: [],
+  pageSize: 10,
+  showPagination: true,
+  sortable: true,
+  pageSizeOptions: [5, 10, 20, 50, 100],
+  loading: false,
+  multiSelect: false,
+  actions: [],
+  tableId: undefined,
 };
 
 export default ReusableTable;

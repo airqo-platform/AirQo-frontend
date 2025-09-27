@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AqXClose } from '@airqo/icons-react';
@@ -49,23 +49,16 @@ const Modal = ({ isOpen, onClose }) => {
     MODAL_CONFIGURATIONS[modalType]?.body ||
     (() => <div className="dark:text-white">No content available</div>);
 
-  const handleKeyDown = useCallback(
-    (e) => {
-      if (e.key === 'Escape') onClose();
-    },
-    [onClose],
-  );
-
   useEffect(() => {
+    // Keep body scroll locked while modal is open. Do not close modal on Escape key
+    // and do not close on backdrop clicks — only explicit close button/actions should close it.
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown);
       document.body.style.overflow = 'hidden';
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [isOpen, handleKeyDown]);
+  }, [isOpen]);
 
   const modalAnimationConfig = {
     initial: { opacity: 0, y: 20, scale: 0.98 },
@@ -103,6 +96,9 @@ const Modal = ({ isOpen, onClose }) => {
             className="modal-container w-full max-w-6xl bg-white dark:bg-[#1d1f20] rounded-lg shadow-xl overflow-hidden transform relative 
                        h-[85vh] max-h-[800px] min-h-[500px]
                        flex flex-col"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Download insights modal"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Fixed Header */}

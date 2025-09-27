@@ -87,25 +87,46 @@ const LocationCard = ({
 
   // If this card represents a device visualization item, prefer device name on top
   // and show the site/location name underneath. Otherwise fall back to site name.
-  const topName =
-    // explicit device-provided displayName (set in DataDownload for devices)
-    deviceDisplayName ||
-    // item name (site name) or first part of search_name
-    name ||
-    (search_name && search_name.split(',')[0]) ||
-    '';
+  const chooseFirstValid = (...vals) => {
+    for (const v of vals) {
+      if (v == null) continue;
+      const s = String(v).trim();
+      const normalized = s.toLowerCase();
+      if (
+        !s ||
+        ['n/a', 'na', 'unknown', 'unknown location', '-', '--'].includes(
+          normalized,
+        )
+      )
+        continue;
+      return s;
+    }
+    return '--';
+  };
 
-  const displayName = truncateName(topName);
+  const topName =
+    deviceDisplayName ||
+    chooseFirstValid(
+      name,
+      search_name && search_name.split(',')[0],
+      location_name,
+    );
+
+  const displayName = truncateName(topName === '--' ? '' : topName);
 
   // Prefer explicit location_name or originalSiteName for the small description
-  const siteLabel =
-    location_name || originalSiteName || name || search_name || '';
+  const siteLabel = chooseFirstValid(
+    location_name,
+    originalSiteName,
+    name,
+    search_name,
+  );
 
   // Use city/country only if no explicit site label is available
-  const locationDescription = siteLabel
-    ? // show site label (may be same as site name)
-      siteLabel
-    : formatLocationDescription(country, city);
+  const locationDescription =
+    siteLabel !== '--'
+      ? siteLabel
+      : formatLocationDescription(country, city) || '--';
 
   // Always show the card, even if name or location is unknown
   const checkboxId = `checkbox-${_id || autoId}`;

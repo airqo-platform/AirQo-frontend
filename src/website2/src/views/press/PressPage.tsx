@@ -6,18 +6,17 @@ import React, { useState } from 'react';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { usePressArticles } from '@/hooks/useApiHooks';
+import { usePress } from '@/services/hooks/endpoints';
 
 const PressPage: React.FC = () => {
-  const { data: pressArticles, isLoading, isError } = usePressArticles();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4;
+  // page_size we're requesting from API
+  const pageSize = 8;
 
-  const totalPages = Math.ceil(pressArticles.length / itemsPerPage);
-  const displayedArticles = pressArticles.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
+  const { data, error, isLoading } = usePress({
+    page: currentPage,
+    page_size: pageSize,
+  });
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -40,6 +39,9 @@ const PressPage: React.FC = () => {
     </div>
   );
 
+  const articles = data?.results ?? [];
+  const totalPages = data?.total_pages ?? 1;
+
   return (
     <div className="flex flex-col w-full h-full">
       {/* Header Section */}
@@ -55,49 +57,59 @@ const PressPage: React.FC = () => {
       {/* Articles Section */}
       <section className={`${mainConfig.containerClass}`}>
         {isLoading ? (
-          // Display 4 skeletons when loading
+          // Display skeletons when loading
           <div className="w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <ArticleSkeleton />
             <ArticleSkeleton />
             <ArticleSkeleton />
             <ArticleSkeleton />
           </div>
-        ) : isError ? (
+        ) : error ? (
           <NoData message="Failed to load articles. Please try again later." />
-        ) : displayedArticles.length > 0 ? (
+        ) : articles.length > 0 ? (
           <div className="w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            {displayedArticles.map((article: any) => (
-              <div
-                key={article.id}
-                className={`p-8 lg:px-16 lg:py-12 space-y-6 rounded-lg shadow-sm transition-shadow hover:shadow-md bg-card-custom-gradient`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-card-custom-gradient opacity-70 pointer-events-none"></div>
-                    <Image
-                      src={article.publisher_logo_url || '/default-logo.png'}
-                      alt="logo"
-                      width={100}
-                      height={30}
-                      className="object-contain mix-blend-multiply"
-                    />
-                  </div>
-                  <p className="text-gray-500 text-sm">
-                    {formatDate(article.date_published)}
-                  </p>
-                </div>
-                <h2 className="text-2xl font-semibold">
-                  {article.article_title}
-                </h2>
-                <p className="text-sm">{article.article_intro}</p>
-                <CustomButton
-                  onClick={() => window.open(article.article_link, '_blank')}
-                  className="text-black px-4 py-2 bg-transparent border border-black transition-colors mt-4"
+            {articles.map((article: any) => {
+              const articleLink = article.has_slug
+                ? `/press/${article.public_identifier}`
+                : article.api_url;
+
+              return (
+                <div
+                  key={article.public_identifier || article.api_url}
+                  className={`p-8 lg:px-16 lg:py-12 space-y-6 rounded-lg shadow-sm transition-shadow hover:shadow-md bg-card-custom-gradient`}
                 >
-                  Read article →
-                </CustomButton>
-              </div>
-            ))}
+                  <div className="flex items-center justify-between">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-card-custom-gradient opacity-70 pointer-events-none"></div>
+                      <Image
+                        src={article.publisher_logo_url || '/default-logo.png'}
+                        alt={
+                          article.website_category_display || 'publisher logo'
+                        }
+                        width={100}
+                        height={30}
+                        className="object-contain mix-blend-multiply"
+                      />
+                    </div>
+                    <p className="text-gray-500 text-sm">
+                      {formatDate(article.date_published)}
+                    </p>
+                  </div>
+                  <h2 className="text-2xl font-semibold">
+                    {article.article_title}
+                  </h2>
+                  <p className="text-sm">{article.article_intro}</p>
+                  <CustomButton
+                    onClick={() =>
+                      window.open(articleLink, '_blank', 'noopener,noreferrer')
+                    }
+                    className="text-black px-4 py-2 bg-transparent border border-black transition-colors mt-4"
+                  >
+                    Read article →
+                  </CustomButton>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <NoData />
@@ -105,7 +117,7 @@ const PressPage: React.FC = () => {
       </section>
 
       {/* Pagination Section */}
-      {pressArticles.length > itemsPerPage && (
+      {totalPages > 1 && (
         <Pagination
           totalPages={totalPages}
           currentPage={currentPage}

@@ -50,8 +50,12 @@ const Home = () => {
       try {
         // If we have NextAuth session, fetch checklists using session user id
         if (session?.user) {
-          if (session.user.id && !isFetchInitiated) {
-            dispatch(fetchUserChecklists(session.user.id));
+          // Try multiple user ID fields
+          const userId =
+            session.user.id || session.user._id || session.user.userId;
+
+          if (userId && !isFetchInitiated) {
+            dispatch(fetchUserChecklists(userId));
             setIsFetchInitiated(true);
           }
         }

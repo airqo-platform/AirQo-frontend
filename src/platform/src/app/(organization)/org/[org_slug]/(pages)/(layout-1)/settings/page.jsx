@@ -14,7 +14,7 @@
 import { useUnifiedGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useEffect, useState } from 'react';
 import PermissionDenied from '@/common/components/PermissionDenied';
-import { usePermissions } from '@/core/HOC/authUtils';
+import { usePermissions } from '@/core/utils/permissionUtils';
 import { useDispatch, useSelector } from 'react-redux';
 import * as Yup from 'yup';
 import {

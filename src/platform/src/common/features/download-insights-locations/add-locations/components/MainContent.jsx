@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion';
 import DataTable from '../../components/DataTable';
 import InfoMessage from '@/components/Messages/InfoMessage';
+import ErrorState from '@/common/components/ErrorState';
+import Button from '@/common/components/Button';
 import { itemVariants } from '../animations';
 import { getFieldWithFallback } from '../utils/getFieldWithFallback';
 import { AqMarkerPin01 } from '@airqo/icons-react';
+import { MdRefresh, MdClear } from 'react-icons/md';
 
 const columns = [
   {
@@ -15,7 +18,7 @@ const columns = [
           <AqMarkerPin01 size={16} />
         </span>
         <span className="ml-2">
-          {item.search_name || item.location_name || item.name || '--'}
+          {getFieldWithFallback(item, ['search_name', 'name', 'location_name'])}
         </span>
       </div>
     ),
@@ -38,15 +41,7 @@ const columns = [
   },
 ];
 
-const filters = [
-  { key: 'all', label: 'All' },
-  { key: 'favorites', label: 'Favorites' },
-];
-
-const handleFilter = (data, activeFilter, selectedSites) =>
-  activeFilter.key === 'favorites'
-    ? data.filter((site) => selectedSites.some((s) => s._id === site._id))
-    : data;
+// No filters for this view - we want the search on the right and no All/Favorites buttons
 
 export const MainContent = ({
   filteredSites,
@@ -57,14 +52,26 @@ export const MainContent = ({
   isError,
   fetchError,
   handleToggleSite,
+  meta,
+  hasNextPage,
+  loadMore,
+  nextPage,
+  prevPage,
+  canLoadMore,
+  searchQuery,
+  onSearchChange,
+  onRetry,
 }) => {
   if (isError) {
     return (
       <motion.div variants={itemVariants}>
-        <InfoMessage
+        <ErrorState
+          type={ErrorState.Types.GENERIC}
           title="Error Loading Data"
           description={fetchError?.message || 'Unable to fetch locations data.'}
-          variant="error"
+          primaryAction="Try Again"
+          onPrimaryAction={onRetry}
+          variant="minimal"
         />
       </motion.div>
     );
@@ -75,8 +82,36 @@ export const MainContent = ({
       <motion.div variants={itemVariants}>
         <InfoMessage
           title="No Locations Found"
-          description="No locations are currently available for selection."
+          description={
+            searchQuery
+              ? `No locations found for "${searchQuery}". Try different search terms.`
+              : 'No locations are currently available for selection.'
+          }
           variant="info"
+          action={
+            <div className="flex gap-2 flex-wrap justify-center">
+              {onRetry && (
+                <Button
+                  variant="filled"
+                  size="sm"
+                  onClick={onRetry}
+                  Icon={MdRefresh}
+                >
+                  Refresh
+                </Button>
+              )}
+              {searchQuery && onSearchChange && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onSearchChange('')}
+                  Icon={MdClear}
+                >
+                  Clear Search
+                </Button>
+              )}
+            </div>
+          }
         />
       </motion.div>
     );
@@ -86,21 +121,19 @@ export const MainContent = ({
     <motion.div variants={itemVariants}>
       <DataTable
         data={filteredSites}
+        columns={columns}
         selectedRows={selectedSites}
         setSelectedRows={setSelectedSites}
         clearSelectionTrigger={clearSelected}
         loading={loading}
         error={isError}
         errorMessage={fetchError?.message || 'Unable to fetch locations data.'}
+        onRetry={onRetry}
         onToggleRow={handleToggleSite}
-        filters={filters}
-        columnsByFilter={{ all: columns, favorites: columns }}
-        onFilter={(data, activeFilter) =>
-          handleFilter(data, activeFilter, selectedSites)
-        }
+        enableSearch={true}
         searchKeys={[
-          'location_name',
           'search_name',
+          'location_name',
           'name',
           'city',
           'country',
@@ -108,9 +141,19 @@ export const MainContent = ({
           'owner',
           'organization',
         ]}
+        searchValue={searchQuery}
+        onSearchChange={onSearchChange}
+        searchPlaceholder="Search locations..."
         enableColumnFilters={true}
         defaultSortColumn="name"
         defaultSortDirection="asc"
+        enableInfiniteScroll={false}
+        paginationMeta={meta}
+        hasNextPage={hasNextPage}
+        onLoadMore={loadMore}
+        onNextPage={nextPage}
+        onPrevPage={prevPage}
+        canLoadMore={canLoadMore}
       />
     </motion.div>
   );

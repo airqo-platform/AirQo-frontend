@@ -1,4 +1,0 @@
-- [Analytics](platform/analytics.md)
-- [Join the Platform](platform/join.md)
-- [Extras](platform/extras.md)
-- [Terms and Conditions](platform/terms_and_conditions.md)

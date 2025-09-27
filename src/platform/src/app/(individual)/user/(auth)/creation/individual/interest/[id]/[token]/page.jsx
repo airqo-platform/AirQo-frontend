@@ -29,34 +29,36 @@ const radioOptions = [
 ];
 
 // --- Enhanced Site Card ---
-const SiteCard = ({ site, isSelected, onSelect, isDisabled }) => (
-  <div
-    onClick={() => !isDisabled && onSelect(site)}
-    className={`p-3 rounded-md border cursor-pointer transition-all duration-150 ease-in-out ${
-      isSelected
-        ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
-        : 'border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:shadow-sm'
-    } ${isDisabled && !isSelected ? 'opacity-60 cursor-not-allowed' : ''}`}
-  >
-    <div className="flex items-center">
-      <input
-        type="checkbox"
-        checked={isSelected}
-        readOnly
-        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer flex-shrink-0"
-      />
-      <div className="ml-3 min-w-0">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-          {site.name}
-        </h3>
-        {/* Removed city for cleaner look as requested */}
-        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-          {site.country}
-        </p>
+const SiteCard = ({ site, isSelected, onSelect, isDisabled }) => {
+  return (
+    <div
+      onClick={() => !isDisabled && onSelect(site)}
+      className={`p-3 rounded-md border cursor-pointer transition-all duration-150 ease-in-out ${
+        isSelected
+          ? 'border-primary bg-primary/10 ring-1 ring-primary/30'
+          : 'border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:shadow-sm'
+      } ${isDisabled && !isSelected ? 'opacity-60 cursor-not-allowed' : ''}`}
+    >
+      <div className="flex items-center">
+        <input
+          type="checkbox"
+          checked={isSelected}
+          readOnly
+          className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer flex-shrink-0"
+        />
+        <div className="ml-3 min-w-0">
+          <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+            {site.name}
+          </h3>
+          {/* Removed city for cleaner look as requested */}
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+            {site.country}
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default function IndividualAccountInterest() {
   const router = useRouter();
@@ -127,14 +129,39 @@ export default function IndividualAccountInterest() {
         });
 
       try {
-        const siteResponse = await getSiteSummaryDetailsWithToken(token);
-        if (isMounted && siteResponse?.success) {
-          setSites(siteResponse.sites || []);
-        } else if (isMounted) {
-          CustomToast({
-            message: 'Could not load all locations.',
-            type: 'warning',
+        let allSites = [];
+        let skip = 0;
+        const limit = 30;
+        let hasMoreData = true;
+
+        // Fetch all sites with pagination
+        while (hasMoreData) {
+          const siteResponse = await getSiteSummaryDetailsWithToken(token, {
+            skip,
+            limit,
           });
+
+          if (isMounted && siteResponse?.success && siteResponse.sites) {
+            allSites = [...allSites, ...siteResponse.sites];
+
+            // Check if there are more pages
+            const meta = siteResponse.meta || {};
+            hasMoreData =
+              meta.nextPage || (meta.totalPages && skip + limit < meta.total);
+            skip += limit;
+          } else {
+            hasMoreData = false;
+          }
+        }
+
+        if (isMounted) {
+          setSites(allSites);
+          if (allSites.length === 0) {
+            CustomToast({
+              message: 'No locations available.',
+              type: 'warning',
+            });
+          }
         }
       } catch {
         if (isMounted) {
@@ -153,12 +180,27 @@ export default function IndividualAccountInterest() {
   }, [userId, token]);
 
   const handleSiteSelect = useCallback((site) => {
+    const id = site._id || site.id || site.site_id || site.siteId;
+    if (!id) return;
+
     setSelectedSites((prev) => {
-      const isSelected = prev.some((s) => s._id === site._id);
+      const isSelected = prev.some(
+        (s) =>
+          s._id === id || s.id === id || s.site_id === id || s.siteId === id,
+      );
       if (isSelected) {
-        return prev.filter((s) => s._id !== site._id);
+        return prev.filter(
+          (s) =>
+            !(
+              s._id === id ||
+              s.id === id ||
+              s.site_id === id ||
+              s.siteId === id
+            ),
+        );
       } else {
         if (prev.length >= 4) return prev;
+        // keep full site object so backend gets required fields like name and search_name
         return [...prev, site];
       }
     });
@@ -176,12 +218,20 @@ export default function IndividualAccountInterest() {
 
     try {
       // Prepare payload for PATCH request
+      // Backend expects full site objects with fields like name and search_name
+      const normalizedSites = selectedSites.map((s) => ({
+        _id: s._id || s.id || s.site_id || s.siteId,
+        name: s.name || s.location_name || s.search_name || '',
+        search_name: s.search_name || s.name || s.location_name || '',
+        country: s.country || s.country_name || '',
+      }));
+
       const payload = {
-        selected_sites: selectedSites,
+        selected_sites: normalizedSites,
         user_id: userId,
       };
 
-      // Use PATCH instead of POST
+      // Use PATCH instead of POST; pass token so proxy can forward auth header when needed
       const response = await patchUserPreferencesApiWithToken(payload, token);
       if (response?.success) {
         setCurrentStep(2);
@@ -223,10 +273,11 @@ export default function IndividualAccountInterest() {
         interestsDescription: interestDetails.trim(),
       };
 
-      // call API wrapper (wrapper handles API_TOKEN auth); token argument is not required
+      // call API wrapper; pass the route token so the proxy can forward Authorization
       const response = await updateUserCreationDetailsWithToken(
         payload,
         userId,
+        token,
       );
 
       if (response?.success) {

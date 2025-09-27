@@ -1,11 +1,30 @@
-import { Cohort } from "@/app/types/cohorts";
+import { Cohort, CohortsSummaryResponse } from "@/app/types/cohorts";
 import createSecureApiClient from "../utils/secureApiProxyClient";
 
+export interface GetCohortsSummaryParams {
+  network: string;
+  limit?: number;
+  skip?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
 export const cohorts = {
-  getCohortsSummary: async (networkId: string) => { 
+  getCohortsSummary: async (params: GetCohortsSummaryParams): Promise<CohortsSummaryResponse> => {
     try {
+      const { network, limit, skip, search, sortBy, order } = params;
+      const queryParams = new URLSearchParams();
+
+      if (network) queryParams.set("network", network);
+      if (limit !== undefined) queryParams.set("limit", String(limit));
+      if (skip !== undefined) queryParams.set("skip", String(skip));
+      if (search) queryParams.set("search", search);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortBy && order) queryParams.set("order", order);
+
       const response = await createSecureApiClient().get(
-        `/devices/cohorts/summary?network=${networkId}`,
+        `/devices/cohorts/summary?${queryParams.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

@@ -127,11 +127,11 @@ export const useAuth = () => {
       localStorage.setItem("userContext", initialUserContext);
 
       dispatch(setContextLoading(false));
-
-
+      
+      // Prefetch initial device data in the background without blocking initialization.
       try {
         if (initialUserContext === "personal") {
-          await queryClient.prefetchQuery({
+          void queryClient.prefetchQuery({
             queryKey: ["my-devices", userInfo._id, defaultGroup?._id],
             queryFn: () => devices.getMyDevices(userInfo._id),
             staleTime: 300_000,
@@ -140,9 +140,14 @@ export const useAuth = () => {
           const resolvedNetworkName = defaultNetwork?.net_name || "";
           const resolvedGroupName = defaultGroup?.grp_title || "";
 
-          await queryClient.prefetchQuery({
-            queryKey: ["devices", resolvedNetworkName, resolvedGroupName],
-            queryFn: () => devices.getDevicesSummaryApi(resolvedNetworkName, resolvedGroupName),
+          void queryClient.prefetchQuery({
+            queryKey: ["devices", resolvedNetworkName, resolvedGroupName, { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined }],
+            queryFn: () => devices.getDevicesSummaryApi({
+              network: resolvedNetworkName, 
+              group: resolvedGroupName,
+              limit: 100,
+              skip: 0,
+            }),
             staleTime: 300_000,
           });
         }

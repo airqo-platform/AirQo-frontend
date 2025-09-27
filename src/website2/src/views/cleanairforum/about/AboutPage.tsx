@@ -31,10 +31,7 @@ const SectionRow: React.FC<SectionRowProps> = ({ title, children }) => (
 const AboutPage = () => {
   const { selectedEvent } = useForumData();
 
-  // Removed duplicate warn; we log once in the early return below.
-
   if (!selectedEvent) {
-    // Log missing event data
     logger.warn('No selectedEvent found in AboutPage', {
       component: 'AboutPage',
       context: 'ForumDataContext',

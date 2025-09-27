@@ -7,15 +7,16 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
 import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import moment from "moment";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppSelector } from "@/core/redux/hooks";
-import { devices as devicesApi } from "@/core/apis/devices";
+import { GetDevicesSummaryParams, devices as devicesApi } from "@/core/apis/devices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqPlus } from "@airqo/icons-react";
 import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/create-cohort-from-cohorts";
 import { AssignCohortsToGroupDialog } from "@/components/features/cohorts/assign-cohorts-to-group";
+import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 
 type CohortRow = {
   id: string;
@@ -27,8 +28,23 @@ type CohortRow = {
 
 export default function CohortsPage() {
   const router = useRouter();
-  const { cohorts, isLoading, error } = useCohorts();
+  const tableRef = useRef<HTMLDivElement>(null);
+  const {
+    pagination, setPagination,
+    searchTerm, setSearchTerm,
+    sorting, setSorting
+  } = useServerSideTableState({ initialPageSize: 25 });
 
+  const { cohorts, meta, isFetching, error } = useCohorts({
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+    search: searchTerm,
+    sortBy: sorting[0]?.id,
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+  });
+
+  const pageCount = meta?.totalPages ?? 0;
+  
   const [showCreateCohortModal, setShowCreateCohortModal] = useState(false);
   const [showCreateFromCohorts, setShowCreateFromCohorts] = useState(false);
   const [showAssignToGroup, setShowAssignToGroup] = useState(false);
@@ -40,10 +56,13 @@ export default function CohortsPage() {
   const prefetchDevices = useCallback(() => {
     const net = activeNetwork?.net_name || "";
     const grp = activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || "");
-    if (!net || !activeGroup?.grp_title) return;
+    if (!net) return;
+
+    const params: GetDevicesSummaryParams = { network: net, group: grp };
+
     return queryClient.prefetchQuery({
-      queryKey: ["devices", net, activeGroup?.grp_title],
-      queryFn: () => devicesApi.getDevicesSummaryApi(net, grp),
+      queryKey: ["devices", net, grp, { page: 1, limit: 100, search: '', sortBy: undefined, order: undefined }],
+      queryFn: () => devicesApi.getDevicesSummaryApi(params),
       staleTime: 300_000,
     });
   }, [queryClient, activeNetwork?.net_name, activeGroup?.grp_title]);
@@ -52,13 +71,17 @@ export default function CohortsPage() {
     prefetchDevices();
   }, [prefetchDevices]);
 
-  const rows: CohortRow[] = (cohorts || []).map((c: Cohort) => ({
+  useEffect(() => {
+    if (tableRef.current) {
+      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [pagination.pageIndex]);
+
+  const rows: CohortRow[] = useMemo(() => (cohorts || []).map((c: Cohort) => ({
+    ...c,
     id: c._id,
-    name: c.name,
-    numberOfDevices: c.numberOfDevices ?? 0,
-    visibility: c.visibility,
-    dateCreated: c.createdAt
-  }));
+    dateCreated: c.createdAt,
+  })), [cohorts]);
 
   const columns: TableColumn<CohortRow>[] = [
     {
@@ -135,24 +158,31 @@ export default function CohortsPage() {
           </ReusableButton>
         </div>
 
-        <ReusableTable
-          title="Cohorts"
-          data={rows}
-          columns={columns}
-          searchable
-          filterable={false}
-          sortable
-          loading={isLoading}
-          searchableColumns={["name"]}
-          multiSelect
-          onSelectedItemsChange={(ids: (string | number)[]) => setSelectedCohortIds(ids.map(String))}
-          actions={tableActions}
-          onRowClick={(item: unknown) => {
-            const row = item as CohortRow;
-            if (row?.id) router.push(`/cohorts/${row.id}`)
-          }}
-          emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
-        />
+        <div ref={tableRef}>
+          <ReusableTable
+            title="Cohorts"
+            data={rows}
+            columns={columns}
+            loading={isFetching}
+            onRowClick={(item: unknown) => {
+              const row = item as CohortRow;
+              if (row?.id) router.push(`/cohorts/${row.id}`)
+            }}
+            emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
+            multiSelect
+            onSelectedItemsChange={(ids: (string | number)[]) => setSelectedCohortIds(ids.map(String))}
+            actions={tableActions}
+            serverSidePagination
+            pageCount={pageCount}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            onSearchChange={setSearchTerm}
+            searchTerm={searchTerm}
+            sorting={sorting}
+            onSortingChange={setSorting}
+            searchable
+          />
+        </div>
 
         <CreateCohortDialog open={showCreateCohortModal} onOpenChange={setShowCreateCohortModal} />
         <CreateCohortFromSelectionDialog open={showCreateFromCohorts} onOpenChange={setShowCreateFromCohorts} selectedCohortIds={selectedCohortIds} />

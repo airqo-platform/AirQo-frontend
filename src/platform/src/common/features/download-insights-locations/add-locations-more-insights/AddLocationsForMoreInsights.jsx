@@ -26,6 +26,7 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [isMobileSidebarVisible, setMobileSidebarVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Get current More Insights selected sites
   const currentMoreInsightsSites = useSelector(selectTempSelectedSites);
@@ -39,7 +40,18 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
       ? currentMoreInsightsSites
       : moreInsightsSites;
 
-  const { filteredSites, isLoading, isError, error } = useAddLocationsData();
+  const {
+    filteredSites,
+    isLoading,
+    isError,
+    error,
+    meta,
+    hasNextPage,
+    loadMore,
+    canLoadMore,
+    nextPage,
+    prevPage,
+  } = useAddLocationsData(searchQuery);
 
   const {
     selectedSites,
@@ -181,6 +193,14 @@ export const AddLocationsForMoreInsights = ({ onClose }) => {
               isError={isError}
               fetchError={error}
               handleToggleSite={handleToggleSite}
+              meta={meta}
+              hasNextPage={hasNextPage}
+              loadMore={loadMore}
+              nextPage={nextPage}
+              prevPage={prevPage}
+              canLoadMore={canLoadMore}
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
             />
           </motion.div>
 

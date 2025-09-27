@@ -301,6 +301,8 @@ const DataTable = ({
   clearSelectionTrigger,
   onToggleRow,
   searchKeys = [],
+  searchValue = '',
+  onSearchChange = null,
   showViewDataButton = false,
   isLoadingVisualizationData = false,
   onViewDataClick = () => {},
@@ -308,6 +310,14 @@ const DataTable = ({
   enableColumnFilters = true,
   defaultSortColumn = null,
   defaultSortDirection = 'asc',
+  // Pagination props
+  paginationMeta = {},
+  onLoadMore = null,
+  onNextPage = null,
+  onPrevPage = null,
+  _canLoadMore = false,
+  _hasNextPage = false,
+  _enableInfiniteScroll = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
@@ -335,6 +345,9 @@ const DataTable = ({
     },
     [],
   );
+
+  // Determine whether the table is backed by server-side pagination
+  const serverPaged = Boolean(paginationMeta && paginationMeta.totalPages);
 
   const uniqueData = useMemo(() => {
     if (!Array.isArray(data)) return [];
@@ -474,6 +487,51 @@ const DataTable = ({
     [enableSorting],
   );
 
+  // When server paged, reflect server page values instead of local state
+  const displayedTotalPages = serverPaged
+    ? paginationMeta.totalPages
+    : totalPages;
+  const displayedCurrentPage = serverPaged
+    ? paginationMeta.page || 1
+    : currentPage;
+
+  const paginationVisible = Boolean(
+    displayedTotalPages && displayedTotalPages > 1,
+  );
+
+  const handlePrev = useCallback(() => {
+    if (serverPaged) {
+      if (typeof onPrevPage === 'function') {
+        onPrevPage();
+      }
+      // If no onPrevPage is provided, do nothing. Keep control disabled instead of falling back to loadMore.
+      return;
+    }
+    handlePageChange(displayedCurrentPage - 1);
+  }, [serverPaged, onPrevPage, handlePageChange, displayedCurrentPage]);
+
+  const handleNext = useCallback(() => {
+    if (serverPaged) {
+      if (typeof onNextPage === 'function') return onNextPage();
+      if (typeof onLoadMore === 'function') return onLoadMore('next');
+      return;
+    }
+    handlePageChange(displayedCurrentPage + 1);
+  }, [
+    serverPaged,
+    onNextPage,
+    onLoadMore,
+    handlePageChange,
+    displayedCurrentPage,
+  ]);
+
+  // Use these to avoid unused variable linting for legacy props
+  // They are intentionally no-ops here because server pagination replaces load-more UX
+  void onLoadMore;
+  void _canLoadMore;
+  void _hasNextPage;
+  void _enableInfiniteScroll;
+
   const handleColumnFilter = useCallback((columnKey, filterValues) => {
     setColumnFilters((prev) => ({ ...prev, [columnKey]: filterValues }));
     setCurrentPage(1);
@@ -537,6 +595,12 @@ const DataTable = ({
     [columnFilters],
   );
 
+  // When loading we don't want the border around the table
+  // to make the loading skeleton look like an inner area rather than a bordered tab.
+  const tableContainerClass = loading
+    ? `relative rounded-lg ${darkMode ? 'bg-transparent' : 'bg-transparent'}`
+    : `relative border rounded-lg ${darkMode ? 'border-gray-700 bg-transparent' : 'border-gray-200 bg-white'}`;
+
   useEffect(() => {
     if (!mountedRef.current || !currentPageData.length) {
       setSelectAll(false);
@@ -597,19 +661,23 @@ const DataTable = ({
           </p>
           <p className="text-sm text-red-600 mt-1">{errorText}</p>
           {onRetry && (
-            <button
+            <Button
+              variant="outlined"
+              size="sm"
               onClick={() => onRetry(activeFilter.key)}
-              className="inline-flex items-center px-3 py-1.5 mt-2 space-x-1 text-xs text-white bg-primary rounded-md hover:bg-primary/80 transition-colors"
+              className="mt-2"
+              Icon={MdRefresh}
             >
-              <MdRefresh size={14} />
-              <span>Retry</span>
-            </button>
+              Retry
+            </Button>
           )}
         </div>
       </div>
     );
   };
 
+  // Keep the TopBarSearch visible during loading to allow users to continue typing.
+  // Render the loading skeleton inside the table region instead of returning early.
   if (error && !activeFilter) {
     return (
       <div className="flex flex-col items-center justify-center p-6 space-y-4 bg-red-50 border border-red-200 rounded-lg text-center">
@@ -619,26 +687,24 @@ const DataTable = ({
         </h3>
         <p className="text-red-700 text-sm max-w-sm">{errorMessage}</p>
         {onRetry && (
-          <button
+          <Button
+            variant="filled"
+            size="md"
             onClick={onRetry}
-            className="inline-flex items-center px-4 py-2 space-x-2 text-sm text-white bg-primary rounded-md hover:bg-primary/80 transition-colors"
+            className="inline-flex items-center"
+            Icon={MdRefresh}
           >
-            <MdRefresh size={16} />
-            <span>Try Again</span>
-          </button>
+            Try Again
+          </Button>
         )}
       </div>
     );
   }
 
-  if (loading && !activeFilter) {
-    return <TableLoadingSkeleton />;
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        {filters.length > 0 && (
+        {filters.length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {filters.map((filterDef) => (
               <Button
@@ -652,22 +718,26 @@ const DataTable = ({
               </Button>
             ))}
           </div>
+        ) : (
+          // spacer keeps the search on the right when there are no filter buttons
+          <div className="w-full sm:w-0 flex-shrink-0" aria-hidden="true" />
         )}
         <TopBarSearch
           data={uniqueData}
-          onSearch={handleSearch}
-          onClearSearch={handleClearSearch}
-          searchKeys={searchKeys}
+          onSearch={onSearchChange ? null : handleSearch}
+          onClearSearch={onSearchChange ? null : handleClearSearch}
+          searchKeys={onSearchChange ? [] : searchKeys}
+          searchValue={onSearchChange ? searchValue : undefined}
+          onSearchChange={onSearchChange}
           placeholder="Search..."
         />
       </div>
 
       {renderFilterError()}
 
-      <div
-        className={`relative border rounded-lg ${darkMode ? 'border-gray-700 bg-transparent' : 'border-gray-200 bg-white'}`}
-      >
-        {loading && activeFilter ? (
+      <div className={tableContainerClass}>
+        {/* If loading, show the loading skeleton in the table area but keep the search visible */}
+        {loading ? (
           <TableLoadingSkeleton />
         ) : currentPageData.length === 0 ? (
           <InfoMessage
@@ -678,6 +748,41 @@ const DataTable = ({
                 : 'No data to display. Please adjust your filters or refresh the page.'
             }
             variant="info"
+            action={
+              <div className="flex gap-2 flex-wrap justify-center">
+                {onRetry && (
+                  <Button
+                    variant="filled"
+                    size="sm"
+                    onClick={() => onRetry(activeFilter?.key)}
+                    Icon={MdRefresh}
+                    className=""
+                  >
+                    Refresh
+                  </Button>
+                )}
+                {isSearchActive && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (onSearchChange) {
+                        onSearchChange('');
+                      } else {
+                        handleClearSearch();
+                        setCurrentSearchTerm('');
+                        setIsSearchActive(false);
+                        setSearchResults([]);
+                      }
+                    }}
+                    Icon={MdClear}
+                    className=""
+                  >
+                    Clear Search
+                  </Button>
+                )}
+              </div>
+            }
           />
         ) : (
           <div className="overflow-x-auto">
@@ -796,7 +901,7 @@ const DataTable = ({
         )}
       </div>
 
-      {!loading && totalPages > 1 && (
+      {!loading && paginationVisible && (
         <div className="flex items-center justify-between">
           {showViewDataButton && (
             <Button
@@ -817,20 +922,28 @@ const DataTable = ({
           )}
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-sm text-gray-500">
-              Page {currentPage} of {totalPages}
+              Page {displayedCurrentPage} of {displayedTotalPages}
             </span>
             <Button
               variant="outlined"
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
+              onClick={handlePrev}
+              disabled={
+                displayedCurrentPage === 1 ||
+                (serverPaged && typeof onPrevPage !== 'function')
+              }
               padding="p-2"
             >
               <AqChevronLeft size={16} />
             </Button>
             <Button
               variant="outlined"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              onClick={handleNext}
+              disabled={
+                displayedCurrentPage === displayedTotalPages ||
+                (serverPaged &&
+                  typeof onNextPage !== 'function' &&
+                  typeof onLoadMore !== 'function')
+              }
               padding="p-2"
             >
               <AqChevronRight size={16} />
@@ -839,8 +952,8 @@ const DataTable = ({
         </div>
       )}
 
-      {/* Show View Data button even when pagination is not visible */}
-      {!loading && totalPages <= 1 && showViewDataButton && (
+      {/* Show View Data button when pagination is not visible */}
+      {!loading && !paginationVisible && showViewDataButton && (
         <div className="flex justify-start py-2">
           <Button
             variant="text"
@@ -855,6 +968,20 @@ const DataTable = ({
           >
             {isLoadingVisualizationData ? 'Loading Sites...' : 'Visualize Data'}
           </Button>
+        </div>
+      )}
+
+      {/* Previously used 'Load More' button removed. Pagination now uses Prev/Next controls. */}
+
+      {/* Show total count when using pagination */}
+      {paginationMeta?.total > 0 && (
+        <div className="flex justify-center py-2 text-sm text-gray-500">
+          Showing {data.length} of {paginationMeta.total} items
+          {paginationMeta.totalPages > 1 && (
+            <span className="ml-2">
+              (Page {paginationMeta.page || 1} of {paginationMeta.totalPages})
+            </span>
+          )}
         </div>
       )}
     </div>

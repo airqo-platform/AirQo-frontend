@@ -1,36 +1,58 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { cohorts as cohortsApi } from "../apis/cohorts";
+import { GetCohortsSummaryParams, cohorts as cohortsApi } from "../apis/cohorts";
 import { setCohorts, setError } from "../redux/slices/cohortsSlice";
 import { useAppSelector } from "../redux/hooks";
 import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
+import { AxiosError } from "axios";
+import { CohortsSummaryResponse } from "@/app/types/cohorts";
 
-export const useCohorts = () => {
+interface ErrorResponse {
+  message: string;
+}
+
+export interface CohortListingOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
+export const useCohorts = (options: CohortListingOptions = {}) => {
   const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["cohorts", activeNetwork?.net_name],
-    queryFn: () => cohortsApi.getCohortsSummary(activeNetwork?.net_name || ""),
+  const { page = 1, limit = 25, search, sortBy, order } = options;
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const skip = (safePage - 1) * safeLimit;
+
+  const { data, isLoading, isFetching, error } = useQuery<CohortsSummaryResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["cohorts", activeNetwork?.net_name, { page, limit, search, sortBy, order }],
+    queryFn: () => {
+      const params: GetCohortsSummaryParams = {
+        network: activeNetwork?.net_name || "",
+        limit: safeLimit,
+        skip,
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(order && { order }),
+      };
+      return cohortsApi.getCohortsSummary(params);
+    },
     enabled: !!activeNetwork?.net_name,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
 
-  React.useEffect(() => {
-    if (data) {
-      dispatch(setCohorts(data));
-    }
-    if (error) {
-      dispatch(setError((error as Error).message));
-    }
-  }, [data, error, dispatch]);
-
   return {
-    cohorts: data?.cohorts || data?.data || [],
+    cohorts: data?.cohorts ?? [],
+    meta: data?.meta,
     isLoading,
+    isFetching,
     error: error as Error | null,
   };
 };

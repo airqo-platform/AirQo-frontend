@@ -13,7 +13,6 @@ import {
   AqDownload01,
   AqFolderShield,
 } from '@airqo/icons-react';
-// import { checkAccess } from '@/core/HOC/authUtils';
 
 /**
  * Centralized sidebar configuration for all user types

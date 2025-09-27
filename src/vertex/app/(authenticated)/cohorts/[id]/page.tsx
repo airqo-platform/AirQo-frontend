@@ -6,7 +6,7 @@ import { AqArrowLeft, AqPlus } from "@airqo/icons-react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useCohortDetails } from "@/core/hooks/useCohorts";
-import DevicesTable from "@/components/features/devices/device-list-table";
+import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 import CohortDetailsCard from "@/components/features/cohorts/cohort-detail-card";
 import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-details-modal";
 import { usePermission } from "@/core/hooks/usePermissions";
@@ -129,7 +129,7 @@ export default function CohortDetailsPage() {
                   </ReusableButton>
                 </div>
               </div>
-              <DevicesTable
+              <ClientPaginatedDevicesTable
                 devices={devices}
                 isLoading={isLoading}
                 error={error}

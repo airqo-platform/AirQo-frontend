@@ -87,6 +87,7 @@ function CreateOrganizationLayout({ children }) {
   );
 }
 
-export default withSessionAuth(PROTECTION_LEVELS.PROTECTED)(
+export default withSessionAuth(
   CreateOrganizationLayout,
+  PROTECTION_LEVELS.PROTECTED,
 );
