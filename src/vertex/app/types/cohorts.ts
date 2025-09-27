@@ -11,6 +11,19 @@ export interface Cohort {
   createdAt?: string;
 }
 
+export interface CohortsSummaryResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
+  cohorts: Cohort[];
+}
+
 interface Grid {
     _id: string;
     visibility: boolean;

@@ -4,8 +4,8 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { AxiosError } from "axios";
-import { grids } from "../apis/grids";
-import { CreateGrid, Grid } from "@/app/types/grids";
+import { GetGridsSummaryParams, grids } from "../apis/grids";
+import { CreateGrid, Grid, GridsSummaryResponse } from "@/app/types/grids";
 import { setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
 import { useAppSelector } from "../redux/hooks";
@@ -20,14 +20,37 @@ interface ErrorResponse {
     | { message: string };
 }
 
+export interface GridListingOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
+}
+
 // Hook to get the grid summary
-export const useGrids = () => {
+export const useGrids = (options: GridListingOptions = {}) => {
   const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["grids", activeNetwork?.net_name],
-    queryFn: () => grids.getGridsApi(activeNetwork?.net_name || ""),
+  const { page = 1, limit = 100, search, sortBy, order } = options;
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const skip = (safePage - 1) * safeLimit;
+
+  const { data, isLoading, isFetching, error } = useQuery({
+    queryKey: ["grids", activeNetwork?.net_name, { page, limit, search, sortBy, order }] as const,
+    queryFn: () => {
+      const params: GetGridsSummaryParams = {
+        network: activeNetwork?.net_name || "",
+        limit: safeLimit,
+        skip,
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(order && { order }),
+      };
+      return grids.getGridsApi(params);
+    },
     enabled: !!activeNetwork?.net_name,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
@@ -44,7 +67,9 @@ export const useGrids = () => {
 
   return {
     grids: data?.grids ?? [],
+    meta: data?.meta,
     isLoading,
+    isFetching,
     error,
   };
 };
@@ -52,7 +77,7 @@ export const useGrids = () => {
 // Hook to get grid details by gridId
 export const useGridDetails = (gridId: string) => {
   const dispatch = useDispatch();
-  const { data, isLoading, error } = useQuery<{ message: string, grids: Grid[] }, AxiosError<ErrorResponse>>({
+  const { data, isLoading, error } = useQuery<GridsSummaryResponse, AxiosError<ErrorResponse>>({
     queryKey: ["gridDetails", gridId],
     queryFn: () => grids.getGridDetailsApi(gridId),
     enabled: !!gridId,
