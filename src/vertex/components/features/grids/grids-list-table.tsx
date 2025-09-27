@@ -50,6 +50,16 @@ export default function GridsTable({
 
   const pageCount = meta?.totalPages ?? 0;
 
+  useEffect(() => {
+    if (pageCount > 0 && pagination.pageIndex >= pageCount) {
+      setPagination((prev) => ({
+        ...prev,
+        pageIndex: Math.max(0, pageCount - 1),
+      }));
+    }
+  }, [pageCount, pagination.pageIndex, setPagination]);
+
+
   const handleRowClick = (item: unknown) => {
     const grid = item as Grid;
     if (onGridClick) onGridClick(grid);
