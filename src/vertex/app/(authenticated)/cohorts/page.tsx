@@ -125,7 +125,7 @@ export default function CohortsPage() {
       },
     },
     {
-      label: "Assign to group",
+      label: "Assign to Organization",
       value: "assign-to-group",
       handler: (ids: (string | number)[]) => {
         setSelectedCohortIds(ids.map(String));

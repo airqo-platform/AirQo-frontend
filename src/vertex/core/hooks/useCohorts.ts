@@ -233,14 +233,14 @@ export const useAssignCohortsToGroup = () => {
     },
     onSuccess: (data, variables) => {
       ReusableToast({
-        message: `${variables.cohortIds.length} cohort(s) assigned to group successfully`,
+        message: `${variables.cohortIds.length} cohort(s) assigned to organization successfully`,
         type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
     },
     onError: (error) => {
       ReusableToast({
-        message: `Failed to assign cohorts to group: ${getApiErrorMessage(error)}`,
+        message: `Failed to assign cohorts to organization: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },

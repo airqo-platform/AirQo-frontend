@@ -32,9 +32,12 @@ export default function DevicesTable({
   const isInternalView = userContext === "airqo-internal";
 
   const {
-    pagination, setPagination,
-    searchTerm, setSearchTerm,
-    sorting, setSorting
+    pagination,
+    setPagination,
+    searchTerm,
+    setSearchTerm,
+    sorting,
+    setSorting,
   } = useServerSideTableState({ initialPageSize: itemsPerPage });
 
   const { devices, meta, isFetching, error } = useDevices({
@@ -42,7 +45,7 @@ export default function DevicesTable({
     limit: pagination.pageSize,
     search: searchTerm,
     sortBy: sorting[0]?.id,
-    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
   });
 
   // Scroll to top of table when page changes
@@ -117,16 +120,18 @@ export default function DevicesTable({
                   label: "Remove from Cohort",
                   value: "unassign_cohort",
                   handler: handleUnassignActionSubmit,
-                }
+                },
               ]
             : []
         }
         emptyState={
-          error ? ( 
+          error ? (
             <div className="flex flex-col items-center gap-2">
               <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
               <p className="text-muted-foreground">Unable to load devices</p>
-              <p className="text-sm text-muted-foreground">{error.message || "An unknown error occurred"}</p>
+              <p className="text-sm text-muted-foreground">
+                {error.message || "An unknown error occurred"}
+              </p>
             </div>
           ) : (
             "No devices available"
@@ -153,11 +158,11 @@ export default function DevicesTable({
 
       {/* Unassign from Cohort Dialog */}
       <UnassignCohortDevicesDialog
-          open={showUnassignDialog}
-          onOpenChange={setShowUnassignDialog}
-          selectedDevices={selectedDevices}
-          onSuccess={handleUnassignSuccess}
-        />
+        open={showUnassignDialog}
+        onOpenChange={setShowUnassignDialog}
+        selectedDevices={selectedDevices}
+        onSuccess={handleUnassignSuccess}
+      />
     </div>
   );
 }

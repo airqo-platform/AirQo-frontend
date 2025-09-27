@@ -63,7 +63,7 @@ export function AssignCohortsToGroupDialog({
   const handleSubmit = () => {
     const newErrors: { group?: string; cohorts?: string } = {};
     if (!selectedGroupId) {
-      newErrors.group = "Please select a group.";
+      newErrors.group = "Please select an organization.";
     }
     if (selectedCohortIds.length === 0) {
       newErrors.cohorts = "Please select at least one cohort.";
@@ -93,8 +93,8 @@ export function AssignCohortsToGroupDialog({
     <ReusableDialog
       isOpen={open}
       onClose={handleClose}
-      title="Assign Cohorts to Group"
-      subtitle="Select a group and the cohorts to be assigned"
+      title="Assign Cohorts to Organization"
+      subtitle="Select an organization and the cohorts to be assigned"
       size="lg"
       primaryAction={{
         label: isPending ? "Assigning..." : "Assign",
@@ -110,7 +110,7 @@ export function AssignCohortsToGroupDialog({
     >
       <div className="space-y-6 py-2">
         <div className="grid gap-2">
-          <label className="text-sm font-medium">Group <span className="text-red-500">*</span></label>
+          <label className="text-sm font-medium">Organization <span className="text-red-500">*</span></label>
           <ComboBox
             options={groupOptions}
             value={selectedGroupId}
@@ -118,9 +118,9 @@ export function AssignCohortsToGroupDialog({
               setSelectedGroupId(value);
               if (errors.group) setErrors(e => ({...e, group: undefined}));
             }}
-            placeholder="Select a group"
-            searchPlaceholder="Search groups..."
-            emptyMessage={isLoadingGroups ? "Loading groups..." : "No groups found."}
+            placeholder="Select an organization"
+            searchPlaceholder="Search organization..."
+            emptyMessage={isLoadingGroups ? "Loading organization..." : "No organization found."}
             disabled={isPending || isLoadingGroups}
             allowCustomInput={false}
           />
