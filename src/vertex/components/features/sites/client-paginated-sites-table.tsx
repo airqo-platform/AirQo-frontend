@@ -71,10 +71,11 @@ export default function ClientPaginatedSitesTable({
     {
       key: "description",
       label: "Description",
-      render: (value) => {
-        const desc = typeof value === "string" ? value : "";
+      render: (value, item) => {
+        const site = item as unknown as Site;
+        const desc = site.description || site.formatted_name || site.location_name || "";
         return (
-          <span className="text-sm text-muted-foreground max-w-[280px] truncate lowercase" title={desc}>
+          <span className="text-sm text-muted-foreground max-w-[280px] truncate capitalize" title={desc}>
             {desc}
           </span>
         );
