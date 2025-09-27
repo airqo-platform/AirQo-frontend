@@ -1,9 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
 import { GetCohortsSummaryParams, cohorts as cohortsApi } from "../apis/cohorts";
-import { setCohorts, setError } from "../redux/slices/cohortsSlice";
 import { useAppSelector } from "../redux/hooks";
-import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { AxiosError } from "axios";
@@ -22,7 +19,6 @@ export interface CohortListingOptions {
 }
 
 export const useCohorts = (options: CohortListingOptions = {}) => {
-  const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const { page = 1, limit = 25, search, sortBy, order } = options;
