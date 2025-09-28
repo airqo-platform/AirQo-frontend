@@ -1,9 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useDispatch } from "react-redux";
 import { GetCohortsSummaryParams, cohorts as cohortsApi } from "../apis/cohorts";
-import { setCohorts, setError } from "../redux/slices/cohortsSlice";
 import { useAppSelector } from "../redux/hooks";
-import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { AxiosError } from "axios";
@@ -22,7 +19,6 @@ export interface CohortListingOptions {
 }
 
 export const useCohorts = (options: CohortListingOptions = {}) => {
-  const dispatch = useDispatch();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   const { page = 1, limit = 25, search, sortBy, order } = options;
@@ -183,6 +179,40 @@ export const useAssignDevicesToCohort = () => {
   });
 };
 
+export const useUnassignDevicesFromCohort = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      cohortId,
+      device_ids
+    }: {
+      cohortId: string;
+      device_ids: string[]
+    }) => {
+      if (!cohortId || !device_ids?.length) {
+        throw new Error("Cohort ID and at least one device ID are required");
+      }
+      return cohortsApi.unassignDevicesFromCohort({ cohortId, device_ids });
+    },
+    onSuccess: (data, variables) => {
+      ReusableToast({
+        message: `${variables.device_ids.length} device(s) unassigned from cohort successfully`,
+        type: "SUCCESS",
+      });
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
+      queryClient.invalidateQueries({ queryKey: ["devices"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["cohort-details", variables.cohortId] });
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Failed to unassign devices: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
+  });
+};
+
 export const useAssignCohortsToGroup = () => {
   const queryClient = useQueryClient();
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
@@ -199,14 +229,14 @@ export const useAssignCohortsToGroup = () => {
     },
     onSuccess: (data, variables) => {
       ReusableToast({
-        message: `${variables.cohortIds.length} cohort(s) assigned to group successfully`,
+        message: `${variables.cohortIds.length} cohort(s) assigned to organization successfully`,
         type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
     },
     onError: (error) => {
       ReusableToast({
-        message: `Failed to assign cohorts to group: ${getApiErrorMessage(error)}`,
+        message: `Failed to assign cohorts to organization: ${getApiErrorMessage(error)}`,
         type: "ERROR",
       });
     },

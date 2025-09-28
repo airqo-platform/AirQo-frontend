@@ -219,6 +219,7 @@ interface TableHeaderProps<T> {
   filters: FilterConfig[];
   filterValues: Record<string, FilterValue>;
   onFilterChange: (key: keyof T, value: FilterValue) => void;
+  selectedCount: number;
 }
 
 const TableHeader = <T extends TableItem>({
@@ -231,13 +232,19 @@ const TableHeader = <T extends TableItem>({
   filters,
   filterValues,
   onFilterChange,
+  selectedCount,
 }: TableHeaderProps<T>) => {
   return (
     <div className="px-6 py-4 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {title}
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {title}
+          </h2>
+          {selectedCount > 0 && (
+            <p className="text-sm text-primary dark:text-primary">{selectedCount} item(s) selected</p>
+          )}
+        </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
           {searchable && (
             <div className="relative">
@@ -285,46 +292,49 @@ const TableHeader = <T extends TableItem>({
 
 // --- MultiSelectActionBar Component ---
 interface MultiSelectActionBarProps {
-  selectedCount: number;
   actions: TableAction[];
   selectedAction: string;
   onActionChange: (action: string) => void;
   onActionSubmit: () => void;
+  onClearSelection: () => void;
 }
 
 const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
-  selectedCount,
   actions,
   selectedAction,
   onActionChange,
   onActionSubmit,
+  onClearSelection,
 }) => {
   return (
     <div className="px-6 py-3 bg-primary/10 dark:bg-primary/20 border-b border-primary/20 dark:border-primary/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div className="text-sm text-primary dark:text-primary">
-        {selectedCount} item(s) selected
-      </div>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <SelectField
-          value={selectedAction}
-          onChange={(e) => onActionChange(String(e.target.value))}
-          placeholder="Select Action"
-          className="min-w-[12rem]"
+      <ReusableButton
+          onClick={onClearSelection}
+          className="text-sm font-medium"
+          variant="text"
         >
-          {actions.map((action) => (
-            <option key={action.value} value={action.value}>
-              {action.label}
-            </option>
-          ))}
-        </SelectField>
-        <ReusableButton
-          onClick={onActionSubmit}
-          disabled={!selectedAction}
-          variant="filled"
-        >
-          Apply
+          Clear selection
         </ReusableButton>
-      </div>
+      {actions.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <SelectField
+            value={selectedAction}
+            onChange={(e) => onActionChange(String(e.target.value))}
+            placeholder="Select Action"
+            className="min-w-[12rem] text-sm"
+          >
+            {actions.map((action) => (
+              <option key={action.value} value={action.value}>
+                {action.label}
+              </option>
+            ))}
+          </SelectField>
+          <ReusableButton onClick={onActionSubmit} disabled={!selectedAction} variant="filled" padding="px-3 py-1.5"
+                    className="text-sm font-medium">
+            Apply
+          </ReusableButton>
+        </div>
+      )}
     </div>
   );
 };
@@ -496,7 +506,8 @@ interface ReusableTableProps<T extends TableItem> {
   loadingComponent?: ReactNode;
   multiSelect?: boolean;
   actions?: TableAction[];
-  onSelectedItemsChange?: (selectedIds: (string | number)[]) => void;
+  onSelectedIdsChange?: (selectedIds: (string | number)[]) => void;
+  onSelectedItemsChange?: (selectedItems: T[]) => void;
   onRowClick?: (item: T) => void;
   emptyState?: ReactNode;
   className?: string;
@@ -555,6 +566,7 @@ const ReusableTable = <T extends TableItem>({
   loadingComponent = null,
   multiSelect = false,
   actions = [],
+  onSelectedIdsChange,
   onSelectedItemsChange,
   onRowClick,
   emptyState = "No data available",
@@ -574,7 +586,7 @@ const ReusableTable = <T extends TableItem>({
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const [selectedItems, setSelectedItems] = useState<(string | number)[]>([]);
+  const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
 
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
@@ -989,59 +1001,61 @@ const ReusableTable = <T extends TableItem>({
   const handleSelectAll = useCallback(
     (isChecked: boolean) => {
       if (isChecked) {
-        const currentPageIds = finalPaginatedData.map((item) => item.id);
         setSelectedItems((prevSelected) => {
-          const newItems = currentPageIds.filter(
-            (id) => !prevSelected.includes(id)
+          const newItems = finalPaginatedData.filter(
+            (item) => !prevSelected.some(prev => prev.id === item.id)
           );
           const updatedSelected = [...prevSelected, ...newItems];
           onSelectedItemsChange?.(updatedSelected);
+          onSelectedIdsChange?.(updatedSelected.map(item => item.id));
           return updatedSelected;
         });
       } else {
-        const currentPageIds = finalPaginatedData.map((item) => item.id);
+        const currentPageIds = new Set(finalPaginatedData.map((item) => item.id));
         setSelectedItems((prevSelected) => {
           const updatedSelected = prevSelected.filter(
-            (id) => !currentPageIds.includes(id)
+            (item) => !currentPageIds.has(item.id)
           );
           onSelectedItemsChange?.(updatedSelected);
+          onSelectedIdsChange?.(updatedSelected.map(item => item.id));
           return updatedSelected;
         });
       }
     },
-    [finalPaginatedData, onSelectedItemsChange]
+    [finalPaginatedData, onSelectedItemsChange, onSelectedIdsChange]
   );
 
   const handleSelectItem = useCallback(
-    (itemId: string | number, isChecked: boolean) => {
+    (item: T, isChecked: boolean) => {
       if (isChecked) {
         setSelectedItems((prevSelected) => {
-          const updatedSelected = [...prevSelected, itemId];
+          const updatedSelected = [...prevSelected, item];
           onSelectedItemsChange?.(updatedSelected);
+          onSelectedIdsChange?.(updatedSelected.map(i => i.id));
           return updatedSelected;
         });
       } else {
         setSelectedItems((prevSelected) => {
-          const updatedSelected = prevSelected.filter((id) => id !== itemId);
+          const updatedSelected = prevSelected.filter((i) => i.id !== item.id);
           onSelectedItemsChange?.(updatedSelected);
+          onSelectedIdsChange?.(updatedSelected.map(i => i.id));
           return updatedSelected;
         });
       }
     },
-    [onSelectedItemsChange]
+    [onSelectedIdsChange, onSelectedItemsChange]
   );
 
   const isAllSelectedOnPage = useMemo(
     () =>
       finalPaginatedData.length > 0 &&
-      finalPaginatedData.every((item) => selectedItems.includes(item.id)),
+      finalPaginatedData.every((item) => selectedItems.some(sel => sel.id === item.id)),
     [finalPaginatedData, selectedItems]
   );
 
   const isIndeterminate = useMemo(
     () =>
-      finalPaginatedData.length > 0 &&
-      finalPaginatedData.some((item) => selectedItems.includes(item.id)) &&
+      selectedItems.length > 0 &&
       !isAllSelectedOnPage,
     [finalPaginatedData, selectedItems, isAllSelectedOnPage]
   );
@@ -1062,11 +1076,17 @@ const ReusableTable = <T extends TableItem>({
     if (selectedAction && actions.length > 0) {
       const action = actions.find((a) => a.value === selectedAction);
       if (action && typeof action.handler === "function") {
-        action.handler(selectedItems);
+        action.handler(selectedItems.map(item => item.id));
       }
     }
     setSelectedAction("");
   }, [selectedAction, actions, selectedItems]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedItems([]);
+    onSelectedItemsChange?.([]);
+    onSelectedIdsChange?.([]);
+  }, [onSelectedItemsChange, onSelectedIdsChange]);
 
   const displayColumns = useMemo((): TableColumn<T>[] => {
     const cols = [...columns];
@@ -1090,9 +1110,9 @@ const ReusableTable = <T extends TableItem>({
           <input
             type="checkbox"
             className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
-            checked={selectedItems.includes(item.id)}
+            checked={selectedItems.some(sel => sel.id === item.id)}
             onClick={(e) => e.stopPropagation()}
-            onChange={(e) => handleSelectItem(item.id, e.target.checked)}
+            onChange={(e) => handleSelectItem(item, e.target.checked)}
           />
         ),
         sortable: false,
@@ -1123,16 +1143,17 @@ const ReusableTable = <T extends TableItem>({
         filters={filters}
         filterValues={filterValues}
         onFilterChange={handleFilterChange}
+        selectedCount={selectedItems.length}
       />
 
       {/* Multi-Select Action Bar */}
       {multiSelect && isAnySelected && (
         <MultiSelectActionBar
-          selectedCount={selectedItems.length}
           actions={actions}
           selectedAction={selectedAction}
           onActionChange={handleActionChange}
           onActionSubmit={handleActionSubmit}
+          onClearSelection={handleClearSelection}
         />
       )}
 
@@ -1202,7 +1223,7 @@ const ReusableTable = <T extends TableItem>({
                         onRowClick(item);
                       }
                     }}
-                    className={`${selectedItems.includes(item.id)
+                    className={`${selectedItems.some(sel => sel.id === item.id)
                         ? "bg-primary/10 dark:bg-primary/20"
                         : "hover:bg-primary/5 dark:hover:bg-primary/20"
                       } ${onRowClick ? "cursor-pointer" : ""}`}
@@ -1211,8 +1232,8 @@ const ReusableTable = <T extends TableItem>({
                       <td
                         key={String(column.key)}
                         className={`break-words ${column.key === "checkbox"
-                            ? "w-4 p-4"
-                            : "w-52 truncate px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
+                            ? "w-4 p-3"
+                            : "w-52 truncate px-6 py-3 text-sm text-gray-900 dark:text-gray-100"
                           } ${column.className || ""}`}
                       >
                         {renderCell(item, column)}

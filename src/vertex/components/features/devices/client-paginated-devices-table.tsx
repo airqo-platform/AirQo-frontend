@@ -16,6 +16,7 @@ interface ClientPaginatedDevicesTableProps {
   onDeviceClick?: (device: Device) => void;
   multiSelect?: boolean;
   className?: string;
+  hiddenColumns?: string[];
 }
 
 export default function ClientPaginatedDevicesTable({
@@ -26,6 +27,7 @@ export default function ClientPaginatedDevicesTable({
   onDeviceClick,
   multiSelect = false,
   className,
+  hiddenColumns = [],
 }: ClientPaginatedDevicesTableProps) {
   const router = useRouter();
   const { userContext } = useUserContext();
@@ -49,7 +51,12 @@ export default function ClientPaginatedDevicesTable({
       }));
   }, [devices]);
 
-  const columns = useMemo(() => getColumns(isInternalView), [isInternalView]);
+  const columns = useMemo(() => {
+    const allColumns = getColumns(isInternalView);
+    return allColumns.filter(
+      (column) => !hiddenColumns.includes(column.key as string)
+    );
+  }, [isInternalView, hiddenColumns]);
 
   return (
     <div className={`space-y-4 ${className}`}>
