@@ -36,12 +36,19 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
           <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">
             Site
           </div>
-          <div className="text-base font-normal break-all">
-              {device?.site && Array.isArray(device.site) && device.site.length > 0 ? 
-                device.site[0]?.name || 
-                device.site[0]?.description || 
-                device.site[0]?.location_name || "N/A" : "N/A"}
-            </div>
+          <div className="text-base font-normal break-words w-[70%]">
+            {(() => {
+              if (!device?.site) return "N/A";
+              if (Array.isArray(device.site) && device.site.length > 0) {
+                const site = device.site[0];
+                return site?.name || site?.description || site?.location_name || "N/A";
+              }
+              if (typeof device.site === 'object' && !Array.isArray(device.site)) {
+                return (device.site as any).name || (device.site as any).description || (device.site as any).location_name || "N/A";
+              }
+              return "N/A";
+            })()}
+          </div>
         </div>
 
         <div className="space-y-2">
