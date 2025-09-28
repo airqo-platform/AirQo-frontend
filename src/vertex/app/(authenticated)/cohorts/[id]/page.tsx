@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AqArrowLeft, AqPlus } from "@airqo/icons-react";
+import { AqArrowLeft, AqMinusCircle, AqPlus } from "@airqo/icons-react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useCohortDetails } from "@/core/hooks/useCohorts";
@@ -119,13 +119,26 @@ export default function CohortDetailsPage() {
                 <h2 className="text-lg font-semibold">Cohort devices</h2>
                 <div className="flex gap-2">
                   <ReusableButton
-                    variant="outlined"
+                    variant="filled"
                     onClick={() => setShowAssignDialog(true)}
                     disabled={!canUpdateDevice}
                     permission={PERMISSIONS.DEVICE.UPDATE}
                     Icon={AqPlus}
+                    padding="px-3 py-1.5"
+                    className="text-sm font-medium"
                   >
                     Add Devices
+                  </ReusableButton>
+                  <ReusableButton
+                    variant="outlined"
+                    onClick={() => setShowUnassignDialog(true)}
+                    disabled={!canUpdateDevice}
+                    permission={PERMISSIONS.DEVICE.UPDATE}
+                    Icon={AqMinusCircle}
+                    padding="px-3 py-1.5"
+                    className="border-red-700 hover:bg-red-700 text-red-700 text-sm font-medium"
+                  >
+                    Remove Devices
                   </ReusableButton>
                 </div>
               </div>
