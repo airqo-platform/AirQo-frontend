@@ -1149,7 +1149,6 @@ const ReusableTable = <T extends TableItem>({
       {/* Multi-Select Action Bar */}
       {multiSelect && isAnySelected && (
         <MultiSelectActionBar
-          selectedCount={selectedItems.length}
           actions={actions}
           selectedAction={selectedAction}
           onActionChange={handleActionChange}
