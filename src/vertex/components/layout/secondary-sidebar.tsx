@@ -8,7 +8,9 @@ import {
   ChevronLeft,
   Shield,
   X,
+  LogOut
 } from "lucide-react";
+
 import {
   AqHomeSmile,
   AqMonitor,
@@ -36,7 +38,8 @@ interface SecondarySidebarProps {
   isCollapsed: boolean;
   activeModule: string;
   toggleSidebar: () => void;
-  isMobileOpen?: boolean;
+//   isMobileOpen?: boolean;
+  isTabletOpen?: boolean;
   handleMobileClose?: () => void;
 }
 
@@ -126,7 +129,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
   activeModule,
   toggleSidebar,
-  isMobileOpen = false,
+  isTabletOpen = false,
   handleMobileClose,
 }) => {
   const { getSidebarConfig, getContextPermissions, isPersonalContext } =
@@ -307,7 +310,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
     </aside>
 
     {/* Mobile/Tablet Overlay */}
-      {isMobileOpen && (
+      {isTabletOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/20 z-40 transition-opacity duration-300"
           onClick={handleMobileClose}
@@ -317,7 +320,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
      {/* Mobile/Tablet Sidebar - slides in from right  */}
       <aside
         className={`lg:hidden fixed top-0 right-0 z-[99999] h-full w-[280px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
-          isMobileOpen ? "translate-x-0" : "translate-x-full"
+          isTabletOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         <div className="flex flex-col h-full   p-1">
@@ -440,7 +443,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 <Skeleton className="h-10 w-full" />
               </div>
             ) : (
-              <NavItem href="/profile" icon={AqUser03} label="Profile" isCollapsed={false} />
+              <NavItem href="/profile" icon={LogOut} label="Sign out" isCollapsed={false} />
             )}
           </div>
         </div>
