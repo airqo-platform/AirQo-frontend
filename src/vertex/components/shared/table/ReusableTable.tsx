@@ -1043,7 +1043,7 @@ const ReusableTable = <T extends TableItem>({
         });
       }
     },
-    [onSelectedItemsChange]
+    [onSelectedIdsChange, onSelectedItemsChange]
   );
 
   const isAllSelectedOnPage = useMemo(

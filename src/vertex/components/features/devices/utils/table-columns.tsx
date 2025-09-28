@@ -14,7 +14,7 @@ export const getColumns = (
     {
       key: "long_name",
       label: "Device Name",
-      render: (value, device) => {
+      render: (value) => {
         const name = typeof value === "string" ? value : "";
         return (
           <div className="flex flex-col gap-1">
