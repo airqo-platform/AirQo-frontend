@@ -219,6 +219,7 @@ interface TableHeaderProps<T> {
   filters: FilterConfig[];
   filterValues: Record<string, FilterValue>;
   onFilterChange: (key: keyof T, value: FilterValue) => void;
+  selectedCount: number;
 }
 
 const TableHeader = <T extends TableItem>({
@@ -231,13 +232,19 @@ const TableHeader = <T extends TableItem>({
   filters,
   filterValues,
   onFilterChange,
+  selectedCount,
 }: TableHeaderProps<T>) => {
   return (
     <div className="px-6 py-4 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20]">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          {title}
-        </h2>
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            {title}
+          </h2>
+          {selectedCount > 0 && (
+            <p className="text-sm text-primary dark:text-primary">{selectedCount} item(s) selected</p>
+          )}
+        </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
           {searchable && (
             <div className="relative">
@@ -285,46 +292,49 @@ const TableHeader = <T extends TableItem>({
 
 // --- MultiSelectActionBar Component ---
 interface MultiSelectActionBarProps {
-  selectedCount: number;
   actions: TableAction[];
   selectedAction: string;
   onActionChange: (action: string) => void;
   onActionSubmit: () => void;
+  onClearSelection: () => void;
 }
 
 const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
-  selectedCount,
   actions,
   selectedAction,
   onActionChange,
   onActionSubmit,
+  onClearSelection,
 }) => {
   return (
     <div className="px-6 py-3 bg-primary/10 dark:bg-primary/20 border-b border-primary/20 dark:border-primary/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div className="text-sm text-primary dark:text-primary">
-        {selectedCount} item(s) selected
-      </div>
-      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <SelectField
-          value={selectedAction}
-          onChange={(e) => onActionChange(String(e.target.value))}
-          placeholder="Select Action"
-          className="min-w-[12rem]"
+      <ReusableButton
+          onClick={onClearSelection}
+          className="text-sm font-medium"
+          variant="text"
         >
-          {actions.map((action) => (
-            <option key={action.value} value={action.value}>
-              {action.label}
-            </option>
-          ))}
-        </SelectField>
-        <ReusableButton
-          onClick={onActionSubmit}
-          disabled={!selectedAction}
-          variant="filled"
-        >
-          Apply
+          Clear selection
         </ReusableButton>
-      </div>
+      {actions.length > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <SelectField
+            value={selectedAction}
+            onChange={(e) => onActionChange(String(e.target.value))}
+            placeholder="Select Action"
+            className="min-w-[12rem] text-sm"
+          >
+            {actions.map((action) => (
+              <option key={action.value} value={action.value}>
+                {action.label}
+              </option>
+            ))}
+          </SelectField>
+          <ReusableButton onClick={onActionSubmit} disabled={!selectedAction} variant="filled" padding="px-3 py-1.5"
+                    className="text-sm font-medium">
+            Apply
+          </ReusableButton>
+        </div>
+      )}
     </div>
   );
 };
@@ -1072,6 +1082,12 @@ const ReusableTable = <T extends TableItem>({
     setSelectedAction("");
   }, [selectedAction, actions, selectedItems]);
 
+  const handleClearSelection = useCallback(() => {
+    setSelectedItems([]);
+    onSelectedItemsChange?.([]);
+    onSelectedIdsChange?.([]);
+  }, [onSelectedItemsChange, onSelectedIdsChange]);
+
   const displayColumns = useMemo((): TableColumn<T>[] => {
     const cols = [...columns];
     if (multiSelect) {
@@ -1127,6 +1143,7 @@ const ReusableTable = <T extends TableItem>({
         filters={filters}
         filterValues={filterValues}
         onFilterChange={handleFilterChange}
+        selectedCount={selectedItems.length}
       />
 
       {/* Multi-Select Action Bar */}
@@ -1137,6 +1154,7 @@ const ReusableTable = <T extends TableItem>({
           selectedAction={selectedAction}
           onActionChange={handleActionChange}
           onActionSubmit={handleActionSubmit}
+          onClearSelection={handleClearSelection}
         />
       )}
 
