@@ -104,22 +104,24 @@ export default function DevicesTable({
         loading={isFetching}
         pageSize={itemsPerPage}
         onRowClick={handleDeviceClick}
-        multiSelect={multiSelect}        
+        multiSelect={multiSelect}
         onSelectedItemsChange={(items) => setSelectedDeviceObjects(items as TableDevice[])}
         actions={
           multiSelect
             ? [
-                {
-                  label: "Add to Cohort",
-                  value: "assign_cohort",
-                  handler: handleAddCohortDeviceActionSubmit,
-                },
-                {
+              {
+                label: "Add to Cohort",
+                value: "assign_cohort",
+                handler: handleAddCohortDeviceActionSubmit,
+              },
+              ...(selectedDeviceObjects.length > 0
+                ? [{
                   label: "Remove from Cohort",
                   value: "unassign_cohort",
-                  handler: handleUnassignActionSubmit, // Handler doesn't need IDs, it just opens the dialog
-                },
-              ]
+                  handler: handleUnassignActionSubmit,
+                }]
+                : [])
+            ]
             : []
         }
         emptyState={
