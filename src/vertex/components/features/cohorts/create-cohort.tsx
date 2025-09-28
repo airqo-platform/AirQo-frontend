@@ -1,14 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { useDevices } from "@/core/hooks/useDevices";
 import { useCreateCohortWithDevices } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
-import type { Device } from "@/app/types/devices";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+
+export type PreselectedDevice = { value: string; label: string };
 
 interface CreateCohortDialogProps {
   open: boolean;
@@ -16,7 +27,17 @@ interface CreateCohortDialogProps {
   onSuccess?: (cohortData?: { cohort: { _id: string; name: string } }) => void;
   onError?: (error: unknown) => void;
   andNavigate?: boolean;
+  preselectedDevices?: PreselectedDevice[];
 }
+
+const formSchema = z.object({
+  name: z.string().min(2, {
+    message: "Cohort name must be at least 2 characters.",
+  }),
+  devices: z.array(z.string()).min(1, {
+    message: "Please select at least one device.",
+  }),
+});
 
 export function CreateCohortDialog({
   open,
@@ -24,84 +45,69 @@ export function CreateCohortDialog({
   onSuccess,
   onError,
   andNavigate = true,
+  preselectedDevices = [],
 }: CreateCohortDialogProps) {
-  const [name, setName] = useState("");
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: "",
+      devices: preselectedDevices.map((d) => d.value),
+    },
+  });
 
   const { devices, isLoading, error } = useDevices();
-  const deviceOptions = (devices || [])
-    .map((d: Device) => {
-      const id = d?._id as string | undefined;
-      const label = (d?.long_name as string) ?? (d?.name as string) ?? id ?? "";
-      return id ? { value: id, label: String(label) } : null;
-    })
-    .filter(Boolean) as { value: string; label: string }[];
+
+  const deviceOptions = useMemo(() => {
+    const allDeviceOptions = (devices || []).map((d) => ({
+      value: d._id || "",
+      label: d.long_name || d.name || `Device ${d._id}`,
+    }));
+
+    const combinedOptions = [...preselectedDevices, ...allDeviceOptions];
+    const uniqueOptions = Array.from(new Map(combinedOptions.map((opt) => [opt.value, opt])).values());
+    return uniqueOptions.filter((opt) => opt.value);
+  }, [devices, preselectedDevices]);
 
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const router = useRouter();
   const network = activeNetwork?.net_name || "";
 
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: "",
+        devices: preselectedDevices.map((d) => d.value),
+      });
+    }
+  }, [open, preselectedDevices, form]);
+
   const { mutate: createCohort, isPending } = useCreateCohortWithDevices();
 
-  const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
-
-    if (name.trim().length < 2) {
-      newErrors.name = "Cohort name must be at least 2 characters.";
-    }
-
-    if (selectedDevices.length === 0) {
-      newErrors.devices = "Please select at least one device.";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
   const handleCancel = () => {
-    setName("");
-    setSelectedDevices([]);
-    setErrors({});
+    form.reset();
     onOpenChange(false);
   };
 
-  const handleSubmit = () => {
-    if (validateForm()) {
-      createCohort(
-        { name, network, deviceIds: selectedDevices },
-        {
-          onSuccess: (response) => {
-            if (onSuccess && response?.cohort) {
-              onSuccess(response);
-            }
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    createCohort(
+      { name: values.name, network, deviceIds: values.devices },
+      {
+        onSuccess: (response) => {
+          onSuccess?.(response);
+          form.reset();
 
-            setName("");
-            setSelectedDevices([]);
-            setErrors({});
-
-            if (andNavigate && response?.cohort?._id) {
-              router.push(`/cohorts/${response.cohort._id}`);
-            } else {
-              onOpenChange(false);
-            }
-          },
-          onError: (error) => {
-            if (onError) {
-              onError(error);
-            }
+          if (andNavigate && response?.cohort?._id) {
+            router.push(`/cohorts/${response.cohort._id}`);
+          } else {
+            onOpenChange(false);
           }
-        }
-      );
-    }
-  };
-
-  const handleDevicesChange = (devices: string[]) => {
-    setSelectedDevices(devices);
-    if (devices.length > 0 && errors.devices) {
-      setErrors(prev => ({ ...prev, devices: "" }));
-    }
-  };
+        },
+        onError: (error) => {
+          onError?.(error);
+        },
+      },
+    );
+  }
 
   return (
     <ReusableDialog
@@ -112,7 +118,7 @@ export function CreateCohortDialog({
       size="lg"
       primaryAction={{
         label: isPending ? "Creating…" : "Submit",
-        onClick: handleSubmit,
+        onClick: form.handleSubmit(onSubmit),
         disabled: isPending || !network,
       }}
       secondaryAction={{
@@ -122,50 +128,48 @@ export function CreateCohortDialog({
         variant: "outline",
       }}
     >
-      <div className="space-y-4">
-        <ReusableInputField
-          label="Cohort name"
-          placeholder="Cohort name"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-            if (errors.name && e.target.value.length >= 2) {
-              setErrors((prev) => ({ ...prev, name: "" }));
-            }
-          }}
-          error={errors.name}
-          required
-        />
-
-        <div className="space-y-2">
-          <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-            Select Device(s)
-          </label>
-          <div className="space-y-2">
-            <MultiSelectCombobox
-              options={deviceOptions}
-              placeholder="Select or add devices..."
-              onValueChange={handleDevicesChange}
-              value={selectedDevices}
-              allowCreate={false}
-            />
-            {isLoading && (
-              <p className="text-xs text-muted-foreground">Loading devices…</p>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <ReusableInputField
+                label="Cohort name"
+                placeholder="Cohort name"
+                required
+                {...field}
+                error={form.formState.errors.name?.message}
+              />
             )}
-            {error && (
-              <p className="text-xs text-destructive">Failed to load devices. Please try again.</p>
+          />
+          <FormField
+            control={form.control}
+            name="devices"
+            render={({ field }) => (
+              <FormItem className="space-y-2">
+                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  Select Device(s) <span className="text-red-500">*</span>
+                </label>
+                <FormControl>
+                  <MultiSelectCombobox
+                    options={deviceOptions}
+                    placeholder="Select or add devices..."
+                    onValueChange={field.onChange}
+                    value={field.value}
+                    allowCreate={false}
+                  />
+                </FormControl>
+                {isLoading && <p className="text-xs text-muted-foreground">Loading devices…</p>}
+                {error && (
+                  <p className="text-xs text-destructive">Failed to load devices. Please try again.</p>
+                )}
+                <FormMessage />
+              </FormItem>
             )}
-            <div className="text-xs text-muted-foreground">
-              {selectedDevices.length > 0
-                ? `${selectedDevices.length} device(s) selected`
-                : "No devices selected"}
-            </div>
-          </div>
-          {errors.devices && (
-            <p className="text-sm font-medium text-destructive">{errors.devices}</p>
-          )}
-        </div>
-      </div>
+          />
+        </form>
+      </Form>
     </ReusableDialog>
   );
 }

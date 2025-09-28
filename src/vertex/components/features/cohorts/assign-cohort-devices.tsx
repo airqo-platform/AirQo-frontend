@@ -17,7 +17,7 @@ import { useDevices } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { AqPlus } from "@airqo/icons-react";
 import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
-import { CreateCohortDialog } from "./create-cohort";
+import { CreateCohortDialog, PreselectedDevice } from "./create-cohort";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
@@ -51,6 +51,7 @@ export function AssignCohortDevicesDialog({
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
 
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
+  const [preselectedForCreate, setPreselectedForCreate] = useState<PreselectedDevice[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -91,10 +92,16 @@ export function AssignCohortDevicesDialog({
   };
 
   const handleCreateCohortAction = () => {
-    onOpenChange(false);
+    const selectedIds = form.getValues("devices") || [];
+    const preselected = deviceOptions
+      .filter((opt) => selectedIds.includes(opt.value))
+      .map((opt) => ({ value: opt.value, label: opt.label }));
 
+    setPreselectedForCreate(preselected); // store in state
+    onOpenChange(false);
     setCreateCohortModalOpen(true);
   };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     assignDevices(
@@ -126,7 +133,7 @@ export function AssignCohortDevicesDialog({
         isOpen={open}
         onClose={() => handleOpenChange(false)}
         title="Add devices to cohort"
-        subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
+        subtitle={`${preselectedForCreate.length || 0} device(s) selected`}
         size="lg"
         maxHeight="max-h-[70vh]"
         primaryAction={{
@@ -204,8 +211,10 @@ export function AssignCohortDevicesDialog({
         open={createCohortModalOpen}
         onOpenChange={handleCreateCohortClose}
         onSuccess={handleCreateCohortSuccess}
+        preselectedDevices={preselectedForCreate}
         andNavigate={true}
       />
+
     </>
   );
 }
