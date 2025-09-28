@@ -12,13 +12,6 @@ interface MaintenanceStatusCardProps {
   onViewAllLogs?: () => void;
 }
 
-const statusColors: Record<string, { text: string; bg: string }> = {
-  good: { text: "text-green-600", bg: "bg-green-100" },
-  due: { text: "text-yellow-700", bg: "bg-yellow-100" },
-  overdue: { text: "text-red-600", bg: "bg-red-100" },
-  "-1": { text: "text-muted-foreground", bg: "bg-muted" },
-};
-
 const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
   deviceId,
   onViewAllLogs,
@@ -53,23 +46,6 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
         </div>
       ) : (
         <div className="px-3 pb-3 space-y-3">
-          <div>
-            <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">
-              Status
-            </div>
-            {(() => {
-              const key = String(device.maintenance_status ?? "good");
-              const colors = statusColors[key] || statusColors["good"];
-              return (
-                <span
-                  className={`inline-block text-base font-mono break-all capitalize px-2 py-1 rounded-md ${colors.text} ${colors.bg}`}
-                >
-                  {key === "-1" ? "Unspecified" : key}
-                </span>
-              );
-            })()}
-          </div>
-
           {/* Next maintenance */}
           {device.nextMaintenance && (
             <div>

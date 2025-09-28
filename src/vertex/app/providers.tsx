@@ -5,6 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { store } from "@/core/redux/store";
 import { Provider } from "react-redux";
 import { AuthProvider } from "@/core/auth/authProvider";
+import NetworkStatusBanner from "@/components/features/network-status-banner";
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -27,6 +28,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           {process.env.NODE_ENV !== "production" && (
             <ReactQueryDevtools initialIsOpen={false} />
           )}
+          <NetworkStatusBanner />
         </AuthProvider>
       </QueryClientProvider>
     </Provider>

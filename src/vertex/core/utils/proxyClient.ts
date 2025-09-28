@@ -121,7 +121,7 @@ const getCachedSession = async (): Promise<ExtendedSession | null> => {
 
   const cacheKey = 'nextauth_session';
   const cachedSession = sessionCache.get(cacheKey);
-  
+
   if (cachedSession) {
     return cachedSession as ExtendedSession | null;
   }
@@ -220,14 +220,26 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
       };
 
       // Handle request body
-      if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
-        try {
-          const body = await req.text();
-          if (body) {
-            config.data = JSON.parse(body);
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
+        const contentType = req.headers.get('content-type') || '';
+        const rawBody = await req.text();
+        if (contentType.includes('application/json')) {
+          if (rawBody) {
+            try {
+              config.data = JSON.parse(rawBody);
+            } catch {
+              return NextResponse.json(
+                { success: false, message: 'Bad Request: Invalid JSON body' },
+                { status: 400 }
+              );
+            }
           }
-        } catch {
-          config.data = {};
+        } else if (rawBody) {
+          // Forward non‑JSON bodies as raw text
+          config.data = rawBody;
+          if (config.headers) {
+            delete (config.headers as Record<string, string>)['Content-Type'];
+          }
         }
       }
 

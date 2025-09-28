@@ -125,7 +125,7 @@ export default function CohortsPage() {
       },
     },
     {
-      label: "Assign to group",
+      label: "Assign to Organization",
       value: "assign-to-group",
       handler: (ids: (string | number)[]) => {
         setSelectedCohortIds(ids.map(String));
@@ -170,7 +170,7 @@ export default function CohortsPage() {
             }}
             emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
             multiSelect
-            onSelectedItemsChange={(ids: (string | number)[]) => setSelectedCohortIds(ids.map(String))}
+            onSelectedIdsChange={(ids: (string | number)[]) => setSelectedCohortIds(ids.map(String))}
             actions={tableActions}
             serverSidePagination
             pageCount={pageCount}

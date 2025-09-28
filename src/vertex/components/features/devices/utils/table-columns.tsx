@@ -14,19 +14,12 @@ export const getColumns = (
     {
       key: "long_name",
       label: "Device Name",
-      render: (value, device) => {
+      render: (value) => {
         const name = typeof value === "string" ? value : "";
-        const description = device.description ?? "";
         return (
           <div className="flex flex-col gap-1">
             <span className="font-medium uppercase truncate" title={name}>
               {name}
-            </span>
-            <span
-              className="text-sm text-muted-foreground max-w-[200px] truncate lowercase"
-              title={description}
-            >
-              {description}
             </span>
           </div>
         );
