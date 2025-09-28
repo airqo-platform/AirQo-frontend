@@ -62,13 +62,18 @@ export function AssignCohortDevicesDialog({
   });
 
   const deviceOptions: Option[] = useMemo(() => {
-    const devicesToUse = selectedDevices && selectedDevices.length > 0 ? selectedDevices : allDevices;
-    return devicesToUse
-      .map((device: Device) => ({
-        value: device._id || "",
+    const combined = [...(selectedDevices ?? []), ...(allDevices ?? [])];
+    const unique = new Map<string, Option>();
+
+    combined.forEach((device) => {
+      if (!device?._id) return;
+      unique.set(device._id, {
+        value: device._id,
         label: device.long_name || device.name || `Device ${device._id}`,
-      }))
-      .filter((option: Option) => option.value);
+      });
+    });
+
+    return Array.from(unique.values());
   }, [allDevices, selectedDevices]);
 
   useEffect(() => {
