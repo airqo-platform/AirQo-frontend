@@ -142,6 +142,7 @@ export default function CohortDetailsPage() {
                 devices={devices}
                 isLoading={isLoading}
                 error={error}
+                hiddenColumns={["site"]}
               />
             </div>
             <CohortDetailsModal
