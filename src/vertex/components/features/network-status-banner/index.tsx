@@ -1,0 +1,274 @@
+'use client';
+
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
+import { AqWifiOff, AqSignal02, AqXClose } from '@airqo/icons-react';
+
+// =============================================================================
+// CONSTANTS
+// =============================================================================
+const DEBOUNCE_DELAY = 300;
+const AUTO_HIDE_DELAY = 5000;
+
+// =============================================================================
+// HOOKS
+// =============================================================================
+
+/** Simple debounce hook */
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
+/** Get the (possibly vendor-prefixed) connection object */
+function getConnection(): any {
+  if (typeof navigator === 'undefined') return null;
+  return (
+    (navigator as any).connection ||
+    (navigator as any).mozConnection ||
+    (navigator as any).webkitConnection ||
+    null
+  );
+}
+
+interface NetworkStatus {
+  isOnline: boolean;
+  isSlow: boolean;
+  isVerySlow: boolean;
+  effectiveType: string | null;
+  downlink: number | null;
+  rtt: number | null;
+}
+
+/**
+ * Network status hook (client-only)
+ */
+function useNetworkStatus(): NetworkStatus {
+  const initialOnline =
+    typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+  const conn = getConnection();
+  const initialEffectiveType = conn?.effectiveType || '4g';
+  const initialDownlink =
+    typeof conn?.downlink === 'number' ? conn.downlink : null;
+  const initialRtt = typeof conn?.rtt === 'number' ? conn.rtt : null;
+
+  const [isOnline, setIsOnline] = useState<boolean>(initialOnline);
+  const [effectiveType, setEffectiveType] = useState<string | null>(
+    initialEffectiveType
+  );
+  const [downlink, setDownlink] = useState<number | null>(initialDownlink);
+  const [rtt, setRtt] = useState<number | null>(initialRtt);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    const connection = getConnection();
+    const handleConnectionChange = () => {
+      const c = getConnection();
+      if (!c) return;
+      if (c.effectiveType) setEffectiveType(c.effectiveType);
+      if (typeof c.downlink === 'number') setDownlink(c.downlink);
+      if (typeof c.rtt === 'number') setRtt(c.rtt);
+    };
+
+    if (connection && typeof connection.addEventListener === 'function') {
+      connection.addEventListener('change', handleConnectionChange);
+    }
+
+    handleConnectionChange();
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      if (connection && typeof connection.removeEventListener === 'function') {
+        connection.removeEventListener('change', handleConnectionChange);
+      }
+    };
+  }, []);
+
+  const isSlow =
+    ['slow-2g', '2g', '3g'].includes((effectiveType || '').toLowerCase()) ||
+    (typeof downlink === 'number' && downlink > 0 && downlink < 0.8) ||
+    (typeof rtt === 'number' && rtt > 500);
+
+  const isVerySlow =
+    ['slow-2g', '2g'].includes((effectiveType || '').toLowerCase()) ||
+    (typeof downlink === 'number' && downlink > 0 && downlink < 0.3) ||
+    (typeof rtt === 'number' && rtt > 1000);
+
+  return { isOnline, isSlow, isVerySlow, effectiveType, downlink, rtt };
+}
+
+// =============================================================================
+// TYPES
+// =============================================================================
+interface NetworkStatusBannerProps {
+  position?: 'top' | 'bottom';
+  className?: string;
+  showDetailedInfo?: boolean;
+  autoHide?: boolean;
+  autoHideDelay?: number;
+}
+
+// =============================================================================
+// COMPONENT
+// =============================================================================
+export default function NetworkStatusBanner({
+  position = 'top',
+  className = '',
+  showDetailedInfo = false,
+  autoHide = true,
+  autoHideDelay = AUTO_HIDE_DELAY,
+}: NetworkStatusBannerProps) {
+  const [dismissed, setDismissed] = useState(false);
+  const [showBackOnline, setShowBackOnline] = useState(false);
+  const { isOnline, isSlow, isVerySlow, effectiveType, downlink, rtt } =
+    useNetworkStatus();
+
+  // offline OR poor connection are issues
+  const hasIssue = !isOnline || isSlow || isVerySlow;
+  const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
+
+  const config = useMemo(() => {
+    if (!isOnline) {
+      return {
+        message: 'You are offline. Check your internet connection.',
+        bgClass: 'bg-red-600',
+        Icon: AqWifiOff,
+        severity: 'critical' as const,
+      };
+    }
+    if (isSlow || isVerySlow) {
+      return {
+        message: 'Poor connection detected. Your internet may be unstable.',
+        bgClass: 'bg-yellow-600',
+        Icon: AqSignal02,
+        severity: 'warning' as const,
+      };
+    }
+    return null;
+  }, [isOnline, isSlow, isVerySlow]);
+
+  const prevOnlineRef = useRef<boolean>(isOnline);
+  useEffect(() => {
+    if (prevOnlineRef.current === false && isOnline === true) {
+      setShowBackOnline(true);
+      setDismissed(false);
+    }
+    prevOnlineRef.current = isOnline;
+  }, [isOnline]);
+
+  useEffect(() => {
+    if (isOnline) setDismissed(false);
+  }, [isOnline]);
+
+  useEffect(() => {
+    if (!autoHide || !showBackOnline) return;
+    const t = setTimeout(() => setShowBackOnline(false), autoHideDelay);
+    return () => clearTimeout(t);
+  }, [autoHide, showBackOnline, autoHideDelay]);
+
+  const handleDismiss = useCallback(() => setDismissed(true), []);
+
+  if (showBackOnline) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className={`fixed left-1/2 transform -translate-x-1/2 z-[2000] ${
+          position === 'top' ? 'top-4' : 'bottom-6'
+        } max-w-md mx-4 min-w-[320px] bg-green-600 text-white rounded-lg shadow-lg backdrop-blur-sm transition-all duration-300 ease-out ${className}`}
+      >
+        <div className="flex items-center gap-3 px-4 py-3">
+          <AqSignal02 className="w-5 h-5" aria-hidden="true" />
+          <p className="text-sm font-medium leading-tight">
+            You&apos;re back online. Connection restored.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!shouldShow || !config) return null;
+
+  const positionClasses = position === 'top' ? 'top-4' : 'bottom-6';
+  const isWarning = config.severity === 'warning';
+
+  return (
+    <div
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+      className={`
+        fixed left-1/2 transform -translate-x-1/2 z-[2000]
+        ${positionClasses}
+        max-w-md mx-4 min-w-[320px]
+        ${config.bgClass} text-white
+        rounded-lg shadow-lg backdrop-blur-sm
+        transition-all duration-300 ease-out
+        opacity-100 translate-y-0 scale-100
+        ${className}
+      `}
+    >
+      <div className="flex items-center gap-3 px-4 py-3">
+        <config.Icon className="w-5 h-5" aria-hidden="true" />
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium leading-tight">{config.message}</p>
+          {showDetailedInfo && (
+            <div className="mt-1 text-xs text-white/80">
+              Network: {isOnline ? 'Online' : 'Offline'}
+              {isOnline && effectiveType
+                ? ` • ${effectiveType.toUpperCase()}`
+                : ''}
+              {typeof downlink === 'number'
+                ? ` • ↓ ${downlink.toFixed(1)} Mbps`
+                : ''}
+              {typeof rtt === 'number' ? ` • RTT ${rtt} ms` : ''}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={handleDismiss}
+          className="flex-shrink-0 text-white/80 hover:text-white focus:text-white focus:outline-none transition-colors duration-200"
+          aria-label="Dismiss network status notification"
+        >
+          <AqXClose className="w-4 h-4" />
+        </button>
+      </div>
+      {autoHide && isWarning && (
+        <div className="h-1 bg-white/20 rounded-b-lg overflow-hidden">
+          <div
+            className="h-full bg-white/40 w-full origin-left"
+            style={{
+              animation: `shrink-progress ${autoHideDelay}ms linear forwards`,
+            }}
+          />
+        </div>
+      )}
+      <style jsx>{`
+        @keyframes shrink-progress {
+          from {
+            transform: scaleX(1);
+          }
+          to {
+            transform: scaleX(0);
+          }
+        }
+      `}</style>
+    </div>
+  );
+}
