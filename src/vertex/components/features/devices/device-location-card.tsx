@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
-import { Device } from "@/app/types/devices";
+import { Device, DeviceSite } from "@/app/types/devices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface DeviceLocationCardProps {
@@ -44,7 +44,7 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
                 return site?.name || site?.description || site?.location_name || "N/A";
               }
               if (typeof device.site === 'object' && !Array.isArray(device.site)) {
-                return (device.site as any).name || (device.site as any).description || (device.site as any).location_name || "N/A";
+                return (device.site as DeviceSite).name || (device.site as DeviceSite).description || (device.site as DeviceSite).location_name || "N/A";
               }
               return "N/A";
             })()}
