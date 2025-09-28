@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ChevronLeft,
   Shield,
+  X,
 } from "lucide-react";
 import {
   AqHomeSmile,
@@ -28,11 +29,14 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import Card from "../shared/card/CardWrapper";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
   activeModule: string;
   toggleSidebar: () => void;
+  isMobileOpen?: boolean;
+  handleMobileClose?: () => void;
 }
 
 const styles = {
@@ -52,6 +56,7 @@ const SidebarSectionHeading = ({
     </div>
   ) : null;
 
+  const AirqoLogoRaw = "/images/airqo_logo.svg";
 const NavItem = ({
   href,
   icon: Icon,
@@ -120,6 +125,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
   activeModule,
   toggleSidebar,
+  isMobileOpen = false,
+  handleMobileClose,
 }) => {
   const { getSidebarConfig, getContextPermissions, isPersonalContext } =
     useUserContext();
@@ -128,6 +135,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
 
   return (
+    <>
+    
     <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
       <div
         className={`transition-all duration-300 ease-in-out relative z-50 p-1
@@ -295,6 +304,147 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         </div>
       </div>
     </aside>
+
+    {/* Mobile/Tablet Overlay */}
+      {isMobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/20 z-40 transition-opacity duration-300"
+          onClick={handleMobileClose}
+        />
+      )}
+      
+     {/* Mobile/Tablet Sidebar - slides in from right  */}
+      <aside
+        className={`lg:hidden fixed top-0 right-0 z-[99999] h-full w-[280px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+          isMobileOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full   p-1">
+                <div className="flex w-full items-center justify-between gap-2 px-4 py-3">
+                        <Image
+                          src={AirqoLogoRaw}
+                          alt="AirQo logo"
+                          width={52}
+                          height={52}
+                          priority
+                          className="flex mx-auto object-cover transition-opacity duration-500"
+                        />
+                </div>
+           <X    onClick={handleMobileClose} className=" absolute top-5 right-4 z-50  w-8 h-8  text-gray-800 transition-all duration-200" />
+
+          <Card
+            className="h-full border-none relative overflow-hidden"
+            padding="p-3"
+            overflow
+            overflowType="auto"
+            contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar} pt-12`}
+          >
+            {isContextLoading ? (
+              <div className="flex flex-col gap-4 p-2">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <div className="mt-4 space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              </div>
+            ) : (
+              <>
+                {activeModule === "network" && (
+                  <>
+                    <NavItem href="/home" icon={AqHomeSmile} label="Home" isCollapsed={false} disabled={false} />
+
+                    {/* Network Section Heading */}
+                    <SidebarSectionHeading isCollapsed={false}>
+                      {isPersonalContext ? "My Network" : "Network"}
+                    </SidebarSectionHeading>
+
+                    {/* Devices Section */}
+                    {contextPermissions.canViewDevices &&
+                      (isPersonalContext
+                        ? sidebarConfig.showMyDevices && (
+                            <NavItem
+                              href="/devices/my-devices"
+                              icon={AqMonitor}
+                              label="My Devices"
+                              isCollapsed={false}
+                              disabled={!contextPermissions.canViewDevices}
+                              tooltip="You do not have permission to view devices."
+                            />
+                          )
+                        : sidebarConfig.showDeviceOverview && (
+                            <NavItem
+                              href="/devices/overview"
+                              icon={AqMonitor}
+                              label="Devices"
+                              isCollapsed={false}
+                              disabled={!contextPermissions.canViewDevices}
+                              tooltip="You do not have permission to view devices."
+                            />
+                          ))}
+
+                    {sidebarConfig.showClaimDevice && (
+                      <NavItem href="/devices/claim" icon={AqPackagePlus} label="Claim Device" isCollapsed={false} />
+                    )}
+
+                    {/* Sites - only for non-personal contexts */}
+                    {sidebarConfig.showSites && contextPermissions.canViewSites && (
+                      <NavItem href="/sites" icon={AqMarkerPin01} label="Sites" isCollapsed={false} disabled={false} />
+                    )}
+
+                    {sidebarConfig.showGrids && contextPermissions.canViewSites && (
+                      <NavItem href="/grids" icon={AqAirQlouds} label="Grids" isCollapsed={false} disabled={false} />
+                    )}
+
+                    {sidebarConfig.showCohorts && contextPermissions.canViewDevices && (
+                      <NavItem href="/cohorts" icon={Users} label="Cohorts" isCollapsed={false} disabled={false} />
+                    )}
+                  </>
+                )}
+
+                {activeModule === "admin" && (
+                  <>
+                    {sidebarConfig.showUserManagement && (
+                      <NavItem
+                        href="/user-management"
+                        icon={Users}
+                        label="User Management"
+                        isCollapsed={false}
+                        disabled={!contextPermissions.canViewUserManagement}
+                        tooltip="You do not have permission to view user management."
+                      />
+                    )}
+                    {sidebarConfig.showAccessControl && (
+                      <NavItem
+                        href="/access-control"
+                        icon={Shield}
+                        label="Access Control"
+                        isCollapsed={false}
+                        disabled={!contextPermissions.canViewAccessControl}
+                        tooltip="You do not have permission to view access control."
+                      />
+                    )}
+                  </>
+                )}
+              </>
+            )}
+          </Card>
+
+          {/* Account Section at the bottom */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <SidebarSectionHeading isCollapsed={false}>Account</SidebarSectionHeading>
+            {isContextLoading ? (
+              <div className="p-2">
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : (
+              <NavItem href="/profile" icon={AqUser03} label="Profile" isCollapsed={false} />
+            )}
+          </div>
+        </div>
+      </aside>
+    </>
   );
 };
 

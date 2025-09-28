@@ -17,6 +17,7 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const [isPrimarySidebarOpen, setIsPrimarySidebarOpen] = useState(false);
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [activeModule, setActiveModule] = useState("network");
   const pathname = usePathname();
   const router = useRouter();
@@ -48,6 +49,14 @@ export default function Layout({ children }: LayoutProps) {
     }
   };
 
+  const handleMenuClick = () => {
+        if (window.innerWidth < 1024) {
+                setIsMobileOpen(true);
+                return;
+        }
+        setIsPrimarySidebarOpen(true)
+  }
+
   const toggleSecondarySidebar = () => {
     setIsSecondarySidebarCollapsed(!isSecondarySidebarCollapsed);
   };
@@ -70,7 +79,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex overflow-hidden min-h-screen h-screen bg-background">
-      <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />
+      <Topbar onMenuClick={() => handleMenuClick()} />
       <PrimarySidebar
         isOpen={isPrimarySidebarOpen}
         onClose={() => setIsPrimarySidebarOpen(false)}
@@ -78,6 +87,8 @@ export default function Layout({ children }: LayoutProps) {
         onModuleChange={handleModuleChange}
       />
       <SecondarySidebar
+        isMobileOpen={isMobileOpen}
+        handleMobileClose={() => setIsMobileOpen(false)}
         isCollapsed={isSecondarySidebarCollapsed}
         toggleSidebar={toggleSecondarySidebar}
         activeModule={activeModule}
