@@ -84,6 +84,7 @@ export default function SiteDetailsPage() {
               isLoading={isLoading}
               error={error}
               multiSelect={true}
+              hiddenColumns={["site"]}
             />
           </div>
           <EditSiteDetailsDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} site={site} />
