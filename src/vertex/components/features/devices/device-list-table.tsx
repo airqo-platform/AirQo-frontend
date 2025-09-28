@@ -25,7 +25,7 @@ export default function DevicesTable({
 }: DevicesTableProps) {
   const router = useRouter();
   const tableRef = useRef<HTMLDivElement>(null);
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
+  const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const { userContext } = useUserContext();
@@ -64,22 +64,20 @@ export default function DevicesTable({
   };
 
   const handleAssignSuccess = () => {
-    setSelectedDevices([]);
+    setSelectedDeviceObjects([]);
     setShowAssignDialog(false);
   };
 
   const handleUnassignSuccess = () => {
-    setSelectedDevices([]);
+    setSelectedDeviceObjects([]);
     setShowUnassignDialog(false);
   };
 
-  const handleActionSubmit = (selectedIds: (string | number)[]) => {
-    setSelectedDevices(selectedIds as string[]);
+  const handleAddCohortDeviceActionSubmit = () => {
     setShowAssignDialog(true);
   };
 
-  const handleUnassignActionSubmit = (selectedIds: (string | number)[]) => {
-    setSelectedDevices(selectedIds as string[]);
+  const handleUnassignActionSubmit = () => {
     setShowUnassignDialog(true);
   };
 
@@ -106,20 +104,20 @@ export default function DevicesTable({
         loading={isFetching}
         pageSize={itemsPerPage}
         onRowClick={handleDeviceClick}
-        multiSelect={multiSelect}
-        onSelectedItemsChange={(ids) => setSelectedDevices(ids as string[])}
+        multiSelect={multiSelect}        
+        onSelectedItemsChange={(items) => setSelectedDeviceObjects(items as TableDevice[])}
         actions={
           multiSelect
             ? [
                 {
                   label: "Add to Cohort",
                   value: "assign_cohort",
-                  handler: handleActionSubmit,
+                  handler: handleAddCohortDeviceActionSubmit,
                 },
                 {
                   label: "Remove from Cohort",
                   value: "unassign_cohort",
-                  handler: handleUnassignActionSubmit,
+                  handler: handleUnassignActionSubmit, // Handler doesn't need IDs, it just opens the dialog
                 },
               ]
             : []
@@ -152,7 +150,7 @@ export default function DevicesTable({
       <AssignCohortDevicesDialog
         open={showAssignDialog}
         onOpenChange={setShowAssignDialog}
-        selectedDevices={selectedDevices}
+        selectedDevices={selectedDeviceObjects}
         onSuccess={handleAssignSuccess}
       />
 
@@ -160,7 +158,7 @@ export default function DevicesTable({
       <UnassignCohortDevicesDialog
         open={showUnassignDialog}
         onOpenChange={setShowUnassignDialog}
-        selectedDevices={selectedDevices}
+        selectedDevices={selectedDeviceObjects}
         onSuccess={handleUnassignSuccess}
       />
     </div>

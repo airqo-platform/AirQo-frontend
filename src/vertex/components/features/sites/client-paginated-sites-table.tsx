@@ -125,7 +125,7 @@ export default function ClientPaginatedSitesTable({
         pageSize={itemsPerPage}
         onRowClick={handleSiteClick}
         multiSelect={multiSelect}
-        onSelectedItemsChange={handleSelectedItemsChange}
+        onSelectedIdsChange={handleSelectedItemsChange}
         actions={multiSelect ? [
           {
             label: "Export Selected",

@@ -146,7 +146,7 @@ export default function SitesTable({
         pageSize={itemsPerPage}
         onRowClick={handleSiteClick}
         multiSelect={multiSelect}
-        onSelectedItemsChange={handleSelectedItemsChange}
+        onSelectedIdsChange={handleSelectedItemsChange}
         serverSidePagination
         pageCount={pageCount}
         pagination={pagination}

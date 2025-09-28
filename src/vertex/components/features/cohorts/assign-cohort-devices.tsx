@@ -25,7 +25,7 @@ import { Device } from "@/app/types/devices";
 interface AssignCohortDevicesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedDevices: string[];
+  selectedDevices?: Device[];
   onSuccess?: () => void;
   cohortId?: string;
 }
@@ -56,22 +56,25 @@ export function AssignCohortDevicesDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       cohortId: cohortId || "",
-      devices: selectedDevices,
+      devices: selectedDevices?.map((d) => d._id).filter((id): id is string => !!id) || [],
     },
   });
 
   const deviceOptions: Option[] = useMemo(() => {
-    return allDevices.map((device: Device) => ({
-      value: device._id || "",
-      label: device.long_name || device.name || `Device ${device._id}`,
-    })).filter((option: Option) => option.value);
-  }, [allDevices]);
+    const devicesToUse = selectedDevices && selectedDevices.length > 0 ? selectedDevices : allDevices;
+    return devicesToUse
+      .map((device: Device) => ({
+        value: device._id || "",
+        label: device.long_name || device.name || `Device ${device._id}`,
+      }))
+      .filter((option: Option) => option.value);
+  }, [allDevices, selectedDevices]);
 
   useEffect(() => {
     if (open) {
       form.reset({
         cohortId: cohortId || "",
-        devices: selectedDevices,
+        devices: selectedDevices?.map((d) => d._id).filter((id): id is string => !!id) || [],
       });
     }
   }, [open, selectedDevices, form, cohortId]);

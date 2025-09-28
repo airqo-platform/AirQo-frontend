@@ -170,7 +170,7 @@ export default function CohortsPage() {
             }}
             emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
             multiSelect
-            onSelectedItemsChange={(ids: (string | number)[]) => setSelectedCohortIds(ids.map(String))}
+            onSelectedIdsChange={(ids: (string | number)[]) => setSelectedCohortIds(ids.map(String))}
             actions={tableActions}
             serverSidePagination
             pageCount={pageCount}

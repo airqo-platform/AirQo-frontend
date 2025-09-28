@@ -22,7 +22,7 @@ import { Device } from "@/app/types/devices";
 interface UnassignCohortDevicesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedDevices: string[];
+  selectedDevices?: Device[];
   onSuccess?: () => void;
   cohortId?: string;
   cohortDevices?: Device[];
@@ -41,7 +41,7 @@ export function UnassignCohortDevicesDialog({
   open,
   onOpenChange,
   selectedDevices,
-  onSuccess,
+  onSuccess,  
   cohortId,
   cohortDevices = [],
 }: UnassignCohortDevicesDialogProps) {
@@ -52,24 +52,25 @@ export function UnassignCohortDevicesDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       cohortId: cohortId || "",
-      devices: selectedDevices,
+      devices: selectedDevices?.map(d => d._id).filter((id): id is string => !!id) || [],
     },
   });
 
   const deviceOptions: Option[] = useMemo(() => {
-    return cohortDevices
+    const devicesToShow = selectedDevices && selectedDevices.length > 0 ? selectedDevices : cohortDevices;
+    return devicesToShow
       .map((device) => ({
         value: device._id || "",
         label: device.long_name || device.name || `Device ${device._id}`,
       }))
       .filter((option) => option.value);
-  }, [cohortDevices]);
+  }, [cohortDevices, selectedDevices]);
 
   useEffect(() => {
     if (open) {
       form.reset({
         cohortId: cohortId || "",
-        devices: selectedDevices,
+        devices: selectedDevices?.map(d => d._id).filter((id): id is string => !!id) || [],
       });
     }
   }, [open, selectedDevices, form, cohortId]);
@@ -106,7 +107,7 @@ export function UnassignCohortDevicesDialog({
       size="lg"
       maxHeight="max-h-[70vh]"
       primaryAction={{
-        label: "Unassign",
+        label: "Remove",
         onClick: form.handleSubmit(onSubmit),
         disabled: !form.watch("cohortId") || !form.watch("devices")?.length || isUnassigning,
       }}

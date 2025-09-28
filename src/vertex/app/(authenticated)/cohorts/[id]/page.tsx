@@ -42,7 +42,6 @@ export default function CohortDetailsPage() {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
 
   const handleOpenDetails = () => setShowDetailsModal(true);
   const handleCloseDetails = () => setShowDetailsModal(false);
@@ -60,12 +59,10 @@ export default function CohortDetailsPage() {
   const devices = useMemo(() => cohort?.devices || [], [cohort]);
 
   const handleAssignSuccess = () => {
-    setSelectedDevices([]);
     setShowAssignDialog(false);
   };
 
   const handleUnassignSuccess = () => {
-    setSelectedDevices([]);
     setShowUnassignDialog(false);
   };
 
@@ -81,14 +78,12 @@ export default function CohortDetailsPage() {
         <AssignCohortDevicesDialog
           open={showAssignDialog}
           onOpenChange={setShowAssignDialog}
-          selectedDevices={selectedDevices}
           onSuccess={handleAssignSuccess}
           cohortId={cohortId}
         />
         <UnassignCohortDevicesDialog
           open={showUnassignDialog}
           onOpenChange={setShowUnassignDialog}
-          selectedDevices={selectedDevices}
           cohortDevices={devices}
           onSuccess={handleUnassignSuccess}
           cohortId={cohortId}
