@@ -96,7 +96,7 @@ export default function SitesTable({
       render: (value) => {
         const desc = typeof value === "string" ? value : "";
         return (
-          <span className="text-sm text-muted-foreground max-w-[280px] truncate lowercase" title={desc}>
+          <span className="text-sm text-muted-foreground max-w-[280px] truncate capitalize" title={desc}>
             {desc}
           </span>
         );

@@ -1232,8 +1232,8 @@ const ReusableTable = <T extends TableItem>({
                       <td
                         key={String(column.key)}
                         className={`break-words ${column.key === "checkbox"
-                            ? "w-4 p-4"
-                            : "w-52 truncate px-6 py-4 text-sm text-gray-900 dark:text-gray-100"
+                            ? "w-4 p-3"
+                            : "w-52 truncate px-6 py-3 text-sm text-gray-900 dark:text-gray-100"
                           } ${column.className || ""}`}
                       >
                         {renderCell(item, column)}
