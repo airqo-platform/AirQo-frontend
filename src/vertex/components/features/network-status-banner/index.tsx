@@ -129,7 +129,7 @@ export default function NetworkStatusBanner({
 
   if (!isMounted) return null;
 
-  if (showBackOnline) {
+  if (showBackOnline && isOnline) {
     return (
       <div
         role="status"
