@@ -29,24 +29,15 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
-/** Get the (possibly vendor-prefixed) connection object */
-function getConnection(): any {
-  if (typeof navigator === 'undefined') return null;
-  return (
-    (navigator as any).connection ||
-    (navigator as any).mozConnection ||
-    (navigator as any).webkitConnection ||
-    null
-  );
+/** Hook to check if the component is mounted */
+function useMounted() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  return mounted;
 }
 
 interface NetworkStatus {
   isOnline: boolean;
-  isSlow: boolean;
-  isVerySlow: boolean;
-  effectiveType: string | null;
-  downlink: number | null;
-  rtt: number | null;
 }
 
 /**
@@ -56,18 +47,7 @@ function useNetworkStatus(): NetworkStatus {
   const initialOnline =
     typeof navigator !== 'undefined' ? navigator.onLine : true;
 
-  const conn = getConnection();
-  const initialEffectiveType = conn?.effectiveType || '4g';
-  const initialDownlink =
-    typeof conn?.downlink === 'number' ? conn.downlink : null;
-  const initialRtt = typeof conn?.rtt === 'number' ? conn.rtt : null;
-
   const [isOnline, setIsOnline] = useState<boolean>(initialOnline);
-  const [effectiveType, setEffectiveType] = useState<string | null>(
-    initialEffectiveType
-  );
-  const [downlink, setDownlink] = useState<number | null>(initialDownlink);
-  const [rtt, setRtt] = useState<number | null>(initialRtt);
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -76,41 +56,13 @@ function useNetworkStatus(): NetworkStatus {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    const connection = getConnection();
-    const handleConnectionChange = () => {
-      const c = getConnection();
-      if (!c) return;
-      if (c.effectiveType) setEffectiveType(c.effectiveType);
-      if (typeof c.downlink === 'number') setDownlink(c.downlink);
-      if (typeof c.rtt === 'number') setRtt(c.rtt);
-    };
-
-    if (connection && typeof connection.addEventListener === 'function') {
-      connection.addEventListener('change', handleConnectionChange);
-    }
-
-    handleConnectionChange();
-
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
-      if (connection && typeof connection.removeEventListener === 'function') {
-        connection.removeEventListener('change', handleConnectionChange);
-      }
     };
   }, []);
 
-  const isSlow =
-    ['slow-2g', '2g', '3g'].includes((effectiveType || '').toLowerCase()) ||
-    (typeof downlink === 'number' && downlink > 0 && downlink < 0.8) ||
-    (typeof rtt === 'number' && rtt > 500);
-
-  const isVerySlow =
-    ['slow-2g', '2g'].includes((effectiveType || '').toLowerCase()) ||
-    (typeof downlink === 'number' && downlink > 0 && downlink < 0.3) ||
-    (typeof rtt === 'number' && rtt > 1000);
-
-  return { isOnline, isSlow, isVerySlow, effectiveType, downlink, rtt };
+  return { isOnline };
 }
 
 // =============================================================================
@@ -134,13 +86,12 @@ export default function NetworkStatusBanner({
   autoHide = true,
   autoHideDelay = AUTO_HIDE_DELAY,
 }: NetworkStatusBannerProps) {
+  const isMounted = useMounted();
   const [dismissed, setDismissed] = useState(false);
   const [showBackOnline, setShowBackOnline] = useState(false);
-  const { isOnline, isSlow, isVerySlow, effectiveType, downlink, rtt } =
-    useNetworkStatus();
+  const { isOnline } = useNetworkStatus();
 
-  // offline OR poor connection are issues
-  const hasIssue = !isOnline || isSlow || isVerySlow;
+  const hasIssue = !isOnline; // 🚨 Only show for offline
   const shouldShow = useDebounce(hasIssue && !dismissed, DEBOUNCE_DELAY);
 
   const config = useMemo(() => {
@@ -152,16 +103,8 @@ export default function NetworkStatusBanner({
         severity: 'critical' as const,
       };
     }
-    if (isSlow || isVerySlow) {
-      return {
-        message: 'Poor connection detected. Your internet may be unstable.',
-        bgClass: 'bg-yellow-600',
-        Icon: AqSignal02,
-        severity: 'warning' as const,
-      };
-    }
     return null;
-  }, [isOnline, isSlow, isVerySlow]);
+  }, [isOnline]);
 
   const prevOnlineRef = useRef<boolean>(isOnline);
   useEffect(() => {
@@ -183,6 +126,8 @@ export default function NetworkStatusBanner({
   }, [autoHide, showBackOnline, autoHideDelay]);
 
   const handleDismiss = useCallback(() => setDismissed(true), []);
+
+  if (!isMounted) return null;
 
   if (showBackOnline) {
     return (
@@ -206,7 +151,6 @@ export default function NetworkStatusBanner({
   if (!shouldShow || !config) return null;
 
   const positionClasses = position === 'top' ? 'top-4' : 'bottom-6';
-  const isWarning = config.severity === 'warning';
 
   return (
     <div
@@ -231,13 +175,6 @@ export default function NetworkStatusBanner({
           {showDetailedInfo && (
             <div className="mt-1 text-xs text-white/80">
               Network: {isOnline ? 'Online' : 'Offline'}
-              {isOnline && effectiveType
-                ? ` • ${effectiveType.toUpperCase()}`
-                : ''}
-              {typeof downlink === 'number'
-                ? ` • ↓ ${downlink.toFixed(1)} Mbps`
-                : ''}
-              {typeof rtt === 'number' ? ` • RTT ${rtt} ms` : ''}
             </div>
           )}
         </div>
@@ -249,26 +186,6 @@ export default function NetworkStatusBanner({
           <AqXClose className="w-4 h-4" />
         </button>
       </div>
-      {autoHide && isWarning && (
-        <div className="h-1 bg-white/20 rounded-b-lg overflow-hidden">
-          <div
-            className="h-full bg-white/40 w-full origin-left"
-            style={{
-              animation: `shrink-progress ${autoHideDelay}ms linear forwards`,
-            }}
-          />
-        </div>
-      )}
-      <style jsx>{`
-        @keyframes shrink-progress {
-          from {
-            transform: scaleX(1);
-          }
-          to {
-            transform: scaleX(0);
-          }
-        }
-      `}</style>
     </div>
   );
 }
