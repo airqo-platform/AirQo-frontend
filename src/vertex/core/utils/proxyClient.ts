@@ -220,16 +220,19 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
       };
 
       // Handle request body
-      if (['POST', 'PUT', 'PATCH'].includes(req.method)) {
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(req.method)) {
         try {
-          const body = await req.text();
-          if (body) {
-            config.data = JSON.parse(body);
+          const contentType = req.headers.get('content-type') || '';
+          if (contentType.includes('application/json')) {
+            const body = await req.text();
+            if (body) {
+              config.data = JSON.parse(body);
+            }
           }
         } catch {
           config.data = {};
         }
-      }
+      }      
 
       // Add API token if required
       if (requiresApiToken) {

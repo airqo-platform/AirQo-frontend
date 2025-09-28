@@ -59,22 +59,6 @@ export const cohorts = {
       throw error;
     }
   },
-  assignDevicesToCohort: async (cohortId: string, deviceIds: string[]) => {
-    try {
-      const response = await createSecureApiClient().post(
-        `/devices/cohorts/${cohortId}/assign-devices`,
-        { device_ids: deviceIds },
-        { headers: { 'X-Auth-Type': 'JWT' } }
-      );
-      return response.data as {
-        message: string;
-        updated_cohort: Cohort & { _id: string };
-        success: boolean;
-      };
-    } catch (error) {
-      throw error;
-    }
-  },
   assignCohortsToGroup: async (groupId: string, cohortIds: string[]) => {
     try {
       const response = await createSecureApiClient().post(
@@ -115,13 +99,33 @@ export const cohorts = {
       throw error;
     }
   },
-  unassignDevicesFromCohort: async (cohortId: string, deviceIds: string[]) => {
+  assignDevicesToCohort: async (cohortId: string, deviceIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/devices/cohorts/${cohortId}/assign-devices`,
+        { device_ids: deviceIds },
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data as {
+        message: string;
+        updated_cohort: Cohort & { _id: string };
+        success: boolean;
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
+  unassignDevicesFromCohort: async (params: { cohortId: string; device_ids: string[] }) => {
+    const { cohortId, device_ids } = params;
     try {
       const response = await createSecureApiClient().delete(
         `/devices/cohorts/${cohortId}/unassign-many-devices`,
         {
-          data: { device_ids: deviceIds },
-          headers: { 'X-Auth-Type': 'JWT' }
+          headers: {
+            "Content-Type": "application/json",
+            "X-Auth-Type": "JWT",
+          },
+          data: { device_ids },
         }
       );
       return response.data;

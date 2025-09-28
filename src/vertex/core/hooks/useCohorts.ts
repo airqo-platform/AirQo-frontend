@@ -185,19 +185,19 @@ export const useUnassignDevicesFromCohort = () => {
   return useMutation({
     mutationFn: async ({
       cohortId,
-      deviceIds
+      device_ids
     }: {
       cohortId: string;
-      deviceIds: string[]
+      device_ids: string[]
     }) => {
-      if (!cohortId || !deviceIds?.length) {
+      if (!cohortId || !device_ids?.length) {
         throw new Error("Cohort ID and at least one device ID are required");
       }
-      return cohortsApi.unassignDevicesFromCohort(cohortId, deviceIds);
+      return cohortsApi.unassignDevicesFromCohort({ cohortId, device_ids });
     },
     onSuccess: (data, variables) => {
       ReusableToast({
-        message: `${variables.deviceIds.length} device(s) unassigned from cohort successfully`,
+        message: `${variables.device_ids.length} device(s) unassigned from cohort successfully`,
         type: "SUCCESS",
       });
       queryClient.invalidateQueries({ queryKey: ["cohorts"] });

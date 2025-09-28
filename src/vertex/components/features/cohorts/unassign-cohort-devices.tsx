@@ -78,7 +78,7 @@ export function UnassignCohortDevicesDialog({
     unassignDevices(
       {
         cohortId: values.cohortId,
-        deviceIds: values.devices,
+        device_ids: values.devices,
       },
       {
         onSuccess: () => {
@@ -101,7 +101,7 @@ export function UnassignCohortDevicesDialog({
     <ReusableDialog
       isOpen={open}
       onClose={() => handleOpenChange(false)}
-      title="Unassign devices from cohort"
+      title="Remove devices from cohort"
       subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
       size="lg"
       maxHeight="max-h-[70vh]"
