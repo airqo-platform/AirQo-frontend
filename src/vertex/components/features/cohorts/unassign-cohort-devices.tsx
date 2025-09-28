@@ -13,11 +13,11 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useCohorts, useUnassignDevicesFromCohort } from "@/core/hooks/useCohorts";
-import { useDevices } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import { Device } from "@/app/types/devices";
 
 interface UnassignCohortDevicesDialogProps {
   open: boolean;
@@ -25,6 +25,7 @@ interface UnassignCohortDevicesDialogProps {
   selectedDevices: string[];
   onSuccess?: () => void;
   cohortId?: string;
+  cohortDevices?: Device[];
 }
 
 const formSchema = z.object({
@@ -42,9 +43,9 @@ export function UnassignCohortDevicesDialog({
   selectedDevices,
   onSuccess,
   cohortId,
+  cohortDevices = [],
 }: UnassignCohortDevicesDialogProps) {
   const { cohorts } = useCohorts();
-  const { devices: allDevices } = useDevices();
   const { mutate: unassignDevices, isPending: isUnassigning } = useUnassignDevicesFromCohort();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -56,13 +57,13 @@ export function UnassignCohortDevicesDialog({
   });
 
   const deviceOptions: Option[] = useMemo(() => {
-    return allDevices
+    return cohortDevices
       .map((device) => ({
-        value: device._id || device.id || "",
+        value: device._id || "",
         label: device.long_name || device.name || `Device ${device._id}`,
       }))
       .filter((option) => option.value);
-  }, [allDevices]);
+  }, [cohortDevices]);
 
   useEffect(() => {
     if (open) {
@@ -101,7 +102,7 @@ export function UnassignCohortDevicesDialog({
       isOpen={open}
       onClose={() => handleOpenChange(false)}
       title="Unassign devices from cohort"
-      subtitle={`${selectedDevices.length} device(s) selected`}
+      subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
       size="lg"
       maxHeight="max-h-[70vh]"
       primaryAction={{

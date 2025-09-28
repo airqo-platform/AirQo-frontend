@@ -89,6 +89,7 @@ export default function CohortDetailsPage() {
           open={showUnassignDialog}
           onOpenChange={setShowUnassignDialog}
           selectedDevices={selectedDevices}
+          cohortDevices={devices}
           onSuccess={handleUnassignSuccess}
           cohortId={cohortId}
         />

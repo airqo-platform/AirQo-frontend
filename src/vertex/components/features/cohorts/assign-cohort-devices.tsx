@@ -68,10 +68,6 @@ export function AssignCohortDevicesDialog({
   }, [allDevices]);
 
   useEffect(() => {
-    form.setValue("devices", selectedDevices);
-  }, [selectedDevices, form]);
-
-  useEffect(() => {
     if (open) {
       form.reset({
         cohortId: cohortId || "",
@@ -127,7 +123,7 @@ export function AssignCohortDevicesDialog({
         isOpen={open}
         onClose={() => handleOpenChange(false)}
         title="Add devices to cohort"
-        subtitle={`${selectedDevices.length} device(s) selected`}
+        subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
         size="lg"
         maxHeight="max-h-[70vh]"
         primaryAction={{
