@@ -15,6 +15,7 @@ import {
   AqAirQlouds,
   AqMarkerPin01,
   AqPackagePlus,
+  AqCollocation,
 } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -238,7 +239,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 {sidebarConfig.showCohorts && contextPermissions.canViewDevices && (
                   <NavItem
                     href="/cohorts"
-                    icon={Users}
+                    icon={AqCollocation}
                     label="Cohorts"
                     isCollapsed={isCollapsed}
                     disabled={false}
