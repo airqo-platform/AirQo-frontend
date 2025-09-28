@@ -7,5 +7,6 @@ export const DEVICES_MGT_URL = `${BASE_API_URL}/devices`;
 export const SITES_MGT_URL = `${BASE_API_URL}/devices/sites`;
 export const ANALYTICS_MGT_URL = `${BASE_API_URL}/analytics`;
 
-export const forgotPasswordUrl = `${process.env.NEXT_PUBLIC_ANALYTICS_URL}/user/forgotPwd`;
-export const signUpUrl = `${process.env.NEXT_PUBLIC_ANALYTICS_URL}/user/creation/individual/register`
+const ANALYTICS_BASE_URL = stripTrailingSlash(process.env.NEXT_PUBLIC_ANALYTICS_URL || '');
+export const forgotPasswordUrl = ANALYTICS_BASE_URL ? `${ANALYTICS_BASE_URL}/user/forgotPwd` : '';
+export const signUpUrl = ANALYTICS_BASE_URL ? `${ANALYTICS_BASE_URL}/user/creation/individual/register` : '';
