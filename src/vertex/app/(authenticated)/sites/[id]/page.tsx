@@ -83,7 +83,6 @@ export default function SiteDetailsPage() {
               devices={site.devices || []}
               isLoading={isLoading}
               error={error}
-              multiSelect={true}
               hiddenColumns={["site", "groups"]}
             />
           </div>
