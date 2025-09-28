@@ -12,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useCohorts, useUnassignDevicesFromCohort } from "@/core/hooks/useCohorts";
+import { useCohortDetails, useCohorts, useUnassignDevicesFromCohort } from "@/core/hooks/useCohorts";
 import { ComboBox } from "@/components/ui/combobox";
 import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
 import { Cohort } from "@/app/types/cohorts";
@@ -41,7 +41,7 @@ export function UnassignCohortDevicesDialog({
   open,
   onOpenChange,
   selectedDevices,
-  onSuccess,  
+  onSuccess,
   cohortId,
   cohortDevices = [],
 }: UnassignCohortDevicesDialogProps) {
@@ -65,6 +65,23 @@ export function UnassignCohortDevicesDialog({
       }))
       .filter((option) => option.value);
   }, [cohortDevices, selectedDevices]);
+
+  const watchedCohortId = form.watch("cohortId");
+  const { data: fetchedCohort } = useCohortDetails(
+    watchedCohortId,
+    { enabled: !selectedDevices?.length && !cohortDevices.length && !!watchedCohortId }
+  );
+
+  const dynamicDeviceOptions: Option[] = useMemo(() => {
+    if (deviceOptions.length) return deviceOptions;
+    const list = fetchedCohort?.devices || [];
+    return list
+      .filter((d: Device) => !!d._id)
+      .map((d: Device) => ({
+        value: d._id!,
+        label: d.long_name || d.name || `Device ${d._id}`,
+      }));
+  }, [deviceOptions, fetchedCohort]);
 
   useEffect(() => {
     if (open) {
@@ -159,7 +176,7 @@ export function UnassignCohortDevicesDialog({
                 </FormLabel>
                 <FormControl>
                   <MultiSelectCombobox
-                    options={deviceOptions}
+                    options={dynamicDeviceOptions}
                     value={field.value || []}
                     onValueChange={field.onChange}
                     placeholder="Select devices..."
