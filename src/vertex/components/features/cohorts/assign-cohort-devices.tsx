@@ -138,7 +138,7 @@ export function AssignCohortDevicesDialog({
         isOpen={open}
         onClose={() => handleOpenChange(false)}
         title="Add devices to cohort"
-        subtitle={`${preselectedForCreate.length || 0} device(s) selected`}
+        subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
         size="lg"
         maxHeight="max-h-[70vh]"
         primaryAction={{
