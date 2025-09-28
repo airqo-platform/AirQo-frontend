@@ -17,7 +17,7 @@ import { useDevices } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { AqPlus } from "@airqo/icons-react";
 import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
-import { CreateCohortDialog } from "./create-cohort";
+import { CreateCohortDialog, PreselectedDevice } from "./create-cohort";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
@@ -25,7 +25,7 @@ import { Device } from "@/app/types/devices";
 interface AssignCohortDevicesDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedDevices: string[];
+  selectedDevices?: Device[];
   onSuccess?: () => void;
   cohortId?: string;
 }
@@ -51,31 +51,36 @@ export function AssignCohortDevicesDialog({
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
 
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);
+  const [preselectedForCreate, setPreselectedForCreate] = useState<PreselectedDevice[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       cohortId: cohortId || "",
-      devices: selectedDevices,
+      devices: selectedDevices?.map((d) => d._id).filter((id): id is string => !!id) || [],
     },
   });
 
   const deviceOptions: Option[] = useMemo(() => {
-    return allDevices.map((device: Device) => ({
-      value: device._id || "",
-      label: device.long_name || device.name || `Device ${device._id}`,
-    })).filter((option: Option) => option.value);
-  }, [allDevices]);
+    const combined = [...(selectedDevices ?? []), ...(allDevices ?? [])];
+    const unique = new Map<string, Option>();
 
-  useEffect(() => {
-    form.setValue("devices", selectedDevices);
-  }, [selectedDevices, form]);
+    combined.forEach((device) => {
+      if (!device?._id) return;
+      unique.set(device._id, {
+        value: device._id,
+        label: device.long_name || device.name || `Device ${device._id}`,
+      });
+    });
+
+    return Array.from(unique.values());
+  }, [allDevices, selectedDevices]);
 
   useEffect(() => {
     if (open) {
       form.reset({
         cohortId: cohortId || "",
-        devices: selectedDevices,
+        devices: selectedDevices?.map((d) => d._id).filter((id): id is string => !!id) || [],
       });
     }
   }, [open, selectedDevices, form, cohortId]);
@@ -92,10 +97,16 @@ export function AssignCohortDevicesDialog({
   };
 
   const handleCreateCohortAction = () => {
-    onOpenChange(false);
+    const selectedIds = form.getValues("devices") || [];
+    const preselected = deviceOptions
+      .filter((opt) => selectedIds.includes(opt.value))
+      .map((opt) => ({ value: opt.value, label: opt.label }));
 
+    setPreselectedForCreate(preselected); // store in state
+    onOpenChange(false);
     setCreateCohortModalOpen(true);
   };
+
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     assignDevices(
@@ -127,7 +138,7 @@ export function AssignCohortDevicesDialog({
         isOpen={open}
         onClose={() => handleOpenChange(false)}
         title="Add devices to cohort"
-        subtitle={`${selectedDevices.length} device(s) selected`}
+        subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
         size="lg"
         maxHeight="max-h-[70vh]"
         primaryAction={{
@@ -205,8 +216,10 @@ export function AssignCohortDevicesDialog({
         open={createCohortModalOpen}
         onOpenChange={handleCreateCohortClose}
         onSuccess={handleCreateCohortSuccess}
+        preselectedDevices={preselectedForCreate}
         andNavigate={true}
       />
+
     </>
   );
 }

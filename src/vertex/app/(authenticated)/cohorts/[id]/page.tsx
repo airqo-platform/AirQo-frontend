@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AqArrowLeft, AqPlus } from "@airqo/icons-react";
+import { AqArrowLeft, AqMinusCircle, AqPlus } from "@airqo/icons-react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useCohortDetails } from "@/core/hooks/useCohorts";
@@ -12,6 +12,7 @@ import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-detail
 import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -40,7 +41,7 @@ export default function CohortDetailsPage() {
   });
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
+  const [showUnassignDialog, setShowUnassignDialog] = useState(false);
 
   const handleOpenDetails = () => setShowDetailsModal(true);
   const handleCloseDetails = () => setShowDetailsModal(false);
@@ -58,8 +59,11 @@ export default function CohortDetailsPage() {
   const devices = useMemo(() => cohort?.devices || [], [cohort]);
 
   const handleAssignSuccess = () => {
-    setSelectedDevices([]);
     setShowAssignDialog(false);
+  };
+
+  const handleUnassignSuccess = () => {
+    setShowUnassignDialog(false);
   };
 
   return (
@@ -74,8 +78,14 @@ export default function CohortDetailsPage() {
         <AssignCohortDevicesDialog
           open={showAssignDialog}
           onOpenChange={setShowAssignDialog}
-          selectedDevices={selectedDevices}
           onSuccess={handleAssignSuccess}
+          cohortId={cohortId}
+        />
+        <UnassignCohortDevicesDialog
+          open={showUnassignDialog}
+          onOpenChange={setShowUnassignDialog}
+          cohortDevices={devices}
+          onSuccess={handleUnassignSuccess}
           cohortId={cohortId}
         />
 
@@ -105,13 +115,26 @@ export default function CohortDetailsPage() {
                 <h2 className="text-lg font-semibold">Cohort devices</h2>
                 <div className="flex gap-2">
                   <ReusableButton
-                    variant="outlined"
+                    variant="filled"
                     onClick={() => setShowAssignDialog(true)}
                     disabled={!canUpdateDevice}
                     permission={PERMISSIONS.DEVICE.UPDATE}
                     Icon={AqPlus}
+                    padding="px-3 py-1.5"
+                    className="text-sm font-medium"
                   >
                     Add Devices
+                  </ReusableButton>
+                  <ReusableButton
+                    variant="outlined"
+                    onClick={() => setShowUnassignDialog(true)}
+                    disabled={!canUpdateDevice}
+                    permission={PERMISSIONS.DEVICE.UPDATE}
+                    Icon={AqMinusCircle}
+                    padding="px-3 py-1.5"
+                    className="border-red-700 hover:bg-red-700 text-red-700 text-sm font-medium"
+                  >
+                    Remove Devices
                   </ReusableButton>
                 </div>
               </div>
@@ -119,6 +142,7 @@ export default function CohortDetailsPage() {
                 devices={devices}
                 isLoading={isLoading}
                 error={error}
+                hiddenColumns={["site", "groups"]}
               />
             </div>
             <CohortDetailsModal

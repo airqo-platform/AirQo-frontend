@@ -5,6 +5,7 @@ import ReusableTable from "@/components/shared/table/ReusableTable";
 import { useState, useMemo, useRef, useEffect } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import { UnassignCohortDevicesDialog } from "../cohorts/unassign-cohort-devices";
 import { useDevices } from "@/core/hooks/useDevices";
 import { getColumns, type TableDevice } from "./utils/table-columns";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
@@ -24,15 +25,19 @@ export default function DevicesTable({
 }: DevicesTableProps) {
   const router = useRouter();
   const tableRef = useRef<HTMLDivElement>(null);
-  const [selectedDevices, setSelectedDevices] = useState<string[]>([]);
+  const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [showUnassignDialog, setShowUnassignDialog] = useState(false);
   const { userContext } = useUserContext();
   const isInternalView = userContext === "airqo-internal";
 
   const {
-    pagination, setPagination,
-    searchTerm, setSearchTerm,
-    sorting, setSorting
+    pagination,
+    setPagination,
+    searchTerm,
+    setSearchTerm,
+    sorting,
+    setSorting,
   } = useServerSideTableState({ initialPageSize: itemsPerPage });
 
   const { devices, meta, isFetching, error } = useDevices({
@@ -40,7 +45,7 @@ export default function DevicesTable({
     limit: pagination.pageSize,
     search: searchTerm,
     sortBy: sorting[0]?.id,
-    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
   });
 
   // Scroll to top of table when page changes
@@ -59,13 +64,21 @@ export default function DevicesTable({
   };
 
   const handleAssignSuccess = () => {
-    setSelectedDevices([]);
+    setSelectedDeviceObjects([]);
     setShowAssignDialog(false);
   };
 
-  const handleActionSubmit = (selectedIds: (string | number)[]) => {
-    setSelectedDevices(selectedIds as string[]);
+  const handleUnassignSuccess = () => {
+    setSelectedDeviceObjects([]);
+    setShowUnassignDialog(false);
+  };
+
+  const handleAddCohortDeviceActionSubmit = () => {
     setShowAssignDialog(true);
+  };
+
+  const handleUnassignActionSubmit = () => {
+    setShowUnassignDialog(true);
   };
 
   const devicesWithId: TableDevice[] = useMemo(() => {
@@ -92,24 +105,33 @@ export default function DevicesTable({
         pageSize={itemsPerPage}
         onRowClick={handleDeviceClick}
         multiSelect={multiSelect}
-        onSelectedItemsChange={(ids) => setSelectedDevices(ids as string[])}
+        onSelectedItemsChange={(items) => setSelectedDeviceObjects(items as TableDevice[])}
         actions={
           multiSelect
             ? [
-                {
-                  label: "Assign to Cohort",
-                  value: "assign_cohort",
-                  handler: handleActionSubmit,
-                },
-              ]
+              {
+                label: "Add to Cohort",
+                value: "assign_cohort",
+                handler: handleAddCohortDeviceActionSubmit,
+              },
+              ...(selectedDeviceObjects.length > 0
+                ? [{
+                  label: "Remove from Cohort",
+                  value: "unassign_cohort",
+                  handler: handleUnassignActionSubmit,
+                }]
+                : [])
+            ]
             : []
         }
         emptyState={
-          error ? ( 
+          error ? (
             <div className="flex flex-col items-center gap-2">
               <ExclamationTriangleIcon className="h-8 w-8 text-muted-foreground" />
               <p className="text-muted-foreground">Unable to load devices</p>
-              <p className="text-sm text-muted-foreground">{error.message || "An unknown error occurred"}</p>
+              <p className="text-sm text-muted-foreground">
+                {error.message || "An unknown error occurred"}
+              </p>
             </div>
           ) : (
             "No devices available"
@@ -130,8 +152,16 @@ export default function DevicesTable({
       <AssignCohortDevicesDialog
         open={showAssignDialog}
         onOpenChange={setShowAssignDialog}
-        selectedDevices={selectedDevices}
+        selectedDevices={selectedDeviceObjects}
         onSuccess={handleAssignSuccess}
+      />
+
+      {/* Unassign from Cohort Dialog */}
+      <UnassignCohortDevicesDialog
+        open={showUnassignDialog}
+        onOpenChange={setShowUnassignDialog}
+        selectedDevices={selectedDeviceObjects}
+        onSuccess={handleUnassignSuccess}
       />
     </div>
   );

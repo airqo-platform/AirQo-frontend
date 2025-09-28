@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { AqCopy01, AqEye } from "@airqo/icons-react";
+import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 interface CohortDetailsCardProps {
@@ -59,8 +59,8 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
       </div>
 
       <div className="border-t px-2 flex justify-end">
-        <ReusableButton variant="text" onClick={onShowDetailsModal} Icon={AqEye} className="p-1 text-xs m-1">
-          View more details
+        <ReusableButton variant="text" onClick={onShowDetailsModal} Icon={AqEdit01} className="p-1 text-xs m-1">
+          Edit details
         </ReusableButton>
       </div>
     </Card>
