@@ -405,7 +405,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     )}
 
                     {sidebarConfig.showCohorts && contextPermissions.canViewDevices && (
-                      <NavItem href="/cohorts" icon={Users} label="Cohorts" isCollapsed={false} disabled={false} />
+                      <NavItem href="/cohorts" icon={AqCollocation} label="Cohorts" isCollapsed={false} disabled={false} />
                     )}
                   </>
                 )}
