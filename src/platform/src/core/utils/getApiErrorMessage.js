@@ -30,6 +30,11 @@ export const getApiErrorMessage = (error) => {
           return firstError.message;
         }
 
+        // Handles { "errors": { "field": "..." } }
+        if (typeof firstError === 'string') {
+          return firstError;
+        }
+
         // Handles { "errors": { "field": ["..."] } }
         if (Array.isArray(firstError) && firstError[0]) {
           return String(firstError[0]);
