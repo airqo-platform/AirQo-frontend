@@ -745,7 +745,7 @@ extension ExposureRiskLevelExtension on ExposureRiskLevel {
   String get displayName {
     switch (this) {
       case ExposureRiskLevel.minimal:
-        return 'Minimal';
+        return 'Low';
       case ExposureRiskLevel.low:
         return 'Low';
       case ExposureRiskLevel.moderate:

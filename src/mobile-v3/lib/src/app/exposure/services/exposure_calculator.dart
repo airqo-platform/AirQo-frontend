@@ -574,51 +574,13 @@ class ExposureCalculator with UiLoggy {
     return hourlyPm25.clamp(avgPm25 * 0.5, maxPm25);
   }
 
-  /// Estimate exposure duration for an hour based on AQI category
+  /// Calculate total exposure duration for each hour (simplified approach)
   Duration _estimateHourlyExposureDuration(int hour, String aqiCategory) {
-    // Estimate how much of each hour people typically spend outdoors
-    int baseMinutes;
-    
-    if (hour >= 9 && hour <= 17) {
-      // Work hours - assume less outdoor time
-      baseMinutes = 15; // 15 minutes outdoor per hour
-    } else if (hour >= 18 && hour <= 21) {
-      // Evening hours - more outdoor activities
-      baseMinutes = 30; // 30 minutes outdoor per hour
-    } else if (hour >= 6 && hour <= 9) {
-      // Morning commute hours
-      baseMinutes = 20; // 20 minutes outdoor per hour
-    } else {
-      // Night hours - minimal outdoor time
-      baseMinutes = 5; // 5 minutes outdoor per hour
-    }
-    
-    // Adjust based on air quality (people avoid outdoors when pollution is high)
-    final aqiMultiplier = _getOutdoorTimeMultiplier(aqiCategory);
-    final adjustedMinutes = (baseMinutes * aqiMultiplier).round().clamp(0, 60);
-    
-    return Duration(minutes: adjustedMinutes);
+    // Since it's "Total exposure time", just use 1 hour for each hour that has air quality data
+    // This represents the time period for which we have exposure information
+    return Duration(hours: 1);
   }
 
-  /// Get multiplier for outdoor time based on AQI category
-  double _getOutdoorTimeMultiplier(String aqiCategory) {
-    switch (aqiCategory.toLowerCase()) {
-      case 'good':
-        return 1.2; // People spend more time outdoors when air is good
-      case 'moderate':
-        return 1.0; // Normal outdoor time
-      case 'unhealthy for sensitive groups':
-        return 0.8; // Slightly reduced outdoor time
-      case 'unhealthy':
-        return 0.6; // Significantly reduced outdoor time
-      case 'very unhealthy':
-        return 0.4; // Minimal outdoor time
-      case 'hazardous':
-        return 0.2; // Very minimal outdoor time
-      default:
-        return 1.0;
-    }
-  }
 
   /// Get the name of the nearest sensor for location context
   String? _getNearestSensorName(List<Measurement> sensors, Position userPosition) {
