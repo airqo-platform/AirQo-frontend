@@ -70,24 +70,6 @@ const BottomNavItem = ({
     </TooltipProvider>
   )
 }
-const navItems: NavigationItem[] = [
-        {
-                href:"/home",
-                icon: AqHomeSmile,
-                label: "Home",
-        },
-        {
-                href:"/devices/my-devices",
-                icon: AqMonitor,
-                label: "My Devices"
-        },
-        {
-                href:"/devices/claim",
-                icon: AqPackagePlus,
-                label: "claim"
-        },
-
-];
 
 const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ isMobileOpen }) => {
   let displayItems:NavigationItem[] = [];
