@@ -78,11 +78,15 @@ const AddClientForm = ({ open, closeModal }) => {
 
     setLoading(true);
 
+    const processedIps = ipAddresses.map((ip) => ip.trim()).filter(Boolean);
+
     const payload = {
       name: clientName.trim(),
       user_id: userId,
-      ip_addresses: ipAddresses.map((ip) => ip.trim()).filter(Boolean), // drop empty
     };
+    if (processedIps.length > 0) {
+      payload.ip_addresses = processedIps;
+    }
 
     try {
       const res = await createClientApi(payload);
