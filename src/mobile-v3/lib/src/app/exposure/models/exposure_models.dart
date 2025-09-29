@@ -59,10 +59,9 @@ class ExposureDataPoint extends Equatable {
     // Get the best available site name
     String? siteName;
     if (measurement.siteDetails != null) {
-      siteName = measurement.siteDetails!.formattedName ?? 
+      siteName = measurement.siteDetails!.searchName ??
                 measurement.siteDetails!.locationName ?? 
                 measurement.siteDetails!.name ?? 
-                measurement.siteDetails!.searchName ??
                 measurement.siteDetails!.district ??
                 measurement.siteDetails!.subCounty ??
                 measurement.siteDetails!.city;
