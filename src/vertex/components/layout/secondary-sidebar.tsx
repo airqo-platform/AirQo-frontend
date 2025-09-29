@@ -96,7 +96,7 @@ const NavItem = ({
                   isActive
                     ? isCollapsed
                       ? "bg-blue-50"
-                      : "bg-blue-50 font-semibold text-blue-700"
+                      : "bg-blue-50 font-normal text-blue-700"
                     : "hover:bg-muted text-foreground"
                 }
                 ${isCollapsed ? "justify-center px-2 py-2" : ""}
@@ -111,7 +111,7 @@ const NavItem = ({
               <span className="absolute -left-2 top-[17px] bottom-2 w-1 rounded-full bg-blue-600 h-3" />
             )}
             <Icon size={20} className="shrink-0" />
-            <span className={isCollapsed ? "hidden" : "block"}>{label}</span>
+            <span className={isCollapsed ? "hidden" : "block font-light "}>{label}</span>
           </Link>
         </TooltipTrigger>
         {disabled && tooltip && (
@@ -319,29 +319,33 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       
      {/* Mobile/Tablet Sidebar - slides in from right  */}
       <aside
-        className={`lg:hidden fixed top-0 right-0 z-[99999] h-full w-[280px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+        className={`lg:hidden fixed top-0 right-0 z-[99999] h-full w-[290px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           isTabletOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex flex-col h-full   p-1">
-                <div className="flex w-full items-center justify-between gap-2 px-4 py-3">
+        <div className="flex flex-col h-full   px-2 pt-0">
+                <div className="flex w-full mt-3 items-center gap-8 space-x-4 p-1">
                         <Image
                           src={AirqoLogoRaw}
                           alt="AirQo logo"
-                          width={52}
-                          height={52}
+                          width={48}
+                          height={48}
                           priority
-                          className="flex mx-auto object-cover transition-opacity duration-500"
+                          className="flex ml-24 object-cover transition-opacity duration-500"
                         />
+
+                        <button type="button"  onClick={handleMobileClose} className="flex absolute right-5 z-50   transition-all duration-200" >
+                  <X className="w-6 h-6 font-light text-sm  text-gray-800" />
+         </button>
                 </div>
-           <X    onClick={handleMobileClose} className=" absolute top-5 right-4 z-50  w-8 h-8  text-gray-800 transition-all duration-200" />
+         
 
           <Card
             className="h-full border-none relative overflow-hidden"
             padding="p-3"
             overflow
             overflowType="auto"
-            contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar} pt-12`}
+            contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar} pt-7`}
           >
             {isContextLoading ? (
               <div className="flex flex-col gap-4 p-2">
