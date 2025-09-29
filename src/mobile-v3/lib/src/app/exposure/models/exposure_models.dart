@@ -247,8 +247,8 @@ class DailyExposureSummary extends Equatable {
   ExposureRiskLevel get riskLevel {
     if (totalExposureScore >= 50) return ExposureRiskLevel.high;
     if (totalExposureScore >= 20) return ExposureRiskLevel.moderate;
-    if (totalExposureScore >= 5) return ExposureRiskLevel.low;
-    return ExposureRiskLevel.minimal;
+    // Merge minimal and low into single "low" category (0-19 score range)
+    return ExposureRiskLevel.low;
   }
 
   Map<String, dynamic> toJson() {
@@ -745,7 +745,7 @@ extension ExposureRiskLevelExtension on ExposureRiskLevel {
   String get displayName {
     switch (this) {
       case ExposureRiskLevel.minimal:
-        return 'Low';
+        return 'Minimal';
       case ExposureRiskLevel.low:
         return 'Low';
       case ExposureRiskLevel.moderate:
