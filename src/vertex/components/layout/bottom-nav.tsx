@@ -36,34 +36,43 @@ const BottomNavItem = ({
   disabled = false,
   onClick,
 }: {
-  href: string
+  href?: string
   icon: React.ElementType
   label: string
   disabled?: boolean
   onClick?: () => void
 }) => {
   const pathname = usePathname()
-  const isActive = pathname.startsWith(href)
+  const isActive = href ? pathname.startsWith(href) : false
 
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link
-            onClick={onClick}
-            href={disabled ? "#" : href}
-            tabIndex={disabled ? -1 : 0}
-            aria-disabled={disabled}
-            className={`relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]
-                ${isActive ? "bg-blue-50 text-blue-700" : "hover:bg-muted text-foreground"}
-                ${disabled ? "opacity-50 pointer-events-none cursor-not-allowed" : ""}`}
-          >
-            {isActive && (
-              <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-6 h-1 rounded-full bg-blue-600" />
-            )}
-            <Icon size={18} className="shrink-0" />
-            <span className="text-xs text-center leading-tight">{label}</span>
-          </Link>
+         {disabled ? (
++            <span
+              tabIndex={-1}
+              aria-disabled={true}
+              className="relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px] opacity-50 cursor-not-allowed text-foreground"
+            >
+              <Icon size={18} className="shrink-0" />
+              <span className="text-xs text-center leading-tight">{label}</span>
+            </span>
+          ) : (
+            <Link
+              onClick={onClick}
+              href={href!}
+              className={`relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]
+                ${isActive ? "bg-blue-50 text-blue-700" : "hover:bg-muted text-foreground"}`}
+            >
+              {isActive && (
+                <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-6 h-1 rounded-full bg-blue-600" />
+              )}
+              <Icon size={18} className="shrink-0" />
+              <span className="text-xs text-center leading-tight">{label}</span>
+            </Link>
+          )}
+
         </TooltipTrigger>
         {disabled && <TooltipContent side="top">You do not have permission to access this.</TooltipContent>}
       </Tooltip>
@@ -129,9 +138,8 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ isMobileOpen 
               ))}
               <BottomNavItem
                   onClick={logout}
-                  href={"/#"}
                   icon={LogOut}
-                  label={"Sign out"}
+                  label="Sign out"
                   disabled={false}
                 />
             </div>
