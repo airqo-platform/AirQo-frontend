@@ -1770,14 +1770,10 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
       // Get location name from site details
       String locationName = 'unknown location';
       if (peakMeasurement.siteDetails != null) {
-        locationName = peakMeasurement.siteDetails!.formattedName ?? 
-                     peakMeasurement.siteDetails!.locationName ?? 
-                     peakMeasurement.siteDetails!.name ?? 
-                     peakMeasurement.siteDetails!.searchName ??
-                     peakMeasurement.siteDetails!.district ??
-                     peakMeasurement.siteDetails!.subCounty ??
-                     peakMeasurement.siteDetails!.city ??
-                     'monitoring station';
+        locationName = peakMeasurement.siteDetails!.searchName ??
+                     peakMeasurement.siteDetails!.locationName ??
+                     peakMeasurement.siteDetails!.name ??
+                     'unknown location';
       }
       
       // Format time from measurement timestamp
