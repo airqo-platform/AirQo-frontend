@@ -38,7 +38,6 @@ interface SecondarySidebarProps {
   isCollapsed: boolean;
   activeModule: string;
   toggleSidebar: () => void;
-//   isMobileOpen?: boolean;
   isTabletOpen?: boolean;
   handleMobileClose?: () => void;
 }
@@ -309,7 +308,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
       </div>
     </aside>
 
-    {/* Mobile/Tablet Overlay */}
+    {/* Tablet Overlay */}
       {isTabletOpen && (
         <div
           className="lg:hidden fixed inset-0 bg-black/20 z-40 transition-opacity duration-300"
@@ -317,7 +316,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
         />
       )}
       
-     {/* Mobile/Tablet Sidebar - slides in from right  */}
+     {/* Tablet Sidebar - slides in from right  */}
       <aside
         className={`lg:hidden fixed top-0 right-0 z-[99999] h-full w-[290px] bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
           isTabletOpen ? "translate-x-0" : "translate-x-full"
@@ -334,9 +333,9 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                           className="flex ml-24 object-cover transition-opacity duration-500"
                         />
 
-                        <button type="button"  onClick={handleMobileClose} className="flex absolute right-5 z-50   transition-all duration-200" >
-                  <X className="w-6 h-6 font-light text-sm  text-gray-800" />
-         </button>
+                        <button type="button" aria-label="Close sidebar" onClick={handleMobileClose} className="flex absolute right-5 z-50 transition-all duration-200">
+                          <X className="h-5 w-5" />
+                        </button>
                 </div>
          
 
@@ -447,7 +446,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 <Skeleton className="h-10 w-full" />
               </div>
             ) : (
-              <NavItem href="/profile" icon={LogOut} label="Sign out" isCollapsed={false} />
+              <NavItem href="/sign-out" icon={LogOut} label="Sign out" isCollapsed={false} />
             )}
           </div>
         </div>
