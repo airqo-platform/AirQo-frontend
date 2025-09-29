@@ -1,7 +1,6 @@
 "use client"
 
 import { TooltipTrigger } from "@/components/ui/tooltip"
-
 import type React from "react"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
@@ -13,6 +12,8 @@ import {
   AqPackagePlus,
 } from "@airqo/icons-react";
 import { LogOut } from "lucide-react"
+import { useAuth } from '@/core/hooks/users';
+import { useUserContext } from "@/core/hooks/useUserContext"
 
 interface NavigationItem {
   href: string
@@ -33,11 +34,13 @@ const BottomNavItem = ({
   icon: Icon,
   label,
   disabled = false,
+  onClick,
 }: {
   href: string
   icon: React.ElementType
   label: string
   disabled?: boolean
+  onClick?: () => void
 }) => {
   const pathname = usePathname()
   const isActive = pathname.startsWith(href)
@@ -47,6 +50,7 @@ const BottomNavItem = ({
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
+            onClick={onClick}
             href={disabled ? "#" : href}
             tabIndex={disabled ? -1 : 0}
             aria-disabled={disabled}
@@ -82,17 +86,55 @@ const navItems: NavigationItem[] = [
                 icon: AqPackagePlus,
                 label: "claim"
         },
-        {
-                href:"/signout",
-                icon: LogOut,
-                label: "Sign out"
-        }
-
 
 ];
 
-const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ items, isLoading = false, maxItems = 6,isMobileOpen }) => {
-  const displayItems = items?.slice(0, maxItems)||navItems;
+const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ isMobileOpen }) => {
+  let displayItems:NavigationItem[] = [];
+        const {userContext,isContextLoading} = useUserContext();
+        const { logout } = useAuth();
+
+        switch (userContext) {
+                case "personal":
+                        displayItems = [
+                                {
+                href:"/home",
+                icon: AqHomeSmile,
+                label: "Home",
+        },
+        {
+                href:"/devices/my-devices",
+                icon: AqMonitor,
+                label: "My Devices"
+        },
+        {
+                href:"/devices/claim",
+                icon: AqPackagePlus,
+                label: "claim"
+        },
+                        ];
+                        break;
+        case "airqo-internal":
+        case "external-org":
+                        displayItems = [
+                                {
+                href:"/home",
+                icon: AqHomeSmile,
+                label: "Home",
+        },
+        {
+                href:"/devices/overview",
+                icon: AqMonitor,
+                label: "Devices"
+        },
+        {
+                href:"/devices/claim",
+                icon: AqPackagePlus,
+                label: "Sites"
+        },
+                        ];
+        }
+
 
         if (!isMobileOpen) {
                 return null;
@@ -102,9 +144,9 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ items, isLoad
     <>
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
         <div className="px-2 py-2">
-          {isLoading ? (
+          {isContextLoading ? (
             <div className="flex justify-center gap-2">
-              {[...Array(5)].map((_, i) => (
+              {[...Array(4)].map((_, i) => (
                 <Skeleton key={i} className="h-12 w-12 rounded-lg" />
               ))}
             </div>
@@ -119,6 +161,13 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ items, isLoad
                   disabled={item.disabled}
                 />
               ))}
+              <BottomNavItem
+                  onClick={logout}
+                  href={"/#"}
+                  icon={LogOut}
+                  label={"Sign out"}
+                  disabled={false}
+                />
             </div>
           )}
         </div>

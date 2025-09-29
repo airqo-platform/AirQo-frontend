@@ -33,6 +33,7 @@ import Card from "../shared/card/CardWrapper";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import Image from "next/image";
+import { useAuth } from '@/core/hooks/users';
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -68,26 +69,29 @@ const NavItem = ({
   disabled = false,
   tooltip,
   activeOverride,
+  onClick,
 }: {
-  href: string;
+  href?: string;
   icon: React.ElementType;
   label: string;
   isCollapsed: boolean;
   disabled?: boolean;
   tooltip?: string;
   activeOverride?: boolean;
+  onClick?: () => void;
 }) => {
   const pathname = usePathname();
   const isActive =
     typeof activeOverride === "boolean"
       ? activeOverride
-      : pathname.startsWith(href);
+      : href !== undefined && pathname.startsWith(href);
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
-            href={disabled ? "#" : href}
+          onClick={onClick}
+            href={disabled || !href ? "#" : href}
             tabIndex={disabled ? -1 : 0}
             aria-disabled={disabled}
             className={`relative flex items-center gap-3 px-4 py-3 rounded-xl transition text-base
@@ -136,6 +140,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
   const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
+  const { logout } = useAuth();
 
   return (
     <>
@@ -446,7 +451,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 <Skeleton className="h-10 w-full" />
               </div>
             ) : (
-              <NavItem href="/sign-out" icon={LogOut} label="Sign out" isCollapsed={false} />
+              <NavItem onClick={logout}  icon={LogOut} label="Sign out" isCollapsed={false} />
             )}
           </div>
         </div>
