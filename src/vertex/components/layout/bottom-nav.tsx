@@ -70,51 +70,35 @@ const BottomNavItem = ({
     </TooltipProvider>
   )
 }
+const baseItems = {
+  home: { href: "/home", icon: AqHomeSmile, label: "Home" },
+  myDevices: { href: "/devices/my-devices", icon: AqMonitor, label: "My Devices" },
+  devicesOverview: { href: "/devices/overview", icon: AqMonitor, label: "Devices" },
+  claim: { href: "/devices/claim", icon: AqPackagePlus, label: "Claim" },
+};
+
+const itemsByContext: Record<string, NavigationItem[]> = {
+  "personal": [baseItems.home, baseItems.myDevices, baseItems.claim],
+  "airqo-internal": [baseItems.home, baseItems.devicesOverview, baseItems.claim],
+  "external-org": [baseItems.home, baseItems.devicesOverview, baseItems.claim],
+};
+
 
 const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ isMobileOpen }) => {
-  let displayItems:NavigationItem[] = [];
+  
         const {userContext,isContextLoading} = useUserContext();
         const { logout } = useAuth();
-
+        let displayItems: NavigationItem[] = [];
         switch (userContext) {
                 case "personal":
-                        displayItems = [
-                                {
-                href:"/home",
-                icon: AqHomeSmile,
-                label: "Home",
-        },
-        {
-                href:"/devices/my-devices",
-                icon: AqMonitor,
-                label: "My Devices"
-        },
-        {
-                href:"/devices/claim",
-                icon: AqPackagePlus,
-                label: "claim"
-        },
-                        ];
+                        displayItems = itemsByContext["personal"] || [];
                         break;
         case "airqo-internal":
+                        displayItems = itemsByContext["airqo-internal"] || [];
+                        break;
         case "external-org":
-                        displayItems = [
-                                {
-                href:"/home",
-                icon: AqHomeSmile,
-                label: "Home",
-        },
-        {
-                href:"/devices/overview",
-                icon: AqMonitor,
-                label: "Devices"
-        },
-        {
-                href:"/devices/claim",
-                icon: AqPackagePlus,
-                label: "Sites"
-        },
-                        ];
+                        displayItems = itemsByContext["external-org"] || [];
+                        break;
         }
 
 
