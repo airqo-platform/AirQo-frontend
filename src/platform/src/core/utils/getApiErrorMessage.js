@@ -7,52 +7,55 @@ import axios from 'axios';
  * @returns {string} A user-friendly error message string.
  */
 export const getApiErrorMessage = (error) => {
+  // Handle Axios-specific network errors first
   if (axios.isAxiosError(error)) {
     if (error.code === 'ECONNABORTED') {
       return 'Request timed out. Please check your connection and try again.';
     }
+  }
 
-    if (error.response?.data) {
-      const data = error.response.data;
+  // Now, check for a response body, which is common to Axios and other errors.
+  // This allows the function to be used with non-Axios errors that have a similar structure.
+  if (error?.response?.data) {
+    const data = error.response.data;
 
-      // Case 1: Nested validation errors: { "errors": [{ "message": "..." }] } or { "errors": { "field": { "msg": "..." } } }
-      if (data.errors && typeof data.errors === 'object' && !('message' in data.errors)) {
-        const errorValues = Object.values(data.errors);
-        if (errorValues.length > 0) {
-          const firstError = errorValues[0];
+    // Case 1: Nested validation errors: { "errors": [{ "message": "..." }] } or { "errors": { "field": { "msg": "..." } } }
+    if (data.errors && typeof data.errors === 'object' && !('message' in data.errors)) {
+      const errorValues = Object.values(data.errors);
+      if (errorValues.length > 0) {
+        const firstError = errorValues[0];
 
-          // Handles { "errors": [{ "message": "..." }] }
-          if (typeof firstError === 'object' && firstError !== null && firstError.message) {
-            return firstError.message;
-          }
+        // Handles { "errors": [{ "message": "..." }] }
+        if (typeof firstError === 'object' && firstError !== null && firstError.message) {
+          return firstError.message;
+        }
 
-          // Handles { "errors": { "field": ["..."] } }
-          if (Array.isArray(firstError) && firstError[0]) {
-            return String(firstError[0]);
-          }
+        // Handles { "errors": { "field": ["..."] } }
+        if (Array.isArray(firstError) && firstError[0]) {
+          return String(firstError[0]);
+        }
 
-          // Handles { "errors": { "field": { "msg": "..." } } }
-          if (typeof firstError === 'object' && firstError !== null) {
-            const maybeMsg = firstError.msg ?? firstError.message;
-            if (maybeMsg) return maybeMsg;
-          }
+        // Handles { "errors": { "field": { "msg": "..." } } }
+        if (typeof firstError === 'object' && firstError !== null) {
+          const maybeMsg = firstError.msg ?? firstError.message;
+          if (maybeMsg) return maybeMsg;
         }
       }
+    }
 
-      // Case 2: Simple errors object: { "errors": { "message": "..." } }
-      if (data.errors && typeof data.errors === 'object' && data.errors.message) {
-        return data.errors.message;
-      }
+    // Case 2: Simple errors object: { "errors": { "message": "..." } }
+    if (data.errors && typeof data.errors === 'object' && data.errors.message) {
+      return data.errors.message;
+    }
 
-      // Case 3: String inside errors: { "errors": "..." }
-      if (typeof data.errors === 'string') {
-        return data.errors;
-      }
+    // Case 3: String inside errors: { "errors": "..." }
+    if (typeof data.errors === 'string') {
+      return data.errors;
+    }
 
-      // Case 4: Top-level message: { "message": "..." }
-      if (data.message) {
-        return data.message;
-      }
+    // Case 4: Top-level message: { "message": "..." }
+    if (data.message) {
+      return data.message;
     }
   }
 
