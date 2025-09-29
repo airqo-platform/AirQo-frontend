@@ -7,6 +7,7 @@ import NotificationService from '@/core/utils/notificationService';
 import { createClientApi } from '@/core/apis/Settings';
 import { addClients, performRefresh } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import { FiX, FiTrash2 } from 'react-icons/fi';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
@@ -108,15 +109,12 @@ const AddClientForm = ({ open, closeModal }) => {
         closeModal();
       } else {
         /* business error from backend */
-        const statusCode = Number(res?.status) || 400;
-        NotificationService.error(
-          statusCode,
-          res?.message || 'Client creation failed',
-        );
+        const errorMessage = getApiErrorMessage({ response: { data: res } });
+        NotificationService.error(Number(res?.status) || 400, errorMessage);
       }
     } catch (err) {
       /* network / runtime error */
-      NotificationService.handleApiError(err);
+      NotificationService.error(err.response?.status, getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
