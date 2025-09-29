@@ -96,7 +96,7 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -150,29 +150,10 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                                           .textTheme
                                           .bodyMedium
                                           ?.color
-                                          ?.withOpacity(0.7),
+                                          ?.withValues(alpha: 0.7),
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.near_me,
-                                  size: 14,
-                                  color: AppColors.primaryColor,
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  "${distance.toStringAsFixed(1)} km away",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: AppColors.primaryColor,
                                   ),
                                 ),
                               ],
@@ -271,7 +252,7 @@ class NearbyMeasurementCard extends StatelessWidget with UiLoggy {
                         padding:
                             EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
-                          color: _getAqiColor(measurement).withOpacity(0.15),
+                          color: _getAqiColor(measurement).withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
