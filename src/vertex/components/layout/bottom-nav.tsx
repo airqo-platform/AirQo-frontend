@@ -105,6 +105,8 @@ const BottomNavigationBar: React.FC<BottomNavigationBarProps> = ({ isMobileOpen 
         case "external-org":
                         displayItems = itemsByContext["external-org"] || [];
                         break;
+        default:
+                displayItems = itemsByContext["personal"] || [];
         }
 
 
