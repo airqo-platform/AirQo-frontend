@@ -55,10 +55,10 @@ const BottomNavItem = ({
               <Icon size={18} className="shrink-0" />
               <span className="text-xs text-center leading-tight">{label}</span>
             </span>
-          ) : (
+          ) : (href &&
             <Link
               onClick={onClick}
-              href={href!}
+              href={href}
               className={`relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]
                 ${isActive ? "bg-blue-50 text-blue-700" : "hover:bg-muted text-foreground"}`}
             >
