@@ -23,9 +23,6 @@ interface NavigationItem {
 }
 
 interface BottomNavigationBarProps {
-  items?: NavigationItem[]
-  isLoading?: boolean
-  maxItems?: number
   isMobileOpen?: boolean
 }
 
