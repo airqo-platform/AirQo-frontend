@@ -47,7 +47,7 @@ const BottomNavItem = ({
       <Tooltip>
         <TooltipTrigger asChild>
          {disabled ? (
-+            <span
+                <span
               tabIndex={-1}
               aria-disabled={true}
               className="relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px] opacity-50 cursor-not-allowed text-foreground"
@@ -55,9 +55,8 @@ const BottomNavItem = ({
               <Icon size={18} className="shrink-0" />
               <span className="text-xs text-center leading-tight">{label}</span>
             </span>
-          ) : (href &&
+          ) : (href ? (
             <Link
-              onClick={onClick}
               href={href}
               className={`relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]
                 ${isActive ? "bg-blue-50 text-blue-700" : "hover:bg-muted text-foreground"}`}
@@ -68,7 +67,18 @@ const BottomNavItem = ({
               <Icon size={18} className="shrink-0" />
               <span className="text-xs text-center leading-tight">{label}</span>
             </Link>
-          )}
+          ):(
+                <button 
+                onClick={onClick}
+                className={`relative flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-[60px]
+                ${isActive ? "bg-blue-50 text-blue-700" : "hover:bg-muted text-foreground"}`} >
+              {isActive && (
+                <span className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-6 h-1 rounded-full bg-blue-600" />
+              )}
+              <Icon size={18} className="shrink-0" />
+              <span className="text-xs text-center leading-tight">{label}</span>
+                </button>
+          ))}
 
         </TooltipTrigger>
         {disabled && <TooltipContent side="top">You do not have permission to access this.</TooltipContent>}
