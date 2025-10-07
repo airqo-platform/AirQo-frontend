@@ -235,13 +235,10 @@ const DataDownload = ({
     swrOptions: { revalidateOnMount: true },
   });
 
-  const { data: devicesData } = usePaginatedDevicesSummary(
-    groupTitle || 'airqo',
-    {
-      enableInfiniteScroll: true,
-      search: searchQuery,
-    },
-  );
+  const { data: devicesData } = usePaginatedDevicesSummary(activeGroupId, {
+    enableInfiniteScroll: true,
+    search: searchQuery,
+  });
 
   const {
     data: countriesData,

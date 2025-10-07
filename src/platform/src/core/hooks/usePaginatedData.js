@@ -344,29 +344,40 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
 /**
  * Specialized hook for devices summary with pagination
  */
-export const usePaginatedDevicesSummary = (group, options = {}) => {
+export const usePaginatedDevicesSummary = (groupId, options = {}) => {
   const { search = '', ...restOptions } = options;
-  const normalizedGroup =
-    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
   const fetcher = useCallback(
     async (params, signal) => {
-      const { getDeviceSummaryApi } = await import('../apis/Analytics');
-      const groupParam = normalizedGroup || undefined;
-      return getDeviceSummaryApi({
-        group: groupParam,
-        status: 'deployed',
-        skip: params.skip,
-        limit: params.limit,
-        search: params.search,
+      if (!groupId) return { devices: [], meta: {} };
+
+      const { getGroupCohortsApi, getDevicesForCohortsApi } = await import(
+        '../apis/DeviceRegistry'
+      );
+
+      // Step 1: Fetch cohorts for the group
+      const cohortsResponse = await getGroupCohortsApi(groupId, signal);
+      const cohortIds = cohortsResponse?.data || [];
+
+      if (cohortIds.length === 0) {
+        return { devices: [], meta: {} };
+      }
+
+      // Step 2: Fetch devices for the retrieved cohorts
+      return getDevicesForCohortsApi(
+        {
+          cohort_ids: cohortIds,
+          skip: params.skip,
+          limit: params.limit,
+        },
         signal,
-      });
+      );
     },
-    [normalizedGroup],
+    [groupId],
   );
 
   return usePaginatedData(
-    ['devices-summary-paginated', normalizedGroup || 'all', search || ''],
+    ['devices-summary-paginated', groupId || 'all', search || ''],
     fetcher,
     {
       initialLimit: 20,
