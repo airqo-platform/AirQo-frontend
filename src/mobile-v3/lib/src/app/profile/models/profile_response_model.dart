@@ -60,19 +60,19 @@ class User {
     });
 
     factory User.fromJson(Map<String, dynamic> json) => User(
-        id: json["_id"],
-        firstName: json["firstName"],
-        lastName: json["lastName"],
+        id: json["_id"] ?? "",
+        firstName: json["firstName"] ?? "",
+        lastName: json["lastName"] ?? "",
         profilePicture: json["profilePicture"],
-        lastLogin: DateTime.parse(json["lastLogin"]),
-        isActive: json["isActive"],
-        loginCount: json["loginCount"],
-        userName: json["userName"],
-        email: json["email"],
-        verified: json["verified"],
-        analyticsVersion: json["analyticsVersion"],
-        privilege: json["privilege"],
-        updatedAt: DateTime.parse(json["updatedAt"]),
+        lastLogin: json["lastLogin"] != null ? DateTime.parse(json["lastLogin"]) : DateTime.now(),
+        isActive: json["isActive"] ?? true,
+        loginCount: json["loginCount"] ?? 0,
+        userName: json["userName"] ?? "",
+        email: json["email"] ?? "",
+        verified: json["verified"] ?? false,
+        analyticsVersion: json["analyticsVersion"] ?? 1,
+        privilege: json["privilege"] ?? "user",
+        updatedAt: json["updatedAt"] != null ? DateTime.parse(json["updatedAt"]) : DateTime.now(),
     );
 
     Map<String, dynamic> toJson() => {
