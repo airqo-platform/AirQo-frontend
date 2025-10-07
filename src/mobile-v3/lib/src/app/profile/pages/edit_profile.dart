@@ -332,7 +332,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       String userFriendlyMessage = 'Unable to update profile. Please try again.';
       
       final errorString = e.toString().toLowerCase();
-      if (errorString.contains('unauthorized') || errorString.contains('session has expired')) {
+      if (errorString.contains('unauthorized') || errorString.contains('session has expired') || errorString.contains('please log in again to continue')) {
         userFriendlyMessage = 'Please log in again to continue.';
       } else if (errorString.contains('network') || errorString.contains('timeout')) {
         userFriendlyMessage = 'Check your internet connection and try again.';
@@ -488,7 +488,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
           String userFriendlyMessage = 'Unable to update profile. Please try again.';
           
           final errorString = state.message.toLowerCase();
-          if (errorString.contains('unauthorized') || errorString.contains('session has expired')) {
+          if (errorString.contains('unauthorized') || errorString.contains('session has expired') || errorString.contains('please log in again to continue')) {
             userFriendlyMessage = 'Please log in again to continue.';
           } else if (errorString.contains('network') || errorString.contains('timeout')) {
             userFriendlyMessage = 'Check your internet connection and try again.';
