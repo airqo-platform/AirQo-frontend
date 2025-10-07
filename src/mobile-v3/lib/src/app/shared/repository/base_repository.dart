@@ -127,7 +127,7 @@ class BaseRepository with UiLoggy {
       return response;
     } else if (response.statusCode == 401) {
       await _handleSessionExpiry();
-      throw Exception('Your session has expired. Please log in again.');
+      throw Exception('Please log in again to continue.');
     } else {
       throw _httpError(response, url);
     }
@@ -196,7 +196,7 @@ class BaseRepository with UiLoggy {
       return response;
     } else if (response.statusCode == 401) {
       await _handleSessionExpiry();
-      throw Exception('Your session has expired. Please log in again.');
+      throw Exception('Please log in again to continue.');
     } else {
       throw _httpError(response, url);
     }
