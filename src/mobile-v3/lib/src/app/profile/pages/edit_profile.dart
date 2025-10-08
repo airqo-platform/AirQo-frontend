@@ -208,7 +208,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       }
 
       // Update user details on the server
-      var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
+      var uri = Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/$userId');
       final authToken = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
       if (authToken == null) {
         throw Exception("Authentication token not found");

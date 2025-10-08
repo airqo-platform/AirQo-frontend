@@ -10,7 +10,7 @@ abstract class UserPreferencesRepository {
 }
 
 class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
-  final String apiBaseUrl = 'https://api.airqo.net/api/v2';
+  final String apiBaseUrl = '${dotenv.env["AIRQO_API_URL"]}/api/v2';
   final String preferencesEndpoint = '/users/preferences';
 
   Future<Map<String, String>> _getHeaders() async {

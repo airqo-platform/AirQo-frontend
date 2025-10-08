@@ -1,5 +1,4 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
-import 'package:airqo/src/app/debug/slack_logger_test_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
@@ -8,7 +7,6 @@ import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/foundation.dart';
 
 class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
@@ -199,6 +197,149 @@ void _showLogoutConfirmation() {
     }
   }
 
+void _showDeleteAccountConfirmation() {
+  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  
+  showDialog(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      backgroundColor: isDarkMode ? AppColors.darkThemeBackground : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      title: Text(
+        'Delete Account',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: isDarkMode 
+              ? AppColors.boldHeadlineColor2 
+              : AppColors.boldHeadlineColor5,
+        ),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Are you sure you want to permanently delete your account?',
+            style: TextStyle(
+              fontSize: 16,
+              color: isDarkMode 
+                  ? AppColors.secondaryHeadlineColor2 
+                  : AppColors.secondaryHeadlineColor,
+            ),
+          ),
+          SizedBox(height: 12),
+          Text(
+            'This action will:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: isDarkMode 
+                  ? AppColors.secondaryHeadlineColor2 
+                  : AppColors.secondaryHeadlineColor,
+            ),
+          ),
+          SizedBox(height: 8),
+          Text(
+            '• Permanently delete all your data\n• Remove your account information\n• Cannot be undone',
+            style: TextStyle(
+              fontSize: 14,
+              color: isDarkMode 
+                  ? Colors.grey[400] 
+                  : Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          style: TextButton.styleFrom(
+            foregroundColor: isDarkMode 
+                ? Colors.grey[400] 
+                : Colors.grey[700],
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          ),
+          child: Text(
+            'Cancel',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.red.shade600,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            elevation: 0,
+          ),
+          onPressed: () => _handleAccountDeletion(dialogContext),
+          child: Text(
+            'Delete Account',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ],
+      actionsAlignment: MainAxisAlignment.spaceBetween, 
+      actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      titlePadding: EdgeInsets.fromLTRB(24, 24, 24, 12),
+      contentPadding: EdgeInsets.fromLTRB(24, 0, 24, 24),
+    ),
+  );
+}
+
+  Future<void> _handleAccountDeletion(BuildContext dialogContext) async {
+    Navigator.pop(dialogContext);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text('Deleting account...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      context.read<AuthBloc>().add(DeleteUserAccount());
+
+      await for (final state in context.read<AuthBloc>().stream) {
+        if (state is GuestUser) {
+          Navigator.pop(context);
+          await Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+            (route) => false,
+          );
+          break;
+        } else if (state is AuthLoadingError) {
+          Navigator.pop(context);
+          _showSnackBar('Failed to delete account: ${state.message}');
+          break;
+        }
+      }
+    } catch (e) {
+      Navigator.pop(context);
+      _showSnackBar('An unexpected error occurred during account deletion');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -223,58 +364,43 @@ void _showLogoutConfirmation() {
 
             SizedBox(height: screenHeight * 0.02),
 
-            // SettingsTile(
-            //   iconPath: "assets/images/shared/language_icon.svg",
-            //   title: "Languages",
-            //   onTap: () {
-            //     Navigator.of(context).push(
-            //       MaterialPageRoute(
-            //         builder: (context) => SelectLanguagePage(),
-            //       ),
-            //     );
-            //   },
-            //   description:
-            //       "Change the language of the app to your preferred language",
-            // ),
 
-                     // Add the developer option here, before the logout button
-          if (kDebugMode)
             SettingsTile(
               iconPath: "assets/images/shared/feedback_icon.svg",
-              title: "Test Slack Logger",
-              description: "Developer option to test Slack integration",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SlackLoggerTestScreen()),
-                );
-              },
+              title: "Delete Account",
+              description: "Permanently delete your account and all associated data",
+              onTap: _showDeleteAccountConfirmation,
             ),
 
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  minimumSize: Size.fromHeight(screenHeight * 0.07),
-                ),
-                onPressed: _showLogoutConfirmation,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.logout, color: Colors.white, size: 20),
-                    SizedBox(width: 10),
-                    Text(
-                      "Log out",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+              child: Center(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
                       ),
+                      padding: EdgeInsets.symmetric(vertical: 16),
                     ),
-                  ],
+                    onPressed: _showLogoutConfirmation,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.logout, color: Colors.white, size: 20),
+                        SizedBox(width: 10),
+                        Text(
+                          "Log out",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

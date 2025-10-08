@@ -21,6 +21,7 @@ abstract class AuthRepository with UiLoggy {
   });
   Future<void> verifyEmailCode(String token, String email);
   Future<String> verifyResetPin(String pin, String email);
+  Future<void> deleteUserAccount();
 }
 
 class AuthImpl extends AuthRepository {
@@ -44,7 +45,7 @@ class AuthImpl extends AuthRepository {
       String username, String password) async {
     try {
       Response loginResponse = await http.post(
-          Uri.parse("https://api.airqo.net/api/v2/users/loginUser"),
+          Uri.parse("${dotenv.env["AIRQO_API_URL"]}/api/v2/users/loginUser"),
           body: jsonEncode({"userName": username, "password": password}),
           headers: {
             "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing')),
@@ -192,7 +193,7 @@ class AuthImpl extends AuthRepository {
   Future<void> registerWithEmailAndPassword(RegisterInputModel model) async {
     try {
       Response registerResponse = await http.post(
-          Uri.parse("https://api.airqo.net/api/v2/users/register"),
+          Uri.parse("${dotenv.env["AIRQO_API_URL"]}/api/v2/users/register"),
           body: registerInputModelToJson(model),
           headers: {"Accept": "application/json", "Content-Type": "application/json"});
 
@@ -242,7 +243,7 @@ class AuthImpl extends AuthRepository {
   Future<String> requestPasswordReset(String email) async {
     try {
       final response = await http.post(
-        Uri.parse('https://api.airqo.net/api/v2/users/reset-password-request'),
+        Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/reset-password-request'),
         headers: {
           "Authorization": dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing')),
           "Accept": "application/json",
@@ -340,7 +341,7 @@ Future<void> verifyEmailCode(String token, String email) async {
     final apiToken = dotenv.env["AIRQO_MOBILE_TOKEN"] ?? (throw StateError('AIRQO_MOBILE_TOKEN environment variable is missing'));
 
     final verifyResponse = await http.post(
-      Uri.parse("https://api.airqo.net/api/v2/users/verify-email/$token"),
+      Uri.parse("${dotenv.env["AIRQO_API_URL"]}/api/v2/users/verify-email/$token"),
       headers: {
         "Authorization": apiToken,
         "Content-Type": "application/json",
@@ -448,7 +449,7 @@ Future<void> verifyEmailCode(String token, String email) async {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('https://api.airqo.net/api/v2/users/reset-password/$token'),
+        Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/reset-password/$token'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -556,6 +557,110 @@ Future<void> verifyEmailCode(String token, String email) async {
       return pin; 
     } else {
       throw Exception('Invalid PIN. Please enter a 5-digit numeric PIN.');
+    }
+  }
+
+  @override
+  Future<void> deleteUserAccount() async {
+    try {
+      final authToken = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+      final userId = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.userId);
+      
+      if (authToken == null || userId == null) {
+        throw Exception('No authentication data found. Please login first.');
+      }
+
+      final response = await http.delete(
+        Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/deleteAccount'),
+        headers: {
+          "Authorization": "Bearer ${_sanitizeToken(authToken)}",
+          "Accept": "application/json",
+          "Content-Type": "application/json"
+        },
+      );
+
+      if (response.statusCode >= 200 && response.statusCode <= 299) {
+        await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
+        await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+        return;
+      } else {
+        loggy.error("Account deletion failed - Status: ${response.statusCode}, BodyLength: ${response.body.length}");
+        
+        String errorMessage;
+        String errorType;
+        
+        if (response.statusCode >= 400 && response.statusCode < 500) {
+          errorType = 'CLIENT_ERROR';
+          errorMessage = 'Unable to delete account. Please try again.';
+          switch (response.statusCode) {
+            case 400:
+              errorType = 'VALIDATION_ERROR: Invalid account deletion request';
+              errorMessage = 'Invalid request. Please try again.';
+              break;
+            case 401:
+              errorType = 'AUTH_ERROR: Authentication required';
+              errorMessage = 'Your session has expired. Please login and try again.';
+              break;
+            case 403:
+              errorType = 'FORBIDDEN_ERROR: Account deletion not allowed';
+              errorMessage = 'Account deletion is not allowed for this account.';
+              break;
+            case 404:
+              errorType = 'NOT_FOUND_ERROR: User account not found';
+              errorMessage = 'Account not found or already deleted.';
+              break;
+            case 422:
+              errorType = 'VALIDATION_ERROR: Account deletion validation failed';
+              try {
+                final responseBody = jsonDecode(response.body);
+                if (responseBody != null && responseBody['message'] != null) {
+                  errorMessage = responseBody['message'];
+                } else {
+                  errorMessage = 'Unable to delete account. Please contact support.';
+                }
+              } catch (e) {
+                errorMessage = 'Unable to delete account. Please contact support.';
+              }
+              break;
+            case 429:
+              errorType = 'RATE_LIMIT_ERROR: Too many deletion requests';
+              errorMessage = 'Too many requests. Please wait and try again later.';
+              break;
+          }
+        } else if (response.statusCode >= 500) {
+          errorType = 'SERVER_ERROR';
+          errorMessage = 'We\'re experiencing technical difficulties. Please try again later.';
+          switch (response.statusCode) {
+            case 502:
+              errorType = 'BAD_GATEWAY_ERROR: Account deletion service unavailable';
+              break;
+            case 503:
+              errorType = 'SERVICE_UNAVAILABLE_ERROR: Account deletion service unavailable';
+              break;
+          }
+        } else {
+          errorType = 'UNKNOWN_ACCOUNT_DELETION_ERROR';
+          errorMessage = 'Failed to delete account. Please try again.';
+        }
+        
+        loggy.error('Account Deletion Failed: $errorType | Status: ${response.statusCode}, BodyLength: ${response.body.length}');
+        throw Exception(errorMessage);
+      }
+    } on SocketException {
+      loggy.error('Account Deletion Network Error: No internet connection');
+      throw Exception("No internet connection. Please check your network and try again.");
+    } on TimeoutException {
+      loggy.error('Account Deletion Network Error: Connection timed out');
+      throw Exception("Connection timed out. Please check your network and try again.");
+    } on FormatException {
+      loggy.error('Account Deletion Parsing Error: Invalid server response format');
+      throw Exception("Invalid response from server. Please try again.");
+    } catch (e) {
+      if (e.toString().contains('Connection refused') || e.toString().contains('Failed host lookup')) {
+        loggy.error('Account Deletion Network Error: Unable to connect to server');
+        throw Exception("Unable to connect to server. Please check your network and try again.");
+      }
+      rethrow;
     }
   }
 }
