@@ -573,11 +573,11 @@ Future<void> verifyEmailCode(String token, String email) async {
       final response = await http.delete(
         Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/deleteAccount'),
         headers: {
-          "Authorization": "Bearer ${_sanitizeToken(authToken)}",
+          "Authorization": "JWT ${_sanitizeToken(authToken)}",
           "Accept": "application/json",
           "Content-Type": "application/json"
         },
-      );
+      ).timeout(const Duration(seconds: 30));
 
       if (response.statusCode >= 200 && response.statusCode <= 299) {
         await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
