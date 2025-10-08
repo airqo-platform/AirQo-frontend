@@ -10,19 +10,278 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import PropTypes from 'prop-types';
 import { usePopper } from 'react-popper';
-import { MdKeyboardArrowRight } from 'react-icons/md';
-import ArrowDropDownIcon from '@/icons/arrow_drop_down';
+import { AqChevronDown, AqChevronRight } from '@airqo/icons-react';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 
-export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
+/**
+ * Custom hook for responsive label handling
+ */
+export const useResponsiveLabel = () => {
+  const [isCompactView, setIsCompactView] = useState(false);
+
+  useEffect(() => {
+    const checkViewport = () => {
+      // Consider compact view for screens smaller than 640px (mobile)
+      // or when sidebar width is constrained
+      const isMobile = window.innerWidth < 640;
+      const isTablet = window.innerWidth >= 640 && window.innerWidth < 1024;
+
+      // Use compact labels on mobile, or on tablet if sidebar is narrow
+      setIsCompactView(isMobile || (isTablet && window.innerWidth < 800));
+    };
+
+    checkViewport();
+
+    // Use ResizeObserver for better performance if available
+    if (window.ResizeObserver) {
+      const resizeObserver = new ResizeObserver(checkViewport);
+      resizeObserver.observe(document.documentElement);
+
+      return () => resizeObserver.disconnect();
+    } else {
+      // Fallback to resize event
+      window.addEventListener('resize', checkViewport);
+      return () => window.removeEventListener('resize', checkViewport);
+    }
+  }, []);
+
+  return isCompactView;
+};
+
+/**
+ * Utility function to determine the best label to display
+ */
+export const getOptimalLabel = (
+  label,
+  shortLabel,
+  isCompactView,
+  iconOnly,
+  maxLength = 12,
+) => {
+  if (iconOnly) return '';
+
+  // If we have a shortLabel and we're in compact view, use it
+  if (isCompactView && shortLabel) {
+    return shortLabel;
+  }
+
+  // If the label is too long for compact view, truncate it
+  if (isCompactView && label && label.length > maxLength) {
+    // Try to find a good truncation point (avoid cutting mid-word)
+    const words = label.split(' ');
+    if (words.length > 1) {
+      // Take first word if it's reasonable length
+      const firstWord = words[0];
+      if (firstWord.length <= maxLength) {
+        return firstWord;
+      }
+    }
+
+    // Otherwise truncate with ellipsis
+    return label.substring(0, maxLength - 1) + '…';
+  }
+
+  return label;
+};
+
+/**
+ * Enhanced route matching utility
+ */
+const createRouteMatcher = () => {
+  const parseMatcherConfig = (config) => {
+    if (typeof config === 'string') {
+      return { type: 'simple', pattern: config };
+    }
+
+    if (typeof config === 'object' && config !== null) {
+      return {
+        type: config.type || 'simple',
+        pattern: config.pattern || config.path,
+        exact: config.exact || false,
+        includeSubroutes: config.includeSubroutes !== false,
+        orgSlug: config.orgSlug,
+        flow: config.flow,
+      };
+    }
+
+    return null;
+  };
+
+  const resolvePathWithSlug = (path, orgSlug) => {
+    if (!path || !orgSlug) return path;
+    return path.replace(/\{slug\}/g, orgSlug);
+  };
+
+  return {
+    isRouteActive: (
+      currentRoute,
+      navPath,
+      matcherConfig,
+      subroutes = [],
+      hasChildren = false,
+    ) => {
+      if (!navPath) return false;
+
+      const config = parseMatcherConfig(matcherConfig);
+
+      if (!config) {
+        return createLegacyMatcher().isRouteActive(
+          currentRoute,
+          navPath,
+          subroutes,
+          hasChildren,
+        );
+      }
+
+      const resolvedNavPath = resolvePathWithSlug(navPath, config.orgSlug);
+      const resolvedPattern = resolvePathWithSlug(
+        config.pattern,
+        config.orgSlug,
+      );
+
+      if (resolvedNavPath === '/' && currentRoute === '/') return true;
+
+      if (
+        resolvedNavPath === '/user/Home' &&
+        (currentRoute === '/' || currentRoute === '/user/Home')
+      ) {
+        return true;
+      }
+
+      // Only exact match for /admin dashboard
+      if (resolvedNavPath === '/admin') {
+        return currentRoute === '/admin';
+      }
+
+      if (currentRoute === resolvedNavPath || currentRoute === resolvedPattern)
+        return true;
+
+      if (!config.exact) {
+        // For other routes, match only if not /admin parent
+        if (
+          resolvedNavPath !== '/admin' &&
+          currentRoute.startsWith(resolvedNavPath)
+        ) {
+          return true;
+        }
+
+        if (
+          resolvedPattern &&
+          resolvedPattern !== '/admin' &&
+          currentRoute.startsWith(resolvedPattern)
+        ) {
+          return true;
+        }
+
+        if (config.includeSubroutes && subroutes.length > 0) {
+          return subroutes.some((subroute) => {
+            if (!subroute.path) return false;
+            const resolvedSubroutePath = resolvePathWithSlug(
+              subroute.path,
+              config.orgSlug,
+            );
+            return (
+              currentRoute === resolvedSubroutePath ||
+              currentRoute.startsWith(resolvedSubroutePath + '/')
+            );
+          });
+        }
+      }
+
+      if (
+        hasChildren &&
+        resolvedNavPath !== '/admin' &&
+        currentRoute.startsWith(resolvedNavPath)
+      ) {
+        return true;
+      }
+
+      return false;
+    },
+
+    getNavPath: (basePath, matcherConfig) => {
+      const config = parseMatcherConfig(matcherConfig);
+      if (!config || !config.orgSlug) return basePath;
+      return resolvePathWithSlug(basePath, config.orgSlug);
+    },
+  };
+};
+
+// Legacy matcher for backwards compatibility
+const createLegacyMatcher = () => {
+  return {
+    isRouteActive: (
+      currentRoute,
+      navPath,
+      subroutes = [],
+      hasChildren = false,
+    ) => {
+      if (!navPath) return false;
+
+      if (navPath === '/' && currentRoute === '/') return true;
+
+      if (
+        navPath === '/user/Home' &&
+        (currentRoute === '/' || currentRoute === '/user/Home')
+      ) {
+        return true;
+      }
+
+      if (currentRoute === navPath) return true;
+
+      if (currentRoute.startsWith(navPath)) return true;
+
+      if (subroutes.length > 0) {
+        return subroutes.some((subroute) => {
+          if (!subroute.path) return false;
+          return (
+            currentRoute === subroute.path ||
+            currentRoute.startsWith(subroute.path + '/')
+          );
+        });
+      }
+
+      if (hasChildren && currentRoute.startsWith(navPath)) {
+        return true;
+      }
+
+      return false;
+    },
+  };
+};
+
+export const SideBarDropdownItem = ({
+  itemLabel,
+  itemPath,
+  matcher,
+  flow,
+  orgSlug,
+}) => {
   const router = useRouter();
   const pathname = usePathname();
   const { theme, systemTheme } = useTheme();
   const currentRoute = pathname;
+
+  const matcherConfig = useMemo(() => {
+    if (matcher) return matcher;
+
+    if (flow || orgSlug) {
+      return {
+        type: 'legacy',
+        pattern: itemPath,
+        flow,
+        orgSlug,
+      };
+    }
+
+    return null;
+  }, [matcher, flow, orgSlug, itemPath]);
+
+  const routeMatcher = useMemo(() => createRouteMatcher(), []);
+
   const isCurrentRoute = useMemo(() => {
-    if (!itemPath) return false;
-    return currentRoute === itemPath || currentRoute.startsWith(itemPath + '/');
-  }, [currentRoute, itemPath]);
+    return routeMatcher.isRouteActive(currentRoute, itemPath, matcherConfig);
+  }, [currentRoute, itemPath, matcherConfig, routeMatcher]);
 
   const isDarkMode = useMemo(() => {
     if (theme === 'dark' || (theme === 'system' && systemTheme === 'dark'))
@@ -31,7 +290,8 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
   }, [theme, systemTheme]);
 
   const handleClick = () => {
-    router.push(itemPath);
+    const navPath = routeMatcher.getNavPath(itemPath, matcherConfig);
+    router.push(navPath);
   };
 
   return (
@@ -47,7 +307,7 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
       }`}
       onClick={handleClick}
     >
-      <h3 className="font-normal text-sm">{itemLabel}</h3>
+      <h3 className="font-normal text-sm truncate">{itemLabel}</h3>
     </div>
   );
 };
@@ -55,10 +315,22 @@ export const SideBarDropdownItem = ({ itemLabel, itemPath }) => {
 SideBarDropdownItem.propTypes = {
   itemLabel: PropTypes.string.isRequired,
   itemPath: PropTypes.string.isRequired,
+  matcher: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+      pattern: PropTypes.string,
+      exact: PropTypes.bool,
+      includeSubroutes: PropTypes.bool,
+      orgSlug: PropTypes.string,
+      type: PropTypes.string,
+    }),
+  ]),
+  flow: PropTypes.oneOf(['user', 'organization', 'generic']),
+  orgSlug: PropTypes.string,
 };
 
 /**
- * Subroute Popup Component with FIXED z-index and stable hover
+ * Subroute Popup Component
  */
 const SubroutePopup = ({
   referenceElement,
@@ -69,14 +341,13 @@ const SubroutePopup = ({
   onPopupHover,
 }) => {
   const [popperElement, setPopperElement] = useState(null);
-
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
     placement: 'right-start',
     modifiers: [
       {
         name: 'offset',
         options: {
-          offset: [8, 0], // 8px gap from sidebar
+          offset: [8, 0],
         },
       },
       {
@@ -115,7 +386,7 @@ const SubroutePopup = ({
       ref={setPopperElement}
       style={{
         ...styles.popper,
-        zIndex: 10000, // Higher than backdrop (9999)
+        zIndex: 10000,
         position: 'fixed',
       }}
       {...attributes.popper}
@@ -123,17 +394,15 @@ const SubroutePopup = ({
       onMouseLeave={() => onPopupHover?.(false)}
       className="pointer-events-auto"
     >
-      {/* Hover bridge - invisible connection area */}
       <div
         className="absolute -left-2 top-0 w-2 h-full bg-transparent pointer-events-auto"
         onMouseEnter={() => onPopupHover?.(true)}
         onMouseLeave={() => onPopupHover?.(false)}
       />
 
-      {/* Main popup */}
       <div
         className={`
-          min-w-[280px] max-w-[360px] py-2 rounded-xl shadow-2xl border pointer-events-auto
+          min-w-[240px] max-w-[320px] py-2 rounded-xl shadow-2xl border pointer-events-auto
           transform transition-all duration-200 ease-out
           ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}
           ${
@@ -203,6 +472,7 @@ SubroutePopup.propTypes = {
 const SidebarItem = ({
   Icon,
   label,
+  shortLabel,
   navPath,
   children,
   onClick,
@@ -210,30 +480,52 @@ const SidebarItem = ({
   toggleState,
   iconOnly = false,
   isExternal = false,
-  subroutes = null,
+  subroutes = [],
   onSubrouteClick,
+  matcher,
+  flow,
+  orgSlug,
 }) => {
   const pathname = usePathname();
   const { theme, systemTheme, isSemiDarkEnabled } = useTheme();
+  const isCompactView = useResponsiveLabel();
 
-  // Simplified hover state management
+  // Create matcher config from props
+  const matcherConfig = useMemo(() => {
+    if (matcher) return matcher;
+
+    if (flow || orgSlug) {
+      return {
+        type: 'legacy',
+        pattern: navPath,
+        flow,
+        orgSlug,
+      };
+    }
+
+    return null;
+  }, [matcher, flow, orgSlug, navPath]);
+
+  const routeMatcher = useMemo(() => createRouteMatcher(), []);
+
+  // Enhanced hover state management
   const [showPopup, setShowPopup] = useState(false);
   const itemRef = useRef(null);
   const hoverTimeoutRef = useRef(null);
 
   const currentRoute = pathname;
+
+  // Enhanced route matching
   const isCurrentRoute = useMemo(() => {
-    if (!navPath) return false;
-    if (navPath === '/' && currentRoute === '/') return true;
-    if (
-      navPath === '/user/Home' &&
-      (currentRoute === '/' || currentRoute === '/user/Home')
-    )
-      return true;
-    if (currentRoute === navPath) return true;
-    if (children && currentRoute.startsWith(navPath)) return true;
-    return false;
-  }, [currentRoute, navPath, children]);
+    const hasChildren = !!children;
+    return routeMatcher.isRouteActive(
+      currentRoute,
+      navPath,
+      matcherConfig,
+      subroutes,
+      hasChildren,
+    );
+  }, [currentRoute, navPath, matcherConfig, subroutes, children, routeMatcher]);
 
   const hasDropdown = !!children;
   const hasSubroutes = !!subroutes && subroutes.length > 0;
@@ -243,6 +535,11 @@ const SidebarItem = ({
       return true;
     return isSemiDarkEnabled;
   }, [theme, systemTheme, isSemiDarkEnabled]);
+
+  // Get the optimal label to display
+  const displayLabel = useMemo(() => {
+    return getOptimalLabel(label, shortLabel, isCompactView, iconOnly);
+  }, [label, shortLabel, isCompactView, iconOnly]);
 
   // Clear any pending timeouts
   const clearHoverTimeout = useCallback(() => {
@@ -260,10 +557,8 @@ const SidebarItem = ({
       clearHoverTimeout();
 
       if (isHovering) {
-        // Show popup immediately
         setShowPopup(true);
       } else {
-        // Hide popup after delay
         hoverTimeoutRef.current = setTimeout(() => {
           setShowPopup(false);
         }, 300);
@@ -278,10 +573,8 @@ const SidebarItem = ({
       clearHoverTimeout();
 
       if (isHovering) {
-        // Keep popup visible
         setShowPopup(true);
       } else {
-        // Hide popup after shorter delay
         hoverTimeoutRef.current = setTimeout(() => {
           setShowPopup(false);
         }, 150);
@@ -290,29 +583,31 @@ const SidebarItem = ({
     [clearHoverTimeout],
   );
 
-  // Handle subroute clicks
+  // Handle subroute clicks with matcher awareness
   const handleSubrouteClick = useCallback(
     (e, subroute) => {
       e.preventDefault();
       e.stopPropagation();
 
-      // Hide popup immediately
       clearHoverTimeout();
       setShowPopup(false);
 
-      // Navigate
       if (subroute.path) {
+        const processedPath = routeMatcher.getNavPath(
+          subroute.path,
+          matcherConfig,
+        );
+
         if (
-          subroute.path.startsWith('http') ||
-          subroute.path.includes('/admin')
+          processedPath.startsWith('http') ||
+          processedPath.includes('/admin')
         ) {
-          window.location.href = subroute.path;
+          window.location.href = processedPath;
         } else {
-          window.location.href = subroute.path;
+          window.location.href = processedPath;
         }
       }
 
-      // Call parent handlers
       if (onSubrouteClick) {
         onSubrouteClick(e, subroute);
       }
@@ -321,7 +616,7 @@ const SidebarItem = ({
         setTimeout(() => onClick(), 50);
       }
     },
-    [onSubrouteClick, onClick, clearHoverTimeout],
+    [onSubrouteClick, onClick, clearHoverTimeout, routeMatcher, matcherConfig],
   );
 
   // Cleanup
@@ -331,7 +626,6 @@ const SidebarItem = ({
     };
   }, [clearHoverTimeout]);
 
-  // Styling
   const textClass = isCurrentRoute
     ? 'text-primary'
     : isDarkMode
@@ -360,10 +654,13 @@ const SidebarItem = ({
   const leftIndicatorClass = 'absolute -left-2 h-1/3 w-1 bg-primary rounded-lg';
   const handleItemClick = hasDropdown ? toggleMethod : onClick;
 
+  // Get processed nav path for rendering
+  const processedNavPath = routeMatcher.getNavPath(navPath, matcherConfig);
+
   // External link handling
   if (isExternal) {
     const handleExternalClick = () => {
-      window.open(navPath, '_blank', 'noopener,noreferrer');
+      window.open(processedNavPath, '_blank', 'noopener,noreferrer');
       if (onClick) onClick();
     };
 
@@ -387,11 +684,13 @@ const SidebarItem = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-center w-5 h-5 mr-3">
+              <div className="flex items-center justify-center w-5 h-5 mr-3 flex-shrink-0">
                 {Icon && <Icon className={`${iconColor} w-5 h-5`} size={20} />}
               </div>
-              <div className="flex-grow">
-                <h3 className={`font-normal text-sm ${textClass}`}>{label}</h3>
+              <div className="flex-grow min-w-0">
+                <h3 className={`font-normal text-sm ${textClass} truncate`}>
+                  {displayLabel}
+                </h3>
               </div>
             </>
           )}
@@ -412,7 +711,7 @@ const SidebarItem = ({
         onMouseLeave={() => handleItemHover(false)}
       >
         <Link
-          href={navPath || '#'}
+          href={processedNavPath || '#'}
           onClick={onClick}
           className={`
             relative flex items-center transition-all duration-200 ease-out
@@ -430,21 +729,32 @@ const SidebarItem = ({
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-center w-5 h-5 mr-3">
+              <div className="flex items-center justify-center w-5 h-5 mr-3 flex-shrink-0">
                 {Icon && <Icon className={`${iconColor} w-5 h-5`} size={20} />}
               </div>
-              <div className="flex-grow">
-                <h3 className={`font-normal text-sm ${textClass}`}>{label}</h3>
+              <div className="flex-grow min-w-0">
+                <h3
+                  className={`font-normal text-sm ${textClass} truncate`}
+                  title={label} // Show full label on hover
+                >
+                  {displayLabel}
+                </h3>
               </div>
               {hasDropdown && (
-                <ArrowDropDownIcon className={`${textClass} w-4 h-4`} />
+                <div className="flex-shrink-0 ml-2">
+                  <AqChevronDown className={`${textClass} w-4 h-4`} />
+                </div>
               )}
               {hasSubroutes && !hasDropdown && (
-                <MdKeyboardArrowRight
-                  className={`${textClass} w-4 h-4 transition-transform duration-200 ${
-                    showPopup ? 'translate-x-1' : 'group-hover:translate-x-0.5'
-                  }`}
-                />
+                <div className="flex-shrink-0 ml-2">
+                  <AqChevronRight
+                    className={`${textClass} w-4 h-4 transition-transform duration-200 ${
+                      showPopup
+                        ? 'translate-x-1'
+                        : 'group-hover:translate-x-0.5'
+                    }`}
+                  />
+                </div>
               )}
             </>
           )}
@@ -473,6 +783,7 @@ const SidebarItem = ({
 SidebarItem.propTypes = {
   Icon: PropTypes.elementType,
   label: PropTypes.string.isRequired,
+  shortLabel: PropTypes.string, // Now properly supported
   navPath: PropTypes.string,
   onClick: PropTypes.func,
   children: PropTypes.node,
@@ -488,6 +799,18 @@ SidebarItem.propTypes = {
     }),
   ),
   onSubrouteClick: PropTypes.func,
+  matcher: PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.shape({
+      pattern: PropTypes.string,
+      exact: PropTypes.bool,
+      includeSubroutes: PropTypes.bool,
+      orgSlug: PropTypes.string,
+      type: PropTypes.string,
+    }),
+  ]),
+  flow: PropTypes.oneOf(['user', 'organization', 'generic']),
+  orgSlug: PropTypes.string,
 };
 
 export default SidebarItem;

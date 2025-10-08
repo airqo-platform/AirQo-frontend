@@ -1,189 +1,177 @@
-import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useDispatch } from "react-redux";
-import { jwtDecode } from "jwt-decode";
 import { users } from "../apis/users";
 import {
   setUserDetails,
   setActiveNetwork,
   setActiveGroup,
-  logout,
   setAvailableNetworks,
   setUserGroups,
   setInitialized,
+  setUserContext,
+  setContextLoading,
 } from "../redux/slices/userSlice";
+import { useCallback } from "react";
 import type {
-  LoginCredentials,
-  DecodedToken,
-  UserDetails,
   Network,
   Group,
-  LoginResponse,
   UserDetailsResponse,
+  UserDetails,
 } from "@/app/types/users";
-import { useRouter } from "next/navigation";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { getApiErrorMessage } from "../utils/getApiErrorMessage";
+import { devices } from "../apis/devices";
+import { signOut } from "next-auth/react";
+import { clearSessionData } from "../utils/sessionManager";
+import { Session } from "next-auth";
+import logger from "@/lib/logger";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
-  const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
-      // 1. Login and get token
-      const loginResponse = (await users.loginUser(
-        credentials
-      )) as LoginResponse;
-      const token = loginResponse.token;
+  const clearClientSession = useCallback(() => {
+    clearSessionData();
 
-      // 2. Store token
-      localStorage.setItem("token", token);
+    queryClient.clear();
+  }, [queryClient]);
 
-      // 3. Decode token
-      const decoded = jwtDecode<DecodedToken>(token);
+  const initializeUserSession = useCallback(async (session: Session): Promise<void> => {
+    const user = session.user;
 
-      // 4. Create userDetails from decoded token
-      const userDetails: UserDetails = {
-        _id: decoded._id,
-        firstName: decoded.firstName,
-        lastName: decoded.lastName,
-        userName: decoded.userName,
-        email: decoded.email,
-        organization: decoded.organization,
-        long_organization: decoded.long_organization,
-        privilege: decoded.privilege,
-        country: decoded.country,
-        profilePicture: decoded.profilePicture,
-        description: decoded.description,
-        timezone: decoded.timezone,
-        phoneNumber: decoded.phoneNumber,
-        createdAt: decoded.createdAt,
-        updatedAt: decoded.updatedAt,
-        rateLimit: decoded.rateLimit,
-        lastLogin: decoded.lastLogin,
-        iat: decoded.iat,
-      };
+    if (!user) {
+      logger.warn("Session is missing user data. Cannot initialize.");
+      dispatch(setInitialized());
+      dispatch(setContextLoading(false));
+      return;
+    }
 
-      // 5. Store user details
-      localStorage.setItem("userDetails", JSON.stringify(userDetails));
+    const basicUserInfo = {
+      _id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      userName: user.userName,
+      privilege: user.privilege || "",
+      organization: user.organization || "",
+      country: user.country || "",
+      timezone: user.timezone || "",
+      phoneNumber: user.phoneNumber || "",
+    };
 
-      // 6. Get user info and store in redux
-      const userDetailsResponse = (await users.getUserDetails(
-        loginResponse._id
-      )) as UserDetailsResponse;
+    dispatch(setUserDetails(basicUserInfo as UserDetails));
+
+    dispatch(setInitialized());
+
+    dispatch(setContextLoading(true));
+    try {
+      const userDetailsResponse = (await users.getUserDetails(user.id)) as UserDetailsResponse;
       const userInfo = userDetailsResponse.users[0];
 
-      // 7. Store networks and groups
+      if (!userInfo) {
+        throw new Error("Extended user details not found.");
+      }
+
       dispatch(setUserDetails(userInfo));
       dispatch(setUserGroups(userInfo.groups || []));
-      localStorage.setItem(
-        "availableNetworks",
-        JSON.stringify(userInfo.networks)
-      );
-      localStorage.setItem("userGroups", JSON.stringify(userInfo.groups));
+      dispatch(setAvailableNetworks(userInfo.networks || []));
 
-      // 8. Set AirQo as default network and group if available
+      localStorage.setItem("userDetails", JSON.stringify(userInfo));
+      localStorage.setItem("userGroups", JSON.stringify(userInfo.groups || []));
+      localStorage.setItem("availableNetworks", JSON.stringify(userInfo.networks || []));
+
+      const isAirQoStaff = !!userInfo.email?.endsWith("@airqo.net");
       const airqoNetwork = userInfo.networks?.find(
         (network: Network) => network.net_name.toLowerCase() === "airqo"
       );
+      const airqoGroup = userInfo.groups?.find(
+        (group: Group) => group.grp_title.toLowerCase() === "airqo"
+      );
 
-      if (airqoNetwork) {
-        dispatch(setActiveNetwork(airqoNetwork));
-        localStorage.setItem("activeNetwork", JSON.stringify(airqoNetwork));
+      let defaultNetwork: Network | undefined;
+      let defaultGroup: Group | undefined;
 
-        // Find and set AirQo group if it exists
-        const airqoGroup = userInfo.groups?.find(
-          (group: Group) => group.grp_title.toLowerCase() === "airqo"
+      if (isAirQoStaff) {
+        defaultNetwork = airqoNetwork || userInfo.networks?.[0];
+        defaultGroup = airqoGroup || userInfo.groups?.[0];
+      } else {
+        defaultNetwork =
+          userInfo.networks?.find((n) => n.net_name.toLowerCase() !== "airqo") ||
+          userInfo.networks?.[0];
+        defaultGroup = userInfo.groups?.find(
+          (g) => g.grp_title.toLowerCase() !== "airqo"
         );
-
-        if (airqoGroup) {
-          dispatch(setActiveGroup(airqoGroup));
-          localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
-        }
-      } else if (userInfo?.networks && userInfo.networks.length > 0) {
-        // If AirQo network not found, set first available network
-        dispatch(setActiveNetwork(userInfo.networks[0]));
-        localStorage.setItem(
-          "activeNetwork",
-          JSON.stringify(userInfo.networks[0])
-        );
-
-        // Set first available group in that network if any
-        if (userInfo.groups && userInfo.groups.length > 0) {
-          dispatch(setActiveGroup(userInfo.groups[0]));
-          localStorage.setItem(
-            "activeGroup",
-            JSON.stringify(userInfo.groups[0])
-          );
-        }
       }
 
-      return userInfo;
-    },
-    onError: (error) => {
-      console.error("Login failed:", error);
-      localStorage.removeItem("token");
-      localStorage.removeItem("userDetails");
-      localStorage.removeItem("activeNetwork");
-      localStorage.removeItem("availableNetworks");
-      localStorage.removeItem("activeGroup");
-      localStorage.removeItem("userGroups");
-    },
-  });
+      if (defaultNetwork) {
+        dispatch(setActiveNetwork(defaultNetwork));
+        localStorage.setItem("activeNetwork", JSON.stringify(defaultNetwork));
+      }
+      if (defaultGroup) {
+        dispatch(setActiveGroup(defaultGroup));
+        localStorage.setItem("activeGroup", JSON.stringify(defaultGroup));
+      }
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userDetails");
-    localStorage.removeItem("activeNetwork");
-    localStorage.removeItem("availableNetworks");
-    localStorage.removeItem("activeGroup");
-    localStorage.removeItem("userGroups");
-    dispatch(logout());
-    router.push("/login");
-  };
-
-  const restoreSession = () => {
-    try {
-      const token = localStorage.getItem("token");
-      const storedUserDetails = localStorage.getItem("userDetails");
-      const storedActiveNetwork = localStorage.getItem("activeNetwork");
-      const storedAvailableNetworks = localStorage.getItem("availableNetworks");
-      const storedActiveGroup = localStorage.getItem("activeGroup");
-      const storedUserGroups = localStorage.getItem("userGroups");
-
-      if (token && storedUserDetails) {
-        const userDetails = JSON.parse(storedUserDetails) as UserDetails;
-        dispatch(setUserDetails(userDetails));
-
-        if (storedActiveNetwork) {
-          const activeNetwork = JSON.parse(storedActiveNetwork) as Network;
-          dispatch(setActiveNetwork(activeNetwork));
-        }
-        if (storedAvailableNetworks) {
-          const availableNetworks = JSON.parse(
-            storedAvailableNetworks
-          ) as Network[];
-          dispatch(setAvailableNetworks(availableNetworks));
-        }
-        if (storedUserGroups) {
-          const userGroups = JSON.parse(storedUserGroups) as Group[];
-          dispatch(setUserGroups(userGroups));
-        }
-        if (storedActiveGroup) {
-          const activeGroup = JSON.parse(storedActiveGroup) as Group;
-          dispatch(setActiveGroup(activeGroup));
+      let initialUserContext: "personal" | "airqo-internal" | "external-org";
+      if (defaultGroup) {
+        if (defaultGroup.grp_title.toLowerCase() === "airqo" && isAirQoStaff) {
+          initialUserContext = "airqo-internal";
+        } else {
+          initialUserContext = "external-org";
         }
       } else {
-        handleLogout();
+        initialUserContext = "personal";
       }
-    } finally {
-      dispatch(setInitialized());
+
+      dispatch(setUserContext(initialUserContext));
+      localStorage.setItem("userContext", initialUserContext);
+
+      dispatch(setContextLoading(false));
+      
+      // Prefetch initial device data in the background without blocking initialization.
+      try {
+        if (initialUserContext === "personal") {
+          void queryClient.prefetchQuery({
+            queryKey: ["my-devices", userInfo._id, defaultGroup?._id],
+            queryFn: () => devices.getMyDevices(userInfo._id),
+            staleTime: 300_000,
+          });
+        } else if (defaultGroup) {
+          const resolvedNetworkName = defaultNetwork?.net_name || "";
+          const resolvedGroupName = defaultGroup?.grp_title || "";
+
+          void queryClient.prefetchQuery({
+            queryKey: ["devices", resolvedNetworkName, resolvedGroupName, { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined }],
+            queryFn: () => devices.getDevicesSummaryApi({
+              network: resolvedNetworkName, 
+              group: resolvedGroupName,
+              limit: 100,
+              skip: 0,
+            }),
+            staleTime: 300_000,
+          });
+        }
+      } catch {
+        ReusableToast({ message: "Could not load initial device data.", type: "WARNING" });
+      }
+
+    } catch (e) {
+      const error = e as Error;
+      ReusableToast({
+        message: `Could not load organization details: ${getApiErrorMessage(error)}`,
+        type: "WARNING",
+      });
+      dispatch(setContextLoading(false));
     }
-  };
+  }, [dispatch, queryClient]);
+
+  const handleLogout = useCallback(() => {
+    clearClientSession();
+    signOut({ callbackUrl: "/login" });
+  }, [clearClientSession]);
 
   return {
-    login: loginMutation.mutate,
+    initializeUserSession,
     logout: handleLogout,
-    isLoading: loginMutation.isPending,
-    error: loginMutation.error,
-    restoreSession,
   };
 };

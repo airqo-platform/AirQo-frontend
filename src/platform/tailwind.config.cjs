@@ -1,6 +1,11 @@
-const defaultTheme = require('tailwindcss/defaultTheme');
+import defaultTheme from 'tailwindcss/defaultTheme';
+import typography from '@tailwindcss/typography';
+import daisyui from 'daisyui';
+import flowbite from 'flowbite/plugin';
+import daisyuiThemes from 'daisyui/src/colors/themes';
 
-module.exports = {
+/** @type {import('tailwindcss').Config} */
+const tailwindConfig = {
   darkMode: 'class',
   content: [
     './src/**/*.{js,jsx,ts,tsx}',
@@ -47,17 +52,13 @@ module.exports = {
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/typography'),
-    require('daisyui'),
-    require('flowbite/plugin'),
-  ],
+  plugins: [typography, daisyui, flowbite],
   daisyui: {
     themes: [
       {
         light: {
           primary: 'var(--color-primary)', // still for DaisyUI
-          ...require('daisyui/src/colors/themes')['[data-theme=light]'],
+          ...daisyuiThemes['[data-theme=light]'],
           'base-200': '#ebf0f9',
           'base-300': '#e2faff',
         },
@@ -65,3 +66,5 @@ module.exports = {
     ],
   },
 };
+
+export default tailwindConfig;

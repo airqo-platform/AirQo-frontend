@@ -146,63 +146,67 @@ const ResourcesPage: React.FC = () => {
     selectedEvent.forum_resources && selectedEvent.forum_resources.length > 0;
 
   return (
-    <div className="px-4 prose max-w-none lg:px-0">
-      {hasResources ? (
-        <>
-          <div className="flex justify-end space-x-4 mb-4">
-            <button
-              onClick={handleExpandAll}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-            >
-              Expand All
-            </button>
-            <button
-              onClick={handleCollapseAll}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-            >
-              Collapse All
-            </button>
-          </div>
-
-          {selectedEvent.forum_resources?.map(
-            (resource: ForumResource, resourceIndex: number) => (
-              <div key={resource.id} className="mb-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  {resource.resource_title}
-                </h2>
-                {resource.resource_sessions?.map(
-                  (session: ResourceSession, sessionIndex: number) => (
-                    <AccordionItem
-                      key={session.id}
-                      session={session}
-                      isOpen={
-                        allExpanded ||
-                        openAccordions[resourceIndex]?.[sessionIndex] ||
-                        false
-                      }
-                      toggleAccordion={() =>
-                        handleToggleAccordion(resourceIndex, sessionIndex)
-                      }
-                    />
-                  ),
-                )}
-                {resource.resource_sessions?.length ? (
-                  <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
-                ) : null}
+    <div className="w-full">
+      <div className="max-w-5xl mx-auto px-4 lg:px-0">
+        <div className="prose max-w-none">
+          {hasResources ? (
+            <>
+              <div className="flex justify-end space-x-4 mb-4">
+                <button
+                  onClick={handleExpandAll}
+                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+                >
+                  Expand All
+                </button>
+                <button
+                  onClick={handleCollapseAll}
+                  className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+                >
+                  Collapse All
+                </button>
               </div>
-            ),
+
+              {selectedEvent.forum_resources?.map(
+                (resource: ForumResource, resourceIndex: number) => (
+                  <div key={resource.id} className="mb-8">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                      {resource.resource_title}
+                    </h2>
+                    {resource.resource_sessions?.map(
+                      (session: ResourceSession, sessionIndex: number) => (
+                        <AccordionItem
+                          key={session.id}
+                          session={session}
+                          isOpen={
+                            allExpanded ||
+                            openAccordions[resourceIndex]?.[sessionIndex] ||
+                            false
+                          }
+                          toggleAccordion={() =>
+                            handleToggleAccordion(resourceIndex, sessionIndex)
+                          }
+                        />
+                      ),
+                    )}
+                    {resource.resource_sessions?.length ? (
+                      <Divider className="bg-black p-0 m-0 h-[1px] w-full" />
+                    ) : null}
+                  </div>
+                ),
+              )}
+            </>
+          ) : (
+            <div className="text-center py-16">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                No Resources Available
+              </h2>
+              <p className="text-gray-600">
+                Resources for this event will be available soon.
+              </p>
+            </div>
           )}
-        </>
-      ) : (
-        <div className="text-center py-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            No Resources Available
-          </h2>
-          <p className="text-gray-600">
-            Resources for this event will be available soon.
-          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 };

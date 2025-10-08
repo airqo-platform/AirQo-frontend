@@ -24,15 +24,12 @@ jobs:
   check:
     name: check for changed frontends
     outputs:
-      run_netmanager: ${{ steps.check_files.outputs.run_netmanager }} # platform
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
-      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
-      run_website: ${{ steps.check_files.outputs.run_website }} # website
       run_website2: ${{ steps.check_files.outputs.run_website2 }} # website2
-      run_inventory: ${{ steps.check_files.outputs.run_inventory }} # inventory
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
       run_vertex: ${{ steps.check_files.outputs.run_vertex }} # vertex
+      run_beacon: ${{ steps.check_files.outputs.run_beacon }} # beacon
 
     runs-on: ubuntu-latest
     steps:
@@ -50,23 +47,16 @@ jobs:
           echo "========== check paths of modified files =========="
           git diff --name-only HEAD^ HEAD > files.txt
 
-          echo "run_netmanager=false" >>$GITHUB_OUTPUT
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
-          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT
-          echo "run_docs=false" >>$GITHUB_OUTPUT    
-          echo "run_website=false" >>$GITHUB_OUTPUT
+          echo "run_analytics_platform=false" >>$GITHUB_OUTPUT   
           echo "run_website2=false" >>$GITHUB_OUTPUT
-          echo "run_inventory=false" >>$GITHUB_OUTPUT
           echo "run_reports=false" >>$GITHUB_OUTPUT
           echo "run_vertex=false" >>$GITHUB_OUTPUT    
+          echo "run_beacon=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
             echo $file
-            if [[ $file == src/netmanager/* ]]; then
-              echo "run_netmanager=true" >>$GITHUB_OUTPUT
-            fi
-
             if [[ $file == src/calibrate/* ]]; then
               echo "run_calibrate_app=true" >>$GITHUB_OUTPUT
             fi
@@ -75,21 +65,9 @@ jobs:
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/docs/* ]]; then
-              echo "run_docs=true" >>$GITHUB_OUTPUT
-            fi
-
-            if [[ $file == src/website/* ]]; then
-              echo "run_website=true" >>$GITHUB_OUTPUT
-            fi
-
             if [[ $file == src/website2/* ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
             fi            
-
-            if [[ $file == src/inventory/* ]]; then
-              echo "run_inventory=true" >>$GITHUB_OUTPUT
-            fi 
 
             if [[ $file == src/reports/* ]]; then
               echo "run_reports=true" >>$GITHUB_OUTPUT
@@ -97,96 +75,13 @@ jobs:
 
             if [[ $file == src/vertex/* ]]; then
               echo "run_vertex=true" >>$GITHUB_OUTPUT
-            fi            
+            fi 
+
+            if [[ $file == src/beacon/* ]]; then
+              echo "run_beacon=true" >>$GITHUB_OUTPUT
+            fi   
 
           done < files.txt
-
-  ### deploy netmanager preview ###
-  netmanager:
-    name: build-push-deploy-netmanager-preview
-    needs: [check, branch-name]
-    if: needs.check.outputs.run_netmanager == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      url: ${{ steps.preview-url.outputs.url }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-netmanager" > src/netmanager/.env
-
-      - name: npm Install and Build
-        uses: actions/setup-node@v2
-        with:
-          node-version: "12"
-      - run: |
-          cd src/netmanager/
-          npm install
-          CI=false npm run build
-
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Build and Push Image
-        run: |
-          cd src/netmanager/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ./
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:latest
-
-      - name: Deploy to Cloud Run
-        run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
-            --region=${{ secrets.REGION }} \
-            --max-instances=10 \
-            --timeout=60 \
-            --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/netmanager-pr-previews:${{ github.sha }} \
-            --port=80 \
-            --cpu=1000m \
-            --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-netmanager:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /etc/environment; nginx -g 'daemon off;'" \
-            --allow-unauthenticated
-
-      - name: Get preview service url
-        id: preview-url
-        run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-netmanager-preview \
-            --format='value(status.url)' \
-            --platform managed \
-            --region ${{ secrets.REGION }})
-          echo "url=${service_url}" >>$GITHUB_OUTPUT
-
-  netmanager-pr-comment:
-    name: netmanager-preview-link-comment
-    if: needs.check.outputs.run_netmanager == 'true'
-    needs: [netmanager]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'New netmanager changes available for preview [here](${{ needs.netmanager.outputs.url }})'
-            })
 
   ### deploy calibrate-app preview ###
   calibrate-app:
@@ -351,157 +246,6 @@ jobs:
               body: 'New next-platform changes available for preview [here](${{ needs.analytics-platform.outputs.url }})'
             })
 
-  ### deploy inventory preview ###
-  inventory:
-    name: build-push-deploy-inventory-preview
-    needs: [check, branch-name]
-    if: needs.check.outputs.run_inventory == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      url: ${{ steps.preview-url.outputs.url }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-inventory" > src/inventory/.env
-
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Build and Push Image
-        run: |
-          cd src/inventory/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:latest
-
-      - name: Deploy to Cloud Run
-        run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-inventory-preview \
-            --region=${{ secrets.REGION }} \
-            --max-instances=10 \
-            --timeout=60 \
-            --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/inventory-pr-previews:${{ github.sha }} \
-            --port=8000 \
-            --cpu=1000m \
-            --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-inventory:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; gunicorn --bind=0.0.0.0:8000 Inventory.wsgi" \
-            --allow-unauthenticated
-
-      - name: Get preview service url
-        id: preview-url
-        run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-inventory-preview \
-            --format='value(status.url)' \
-            --platform managed \
-            --region ${{ secrets.REGION }})
-          echo "url=${service_url}" >>$GITHUB_OUTPUT
-
-  inventory-pr-comment:
-    name: inventory-preview-link-comment
-    if: needs.check.outputs.run_inventory == 'true'
-    needs: [inventory]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'New inventory changes available for preview [here](${{ needs.inventory.outputs.url }})'
-            })
-
-  ### deploy docs preview ###
-  docs:
-    name: build-push-deploy-docs-preview
-    needs: [check, branch-name]
-    if: needs.check.outputs.run_docs == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      url: ${{ steps.preview-url.outputs.url }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Build and Push Image
-        run: |
-          cd src/docs/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
-
-      - name: Deploy to Cloud Run
-        run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
-            --region=${{ secrets.REGION }} \
-            --max-instances=10 \
-            --timeout=60 \
-            --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} \
-            --port=3000 \
-            --cpu=1000m \
-            --memory=256Mi \
-            --allow-unauthenticated
-
-      - name: Get preview service url
-        id: preview-url
-        run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
-            --format='value(status.url)' \
-            --platform managed \
-            --region ${{ secrets.REGION }})
-          echo "url=${service_url}" >>$GITHUB_OUTPUT
-
-  docs-pr-comment:
-    name: docs-preview-link-comment
-    if: needs.check.outputs.run_docs == 'true'
-    needs: [docs]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'New Docs changes available for preview [here](${{ needs.docs.outputs.url }})'
-            })
-
   ### deploy website preview ###
   # website:
   #   name: build-push-website-deploy-preview
@@ -538,7 +282,7 @@ jobs:
   #     - name: Create app.yaml and .env.yaml files
   #       run: |
   #         cd src/website/
-  #         echo "========== Creating app.yaml file =========="          
+  #         echo "========== Creating app.yaml file =========="
   #         echo "runtime: python" > app.yaml
   #         echo "env: flex" >> app.yaml
   #         echo "service: website-pr-previews" >> app.yaml
@@ -553,7 +297,7 @@ jobs:
   #         echo "runtime_config:" >> app.yaml
   #         echo "  operating_system: \"ubuntu22\"" >> app.yaml
   #         echo "  runtime_version: \"3.12\"" >> app.yaml
-  #         echo "========== Creating .env.yaml file =========="  
+  #         echo "========== Creating .env.yaml file =========="
   #         echo "env_variables:" > .env.yaml
   #         echo "  SECRET: ${{ secrets.WEBSITE_SECRET }}" >> .env.yaml
   #         echo "  CLOUDINARY_KEY: ${{ secrets.WEBSITE_CLOUDINARY_KEY }}" >> .env.yaml
@@ -567,38 +311,38 @@ jobs:
   #         echo "  DEBUG: False" >> .env.yaml
   #         echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
 
-      # - name: Build and Push Docker Image
-      #   run: |
-      #     cd src/website/
-      #     docker build . \
-      #     --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }} \
-      #     --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
-      #     --build-arg REACT_APP_NETMANAGER_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER }} \
-      #     --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_BASE_AIRQLOUDS_URL }} \
-      #     --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
-      #     --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_DEV_REACT_APP_WEBSITE_BASE_URL }} \
-      #     --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
-      #     --build-arg REACT_APP_GEO_LOCATION_URL=${{ secrets.WEBSITE_REACT_APP_GEO_LOCATION_URL }} \
-      #     --build-arg REACT_APP_OPENCAGE_API_KEY=${{ secrets.REACT_APP_OPENCAGE_API_KEY }} \
-      #     --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
-      #     docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+  # - name: Build and Push Docker Image
+  #   run: |
+  #     cd src/website/
+  #     docker build . \
+  #     --build-arg REACT_WEB_STATIC_HOST=${{ secrets.WEBSITE_DEV_REACT_WEB_STATIC_HOST }} \
+  #     --build-arg REACT_NETMANAGER_BASE_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER_BASE_URL }} \
+  #     --build-arg REACT_APP_NETMANAGER_URL=${{ secrets.WEBSITE_STAGE_REACT_NETMANAGER }} \
+  #     --build-arg REACT_APP_BASE_AIRQLOUDS_URL=${{ secrets.WEBSITE_STAGE_REACT_APP_BASE_AIRQLOUDS_URL }} \
+  #     --build-arg REACT_APP_BASE_NEWSLETTER_URL=${{ secrets.WEBSITE_REACT_APP_BASE_NEWSLETTER_URL }} \
+  #     --build-arg REACT_APP_WEBSITE_BASE_URL=${{ secrets.WEBSITE_DEV_REACT_APP_WEBSITE_BASE_URL }} \
+  #     --build-arg REACT_APP_AUTHORIZATION_TOKEN=${{ secrets.WEBSITE_STAGE_REACT_APP_AUTHORIZATION_TOKEN }} \
+  #     --build-arg REACT_APP_GEO_LOCATION_URL=${{ secrets.WEBSITE_REACT_APP_GEO_LOCATION_URL }} \
+  #     --build-arg REACT_APP_OPENCAGE_API_KEY=${{ secrets.REACT_APP_OPENCAGE_API_KEY }} \
+  #     --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
+  #     docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }}
 
-      # - name: Deploy to App Engine
-      #   run: |-
-      #     cd src/website/
-      #     gcloud app deploy  \
-      #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
-      #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
-      #       --quiet
+  # - name: Deploy to App Engine
+  #   run: |-
+  #     cd src/website/
+  #     gcloud app deploy  \
+  #       --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website-pr-previews:${{ github.sha }} \
+  #       --project=${{ secrets.FRONTEND_PROJECT_ID }} \
+  #       --quiet
 
-      # - name: Delete Old Versions
-      #   run: |-
-      #     service="website-pr-previews"
-      #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
-      #       for version in $versions; do
-      #         echo "Deleting version: $version for service: $service"
-      #         gcloud app versions delete "$version" --service=$service --quiet
-      #       done
+  # - name: Delete Old Versions
+  #   run: |-
+  #     service="website-pr-previews"
+  #       versions=$(gcloud app versions list --service=$service --sort-by '~LAST_DEPLOYED' --format 'value(VERSION.ID)' | grep -v 'maintenance' | sort -r | tail -n +4)
+  #       for version in $versions; do
+  #         echo "Deleting version: $version for service: $service"
+  #         gcloud app versions delete "$version" --service=$service --quiet
+  #       done
 
   # website-pr-comment:
   #   name: website-preview-link-comment
@@ -667,9 +411,11 @@ jobs:
           echo "  runtime_version: \"3.12\"" >> app.yaml
           echo "========== Creating .env.yaml file =========="  
           echo "env_variables:" > .env.yaml
-          echo "  NEXT_PUBLIC_API_URL: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_OPENCAGE_API_KEY: ${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }}" >> .env.yaml
-          echo "  NEXT_PUBLIC_API_TOKEN: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }}" >> .env.yaml
+          echo "  API_URL: ${{ secrets.WEBSITE_STAGE_API_URL }}" >> .env.yaml
+          echo "  OPENCAGE_API_KEY: ${{ secrets.WEBSITE_STAGE_OPENCAGE_API_KEY }}" >> .env.yaml
+          echo "  API_TOKEN: ${{ secrets.WEBSITE_STAGE_API_TOKEN }}" >> .env.yaml
+          echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" >> .env.yaml
+          echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env.yaml
 
@@ -677,9 +423,8 @@ jobs:
         run: |
           cd src/website2/
           docker build . \
-          --build-arg NEXT_PUBLIC_API_URL=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_URL }} \
-          --build-arg NEXT_PUBLIC_OPENCAGE_API_KEY=${{ secrets.WEBSITE_NEXT_PUBLIC_OPENCAGE_API_KEY }} \
-          --build-arg NEXT_PUBLIC_API_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_API_TOKEN }} \
+          --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
+          --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }}
 
@@ -895,4 +640,82 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: 'New vertex changes available for preview [here](${{ needs.vertex.outputs.url }})'
+            })
+
+  ### deploy beacon preview ###
+  beacon:
+    name: build-push-deploy-beacon-preview
+    needs: [check, branch-name]
+    if: needs.check.outputs.run_beacon == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.preview-url.outputs.url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Google login
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Setup Cloud SDK(gcloud)
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Create .env file
+        run: gcloud secrets versions access latest --secret="sta-env-beacon" > src/beacon/.env
+
+      - name: Login to GCR
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY_URL }}
+          username: _json_key
+          password: ${{ secrets.GCP_SA_CREDENTIALS }}
+
+      - name: Build and Push Image
+        run: |
+          cd src/beacon/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/beacon-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/beacon-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/beacon-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/beacon-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/beacon-pr-previews:latest
+
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-beacon-preview \
+            --region=${{ secrets.REGION }} \
+            --max-instances=10 \
+            --timeout=60 \
+            --concurrency=10 \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/beacon-pr-previews:${{ github.sha }} \
+            --port=3000 \
+            --cpu=1000m \
+            --memory=256Mi \
+            --update-secrets=/etc/env/.env=sta-env-beacon:latest \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; npm run start" \
+            --allow-unauthenticated
+
+      - name: Get preview service url
+        id: preview-url
+        run: |
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-beacon-preview \
+            --format='value(status.url)' \
+            --platform managed \
+            --region ${{ secrets.REGION }})
+          echo "url=${service_url}" >>$GITHUB_OUTPUT
+
+  beacon-pr-comment:
+    name: beacon-preview-link-comment
+    if: needs.check.outputs.run_beacon == 'true'
+    needs: [beacon]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'New beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
             })

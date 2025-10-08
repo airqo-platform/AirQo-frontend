@@ -1,60 +1,67 @@
+'use client';
+
+/* eslint-disable no-console */
 import React, { useState, useEffect, useCallback, memo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 import Card from '@/components/CardWrapper';
+import { setNodeType, setMapStyle } from '@/lib/store/services/map/MapSlice';
 
 /**
  * Option component for rendering each selectable option.
  * Uses React.memo to prevent unnecessary re-renders.
  */
-const Option = memo(({ isSelected, children, onSelect, image, disabled }) => {
-  const handleClick = useCallback(() => {
-    if (!disabled) {
-      try {
-        onSelect();
-      } catch (error) {
-        console.error('Error in Option onSelect handler:', error);
+const Option = memo(
+  ({ isSelected, children, onSelect, image, disabled = false }) => {
+    const handleClick = useCallback(() => {
+      if (!disabled) {
+        try {
+          onSelect();
+        } catch (error) {
+          console.error('Error in Option onSelect handler:', error);
+        }
       }
-    }
-  }, [onSelect, disabled]);
+    }, [onSelect, disabled]);
 
-  const containerClasses = `
+    const containerClasses = `
     flex flex-col items-center space-y-2 
     transition-all duration-300 ease-in-out
     ${isSelected ? 'scale-105' : 'hover:scale-105'} 
     ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
   `;
 
-  const imageContainerClasses = `
+    const imageContainerClasses = `
     relative w-16 h-16 md:w-20 md:h-20 rounded-lg border-2 
     transition-all duration-300 ease-in-out
     ${isSelected ? 'border-[var(--org-primary,var(--color-primary,#145fff))] ring-4 ring-[var(--org-primary-100,rgba(20,95,255,0.2))]' : 'border-gray-300'}
   `;
 
-  return (
-    <button
-      onClick={handleClick}
-      className={containerClasses}
-      disabled={disabled}
-      aria-pressed={isSelected}
-      type="button"
-    >
-      <div className={imageContainerClasses}>
-        {' '}
-        <Image
-          src={image}
-          alt={`${children} option`}
-          fill
-          style={{ objectFit: 'cover' }}
-          className="rounded-lg"
-          loading="eager"
-          priority={isSelected}
-        />
-      </div>
-      <span className="text-sm font-medium">{children}</span>
-    </button>
-  );
-});
+    return (
+      <button
+        onClick={handleClick}
+        className={containerClasses}
+        disabled={disabled}
+        aria-pressed={isSelected}
+        type="button"
+      >
+        <div className={imageContainerClasses}>
+          {' '}
+          <Image
+            src={image}
+            alt={`${children} option`}
+            fill
+            style={{ objectFit: 'cover' }}
+            className="rounded-lg"
+            loading="eager"
+            priority={isSelected}
+          />
+        </div>
+        <span className="text-sm font-medium">{children}</span>
+      </button>
+    );
+  },
+);
 
 Option.displayName = 'Option';
 
@@ -66,13 +73,9 @@ Option.propTypes = {
   disabled: PropTypes.bool,
 };
 
-Option.defaultProps = {
-  disabled: false,
-};
-
 /**
  * LayerModal component for selecting map style and details
- * with improved selection handling.
+ * with improved selection handling and Redux persistence.
  */
 const LayerModal = ({
   isOpen,
@@ -81,24 +84,56 @@ const LayerModal = ({
   onStyleSelect,
   mapStyles,
   mapDetails,
-  disabled,
+  disabled = ['Heatmap', 'Number', 'Node'], // Default disabled options
 }) => {
-  // Find the Streets option by default or use the first style
+  const dispatch = useDispatch();
+
+  // Get current selections from Redux
+  const { nodeType: currentNodeType, mapStyle: currentMapStyle } = useSelector(
+    (state) => ({
+      nodeType: state.map.nodeType || 'Emoji',
+      mapStyle: state.map.mapStyle || 'Streets',
+    }),
+  );
+
+  // Find the current selections from Redux or use defaults
   const defaultStyle =
-    mapStyles.find((style) => style.name === 'Streets') || mapStyles[0];
+    mapStyles.find((style) => style.name === currentMapStyle) ||
+    mapStyles.find((style) => style.name === 'Streets') ||
+    mapStyles[0];
+
   const defaultDetail =
-    mapDetails.find((detail) => detail.name === 'Emoji') || mapDetails[0];
+    mapDetails.find((detail) => detail.name === currentNodeType) ||
+    mapDetails.find((detail) => detail.name === 'Emoji') ||
+    mapDetails[0];
 
   const [selectedStyle, setSelectedStyle] = useState(defaultStyle);
   const [selectedMapDetail, setSelectedMapDetail] = useState(defaultDetail);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Reset selections when modal is opened
+  // Reset selections when modal is opened - sync with Redux state
   useEffect(() => {
     if (isOpen) {
+      const currentStyle =
+        mapStyles.find((style) => style.name === currentMapStyle) ||
+        defaultStyle;
+      const currentDetail =
+        mapDetails.find((detail) => detail.name === currentNodeType) ||
+        defaultDetail;
+
+      setSelectedStyle(currentStyle);
+      setSelectedMapDetail(currentDetail);
       setHasChanges(false);
     }
-  }, [isOpen]);
+  }, [
+    isOpen,
+    currentNodeType,
+    currentMapStyle,
+    mapStyles,
+    mapDetails,
+    defaultStyle,
+    defaultDetail,
+  ]);
 
   const handleSelectStyle = useCallback(
     (style) => {
@@ -124,8 +159,15 @@ const LayerModal = ({
     try {
       // Only apply changes if something actually changed
       if (hasChanges) {
+        // Update Redux store for persistence
+        dispatch(setMapStyle(selectedStyle.name));
+        dispatch(setNodeType(selectedMapDetail.name));
+
+        // Notify parent components
         onStyleSelect(selectedStyle);
-        onMapDetailsSelect(selectedMapDetail.name);
+        if (onMapDetailsSelect) {
+          onMapDetailsSelect(selectedMapDetail.name);
+        }
       }
       onClose();
     } catch (error) {
@@ -138,6 +180,7 @@ const LayerModal = ({
     onStyleSelect,
     onMapDetailsSelect,
     onClose,
+    dispatch,
   ]);
 
   // Handle Escape key to close modal
@@ -182,7 +225,7 @@ const LayerModal = ({
                 key={detail.name}
                 isSelected={detail.name === selectedMapDetail.name}
                 onSelect={() => handleSelectDetail(detail)}
-                disabled={detail.name === disabled}
+                disabled={disabled.includes(detail.name)}
                 image={detail.image}
               >
                 {detail.name}
@@ -235,7 +278,7 @@ LayerModal.displayName = 'LayerModal';
 LayerModal.propTypes = {
   isOpen: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  onMapDetailsSelect: PropTypes.func.isRequired,
+  onMapDetailsSelect: PropTypes.func,
   onStyleSelect: PropTypes.func.isRequired,
   mapStyles: PropTypes.arrayOf(
     PropTypes.shape({
@@ -250,11 +293,7 @@ LayerModal.propTypes = {
       image: PropTypes.string.isRequired,
     }),
   ).isRequired,
-  disabled: PropTypes.string,
-};
-
-LayerModal.defaultProps = {
-  disabled: '',
+  disabled: PropTypes.arrayOf(PropTypes.string),
 };
 
 export default memo(LayerModal);

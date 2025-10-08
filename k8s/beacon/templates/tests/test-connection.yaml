@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "airqo-vertex.fullname" . }}-test-connection"
+  labels:
+    {{- include "airqo-vertex.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "airqo-vertex.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

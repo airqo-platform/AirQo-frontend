@@ -22,3 +22,11 @@ export async function fetchDeviceStats() {
     }
     return await response.json();
   }
+
+  export async function getDevices() {
+  const response = await fetch('/api/devices/list');
+  if (!response.ok) {
+    throw new Error('Failed to fetch devices');
+  }
+  return await response.json();
+}

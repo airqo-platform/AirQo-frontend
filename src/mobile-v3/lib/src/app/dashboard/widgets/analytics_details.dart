@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 class AnalyticsDetails extends StatefulWidget {
   final Measurement measurement;
-  const AnalyticsDetails({super.key, required this.measurement});
+  final String? fallbackLocationName;
+  const AnalyticsDetails({super.key, required this.measurement, this.fallbackLocationName});
 
   @override
   State<AnalyticsDetails> createState() => _AnalyticsDetailsState();
@@ -78,6 +79,7 @@ class _AnalyticsDetailsState extends State<AnalyticsDetails> {
                   children: [
                     AnalyticsSpecifics(
                       measurement: widget.measurement,
+                      fallbackLocationName: widget.fallbackLocationName,
                     )
                   ],
                 ),

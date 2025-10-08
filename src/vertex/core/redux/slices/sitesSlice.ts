@@ -1,3 +1,4 @@
+import { Device } from "@/app/types/devices";
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
@@ -14,14 +15,14 @@ interface SiteCategory {
   waterway: string;
 }
 
-interface Device {
-  _id: string;
-  group: string;
-  authRequired: boolean;
-  serial_number: string;
-  api_code: string;
-  groups: string[];
-}
+// interface Device {
+//   _id?: string;
+//   group?: string;
+//   authRequired?: boolean;
+//   serial_number?: string;
+//   api_code?: string;
+//   groups?: string[];
+// }
 
 interface Grid {
   _id: string;
@@ -37,16 +38,19 @@ export interface Site {
   district: string;
   county: string;
   region: string;
+  sub_county?: string;
+  parish?: string;
   country: string;
   latitude: number;
   longitude: number;
   name: string;
   approximate_latitude: number;
   approximate_longitude: number;
+  altitude?: number;
   generated_name: string;
   data_provider: string;
   description: string;
-  site_category: SiteCategory;
+  site_category?: SiteCategory;
   groups: string[];
   grids: Grid[];
   devices: Device[];

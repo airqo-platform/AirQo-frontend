@@ -1,70 +1,75 @@
-import createAxiosInstance from "./axiosConfig";
-import { DEVICES_MGT_URL } from "../urls";
-import { AxiosError } from "axios";
-import { CreateGrid } from "@/app/types/grids";
+import createSecureApiClient from "../utils/secureApiProxyClient";
+import { CreateGrid, GridsSummaryResponse } from "@/app/types/grids";
 
-const axiosInstance = createAxiosInstance();
+const jwtApiClient = createSecureApiClient();
 
-interface ErrorResponse {
-  message: string;
+export interface GetGridsSummaryParams {
+  network: string;
+  limit?: number;
+  skip?: number;
+  search?: string;
+  sortBy?: string;
+  order?: "asc" | "desc";
 }
 
 export const grids = {
-  getGridsApi: async (networkId: string) => {
+  getGridsApi: async (params: GetGridsSummaryParams): Promise<GridsSummaryResponse> => {
     try {
-      const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/grids/summary?network=${networkId}`
+      const { network, limit, skip, search, sortBy, order } = params;
+      const queryParams = new URLSearchParams();
+
+      if (network) queryParams.set("network", network);
+      if (limit !== undefined) queryParams.set("limit", String(limit));
+      if (skip !== undefined) queryParams.set("skip", String(skip));
+      if (search) queryParams.set("search", search);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortBy && order) queryParams.set("order", order);
+
+      const response = await jwtApiClient.get<GridsSummaryResponse>(
+        `/devices/grids?${queryParams.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grids summary"
-      );
+      throw error;
     }
   },
-  getGridDetailsApi: async (gridId: string) => {
+  getGridDetailsApi: async (gridId: string): Promise<GridsSummaryResponse> => {
     try {
-      const response = await axiosInstance.get(
-        `${DEVICES_MGT_URL}/grids/${gridId}`
+      const response = await jwtApiClient.get<GridsSummaryResponse>(
+        `/devices/grids/${gridId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grid details"
-      );
+      throw error;
     }
   },
   updateGridDetailsApi: async (
     gridId: string,
-    updatePayload: { name?: string; visibility?: boolean }
+    updatePayload: { name?: string; visibility?: boolean; admin_level?: string }
   ) => {
     try {
-      const response = await axiosInstance.put(
-        `${DEVICES_MGT_URL}/grids/${gridId}`,
-        updatePayload
+      const response = await jwtApiClient.put(
+        `/devices/grids/${gridId}`,
+        updatePayload,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to update grid details"
-      );
+      throw error;
     }
   },
   createGridApi: async (data: CreateGrid) => {
     try {
-      const response = await axiosInstance.post(
-        `${DEVICES_MGT_URL}/grids`,
-        data
+      const response = await jwtApiClient.post(
+        `/devices/grids`,
+        data,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      throw new Error(
-        axiosError.response?.data?.message || "Failed to create grid"
-      );
+      throw error;
     }
   },
 };

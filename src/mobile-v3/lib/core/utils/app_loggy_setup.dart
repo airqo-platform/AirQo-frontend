@@ -61,6 +61,17 @@ extension LoggyExtension on Object {
   }
 
   void logError(String message, [dynamic error, StackTrace? stackTrace]) {
-    Loggy('Global').error(message);
+    try {
+      if (error != null && stackTrace != null) {
+        Loggy('Global').error(message, error, stackTrace);
+      } else if (error != null) {
+        Loggy('Global').error(message, error);
+      } else {
+        Loggy('Global').error(message);
+      }
+    } catch (e) {
+      // Prevent infinite loops by using print for logging errors in the logger itself
+      print('LoggingError: Failed to log error: $e');
+    }
   }
 }

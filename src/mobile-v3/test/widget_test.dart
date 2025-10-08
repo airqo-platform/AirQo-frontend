@@ -64,6 +64,11 @@ class TestAuthRepository extends AuthRepository {
   @override
   Future<void> verifyEmailCode(String token, String email) async {
   }
+
+  @override
+  Future<String> verifyResetPin(String pin, String email) async {
+    return 'Reset pin verified';
+  }
 }
 
 void main() {

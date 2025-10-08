@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 import AQNumberCard from '@/features/airQuality-cards';
@@ -10,10 +10,9 @@ import {
   AnalyticsControls,
   AnalyticsChartsGrid,
 } from '@/features/analytics-overview';
-import AlertBox from '@/components/AlertBox';
+import AlertBox from '@/common/components/AlertBox';
 import { useOutsideClick } from '@/core/hooks';
 import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
-import { withUserAuth } from '@/core/HOC';
 
 const AuthenticatedHomePage = () => {
   const dispatch = useDispatch();
@@ -103,4 +102,4 @@ const AuthenticatedHomePage = () => {
   );
 };
 
-export default withUserAuth(AuthenticatedHomePage);
+export default AuthenticatedHomePage;

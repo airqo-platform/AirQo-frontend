@@ -10,8 +10,6 @@ const LogsPage = () => {
           View and analyze system logs and audit trails
         </p>
       </div>
-
-
     </div>
   );
 };

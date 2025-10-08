@@ -1,22 +1,20 @@
 "use client"
 
-import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons"
-import { useAuth } from "@/core/hooks/users"
-import { Loader2, Lock, Mail, Eye, EyeOff } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
+import { useState, useCallback, useRef, useEffect } from "react";
+import { signIn } from "next-auth/react";
+import { Form, FormField } from "@/components/ui/form"
 import { signUpUrl, forgotPasswordUrl } from "@/core/urls"
+import ReusableInputField from "@/components/shared/inputfield/ReusableInputField"
+import ReusableButton from "@/components/shared/button/ReusableButton"
+import ReusableToast from "@/components/shared/toast/ReusableToast"
+import logger from "@/lib/logger"
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -25,10 +23,7 @@ const loginSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter()
-  const [error, setError] = useState<string | null>(null)
-  const [showPassword, setShowPassword] = useState(false)
-  const { login, isLoading } = useAuth()
-
+  const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -38,25 +33,48 @@ export default function LoginPage() {
     },
   })
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
-    setError(null)
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
+  const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
+    setIsLoading(true);
     try {
-      await login(values, {
-        onSuccess: () => {
-          router.push("/")
-        },
-        onError: (error: { message?: string }) => {
-          setError(error?.message || "Invalid email or password. Please try again.")
-        },
-      })
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        setError(error.message || "An unexpected error occurred. Please try again.")
+      const result = await signIn("credentials", {
+        redirect: false,
+        userName: values.userName,
+        password: values.password,
+      });
+
+      if (!isMounted.current) return;
+
+      if (result?.ok) {
+        router.replace("/home");
       } else {
-        setError("An unexpected error occurred. Please try again.")
+        let message = "Login failed. Please check your credentials.";
+        if (result?.error) {
+          if (result.error === 'CredentialsSignin') {
+            message = "Invalid email or password. Please check your credentials.";
+          } else if (result.error.toLowerCase().includes('fetch')) {
+            message = "Network error. Please check your connection and try again.";
+          } else {
+            message = result.error;
+          }
+        }
+        throw new Error(message);
       }
+    } catch (error) {
+      if (!isMounted.current) return;
+      const message = getApiErrorMessage(error);
+      logger.error("Sign-in failed", { error: message });
+      ReusableToast({ message, type: "ERROR" });
+      setIsLoading(false);
     }
-  }
+  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">
@@ -71,106 +89,65 @@ export default function LoginPage() {
             />
           </div>
           <h1 className="text-3xl font-bold tracking-tight">Welcome back to Vertex</h1>
-          <p className="text-muted-foreground">Sign in to your account to continue</p>
+          <div className="text-center text-sm">
+            Don&apos;t have an account?{" "}
+            <Link href={signUpUrl} className="font-medium text-primary hover:underline">
+              Sign up
+            </Link>
+          </div>
         </div>
-
-        <Card className="border-muted/40 shadow-lg">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-xl">Sign in</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="userName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input placeholder="login@airqo.net" className="pl-10" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center justify-between">
-                        <FormLabel>Password</FormLabel>
-                        <Link href={forgotPasswordUrl} className="text-xs text-primary hover:underline">
-                          Forgot password?
-                        </Link>
-                      </div>
-                      <FormControl>
-                        <div className="relative">
-                          <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input 
-                            type={showPassword ? "text" : "password"} 
-                            placeholder="••••••••" 
-                            className="pl-10 pr-10" 
-                            {...field} 
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {error && (
-                  <Alert variant="destructive" className="animate-in fade-in-50">
-                    <ExclamationTriangleIcon className="h-4 w-4" />
-                    <AlertTitle>Authentication Error</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
+        <div className="flex flex-col">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="userName"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Email"
+                    placeholder="login@airqo.net"
+                    type="email"
+                    required
+                    error={fieldState.error?.message}
+                    {...field}
+                  />
                 )}
-                <Button type="submit" className="w-full" disabled={isLoading} size="lg">
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Signing in...
-                    </>
-                  ) : (
-                    "Sign in"
-                  )}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4 pt-0">
-            <div className="flex items-center">
-              <Separator className="flex-1" />
-              <span className="mx-2 text-xs text-muted-foreground">OR</span>
-              <Separator className="flex-1" />
-            </div>
-            <div className="text-center text-sm">
-              Don&apos;t have an account?{" "}
-              <Link href={signUpUrl} className="font-medium text-primary hover:underline">
-                Create an account
-              </Link>
-            </div>
-          </CardFooter>
-        </Card>
+              />
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field, fieldState }) => (
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
+                      <Link href={forgotPasswordUrl} className="text-xs text-primary hover:underline">
+                        Forgot password?
+                      </Link>
+                    </div>
+                    <ReusableInputField
+                      type={"password"}
+                      id="password"
+                      autoComplete="current-password"
+                      placeholder="••••••••"
+                      required
+                      error={fieldState.error?.message}
+                      className="mt-2"
+                      {...field}
+                    />
+                  </div>
+                )}
+              />
+              <ReusableButton type="submit" className="max-w-xs w-full mx-auto" disabled={isLoading} loading={isLoading} variant="filled">
+                {isLoading ? (
+                  "Logging in..."
+                ) : (
+                  "Login"
+                )}
+              </ReusableButton>
+            </form>
+          </Form>
+        </div>
       </div>
     </div>
   )
 }
-

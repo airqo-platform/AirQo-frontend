@@ -1,5 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable standalone output for Docker
+  output: 'standalone',
+
+  // Images: keep only the hostnames you load from
   images: {
     remotePatterns: [
       {
@@ -34,30 +38,13 @@ const nextConfig = {
       },
     ],
   },
+
+  // Essential redirects only
   async redirects() {
     return [
-      {
-        source: '/',
-        destination: '/home',
-        permanent: false,
-      },
-      {
-        source: '/clean-air/forum',
-        destination: '/clean-air-forum/about?slug=clean-air-forum-2024',
-        permanent: true,
-      },
-      {
-        source: '/clean-air-forum',
-        destination: '/clean-air-forum/about',
-        permanent: true,
-      },
+      { source: '/', destination: '/home', permanent: false },
       {
         source: '/clean-air-network',
-        destination: '/clean-air-network/about',
-        permanent: true,
-      },
-      {
-        source: '/clean-air/about',
         destination: '/clean-air-network/about',
         permanent: true,
       },

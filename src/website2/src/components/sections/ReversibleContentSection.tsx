@@ -60,14 +60,29 @@ const ReversibleContentSection: React.FC<ReversibleContentSectionProps> = ({
           <h2 className="text-3xl lg:text-5xl font-medium text-gray-900">
             {title}
           </h2>
-          <p className="text-lg text-gray-600">{description}</p>
+          {typeof description === 'string' ? (
+            <p className="text-lg text-gray-600">{description}</p>
+          ) : (
+            <div className="text-lg text-gray-600">{description}</div>
+          )}
 
-          <a
-            href={buttonLink}
-            className="inline-block text-blue-600 font-medium hover:underline mt-4"
-          >
-            {buttonText} →
-          </a>
+          {buttonLink.startsWith('http') ? (
+            <a
+              href={buttonLink}
+              className="inline-block text-blue-600 font-medium hover:underline mt-4"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {buttonText} →
+            </a>
+          ) : (
+            <a
+              href={buttonLink}
+              className="inline-block text-blue-600 font-medium hover:underline mt-4"
+            >
+              {buttonText} →
+            </a>
+          )}
         </div>
 
         {/* Image Section */}

@@ -1,112 +1,166 @@
+'use client';
+
 import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { useMediaQuery } from 'react-responsive';
+import { AqLoading02 } from '@airqo/icons-react';
+import { useRouter } from 'next/navigation';
 
 const Button = React.forwardRef(
   (
     {
-      variant = 'filled', // filled | outlined | text | disabled
-      padding = 'py-2 px-4',
-      paddingStyles, // Legacy prop for backward compatibility
+      variant = 'filled', // filled | outlined | text | ghost | disabled
+      size = 'md', // sm | md | lg
+      fullWidth = false,
+      loading = false,
+      paddingStyles,
       className,
       disabled = false,
-      path,
       onClick,
       type = 'button',
       dataTestId,
       Icon,
       children,
       showTextOnMobile = false,
+      path, // internal navigation path
       ...rest
     },
     ref,
   ) => {
-    // Base styles
-    const base =
-      'flex items-center justify-center rounded-lg transition transform active:scale-95 duration-200';
-    const variantMap = {
-      filled: clsx(
-        'bg-[var(--org-primary,var(--color-primary,#145fff))]',
-        'hover:bg-[var(--org-primary-600,var(--color-primary,#145fff))]',
-        'text-white',
-        'border border-transparent',
-        'shadow-sm hover:shadow-lg',
-        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
-      ),
-      outlined: clsx(
-        'bg-transparent',
-        'border border-[var(--org-primary,var(--color-primary,#145fff))]',
-        'text-[var(--org-primary,var(--color-primary,#145fff))]',
-        'hover:bg-[var(--org-primary,var(--color-primary,#145fff))]',
-        'hover:text-white',
-        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
-      ),
-      text: clsx(
-        'bg-transparent',
-        'text-[var(--org-primary,var(--color-primary,#145fff))]',
-        'hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))]',
-        'focus:ring-2 focus:ring-[var(--org-primary,var(--color-primary,#145fff))] focus:ring-opacity-50',
-      ),
-      disabled: clsx(
-        'bg-gray-300 dark:bg-gray-600',
-        'text-gray-500 dark:text-gray-400',
-        'border border-transparent',
-      ),
+    const isMobile = useMediaQuery({ maxWidth: 640 });
+    const router = useRouter();
+
+    const isDisabled = disabled || loading || variant === 'disabled';
+
+    const handleClick = (e) => {
+      if (isDisabled) {
+        e.preventDefault();
+        return;
+      }
+      onClick?.(e);
+
+      try {
+        if (path && !e.defaultPrevented) {
+          router.push(path);
+        }
+      } catch (err) {
+        console.warn('Button navigation failed', err);
+      }
     };
-    const activeVariant = disabled ? 'disabled' : variant;
-    const variantStyles = variantMap[activeVariant] || variantMap.filled;
-    const disabledStyles = disabled && 'cursor-not-allowed opacity-50'; // Responsive detection
-    const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
-    // Determine if text should be hidden
-    const hideText = isMobile && Icon && !showTextOnMobile;
-    // Only apply right margin on icon when there's visible text
-    const iconMargin = hideText ? '' : 'mr-2';
 
-    // Determine padding - paddingStyles takes precedence for backward compatibility
-    const finalPadding = paddingStyles || padding;
+    // Size -> padding and font-size
+    const sizeMap = {
+      sm: 'px-3 py-1.5 text-sm',
+      md: 'px-4 py-2 text-sm',
+      lg: 'px-6 py-3 text-base',
+    };
 
-    const btnClass = clsx(
-      base,
-      finalPadding,
-      variantStyles,
-      disabledStyles,
+    const paddingClass = paddingStyles || sizeMap[size] || sizeMap.md;
+
+    // Variant classes using consistent Tailwind classes with bg-primary
+    const variantClasses = (() => {
+      switch (variant) {
+        case 'outlined':
+          return clsx(
+            'border border-primary text-primary bg-transparent',
+            'hover:bg-primary hover:text-white',
+            'focus:ring-primary focus:border-primary',
+            'disabled:border-gray-300 disabled:text-gray-400 disabled:bg-transparent disabled:hover:bg-transparent',
+          );
+        case 'text':
+          return clsx(
+            'text-primary bg-transparent border-transparent',
+            'hover:bg-primary/10 hover:text-primary',
+            'focus:ring-primary',
+            'disabled:text-gray-400 disabled:bg-transparent disabled:hover:bg-transparent',
+          );
+        case 'ghost':
+          return clsx(
+            'bg-transparent text-primary border-transparent',
+            'hover:bg-primary/5',
+            'focus:ring-primary',
+            'disabled:text-gray-400 disabled:hover:bg-transparent',
+          );
+        case 'disabled':
+          return 'bg-gray-300 text-gray-500 cursor-not-allowed border-gray-300 opacity-50';
+        default: // filled
+          return clsx(
+            'bg-primary text-white border-primary',
+            'hover:bg-primary/90',
+            'focus:ring-primary',
+            'disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300 disabled:hover:bg-gray-300',
+          );
+      }
+    })();
+
+    const baseClasses = clsx(
+      // Base button styles
+      'inline-flex items-center justify-center rounded-md font-medium transition-all duration-200',
+      // Focus styles
+      'focus:outline-none focus:ring-2 focus:ring-offset-2',
+      // Size and spacing
+      paddingClass,
+      // Variant-specific styles
+      variantClasses,
+      // Width
+      fullWidth && 'w-full',
+      // Disabled state
+      isDisabled && 'pointer-events-none',
+      // Custom className
       className,
     );
 
-    const Content = (
-      <>
-        {Icon && <Icon className={clsx('w-4 h-4', iconMargin)} />}
-        {!hideText && children}
-      </>
-    );
+    const renderIcon = () => {
+      if (loading) {
+        return (
+          <span
+            className={clsx(
+              'flex items-center justify-center',
+              children && 'mr-2',
+            )}
+          >
+            <AqLoading02 className="w-4 h-4 text-current animate-spin" />
+          </span>
+        );
+      }
 
-    if (path) {
+      if (Icon) {
+        return (
+          <span className={clsx('flex-shrink-0', children && 'mr-2')}>
+            <Icon className="w-4 h-4" />
+          </span>
+        );
+      }
+
+      return null;
+    };
+
+    const renderText = () => {
+      if (!children) return null;
+
       return (
-        <a
-          ref={ref}
-          href={path}
-          className={btnClass}
-          data-testid={dataTestId}
-          aria-disabled={disabled}
-          {...rest}
+        <span
+          className={clsx(isMobile && !showTextOnMobile && Icon && 'sr-only')}
         >
-          {Content}
-        </a>
+          {children}
+        </span>
       );
-    }
+    };
 
     return (
       <button
         ref={ref}
         type={type}
-        onClick={onClick}
-        className={btnClass}
+        className={baseClasses}
+        aria-disabled={isDisabled}
+        disabled={isDisabled}
+        onClick={handleClick}
         data-testid={dataTestId}
-        disabled={disabled}
         {...rest}
       >
-        {Content}
+        {renderIcon()}
+        {renderText()}
       </button>
     );
   },
@@ -115,26 +169,20 @@ const Button = React.forwardRef(
 Button.displayName = 'Button';
 
 Button.propTypes = {
-  variant: PropTypes.oneOf(['filled', 'outlined', 'text', 'disabled']),
-  padding: PropTypes.string,
-  paddingStyles: PropTypes.string, // Legacy prop for backward compatibility
+  variant: PropTypes.oneOf(['filled', 'outlined', 'text', 'ghost', 'disabled']),
+  size: PropTypes.oneOf(['sm', 'md', 'lg']),
+  fullWidth: PropTypes.bool,
+  loading: PropTypes.bool,
+  paddingStyles: PropTypes.string,
   className: PropTypes.string,
   disabled: PropTypes.bool,
-  path: PropTypes.string,
   onClick: PropTypes.func,
   type: PropTypes.oneOf(['button', 'submit', 'reset']),
   dataTestId: PropTypes.string,
+  path: PropTypes.string,
   Icon: PropTypes.elementType,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
   showTextOnMobile: PropTypes.bool,
-};
-
-Button.defaultProps = {
-  variant: 'filled',
-  padding: 'py-2 px-4',
-  disabled: false,
-  type: 'button',
-  showTextOnMobile: false,
 };
 
 export default Button;

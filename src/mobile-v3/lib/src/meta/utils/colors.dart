@@ -43,11 +43,13 @@ class AppTheme {
     appBarTheme: AppBarTheme(
         scrolledUnderElevation: 0,
         elevation: 0,
-        backgroundColor: const Color(0xffF9FAFB)),
+        backgroundColor: const Color(0xffF6F6F7)),
     brightness: Brightness.light,
     primaryColor: const Color(0xff145FFF),
-    scaffoldBackgroundColor: const Color(0xffF9FAFB),
-    highlightColor: const Color(0xffF3F6F8),
+    scaffoldBackgroundColor: const Color(0xffF6F6F7),
+    cardColor: const Color(0xffFFFFFF),
+    dividerColor: const Color(0xffE1E7EC),
+    highlightColor: const Color(0xffC6D1DB), 
     textTheme: TextTheme(
       headlineLarge: TextStyle(
         color: const Color(0xff000000),
@@ -77,6 +79,8 @@ class AppTheme {
     brightness: Brightness.dark,
     primaryColor: const Color(0xff145FFF),
     scaffoldBackgroundColor: const Color(0xff1C1D20),
+    cardColor: const Color(0xff2E2F33),
+    dividerColor: const Color(0xffE1E7EC),
     highlightColor: const Color(0xff2E2F33),
     textTheme: TextTheme(
       headlineLarge: TextStyle(

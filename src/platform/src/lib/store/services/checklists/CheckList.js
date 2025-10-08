@@ -1,11 +1,26 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getUserChecklists, upsertUserChecklists } from '@/core/apis/Account';
+import logger from '@/lib/logger';
 
 const initialState = {
   checklist: [],
   status: 'idle', // 'idle' | 'loading' | 'succeeded' | 'failed'
   error: null,
   lastUpdated: null,
+};
+
+// State sanitization to handle corrupted persist data
+const sanitizeChecklistState = (state) => {
+  if (!state || typeof state !== 'object') {
+    return initialState;
+  }
+
+  return {
+    checklist: Array.isArray(state.checklist) ? state.checklist : [],
+    status: state.status || 'idle',
+    error: state.error || null,
+    lastUpdated: state.lastUpdated || null,
+  };
 };
 
 // Fetch user checklist; initialize if none and refetch for _id
@@ -15,40 +30,113 @@ export const fetchUserChecklists = createAsyncThunk(
     try {
       if (!userId) throw new Error('User ID is required');
 
-      // Try fetching existing checklists
-      const response = await getUserChecklists(userId);
-      if (!response.success) {
-        return rejectWithValue(
-          response.message || 'Failed to fetch checklists',
-        );
+      logger.debug('Fetching user checklists', { userIdPresent: !!userId });
+
+      let response;
+      try {
+        // Try fetching existing checklists
+        response = await getUserChecklists(userId);
+        logger.debug('API response received', {
+          userId,
+          hasChecklists: !!response?.checklists,
+          checklistCount: response?.checklists?.length ?? 'n/a',
+        });
+      } catch (fetchError) {
+        // If the request fails with 404 or other errors, we'll initialize
+        logger.warn('Checklist fetch failed, will initialize:', {
+          userId,
+          error: fetchError.message,
+        });
+        response = { success: true, checklists: [] }; // Treat as empty
       }
 
-      let items = [];
-      if (response.checklists?.length > 0) {
-        items = response.checklists[0].items || [];
-      } else {
-        // No existing: initialize four blank items
-        const initialItems = [1, 2, 3, 4].map(() => ({
+      // Handle both explicit errors and "no checklists found" cases
+      if (
+        !response.success ||
+        (response.message &&
+          response.message.includes('no checklists found')) ||
+        !response.checklists ||
+        response.checklists.length === 0
+      ) {
+        logger.info(
+          'No existing checklist found, initializing for user:',
+          userId,
+        );
+
+        // Initialize four blank items with proper structure
+        const initialItems = [1, 2, 3, 4].map((index) => ({
           title: '',
           completed: false,
           completionDate: '',
           videoProgress: 0,
           status: 'not started',
+          position: index - 1, // 0-based position
         }));
-        // Upsert to create in DB
-        await upsertUserChecklists({ user_id: userId, items: initialItems });
-        // Refetch to retrieve generated _id
-        const newResp = await getUserChecklists(userId);
-        if (newResp.success && newResp.checklists?.length > 0) {
-          items = newResp.checklists[0].items || [];
-        } else {
-          items = initialItems;
+
+        try {
+          // Upsert to create in DB
+          const upsertResponse = await upsertUserChecklists({
+            user_id: userId,
+            items: initialItems,
+          });
+
+          logger.debug('Upsert response', {
+            userId,
+            success: upsertResponse?.success,
+          });
+
+          if (!upsertResponse.success) {
+            logger.error('Failed to initialize checklist:', {
+              userId,
+              error: upsertResponse.message,
+            });
+            // Return basic items without _id as fallback
+            return initialItems;
+          }
+
+          // Refetch to retrieve generated _id values
+          try {
+            const newResp = await getUserChecklists(userId);
+            logger.debug('Refetch response after init', {
+              userId,
+              checklistCount: newResp?.checklists?.length ?? 0,
+            });
+            if (newResp.success && newResp.checklists?.length > 0) {
+              const items = newResp.checklists[0].items || [];
+              logger.info('Initialized and fetched checklist', {
+                userId,
+                itemCount: items.length,
+              });
+              return items;
+            }
+          } catch (refetchError) {
+            logger.warn('Refetch after initialization failed:', {
+              userId,
+              error: refetchError.message,
+            });
+          }
+
+          // If refetch fails, return the basic items
+          return initialItems;
+        } catch (initError) {
+          logger.error('Failed to initialize checklist:', {
+            userId,
+            error: initError.message,
+          });
+          // Return basic items as final fallback
+          return initialItems;
         }
       }
 
+      // User has existing checklists
+      const items = response.checklists[0].items || [];
+      logger.info('Fetched existing checklist', {
+        userId,
+        itemCount: items.length,
+      });
       return items;
     } catch (error) {
-      console.error('Error in fetchUserChecklists:', error);
+      logger.error('Error in fetchUserChecklists:', error);
       return rejectWithValue(error.message || 'Error fetching checklists');
     }
   },
@@ -105,7 +193,7 @@ export const updateTaskProgress = createAsyncThunk(
 
       return updatedList;
     } catch (error) {
-      console.error('Error in updateTaskProgress:', error);
+      logger.error('Error in updateTaskProgress:', error);
       return rejectWithValue(error.message || 'Failed to update checklist');
     }
   },
@@ -113,8 +201,16 @@ export const updateTaskProgress = createAsyncThunk(
 
 export const checklistSlice = createSlice({
   name: 'cardChecklist',
-  initialState,
-  reducers: {},
+  initialState: sanitizeChecklistState(initialState),
+  reducers: {
+    // Add a reducer to manually clear corrupted state
+    clearChecklistState: (state) => {
+      state.checklist = [];
+      state.status = 'idle';
+      state.error = null;
+      state.lastUpdated = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchUserChecklists.pending, (state) => {
@@ -122,7 +218,8 @@ export const checklistSlice = createSlice({
       })
       .addCase(fetchUserChecklists.fulfilled, (state, { payload }) => {
         state.status = 'succeeded';
-        state.checklist = payload;
+        // Ensure payload is always an array
+        state.checklist = Array.isArray(payload) ? payload : [];
         state.error = null;
         state.lastUpdated = new Date().toISOString();
       })
@@ -145,6 +242,9 @@ export const checklistSlice = createSlice({
       });
   },
 });
+
+// Export actions
+export const { clearChecklistState } = checklistSlice.actions;
 
 export const selectAllChecklist = (state) => state.cardChecklist.checklist;
 export const selectChecklistStatus = (state) => state.cardChecklist.status;

@@ -7,174 +7,218 @@ import PropTypes from 'prop-types';
 import Loading from '../loading';
 import ErrorBoundary from '../../common/components/ErrorBoundary';
 import { PersistGate } from 'redux-persist/integration/react';
-import GoogleAnalytics from '@/components/GoogleAnalytics';
 import logger from '@/lib/logger';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
-import { handleGoogleLoginFromCookie } from '@/core/utils/googleLoginFromCookie';
 import makeStore from '@/lib/store';
 import NextAuthProvider from './NextAuthProvider';
+import SWRProvider from './SWRProvider';
+import SessionWatchProvider from './SessionWatchProvider';
 import { ThemeProvider } from '@/common/features/theme-customizer/context/ThemeContext';
-import { OrganizationLoadingProvider } from './OrganizationLoadingProvider';
-import LogoutProvider from './LogoutProvider';
+import UnifiedGroupProvider from './UnifiedGroupProvider';
+import { TourProvider } from '@/common/features/tours/contexts/TourProvider';
 import { useThemeInitialization } from '@/core/hooks';
-// Import environment validation
-import { validateEnvironment } from '@/lib/envConstants';
+import NetworkStatusBanner from '@/common/components/NetworkStatusBanner';
 
 /**
  * Component that initializes theme settings for authenticated users
- * This runs globally and handles theme loading during login setup
  */
 function ThemeInitializer() {
   useThemeInitialization();
-  return null; // This component doesn't render anything
+  return null;
 }
 
 function ReduxProviders({ children }) {
-  const [store, setStore] = useState(null);
-  const [isClient, setIsClient] = useState(false);
+  const [storeData, setStoreData] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [initError, setInitError] = useState(null);
+
   useEffect(() => {
-    // Mark as client-side
-    setIsClient(true);
-
-    // Initialize environment validation
-    try {
-      // Validate environment variables (for development debugging only)
-      const envValidation = validateEnvironment();
-      if (
-        envValidation.errors.length > 0 &&
-        process.env.NODE_ENV === 'development'
-      ) {
-        logger.error('Environment validation errors:', envValidation.errors);
+    let mounted = true;
+    const initTimeout = setTimeout(() => {
+      if (mounted && !isInitialized) {
+        logger.warn('Store initialization timeout - proceeding with fallback');
+        setInitError('Store initialization timeout');
+        setIsInitialized(true);
       }
-      if (
-        envValidation.warnings.length > 0 &&
-        process.env.NODE_ENV === 'development'
-      ) {
-        logger.warn('Environment validation warnings:', envValidation.warnings);
-      }
+    }, 5000); // 5 second timeout
 
-      logger.info('Environment validation completed');
-    } catch (error) {
-      logger.error('Failed to initialize validation systems:', error);
+    async function initializeStore() {
+      try {
+        // makeStore is synchronous; call directly to avoid racing a
+        // synchronous value with a timeout which would leave the timeout
+        // rejecting unhandled later.
+        const raw = makeStore();
+
+        // Normalize return shapes with better validation
+        let normalized;
+        if (raw && typeof raw.getState === 'function') {
+          normalized = {
+            store: raw,
+            persistor: raw.__persistor || null,
+          };
+        } else if (
+          raw &&
+          raw.store &&
+          typeof raw.store.getState === 'function'
+        ) {
+          normalized = raw;
+        } else {
+          throw new Error('Invalid store returned from makeStore');
+        }
+
+        if (mounted) {
+          clearTimeout(initTimeout);
+          setStoreData(normalized);
+          setIsInitialized(true);
+          setInitError(null);
+        }
+      } catch (error) {
+        logger.error('Store initialization error:', error);
+        if (mounted) {
+          clearTimeout(initTimeout);
+          setInitError(error.message);
+          setIsInitialized(true);
+          // Don't set storeData on error - let it remain null
+        }
+      }
     }
 
-    // Create store only on client side
-    const storeInstance = makeStore();
-    setStore(storeInstance);
+    initializeStore();
+
+    return () => {
+      mounted = false;
+      clearTimeout(initTimeout);
+    };
+    // We intentionally omit 'isInitialized' from the dependency array so this
+    // initialization runs once on mount. Including it causes a second run when
+    // the flag flips to true which can create multiple stores. If you change
+    // the initializer to close over external values, refactor into a stable
+    // callback and include it here.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Don't render anything on server side to prevent hydration mismatch
-  if (!isClient || !store) {
+  // Show loading during initialization
+  if (!isInitialized) {
     return <Loading />;
   }
+
+  // Show error state if initialization failed
+  if (
+    initError ||
+    !storeData?.store ||
+    typeof storeData.store.getState !== 'function'
+  ) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="max-w-lg text-center p-6">
+          <div className="mb-4">
+            <svg
+              className="mx-auto h-16 w-16 text-red-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            Application Initialization Failed
+          </h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Unable to initialize the application store. This may be due to a
+            network issue or corrupted local data.
+          </p>
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Refresh Page
+            </button>
+            <button
+              onClick={() => {
+                // Clear all local storage and reload
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
+              }}
+              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              Clear Data & Refresh
+            </button>
+          </div>
+          {initError && (
+            <p className="text-sm text-gray-500 mt-4">Error: {initError}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <Provider store={store}>
-      <PersistGate loading={<Loading />} persistor={store.__persistor}>
+    <Provider store={storeData.store}>
+      {storeData.persistor ? (
+        <PersistGate loading={<Loading />} persistor={storeData.persistor}>
+          <ClientProvidersInner>{children}</ClientProvidersInner>
+        </PersistGate>
+      ) : (
         <ClientProvidersInner>{children}</ClientProvidersInner>
-      </PersistGate>
+      )}
     </Provider>
   );
 }
 
 function ClientProvidersInner({ children }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    // 🚨 Track Google login redirect
-    const success = searchParams.get('success');
-
-    if (success === 'google') {
-      // We need to access the store differently now
-      // This will need to be refactored to use useDispatch hook
-      handleGoogleLoginFromCookie();
-      // Construct the URL without the 'success' query parameter
-      const newSearchParams = new URLSearchParams(searchParams.toString());
-      newSearchParams.delete('success');
-      const cleanUrl = `${pathname}${newSearchParams.toString() ? `?${newSearchParams.toString()}` : ''}`;
-      router.replace(cleanUrl, { shallow: true });
-    }
-  }, [searchParams, pathname, router]);
-
-  useEffect(() => {
-    const handleGlobalError = (event) => {
-      event.preventDefault();
-      logger.error('Uncaught error', event.error || new Error(event.message), {
-        source: event.filename,
-        line: event.lineno,
-        column: event.colno,
-      });
-    };
-
-    const handlePromiseRejection = (event) => {
-      event.preventDefault();
-      logger.error(
-        'Unhandled promise rejection',
-        event.reason instanceof Error
-          ? event.reason
-          : new Error(String(event.reason)),
-      );
-    };
-
-    const manageDevTools = () => {
-      const currentEnv =
-        process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS ||
-        process.env.NODE_ENV ||
-        'development';
-      const isDevOrStaging =
-        currentEnv === 'development' || currentEnv === 'staging';
-
-      if (!isDevOrStaging) {
-        const handleContextMenu = (e) => e.preventDefault();
-        const handleF12 = (e) => {
-          if (e.keyCode === 123) e.preventDefault();
-        };
-
-        document.addEventListener('contextmenu', handleContextMenu);
-        document.addEventListener('keydown', handleF12);
-
-        return () => {
-          document.removeEventListener('contextmenu', handleContextMenu);
-          document.removeEventListener('keydown', handleF12);
-        };
-      }
-      return () => {};
-    };
-
-    window.addEventListener('error', handleGlobalError);
-    window.addEventListener('unhandledrejection', handlePromiseRejection);
-    const cleanupDevTools = manageDevTools();
-
-    return () => {
-      window.removeEventListener('error', handleGlobalError);
-      window.removeEventListener('unhandledrejection', handlePromiseRejection);
-      cleanupDevTools();
-    };
+    setIsMounted(true);
   }, []);
 
+  if (!isMounted) {
+    return <Loading />;
+  }
+
   return (
-    <ErrorBoundary name="AppRoot" feature="global">
-      {children}
-      <GoogleAnalytics />
-      <Toaster expand={true} richColors />
+    <ErrorBoundary>
+      <ThemeProvider>
+        <UnifiedGroupProvider>
+          <TourProvider>
+            <NetworkStatusBanner />
+            <ThemeInitializer />
+            {children}
+          </TourProvider>
+        </UnifiedGroupProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }
 
+// Main client providers component
 export default function ClientProviders({ children }) {
   return (
     <NextAuthProvider>
-      <ReduxProviders>
-        <ThemeProvider>
-          <ThemeInitializer />
-          <LogoutProvider>
-            <OrganizationLoadingProvider>
-              {children}
-            </OrganizationLoadingProvider>
-          </LogoutProvider>
-        </ThemeProvider>
-      </ReduxProviders>
+      <SWRProvider>
+        <ReduxProviders>
+          <SessionWatchProvider>{children}</SessionWatchProvider>
+        </ReduxProviders>
+      </SWRProvider>
+      <Toaster
+        richColors
+        position="top-right"
+        expand={false}
+        closeButton
+        toastOptions={{
+          duration: 5000,
+          style: {
+            fontSize: '14px',
+          },
+        }}
+      />
     </NextAuthProvider>
   );
 }
@@ -183,10 +227,10 @@ ClientProviders.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-ClientProvidersInner.propTypes = {
+ReduxProviders.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-ReduxProviders.propTypes = {
+ClientProvidersInner.propTypes = {
   children: PropTypes.node.isRequired,
 };

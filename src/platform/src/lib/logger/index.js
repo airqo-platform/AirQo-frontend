@@ -59,6 +59,24 @@ function shouldIgnoreError(error, context = {}) {
   // Ignore 404 and 400 errors
   const ignoredStatusCodes = [400, 404];
 
+  // Check for canceled/aborted requests (non-critical)
+  if (
+    error?.name === 'CanceledError' ||
+    error?.name === 'AbortError' ||
+    error?.code === 'ERR_CANCELED' ||
+    context?.code === 'ERR_CANCELED' ||
+    (typeof error?.message === 'string' &&
+      (error.message.includes('canceled') ||
+        error.message.includes('aborted') ||
+        error.message.includes('ERR_CANCELED'))) ||
+    (typeof context?.message === 'string' &&
+      (context.message.includes('canceled') ||
+        context.message.includes('aborted') ||
+        context.message.includes('ERR_CANCELED')))
+  ) {
+    return true;
+  }
+
   // Check direct error status properties
   if (
     ignoredStatusCodes.includes(error?.status) ||

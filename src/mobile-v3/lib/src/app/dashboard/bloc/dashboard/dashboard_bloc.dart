@@ -62,8 +62,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       UserPreferencesModel? preferences;
 
       try {
-        // Try to get user preferences if user is logged in
-        final userId = await AuthHelper.getCurrentUserId();
+        final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
         if (userId != null) {
           loggy.info('Loading preferences during dashboard load for user: $userId');
           final prefsResponse = await preferencesRepo.getUserPreferences(userId);
@@ -210,7 +209,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
     try {
       final currentState = state as DashboardLoaded;
-      final userId = await AuthHelper.getCurrentUserId();
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
       if (userId == null) {
         loggy.info('No user ID available, skipping preferences load');
         return;
@@ -257,7 +256,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
     try {
       final currentState = state as DashboardLoaded;
-      final userId = await AuthHelper.getCurrentUserId();
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
 
       if (userId == null) {
         loggy.warning('Cannot update preferences: No user ID available');
@@ -321,9 +320,17 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       if (response['success'] == true) {
         loggy.info('Successfully updated preferences');
+        // Wait briefly for backend persistence before reloading
+        await Future.delayed(Duration(milliseconds: 500));
         add(LoadUserPreferences());
       } else {
         loggy.warning('Failed to update preferences: ${response["message"]}');
+        // Even on failure, reload to show current state (may include rollback)
+        if (response['rolled_back'] == true) {
+          loggy.info('Preferences were rolled back, reloading to show current state');
+          await Future.delayed(Duration(milliseconds: 300));
+          add(LoadUserPreferences());
+        }
       }
     } catch (e) {
       loggy.error('Error updating preferences: $e');

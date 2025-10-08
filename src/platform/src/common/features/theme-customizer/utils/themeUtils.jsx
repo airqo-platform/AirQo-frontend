@@ -51,12 +51,50 @@ export function applyStyles({ theme, skin, primaryColor, layout, semiDark }) {
 
 /**
  * Safe localStorage getter with fallback
+ * Also checks for login setup theme data in sessionStorage
  */
 export function getStoredValue(key, fallback) {
   if (typeof window === 'undefined') return fallback;
 
   try {
-    return localStorage.getItem(key) || fallback;
+    // First check localStorage as usual
+    const localValue = localStorage.getItem(key);
+    if (localValue) return localValue;
+
+    // If no localStorage value and we're looking for theme-related values,
+    // check if there's login setup theme data in sessionStorage
+    const isThemeKey =
+      key.includes('theme') ||
+      key.includes('primary') ||
+      key.includes('skin') ||
+      key.includes('layout');
+    if (isThemeKey) {
+      const setupTheme = window.sessionStorage.getItem('userTheme');
+      const isLoaded = window.sessionStorage.getItem('userThemeLoaded');
+
+      if (setupTheme && isLoaded === 'true') {
+        try {
+          const themeData = JSON.parse(setupTheme);
+          // Map storage keys to theme data properties
+          switch (key) {
+            case 'theme':
+              return themeData.mode || fallback;
+            case 'primaryColor':
+              return themeData.primaryColor || fallback;
+            case 'skin':
+              return themeData.interfaceStyle || fallback;
+            case 'layout':
+              return themeData.contentLayout || fallback;
+            default:
+              return fallback;
+          }
+        } catch {
+          return fallback;
+        }
+      }
+    }
+
+    return fallback;
   } catch {
     return fallback;
   }

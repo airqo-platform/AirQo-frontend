@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import VerifiedIcon from '@/icons/Account/verified.svg';
+import { useEffect, useCallback } from 'react';
+import { AqCheck } from '@airqo/icons-react';
 import { useRouter, useParams } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setUserId } from '@/lib/store/services/account/CreationSlice';
@@ -13,16 +13,19 @@ const UserCreationSuccess = () => {
   const params = useParams();
   const { id, token } = params;
 
-  const verifyOrgManagerEmail = async (userId, userToken) => {
-    try {
-      await verifyUserEmailApi(userId, userToken);
-      router.push(
-        `/user/creation/organisation/verify/${id}/create-org/token-confirmation`,
-      );
-    } catch {
-      // TODO:ADD LATER
-    }
-  };
+  const verifyOrgManagerEmail = useCallback(
+    async (userId, userToken) => {
+      try {
+        await verifyUserEmailApi(userId, userToken);
+        router.push(
+          `/user/creation/organisation/verify/${id}/create-org/token-confirmation`,
+        );
+      } catch {
+        // ADD LATER
+      }
+    },
+    [router, id],
+  );
 
   useEffect(() => {
     if (id) {
@@ -31,12 +34,12 @@ const UserCreationSuccess = () => {
         verifyOrgManagerEmail(id, token);
       }, 4000);
     }
-  }, [id, token, dispatch, router]);
+  }, [id, token, dispatch, router, verifyOrgManagerEmail]);
 
   return (
     <div className="w-full h-screen flex flex-col items-center justify-center">
       <div>
-        <VerifiedIcon />
+        <AqCheck className="w-8 h-8" />
       </div>
       <div className="text-2xl font-semibold mt-4">Email Verified</div>
     </div>

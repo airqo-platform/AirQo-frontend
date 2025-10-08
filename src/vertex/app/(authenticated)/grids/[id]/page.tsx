@@ -1,294 +1,119 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ChevronLeft, Copy, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GridSitesTable } from "@/components/grids/grid-sites";
-import { DateRangePicker } from "@/components/grids/date-range-picker";
-import { useGridDetails, useUpdateGridDetails } from "@/core/hooks/useGrids";
-import { Grid } from "@/app/types/grids";
+import { useGridDetails } from "@/core/hooks/useGrids";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { toast } from "sonner";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { AqArrowLeft } from "@airqo/icons-react";
+import GridDetailsCard from "@/components/features/grids/grid-details-card";
+import GridMeasurementsApiCard from "@/components/features/grids/grid-measurements-api-card";
+import EditGridDetailsDialog from "@/components/features/grids/edit-grid-details-dialog";
+import { PERMISSIONS } from "@/core/permissions/constants";
+import ClientPaginatedSitesTable from "@/components/features/sites/client-paginated-sites-table";
+
+const ContentGridSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="h-48 bg-gray-200 rounded-lg animate-pulse" />
+    ))}
+  </div>
+);
 
 export default function GridDetailsPage() {
   const router = useRouter();
   const { id } = useParams();
-  const { gridDetails, isLoading, error } = useGridDetails(id.toString());
-  const {
-    updateGridDetails,
-    isLoading: isSaving,
-    error: saveError,
-  } = useUpdateGridDetails(id.toString());
-  const [gridData, setGridData] = useState<Grid>({
-    name: "",
-    _id: "",
-    visibility: false,
-    admin_level: "",
-    network: "",
-    long_name: "",
-    createdAt: "",
-    sites: [],
-    numberOfSites: 0,
-  } as Grid);
-  const [originalGridData, setOriginalGridData] = useState<Grid>({
-    name: "",
-    _id: "",
-    visibility: false,
-    admin_level: "",
-    network: "",
-    long_name: "",
-    createdAt: "",
-    sites: [],
-    numberOfSites: 0,
-  } as Grid);
+  const gridId = id.toString();
+  const { gridDetails, isLoading, error } = useGridDetails(gridId);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  // Memoize gridDetails to prevent unnecessary re-renders
-  const memoizedGridDetails = useMemo(() => gridDetails, [gridDetails]);
-
-  useEffect(() => {
-    if (memoizedGridDetails) {
-      setGridData({ ...memoizedGridDetails });
-      setOriginalGridData({ ...memoizedGridDetails });
-    }
-  }, [memoizedGridDetails]);
-
-  const handleCopyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
-
-  const handleReset = () => {
-    setGridData({ ...originalGridData });
-  };
-
-  const handleSave = async () => {
-    const updatedFields: Partial<Grid> = {
-      name: gridData.name,
-      admin_level: gridData.admin_level,
-    };
-    if (gridData.visibility !== originalGridData.visibility) {
-      updatedFields.visibility = gridData.visibility;
-    }
-
-    try {
-      await updateGridDetails(updatedFields);
-      toast("Grid details updated successfully");
-    } catch (error) {
-      console.error(error);
-      toast("Failed to update grid details");
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error || saveError) {
+  if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen p-4">
         <Alert variant="destructive" className="max-w-md">
           <ExclamationTriangleIcon className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error?.message || saveError?.message}
-          </AlertDescription>
+          <AlertDescription>{error?.message}</AlertDescription>
         </Alert>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <div className="space-y-4">
-        <Button variant="ghost" className="gap-2" onClick={() => router.back()}>
-          <ChevronLeft className="h-4 w-4" />
-          Grid Details
-        </Button>
-      </div>
-
-      {/* Grid Details Form */}
-      <div className="grid gap-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="gridName">Grid name *</Label>
-            <Input id="gridName" value={gridData.name || ""} readOnly />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="gridId">Grid ID *</Label>
-            <div className="flex gap-2">
-              <Input id="gridId" value={gridData._id || ""} readOnly />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleCopyToClipboard(gridData._id || "")}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+    <RouteGuard permission={PERMISSIONS.SITE.VIEW}>
+      <div className="flex flex-col gap-4">
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
+            Back
+          </ReusableButton>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="visibility">Visibility *</Label>
-            <Select
-              value={
-                gridData.visibility !== undefined
-                  ? gridData.visibility.toString()
-                  : "false"
-              }
-              onValueChange={(value) =>
-                setGridData({ ...gridData, visibility: value === "true" })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select visibility" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="true">True</SelectItem>
-                <SelectItem value="false">False</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="adminLevel">Administrative level *</Label>
-            <Input
-              id="adminLevel"
-              value={gridData.admin_level || ""}
-              readOnly
-            />
-          </div>
-        </div>
-
-        {/* API Endpoints */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Recent Measurements API</Label>
-            <div className="flex gap-2">
-              <Input
-                value={`https://api.airqo.net/api/v2/devices/measurements/${gridData._id}`}
-                readOnly
-                className="font-mono text-sm"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  handleCopyToClipboard(
-                    `https://api.airqo.net/api/v2/devices/measurements/${gridData._id}`
-                  )
-                }
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Historical Measurements API</Label>
-            <div className="flex gap-2">
-              <Input
-                value={`https://api.airqo.net/api/v2/devices/measurements/grids/${gridData._id}`}
-                readOnly
-                className="font-mono text-sm"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  handleCopyToClipboard(
-                    `https://api.airqo.net/api/v2/devices/measurements/grids/${gridData._id}`
-                  )
-                }
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleReset} disabled={isSaving}>
-            Reset
-          </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            Save Changes
-          </Button>
-        </div>
-
-        {/* Grid Sites */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Grid Sites details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <GridSitesTable />
-          </CardContent>
-        </Card>
-
-        {/* Reports Section */}
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Data Summary Report */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Generate Grid Data Summary Report</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Select the time period of your interest to generate the report
-                for this airloud
-              </p>
-              <DateRangePicker />
-              <Button className="w-full" variant="outline">
-                Generate Data Summary Report
-              </Button>
-              <div className="h-32 flex items-center justify-center border rounded-md bg-muted/50">
-                <p className="text-sm text-muted-foreground">
-                  Grid data summary report will appear here
-                </p>
+        {isLoading ? (
+          <ContentGridSkeleton />
+        ) : !gridDetails ? null :
+          <>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <GridDetailsCard grid={gridDetails} onEdit={() => setIsEditDialogOpen(true)} loading={isLoading} />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Uptime Report */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Generate Grid Uptime Report</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Select the time period of your interest to view the uptime
-                report for this airloud
-              </p>
-              <DateRangePicker />
-              <Button className="w-full" variant="outline">
-                Generate Uptime Report for the Grid
-              </Button>
-              <div className="h-32 flex items-center justify-center border rounded-md bg-muted/50">
-                <p className="text-sm text-muted-foreground">
-                  Grid uptime report will appear here
-                </p>
+              <div className="lg:col-span-1">
+                <GridMeasurementsApiCard grid={gridDetails} loading={isLoading} />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+            <ClientPaginatedSitesTable sites={gridDetails.sites} isLoading={isLoading} error={error} />
+
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Data Summary Report */}
+              {/* <Card>
+              <CardHeader>
+                <CardTitle>Generate Grid Data Summary Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Select the time period of your interest to generate the
+                  report for this grid.
+                </p>
+                <DateRangePicker />
+                <ReusableButton className="w-full" variant="outlined">
+                  Generate Data Summary Report
+                </ReusableButton>
+                <div className="h-32 flex items-center justify-center border rounded-md bg-muted/50">
+                  <p className="text-sm text-muted-foreground">
+                    Grid data summary report will appear here
+                  </p>
+                </div>
+              </CardContent>
+            </Card> */}
+
+              {/* Uptime Report */}
+              {/* <Card>
+              <CardHeader>
+                <CardTitle>Generate Grid Uptime Report</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Select the time period of your interest to view the
+                  uptime report for this grid.
+                </p>
+                <DateRangePicker />
+                <ReusableButton className="w-full" variant="outlined">
+                  Generate Uptime Report for the Grid
+                </ReusableButton>
+                <div className="h-32 flex items-center justify-center border rounded-md bg-muted/50">
+                  <p className="text-sm text-muted-foreground">
+                    Grid uptime report will appear here
+                  </p>
+                </div>
+              </CardContent>
+            </Card> */}
+            </div>
+            <EditGridDetailsDialog open={isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)} grid={gridDetails} />
+          </>
+        }
       </div>
-    </div>
+    </RouteGuard>
   );
 }

@@ -1,0 +1,194 @@
+"use client";
+
+import { useEffect, useMemo } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useCohortDetails, useCohorts, useUnassignDevicesFromCohort } from "@/core/hooks/useCohorts";
+import { ComboBox } from "@/components/ui/combobox";
+import { MultiSelectCombobox, Option } from "@/components/ui/multi-select";
+import { Cohort } from "@/app/types/cohorts";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
+import { Device } from "@/app/types/devices";
+
+interface UnassignCohortDevicesDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  selectedDevices?: Device[];
+  onSuccess?: () => void;
+  cohortId?: string;
+  cohortDevices?: Device[];
+}
+
+const formSchema = z.object({
+  cohortId: z.string().min(1, {
+    message: "Please select a cohort.",
+  }),
+  devices: z.array(z.string()).min(1, {
+    message: "Please select at least one device.",
+  }),
+});
+
+export function UnassignCohortDevicesDialog({
+  open,
+  onOpenChange,
+  selectedDevices,
+  onSuccess,
+  cohortId,
+  cohortDevices = [],
+}: UnassignCohortDevicesDialogProps) {
+  const { cohorts } = useCohorts();
+  const { mutate: unassignDevices, isPending: isUnassigning } = useUnassignDevicesFromCohort();
+
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      cohortId: cohortId || "",
+      devices: selectedDevices?.map(d => d._id).filter((id): id is string => !!id) || [],
+    },
+  });
+
+  const deviceOptions: Option[] = useMemo(() => {
+    const devicesToShow = selectedDevices && selectedDevices.length > 0 ? selectedDevices : cohortDevices;
+    return devicesToShow
+      .map((device) => ({
+        value: device._id || "",
+        label: device.long_name || device.name || `Device ${device._id}`,
+      }))
+      .filter((option) => option.value);
+  }, [cohortDevices, selectedDevices]);
+
+  const watchedCohortId = form.watch("cohortId");
+  const { data: fetchedCohort } = useCohortDetails(
+    watchedCohortId,
+    { enabled: !selectedDevices?.length && !cohortDevices.length && !!watchedCohortId }
+  );
+
+  const dynamicDeviceOptions: Option[] = useMemo(() => {
+    if (deviceOptions.length) return deviceOptions;
+    const list = fetchedCohort?.devices || [];
+    return list
+      .filter((d: Device) => !!d._id)
+      .map((d: Device) => ({
+        value: d._id!,
+        label: d.long_name || d.name || `Device ${d._id}`,
+      }));
+  }, [deviceOptions, fetchedCohort]);
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        cohortId: cohortId || "",
+        devices: selectedDevices?.map(d => d._id).filter((id): id is string => !!id) || [],
+      });
+    }
+  }, [open, selectedDevices, form, cohortId]);
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    unassignDevices(
+      {
+        cohortId: values.cohortId,
+        device_ids: values.devices,
+      },
+      {
+        onSuccess: () => {
+          onOpenChange(false);
+          form.reset();
+          onSuccess?.();
+        },
+      }
+    );
+  }
+
+  const handleOpenChange = (newOpen: boolean) => {
+    onOpenChange(newOpen);
+    if (!newOpen) {
+      form.reset();
+    }
+  };
+
+  return (
+    <ReusableDialog
+      isOpen={open}
+      onClose={() => handleOpenChange(false)}
+      title="Remove devices from cohort"
+      subtitle={`${form.watch("devices")?.length || 0} device(s) selected`}
+      size="lg"
+      maxHeight="max-h-[70vh]"
+      primaryAction={{
+        label: "Remove",
+        onClick: form.handleSubmit(onSubmit),
+        disabled: !form.watch("cohortId") || !form.watch("devices")?.length || isUnassigning,
+      }}
+      secondaryAction={{
+        label: "Cancel",
+        onClick: () => handleOpenChange(false),
+        variant: "outline",
+        disabled: isUnassigning,
+      }}
+    >
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="cohortId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">
+                  Cohort <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <ComboBox
+                    options={cohorts.map((cohort: Cohort) => ({
+                      value: cohort._id,
+                      label: cohort.name,
+                    }))}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    placeholder="Select a cohort"
+                    searchPlaceholder="Search cohorts..."
+                    emptyMessage="No cohorts found"
+                    disabled={!!cohortId}
+                    className="w-full"
+                    allowCustomInput={false}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="devices"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">
+                  Devices <span className="text-red-500">*</span>
+                </FormLabel>
+                <FormControl>
+                  <MultiSelectCombobox
+                    options={dynamicDeviceOptions}
+                    value={field.value || []}
+                    onValueChange={field.onChange}
+                    placeholder="Select devices..."
+                    allowCreate={false}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </form>
+      </Form>
+    </ReusableDialog>
+  );
+}

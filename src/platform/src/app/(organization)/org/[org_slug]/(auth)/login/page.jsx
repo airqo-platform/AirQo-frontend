@@ -1,108 +1,185 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useDispatch } from 'react-redux';
+import Button from '@/common/components/Button';
 import { signIn, getSession } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import InputField from '@/common/components/InputField';
-import Spinner from '@/components/Spinner';
-import Toast from '@/components/Toast';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { withOrgAuthRoute } from '@/core/HOC';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
+import NotificationService from '@/core/utils/notificationService';
 import logger from '@/lib/logger';
+import { formatOrgSlug } from '@/core/utils/strings';
+import { setupUserSession } from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
-  email: Yup.string()
+  userName: Yup.string()
     .email('Invalid email address')
     .required('Email is required'),
   password: Yup.string().required('Password is required'),
 });
 
 const OrganizationLogin = () => {
-  const [email, setEmail] = useState('');
+  const dispatch = useDispatch();
+  const [userName, setUserName] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const router = useRouter();
+  const { getDisplayName, primaryColor } = useOrganization();
   const orgSlug = params.org_slug;
-
-  useEffect(() => {
-    // Check if user is already authenticated and redirect immediately
-    const checkInitialAuth = async () => {
-      try {
-        const session = await getSession();
-        if (session?.user?.organization) {
-          // User is already authenticated with organization context
-          router.replace(`/org/${orgSlug}/dashboard`);
-        }
-      } catch {
-        // Ignore errors during initial auth check silently
-      }
-    };
-
-    checkInitialAuth();
-  }, [router, orgSlug]);
 
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
       setIsLoading(true);
-      setError('');
 
       // Validate form data
       try {
-        await loginSchema.validate({ email, password }, { abortEarly: false });
+        await loginSchema.validate(
+          { userName, password },
+          { abortEarly: false },
+        );
       } catch (validationError) {
         const messages = validationError.inner
           .map((err) => err.message)
           .join(', ');
         setIsLoading(false);
-        return setError(messages);
+        // Use status code 422 for validation errors
+        NotificationService.error(422, messages);
+        return;
       }
 
       try {
+        // Use NextAuth signIn - orgSlug is captured for validation but not sent to backend
         const result = await signIn('credentials', {
-          userName: email, // NextAuth provider expects userName
+          userName: userName, // NextAuth provider expects userName
           password,
-          orgSlug,
+          orgSlug, // Captured for organization validation after login
           redirect: false,
         });
-        if (result?.error) {
-          setError('Invalid credentials. Please try again.');
-        } else if (result?.ok) {
-          // Force session refresh after successful login
-          const session = await getSession();
-          if (session?.user) {
-            // The HOC will handle organization setup and redirection
-            logger.info(
-              'Organization login successful, HOC will handle setup and redirect',
-            );
 
-            // Force NextAuth to update the session context immediately
-            // by triggering a window focus event
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new window.Event('focus'));
-            }
+        if (result?.error) {
+          // Enhanced error handling with better status code detection and user-friendly messages
+          let statusCode = 401; // Default to unauthorized
+          let customMessage = null;
+
+          const errorMsg = result.error.toLowerCase();
+
+          if (
+            errorMsg.includes('invalid credentials') ||
+            errorMsg.includes('authentication failed') ||
+            errorMsg.includes('incorrect password') ||
+            errorMsg.includes('unauthorized')
+          ) {
+            statusCode = 401;
+            customMessage =
+              'Invalid email or password. Please check your credentials and try again.';
+          } else if (
+            errorMsg.includes('user not found') ||
+            errorMsg.includes('account does not exist')
+          ) {
+            statusCode = 404;
+            customMessage = 'No account found with this email address.';
+          } else if (
+            errorMsg.includes('account locked') ||
+            errorMsg.includes('account disabled') ||
+            errorMsg.includes('account suspended')
+          ) {
+            statusCode = 403;
+            customMessage =
+              'Your account has been suspended. Please contact support.';
+          } else if (
+            errorMsg.includes('too many attempts') ||
+            errorMsg.includes('rate limit') ||
+            errorMsg.includes('throttled')
+          ) {
+            statusCode = 429;
+            customMessage =
+              'Too many login attempts. Please wait a moment and try again.';
+          } else if (
+            errorMsg.includes('network error') ||
+            errorMsg.includes('fetch') ||
+            errorMsg.includes('connection') ||
+            errorMsg.includes('timeout')
+          ) {
+            statusCode = 503;
+            customMessage =
+              'Connection problem. Please check your internet and try again.';
+          } else if (
+            errorMsg.includes('server error') ||
+            errorMsg.includes('internal error')
+          ) {
+            statusCode = 500;
+            customMessage =
+              'Server error occurred. Please try again in a moment.';
           } else {
-            throw new Error('Session data is incomplete');
+            statusCode = 400;
+            customMessage = result.error; // Use original error message as fallback
           }
+
+          NotificationService.error(statusCode, customMessage);
+          return;
         }
-      } catch (error) {
-        const errorMessage =
-          error.message || 'An error occurred. Please try again.';
-        setError(errorMessage);
-        logger.error('Organization login error:', error);
+
+        if (result?.ok) {
+          // Get the session and run client-side setup so user lands in app with data
+          const session = await getSession();
+
+          if (session?.user) {
+            try {
+              // Compute resolved organization slug and path first so setupUserSession
+              // can select the correct active group based on the intended route.
+              const redirectOrg =
+                session.requestedOrgSlug || session.orgSlug || orgSlug;
+              const setupPath = redirectOrg
+                ? `/org/${redirectOrg}`
+                : '/user/Home';
+
+              await setupUserSession(session, dispatch, setupPath);
+
+              const dest = redirectOrg
+                ? `/org/${redirectOrg}/dashboard`
+                : '/user/Home';
+              if (redirectOrg) router.replace(dest);
+              else router.replace('/user/Home');
+              return;
+            } catch (err) {
+              NotificationService.error(
+                500,
+                err.message || 'Login setup failed',
+              );
+              return;
+            }
+          }
+
+          NotificationService.error(
+            500,
+            'Session setup failed. Please try logging in again.',
+          );
+          return;
+        } else {
+          NotificationService.error(500, 'Login failed. Please try again.');
+        }
+      } catch (err) {
+        logger.error('Organization login error:', err);
+
+        // Use status-based notification for unexpected errors
+        NotificationService.error(
+          500,
+          err.message || 'Something went wrong, please try again',
+        );
       } finally {
         setIsLoading(false);
       }
     },
-    [email, password, orgSlug, router],
+    [userName, password, orgSlug, router, dispatch],
   );
 
   const togglePasswordVisibility = useCallback(() => {
@@ -115,24 +192,24 @@ const OrganizationLogin = () => {
       feature="Organization Authentication"
     >
       <AuthLayout
-        title={`Sign in to ${orgSlug}`}
+        title={`Sign in to ${formatOrgSlug(getDisplayName())}`}
         subtitle="Access your organization's air quality analytics dashboard"
       >
         <div className="w-full">
-          {error && <Toast type="error" timeout={8000} message={error} />}
+          {/* Toast notifications now handled globally by CustomToast via NotificationService */}
           <form onSubmit={handleSubmit} noValidate>
             <div className="mt-6">
               <InputField
                 label="Email Address"
                 type="email"
                 placeholder="e.g. user@organization.com"
-                value={email}
-                onChange={setEmail}
+                value={userName}
+                onChange={setUserName}
                 required
+                primaryColor={primaryColor}
                 disabled={isLoading}
               />
             </div>
-
             <div className="mt-6">
               <div className="relative">
                 <InputField
@@ -141,6 +218,7 @@ const OrganizationLogin = () => {
                   placeholder="******"
                   value={password}
                   onChange={setPassword}
+                  primaryColor={primaryColor}
                   required
                   disabled={isLoading}
                 />
@@ -158,43 +236,29 @@ const OrganizationLogin = () => {
                 </button>
               </div>
             </div>
-
             <div className="mt-10">
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                loading={isLoading}
+                className="w-full text-sm transition-all duration-200 transform hover:scale-[1.02] hover:shadow-lg"
                 style={{
-                  backgroundColor: 'var(--org-primary, #2563eb)',
+                  backgroundColor: isLoading ? '#d1d5db' : primaryColor,
+                  color: isLoading ? '#222' : undefined,
+                  boxShadow: isLoading
+                    ? 'none'
+                    : `0 4px 14px 0 ${primaryColor}25`,
                 }}
+                aria-busy={isLoading}
               >
-                {isLoading ? <Spinner width={25} height={25} /> : 'Sign In'}
-              </button>
+                {isLoading ? 'Logging in...' : 'Sign In'}
+              </Button>
             </div>
           </form>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
-            <span>
-              Don&apos;t have an account?
-              <Link
-                href={`/org/${orgSlug}/register`}
-                className="font-medium text-blue-600 ml-2 dark:text-blue-400"
-                style={{ color: 'var(--org-primary, #2563eb)' }}
-              >
-                Register
-              </Link>
-            </span>
-            <Link
-              href={`/org/${orgSlug}/forgotPwd`}
-              className="font-medium text-blue-600 dark:text-blue-400"
-              style={{ color: 'var(--org-primary, #2563eb)' }}
-            >
-              Forgot Password
-            </Link>
-          </div>
         </div>
       </AuthLayout>
     </ErrorBoundary>
   );
 };
 
-export default withOrgAuthRoute(OrganizationLogin);
+export default OrganizationLogin;

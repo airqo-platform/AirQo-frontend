@@ -1,49 +1,64 @@
 'use client';
 
-import { withAdminAccess } from '@/core/HOC';
+import { withSessionAuth, PROTECTION_LEVELS } from '@/core/HOC';
 import AuthenticatedSideBar from '@/common/layouts/SideBar/AuthenticatedSidebar';
 import {
   UnifiedSidebarContent,
   UnifiedSideBarDrawer,
 } from '@/common/layouts/SideBar';
+import Footer from '@/common/layouts/components/Footer';
 import GlobalTopbar from '@/common/layouts/GlobalTopbar';
-import MaintenanceBanner from '@/components/MaintenanceBanner';
+import MobileBottomNavigation from '@/common/layouts/components/MobileBottomNavigation';
+import MaintenanceBanner from '@/common/components/MaintenanceBanner';
 import GlobalSideBarDrawer from '@/common/layouts/GlobalTopbar/sidebar';
 import useUserPreferences from '@/core/hooks/useUserPreferences';
 import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { THEME_LAYOUT } from '@/common/features/theme-customizer/constants/themeConstants';
 import { useSelector } from 'react-redux';
 import Head from 'next/head';
 import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
+import { useMemo } from 'react';
 
 /**
  * Admin Layout Component
  * Layout specifically for admin routes with admin-specific sidebar content
+ * Optimized to prevent unnecessary re-renders and memory leaks
  */
 function AdminLayout({ children }) {
   const { userID } = useGetActiveGroup();
   const isCollapsed = useSelector((state) => state.sidebar.isCollapsed);
   const { maintenance } = useMaintenanceStatus();
 
-  // Initialize hooks
+  // Initialize hooks only once with proper cleanup
   useUserPreferences();
   useInactivityLogout(userID);
 
-  // Get current layout (compact or wide)
+  // Get current layout (compact or wide) - memoized to prevent recalculation
   const { layout } = useTheme();
 
-  // Determine container classes based on layout preference
-  const containerClasses =
-    layout === THEME_LAYOUT.COMPACT
-      ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
-      : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8';
+  // Memoize container classes to prevent recalculation on every render
+  const containerClasses = useMemo(
+    () =>
+      layout === THEME_LAYOUT.COMPACT
+        ? 'max-w-7xl mx-auto flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8'
+        : 'w-full flex flex-col gap-8 px-4 py-4 md:px-6 lg:py-8 lg:px-8',
+    [layout],
+  );
+
+  // Memoize main content class to prevent recalculation
+  const mainContentClass = useMemo(
+    () =>
+      `flex-1 transition-all duration-300 pt-36 lg:pt-16 overflow-y-auto pb-20 md:pb-0
+    ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`,
+    [isCollapsed],
+  );
 
   return (
     <div
-      className="flex overflow-hidden min-h-screen"
+      className="flex overflow-hidden min-h-screen h-screen bg-background"
       data-testid="admin-layout"
     >
       <Head>
@@ -71,22 +86,27 @@ function AdminLayout({ children }) {
 
       {/* Main Content */}
       <main
-        className={`flex-1 transition-all duration-300 pt-36 lg:pt-16 overflow-y-auto 
-          ${isCollapsed ? 'lg:ml-[88px]' : 'lg:ml-[256px]'}`}
+        className={`${mainContentClass} bg-background w-full flex flex-col`}
       >
-        <div className={`overflow-hidden ${containerClasses}`}>
+        <div className={`flex-1 w-full bg-background ${containerClasses}`}>
           {/* Maintenance Banner */}
           {maintenance && <MaintenanceBanner maintenance={maintenance} />}
 
           {/* Content */}
-          <div className="text-text transition-all duration-300 overflow-hidden">
+          <div className="text-text transition-all duration-300 h-full">
             {children}
           </div>
         </div>
+
+        {/* Footer */}
+        <Footer />
       </main>
 
+      {/* Mobile Bottom Navigation - Show admin navigation for mobile */}
+      <MobileBottomNavigation userType="admin" />
+
       {/* Theme Customizer */}
-      <ThemeCustomizer />
+      <ThemeCustomizer className="theme-customizer-sideButton" />
 
       {/* Admin SideBar Drawer */}
       <UnifiedSideBarDrawer userType="admin" />
@@ -95,4 +115,4 @@ function AdminLayout({ children }) {
   );
 }
 
-export default withAdminAccess(AdminLayout);
+export default withSessionAuth(AdminLayout, PROTECTION_LEVELS.PROTECTED);

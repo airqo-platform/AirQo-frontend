@@ -9,7 +9,7 @@ import {
   setRefreshChart,
 } from '@/lib/store/services/charts/ChartSlice';
 import { useAnalyticsData } from '@/core/hooks/analyticHooks';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Custom hook for managing analytics overview data

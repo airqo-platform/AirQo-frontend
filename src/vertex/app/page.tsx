@@ -3,24 +3,36 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppSelector } from "@/core/redux/hooks";
-import { Loader2 } from "lucide-react";
+import SessionLoadingState from "@/components/layout/loading/session-loading";
+import logger from "@/lib/logger";
 
 export default function Page() {
   const router = useRouter();
-  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  // Using optional chaining to prevent a runtime error if `state.user` is undefined.
+  const isAuthenticated = useAppSelector(
+    (state) => state.user?.isAuthenticated
+  );
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
+    // For debugging, let's log the authentication status on each render.
+    logger.debug("[Auth Redirect] isAuthenticated:", isAuthenticated);
+
+    // Wait until the authentication status is determined (i.e., not undefined).
+    // This prevents a premature redirect if the auth state is still loading.
+    if (isAuthenticated === undefined) {
+      logger.debug("[Auth Redirect] Authentication status is pending. Waiting...");
+      return;
+    }
+
+    if (isAuthenticated) {
+      logger.debug("[Auth Redirect] User is authenticated. Redirecting to /home.");
+      router.push("/home"); // or whatever your main authenticated route is
     } else {
-      router.push("/analytics"); // or whatever your main authenticated route is
+      logger.debug("[Auth Redirect] User is not authenticated. Redirecting to /login.");
+      router.push("/login");
     }
   }, [isAuthenticated, router]);
 
   // Show loading state while redirecting
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <Loader2 className="w-8 h-8 animate-spin" />
-    </div>
-  );
+  return <SessionLoadingState />;
 }

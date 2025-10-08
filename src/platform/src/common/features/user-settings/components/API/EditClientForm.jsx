@@ -1,206 +1,287 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useSession } from 'next-auth/react';
 import { useSelector, useDispatch } from 'react-redux';
-import DialogWrapper from '@/components/Modal/DialogWrapper';
-import Toast from '@/components/Toast';
+import { AqUser02, AqPlus } from '@airqo/icons-react';
+import { FiX, FiTrash2 } from 'react-icons/fi';
+
+import ReusableDialog from '@/components/Modal/ReusableDialog';
+import NotificationService from '@/core/utils/notificationService';
+import InputField from '@/common/components/InputField';
+import Button from '@/common/components/Button';
 import { updateClientApi, getClientsApi } from '@/core/apis/Settings';
-import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
 import { getUserDetails } from '@/core/apis/Account';
-import PlusIcon from '@/icons/Actions/PlusIcon';
-import DeleteIcon from '@/icons/Actions/DeleteIcon';
-import PersonIcon from '@/icons/Settings/person.svg';
+import { addClients, addClientsDetails } from '@/lib/store/services/apiClient';
 
 const EditClientForm = ({ open, closeModal, data }) => {
   const { data: session } = useSession();
   const dispatch = useDispatch();
-  const userInfo = useSelector((state) => state.login.userInfo);
-  const clientID = data?._id;
+
+  const userInfo = useSelector((s) => s.login.userInfo);
+  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
+
+  /* ----------- local state ----------- */
   const [loading, setLoading] = useState(false);
-  const [isError, setIsError] = useState({
-    isError: false,
-    message: '',
-    type: '',
-  });
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState(['']);
 
-  // Get user ID from session with fallback to Redux state
-  const userId = session?.user?.id || userInfo?.id || userInfo?._id;
+  /* ----------- derive initial values once when dialog opens ----------- */
+  const initial = useMemo(() => {
+    if (!data) return { name: '', ipAddresses: [''] };
 
-  useEffect(() => {
-    handleInitialData();
-  }, [data]);
-
-  const handleInitialData = () => {
-    setClientName(data?.name || '');
-
-    const ipAddresses = Array.isArray(data?.ip_addresses)
-      ? data?.ip_addresses
-      : data?.ip_addresses
-        ? [data?.ip_addresses]
+    const ips = Array.isArray(data.ip_addresses)
+      ? data.ip_addresses
+      : data.ip_addresses
+        ? [data.ip_addresses]
         : [''];
 
-    setIpAddresses(ipAddresses);
-  };
+    return { name: data.name || '', ipAddresses: ips };
+  }, [data]);
 
-  const handleInputValueChange = useCallback((type, value, index) => {
-    if (type === 'clientName') {
-      setClientName(value);
-    } else if (type === 'ipAddress') {
-      setIpAddresses((prev) => {
-        const newIpAddresses = [...prev];
-        newIpAddresses[index] = value;
-        return newIpAddresses;
-      });
+  /* ----------- reset form whenever `data` changes ----------- */
+  useEffect(() => {
+    setClientName(initial.name);
+    setIpAddresses(initial.ipAddresses);
+  }, [initial]);
+
+  /* ----------- helpers ----------- */
+  const hasChanges = useMemo(() => {
+    const currentFiltered = ipAddresses.map((ip) => ip.trim()).filter(Boolean);
+    const initialFiltered = initial.ipAddresses
+      .map((ip) => ip.trim())
+      .filter(Boolean);
+
+    return (
+      clientName.trim() !== initial.name.trim() ||
+      JSON.stringify(currentFiltered.sort()) !==
+        JSON.stringify(initialFiltered.sort())
+    );
+  }, [clientName, ipAddresses, initial]);
+
+  /* ----------- handlers ----------- */
+  const addIp = () => setIpAddresses((prev) => [...prev, '']);
+
+  const updateIp = (idx, value) =>
+    setIpAddresses((prev) => prev.map((ip, i) => (i === idx ? value : ip)));
+
+  const removeIp = (idx) =>
+    setIpAddresses((prev) => prev.filter((_, i) => i !== idx));
+
+  const submit = async () => {
+    if (!clientName.trim()) {
+      NotificationService.error(422, "Client name can't be empty");
+      return;
     }
-  }, []);
-
-  const handleRemoveInputValue = useCallback((type, index) => {
-    if (type === 'clientName') {
-      setClientName('');
-    } else if (type === 'ipAddress') {
-      setIpAddresses((prev) => prev.filter((_, i) => i !== index));
+    if (!userId) {
+      NotificationService.error(422, 'User ID is required');
+      return;
     }
-  }, []);
+    if (!data?._id) {
+      NotificationService.error(422, 'Client ID is required');
+      return;
+    }
 
-  const handleAddIpAddress = useCallback(() => {
-    setIpAddresses((prev) => [...prev, '']);
-  }, []);
-
-  const handleSubmit = async () => {
     setLoading(true);
 
-    if (!clientName) {
-      setIsError({
-        isError: true,
-        message: "Client name can't be empty",
-        type: 'error',
-      });
-      setLoading(false);
-      return;
-    }
-
-    if (!userId) {
-      setIsError({
-        isError: true,
-        message: 'User ID is required',
-        type: 'error',
-      });
-      setLoading(false);
-      return;
-    }
-
     try {
-      const data = {
-        name: clientName,
+      // Normalize and only include ip_addresses when user provided at least one
+      const cleanedIps = ipAddresses.map((ip) => ip.trim()).filter(Boolean);
+
+      const payload = {
+        name: clientName.trim(),
         user_id: userId,
+        // only attach ip_addresses when present to avoid sending empty arrays
+        ...(cleanedIps.length ? { ip_addresses: cleanedIps } : {}),
       };
 
-      const filteredIpAddresses = ipAddresses.filter((ip) => ip.trim() !== '');
-      if (filteredIpAddresses.length > 0) {
-        data.ip_addresses = filteredIpAddresses;
+      const res = await updateClientApi(payload, data._id);
+
+      // Normalize the updated client object from possible response shapes
+      const updatedClient =
+        (res && res.updated_client) ||
+        (res && res.data && res.data.updated_client) ||
+        (res && res.data && (res.data._id || res.data.id) ? res.data : null) ||
+        (res && (res._id || res.id) ? res : null);
+
+      // Determine success: prefer explicit `success: true`, or HTTP 2xx status, or presence of updated client id
+      const isSuccess =
+        (res && res.success === true) ||
+        (typeof res?.status === 'number' &&
+          res.status >= 200 &&
+          res.status < 300) ||
+        (updatedClient && (updatedClient._id || updatedClient.id));
+
+      if (!isSuccess) {
+        const msg =
+          res?.data?.message || res?.message || 'Failed to update client';
+        const statusCode = Number(res?.status) || 400;
+        NotificationService.error(statusCode, msg);
+        return;
       }
 
-      const response = await updateClientApi(data, clientID);
-      if (response.success !== true) {
-        throw new Error('Failed to update client');
-      }
-      const res = await getUserDetails(userId);
-      const resp = await getClientsApi(userId);
-      dispatch(addClients(res.users[0].clients));
-      dispatch(addClientsDetails(resp.clients));
+      const [userRes, clientsRes] = await Promise.all([
+        getUserDetails(userId),
+        getClientsApi(userId),
+      ]);
+
+      dispatch(addClients(userRes.users[0].clients));
+      dispatch(addClientsDetails(clientsRes.clients));
+
+      // Prefer any provided status, otherwise default to 200
+      const okStatus = Number(res?.status) || 200;
+      const okMessage = res?.message || 'Client updated successfully';
+      NotificationService.success(okStatus, okMessage);
       closeModal();
-    } catch (error) {
-      setIsError({
-        isError: true,
-        message: error?.response?.data?.message || 'Failed to Edit client',
-        type: 'error',
-      });
+    } catch (e) {
+      NotificationService.handleApiError(e, 'Failed to update client');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isError.isError) {
-      const timer = setTimeout(() => {
-        setIsError({
-          isError: false,
-          message: '',
-          type: '',
-        });
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isError.isError]);
-
+  /* ----------- render ----------- */
   return (
-    <DialogWrapper
-      open={open}
+    <ReusableDialog
+      isOpen={open}
       onClose={closeModal}
-      handleClick={handleSubmit}
-      primaryButtonText="Update"
-      loading={loading}
-      ModalIcon={PersonIcon}
+      title="Edit client"
+      icon={AqUser02}
+      showFooter
+      primaryAction={{
+        label: hasChanges ? 'Update Client' : 'No Changes',
+        onClick: submit,
+        disabled: loading || !clientName.trim() || !hasChanges,
+        className:
+          loading || !clientName.trim() || !hasChanges
+            ? 'opacity-60 pointer-events-none'
+            : '',
+      }}
     >
-      {isError.isError && (
-        <Toast type={isError.type} message={isError.message} />
-      )}
-      <h3 className="text-lg font-medium text-secondary-neutral-light-800 dark:text-white leading-[26px] mb-2">
-        Edit client
-      </h3>
-
-      <div className="flex flex-col gap-3 justify-start max-h-[350px] overflow-y-auto">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Enter client name"
-            className="input input-bordered w-full pl-3 dark:bg-transparent dark:text-white placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
-            value={clientName}
-            onChange={(e) =>
-              handleInputValueChange('clientName', e.target.value)
-            }
-          />
-          {clientName && (
-            <button
-              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
-              onClick={() => handleRemoveInputValue('clientName')}
-            >
-              ✕
-            </button>
-          )}
+      <div className="space-y-6">
+        {/* ---- Client Name ---- */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Client Name <span className="text-red-500">*</span>
+          </label>
+          <div className="relative">
+            <InputField
+              type="text"
+              placeholder="Enter a descriptive name for your client"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+            />
+            {clientName && (
+              <button
+                className="absolute inset-y-0 right-0 flex items-center mr-3 text-gray-400 hover:text-gray-600"
+                onClick={() => setClientName('')}
+                aria-label="Clear client name"
+                type="button"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            This name will help you identify the client in your dashboard
+          </p>
         </div>
 
-        {ipAddresses.map((ip, index) => (
-          <div key={index} className="relative">
-            <input
-              type="text"
-              placeholder={`Enter IP address ${index + 1}`}
-              className="input input-bordered w-full pl-3 dark:bg-transparent dark:text-white placeholder-shown:text-secondary-neutral-light-300 text-secondary-neutral-light-800 text-sm leading-[26px] border border-secondary-neutral-light-100 bg-secondary-neutral-light-25 rounded"
-              value={ip}
-              onChange={(e) =>
-                handleInputValueChange('ipAddress', e.target.value, index)
-              }
-            />
-            <button
-              className="absolute inset-y-0 right-0 flex justify-center items-center mr-3"
-              onClick={() => handleRemoveInputValue('ipAddress', index)}
-            >
-              <DeleteIcon fill={'#6b7280'} />
-            </button>
+        {/* ---- IP Addresses ---- */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              IP Addresses
+            </label>
+            <span className="text-xs text-gray-500 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+              Optional
+            </span>
           </div>
-        ))}
 
-        <button
-          onClick={handleAddIpAddress}
-          className="flex items-center justify-start text-sm text-[var(--org-primary,var(--color-primary,#145fff))] hover:text-[var(--org-primary-800,var(--color-primary,#145fff))]"
-        >
-          <PlusIcon size={16} className="mr-1" fill="#6b7280" />
-          Add another IP address
-        </button>
+          <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1">
+            {ipAddresses.map((ip, idx) => (
+              <div key={idx} className="relative group">
+                <InputField
+                  type="text"
+                  placeholder={`Enter IP address ${idx + 1}`}
+                  value={ip}
+                  onChange={(e) => updateIp(idx, e.target.value)}
+                />
+                <button
+                  className="absolute inset-y-0 right-0 flex items-center mr-3 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100"
+                  onClick={() => removeIp(idx)}
+                  aria-label={`Remove IP address ${idx + 1}`}
+                  type="button"
+                >
+                  <FiTrash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <Button
+            variant="ghost"
+            size="md"
+            fullWidth
+            onClick={addIp}
+            className="text-blue-600 border-dashed border-blue-300"
+            Icon={AqPlus}
+            showTextOnMobile
+          >
+            Add IP Address
+          </Button>
+
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Restrict client access to specific IP addresses. Leave empty to
+            allow access from any IP.
+          </p>
+        </div>
+
+        {/* ---- Changes Summary ---- */}
+        {hasChanges && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg border border-amber-200 dark:border-amber-800">
+            <h4 className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-2">
+              Pending Changes
+            </h4>
+            <div className="space-y-1 text-sm">
+              {clientName.trim() !== initial.name.trim() && (
+                <p className="text-amber-800 dark:text-amber-200">
+                  <span className="font-medium">Name:</span> {initial.name} →{' '}
+                  {clientName.trim()}
+                </p>
+              )}
+              {JSON.stringify(
+                ipAddresses.map((ip) => ip.trim()).filter(Boolean),
+              ) !==
+                JSON.stringify(
+                  initial.ipAddresses.map((ip) => ip.trim()).filter(Boolean),
+                ) && (
+                <p className="text-amber-800 dark:text-amber-200">
+                  <span className="font-medium">IP Addresses:</span> Modified
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ---- Current Configuration ---- */}
+        {clientName.trim() && !hasChanges && (
+          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+            <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
+              Current Configuration
+            </h4>
+            <div className="space-y-1 text-sm">
+              <p className="text-green-800 dark:text-green-200">
+                <span className="font-medium">Name:</span> {clientName.trim()}
+              </p>
+              <p className="text-green-800 dark:text-green-200">
+                <span className="font-medium">IP Restrictions:</span>{' '}
+                {ipAddresses.filter((ip) => ip.trim()).length ||
+                  'None (unrestricted)'}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
-    </DialogWrapper>
+    </ReusableDialog>
   );
 };
 

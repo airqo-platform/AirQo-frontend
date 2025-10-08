@@ -1,3 +1,0 @@
-# AirQo Hardware Inventory.
-
-metadata..

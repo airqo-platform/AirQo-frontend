@@ -2,88 +2,65 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import Button from '@/components/Button';
+import Button from '@/common/components/Button';
 import Image from 'next/image';
 import AnalyticsImage from '@/images/Home/analyticsImage.webp';
 import PlayIcon from '@/images/Home/PlayIcon';
-import HomeSkeleton from '@/components/skeletons/HomeSkeleton';
+import { HomeSkeleton } from '@/common/components/Skeleton';
 import VideoModal from '@/features/video-players/Intro-video-modal';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import { Checklist } from '@/features/Checklist';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   fetchUserChecklists,
   updateTaskProgress,
 } from '@/lib/store/services/checklists/CheckList';
-import { withUserAuth } from '@/core/HOC';
+import { useRouter } from 'next/navigation';
+import { AqDownload01, AqBuilding07, AqStar05 } from '@airqo/icons-react';
+import logger from '@/lib/logger';
 
 const ANALYTICS_VIDEO_URL =
   'https://res.cloudinary.com/dbibjvyhm/video/upload/v1730840120/Analytics/videos/Airqo_Tech_video_cc8chw.mp4';
 
 const Home = () => {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [userData, setUserData] = useState(null);
+  // Rely on NextAuth session for user info (firstName, id, etc.)
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchInitiated, setIsFetchInitiated] = useState(false);
   const dispatch = useDispatch();
   const { data: session, status } = useSession();
 
-  // Get Redux state for checklist and user info
+  // Get Redux state for checklist
   const checklistStatus = useSelector((state) => state.cardChecklist.status);
   const checklistData = useSelector((state) => state.cardChecklist.checklist);
-  const reduxUserInfo = useSelector((state) => state.login.userInfo);
-  // Get user display name from multiple sources with priority
+
+  // Get user display name from session (firstName preferred)
   const getUserDisplayName = () => {
-    // Priority: Redux user info -> NextAuth session -> Guest
-    if (reduxUserInfo?.firstName) {
-      return reduxUserInfo.firstName;
-    }
-    if (reduxUserInfo?.name) {
-      return reduxUserInfo.name;
-    }
-    if (session?.user?.name) {
-      return session.user.name.split(' ')[0]; // Get first name from full name
-    }
-    if (userData?.firstName) {
-      return userData.firstName;
-    }
-    if (userData?.name) {
-      return userData.name;
-    }
+    if (session?.user?.firstName) return session.user.firstName;
+    if (session?.user?.userName) return session.user.userName.split('@')[0];
+    if (session?.user?.email) return session.user.email.split('@')[0];
     return 'Guest';
-  }; // Load user data and fetch checklist - enhanced with session integration
+  };
+
   useEffect(() => {
     let timer;
 
     const loadUserData = () => {
       try {
-        // If we have NextAuth session, prioritize that data
+        // If we have NextAuth session, fetch checklists using session user id
         if (session?.user) {
-          const sessionUser = {
-            _id: session.user.id,
-            firstName: session.user.name?.split(' ')[0],
-            name: session.user.name,
-            email: session.user.email,
-          };
-          setUserData(sessionUser);
+          // Try multiple user ID fields
+          const userId =
+            session.user.id || session.user._id || session.user.userId;
 
-          // Fetch checklist if we haven't started yet
-          if (session.user.id && !isFetchInitiated) {
-            dispatch(fetchUserChecklists(session.user.id));
-            setIsFetchInitiated(true);
-          }
-        } else if (reduxUserInfo?._id) {
-          // Use Redux user info if available
-          setUserData(reduxUserInfo);
-
-          if (reduxUserInfo._id && !isFetchInitiated) {
-            dispatch(fetchUserChecklists(reduxUserInfo._id));
+          if (userId && !isFetchInitiated) {
+            dispatch(fetchUserChecklists(userId));
             setIsFetchInitiated(true);
           }
         }
       } catch (error) {
-        // Handle error silently or with logger
-        console.warn('Error loading user data:', error);
+        logger.warn('Error loading user data:', error);
       }
 
       // Set loading to false when we have data or after a timeout
@@ -99,9 +76,7 @@ const Home = () => {
     loadUserData();
 
     return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
+      if (timer) clearTimeout(timer);
     };
   }, [
     dispatch,
@@ -110,41 +85,35 @@ const Home = () => {
     checklistData,
     session,
     status,
-    reduxUserInfo,
-  ]); // Enhanced data recovery check for Mac users - no localStorage dependency
+  ]);
+
   useEffect(() => {
     const checkPlatform = () => {
       const platform = navigator.platform || '';
       const isMacOS = /Mac|iPad|iPhone|iPod/.test(platform);
 
       if (isMacOS) {
-        // Extra check for Mac users to ensure data persistence
-        // Check if checklist data is missing but we have user data
         if (
           (!checklistData || checklistData.length === 0) &&
-          (userData?._id || session?.user?.id) &&
+          session?.user?.id &&
           checklistStatus !== 'loading'
         ) {
-          // Attempt recovery by refetching checklist data
-          const userId = userData?._id || session?.user?.id;
-          if (userId) {
-            dispatch(fetchUserChecklists(userId));
-          }
+          // Attempt recovery by refetching checklist data using session user id
+          const userId = session.user.id;
+          if (userId) dispatch(fetchUserChecklists(userId));
         }
       }
     };
 
-    if (!isLoading) {
-      checkPlatform();
-    }
-  }, [isLoading, checklistData, userData, dispatch, checklistStatus, session]);
+    if (!isLoading) checkPlatform();
+  }, [isLoading, checklistData, dispatch, checklistStatus, session]);
 
   // Handle video modal close and update checklist item
   const handleVideoModalClose = () => {
     setOpen(false);
 
     // Find and update the video step (ID=1) as completed when modal is closed
-    if (Array.isArray(checklistData) && userData?._id) {
+    if (Array.isArray(checklistData) && session?.user?.id) {
       const videoStep = checklistData.find(
         (item) => item.id === 1 || item.title?.includes('video'),
       );
@@ -190,6 +159,43 @@ const Home = () => {
           </h1>
         </div>
 
+        {/* Quick Access Section */}
+        <div className="mb-8">
+          <div className="flex items-center mb-3">
+            <h2 className="text-xl md:text-2xl text-gray-800 dark:text-white mr-2">
+              Quick Access
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={AqDownload01}
+              onClick={() => router.push('/user/data-export')}
+            >
+              Download Data
+            </Button>
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={AqStar05}
+              onClick={() => router.push('/user/analytics')}
+            >
+              My Favorites
+            </Button>
+            <Button
+              variant="outlined"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700"
+              Icon={AqBuilding07}
+              onClick={() => {
+                router.push('/create-organization');
+              }}
+            >
+              Request New Organization
+            </Button>
+          </div>
+        </div>
+
         {/* Render Checklist component with video modal function */}
         <Checklist openVideoModal={openVideoModal} />
 
@@ -206,7 +212,7 @@ const Home = () => {
               </p>
               <div className="flex items-center space-x-4 mt-4">
                 <Button
-                  path="/analytics"
+                  path="/user/analytics"
                   className="w-32 h-12"
                   dataTestId="get-started-button"
                 >
@@ -256,4 +262,4 @@ const Home = () => {
   );
 };
 
-export default withUserAuth(Home);
+export default Home;

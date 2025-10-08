@@ -2,16 +2,16 @@
 
 // Verifies the organisation cohort id
 import React, { useState } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
-import ProgressComponent from '@/components/Account/ProgressComponent';
-import HintIcon from '@/icons/Actions/exclamation.svg';
-import Spinner from '@/components/Spinner';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import ProgressComponent from '@/common/components/Account/ProgressComponent';
+import { AqAnnotationQuestion } from '@airqo/icons-react';
+import Spinner from '@/common/components/Spinner';
 
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { verifyCohortID } from '@/core/apis/DeviceRegistry';
 import { registerInquiry } from '@/core/apis/Inquiry';
-import DialogWrapper from '@/components/Modal/DialogWrapper';
+import DialogWrapper from '@/common/components/Modal/DialogWrapper';
 
 const ContactAdminModal = ({ open, onClose }) => {
   const [fullName, setFullName] = useState('');
@@ -122,7 +122,7 @@ const ContactAdminModal = ({ open, onClose }) => {
               </div>
               {email && email.length > 3 && !isValidEmail(email) && (
                 <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                  <HintIcon className="w-8 h-8" />
+                  <AqAnnotationQuestion className="w-8 h-8" />
                   <span>Please provide a valid email address!</span>
                 </div>
               )}
@@ -152,7 +152,7 @@ const ContactAdminModal = ({ open, onClose }) => {
         )}
         {errorMessage && (
           <div className="flex flex-row items-center text-xs text-red-600 bg-red-50 px-2 rounded">
-            <HintIcon className="w-8 h-8 mr-1 pt-2" />
+            <AqAnnotationQuestion className="w-8 h-8 mr-1 pt-2" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -229,7 +229,7 @@ const ConfirmOrganizationCohortToken = () => {
                 />
                 {tokenErrorMsg && (
                   <div className="flex flex-row items-start text-xs text-red-600 py-2">
-                    <HintIcon className="w-8 h-8 mr-2" />
+                    <AqAnnotationQuestion className="w-8 h-8 mr-2" />
                     <span>{tokenErrorMsg}</span>
                   </div>
                 )}
@@ -248,7 +248,7 @@ const ConfirmOrganizationCohortToken = () => {
                   "
                 >
                   {loading && token !== '' && !tokenErrorMsg ? (
-                    <Spinner data-testid="spinner" width={25} height={25} />
+                    <Spinner data-testid="spinner" size={24} />
                   ) : (
                     'Continue'
                   )}

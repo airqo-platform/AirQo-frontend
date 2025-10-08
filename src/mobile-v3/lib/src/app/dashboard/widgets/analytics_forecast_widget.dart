@@ -324,7 +324,9 @@ class ForeCastChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: active
               ? AppColors.primaryColor
-              : Theme.of(context).highlightColor,
+               : Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkHighlight
+                  : AppColors.dividerColorlight,
           borderRadius: BorderRadius.circular(height * 0.25),
         ),
         padding: EdgeInsets.symmetric(

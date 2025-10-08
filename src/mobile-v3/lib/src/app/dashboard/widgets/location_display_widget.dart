@@ -1,3 +1,4 @@
+import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -14,7 +15,9 @@ class LocationDisplayWidget extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-              backgroundColor: Theme.of(context).highlightColor,
+              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkHighlight
+                      : AppColors.dividerColorlight,
               child: Center(
                 child: SvgPicture.asset("assets/images/shared/location_pin.svg"),
               )),
