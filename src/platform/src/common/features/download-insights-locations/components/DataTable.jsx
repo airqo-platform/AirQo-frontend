@@ -310,6 +310,7 @@ const DataTable = ({
   enableColumnFilters = true,
   defaultSortColumn = null,
   defaultSortDirection = 'asc',
+  activeFilterKey = null, // Add this prop
   // Pagination props
   paginationMeta = {},
   onLoadMore = null,
@@ -322,7 +323,11 @@ const DataTable = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectAll, setSelectAll] = useState(false);
   const [indeterminate, setIndeterminate] = useState(false);
-  const [activeFilter, setActiveFilter] = useState(filters[0] || null);
+  const [activeFilter, setActiveFilter] = useState(() => {
+    // Use the passed activeFilterKey to find the matching filter
+    const matchingFilter = filters.find(f => f.key === activeFilterKey);
+    return matchingFilter || filters[0] || null;
+  });
   const [searchResults, setSearchResults] = useState([]);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [filterErrors, setFilterErrors] = useState({});

@@ -17,3 +17,14 @@ export const CHART_TYPE = [
 
 // UI Labels
 export const ORGANIZATION_LABEL = 'Organization';
+
+export const AIRQO_GROUP_IDS = {
+  production: '64f54e4621d9b90013925a08',
+  staging: '653b00efb657380014328b54',
+};
+
+export const getAirqoGroupId = () => {
+  return process.env.NODE_ENV === 'production' 
+    ? AIRQO_GROUP_IDS.production 
+    : AIRQO_GROUP_IDS.staging;
+};
