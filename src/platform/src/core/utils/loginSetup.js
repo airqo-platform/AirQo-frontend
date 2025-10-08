@@ -25,6 +25,7 @@ import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
+import { getAirqoGroupId } from '@/lib/constants';
 
 // Simple route type constants (replacing removed sessionUtils.js)
 const ROUTE_TYPES = {
@@ -257,26 +258,14 @@ export const setupUserSession = async (
         logger.error('Failed to fetch user details:', fetchError);
         // Fallback: create minimal groups from session if available
         // This prevents the login from failing completely
-        if (session.user.organization) {
-          userGroups = [
-            {
-              _id: 'temp-group',
-              grp_title: session.user.organization || 'Default Organization',
-              grp_name: session.user.organization || 'Default Organization',
-              organization_slug: session.user.organization_slug || null,
-            },
-          ];
-        } else {
-          // Create a default AirQo group
-          userGroups = [
-            {
-              _id: 'airqo-group',
-              grp_title: 'AirQo',
-              grp_name: 'AirQo',
-              organization_slug: 'airqo',
-            },
-          ];
-        }
+        userGroups = [
+          {
+            _id: getAirqoGroupId(),
+            grp_title: 'airqo',
+            grp_name: 'airqo',
+            organization_slug: 'airqo',
+          },
+        ];
       }
     }
 
