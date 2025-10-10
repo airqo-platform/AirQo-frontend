@@ -50,6 +50,10 @@ class LogoutUser extends AuthEvent {
   const LogoutUser();
 }
 
+class DeleteUserAccount extends AuthEvent {
+  const DeleteUserAccount();
+}
+
 class SessionExpired extends AuthEvent {
   const SessionExpired();
 }

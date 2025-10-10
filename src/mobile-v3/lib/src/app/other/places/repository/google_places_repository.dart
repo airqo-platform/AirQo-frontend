@@ -54,17 +54,12 @@ class GooglePlacesImpl extends GooglePlacesRepository {
     PlaceDetailsResponse response =
         PlaceDetailsResponse.fromJson(json.decode(httpResponse.body));
 
-    Map<String, String> airqoQueryParams = {
-      "token": dotenv.env["AIRQO_API_TOKEN"]!
-    };
-
-    Response airqoResponse = await http.get(Uri.https(
-        "api.airqo.net",
-        "api/v2/devices/measurements/location/${response.candidates[0].geometry.location.lat}/${response.candidates[0].geometry.location.lng}",
-        airqoQueryParams));
+    String baseUrl = dotenv.env["AIRQO_API_URL"] ?? "https://api.airqo.net";
+    Response airqoResponse = await http.get(Uri.parse(
+        "$baseUrl/api/v2/devices/measurements/location/${response.candidates[0].geometry.location.lat}/${response.candidates[0].geometry.location.lng}?token=${dotenv.env["AIRQO_API_TOKEN"]!}"));
 
     AirqoLatLngResponse airqoLatLngResponse =
-        await AirqoLatLngResponse.fromJson(json.decode(airqoResponse.body));
+        AirqoLatLngResponse.fromJson(json.decode(airqoResponse.body));
 
     return airqoLatLngResponse;
   }
