@@ -201,7 +201,6 @@ class AccountDeletionHandler {
 
   static void _showVerificationCodeDialog(BuildContext context, String userEmail) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final TextEditingController codeController = TextEditingController();
 
     showDialog(
       context: context,
@@ -209,7 +208,6 @@ class AccountDeletionHandler {
       builder: (dialogContext) => _VerificationCodeDialog(
         isDarkMode: isDarkMode,
         userEmail: userEmail,
-        codeController: codeController,
         onConfirm: (code) => _confirmAccountDeletion(context, dialogContext, code),
       ),
     );
@@ -248,13 +246,11 @@ class AccountDeletionHandler {
 class _VerificationCodeDialog extends StatefulWidget {
   final bool isDarkMode;
   final String userEmail;
-  final TextEditingController codeController;
   final Function(String) onConfirm;
 
   const _VerificationCodeDialog({
     required this.isDarkMode,
     required this.userEmail,
-    required this.codeController,
     required this.onConfirm,
   });
 
@@ -264,6 +260,19 @@ class _VerificationCodeDialog extends StatefulWidget {
 
 class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
   bool isConfirming = false;
+  late TextEditingController _codeController;
+
+  @override
+  void initState() {
+    super.initState();
+    _codeController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -296,7 +305,7 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
           ),
           SizedBox(height: 20),
           TextFormField(
-            controller: widget.codeController,
+            controller: _codeController,
             keyboardType: TextInputType.number,
             maxLength: 5,
             textAlign: TextAlign.center,
@@ -343,7 +352,7 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
             foregroundColor: Colors.white,
           ),
           onPressed: isConfirming ? null : () async {
-            final code = widget.codeController.text.trim();
+            final code = _codeController.text.trim();
             if (code.length != 5 || !RegExp(r'^\d{5}$').hasMatch(code)) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Please enter a valid 5-digit code')),

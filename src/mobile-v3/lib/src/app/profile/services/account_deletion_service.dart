@@ -1,11 +1,25 @@
 import 'dart:convert';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
-import 'package:airqo/src/meta/utils/api_utils.dart';
-import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
 
 class AccountDeletionService extends BaseRepository with UiLoggy {
+  static String maskEmail(String email) {
+    final parts = email.split('@');
+    if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
+      return '***@***';
+    }
+
+    final localPart = parts[0];
+    final domain = parts[1];
+
+    if (localPart.length <= 2) {
+      return '${localPart[0]}*@$domain';
+    } else {
+      final masked = localPart[0] + '*' * (localPart.length - 2) + localPart[localPart.length - 1];
+      return '$masked@$domain';
+    }
+  }
   Future<Map<String, dynamic>> initiateAccountDeletion(String email) async {
     try {
       final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
@@ -13,7 +27,7 @@ class AccountDeletionService extends BaseRepository with UiLoggy {
         throw Exception('Authentication token not found');
       }
 
-      loggy.info('Initiating account deletion for email: $email');
+      loggy.debug('Initiating account deletion for email: ${maskEmail(email)}');
 
       final response = await createPostRequest(
         path: '/api/v2/users/delete/mobile/initiate',
@@ -23,7 +37,18 @@ class AccountDeletionService extends BaseRepository with UiLoggy {
       loggy.info('Initiate deletion response status: ${response.statusCode}');
 
       final result = jsonDecode(response.body);
-      return result;
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return result;
+      } else if (response.statusCode == 400) {
+        throw Exception(result['message'] ?? 'Invalid request');
+      } else if (response.statusCode == 401) {
+        throw Exception(result['message'] ?? 'Unauthorized');
+      } else if (response.statusCode == 404) {
+        throw Exception(result['message'] ?? 'User not found');
+      } else {
+        throw Exception('Failed to initiate account deletion (${response.statusCode}): ${result['message'] ?? 'Unknown error'}');
+      }
     } catch (e) {
       loggy.error('Error initiating account deletion: $e');
       rethrow;
@@ -38,12 +63,9 @@ class AccountDeletionService extends BaseRepository with UiLoggy {
 
       loggy.info('Confirming account deletion with token');
 
-      final response = await http.post(
-        Uri.parse('${ApiUtils.baseUrl}/api/v2/users/delete/mobile/confirm'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({'token': token}),
+      final response = await createPostRequest(
+        path: '/api/v2/users/delete/mobile/confirm',
+        data: {'token': token},
       );
 
       loggy.info('Confirm deletion response status: ${response.statusCode}');
