@@ -1,9 +1,48 @@
 import 'dart:convert';
 import 'package:airqo/src/app/shared/repository/base_repository.dart';
 import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
+import 'package:http/http.dart' as http;
 import 'package:loggy/loggy.dart';
 
 class AccountDeletionService extends BaseRepository with UiLoggy {
+  final http.Client? _httpClient;
+  final SecureStorageRepository? _storageRepository;
+
+  AccountDeletionService({
+    http.Client? httpClient,
+    SecureStorageRepository? storageRepository,
+  }) : _httpClient = httpClient,
+       _storageRepository = storageRepository;
+
+  AccountDeletionService.test({
+    required http.Client httpClient,
+    required SecureStorageRepository storageRepository,
+  }) : _httpClient = httpClient,
+       _storageRepository = storageRepository;
+
+  @override
+  Future<http.Response> createPostRequest({required String path, dynamic data}) async {
+    if (_httpClient != null && _storageRepository != null) {
+      final token = await _storageRepository.getSecureData(SecureStorageKeys.authToken);
+      if (token == null) {
+        throw Exception('Authentication token not found');
+      }
+
+      final response = await _httpClient.post(
+        Uri.parse('https://api.test$path'),
+        body: jsonEncode(data),
+        headers: {
+          "Authorization": "JWT $token",
+          "Accept": "*/*",
+          "Content-Type": "application/json"
+        },
+      );
+      
+      return response;
+    }
+    return super.createPostRequest(path: path, data: data);
+  }
+
   static String maskEmail(String email) {
     final parts = email.split('@');
     if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
@@ -22,7 +61,8 @@ class AccountDeletionService extends BaseRepository with UiLoggy {
   }
   Future<Map<String, dynamic>> initiateAccountDeletion(String email) async {
     try {
-      final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+      final storage = _storageRepository ?? SecureStorageRepository.instance;
+      final token = await storage.getSecureData(SecureStorageKeys.authToken);
       if (token == null || token.isEmpty) {
         throw Exception('Authentication token not found');
       }
