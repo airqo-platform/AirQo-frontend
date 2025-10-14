@@ -222,6 +222,7 @@ export const setupUserSession = async (
     // If no cached groups, we need to fetch them
     // But we'll optimize this to be non-blocking for the login flow
     if (!userGroups) {
+      logger.info('Fetching user groups from API...');
       logger.debug('No cached user groups - will fetch minimal user data...');
 
       // Instead of calling the slow getUserDetails API, use the faster approach
@@ -234,6 +235,9 @@ export const setupUserSession = async (
           throw new Error('User not found');
         }
 
+        logger.info('User details fetched successfully.');
+        // Prioritize `groups` for session setup.
+        // Fallback to `my_groups` if `groups` is not available.
         userGroups =
           Array.isArray(user.groups) && user.groups.length
             ? user.groups
@@ -242,6 +246,7 @@ export const setupUserSession = async (
               : [];
 
         if (!Array.isArray(userGroups) || userGroups.length === 0) {
+          logger.error('User has no associated groups.');
           throw new Error(
             'No organization found. Contact support to add you to an organization.',
           );
@@ -256,6 +261,7 @@ export const setupUserSession = async (
         dispatch(setUserInfo(completeUserData));
       } catch (fetchError) {
         logger.error('Failed to fetch user details:', fetchError);
+        logger.warn('Falling back to default AirQo group due to fetch error.');
         // Fallback: create minimal groups from session if available
         // This prevents the login from failing completely
         userGroups = [
@@ -285,16 +291,19 @@ export const setupUserSession = async (
 
     // Simplified group selection logic for faster processing
     if (isRootPageRedirect) {
+      logger.info('Group Selection: Root page redirect. Using AirQo group.');
       // Root page - use AirQo group, redirect to dashboard
       activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
       redirectPath = '/user/Home';
     } else if (pathname.startsWith('/admin')) {
+      logger.info('Group Selection: Admin route. Using AirQo group.');
       // Admin routes - use AirQo group, no redirect
       activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
     } else if (
       routeType === ROUTE_TYPES.ORGANIZATION &&
       pathname.includes('/org/')
     ) {
+      logger.info('Group Selection: Organization route.');
       // Organization routes - match slug, prioritizing session requestedOrgSlug
       let orgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
 
@@ -305,6 +314,7 @@ export const setupUserSession = async (
       }
 
       if (orgSlug) {
+        logger.info(`Attempting to match group for slug: "${orgSlug}"`);
         // Find matching group
         const matchingGroup = userGroups.find((group) => {
           if (isAirQoGroup(group)) return false;
@@ -316,6 +326,11 @@ export const setupUserSession = async (
           return generatedSlug === orgSlug;
         });
 
+        if (matchingGroup) {
+          logger.info(`Found matching group: "${matchingGroup.grp_title}"`);
+        } else {
+          logger.warn(`No matching group for slug "${orgSlug}". Will use first available non-AirQo group.`);
+        }
         activeGroup =
           matchingGroup ||
           userGroups.find((g) => !isAirQoGroup(g)) ||
@@ -331,20 +346,25 @@ export const setupUserSession = async (
           redirectPath = `/org/${orgSlug}/dashboard`;
         }
       } else {
+        logger.warn('Organization route without a slug. Using first available non-AirQo group.');
         // Fallback for org routes without slug
         activeGroup = userGroups.find((g) => !isAirQoGroup(g)) || userGroups[0];
       }
     } else if (routeType === ROUTE_TYPES.USER) {
+      logger.info('Group Selection: User route. Using AirQo group.');
       // Individual user routes - use AirQo group
       activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
     } else {
+      logger.info('Group Selection: Default fallback. Using first available group.');
       // Default fallback
       activeGroup = userGroups[0];
     }
 
     if (!activeGroup) {
+      logger.error('CRITICAL: Could not determine an active group after all checks.');
       throw new Error('No valid group found');
     }
+    logger.info(`Final active group selected: "${activeGroup.grp_title}" (ID: ${activeGroup._id})`);
 
     logger.info('Fast session setup completed', {
       activeGroupId: activeGroup._id,
@@ -404,6 +424,7 @@ export const setupUserSession = async (
  * Clear user session data
  */
 export const clearUserSession = async (dispatch) => {
+  const { resetReduxStore } = await import('@/lib/logoutUtils');
   try {
     logger.info('Clearing user session...');
 
@@ -411,12 +432,7 @@ export const clearUserSession = async (dispatch) => {
     // which can cause dependent providers to re-fetch and produce UI
     // flicker. clearAllGroupData is only used for full resets; instead we
     // clear specific slices that should be emptied on logout.
-    dispatch(clearPermissions());
-    dispatch(clearOrganizationTheme());
-    // Clear chart slice to avoid leaking previous user's selections
-    dispatch(setChartSites([]));
-    // Reset groups slice state safely
-    dispatch({ type: 'LOGOUT_USER' });
+    await resetReduxStore(dispatch);
 
     logger.debug('User session cleared');
 

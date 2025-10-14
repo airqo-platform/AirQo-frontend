@@ -778,15 +778,12 @@ export function UnifiedGroupProvider({ children }) {
   // children can render as soon as an activeGroup exists.
   if (
     sessionStatus === 'authenticated' &&
-    (!state.sessionInitialized || !state.initialGroupSet)
+    !activeGroup?._id &&
+    (!state.sessionInitialized || userGroupsLength === 0)
   ) {
-    // Show loader if session isn't initialized OR the initial group isn't set
-    // This prevents rendering protected content prematurely
-    const loadingText =
-      !state.sessionInitialized || userGroupsLength === 0
-        ? 'Setting up your session…'
-        : 'Loading your workspace…';
-
+    // Show loader only while we are truly setting up and don't have an active group.
+    // This prevents blocking the UI once an active group is determined.
+    const loadingText = 'Setting up your session…';
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <LoadingSpinner size="lg" text={loadingText} />
