@@ -17,7 +17,6 @@ import {
   updateUserThemeUrl,
   getGroupSlugUrl,
   getUserUrl,
-  getGroupCohortsUrl,
   GROUP_ROLES_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
@@ -248,25 +247,6 @@ export const updateGroupSlugApi = (groupId, data) =>
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
-
-// Group Cohorts
-/**
- * Get cohorts for a specific group
- * @param {string} groupId - The group ID
- * @param {AbortSignal} [signal] - Optional AbortSignal for the request
- * @returns {Promise} - Promise resolving to the list of cohorts
- */
-export const getGroupCohortsApi = (groupId, signal) => {
-  if (!groupId) {
-    return Promise.reject(new Error('Group ID is required'));
-  }
-  return secureApiProxy
-    .get(getGroupCohortsUrl(groupId), { authType: AUTH_TYPES.JWT, signal })
-    .then((response) => response.data)
-    .catch((error) => {
-      throw error;
-    });
-};
 
 // User Defaults
 export const postUserDefaultsApi = (data) =>

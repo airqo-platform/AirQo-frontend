@@ -184,7 +184,6 @@ const DataContent = ({
           enableColumnFilters={true}
           defaultSortColumn="name"
           defaultSortDirection="asc"
-          activeFilterKey={activeFilterKey}
           // Pagination props
           enableInfiniteScroll={enableInfiniteScroll}
           paginationMeta={paginationMeta}

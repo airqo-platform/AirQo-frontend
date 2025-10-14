@@ -344,20 +344,19 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
 /**
  * Specialized hook for devices summary with pagination
  */
-export const usePaginatedDevicesSummary = (options = {}) => {
-  const { search = '', group = '', category = 'lowcost', ...rest } = options;
-  const normalizedGroup =
-    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
+export const usePaginatedDevicesSummary = (groupId, options = {}) => {
+  const { search = '', ...restOptions } = options;
 
   const fetcher = useCallback(
     async (params, signal) => {
-      if (!normalizedGroup) return { devices: [], meta: {} };
+      if (!groupId) return { devices: [], meta: {} };
 
-      const { getGroupCohortsApi } = await import('../apis/Account');
-      const { getDevicesForCohortsApi } = await import('../apis/DeviceRegistry');
+      const { getGroupCohortsApi, getDevicesForCohortsApi } = await import(
+        '../apis/DeviceRegistry'
+      );
 
       // Step 1: Fetch cohorts for the group
-      const cohortsResponse = await getGroupCohortsApi(normalizedGroup, signal);
+      const cohortsResponse = await getGroupCohortsApi(groupId, signal);
       const cohortIds = cohortsResponse?.data || [];
 
       if (cohortIds.length === 0) {
@@ -370,23 +369,20 @@ export const usePaginatedDevicesSummary = (options = {}) => {
           cohort_ids: cohortIds,
           skip: params.skip,
           limit: params.limit,
-          category: category,
-          // Pass search if the API supports it
-          ...(params.search && { search: params.search }),
         },
         signal,
       );
     },
-    [normalizedGroup, category],
+    [groupId],
   );
 
   return usePaginatedData(
-    ['devices-summary-paginated', normalizedGroup || 'all', category, search || ''],
+    ['devices-summary-paginated', groupId || 'all', search || ''],
     fetcher,
     {
       initialLimit: 20,
       maxLimit: 80,
-      ...rest,
+      ...restOptions,
       search,
     },
   );
@@ -420,6 +416,114 @@ export const usePaginatedGridsSummary = (adminLevel, options = {}) => {
       maxLimit: 80,
       ...restOptions,
       search,
+    },
+  );
+};
+
+/**
+ * Specialized hook for mobile devices with pagination
+ */
+export const usePaginatedMobileDevices = (options = {}) => {
+  const { search = '', group = '', ...rest } = options;
+
+  const normalizedGroup =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
+
+  const fetcher = useCallback(
+    async (params, signal) => {
+      const { getMobileDevices } = await import('../apis/DeviceRegistry');
+      return getMobileDevices({
+        skip: params.skip,
+        limit: params.limit,
+        search: params.search || search,
+        group: normalizedGroup || undefined,
+        signal,
+      });
+    },
+    [search, normalizedGroup],
+  );
+
+  return usePaginatedData(
+    ['mobile-devices-paginated', normalizedGroup || 'all', search || ''],
+    fetcher,
+    {
+      initialLimit: 20,
+      maxLimit: 80,
+      ...rest,
+      search,
+      baseParams: { group: normalizedGroup || undefined },
+    },
+  );
+};
+
+/**
+ * Specialized hook for BAM devices with pagination
+ */
+export const usePaginatedBAMDevices = (options = {}) => {
+  const { search = '', group = '', ...rest } = options;
+  const normalizedGroup =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
+
+  const fetcher = useCallback(
+    async (params, signal) => {
+      const { getBAMDevices } = await import('../apis/DeviceRegistry');
+      return getBAMDevices({
+        skip: params.skip,
+        limit: params.limit,
+        // getBAMDevices currently doesn't accept search/group but keep pattern
+        // in place for future compatibility by passing through params.search
+        ...(params.search ? { search: params.search } : {}),
+        ...(normalizedGroup ? { group: normalizedGroup } : {}),
+        signal,
+      });
+    },
+    [normalizedGroup],
+  );
+
+  return usePaginatedData(
+    ['bam-devices-paginated', normalizedGroup || 'all', search || ''],
+    fetcher,
+    {
+      initialLimit: 20,
+      maxLimit: 80,
+      ...rest,
+      search,
+      baseParams: { group: normalizedGroup || undefined },
+    },
+  );
+};
+
+/**
+ * Specialized hook for LowCost devices with pagination
+ */
+export const usePaginatedLowCostDevices = (options = {}) => {
+  const { search = '', group = '', ...rest } = options;
+  const normalizedGroup =
+    typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
+
+  const fetcher = useCallback(
+    async (params, signal) => {
+      const { getLowCostDevices } = await import('../apis/DeviceRegistry');
+      return getLowCostDevices({
+        skip: params.skip,
+        limit: params.limit,
+        search: params.search || search,
+        group: normalizedGroup || undefined,
+        signal,
+      });
+    },
+    [search, normalizedGroup],
+  );
+
+  return usePaginatedData(
+    ['lowcost-devices-paginated', normalizedGroup || 'all', search || ''],
+    fetcher,
+    {
+      initialLimit: 20,
+      maxLimit: 80,
+      ...rest,
+      search,
+      baseParams: { group: normalizedGroup || undefined },
     },
   );
 };

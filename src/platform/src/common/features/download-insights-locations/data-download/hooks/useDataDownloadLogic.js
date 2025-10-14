@@ -491,7 +491,7 @@ export const useDataDownloadLogic = () => {
         }
 
         // Ensure deviceCategoryValue is valid
-        const validCategories = ['lowcost', 'bam', 'mobile', 'gas'];
+        const validCategories = ['lowcost', 'bam', 'mobile'];
         if (!validCategories.includes(deviceCategoryValue)) {
           deviceCategoryValue = 'lowcost';
         }

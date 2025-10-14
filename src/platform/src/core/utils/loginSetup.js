@@ -25,7 +25,6 @@ import { setChartSites } from '@/lib/store/services/charts/ChartSlice';
 import { getIndividualUserPreferences } from '@/lib/store/services/account/UserDefaultsSlice';
 import { isAirQoGroup } from '@/core/utils/organizationUtils';
 import logger from '@/lib/logger';
-import { getAirqoGroupId } from '@/lib/constants';
 
 // Simple route type constants (replacing removed sessionUtils.js)
 const ROUTE_TYPES = {
@@ -297,18 +296,27 @@ export const setupUserSession = async (
         logger.warn('⚠️ FALLING BACK to default AirQo group...');
 
         // Fallback: create minimal groups from session if available
-        const airqoGroupId = getAirqoGroupId();
-        logger.debug('📋 Creating fallback AirQo group:', { airqoGroupId });
-
-        userGroups = [
-          {
-            _id: airqoGroupId,
-            grp_title: 'airqo',
-            grp_name: 'airqo',
-            organization_slug: 'airqo',
-          },
-        ];
-        logger.debug('✅ Fallback groups created:', { userGroupsCount: userGroups.length });
+        // This prevents the login from failing completely
+        if (session.user.organization) {
+          userGroups = [
+            {
+              _id: 'temp-group',
+              grp_title: session.user.organization || 'Default Organization',
+              grp_name: session.user.organization || 'Default Organization',
+              organization_slug: session.user.organization_slug || null,
+            },
+          ];
+        } else {
+          // Create a default AirQo group
+          userGroups = [
+            {
+              _id: 'airqo-group',
+              grp_title: 'AirQo',
+              grp_name: 'AirQo',
+              organization_slug: 'airqo',
+            },
+          ];
+        }
       }
     }
 
