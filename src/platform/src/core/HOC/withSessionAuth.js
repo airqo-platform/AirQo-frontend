@@ -89,12 +89,17 @@ const withSessionAuth = (
     }
 
     // Auth-only routes: show component only if unauthenticated
-    if (protectionLevel === PROTECTION_LEVELS.AUTH_ONLY) {
-      if (status === 'authenticated') {
-        return <AuthLoader message="Redirecting..." />;
-      }
-      return <WrappedComponent {...props} session={session} />;
+if (protectionLevel === PROTECTION_LEVELS.AUTH_ONLY) {
+  if (status === 'authenticated') {
+    // Only show "Redirecting..." when session is fully ready (effect will redirect)
+    if (sessionReady) {
+      return <AuthLoader message="Redirecting..." />;
     }
+    // Otherwise, avoid a confusing message on auth pages. Show a neutral, brief loader.
+    return <AuthLoader message="Loading..." />;
+  }
+  return <WrappedComponent {...props} session={session} />;
+}
 
     // Protected routes: show component only if authenticated
     if (protectionLevel === PROTECTION_LEVELS.PROTECTED) {
