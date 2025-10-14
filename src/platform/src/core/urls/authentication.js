@@ -24,9 +24,6 @@ export const GROUP_ROLES_URL = `${AUTH_URL}/roles`;
 // Group slug management URL
 export const getGroupSlugUrl = (groupId) => `${GROUPS_URL}/${groupId}/slug`;
 
-// Group cohorts URL
-export const getGroupCohortsUrl = (groupId) => `${GROUPS_URL}/${groupId}/cohorts`;
-
 // Single user URL helper
 export const getUserUrl = (userId) => `${USERS_URL}/${userId}`;
 
