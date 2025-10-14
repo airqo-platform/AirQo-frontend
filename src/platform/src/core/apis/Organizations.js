@@ -85,22 +85,32 @@ const _getOrganizationBySlugApiInternal = async (orgSlug, options = {}) => {
 
     return result;
   } catch (error) {
-    logger.error('Error fetching organization:', error);
-
-    // Handle 404 specifically
-    if (error.response?.status === 404) {
-      return {
-        success: false,
-        message: 'Organization not found',
-        data: null,
-      };
-    }
-
+    // Handle request cancellation gracefully - this is expected behavior
+  if (error.name === 'CanceledError' || error.code === 'ERR_CANCELED') {
+    // Don't log cancellation as an error - it's expected during org switching
     return {
       success: false,
-      message: error.response?.data?.message || 'Failed to fetch organization',
+      message: 'Request canceled',
       data: null,
     };
+  }
+
+  logger.error('Error fetching organization:', error);
+
+  // Handle 404 specifically
+  if (error.response?.status === 404) {
+    return {
+      success: false,
+      message: 'Organization not found',
+      data: null,
+    };
+  }
+
+  return {
+    success: false,
+    message: error.response?.data?.message || 'Failed to fetch organization',
+    data: null,
+  };
   }
 };
 
