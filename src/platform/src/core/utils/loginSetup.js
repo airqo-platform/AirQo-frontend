@@ -39,16 +39,17 @@ const ROUTE_TYPES = {
 const getRouteType = (pathname) => {
   if (!pathname || typeof pathname !== 'string') return ROUTE_TYPES.PUBLIC;
 
+  // PRIORITY: Check organization context FIRST, even for auth routes
+  if (pathname.includes('/org/') || pathname.includes('(organization)')) {
+    return ROUTE_TYPES.ORGANIZATION;
+  }
+
   if (
     pathname.includes('/login') ||
     pathname.includes('/register') ||
     pathname.includes('/auth')
   ) {
     return ROUTE_TYPES.AUTH;
-  }
-
-  if (pathname.includes('/org/') || pathname.includes('(organization)')) {
-    return ROUTE_TYPES.ORGANIZATION;
   }
 
   if (pathname.includes('/user/') || pathname.includes('(individual)')) {
