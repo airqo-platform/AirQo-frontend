@@ -35,6 +35,7 @@ const withSessionAuth = (
     const unified = useUnifiedGroupSafe();
     const sessionInitialized = unified?.sessionInitialized ?? true;
     const initialGroupSet = unified?.initialGroupSet ?? true;
+    const sessionReady = unified?.sessionReady ?? true;
 
     // Note: protectionLevel is intentionally NOT included in the dependency
     // array because it is a stable parameter passed to the HOC at creation
@@ -53,8 +54,8 @@ const withSessionAuth = (
       // leads to UI flicker while the rest of the app is still setting up.
       if (protectionLevel === PROTECTION_LEVELS.AUTH_ONLY) {
         if (status === 'authenticated') {
-          if (!sessionInitialized || !initialGroupSet) {
-            // Still setting up session - do not redirect yet
+          if (!sessionReady) {
+            // Session is not fully ready (group not set), so do not redirect yet.
             return;
           }
           router.replace('/user/Home');
@@ -64,8 +65,11 @@ const withSessionAuth = (
 
       if (protectionLevel === PROTECTION_LEVELS.PROTECTED) {
         if (status === 'unauthenticated') {
-          router.replace('/user/login');
-          return;
+          // Redirect to the appropriate login page, preserving the org context if present.
+          const currentPath = window.location.pathname;
+          const orgSlugMatch = currentPath.match(/^\/org\/([^/]+)/);
+          const loginPath = orgSlugMatch ? `/org/${orgSlugMatch[1]}/login` : '/user/login';
+          router.replace(`${loginPath}?callbackUrl=${encodeURIComponent(currentPath)}`);
         }
 
         // If authenticated but unified session hasn't fully initialized,
@@ -77,11 +81,11 @@ const withSessionAuth = (
           return;
         }
       }
-    }, [status, router, sessionInitialized, initialGroupSet]);
+    }, [status, router, sessionInitialized, initialGroupSet, sessionReady]);
 
     // Show loading state while session is loading
     if (status === 'loading') {
-      return <AuthLoader message="Authenticating..." />;
+      return <AuthLoader message="Loading session..." />;
     }
 
     // Auth-only routes: show component only if unauthenticated

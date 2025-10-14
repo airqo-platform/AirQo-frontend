@@ -76,12 +76,12 @@ const MyProfileDropdown = ({
       setIsLoading(true);
       try {
         if (onLogout) await onLogout();
-        else await LogoutUser(dispatch, router);
+        else await LogoutUser(dispatch);
       } finally {
         setIsLoading(false);
       }
     },
-    [dispatch, router, isLoading, onLogout],
+    [dispatch, isLoading, onLogout],
   );
 
   const navigate = useCallback(

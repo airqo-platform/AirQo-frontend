@@ -7,6 +7,7 @@ import {
   clearIndexedDB,
   clearAuthCookies,
 } from '@/lib/logoutUtils';
+import persistor from '@/lib/store';
 
 let globalLogoutState = {
   setIsLoggingOut: null,
@@ -76,11 +77,19 @@ const LogoutUser = async (dispatch) => {
   }
 
   try {
-    // Use new comprehensive logout utilities
-    await clearSWRCache();
+    // Perform critical cleanup first to prevent race conditions
     await resetReduxStore(dispatch);
     await clearBrowserStorage();
     clearAuthCookies();
+
+    // Purge persisted state from redux-persist to ensure a clean slate
+    if (persistor) {
+      await persistor.purge();
+      logger.info('Redux-persist storage purged.');
+    }
+
+    // Use new comprehensive logout utilities
+    await clearSWRCache();
     await clearIndexedDB();
 
     logger.debug('Calling NextAuth signOut');

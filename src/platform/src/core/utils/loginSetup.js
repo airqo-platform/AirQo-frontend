@@ -100,7 +100,6 @@ const loadUserPreferencesAndChartSites = async (
   try {
     logger.debug('Loading user preferences and chart sites...');
 
-    // Get user preferences
     const preferencesRes = await dispatch(
       getIndividualUserPreferences({
         identifier: userId,
@@ -108,12 +107,10 @@ const loadUserPreferencesAndChartSites = async (
       }),
     );
 
-    // Check if preferences were loaded successfully
     if (preferencesRes?.payload?.individual_preferences?.length > 0) {
       const preferences = preferencesRes.payload.individual_preferences[0];
 
       if (preferences?.selected_sites?.length > 0) {
-        // Extract site IDs from selected sites
         const chartSiteIds = preferences.selected_sites
           .map((site) => site?._id)
           .filter(Boolean);
@@ -167,28 +164,33 @@ export const setupUserSession = async (
   options = {},
 ) => {
   try {
+    // CRITICAL: Validate inputs first, before any variable access
     if (!session?.user?.id) {
       throw new Error('Invalid session: missing user ID');
     }
 
-    const {
-      preferredGroupId,
-      maintainActiveGroup = false,
-      userGroups: providedUserGroups,
-    } = options;
+    // CRITICAL: Safe defaults for options destructuring
+    if (!options || typeof options !== 'object') {
+      options = {};
+    }
 
-    logger.info('Starting optimized user session setup...', {
+    const preferredGroupId = options?.preferredGroupId || undefined;
+    const maintainActiveGroup = options?.maintainActiveGroup ?? false;
+    const providedUserGroups = options?.userGroups || undefined;
+
+    logger.info('🔵 START: setupUserSession', {
       userId: session.user.id,
       pathname,
       preferredGroupId,
       maintainActiveGroup,
+      hasProvidedUserGroups: !!providedUserGroups,
     });
 
     // Clear only the volatile slices that must be refreshed for a new session
     dispatch(clearPermissions());
     dispatch(clearOrganizationTheme());
-    // Clear any chart-related state so previous user's chart sites don't leak
     dispatch(setChartSites([]));
+    logger.debug('✅ Cleared volatile Redux slices');
 
     // Set basic user data immediately from session
     const basicUserData = {
@@ -213,29 +215,48 @@ export const setupUserSession = async (
 
     // Update Redux immediately
     dispatch(setUserInfo(basicUserData));
+    logger.debug('✅ Set basic user info in Redux', { userId: basicUserData._id });
 
     // Use provided userGroups if available (avoids redundant API call)
     let userGroups = Array.isArray(providedUserGroups)
       ? providedUserGroups
       : null;
 
-    // If no cached groups, we need to fetch them
-    // But we'll optimize this to be non-blocking for the login flow
-    if (!userGroups) {
-      logger.info('Fetching user groups from API...');
-      logger.debug('No cached user groups - will fetch minimal user data...');
+    logger.debug('📊 UserGroups check', {
+      hasProvidedUserGroups: !!userGroups,
+      providedGroupsCount: userGroups?.length || 0,
+    });
 
-      // Instead of calling the slow getUserDetails API, use the faster approach
-      // We'll fetch the user details in background after setting up basic session
+    // If no cached groups, we need to fetch them
+    if (!userGroups) {
+      logger.info('📡 No cached groups - fetching user details from API...');
+
       try {
+        logger.debug('🌐 Calling getUserDetails API...');
         const userRes = await getUserDetails(session.user.id);
+        logger.debug('✅ API RETURNED:', {
+          hasUsers: !!userRes?.users,
+          usersCount: userRes?.users?.length || 0,
+          firstUserKeys: Object.keys(userRes?.users?.[0] || {}),
+        });
+
         const user = userRes.users ? userRes.users[0] : null;
+        logger.debug('✅ USER EXTRACTED:', {
+          userId: user?._id,
+          userName: user?.name,
+          hasGroups: !!user?.groups,
+          groupsCount: user?.groups?.length || 0,
+          hasMyGroups: !!user?.my_groups,
+          myGroupsCount: user?.my_groups?.length || 0,
+        });
 
         if (!user) {
+          logger.error('❌ User not found in API response');
           throw new Error('User not found');
         }
 
-        logger.info('User details fetched successfully.');
+        logger.debug('✅ USER VALID - Extracting groups...');
+
         // Prioritize `groups` for session setup.
         // Fallback to `my_groups` if `groups` is not available.
         userGroups =
@@ -245,8 +266,14 @@ export const setupUserSession = async (
               ? user.my_groups
               : [];
 
+        logger.debug('✅ USERGROUPS EXTRACTED:', {
+          groupsSource: Array.isArray(user.groups) && user.groups.length ? 'groups' : Array.isArray(user.my_groups) && user.my_groups.length ? 'my_groups' : 'none',
+          userGroupsCount: userGroups.length,
+          firstGroupTitle: userGroups[0]?.grp_title,
+        });
+
         if (!Array.isArray(userGroups) || userGroups.length === 0) {
-          logger.error('User has no associated groups.');
+          logger.error('❌ USER HAS NO ASSOCIATED GROUPS');
           throw new Error(
             'No organization found. Contact support to add you to an organization.',
           );
@@ -258,22 +285,33 @@ export const setupUserSession = async (
           ...user,
           groups: userGroups,
         };
+        logger.debug('✅ DISPATCHING setUserInfo with complete user data...');
         dispatch(setUserInfo(completeUserData));
+        logger.debug('✅ setUserInfo dispatched successfully');
       } catch (fetchError) {
-        logger.error('Failed to fetch user details:', fetchError);
-        logger.warn('Falling back to default AirQo group due to fetch error.');
+        logger.error('❌ FAILED TO FETCH USER DETAILS:', {
+          errorMessage: fetchError?.message,
+          errorName: fetchError?.name,
+        });
+        logger.warn('⚠️ FALLING BACK to default AirQo group...');
+
         // Fallback: create minimal groups from session if available
-        // This prevents the login from failing completely
+        const airqoGroupId = getAirqoGroupId();
+        logger.debug('📋 Creating fallback AirQo group:', { airqoGroupId });
+
         userGroups = [
           {
-            _id: getAirqoGroupId(),
+            _id: airqoGroupId,
             grp_title: 'airqo',
             grp_name: 'airqo',
             organization_slug: 'airqo',
           },
         ];
+        logger.debug('✅ Fallback groups created:', { userGroupsCount: userGroups.length });
       }
     }
+
+    logger.debug('🎯 Determining active group and redirect path...');
 
     // Determine active group and redirect path quickly
     let activeGroup = null;
@@ -282,7 +320,7 @@ export const setupUserSession = async (
     const routeType = getRouteType(pathname);
     const isRootPageRedirect = pathname === '/';
 
-    logger.debug('Route analysis:', {
+    logger.debug('🗺️ Route analysis:', {
       routeType,
       pathname,
       isRootPageRedirect,
@@ -291,31 +329,26 @@ export const setupUserSession = async (
 
     // Simplified group selection logic for faster processing
     if (isRootPageRedirect) {
-      logger.info('Group Selection: Root page redirect. Using AirQo group.');
-      // Root page - use AirQo group, redirect to dashboard
+      logger.info('📍 GROUP SELECTION: Root page redirect. Using AirQo group.');
       activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
       redirectPath = '/user/Home';
     } else if (pathname.startsWith('/admin')) {
-      logger.info('Group Selection: Admin route. Using AirQo group.');
-      // Admin routes - use AirQo group, no redirect
+      logger.info('📍 GROUP SELECTION: Admin route. Using AirQo group.');
       activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
     } else if (
       routeType === ROUTE_TYPES.ORGANIZATION &&
       pathname.includes('/org/')
     ) {
-      logger.info('Group Selection: Organization route.');
-      // Organization routes - match slug, prioritizing session requestedOrgSlug
+      logger.info('📍 GROUP SELECTION: Organization route.');
       let orgSlug = pathname.match(/\/org\/([^/]+)/)?.[1];
 
-      // Check if session has requested org slug from organization-specific login
       if (session?.requestedOrgSlug) {
         orgSlug = session.requestedOrgSlug;
         logger.info(`Using requested org slug from session: ${orgSlug}`);
       }
 
       if (orgSlug) {
-        logger.info(`Attempting to match group for slug: "${orgSlug}"`);
-        // Find matching group
+        logger.debug(`Attempting to match group for slug: "${orgSlug}"`);
         const matchingGroup = userGroups.find((group) => {
           if (isAirQoGroup(group)) return false;
 
@@ -327,16 +360,15 @@ export const setupUserSession = async (
         });
 
         if (matchingGroup) {
-          logger.info(`Found matching group: "${matchingGroup.grp_title}"`);
+          logger.info(`✅ Found matching group: "${matchingGroup.grp_title}"`);
         } else {
-          logger.warn(`No matching group for slug "${orgSlug}". Will use first available non-AirQo group.`);
+          logger.warn(`⚠️ No matching group for slug "${orgSlug}". Will use first available non-AirQo group.`);
         }
         activeGroup =
           matchingGroup ||
           userGroups.find((g) => !isAirQoGroup(g)) ||
           userGroups[0];
 
-        // Redirect to proper organization dashboard if we found the matching group
         if (
           matchingGroup &&
           (session?.requestedOrgSlug ||
@@ -347,39 +379,39 @@ export const setupUserSession = async (
         }
       } else {
         logger.warn('Organization route without a slug. Using first available non-AirQo group.');
-        // Fallback for org routes without slug
         activeGroup = userGroups.find((g) => !isAirQoGroup(g)) || userGroups[0];
       }
     } else if (routeType === ROUTE_TYPES.USER) {
-      logger.info('Group Selection: User route. Using AirQo group.');
-      // Individual user routes - use AirQo group
+      logger.info('📍 GROUP SELECTION: User route. Using AirQo group.');
       activeGroup = userGroups.find(isAirQoGroup) || userGroups[0];
     } else {
-      logger.info('Group Selection: Default fallback. Using first available group.');
-      // Default fallback
+      logger.info('📍 GROUP SELECTION: Default fallback. Using first available group.');
       activeGroup = userGroups[0];
     }
 
     if (!activeGroup) {
-      logger.error('CRITICAL: Could not determine an active group after all checks.');
+      logger.error('❌ CRITICAL: Could not determine an active group after all checks.');
       throw new Error('No valid group found');
     }
-    logger.info(`Final active group selected: "${activeGroup.grp_title}" (ID: ${activeGroup._id})`);
 
-    logger.info('Fast session setup completed', {
+    logger.info(`✅ Final active group selected: "${activeGroup.grp_title}" (ID: ${activeGroup._id})`);
+
+    logger.info('✅ FAST SESSION SETUP COMPLETED', {
       activeGroupId: activeGroup._id,
       activeGroupName: activeGroup.grp_title || activeGroup.grp_name,
       redirectPath,
     });
 
     // Update Redux with essential data synchronously
+    logger.debug('🔄 Updating Redux with user groups and active group...');
     dispatch(setUserGroups(userGroups));
     dispatch(setActiveGroup(activeGroup));
     dispatch(setSuccess(true));
     dispatch(setError(''));
+    logger.debug('✅ Redux state updated successfully');
 
     // Load additional data in background (completely non-blocking)
-    // These operations won't delay the user from seeing the dashboard
+    logger.debug('🔄 Starting background data loading...');
     Promise.allSettled([
       loadUserPermissions(session, activeGroup._id, dispatch),
       loadOrganizationTheme(activeGroup, dispatch),
@@ -398,9 +430,10 @@ export const setupUserSession = async (
           );
         }
       });
-      logger.debug('Background data loading completed');
+      logger.debug('✅ Background data loading completed');
     });
 
+    logger.info('✅ setupUserSession COMPLETED SUCCESSFULLY');
     return {
       success: true,
       redirectPath,
@@ -408,7 +441,11 @@ export const setupUserSession = async (
       userGroups,
     };
   } catch (error) {
-    logger.error('User session setup failed:', error);
+    logger.error('❌ setupUserSession FAILED:', {
+      errorMessage: error?.message,
+      errorName: error?.name,
+      errorStack: error?.stack,
+    });
 
     dispatch(setError(error.message));
     dispatch(setSuccess(false));
@@ -427,15 +464,8 @@ export const clearUserSession = async (dispatch) => {
   const { resetReduxStore } = await import('@/lib/logoutUtils');
   try {
     logger.info('Clearing user session...');
-
-    // Perform targeted clears to avoid resetting the entire Redux store
-    // which can cause dependent providers to re-fetch and produce UI
-    // flicker. clearAllGroupData is only used for full resets; instead we
-    // clear specific slices that should be emptied on logout.
     await resetReduxStore(dispatch);
-
     logger.debug('User session cleared');
-
     return { success: true };
   } catch (error) {
     logger.error('Failed to clear user session:', error);

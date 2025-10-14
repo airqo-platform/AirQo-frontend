@@ -165,7 +165,9 @@ const UserLogin = () => {
 
               // Run setup which will populate Redux with user/groups/etc.
               // We await this so the user lands on the app with data loaded.
-              await setupUserSession(session, dispatch, dest);
+              await setupUserSession(session, dispatch, dest, {
+                maintainActiveGroup: true,
+              });
 
               // Redirect to the computed destination
               router.replace(dest);

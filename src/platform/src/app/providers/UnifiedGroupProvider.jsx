@@ -1,6 +1,7 @@
 'use client';
 
 import React, {
+  useState,
   createContext,
   useContext,
   useCallback,
@@ -33,6 +34,7 @@ import LoadingSpinner from '@/common/components/LoadingSpinner';
 import OrganizationNotFound from '@/common/components/Organization/OrganizationNotFound';
 import OrganizationSwitchLoader from '@/common/components/Organization/OrganizationSwitchLoader';
 import logger from '@/lib/logger';
+import LogoutUser from '@/core/HOC/LogoutUser';
 
 const ctx = createContext(null);
 
@@ -78,6 +80,7 @@ const initialState = {
   isSwitching: false,
   initialGroupSet: false,
   sessionInitialized: false,
+  sessionReady: false, // NEW: Tracks if session is fully ready (initialized + group set)
   organization: null,
   organizationTheme: null,
   organizationLoading: false,
@@ -100,6 +103,8 @@ const reducer = (state, action) => {
       return { ...state, initialGroupSet: true };
     case 'SET_SESSION_INITIALIZED':
       return { ...state, sessionInitialized: action.payload };
+    case 'SET_SESSION_READY':
+      return { ...state, sessionReady: action.payload };
     case 'SET_ORG_LOADING':
       return { ...state, organizationLoading: true, organizationError: null };
     case 'SET_ORG_DATA':
@@ -143,6 +148,7 @@ export function UnifiedGroupProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const rdxDispatch = useDispatch();
   const { data: session, status: sessionStatus } = useSession();
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -184,6 +190,7 @@ export function UnifiedGroupProvider({ children }) {
   const initializedRef = useRef(false);
   const mountedRef = useRef(true);
   const prevOrgSlugRef = useRef(null);
+  const setupAbortRef = useRef(null);
 
   // Cleanup function to prevent memory leaks
   const cleanup = useCallback(() => {
@@ -226,6 +233,16 @@ export function UnifiedGroupProvider({ children }) {
       }
     };
   }, [cleanup]);
+
+  // Centralized sign-out logic
+  const handleSignOut = useCallback(async () => {
+    // The LogoutUser utility handles its own loading state, prevents re-entry,
+    // and performs a full application state cleanup and redirect.
+    // We can simply call it here to ensure consistent logout behavior everywhere.
+    // The `isSigningOut` state will be shown until LogoutUser performs a hard redirect.
+    if (!isSigningOut) setIsSigningOut(true);
+    await LogoutUser(rdxDispatch);
+  }, [rdxDispatch, isSigningOut]);
 
   const organizationSlug = useMemo(() => extractOrgSlug(pathname), [pathname]);
   const isOrganizationContext = Boolean(organizationSlug);
@@ -272,11 +289,8 @@ export function UnifiedGroupProvider({ children }) {
         if (isAuthError && typeof signOut === 'function') {
           // Use setTimeout to avoid setState during render
           setTimeout(() => {
-            if (mountedRef.current) {
-              signOut({ callbackUrl: '/user/login' }).catch((e) =>
-                logger.error('signOut failed', e),
-              );
-            }
+            // Use the new centralized sign-out handler
+            if (mountedRef.current) handleSignOut();
           }, 0);
         }
       } finally {
@@ -289,6 +303,7 @@ export function UnifiedGroupProvider({ children }) {
       session?.user?.id,
       userGroupsLength,
       state.isLoading,
+      handleSignOut,
     ],
   );
 
@@ -311,6 +326,9 @@ export function UnifiedGroupProvider({ children }) {
             // mark initial group set safely
             if (mountedRef.current) {
               dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+              // When the first group is set, the session is considered fully ready
+              if (!state.sessionReady)
+                dispatch({ type: 'SET_SESSION_READY', payload: true });
             }
           }
         };
@@ -429,73 +447,98 @@ export function UnifiedGroupProvider({ children }) {
   ]);
 
   // Initialize user session (setup Redux store with user data and groups)
-  useEffect(() => {
-    if (
-      sessionStatus === 'authenticated' &&
-      session?.user?.id &&
-      userGroupsLength > 0 && // Wait for groups to be loaded
-      !state.sessionInitialized &&
-      !lock.current
-    ) {
-      logger.info('Initializing user session with optimized setupUserSession');
+// In UnifiedGroupProvider, in the second useEffect:
 
-      // Set a more reasonable fallback timeout (reduced from 10s to 5s)
-      const fallbackTimeout = setTimeout(() => {
-        if (mountedRef.current && !state.sessionInitialized) {
-          logger.warn('Session setup timeout - forcing session initialization');
+useEffect(() => {
+  if (
+    sessionStatus === 'authenticated' &&
+    session?.user?.id &&
+    userGroupsLength > 0 &&
+    !state.sessionInitialized &&
+    !lock.current
+  ) {
+    logger.info('Initializing user session with optimized setupUserSession', {
+      userId: session.user.id,
+      userGroupsCount: userGroupsLength,
+      userGroupsAvailable: Array.isArray(userGroups) && userGroups.length > 0,
+    });
+
+    const fallbackTimeout = setTimeout(() => {
+      if (mountedRef.current && !state.sessionInitialized) {
+        logger.warn('Session setup timeout - forcing session initialization');
+        dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+        dispatch({ type: 'SET_INITIAL_GROUP_SET', payload: true });
+      }
+    }, 5000);
+
+    const setupSession = async () => {
+      try {
+        // SOLUTION 3: Ensure userGroups are passed to avoid re-fetching
+        // This prevents setupUserSession from making redundant API calls
+        const result = await setupUserSession(
+          session,
+          rdxDispatch,
+          pathname,
+          {
+            // KEY FIX: Explicitly pass the already-fetched userGroups
+            userGroups: Array.isArray(userGroups) && userGroups.length > 0 
+              ? userGroups 
+              : undefined,
+            // Also pass metadata to help setupUserSession make better decisions
+            maintainActiveGroup: true,
+          },
+        );
+
+        if (result.success) {
+          logger.info('User session setup completed successfully', {
+            activeGroupId: result.activeGroup?._id,
+            activeGroupName: result.activeGroup?.grp_title,
+          });
+        } else {
+          logger.error('User session setup failed:', result.error);
+        }
+      } catch (error) {
+        logger.error('setupUserSession error:', error);
+      } finally {
+        clearTimeout(fallbackTimeout);
+
+        if (mountedRef.current) {
           dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
-        }
-      }, 5000); // 5 second maximum wait
-
-      const setupSession = async () => {
-        try {
-          // Provide already-fetched userGroups to avoid redundant API calls
-          const result = await setupUserSession(
-            session,
-            rdxDispatch,
-            pathname,
-            {
-              userGroups,
-            },
-          );
-
-          if (result.success) {
-            logger.info('User session setup completed successfully');
-          } else {
-            logger.error('User session setup failed:', result.error);
-          }
-        } catch (error) {
-          logger.error('setupUserSession error:', error);
-          // On setup failure, still proceed to prevent infinite loading
-          // User can refresh if needed, but we shouldn't block the app
-        } finally {
-          // Clear the fallback timeout since we completed
-          clearTimeout(fallbackTimeout);
-
-          // ALWAYS mark session as initialized to prevent permanent stall
-          // Even if setupUserSession fails, we should allow the app to continue
-          // rather than get stuck on the overlay indefinitely
-          if (mountedRef.current) {
-            dispatch({ type: 'SET_SESSION_INITIALIZED', payload: true });
+          if (!state.initialGroupSet) {
+            dispatch({ type: 'SET_INITIAL_GROUP_SET', payload: true });
           }
         }
-      };
+      }
+    };
 
-      // Start session setup immediately (no setTimeout delay)
-      setupSession();
+    setupSession();
 
-      // Cleanup timeout on unmount
-      return () => clearTimeout(fallbackTimeout);
+    return () => clearTimeout(fallbackTimeout);
+  }
+}, [
+  sessionStatus,
+  session,
+  userGroupsLength,
+  userGroups,  // Make sure this is in dependencies so effect runs when groups change
+  state.sessionInitialized,
+  state.initialGroupSet,  // Add this too
+  rdxDispatch,
+  pathname,
+]);
+
+useEffect(() => {
+  return () => {
+    // Clean up setupUserSession abort controller if it exists
+    if (setupAbortRef.current && typeof setupAbortRef.current.abort === 'function') {
+      try {
+        setupAbortRef.current.abort();
+      } catch (e) {
+        logger.warn('Error aborting setupUserSession:', e);
+      }
+      setupAbortRef.current = null;
     }
-  }, [
-    sessionStatus,
-    session,
-    userGroupsLength,
-    userGroups,
-    state.sessionInitialized,
-    rdxDispatch,
-    pathname,
-  ]);
+  };
+}, []);
 
   // Set initial active group - wait for session to be initialized first
   useEffect(() => {
@@ -512,6 +555,9 @@ export function UnifiedGroupProvider({ children }) {
     // just mark initial group as set
     if (activeGroup && activeGroup._id) {
       dispatch({ type: 'SET_INITIAL_GROUP_SET' });
+      // If we already have an active group, the session is ready
+      if (!state.sessionReady)
+        dispatch({ type: 'SET_SESSION_READY', payload: true });
       return;
     }
 
@@ -524,13 +570,30 @@ export function UnifiedGroupProvider({ children }) {
       target = userGroups.find((g) => g._id === session.user.activeGroup._id);
     }
 
-    if (!target && Array.isArray(userGroups) && userGroups.length > 0) {
-      target = userGroups.find(isAirQoGroup) ?? userGroups[0];
-    }
+    // --- Guard conditions ---
+if (!state.sessionInitialized) {
+  logger.debug("⏳ Skipping fallback: session not initialized yet");
+  return;
+}
 
-    if (target) {
-      setActiveGroupAtomic(target, 'auto-initialization');
-    }
+// Detect if current page is under /org/
+const pathname = window?.location?.pathname ?? '';
+const orgMatch = pathname.match(/^\/org\/([^/]+)/);
+if (orgMatch) {
+  logger.debug("🏢 Skipping fallback: org context detected", { org: orgMatch[1] });
+  return;
+}
+
+// --- Fallback only when it's truly needed ---
+if (!target && Array.isArray(userGroups) && userGroups.length > 0) {
+  target = userGroups.find(isAirQoGroup) ?? userGroups[0];
+}
+
+if (target) {
+  logger.debug("✅ Applying fallback group", { group: target });
+  setActiveGroupAtomic(target, 'auto-initialization');
+}
+
   }, [
     userGroupsLength,
     state.initialGroupSet,
@@ -720,6 +783,7 @@ export function UnifiedGroupProvider({ children }) {
       activeGroup,
       userGroups,
       setActiveGroupById,
+      handleSignOut,
       switchToGroup,
       refreshGroups,
       isOrganizationContext,
@@ -747,6 +811,7 @@ export function UnifiedGroupProvider({ children }) {
       activeGroup,
       userGroups,
       setActiveGroupById,
+      handleSignOut,
       switchToGroup,
       refreshGroups,
       isOrganizationContext,
@@ -761,6 +826,15 @@ export function UnifiedGroupProvider({ children }) {
     state.organizationTheme?.primaryColor &&
     state.organizationTheme?.secondaryColor &&
     state.organizationTheme?.logo;
+
+  // Show a loader during the sign-out process
+  if (isSigningOut) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <LoadingSpinner size="lg" text="Signing out..." />
+      </div>
+    );
+  }
 
   const showLoader =
     isOrganizationContext &&
