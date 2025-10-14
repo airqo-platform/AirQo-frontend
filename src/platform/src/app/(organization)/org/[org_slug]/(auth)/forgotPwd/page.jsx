@@ -8,7 +8,7 @@ import * as Yup from 'yup';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { FaCheckCircle } from 'react-icons/fa';
 
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { forgotPasswordApi } from '@/core/apis/Organizations';
 import Toast from '@/common/components/Toast';
@@ -32,7 +32,7 @@ const OrganizationForgotPassword = () => {
   const [recaptchaToken, setRecaptchaToken] = useState(null);
   const recaptchaRef = useRef(null);
   const params = useParams();
-  const { getDisplayName, primaryColor } = useOrganization();
+  const { getDisplayName, primaryColor } = useOrganizationSafe();
 
   const orgSlug = params?.org_slug || 'airqo';
   const handleSubmit = useCallback(

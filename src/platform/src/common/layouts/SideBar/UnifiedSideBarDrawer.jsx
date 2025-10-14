@@ -13,7 +13,7 @@ import {
   getMobileNavigationItems,
   getOrgSlugFromPath,
 } from './sidebarConfig';
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Unified drawer component that works for all user types
@@ -34,10 +34,10 @@ const UnifiedSideBarDrawer = ({ userType, isDarkMode = false }) => {
   // Get organization data for logo display when in organization context
   const isOrganizationContext = pathname.startsWith('/org/');
 
-  // Always call useOrganization, but only use result when in org context
+  // Always call useOrganizationSafe, but only use result when in org context
   let organization = null;
   try {
-    const orgResult = useOrganization();
+    const orgResult = useOrganizationSafe();
     organization = isOrganizationContext ? orgResult.organization : null;
   } catch {
     // not an org route or error occurred, use null

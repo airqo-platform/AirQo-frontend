@@ -14,7 +14,7 @@ import useInactivityLogout from '@/core/hooks/useInactivityLogout';
 import useMaintenanceStatus from '@/core/hooks/useMaintenanceStatus';
 import {
   useGetActiveGroup,
-  useOrganization,
+  useOrganizationSafe,
 } from '@/app/providers/UnifiedGroupProvider';
 import { useTheme } from '@/common/features/theme-customizer/hooks/useTheme';
 import { ThemeCustomizer } from '@/common/features/theme-customizer/components/ThemeCustomizer';
@@ -35,10 +35,10 @@ export default function UnifiedPagesLayout({ children }) {
   const { data: session } = useSession();
   const { width } = useWindowSize();
 
-  // Guarded call to useOrganization to prevent runtime errors on non-/org routes
+  // Guarded call to useOrganizationSafe to prevent runtime errors on non-/org routes
   let organization = null;
   try {
-    const orgResult = useOrganization();
+    const orgResult = useOrganizationSafe();
     organization = orgResult.organization;
   } catch {
     // not an org route, ignore

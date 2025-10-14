@@ -8,7 +8,6 @@ import { useParams, useRouter } from 'next/navigation';
 import * as Yup from 'yup';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import InputField from '@/common/components/InputField';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
@@ -16,6 +15,7 @@ import NotificationService from '@/core/utils/notificationService';
 import logger from '@/lib/logger';
 import { formatOrgSlug } from '@/core/utils/strings';
 import { setupUserSession } from '@/core/utils/loginSetup';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -32,12 +32,18 @@ const OrganizationLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const params = useParams();
   const router = useRouter();
-  const { getDisplayName, primaryColor } = useOrganization();
+  const { getDisplayName, primaryColor } = useOrganizationSafe();
   const orgSlug = params.org_slug;
+
+  logger.debug('OrganizationLogin rendered', {
+    orgSlug,
+    isLoading,
+  });
 
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
+      logger.info('🔵 Organization Login: Form submitted', { orgSlug });
       setIsLoading(true);
 
       // Validate form data
@@ -46,28 +52,35 @@ const OrganizationLogin = () => {
           { userName, password },
           { abortEarly: false },
         );
+        logger.debug('✅ Form validation passed');
       } catch (validationError) {
+        logger.warn('❌ Form validation failed', { errors: validationError.inner });
         const messages = validationError.inner
           .map((err) => err.message)
           .join(', ');
         setIsLoading(false);
-        // Use status code 422 for validation errors
         NotificationService.error(422, messages);
         return;
       }
 
       try {
-        // Use NextAuth signIn - orgSlug is captured for validation but not sent to backend
+        logger.info('🌐 Calling signIn with credentials', { userName, orgSlug });
         const result = await signIn('credentials', {
-          userName: userName, // NextAuth provider expects userName
+          userName: userName,
           password,
-          orgSlug, // Captured for organization validation after login
+          orgSlug,
           redirect: false,
         });
 
+        logger.debug('📡 signIn result:', {
+          ok: result?.ok,
+          error: result?.error,
+          status: result?.status,
+        });
+
         if (result?.error) {
-          // Enhanced error handling with better status code detection and user-friendly messages
-          let statusCode = 401; // Default to unauthorized
+          logger.error('❌ Sign in failed:', result.error);
+          let statusCode = 401;
           let customMessage = null;
 
           const errorMsg = result.error.toLowerCase();
@@ -121,7 +134,7 @@ const OrganizationLogin = () => {
               'Server error occurred. Please try again in a moment.';
           } else {
             statusCode = 400;
-            customMessage = result.error; // Use original error message as fallback
+            customMessage = result.error;
           }
 
           NotificationService.error(statusCode, customMessage);
@@ -129,53 +142,113 @@ const OrganizationLogin = () => {
         }
 
         if (result?.ok) {
-          // Get the session and run client-side setup so user lands in app with data
-          const session = await getSession();
+          logger.info('✅ Sign in successful, fetching session');
+          NotificationService.success(200, 'Welcome back!');
 
-          if (session?.user) {
-            try {
-              // Compute resolved organization slug and path first so setupUserSession
-              // can select the correct active group based on the intended route.
+          try {
+            logger.info('📋 Getting session...');
+            const session = await getSession();
+            logger.debug('✅ Session retrieved:', {
+              userId: session?.user?.id,
+              hasRequestedOrgSlug: !!session?.requestedOrgSlug,
+              requestedOrgSlug: session?.requestedOrgSlug,
+              orgSlug: session?.orgSlug,
+            });
+
+            if (session?.user) {
+              logger.info('✅ User found in session, computing redirect path');
               const redirectOrg =
                 session.requestedOrgSlug || session.orgSlug || orgSlug;
               const setupPath = redirectOrg
                 ? `/org/${redirectOrg}`
                 : '/user/Home';
 
-              await setupUserSession(session, dispatch, setupPath);
+              logger.info('🔄 Calling setupUserSession', {
+                setupPath,
+                redirectOrg,
+                userId: session.user.id,
+              });
 
-              const dest = redirectOrg
-                ? `/org/${redirectOrg}/dashboard`
-                : '/user/Home';
-              if (redirectOrg) router.replace(dest);
-              else router.replace('/user/Home');
-              return;
-            } catch (err) {
-              NotificationService.error(
-                500,
-                err.message || 'Login setup failed',
-              );
-              return;
+              try {
+                logger.info('⏳ setupUserSession starting...');
+                const setupResult = await setupUserSession(session, dispatch, setupPath, {
+                  maintainActiveGroup: true,
+                });
+                logger.debug('setupUserSession result:', {
+                  success: setupResult?.success,
+                  error: setupResult?.error,
+                  activeGroupId: setupResult?.activeGroup?._id,
+                });
+
+                if (!setupResult?.success) {
+                  logger.error('❌ setupUserSession failed:', setupResult?.error);
+                  NotificationService.error(
+                    500,
+                    setupResult?.error || 'Login setup failed',
+                  );
+                  return;
+                }
+
+                logger.info('✅ setupUserSession completed successfully');
+
+                const dest = redirectOrg
+                  ? `/org/${redirectOrg}/dashboard`
+                  : '/user/Home';
+
+                logger.info('🚀 Redirecting to:', dest);
+                if (redirectOrg) {
+                  router.replace(dest);
+                } else {
+                  router.replace('/user/Home');
+                }
+                return;
+              } catch (setupErr) {
+                logger.error('❌ setupUserSession error:', {
+                  message: setupErr?.message,
+                  name: setupErr?.name,
+                  stack: setupErr?.stack,
+                });
+                NotificationService.error(
+                  500,
+                  setupErr.message || 'Login setup failed',
+                );
+                return;
+              }
             }
-          }
 
-          NotificationService.error(
-            500,
-            'Session setup failed. Please try logging in again.',
-          );
-          return;
+            logger.error('❌ No user found in session');
+            NotificationService.error(
+              500,
+              'Session setup failed. Please try logging in again.',
+            );
+            return;
+          } catch (err) {
+            logger.error('❌ Session retrieval error:', {
+              message: err?.message,
+              name: err?.name,
+            });
+            NotificationService.error(
+              500,
+              err.message || 'Failed to retrieve session',
+            );
+            return;
+          }
         } else {
+          logger.error('❌ signIn returned not ok:', result?.status);
           NotificationService.error(500, 'Login failed. Please try again.');
         }
       } catch (err) {
-        logger.error('Organization login error:', err);
-
-        // Use status-based notification for unexpected errors
+        logger.error('❌ Organization login unexpected error:', {
+          message: err?.message,
+          name: err?.name,
+          stack: err?.stack,
+        });
         NotificationService.error(
           500,
           err.message || 'Something went wrong, please try again',
         );
       } finally {
+        logger.info('🏁 Login attempt completed');
         setIsLoading(false);
       }
     },
@@ -196,7 +269,6 @@ const OrganizationLogin = () => {
         subtitle="Access your organization's air quality analytics dashboard"
       >
         <div className="w-full">
-          {/* Toast notifications now handled globally by CustomToast via NotificationService */}
           <form onSubmit={handleSubmit} noValidate>
             <div className="mt-6">
               <InputField

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState, useCallback } from 'react';
 import PermissionDenied from '@/common/components/PermissionDenied';
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
 import { usePermissions } from '@/core/utils/permissionUtils';
 import Button from '@/common/components/Button';
@@ -15,7 +15,7 @@ import logger from '@/lib/logger';
 import CustomToast from '@/common/components/Toast/CustomToast';
 
 const OrganizationMembersPage = () => {
-  const { organization, primaryColor } = useOrganization();
+  const { organization, primaryColor } = useOrganizationSafe();
   const activeGroup = useSelector((state) => state.groups?.activeGroup);
 
   const [members, setMembers] = useState([]);

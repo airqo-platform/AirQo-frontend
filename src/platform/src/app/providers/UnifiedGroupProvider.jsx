@@ -244,7 +244,14 @@ export function UnifiedGroupProvider({ children }) {
     await LogoutUser(rdxDispatch);
   }, [rdxDispatch, isSigningOut]);
 
-  const organizationSlug = useMemo(() => extractOrgSlug(pathname), [pathname]);
+  const organizationSlug = useMemo(() => {
+    // Don't treat auth routes as organization context
+    if (pathname?.includes('/login') || pathname?.includes('/register') || pathname?.includes('/auth')) {
+      return null;
+    }
+    return extractOrgSlug(pathname);
+  }, [pathname]);
+  
   const isOrganizationContext = Boolean(organizationSlug);
 
   // --- Core Logic (moved to useCallback to prevent recreations) ---
@@ -949,7 +956,7 @@ export const useGetActiveGroup = () => {
   };
 };
 
-export const useOrganization = () => {
+export const useOrganizationSafe = () => {
   const {
     organization,
     organizationTheme,
@@ -960,11 +967,27 @@ export const useOrganization = () => {
     primaryColor,
     secondaryColor,
     logo,
+    organizationSlug,
   } = useUnifiedGroup();
 
-  if (!isOrganizationContext) {
-    throw new Error('useOrganization must be used within /org/ context');
-  }
+  // Return null or defaults instead of throwing
+if (!isOrganizationContext) {
+  return {
+    organization: null,
+    theme: organizationTheme,
+    isLoading: false, // Don't show loading for non-org contexts
+    error: organizationError,
+    isInitialized: true, // Consider it initialized for non-org contexts
+    primaryColor: '#135DFF',
+    secondaryColor: '#1B2559',
+    logo: '/icons/airqo_logo.svg',
+    organizationSlug: null,
+    getDisplayName: () => 'AirQo',
+    canUserRegister: () => false,
+    requiresApproval: () => false,
+    isOrgContext: false,
+  };
+}
 
   return {
     organization,
@@ -975,6 +998,7 @@ export const useOrganization = () => {
     primaryColor,
     secondaryColor,
     logo,
+    organizationSlug,
     getDisplayName: () =>
       organization?.parent
         ? `${organization.parent.name} - ${organization.name}`
@@ -982,6 +1006,7 @@ export const useOrganization = () => {
     canUserRegister: () =>
       organization?.settings?.allowSelfRegistration || false,
     requiresApproval: () => organization?.settings?.requireApproval || false,
+    isOrgContext: true,
   };
 };
 

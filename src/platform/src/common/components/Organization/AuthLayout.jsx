@@ -1,7 +1,7 @@
 'use client';
 
 import PropTypes from 'prop-types';
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import GroupLogo from '@/common/components/GroupLogo';
@@ -19,7 +19,7 @@ const AuthLayout = ({
     isLoading,
     isInitialized,
     primaryColor,
-  } = useOrganization();
+  } = useOrganizationSafe();
 
   // Show loading spinner while organization data is being fetched
   // Also show loading if we haven't initialized yet (prevents flashing)

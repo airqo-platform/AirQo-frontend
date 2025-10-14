@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 import { useSelector } from 'react-redux';
 import Button from '@/common/components/Button';
 import ReusableTable from '@/common/components/Table/ReusableTable';
@@ -40,7 +40,7 @@ import { useRouter } from 'next/navigation';
  */
 const RolesPermissionsPage = () => {
   const router = useRouter();
-  const { organization } = useOrganization();
+  const { organization } = useOrganizationSafe();
   const activeGroup = useSelector((state) => state.groups?.activeGroup);
 
   const [roles, setRoles] = useState([]);

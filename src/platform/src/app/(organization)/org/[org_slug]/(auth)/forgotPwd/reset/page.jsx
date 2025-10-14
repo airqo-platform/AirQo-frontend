@@ -7,7 +7,7 @@ import * as Yup from 'yup';
 import Link from 'next/link';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { resetPasswordApi } from '@/core/apis/Organizations';
 import Toast from '@/common/components/Toast';
@@ -47,7 +47,7 @@ const OrganizationResetPassword = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const params = useParams();
-  const { getDisplayName, primaryColor } = useOrganization();
+  const { getDisplayName, primaryColor } = useOrganizationSafe();
 
   const token = searchParams.get('token');
   const orgSlug = params?.org_slug || 'airqo';

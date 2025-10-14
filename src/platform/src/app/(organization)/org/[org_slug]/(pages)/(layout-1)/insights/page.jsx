@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 import { setOpenModal } from '@/lib/store/services/downloadModal';
 import AQNumberCard from '@/features/airQuality-cards';
 import Modal from '@/features/download-insights-locations';
@@ -21,7 +21,7 @@ import AirQualityLoadingSkeleton from '@/common/components/Skeleton/AirQualityLo
 
 const OrganizationInsightsPage = () => {
   const dispatch = useDispatch();
-  const { organization } = useOrganization();
+  const { organization } = useOrganizationSafe();
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
   const isModalOpen = useSelector((state) => state.modal.openModal);
 

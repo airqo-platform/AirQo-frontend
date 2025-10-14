@@ -8,7 +8,7 @@ import * as Yup from 'yup';
 import { FaEye, FaEyeSlash, FaCheckCircle } from 'react-icons/fa';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
+import { useOrganizationSafe } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { registerUserToOrgApi } from '@/core/apis/Organizations';
 import Toast from '@/common/components/Toast';
@@ -82,7 +82,7 @@ const OrganizationRegister = () => {
   const router = useRouter();
   const params = useParams();
   const { getDisplayName, canUserRegister, requiresApproval, primaryColor } =
-    useOrganization();
+  useOrganizationSafe();
 
   const orgSlug = params?.org_slug || 'airqo';
 
