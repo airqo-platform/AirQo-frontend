@@ -527,7 +527,7 @@ export function UnifiedGroupProvider({ children }) {
         lock.current = false;
       }
     },
-    [session.user.id, state.isSwitching, activeGroup?._id, activeGroup?.grp_title, rdxDispatch, pathname, organizationSlug, router],
+    [session, state.isSwitching, activeGroup?._id, activeGroup?.grp_title, rdxDispatch, pathname, organizationSlug, router],
   );
 
   const setActiveGroupById = useCallback(
