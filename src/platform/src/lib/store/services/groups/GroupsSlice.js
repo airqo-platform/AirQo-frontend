@@ -10,24 +10,18 @@ import logger from '@/lib/logger';
 export const fetchUserGroups = createAsyncThunk(
   'groups/fetchUserGroups',
   async (userID, { rejectWithValue }) => {
+    let response;
     try {
-      const response = await getUserDetails(userID);
-
-      if (!response.success || !response.users || response.users.length === 0) {
+      response = await getUserDetails(userID);
+      if (!response?.success || !response?.users || response.users.length === 0) {
         throw new Error('Failed to fetch user details or user not found');
       }
 
       const user = response.users[0];
 
-      // Normalize data according to requirements:
-      // 1. Extract networks, groups, clients safely
-      // 2. Use groups first, fallback to my_groups, else empty array
-      // 3. Strip everything else except what UI consumes
-
       const safeNetworks = Array.isArray(user.networks) ? user.networks : [];
       const safeClients = Array.isArray(user.clients) ? user.clients : [];
 
-      // Safe groups extraction with fallback pattern
       const safeGroups = Array.isArray(user.groups)
         ? user.groups
         : Array.isArray(user.my_groups)
@@ -36,13 +30,10 @@ export const fetchUserGroups = createAsyncThunk(
 
       // Normalize groups to consistent structure
       const normalizedGroups = safeGroups.map((group) => ({
-        // Keep only what's needed for UI (explicitly override any originals below)
-        ...group,
         _id: group._id,
         grp_title: group.grp_title,
         grp_profile_picture: group.grp_profile_picture || group.grp_image,
         organization_slug: group.organization_slug,
-        // Prefer specific slug fields; fall back sensibly
         grp_slug: group.grp_slug || group.organization_slug || group.slug,
         grp_country: group.grp_country,
         grp_industry: group.grp_industry,
@@ -56,26 +47,53 @@ export const fetchUserGroups = createAsyncThunk(
       }));
 
       // Return normalized user data with only essential fields
+      // FIX: Ensure all values are serializable (no objects, functions, dates)
       const normalizedUser = {
-        _id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        userName: user.userName,
-        organization: user.organization,
-        long_organization: user.long_organization,
-        privilege: user.privilege,
-        profilePicture: user.profilePicture,
-        networks: safeNetworks,
-        clients: safeClients,
+        _id: String(user._id || ''),
+        firstName: String(user.firstName || ''),
+        lastName: String(user.lastName || ''),
+        email: String(user.email || ''),
+        userName: String(user.userName || ''),
+        organization: String(user.organization || ''),
+        long_organization: String(user.long_organization || ''),
+        privilege: user.privilege !== undefined && user.privilege !== null ? user.privilege : null,
+        profilePicture: String(user.profilePicture || ''),
+        networks: Array.isArray(safeNetworks)
+          ? safeNetworks.map(n => typeof n === 'string' ? n : String(n._id || n))
+          : [],
+        clients: Array.isArray(safeClients)
+          ? safeClients.map(c => typeof c === 'string' ? c : String(c._id || c))
+          : [],
       };
 
-      return {
+      // FIX: Create plain JavaScript object with only serializable data
+      const result = {
         user: normalizedUser,
         groups: normalizedGroups,
       };
+
+      logger.info('Redux Thunk: fetchUserGroups returning successfully', {
+        groupsCount: result.groups.length,
+        userId: result.user._id,
+        hasGroups: result.groups.length > 0,
+        resultKeys: Object.keys(result),
+        groupsLength: result.groups?.length,
+      });
+
+      // FIX: Ensure payload is serializable by JSON stringifying and parsing
+      // This catches any non-serializable data
+      const serializedResult = JSON.parse(JSON.stringify(result));
+
+      logger.info('Redux Thunk: After serialization check', {
+        groupsCount: serializedResult.groups?.length || 0,
+        userExists: !!serializedResult.user,
+        payloadType: typeof serializedResult,
+        payloadKeys: Object.keys(serializedResult),
+      });
+
+      return serializedResult;
     } catch (error) {
-      logger.error('Error fetching user groups:', error);
+      logger.error('Error fetching user groups:', { error, response });
       return rejectWithValue(error.message || 'Failed to fetch user groups');
     }
   },
@@ -222,25 +240,66 @@ const groupsSlice = createSlice({
         state.userGroupsLoading = true;
         state.userGroupsError = null;
       })
-      .addCase(fetchUserGroups.fulfilled, (state, action) => {
-        state.userGroupsLoading = false;
-        // Ensure groups is always an array, even if API returns null/undefined
-        state.userGroups = Array.isArray(action.payload?.groups)
-          ? action.payload.groups
-          : [];
-        state.userInfo = action.payload?.user || null;
-        state.lastFetched = Date.now();
-        state.userGroupsError = null;
-      })
       .addCase(fetchUserGroups.rejected, (state, action) => {
+        logger.error('Redux Reducer: fetchUserGroups.rejected', {
+          error: action.payload,
+          errorType: typeof action.payload,
+        });
         state.userGroupsLoading = false;
         state.userGroupsError = action.payload;
-        // Ensure userGroups remains an empty array on error to prevent undefined access
         if (!Array.isArray(state.userGroups)) {
           state.userGroups = [];
         }
       })
+      .addCase(fetchUserGroups.fulfilled, (state, action) => {
+        logger.info('Redux Reducer: fetchUserGroups.fulfilled - RAW PAYLOAD', {
+          action: action,
+          payload: action.payload,
+          payloadType: typeof action.payload,
+          payloadKeys: action.payload ? Object.keys(action.payload) : [],
+          payloadUser: action.payload?.user,
+          payloadGroups: action.payload?.groups,
+          payloadGroupsLength: action.payload?.groups?.length,
+          payloadGroupsIsArray: Array.isArray(action.payload?.groups),
+        });
 
+        state.userGroupsLoading = false;
+
+        // FIX: Properly destructure with defensive checks
+        let groups = [];
+        let user = null;
+
+        if (action.payload) {
+          // Check if payload has groups directly
+          if (Array.isArray(action.payload.groups)) {
+            groups = action.payload.groups;
+            user = action.payload.user || null;
+          }
+          // Fallback: check if entire payload is groups array (shouldn't happen, but be safe)
+          else if (Array.isArray(action.payload)) {
+            groups = action.payload;
+          }
+          // Fallback: if payload is an object but groups is missing
+          else if (typeof action.payload === 'object') {
+            user = action.payload.user || null;
+            groups = action.payload.groups || [];
+          }
+        }
+
+        state.userGroups = Array.isArray(groups) ? groups : [];
+        state.userInfo = user;
+
+        logger.info('Redux Reducer: State after update', {
+          newGroupsInState: state.userGroups.length,
+          newUserInState: !!state.userInfo,
+          userGroupsArray: state.userGroups,
+          userInfoObject: state.userInfo,
+          finalGroupsIsArray: Array.isArray(state.userGroups),
+        });
+
+        state.lastFetched = Date.now();
+        state.userGroupsError = null;
+      })
       // Fetch Group Details
       .addCase(fetchGroupDetails.pending, (state) => {
         state.groupDetailsLoading = true;
