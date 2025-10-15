@@ -397,8 +397,8 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
             limit: params.limit,
             category: category,
             ...(search && { search }),
+            signal
           },
-          signal,
         );
       },
       [normalizedGroup, category, search],
