@@ -424,7 +424,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
         }
       }
 
-      const { getDevicesSummaryApi } = await import('../apis/Analytics'); // Or wherever your all-devices API is
+      const { getDevicesSummaryApi } = await import('../apis/Analytics');
       return getDevicesSummaryApi({
         ...params,
         category,
