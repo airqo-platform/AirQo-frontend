@@ -205,6 +205,7 @@ const DataDownload = ({
     data: siteAndDeviceIds,
     isLoading: isLoadingSiteIds,
     isError: isSiteIdsError,
+    error: siteAndDeviceIdsError
   } = useSiteAndDeviceIds(selectedGridId);
 
   // Data fetching hooks with dependencies using paginated versions
@@ -336,7 +337,7 @@ const DataDownload = ({
       setStatusMessage('Preparing location data...');
       setMessageType(MESSAGE_TYPES.INFO);
     } else if (isSiteIdsError) {
-      setStatusMessage(getApiErrorMessage(siteAndDeviceIds) || 'Error loading data. Please try again.');
+      setStatusMessage(getApiErrorMessage(siteAndDeviceIdsError) || 'Error loading data. Please try again.');
       setMessageType(MESSAGE_TYPES.ERROR);
     } else if (siteAndDeviceIds?.site_ids?.length) {
       setStatusMessage('Ready to download');
@@ -352,6 +353,7 @@ const DataDownload = ({
     siteAndDeviceIds,
     setStatusMessage,
     setMessageType,
+    siteAndDeviceIdsError
   ]);
 
   // Clear selections when filter changes
