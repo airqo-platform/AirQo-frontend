@@ -226,7 +226,7 @@ const DataDownload = ({
     hasNextPage: sitesHasNextPage,
     nextPage: sitesNextPage,
     prevPage: sitesPrevPage,
-  } = usePaginatedSitesSummary(isGridSelection ? '' : groupTitle || 'airqo', {
+  } = usePaginatedSitesSummary(isGridSelection ? '' : groupId, {
     enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,

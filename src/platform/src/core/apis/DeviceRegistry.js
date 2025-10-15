@@ -10,6 +10,7 @@ import {
   NEAREST_SITE_URL,
   GRIDS_SUMMARY_URL,
   DEVICES_FOR_COHORTS_URL,
+  SITES_FOR_COHORTS_URL,
 } from '../urls/deviceRegistry';
 
 // Grid locations endpoints
@@ -86,6 +87,7 @@ export const getDevicesForCohortsApi = ({
   cohort_ids = [],
   skip = 0,
   limit = 30,
+  search='',
   category,
   signal,
 } = {}) => {
@@ -97,8 +99,8 @@ export const getDevicesForCohortsApi = ({
   const params = {
     skip: sanitizedSkip,
     limit: sanitizedLimit,
-    // Add category to query params if provided
     ...(category && { category }),
+    ...(search && { search }),
   };
 
   // Put cohort_ids in request body
@@ -127,6 +129,46 @@ export const getDevicesForCohortsApi = ({
       // Re-throw other errors
       throw error;
     });
+};
+
+export const getSitesForCohortsApi = ({
+  cohort_ids = [],
+  skip = 0,
+  limit = 30,
+  search='',
+  category,
+  signal,
+} = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  // Put pagination parameters in query params
+  const params = {
+    skip: sanitizedSkip,
+    limit: sanitizedLimit,
+    ...(category && { category }),
+    ...(search && { search }),
+  };
+
+  // Put cohort_ids in request body
+  const body = {
+    cohort_ids: Array.isArray(cohort_ids) ? cohort_ids : [],
+  };
+
+  const config = {
+    params,
+    authType: AUTH_TYPES.JWT,
+  };
+
+  // Add abort signal if provided and still valid
+  if (signal && !signal.aborted) {
+    config.signal = signal;
+  }
+
+  return secureApiProxy
+    .post(SITES_FOR_COHORTS_URL, body, config)
+    .then((response) => response.data);
 };
 
 export const getMapReadings = (abortSignal = null) => {
