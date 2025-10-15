@@ -351,6 +351,16 @@ const DataTable = ({
     [],
   );
 
+    useEffect(() => {
+        const next =
+          filters.find(f => f.key === activeFilterKey) ||
+          filters[0] ||
+          null;
+        setActiveFilter(next);
+        setColumnFilters({});    
+        setCurrentPage(1);       
+      }, [activeFilterKey, filters]);
+
   // Determine whether the table is backed by server-side pagination
   const serverPaged = Boolean(paginationMeta && paginationMeta.totalPages);
 

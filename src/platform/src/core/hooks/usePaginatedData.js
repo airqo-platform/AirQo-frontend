@@ -371,7 +371,6 @@ export const usePaginatedDevicesSummary = (options = {}) => {
           skip: params.skip,
           limit: params.limit,
           category: category,
-          // Pass search if the API supports it
           ...(params.search && { search: params.search }),
         },
         signal,

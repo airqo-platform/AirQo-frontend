@@ -281,11 +281,10 @@ const DataDownload = ({
     hasNextPage: devicesHasNextPage,
     nextPage: devicesNextPage,
     prevPage: devicesPrevPage,
-  } = usePaginatedDevicesSummary({
+  } = usePaginatedDevicesSummary(groupId, {
     enableInfiniteScroll: false,
     initialLimit: 6,
     search: searchQuery,
-    group: groupId, // Changed from groupTitle to groupId
     category: formData.deviceCategory?.name?.toLowerCase() || 'lowcost',
   });
 
