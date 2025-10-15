@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import useSWR from 'swr';
 import { SWR_CONFIG } from '../swrConfigs';
 import logger from '@/lib/logger';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 
 /**
  * Generic hook for handling paginated API endpoints with SWR
@@ -314,26 +315,27 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
   const normalizedGroup =
     typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
-    const fetcher = useCallback(
-      async (params, signal) => {
-        // If a group is provided, fetch sites for that group's cohorts
-        if (normalizedGroup) {
-          const { getGroupCohortsApi } = await import('../apis/Account');
-          const { getSitesForCohortsApi } = await import(
-            '../apis/DeviceRegistry'
-          );
-    
-          // Step 1: Fetch cohorts for the group
+  const fetcher = useCallback(
+    async (params, signal) => {
+      // If a group is provided, fetch sites for that group's cohorts
+      if (normalizedGroup) {
+        const { getGroupCohortsApi } = await import('../apis/Account');
+        const { getSitesForCohortsApi } = await import(
+          '../apis/DeviceRegistry'
+        );
+
+        // Step 1: Fetch cohorts for the group
+        try {
           const cohortsResponse = await getGroupCohortsApi(
             normalizedGroup,
             signal,
           );
           const cohortIds = cohortsResponse?.data || [];
-    
+
           if (cohortIds.length === 0) {
             return { sites: [], meta: {} };
           }
-    
+
           // Step 2: Fetch sites for the retrieved cohorts
           return getSitesForCohortsApi({
             cohort_ids: cohortIds,
@@ -341,18 +343,28 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
             ...(search && { search }),
             signal,
           });
+        } catch (error) {
+          if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+            throw new Error('Request cancelled');
+          }
+          // Handle cohort fetch errors
+          throw new Error(
+            `Unable to fetch sites: ${getApiErrorMessage(error)}`
+          );
         }
-    
-        // Fallback: If no group, fetch all sites using the old method
-        const { getSitesSummaryApi } = await import('../apis/Analytics');
-        return getSitesSummaryApi({ 
-          ...params, 
-          ...(search && { search }),
-          signal 
-        });
-      },
-      [normalizedGroup, search],
-    );
+
+      }
+
+      // Fallback: If no group, fetch all sites using the old method
+      const { getSitesSummaryApi } = await import('../apis/Analytics');
+      return getSitesSummaryApi({
+        ...params,
+        ...(search && { search }),
+        signal
+      });
+    },
+    [normalizedGroup, search],
+  );
 
   return usePaginatedData(
     ['sites-summary-paginated', normalizedGroup || 'all', search || ''],
@@ -374,35 +386,55 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
   const normalizedGroup =
     typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
-    const fetcher = useCallback(
-      async (params, signal) => {
-        if (!normalizedGroup) return { devices: [], meta: {} };
-    
+  const fetcher = useCallback(
+    async (params, signal) => {
+      if (normalizedGroup) {
+
         const { getGroupCohortsApi } = await import('../apis/Account');
         const { getDevicesForCohortsApi } = await import('../apis/DeviceRegistry');
-    
+
         // Step 1: Fetch cohorts for the group
-        const cohortsResponse = await getGroupCohortsApi(normalizedGroup, signal);
-        const cohortIds = cohortsResponse?.data || [];
-    
-        if (cohortIds.length === 0) {
-          return { devices: [], meta: {} };
+        try {
+          const cohortsResponse = await getGroupCohortsApi(normalizedGroup, signal);
+          const cohortIds = cohortsResponse?.data || [];
+
+          if (cohortIds.length === 0) {
+            return { devices: [], meta: {} };
+          }
+
+          // Step 2: Fetch devices for the retrieved cohorts
+          return getDevicesForCohortsApi(
+            {
+              cohort_ids: cohortIds,
+              skip: params.skip,
+              limit: params.limit,
+              category: category,
+              ...(search && { search }),
+              signal
+            },
+          );
+        } catch (error) {
+          if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+            throw new Error('Request cancelled');
+          }
+          // Handle cohort fetch errors
+          throw new Error(
+            `Unable to fetch devices: ${getApiErrorMessage(error)}`
+          );
         }
-    
-        // Step 2: Fetch devices for the retrieved cohorts
-        return getDevicesForCohortsApi(
-          {
-            cohort_ids: cohortIds,
-            skip: params.skip,
-            limit: params.limit,
-            category: category,
-            ...(search && { search }),
-            signal
-          },
-        );
-      },
-      [normalizedGroup, category, search],
-    );
+      }
+
+      const { getDevicesSummaryApi } = await import('../apis/Analytics'); // Or wherever your all-devices API is
+      return getDevicesSummaryApi({
+        ...params,
+        category,
+        ...(search && { search }),
+        signal
+      });
+
+    },
+    [normalizedGroup, category, search],
+  );
 
   return usePaginatedData(
     ['devices-summary-paginated', normalizedGroup || 'all', category, search || ''],
