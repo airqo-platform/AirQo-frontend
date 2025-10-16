@@ -14,6 +14,7 @@ import PasswordInputWithToggle from '@/common/components/PasswordInputWithToggle
 import * as Yup from 'yup';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
 import logger from '@/lib/logger';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
@@ -95,34 +96,27 @@ const ResetPassword = () => {
         if (!isMountedRef.current) return;
 
         if (response?.success) {
-          CustomToast({
-            message: response.message || 'Password reset successfully!',
-            type: TOAST_TYPES.SUCCESS,
-            duration: 8000,
-          });
+          showToast(
+            response.message || 'Password reset successfully!',
+            TOAST_TYPES.SUCCESS,
+          );
           setTimeout(() => {
             if (isMountedRef.current) {
               router.push('/user/login');
             }
           }, 2000);
         } else {
-          CustomToast({
-            message:
-              response?.message ||
+          showToast(
+            response?.message ||
               'Failed to reset password. The link may be invalid or expired.',
-            type: TOAST_TYPES.ERROR,
-            duration: 8000,
-          });
+            TOAST_TYPES.ERROR,
+          );
         }
       } catch (err) {
         if (!isMountedRef.current) return;
 
         logger.error('Reset password API error:', err);
-        CustomToast({
-          message: 'An unexpected error occurred. Please try again later.',
-          type: TOAST_TYPES.ERROR,
-          duration: 8000,
-        });
+        showToast(getApiErrorMessage(err), TOAST_TYPES.ERROR);
       } finally {
         if (isMountedRef.current) {
           stopLoading();
