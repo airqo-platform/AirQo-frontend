@@ -144,7 +144,7 @@ const ResetPassword = () => {
           <CustomToast
             message={toastData.message}
             type={toastData.type}
-            onClose={() => setToastData({ ...toastData, show: false })}
+            onDismiss={() => setToastData({ ...toastData, show: false })}
           />
         )}
         <div className="w-full">
