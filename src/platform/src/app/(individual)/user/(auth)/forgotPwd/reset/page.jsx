@@ -41,12 +41,24 @@ const ResetPassword = () => {
   const token = searchParams.get('token');
   const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
+  const [toastData, setToastData] = useState({
+    message: '',
+    type: '',
+    show: false,
+  });
 
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
     };
   }, []);
+
+  const showToast = (message, type, duration = 8000) => {
+    setToastData({ message, type, show: true });
+    setTimeout(() => {
+      if (isMountedRef.current) setToastData({ message: '', type: '', show: false });
+    }, duration);
+  };
 
   const handlePasswordReset = useCallback(
     async (e) => {
@@ -67,11 +79,7 @@ const ResetPassword = () => {
           const messages = validationError.inner
             .map((err) => err.message)
             .join(' ');
-          CustomToast({
-            message: messages,
-            type: TOAST_TYPES.ERROR,
-            duration: 8000,
-          });
+          showToast(messages, TOAST_TYPES.ERROR);
         }
         return;
       }
@@ -138,6 +146,13 @@ const ResetPassword = () => {
   return (
     <ErrorBoundary name="ResetPassword" feature="User Password Reset">
       <AccountPageLayout pageTitle="AirQo Analytics | Reset Password">
+        {toastData.show && (
+          <CustomToast
+            message={toastData.message}
+            type={toastData.type}
+            onClose={() => setToastData({ ...toastData, show: false })}
+          />
+        )}
         <div className="w-full">
           <h2 className="text-3xl font-medium text-gray-900 dark:text-white">
             Reset Your Password
