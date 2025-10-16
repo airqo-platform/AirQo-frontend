@@ -42,6 +42,7 @@ const ResetPassword = () => {
   const token = searchParams.get('token');
   const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
+  const toastTimeoutRef = useRef(null);
   const [toastData, setToastData] = useState({
     message: '',
     type: '',
@@ -51,12 +52,18 @@ const ResetPassword = () => {
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
     };
   }, []);
 
   const showToast = (message, type, duration = 8000) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
     setToastData({ message, type, show: true });
-    setTimeout(() => {
+    toastTimeoutRef.current = setTimeout(() => {
       if (isMountedRef.current) setToastData({ message: '', type: '', show: false });
     }, duration);
   };
