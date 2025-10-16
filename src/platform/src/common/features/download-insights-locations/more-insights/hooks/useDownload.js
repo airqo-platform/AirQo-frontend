@@ -11,8 +11,8 @@ export default function useDownload({
   dateRange,
   pollutant,
   frequency,
+  deviceCategory = 'lowcost',
 }) {
-  const { deviceCategory = 'lowcost' } = arguments[0] || {};
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const fetchData = useDataDownload();
