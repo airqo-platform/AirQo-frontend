@@ -65,9 +65,11 @@ export const getDeviceSummaryApi = async ({
   limit = 80,
   search = undefined,
   signal,
+  category = 'lowcost',
 } = {}) => {
   const params = {
     status: 'deployed',
+    ...(category ? { category } : {}),
     skip,
     limit,
     ...(group ? { group } : {}),

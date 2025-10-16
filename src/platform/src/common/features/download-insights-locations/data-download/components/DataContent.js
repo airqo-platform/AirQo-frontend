@@ -63,8 +63,9 @@ const DataContent = ({
       {/* Special Device Info Banner rendered via SelectionMessage for consistency */}
       <AnimatePresence>
         {activeFilterKey === FILTER_TYPES.DEVICES &&
-          (deviceCategory?.name?.toLowerCase() === 'mobile' ||
-            deviceCategory?.name?.toLowerCase() === 'bam') && (
+          ['mobile', 'bam', 'gas'].includes(
+            deviceCategory?.name?.toLowerCase(),
+          ) && (
             <motion.div
               variants={itemVariants}
               initial={{ opacity: 0, height: 0 }}
@@ -76,28 +77,40 @@ const DataContent = ({
               <SelectionMessage type="info">
                 <div>
                   <p className="font-medium text-blue-800 dark:text-blue-200 mb-2">
-                    {deviceCategory?.name?.toLowerCase() === 'mobile'
-                      ? 'Mobile'
-                      : 'BAM'}{' '}
-                    Device Data Download
+                    {
+                      {
+                        mobile: 'Mobile',
+                        bam: 'BAM',
+                        gas: 'Gas Sensor',
+                      }[deviceCategory?.name?.toLowerCase()]
+                    }{' '}
+                    Device Data Download{' '}
                   </p>
                   <div className="text-blue-700 dark:text-blue-300">
                     <p className="mb-2">
-                      {deviceCategory?.name?.toLowerCase() === 'mobile'
-                        ? 'Mobile devices require specific settings for data download:'
-                        : 'BAM (Beta Attenuation Monitoring) devices require specific settings for data download:'}
+                      {
+                        {
+                          mobile: 'Mobile devices require specific settings for data download:',
+                          bam: 'BAM (Beta Attenuation Monitoring) devices require specific settings for data download:',
+                          gas: 'Gas sensors (e.g., for NO2, CO) have specific data download settings:',
+                        }[deviceCategory?.name?.toLowerCase()]
+                      }
                     </p>
                     <ul className="list-disc list-inside space-y-1 ml-2">
                       <li>
-                        Only <strong>Raw data</strong> type is available
+                        Only <strong>Raw data</strong> type is available.
                       </li>
                       <li>
-                        Only <strong>Raw frequency</strong> option can be used
+                        Only <strong>Raw frequency</strong> option can be used.
                       </li>
                       <li>
-                        {deviceCategory?.name?.toLowerCase() === 'mobile'
-                          ? 'Devices shown are filtered to mobile-enabled lowcost sensors'
-                          : 'Devices shown are filtered to BAM reference monitors'}
+                        {
+                          {
+                            mobile: 'Devices shown are filtered to mobile-enabled lowcost sensors.',
+                            bam: 'Devices shown are filtered to BAM reference monitors.',
+                            gas: 'Devices shown are filtered to gas-specific sensors.',
+                          }[deviceCategory?.name?.toLowerCase()]
+                        }
                       </li>
                     </ul>
                     <p className="mt-2 text-xs">
@@ -184,6 +197,7 @@ const DataContent = ({
           enableColumnFilters={true}
           defaultSortColumn="name"
           defaultSortDirection="asc"
+          activeFilterKey={activeFilterKey}
           // Pagination props
           enableInfiniteScroll={enableInfiniteScroll}
           paginationMeta={paginationMeta}

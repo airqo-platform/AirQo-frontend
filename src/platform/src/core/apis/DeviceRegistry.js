@@ -9,6 +9,8 @@ import {
   GRID_LOCATIONS_URL,
   NEAREST_SITE_URL,
   GRIDS_SUMMARY_URL,
+  DEVICES_FOR_COHORTS_URL,
+  SITES_FOR_COHORTS_URL,
 } from '../urls/deviceRegistry';
 
 // Grid locations endpoints
@@ -80,6 +82,94 @@ export const updateCohortDetails = (body, cohortID) =>
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
+
+export const getDevicesForCohortsApi = ({
+  cohort_ids = [],
+  skip = 0,
+  limit = 30,
+  search='',
+  category,
+  signal,
+} = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  // Put pagination parameters in query params
+  const params = {
+    skip: sanitizedSkip,
+    limit: sanitizedLimit,
+    ...(category && { category }),
+    ...(search && { search }),
+  };
+
+  // Put cohort_ids in request body
+  const body = {
+    cohort_ids: Array.isArray(cohort_ids) ? cohort_ids : [],
+  };
+
+  const config = {
+    params,
+    authType: AUTH_TYPES.JWT,
+  };
+
+  // Add abort signal if provided and still valid
+  if (signal && !signal.aborted) {
+    config.signal = signal;
+  }
+
+  return secureApiProxy
+    .post(DEVICES_FOR_COHORTS_URL, body, config)
+    .then((response) => response.data)
+    .catch((error) => {
+      // Handle abort errors gracefully
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
+        throw new Error('Request cancelled');
+      }
+      // Re-throw other errors
+      throw error;
+    });
+};
+
+export const getSitesForCohortsApi = ({
+  cohort_ids = [],
+  skip = 0,
+  limit = 30,
+  search='',
+  category,
+  signal,
+} = {}) => {
+  // Sanitize pagination parameters
+  const sanitizedSkip = Math.max(0, parseInt(skip, 10) || 0);
+  const sanitizedLimit = Math.max(1, Math.min(100, parseInt(limit, 10) || 30));
+
+  // Put pagination parameters in query params
+  const params = {
+    skip: sanitizedSkip,
+    limit: sanitizedLimit,
+    ...(category && { category }),
+    ...(search && { search }),
+  };
+
+  // Put cohort_ids in request body
+  const body = {
+    cohort_ids: Array.isArray(cohort_ids) ? cohort_ids : [],
+  };
+
+  const config = {
+    params,
+    authType: AUTH_TYPES.JWT,
+  };
+
+  // Add abort signal if provided and still valid
+  if (signal && !signal.aborted) {
+    config.signal = signal;
+  }
+
+  return secureApiProxy
+    .post(SITES_FOR_COHORTS_URL, body, config)
+    .then((response) => response.data);
+};
 
 export const getMapReadings = (abortSignal = null) => {
   const config = {
