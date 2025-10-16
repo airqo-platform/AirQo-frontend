@@ -423,7 +423,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
           const cohortIds = extractCohortIds(cohortsResponse);
 
           if (cohortIds.length === 0) {
-            return { devices: [], meta: { total: 0, totalPages: 0, page: 1, limit: params.limit, hasNextPage: false, hasPreviousPage: false } };
+            return { devices: [], meta: { total: 0, totalPages: 0, page: 1, limit: params.limit || 20, hasNextPage: false, hasPreviousPage: false } };
           }
 
           // Step 2: Fetch devices for the retrieved cohorts
