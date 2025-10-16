@@ -14,6 +14,7 @@ import PasswordInputWithToggle from '@/common/components/PasswordInputWithToggle
 import * as Yup from 'yup';
 import ErrorBoundary from '@/common/components/ErrorBoundary';
 import logger from '@/lib/logger';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
@@ -41,12 +42,31 @@ const ResetPassword = () => {
   const token = searchParams.get('token');
   const { loading, startLoading, stopLoading } = useLoadingState(false);
   const isMountedRef = useRef(true);
+  const toastTimeoutRef = useRef(null);
+  const [toastData, setToastData] = useState({
+    message: '',
+    type: '',
+    show: false,
+  });
 
   useEffect(() => {
     return () => {
       isMountedRef.current = false;
+      if (toastTimeoutRef.current) {
+        clearTimeout(toastTimeoutRef.current);
+      }
     };
   }, []);
+
+  const showToast = (message, type, duration = 8000) => {
+    if (toastTimeoutRef.current) {
+      clearTimeout(toastTimeoutRef.current);
+    }
+    setToastData({ message, type, show: true });
+    toastTimeoutRef.current = setTimeout(() => {
+      if (isMountedRef.current) setToastData({ message: '', type: '', show: false });
+    }, duration);
+  };
 
   const handlePasswordReset = useCallback(
     async (e) => {
@@ -67,11 +87,7 @@ const ResetPassword = () => {
           const messages = validationError.inner
             .map((err) => err.message)
             .join(' ');
-          CustomToast({
-            message: messages,
-            type: TOAST_TYPES.ERROR,
-            duration: 8000,
-          });
+          showToast(messages, TOAST_TYPES.ERROR);
         }
         return;
       }
@@ -87,34 +103,27 @@ const ResetPassword = () => {
         if (!isMountedRef.current) return;
 
         if (response?.success) {
-          CustomToast({
-            message: response.message || 'Password reset successfully!',
-            type: TOAST_TYPES.SUCCESS,
-            duration: 8000,
-          });
+          showToast(
+            response.message || 'Password reset successfully!',
+            TOAST_TYPES.SUCCESS,
+          );
           setTimeout(() => {
             if (isMountedRef.current) {
               router.push('/user/login');
             }
           }, 2000);
         } else {
-          CustomToast({
-            message:
-              response?.message ||
+          showToast(
+            response?.message ||
               'Failed to reset password. The link may be invalid or expired.',
-            type: TOAST_TYPES.ERROR,
-            duration: 8000,
-          });
+            TOAST_TYPES.ERROR,
+          );
         }
       } catch (err) {
         if (!isMountedRef.current) return;
 
         logger.error('Reset password API error:', err);
-        CustomToast({
-          message: 'An unexpected error occurred. Please try again later.',
-          type: TOAST_TYPES.ERROR,
-          duration: 8000,
-        });
+        showToast(getApiErrorMessage(err), TOAST_TYPES.ERROR);
       } finally {
         if (isMountedRef.current) {
           stopLoading();
@@ -138,6 +147,13 @@ const ResetPassword = () => {
   return (
     <ErrorBoundary name="ResetPassword" feature="User Password Reset">
       <AccountPageLayout pageTitle="AirQo Analytics | Reset Password">
+        {toastData.show && (
+          <CustomToast
+            message={toastData.message}
+            type={toastData.type}
+            onDismiss={() => setToastData({ ...toastData, show: false })}
+          />
+        )}
         <div className="w-full">
           <h2 className="text-3xl font-medium text-gray-900 dark:text-white">
             Reset Your Password

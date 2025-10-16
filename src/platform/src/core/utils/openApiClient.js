@@ -71,6 +71,7 @@ const createOpenApiClient = () => {
       const enhancedError = new Error(errorMessage);
       enhancedError.status = statusCode;
       enhancedError.endpoint = endpoint;
+      enhancedError.response = error.response;
       enhancedError.originalError = error;
 
       return Promise.reject(enhancedError);
