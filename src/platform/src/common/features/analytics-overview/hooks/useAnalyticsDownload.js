@@ -76,7 +76,11 @@ export default function useAnalyticsDownload() {
   const fetchData = useDataDownload();
 
   const download = useCallback(
-    async (datatype = 'calibrated', sitesData = []) => {
+    async (
+      datatype = 'calibrated',
+      sitesData = [],
+      deviceCategory = 'lowcost',
+    ) => {
       // Validate required data
       if (!chartData.chartSites || chartData.chartSites.length === 0) {
         NotificationService.warning(
@@ -132,7 +136,7 @@ export default function useAnalyticsDownload() {
           sites: chartData.chartSites,
           pollutants: [pollutantId],
           frequency: chartData.timeFrame || 'daily',
-          device_category: 'lowcost',
+          device_category: deviceCategory,
           datatype: datatype?.value || datatype,
           downloadType: 'csv',
           outputFormat: 'airqo-standard',

@@ -382,7 +382,7 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
  * Specialized hook for devices summary with pagination
  */
 export const usePaginatedDevicesSummary = (group, options = {}) => {
-  const { search = '', category = 'lowcost', ...rest } = options;
+  const { search = '', category, ...rest } = options;
   const normalizedGroup =
     typeof group === 'string' && group.trim().length > 0 ? group.trim() : '';
 
@@ -408,7 +408,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
               cohort_ids: cohortIds,
               skip: params.skip,
               limit: params.limit,
-              category: category,
+              ...(category && { category }),
               ...(search && { search }),
               signal
             },
@@ -427,7 +427,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
       const { getDeviceSummaryApi } = await import('../apis/Analytics');
       return getDeviceSummaryApi({
         ...params,
-        category,
+        ...(category && { category }),
         ...(search && { search }),
         signal
       });
@@ -437,7 +437,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
   );
 
   return usePaginatedData(
-    ['devices-summary-paginated', normalizedGroup || 'all', category, search || ''],
+    ['devices-summary-paginated', normalizedGroup || 'all', category || 'all', search || ''],
     fetcher,
     {
       initialLimit: 20,

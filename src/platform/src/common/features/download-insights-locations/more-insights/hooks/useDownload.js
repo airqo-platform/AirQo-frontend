@@ -12,6 +12,7 @@ export default function useDownload({
   pollutant,
   frequency,
 }) {
+  const { deviceCategory = 'lowcost' } = arguments[0] || {};
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const fetchData = useDataDownload();
@@ -39,7 +40,7 @@ export default function useDownload({
             sites: visibleSites,
             pollutants: [pollutant],
             frequency,
-            device_category: 'lowcost',
+            device_category: deviceCategory,
             datatype: datatype?.value,
             downloadType: 'csv',
             outputFormat: 'airqo-standard',
@@ -80,7 +81,15 @@ export default function useDownload({
         setLoading(false);
       }
     },
-    [visibleSites, allSites, dateRange, pollutant, frequency, fetchData],
+    [
+      visibleSites,
+      allSites,
+      dateRange,
+      pollutant,
+      frequency,
+      fetchData,
+      deviceCategory,
+    ],
   );
 
   return { download, loading, error };
