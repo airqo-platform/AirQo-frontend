@@ -308,6 +308,32 @@ export const usePaginatedData = (
 };
 
 /**
+ * Safely extracts cohort IDs from various API response formats.
+ * @param {any} response - The API response.
+ * @returns {Array<string>} An array of cohort IDs.
+ */
+const extractCohortIds = (response) => {
+  if (!response) return [];
+
+  // Case 1: { data: [...] } or { cohorts: [...] } or { results: [...] }
+  const data = response.data || response.cohorts || response.results;
+  if (Array.isArray(data)) {
+    // If array contains objects with _id or id, extract them.
+    if (data.length > 0 && typeof data[0] === 'object' && data[0] !== null) {
+      return data.map((item) => item._id || item.id).filter(Boolean);
+    }
+    // If array contains strings (the IDs themselves).
+    return data.filter((item) => typeof item === 'string');
+  }
+
+  // Case 2: The response is the array itself.
+  if (Array.isArray(response)) {
+    return response.map((item) => item._id || item.id).filter(Boolean);
+  }
+
+  return [];
+};
+/**
  * Specialized hook for sites summary with pagination
  */
 export const usePaginatedSitesSummary = (group, options = {}) => {
@@ -330,10 +356,10 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
             normalizedGroup,
             signal,
           );
-          const cohortIds = cohortsResponse?.data || [];
+          const cohortIds = extractCohortIds(cohortsResponse);
 
           if (cohortIds.length === 0) {
-            return { sites: [], meta: {} };
+            return { sites: [], meta: { total: 0, totalPages: 0, page: 1, limit: params.limit, hasNextPage: false, hasPreviousPage: false } };
           }
 
           // Step 2: Fetch sites for the retrieved cohorts
@@ -344,9 +370,7 @@ export const usePaginatedSitesSummary = (group, options = {}) => {
             signal,
           });
         } catch (error) {
-          if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
-            throw new Error('Request cancelled');
-          }
+          if (error.name === 'AbortError' || error.code === 'ECONNABORTED') throw error;
           // Handle cohort fetch errors
           throw new Error(
             `Unable to fetch sites: ${getApiErrorMessage(error)}`
@@ -396,10 +420,10 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
         // Step 1: Fetch cohorts for the group
         try {
           const cohortsResponse = await getGroupCohortsApi(normalizedGroup, signal);
-          const cohortIds = cohortsResponse?.data || [];
+          const cohortIds = extractCohortIds(cohortsResponse);
 
           if (cohortIds.length === 0) {
-            return { devices: [], meta: {} };
+            return { devices: [], meta: { total: 0, totalPages: 0, page: 1, limit: params.limit, hasNextPage: false, hasPreviousPage: false } };
           }
 
           // Step 2: Fetch devices for the retrieved cohorts
@@ -414,9 +438,7 @@ export const usePaginatedDevicesSummary = (group, options = {}) => {
             },
           );
         } catch (error) {
-          if (error.name === 'AbortError' || error.code === 'ECONNABORTED') {
-            throw new Error('Request cancelled');
-          }
+          if (error.name === 'AbortError' || error.code === 'ECONNABORTED') throw error;
           // Handle cohort fetch errors
           throw new Error(
             `Unable to fetch devices: ${getApiErrorMessage(error)}`
