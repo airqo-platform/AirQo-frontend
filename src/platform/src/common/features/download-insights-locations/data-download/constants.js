@@ -29,6 +29,7 @@ export const DEVICE_CATEGORY_OPTIONS = [
   { id: 1, name: 'lowcost' },
   { id: 2, name: 'bam' },
   { id: 3, name: 'mobile' },
+  { id: 4, name: 'gas' },
 ];
 
 // Filter type constants
