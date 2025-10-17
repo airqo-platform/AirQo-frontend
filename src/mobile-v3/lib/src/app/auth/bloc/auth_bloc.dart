@@ -21,6 +21,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LogoutUser>(_onLogoutUser);
 
+    on<DeleteUserAccount>(_onDeleteUserAccount);
+
     on<SessionExpired>(_onSessionExpired);
 
     on<UseAsGuest>((event, emit) => emit(GuestUser()));
@@ -101,6 +103,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     } catch (e) {
       debugPrint("Logout error: $e");
       emit(AuthLoadingError("Failed to log out. Please try again."));
+    }
+  }
+
+  Future<void> _onDeleteUserAccount(DeleteUserAccount event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await authRepository.deleteUserAccount();
+      emit(GuestUser()); 
+    } catch (e) {
+      debugPrint("Account deletion error: $e");
+      emit(AuthLoadingError(_extractErrorMessage(e)));
     }
   }
 
