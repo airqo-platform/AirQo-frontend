@@ -1,14 +1,13 @@
 import 'package:airqo/src/app/auth/pages/welcome_screen.dart';
-import 'package:airqo/src/app/debug/slack_logger_test_screen.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/profile/pages/widgets/settings_tile.dart';
+import 'package:airqo/src/app/profile/pages/widgets/account_deletion_handler.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/foundation.dart';
 
 class SettingsWidget extends StatefulWidget {
   const SettingsWidget({super.key});
@@ -20,7 +19,6 @@ class SettingsWidget extends StatefulWidget {
 class _SettingsWidgetState extends State<SettingsWidget> {
   String _appVersion = '';
   bool _locationEnabled = false;
-  //bool _notificationsEnabled = true;
 
   @override
   void initState() {
@@ -51,13 +49,11 @@ class _SettingsWidgetState extends State<SettingsWidget> {
     if (value) {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-
         bool openedSettings = await Geolocator.openLocationSettings();
         if (!openedSettings) {
           _showSnackBar('Please enable location services in settings.');
           return;
         }
-
         serviceEnabled = await Geolocator.isLocationServiceEnabled();
         if (!serviceEnabled) {
           return;
@@ -223,58 +219,67 @@ void _showLogoutConfirmation() {
 
             SizedBox(height: screenHeight * 0.02),
 
-            // SettingsTile(
-            //   iconPath: "assets/images/shared/language_icon.svg",
-            //   title: "Languages",
-            //   onTap: () {
-            //     Navigator.of(context).push(
-            //       MaterialPageRoute(
-            //         builder: (context) => SelectLanguagePage(),
-            //       ),
-            //     );
-            //   },
-            //   description:
-            //       "Change the language of the app to your preferred language",
-            // ),
-
-                     // Add the developer option here, before the logout button
-          if (kDebugMode)
-            SettingsTile(
-              iconPath: "assets/images/shared/feedback_icon.svg",
-              title: "Test Slack Logger",
-              description: "Developer option to test Slack integration",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SlackLoggerTestScreen()),
-                );
-              },
-            ),
-
             Padding(
               padding: EdgeInsets.symmetric(vertical: screenHeight * 0.05),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  minimumSize: Size.fromHeight(screenHeight * 0.07),
-                ),
-                onPressed: _showLogoutConfirmation,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              child: Center(
+                child: Column(
                   children: [
-                    Icon(Icons.logout, color: Colors.white, size: 20),
-                    SizedBox(width: 10),
-                    Text(
-                      "Log out",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: _showLogoutConfirmation,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.logout, color: Colors.white, size: 20),
+                          SizedBox(width: 10),
+                          Text(
+                            "Log out",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
+                  SizedBox(height: 16),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.red, width: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                      ),
+                      onPressed: () => AccountDeletionHandler.showDeleteAccountConfirmation(context),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.delete_forever, color: Colors.red, size: 20),
+                          SizedBox(width: 10),
+                          Text(
+                            "Delete Account",
+                            style: TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 ),
               ),
             ),
@@ -321,3 +326,4 @@ void _showLogoutConfirmation() {
     );
   }
 }
+
