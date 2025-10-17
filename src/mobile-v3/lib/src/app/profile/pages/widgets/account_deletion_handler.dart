@@ -17,9 +17,7 @@ class AccountDeletionHandler {
       if (profile.users.isNotEmpty) {
         return profile.users.first.email;
       }
-    } catch (e) {
-      // Silently fail - email will remain empty
-    }
+    } catch (_) {}
     return '';
   }
 
@@ -165,38 +163,11 @@ class AccountDeletionHandler {
       return;
     }
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 20),
-            Text('Sending verification code...'),
-          ],
-        ),
-      ),
-    );
-
-    try {
-      final result = await _deletionService.initiateAccountDeletion(userEmail);
-      
-      if (context.mounted) {
-        Navigator.pop(context);
-        
-        if (result['success'] == true) {
-          _showVerificationCodeDialog(context, userEmail);
-        } else {
-          _showSnackBar(context, result['message'] ?? 'Failed to initiate account deletion');
-        }
-      }
-    } catch (e) {
-      if (context.mounted) {
-        Navigator.pop(context);
-        _showSnackBar(context, 'Error: ${e.toString()}');
-      }
-    }
+    _showVerificationCodeDialog(context, userEmail);
+    
+    _deletionService.initiateAccountDeletion(userEmail).catchError((e) {
+      return <String, dynamic>{};
+    });
   }
 
   static void _showVerificationCodeDialog(BuildContext context, String userEmail) {
@@ -208,50 +179,22 @@ class AccountDeletionHandler {
       builder: (dialogContext) => _VerificationCodeDialog(
         isDarkMode: isDarkMode,
         userEmail: userEmail,
-        onConfirm: (code) => _confirmAccountDeletion(context, dialogContext, code),
+        deletionService: _deletionService,
       ),
     );
   }
 
-  static Future<void> _confirmAccountDeletion(
-    BuildContext context,
-    BuildContext dialogContext,
-    String code,
-  ) async {
-    try {
-      final result = await _deletionService.confirmAccountDeletion(code);
-      
-      if (result['success'] == true) {
-        if (context.mounted) {
-          Navigator.pop(dialogContext);
-          _showSnackBar(context, 'Account deleted successfully');
-          
-          context.read<AuthBloc>().add(LogoutUser());
-          
-          await Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-            (route) => false,
-          );
-        }
-      } else {
-        _showSnackBar(context, result['message'] ?? 'Failed to delete account');
-      }
-    } catch (e) {
-      _showSnackBar(context, 'Error: ${e.toString()}');
-    }
-  }
 }
 
 class _VerificationCodeDialog extends StatefulWidget {
   final bool isDarkMode;
   final String userEmail;
-  final Function(String) onConfirm;
+  final AccountDeletionService deletionService;
 
   const _VerificationCodeDialog({
     required this.isDarkMode,
     required this.userEmail,
-    required this.onConfirm,
+    required this.deletionService,
   });
 
   @override
@@ -364,12 +307,62 @@ class _VerificationCodeDialogState extends State<_VerificationCodeDialog> {
               isConfirming = true;
             });
 
-            await widget.onConfirm(code);
-
-            if (mounted) {
-              setState(() {
-                isConfirming = false;
-              });
+            try {
+              await widget.deletionService.confirmAccountDeletion(code);
+              
+              if (mounted && context.mounted) {
+                Navigator.pop(context);
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Account deleted successfully'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+                
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => const Center(child: CircularProgressIndicator()),
+                );
+                
+                if (context.mounted) {
+                  context.read<AuthBloc>().add(LogoutUser());
+                  
+                  await for (final state in context.read<AuthBloc>().stream) {
+                    if (state is GuestUser) {
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        await Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const WelcomeScreen()),
+                          (route) => false,
+                        );
+                      }
+                      break;
+                    } else if (state is AuthLoadingError) {
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Logout failed: ${state.message}')),
+                        );
+                      }
+                      break;
+                    }
+                  }
+                }
+              }
+            } catch (e) {
+              if (mounted) {
+                setState(() {
+                  isConfirming = false;
+                });
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString()}')),
+                  );
+                }
+              }
             }
           },
           child: isConfirming
