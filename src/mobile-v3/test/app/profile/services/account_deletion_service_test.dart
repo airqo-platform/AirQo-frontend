@@ -112,6 +112,20 @@ void main() {
           service.initiateAccountDeletion('test@example.com'),
           throwsA(predicate((e) => e is Exception && e.toString().contains('Authentication token not found'))),
         );
+
+        verifyNever(mockHttpClient.post(any, headers: anyNamed('headers'), body: anyNamed('body')));
+      });
+
+      test('throws when whitespace-only auth token', () async {
+        when(mockStorage.getSecureData(SecureStorageKeys.authToken))
+            .thenAnswer((_) async => '   \t\n  ');
+
+        await expectLater(
+          service.initiateAccountDeletion('test@example.com'),
+          throwsA(predicate((e) => e is Exception && e.toString().contains('Authentication token not found'))),
+        );
+
+        verifyNever(mockHttpClient.post(any, headers: anyNamed('headers'), body: anyNamed('body')));
       });
 
       test('handles 400 error with server message', () async {
@@ -279,6 +293,68 @@ void main() {
           service.confirmAccountDeletion('12345'),
           throwsA(predicate((e) => e is Exception && e.toString().contains('Failed to confirm account deletion'))),
         );
+      });
+    });
+
+    group('createPostRequest', () {
+      test('throws when auth token is whitespace-only', () async {
+        when(mockStorage.getSecureData(SecureStorageKeys.authToken))
+            .thenAnswer((_) async => '   ');
+
+        await expectLater(
+          service.createPostRequest(path: '/test', data: {'test': 'data'}),
+          throwsA(predicate((e) => e is Exception && e.toString().contains('Authentication token not found'))),
+        );
+
+        verifyNever(mockHttpClient.post(any, headers: anyNamed('headers'), body: anyNamed('body')));
+      });
+
+      test('throws when auth token is empty string', () async {
+        when(mockStorage.getSecureData(SecureStorageKeys.authToken))
+            .thenAnswer((_) async => '');
+
+        await expectLater(
+          service.createPostRequest(path: '/test', data: {'test': 'data'}),
+          throwsA(predicate((e) => e is Exception && e.toString().contains('Authentication token not found'))),
+        );
+
+        verifyNever(mockHttpClient.post(any, headers: anyNamed('headers'), body: anyNamed('body')));
+      });
+
+      test('throws when auth token is tab and spaces', () async {
+        when(mockStorage.getSecureData(SecureStorageKeys.authToken))
+            .thenAnswer((_) async => '\t  \n ');
+
+        await expectLater(
+          service.createPostRequest(path: '/test', data: {'test': 'data'}),
+          throwsA(predicate((e) => e is Exception && e.toString().contains('Authentication token not found'))),
+        );
+
+        verifyNever(mockHttpClient.post(any, headers: anyNamed('headers'), body: anyNamed('body')));
+      });
+
+      test('succeeds when auth token is valid', () async {
+        when(mockStorage.getSecureData(SecureStorageKeys.authToken))
+            .thenAnswer((_) async => 'valid-token');
+
+        final responseBody = {'success': true};
+        when(mockHttpClient.post(any, headers: anyNamed('headers'), body: anyNamed('body')))
+            .thenAnswer((_) async => http.Response(jsonEncode(responseBody), 200));
+
+        final result = await service.createPostRequest(path: '/test', data: {'test': 'data'});
+
+        expect(result.statusCode, equals(200));
+        expect(jsonDecode(result.body)['success'], isTrue);
+
+        verify(mockHttpClient.post(
+          Uri.parse('https://api.test/test'),
+          headers: {
+            "Authorization": "JWT valid-token",
+            "Accept": "*/*",
+            "Content-Type": "application/json"
+          },
+          body: jsonEncode({'test': 'data'}),
+        )).called(1);
       });
     });
 

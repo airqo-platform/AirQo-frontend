@@ -24,7 +24,7 @@ class AccountDeletionService extends BaseRepository with UiLoggy {
   Future<http.Response> createPostRequest({required String path, dynamic data}) async {
     if (_httpClient != null && _storageRepository != null) {
       final token = await _storageRepository.getSecureData(SecureStorageKeys.authToken);
-      if (token == null) {
+      if (token == null || token.trim().isEmpty) {
         throw Exception('Authentication token not found');
       }
 
