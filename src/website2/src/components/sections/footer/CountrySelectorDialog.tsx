@@ -17,8 +17,9 @@ import {
   Pagination,
 } from '@/components/ui';
 import { useDispatch } from '@/hooks';
-import { getGridsSummary } from '@/services/externalService';
+import { getCountriesData } from '@/services/externalService';
 import { setSelectedCountry } from '@/store/slices/countrySlice';
+import logger from '@/utils/logger';
 
 interface AirqloudCountry {
   _id: string;
@@ -44,69 +45,40 @@ const CountrySelectorDialog: React.FC = () => {
     [airqloudData.length],
   );
 
-  // Cache for flags to avoid redundant fetches
-  const flagCache = useMemo(() => new Map<string, string>(), []);
-
-  // Function to fetch the flag based on the country's long name with caching
-  const fetchFlag = useCallback(
-    async (countryName: string, abortSignal: AbortSignal) => {
-      if (flagCache.has(countryName)) {
-        return flagCache.get(countryName)!;
+  // Fetch countries data using the new API endpoint
+  const fetchCountriesData = useCallback(async () => {
+    try {
+      const data = await getCountriesData();
+      const countries =
+        (data as any)?.countries ?? (data as any)?.data?.countries;
+      if (!Array.isArray(countries)) {
+        setAirqloudData([]);
+        return;
       }
-      try {
-        const response = await fetch(
-          `https://restcountries.com/v3.1/name/${encodeURIComponent(countryName.replace('_', ' '))}`,
-          {
-            signal: abortSignal,
-          },
-        );
-        if (!response.ok) {
-          throw new Error(`Failed to fetch flag for ${countryName}`);
-        }
-        const data = await response.json();
-        const flag = data[0]?.flags?.png || '';
-        flagCache.set(countryName, flag);
-        return flag;
-      } catch (error) {
-        if ((error as any)?.name !== 'AbortError') {
-          console.error('Error fetching flag for country:', countryName, error);
-        }
-        return '';
-      }
-    },
-    [flagCache],
-  );
 
-  // Fetch airqloud summary using the direct API service
-  const fetchAirqloudSummary = useCallback(
-    async (abortSignal: AbortSignal) => {
-      try {
-        const data = await getGridsSummary();
-        if (!data || !data.grids) {
-          return;
-        }
+      // Map the countries data to the expected format
+      type CountryApiRow = {
+        country?: string;
+        sites?: number;
+        flag_url?: string;
+      };
+      const mappedCountries: AirqloudCountry[] = (
+        countries as CountryApiRow[]
+      ).map((row, index: number) => ({
+        _id: row.country ?? `country_${index}`,
+        name: row.country ?? '',
+        long_name: row.country ?? '',
+        numberOfSites: row.sites ?? 0,
+        flag: row.flag_url,
+      }));
 
-        // Filter data to only include grids where admin_level is "country"
-        const countryLevelData: AirqloudCountry[] = data.grids.filter(
-          (grid: any) => grid.admin_level === 'country',
-        );
-
-        // Dynamically fetch flags
-        const countriesWithFlags = await Promise.all(
-          countryLevelData.map(async (country: AirqloudCountry) => {
-            const flag = await fetchFlag(country.long_name, abortSignal);
-            return { ...country, flag };
-          }),
-        );
-        setAirqloudData(countriesWithFlags);
-      } catch (error) {
-        if ((error as any)?.name !== 'AbortError') {
-          console.error('Error fetching airqloud summary:', error);
-        }
-      }
-    },
-    [fetchFlag],
-  );
+      setAirqloudData(mappedCountries);
+    } catch (error) {
+      logger.error('Error fetching countries data:', error as Error, {
+        context: 'CountrySelectorDialog.fetchCountriesData',
+      });
+    }
+  }, []);
 
   // Helper: Wrap the geolocation API in a promise
   const getCurrentPositionAsync = (
@@ -181,14 +153,14 @@ const CountrySelectorDialog: React.FC = () => {
     };
   }, [fetchUserCountry]);
 
-  // Effect: Fetch airqloud data
+  // Effect: Fetch countries data
   useEffect(() => {
     const controller = new AbortController();
-    fetchAirqloudSummary(controller.signal);
+    fetchCountriesData();
     return () => {
       controller.abort();
     };
-  }, [fetchAirqloudSummary]);
+  }, [fetchCountriesData]);
 
   // Effect: Set the default selected country once data is loaded
   useEffect(() => {
@@ -241,8 +213,9 @@ const CountrySelectorDialog: React.FC = () => {
         >
           <IoLocationSharp size={20} color="#2563eb" />
           <span>
-            {selectedCountryData?.long_name.replace('_', ' ') ||
-              'Select Country'}
+            {selectedCountryData
+              ? formatCountryName(selectedCountryData.long_name)
+              : 'Select Country'}
           </span>
           <FiChevronDown size={16} className="text-gray-600" />
         </button>
@@ -287,7 +260,9 @@ const CountrySelectorDialog: React.FC = () => {
                     />
                   )}
                   <span>
-                    {selectedCountryData?.long_name.replace('_', ' ')}
+                    {selectedCountryData
+                      ? formatCountryName(selectedCountryData.long_name)
+                      : ''}
                   </span>
                 </div>
 

@@ -1,5 +1,4 @@
 /* eslint-disable simple-import-sort/imports */
-import Enabel from '@public/assets/images/partners/enabel.svg';
 import Google from '@public/assets/images/partners/google.svg';
 import UN from '@public/assets/images/partners/UN.svg';
 import UsMission from '@public/assets/images/partners/usmissionuganda.svg';
@@ -14,7 +13,13 @@ import {
 } from '@airqo/icons-react';
 /* eslint-enable simple-import-sort/imports */
 
-export const partnerLogos = [Google, UsMission, Enabel, WorldBank, UN];
+export const partnerLogos = [
+  Google,
+  UsMission,
+  'http://res.cloudinary.com/dbibjvyhm/image/upload/v1757926788/website/uploads/partners/logos/CleanAirFund-Logo-ORANGE-CMYK_1_cabye7.png',
+  WorldBank,
+  UN,
+];
 
 export const accordionItems = {
   cities: [
