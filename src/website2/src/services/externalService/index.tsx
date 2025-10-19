@@ -155,3 +155,24 @@ export const getGridsSummary = async (): Promise<any | null> => {
     return null; // Return null so components can show "no data" message
   }
 };
+
+/**
+ * Fetch countries data. Uses server-side API token for authentication.
+ */
+export const getCountriesData = async (): Promise<any | null> => {
+  try {
+    // Use our proxy route that handles authentication server-side
+    const response: AxiosResponse<any> = await axios.post(
+      '/api/proxy',
+      { endpoint: '/api/v2/devices/grids/countries', method: 'GET' },
+      { timeout: 8000 },
+    );
+    return response.data;
+  } catch (error) {
+    handleError(error, 'GET /devices/grids/countries');
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('Failed to fetch countries data from API');
+    }
+    return null; // Return null so components can show "no data" message
+  }
+};
