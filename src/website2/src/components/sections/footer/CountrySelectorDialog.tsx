@@ -19,6 +19,7 @@ import {
 import { useDispatch } from '@/hooks';
 import { getCountriesData } from '@/services/externalService';
 import { setSelectedCountry } from '@/store/slices/countrySlice';
+import logger from '@/utils/logger';
 
 interface AirqloudCountry {
   _id: string;
@@ -48,24 +49,34 @@ const CountrySelectorDialog: React.FC = () => {
   const fetchCountriesData = useCallback(async () => {
     try {
       const data = await getCountriesData();
-      if (!data || !data.countries) {
+      const countries =
+        (data as any)?.countries ?? (data as any)?.data?.countries;
+      if (!Array.isArray(countries)) {
+        setAirqloudData([]);
         return;
       }
 
       // Map the countries data to the expected format
-      const mappedCountries: AirqloudCountry[] = data.countries.map(
-        (countryData: any, index: number) => ({
-          _id: countryData.country || `country_${index}`,
-          name: countryData.country,
-          long_name: countryData.country,
-          numberOfSites: countryData.sites,
-          flag: countryData.flag_url,
-        }),
-      );
+      type CountryApiRow = {
+        country?: string;
+        sites?: number;
+        flag_url?: string;
+      };
+      const mappedCountries: AirqloudCountry[] = (
+        countries as CountryApiRow[]
+      ).map((row, index: number) => ({
+        _id: row.country ?? `country_${index}`,
+        name: row.country ?? '',
+        long_name: row.country ?? '',
+        numberOfSites: row.sites ?? 0,
+        flag: row.flag_url,
+      }));
 
       setAirqloudData(mappedCountries);
     } catch (error) {
-      console.error('Error fetching countries data:', error);
+      logger.error('Error fetching countries data:', error as Error, {
+        context: 'CountrySelectorDialog.fetchCountriesData',
+      });
     }
   }, []);
 
@@ -202,8 +213,9 @@ const CountrySelectorDialog: React.FC = () => {
         >
           <IoLocationSharp size={20} color="#2563eb" />
           <span>
-            {selectedCountryData?.long_name.replace('_', ' ') ||
-              'Select Country'}
+            {selectedCountryData
+              ? formatCountryName(selectedCountryData.long_name)
+              : 'Select Country'}
           </span>
           <FiChevronDown size={16} className="text-gray-600" />
         </button>
@@ -248,7 +260,9 @@ const CountrySelectorDialog: React.FC = () => {
                     />
                   )}
                   <span>
-                    {selectedCountryData?.long_name.replace('_', ' ')}
+                    {selectedCountryData
+                      ? formatCountryName(selectedCountryData.long_name)
+                      : ''}
                   </span>
                 </div>
 
