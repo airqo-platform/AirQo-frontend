@@ -16,7 +16,6 @@ class ExposureCalculator with UiLoggy {
   static const String _exposureDataBoxName = 'exposure_data';
   static const String _dailySummariesKey = 'daily_summaries';
   static const Duration _locationProximityThreshold = Duration(hours: 2);
-  static const double _proximityRadiusMeters = 1000; // 1km radius for AQ matching
 
   /// Calculate exposure data points from location history and air quality data
   Future<List<ExposureDataPoint>> calculateExposurePoints({
@@ -295,7 +294,6 @@ class ExposureCalculator with UiLoggy {
     if (airQualityData.isEmpty) return null;
 
     Measurement? closest;
-    double closestDistance = double.infinity;
     Duration closestTimeDiff = const Duration(days: 1);
 
     for (final measurement in airQualityData) {
@@ -304,17 +302,6 @@ class ExposureCalculator with UiLoggy {
           measurement.siteDetails?.approximateLongitude == null) {
         continue;
       }
-
-      // Calculate spatial distance
-      final distance = Geolocator.distanceBetween(
-        locationPoint.latitude,
-        locationPoint.longitude,
-        measurement.siteDetails!.approximateLatitude!,
-        measurement.siteDetails!.approximateLongitude!,
-      );
-
-      // Skip if too far away
-      if (distance > _proximityRadiusMeters) continue;
 
       // Calculate temporal distance
       final measurementTime = DateTime.tryParse(measurement.time ?? '');
@@ -325,16 +312,9 @@ class ExposureCalculator with UiLoggy {
       // Skip if measurement is too old
       if (timeDiff > _locationProximityThreshold) continue;
 
-      // Calculate combined score (prioritize temporal proximity)
-      final spatialScore = distance / _proximityRadiusMeters; // 0-1
-      final temporalScore = timeDiff.inMinutes / _locationProximityThreshold.inMinutes; // 0-1
-      final combinedScore = (temporalScore * 0.7) + (spatialScore * 0.3);
-
-      if (closest == null || combinedScore < 
-          ((closestTimeDiff.inMinutes / _locationProximityThreshold.inMinutes * 0.7) + 
-           (closestDistance / _proximityRadiusMeters * 0.3))) {
+      // Use temporal proximity only for closest measurement
+      if (closest == null || timeDiff < closestTimeDiff) {
         closest = measurement;
-        closestDistance = distance;
         closestTimeDiff = timeDiff;
       }
     }
@@ -501,7 +481,7 @@ class ExposureCalculator with UiLoggy {
     );
   }
 
-  /// Generate hourly exposure points based on sensor data
+  /// Generate hourly exposure points based on actual sensor timestamp data
   List<ExposureDataPoint> _generateHourlyExposurePoints(
     DateTime todayDate,
     double avgPm25,
@@ -512,22 +492,25 @@ class ExposureCalculator with UiLoggy {
     final exposurePoints = <ExposureDataPoint>[];
     final now = DateTime.now();
     
-    // Generate points for each hour from start of day to current time
-    final startOfDay = DateTime(todayDate.year, todayDate.month, todayDate.day, 6); // 6 AM start
-    final currentTime = now.isBefore(startOfDay.add(Duration(hours: 18))) 
+    // Generate points for each hour from start of day to current time (24-hour continuous exposure)
+    final startOfDay = DateTime(todayDate.year, todayDate.month, todayDate.day, 0); // Midnight start
+    final currentTime = now.isBefore(startOfDay.add(Duration(hours: 24))) 
         ? now 
-        : startOfDay.add(Duration(hours: 18)); // Cap at 12 AM (18 hours from 6 AM)
+        : startOfDay.add(Duration(hours: 24)); // Full 24-hour day
+    
+    // Group sensor readings by hour based on their timestamps
+    final readingsByHour = _groupSensorReadingsByHour(sensors, todayDate);
     
     int hourCount = 0;
     for (var time = startOfDay; time.isBefore(currentTime); time = time.add(Duration(hours: 1))) {
       hourCount++;
       
-      // Vary PM2.5 throughout the day based on typical patterns
-      final hourPm25 = _getHourlyPm25Estimate(time.hour, avgPm25, maxPm25);
+      // Get actual PM2.5 reading for this hour or fall back to average
+      final hourPm25 = _getHourlyPm25FromReadings(time.hour, readingsByHour, avgPm25);
       final aqiCategory = _getAqiCategory(hourPm25);
       
-      // Estimate time spent in this air quality during the hour
-      final durationAtLocation = _estimateHourlyExposureDuration(time.hour, aqiCategory);
+      // Each hour represents 1 hour of continuous exposure
+      final durationAtLocation = Duration(hours: 1);
       
       final exposurePoint = ExposureDataPoint(
         id: 'sensor_based_${time.hour}',
@@ -535,7 +518,7 @@ class ExposureCalculator with UiLoggy {
         latitude: userPosition.latitude + (hourCount * 0.0001), // Small variation
         longitude: userPosition.longitude + (hourCount * 0.0001),
         pm25Value: hourPm25,
-        pm10Value: hourPm25 * 1.4,
+        pm10Value: hourPm25 * 1.4, // Estimate PM10 from PM2.5
         aqiCategory: aqiCategory,
         aqiColor: _getAqiColor(hourPm25),
         accuracy: 100.0, // Area-based estimate
@@ -549,36 +532,45 @@ class ExposureCalculator with UiLoggy {
     return exposurePoints;
   }
 
-  /// Get PM2.5 estimate for specific hour based on typical daily patterns
-  double _getHourlyPm25Estimate(int hour, double avgPm25, double maxPm25) {
-    // Model typical pollution patterns throughout the day
-    double multiplier;
+  /// Group sensor readings by hour based on their timestamps
+  Map<int, List<Measurement>> _groupSensorReadingsByHour(List<Measurement> sensors, DateTime targetDate) {
+    final readingsByHour = <int, List<Measurement>>{};
     
-    if (hour >= 6 && hour <= 9) {
-      // Morning rush hour - higher pollution
-      multiplier = 1.3;
-    } else if (hour >= 10 && hour <= 16) {
-      // Daytime - moderate pollution
-      multiplier = 0.9;
-    } else if (hour >= 17 && hour <= 20) {
-      // Evening rush hour - highest pollution
-      multiplier = 1.5;
-    } else {
-      // Night/early morning - lower pollution
-      multiplier = 0.7;
+    for (final sensor in sensors) {
+      if (sensor.time == null || sensor.pm25?.value == null) continue;
+      
+      final readingTime = DateTime.tryParse(sensor.time!);
+      if (readingTime == null) continue;
+      
+      if (readingTime.year == targetDate.year && 
+          readingTime.month == targetDate.month && 
+          readingTime.day == targetDate.day) {
+        final hour = readingTime.hour;
+        readingsByHour.putIfAbsent(hour, () => []).add(sensor);
+      }
     }
     
-    final hourlyPm25 = avgPm25 * multiplier;
-    
-    // Ensure it doesn't exceed the max recorded value
-    return hourlyPm25.clamp(avgPm25 * 0.5, maxPm25);
+    return readingsByHour;
   }
 
-  /// Calculate total exposure duration for each hour (simplified approach)
-  Duration _estimateHourlyExposureDuration(int hour, String aqiCategory) {
-    // Since it's "Total exposure time", just use 1 hour for each hour that has air quality data
-    // This represents the time period for which we have exposure information
-    return Duration(hours: 1);
+  /// Get PM2.5 reading for specific hour from grouped readings
+  double _getHourlyPm25FromReadings(int hour, Map<int, List<Measurement>> readingsByHour, double fallbackAvg) {
+    final hourReadings = readingsByHour[hour];
+    
+    if (hourReadings == null || hourReadings.isEmpty) {
+      return fallbackAvg;
+    }
+    
+    final pm25Values = hourReadings
+        .where((r) => r.pm25?.value != null)
+        .map((r) => r.pm25!.value!)
+        .toList();
+    
+    if (pm25Values.isEmpty) {
+      return fallbackAvg;
+    }
+    
+    return pm25Values.reduce((a, b) => a + b) / pm25Values.length;
   }
 
 
