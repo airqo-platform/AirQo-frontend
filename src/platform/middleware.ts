@@ -6,7 +6,19 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token,
+      authorized: ({ token, req }) => {
+        const pathname = req.nextUrl.pathname;
+        // Allow public auth routes
+        if (
+          pathname === '/user/login' ||
+          pathname === '/user/register' ||
+          pathname.match(/^\/org\/[^\/]+\/login$/) ||
+          pathname.match(/^\/org\/[^\/]+\/register$/)
+        ) {
+          return true;
+        }
+        return !!token;
+      },
     },
     pages: {
       signIn: '/user/login',
@@ -16,5 +28,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/user/home', '/protected/:path*'],
+  matcher: ['/user/:path*', '/org/:path*'],
 };

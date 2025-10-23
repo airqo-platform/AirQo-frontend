@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useId } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useParams } from 'next/navigation';
 import AuthLayout from '@/shared/layouts/AuthLayout';
@@ -103,6 +103,9 @@ const Page: React.FC = () => {
   const [selectedIndustry, setSelectedIndustry] = useState<string | null>(null);
   const [emailVerified, setEmailVerified] = useState<boolean>(false);
 
+  const hasVerifiedRef = useRef(false);
+  const searchInputId = useId();
+
   const { control, watch } = useForm({
     defaultValues: {
       notes: '',
@@ -131,34 +134,34 @@ const Page: React.FC = () => {
 
   // Verify email on component mount
   useEffect(() => {
-    if (!emailVerified && userId && token) {
-      verifyEmail({ userId, token })
-        .then(response => {
-          setEmailVerified(true);
-          if (response && response.success) {
-            showToast({
-              title: 'Email Verified',
-              description: 'Your email has been successfully verified.',
-              variant: 'success',
-            });
-          } else {
-            showToast({
-              title: 'Email Verification Failed',
-              description: response?.message || 'Failed to verify email.',
-              variant: 'error',
-            });
-          }
-        })
-        .catch(error => {
-          setEmailVerified(true);
-          const errorMessage = getUserFriendlyErrorMessage(error);
+    if (emailVerified || !userId || !token || hasVerifiedRef.current) return;
+    hasVerifiedRef.current = true;
+    verifyEmail({ userId, token })
+      .then(response => {
+        setEmailVerified(true);
+        if (response && response.success) {
+          showToast({
+            title: 'Email Verified',
+            description: 'Your email has been successfully verified.',
+            variant: 'success',
+          });
+        } else {
           showToast({
             title: 'Email Verification Failed',
-            description: errorMessage,
+            description: response?.message || 'Failed to verify email.',
             variant: 'error',
           });
+        }
+      })
+      .catch(error => {
+        setEmailVerified(true);
+        const errorMessage = getUserFriendlyErrorMessage(error);
+        showToast({
+          title: 'Email Verification Failed',
+          description: errorMessage,
+          variant: 'error',
         });
-    }
+      });
   }, [userId, token, verifyEmail, emailVerified]);
 
   const sites = useMemo(() => sitesData?.sites || [], [sitesData]);
@@ -200,11 +203,15 @@ const Page: React.FC = () => {
         {step === 1 ? (
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label
+                htmlFor={searchInputId}
+                className="block text-sm font-medium text-gray-700 mb-3"
+              >
                 Filter by location
               </label>
               <div className="mb-4">
                 <SearchField
+                  id={searchInputId}
                   placeholder="Search locations..."
                   value={query}
                   onChange={e => setQuery((e.target as HTMLInputElement).value)}
@@ -261,7 +268,9 @@ const Page: React.FC = () => {
               </div>
               <div>
                 <Button
-                  variant={selectedLocations.length > 0 ? 'filled' : 'disabled'}
+                  variant="filled"
+                  disabled={selectedLocations.length === 0}
+                  aria-disabled={selectedLocations.length === 0}
                   onClick={() => {
                     if (selectedLocations.length === 0) return;
                     setStep(2);
@@ -319,10 +328,12 @@ const Page: React.FC = () => {
 
               <div>
                 <Button
-                  variant={finishDisabled ? 'disabled' : 'filled'}
+                  variant="filled"
+                  disabled={finishDisabled}
+                  aria-disabled={finishDisabled}
                   loading={isUpdatingPreferences || isUpdatingUserDetails}
                   onClick={async () => {
-                    if (finishDisabled) return;
+                    if (finishDisabled) return; // extra safety
 
                     try {
                       // Update preferences
