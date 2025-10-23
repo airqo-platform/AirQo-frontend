@@ -1,13 +1,20 @@
 import './globals.css';
 import type { Metadata } from 'next';
+import Script from 'next/script';
+import { Inter } from 'next/font/google';
 import { ReduxProvider } from '@/shared/providers/redux-provider';
 import { AuthProvider } from '@/shared/providers/auth-provider';
 import { Toaster } from '@/shared/components/ui';
 import { ThemeProvider } from '@/modules/themes';
-import { injectThemeScript } from '@/modules/themes/utils/themeUtils';
+import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = baseMetadata;
 
@@ -16,14 +23,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Inject theme script for immediate theme application
-  if (typeof window !== 'undefined') {
-    injectThemeScript();
-  }
-
   return (
     <html lang="en">
-      <body className="antialiased">
+      <head>
+        <Script
+          id="theme-script"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: getThemeScript() }}
+        />
+      </head>
+      <body className={`antialiased ${inter.className}`}>
         <ReduxProvider>
           <ErrorBoundary>
             <AuthProvider>

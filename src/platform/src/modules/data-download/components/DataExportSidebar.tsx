@@ -28,6 +28,7 @@ interface DataExportSidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (value: boolean) => void;
   deviceCategory: string;
+  setDeviceCategory: (value: string) => void;
 }
 
 const dataTypeOptions = Object.entries(DATA_TYPE_LABELS).map(
@@ -40,6 +41,13 @@ const dataTypeOptions = Object.entries(DATA_TYPE_LABELS).map(
 const fileTypeOptions = [
   { value: 'json', label: 'JSON' },
   { value: 'csv', label: 'CSV' },
+];
+
+const deviceCategoryOptions = [
+  { value: 'lowcost', label: 'Low Cost' },
+  { value: 'bam', label: 'BAM' },
+  { value: 'mobile', label: 'Mobile' },
+  { value: 'gas', label: 'Gas' },
 ];
 
 const pollutants = Object.keys(POLLUTANT_LABELS);
@@ -60,6 +68,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
   sidebarOpen,
   setSidebarOpen,
   deviceCategory,
+  setDeviceCategory,
 }) => {
   const frequencyOptions = useMemo(() => {
     const allOptions = Object.entries(FREQUENCY_LABELS).map(
@@ -91,6 +100,15 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             value={fileTitle}
             onChange={e => setFileTitle(e.target.value)}
             className="w-full"
+          />
+
+          {/* Device Category */}
+          <CustomField
+            label="Device Category"
+            value={deviceCategory}
+            onChange={setDeviceCategory}
+            options={deviceCategoryOptions}
+            placeholder="Select device category"
           />
 
           {/* Date Range - Required */}
@@ -211,6 +229,15 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               value={fileTitle}
               onChange={e => setFileTitle(e.target.value)}
               className="w-full"
+            />
+
+            {/* Device Category */}
+            <CustomField
+              label="Device Category"
+              value={deviceCategory}
+              onChange={setDeviceCategory}
+              options={deviceCategoryOptions}
+              placeholder="Select device category"
             />
 
             {/* Date Range - Required */}

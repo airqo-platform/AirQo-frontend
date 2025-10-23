@@ -165,7 +165,22 @@ export function injectThemeScript(): void {
 
   const script = document.createElement('script');
   script.id = THEME_SCRIPT_ID;
-  script.textContent = `
+  script.textContent = getThemeScript();
+
+  // Insert at the beginning of head to run immediately
+  const head = document.head || document.getElementsByTagName('head')[0];
+  if (head.firstChild) {
+    head.insertBefore(script, head.firstChild);
+  } else {
+    head.appendChild(script);
+  }
+}
+
+/**
+ * Get the theme script content as a string for server-side injection
+ */
+export function getThemeScript(): string {
+  return `
     (function() {
       try {
         var theme = localStorage.getItem('theme');
@@ -201,12 +216,4 @@ export function injectThemeScript(): void {
       }
     })();
   `;
-
-  // Insert at the beginning of head to run immediately
-  const head = document.head || document.getElementsByTagName('head')[0];
-  if (head.firstChild) {
-    head.insertBefore(script, head.firstChild);
-  } else {
-    head.appendChild(script);
-  }
 }

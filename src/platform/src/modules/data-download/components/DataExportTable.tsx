@@ -1,13 +1,6 @@
 import React from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
-import { CustomField } from './CustomField';
-import {
-  TabType,
-  DeviceCategory,
-  TableItem,
-  ColumnConfig,
-} from '../types/dataExportTypes';
-import { DEVICE_CATEGORY_OPTIONS } from '../constants/dataExportConstants';
+import { TabType, TableItem, ColumnConfig } from '../types/dataExportTypes';
 import { getTabConfig } from '../utils/tableConfig';
 
 interface DataExportTableProps {
@@ -22,12 +15,10 @@ interface DataExportTableProps {
   totalItems: number;
   searchTerm: string;
   selectedItems: string[];
-  deviceCategory: DeviceCategory;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   onSearchChange: (search: string) => void;
   onSelectedItemsChange: (selectedIds: (string | number)[]) => void;
-  onDeviceCategoryChange: (category: string) => void;
 }
 
 /**
@@ -45,12 +36,10 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
   totalItems,
   searchTerm,
   selectedItems,
-  deviceCategory,
   onPageChange,
   onPageSizeChange,
   onSearchChange,
   onSelectedItemsChange,
-  onDeviceCategoryChange,
 }) => {
   const config = getTabConfig(activeTab);
 
@@ -72,25 +61,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
       multiSelect={true}
       selectedItems={selectedItems}
       onSelectedItemsChange={onSelectedItemsChange}
-      customHeader={
-        activeTab === 'devices' ? (
-          <div className="flex items-center justify-end gap-2">
-            <CustomField
-              label="Category"
-              value={deviceCategory}
-              onChange={onDeviceCategoryChange}
-              options={
-                DEVICE_CATEGORY_OPTIONS as unknown as {
-                  value: string;
-                  label: string;
-                }[]
-              }
-              placeholder="Select category"
-              showLabel={false}
-            />
-          </div>
-        ) : undefined
-      }
+      customHeader={undefined}
     />
   );
 };
