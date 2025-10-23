@@ -58,7 +58,7 @@ body,
 html {
   color: rgb(var(--foreground));
   background: rgb(var(--background));
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
 
 .dark body,

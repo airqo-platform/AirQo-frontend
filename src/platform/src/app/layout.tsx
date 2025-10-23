@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import Script from 'next/script';
+import { Inter } from 'next/font/google';
 import { ReduxProvider } from '@/shared/providers/redux-provider';
 import { AuthProvider } from '@/shared/providers/auth-provider';
 import { Toaster } from '@/shared/components/ui';
@@ -9,6 +10,11 @@ import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 export const metadata: Metadata = baseMetadata;
 
@@ -26,7 +32,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: getThemeScript() }}
         />
       </head>
-      <body className="antialiased">
+      <body className={`antialiased ${inter.className}`}>
         <ReduxProvider>
           <ErrorBoundary>
             <AuthProvider>
