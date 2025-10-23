@@ -120,7 +120,7 @@ const Page: React.FC = () => {
   // Get sites data
   const { data: sitesData, isLoading: isLoadingSites } =
     useSitesSummaryWithToken(
-      { search: query || undefined, limit: 100 },
+      { search: query || undefined },
       !!userId && !!token
     );
 
