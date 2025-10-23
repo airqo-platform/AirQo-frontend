@@ -16,7 +16,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/org/role-permissions': 'Roles & Permissions',
   '/org/settings': 'Settings',
 
-  '/request-organization': 'AirQo',
+  '/request-organization': 'Organization',
 
   // Default fallback
   '/': 'AirQo',

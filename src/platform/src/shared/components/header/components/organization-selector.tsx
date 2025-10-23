@@ -109,9 +109,8 @@ export const OrganizationSelector: React.FC = () => {
         primaryAction={{
           label: 'Request New Organization',
           onClick: () => {
-            // TODO: implement request action
+            router.push('/request-organization');
           },
-          // variant: 'outlined',
         }}
         secondaryAction={{ label: 'Close', onClick: handleClose }}
         contentAreaClassName="px-4 py-2"
