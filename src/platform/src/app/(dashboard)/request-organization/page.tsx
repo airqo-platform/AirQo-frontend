@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   AqCheckCircle,
   AqXCircle,
@@ -78,7 +78,8 @@ const RequestOrganizationPage = () => {
   const [logoUploading, setLogoUploading] = useState(false);
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Validation state
   const [validationErrors, setValidationErrors] = useState<{
@@ -107,7 +108,10 @@ const RequestOrganizationPage = () => {
       setSlugCheck({ status: 'checking' });
 
       try {
-        const response = await checkSlug({ slug });
+        const current = slug;
+        const response = await checkSlug({ slug: current });
+        // Ignore stale results
+        if (current !== formData.organization_slug) return;
         setSlugCheck({
           status: response.available ? 'available' : 'unavailable',
           message: response.available
@@ -115,13 +119,14 @@ const RequestOrganizationPage = () => {
             : 'Slug is not available',
         });
       } catch {
+        if (slug !== formData.organization_slug) return;
         setSlugCheck({
           status: 'error',
           message: 'Failed to check slug availability',
         });
       }
     },
-    [checkSlug]
+    [checkSlug, formData.organization_slug]
   );
 
   // Real-time validation effects
@@ -166,6 +171,13 @@ const RequestOrganizationPage = () => {
     return () => clearTimeout(timeoutId);
   }, [formData.organization_slug, debouncedSlugCheck]);
 
+  // Cleanup object URLs to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+    };
+  }, [logoPreview]);
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -201,6 +213,7 @@ const RequestOrganizationPage = () => {
 
   const handleClearLogo = () => {
     setSelectedLogoFile(null);
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
     setLogoPreview('');
     // Clear any existing URL from form data
     setFormData(prev => ({
@@ -210,6 +223,7 @@ const RequestOrganizationPage = () => {
         logo_url: '',
       },
     }));
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleLogoUploadClick = () => {
@@ -270,6 +284,8 @@ const RequestOrganizationPage = () => {
 
     // Create preview URL
     const previewUrl = URL.createObjectURL(file);
+    // Revoke previous URL if any
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
     setLogoPreview(previewUrl);
 
     toast.success(
