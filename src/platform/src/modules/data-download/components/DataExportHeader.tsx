@@ -15,6 +15,7 @@ interface DataExportHeaderProps {
   onPreview: () => void;
   onDownload: () => void;
   onToggleSidebar?: () => void;
+  sidebarOpen?: boolean;
 }
 
 /**
@@ -32,6 +33,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   onPreview,
   onDownload,
   onToggleSidebar,
+  sidebarOpen = false,
 }) => {
   const hasSelections =
     selectedSiteIds.length > 0 || selectedDeviceIds.length > 0;
@@ -39,15 +41,18 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div className="flex items-center gap-4 w-full sm:w-auto">
-        {/* Mobile Sidebar Toggle */}
+        {/* Sidebar Toggle - Always visible */}
         {onToggleSidebar && (
           <Button
             variant="outlined"
             size="sm"
             onClick={onToggleSidebar}
-            className="md:hidden flex-shrink-0"
+            className="flex-shrink-0"
           >
-            <span className="sr-only">Toggle sidebar</span>☰
+            <span className="sr-only">
+              {sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+            </span>
+            {sidebarOpen ? '✕' : '☰'}
           </Button>
         )}
 

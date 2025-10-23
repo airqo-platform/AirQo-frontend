@@ -86,8 +86,12 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
   }, [deviceCategory]);
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex md:w-64 rounded-md bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto flex-col shadow-sm">
+      {/* Sidebar - Hidden by default, shown when toggled */}
+      <aside className={`fixed lg:static top-0 left-0 z-[60] w-80 lg:w-64 h-full lg:h-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto flex-col shadow-lg lg:shadow-sm transition-transform duration-300 ease-in-out ${
+        sidebarOpen 
+          ? 'translate-x-0' 
+          : '-translate-x-full'
+      } ${sidebarOpen ? 'flex' : 'hidden'}`}>
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Export Configuration
@@ -328,10 +332,10 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
         </div>
       </aside>
 
-      {/* Mobile Sidebar Overlay - Only when open */}
+      {/* Mobile/Tablet Sidebar Overlay - Only when open on smaller screens */}
       {sidebarOpen && (
         <div
-          className="md:hidden fixed inset-0 z-[55] bg-black/50"
+          className="lg:hidden fixed inset-0 z-[55] bg-black/50"
           onClick={() => setSidebarOpen(false)}
         />
       )}
