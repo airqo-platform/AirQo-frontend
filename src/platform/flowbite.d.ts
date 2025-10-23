@@ -1,1 +1,0 @@
-declare module 'flowbite/plugin';
