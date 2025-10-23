@@ -5,7 +5,6 @@ import { useDispatch } from 'react-redux';
 import { QuickAccessCard, EmptyAnalyticsState } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
-import { LoadingState } from '@/shared/components/ui';
 import {
   useAnalyticsSiteCards,
   useAnalyticsPreferences,
@@ -149,24 +148,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     dispatch(openMoreInsights({ sites: [selectedSite] }));
   };
 
-  // Combined loading state for all data (preferences, site cards, and charts)
-  const isLoading =
-    preferencesLoading ||
-    siteCardsLoading ||
-    lineChartLoading ||
-    barChartLoading;
-
-  // Show loading state while any data is being fetched
-  if (isLoading) {
-    return (
-      <div className={`min-h-[400px] ${className}`}>
-        <LoadingState size={28} text="Loading..." className="min-h-[400px]" />
-      </div>
-    );
-  }
+  // Combined loading state for initial data
+  const isInitialLoading = preferencesLoading || siteCardsLoading;
 
   // Show empty state only if not loading and no sites are selected
-  if (selectedSiteIds.length === 0) {
+  if (!isInitialLoading && selectedSiteIds.length === 0) {
     return (
       <div className={`space-y-8 ${className}`}>
         <EmptyAnalyticsState onAddFavorites={handleManageFavorites} />

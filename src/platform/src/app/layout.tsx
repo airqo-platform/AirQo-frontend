@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/modules/themes';
 import { injectThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
+import ErrorBoundary from '@/shared/components/ErrorBoundary';
 
 export const metadata: Metadata = baseMetadata;
 
@@ -24,12 +25,14 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <ReduxProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              {children}
-              <MobileSidebar />
-            </ThemeProvider>
-          </AuthProvider>
+          <ErrorBoundary>
+            <AuthProvider>
+              <ThemeProvider>
+                {children}
+                <MobileSidebar />
+              </ThemeProvider>
+            </AuthProvider>
+          </ErrorBoundary>
         </ReduxProvider>
         <Toaster />
       </body>
