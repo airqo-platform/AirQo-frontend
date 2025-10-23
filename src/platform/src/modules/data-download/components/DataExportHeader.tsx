@@ -68,7 +68,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+      <div className="flex flex-col md:justify-end sm:flex-row gap-2 w-full sm:w-auto flex-wrap">
         {hasSelections && (
           <Button
             variant="outlined"
