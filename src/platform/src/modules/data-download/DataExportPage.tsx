@@ -170,9 +170,7 @@ const DataExportPage = () => {
         />
 
         {/* Main Content */}
-        <main
-          className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out"
-        >
+        <main className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
           <div className="gap-4 px-4 flex-col flex flex-1">
             {/* Dynamic Banner Notification */}
             <DataExportBanner

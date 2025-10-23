@@ -87,11 +87,11 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
   return (
     <>
       {/* Sidebar - Hidden by default, shown when toggled */}
-      <aside className={`fixed lg:static top-0 left-0 z-[60] w-80 lg:w-64 h-full lg:h-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto flex-col shadow-lg lg:shadow-sm transition-transform duration-300 ease-in-out ${
-        sidebarOpen 
-          ? 'translate-x-0' 
-          : '-translate-x-full'
-      } ${sidebarOpen ? 'flex' : 'hidden'}`}>
+      <aside
+        className={`fixed lg:static top-0 left-0 z-[60] w-80 lg:w-64 h-full lg:h-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto flex-col shadow-lg lg:shadow-sm transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        } ${sidebarOpen ? 'flex' : 'hidden'}`}
+      >
         <div className="space-y-4">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             Export Configuration
