@@ -47,8 +47,8 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
       </div>
 
       <DropdownMenuContent>
-        <div className="p-3 space-y-3">
-          <div className="flex items-start gap-3 pb-3 border-b">
+        <div className="space-y-3 min-w-[200px]">
+          <div className="flex items-center gap-3 pb-3 border-b">
             <Avatar
               src={userImage}
               alt={displayName}
@@ -59,7 +59,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
               <span className="text-base font-medium truncate">
                 {displayName}
               </span>
-              <span className="text-sm text-muted-foreground truncate">
+              <span className="text-sm max-w-[150px] text-muted-foreground truncate">
                 {userEmail}
               </span>
             </div>

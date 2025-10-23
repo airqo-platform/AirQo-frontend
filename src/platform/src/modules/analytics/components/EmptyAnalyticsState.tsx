@@ -1,8 +1,10 @@
 'use client';
 
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { Button } from '@/shared/components/ui/button';
+import { selectActiveGroup } from '@/shared/store/selectors';
 
 interface EmptyAnalyticsStateProps {
   onAddFavorites: () => void;
@@ -13,6 +15,8 @@ export const EmptyAnalyticsState: React.FC<EmptyAnalyticsStateProps> = ({
   onAddFavorites,
   className = '',
 }) => {
+  const activeGroup = useSelector(selectActiveGroup);
+
   // Determine the correct Vertex URL based on environment
   const vertexUrl =
     process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
@@ -22,6 +26,9 @@ export const EmptyAnalyticsState: React.FC<EmptyAnalyticsStateProps> = ({
   const handleOpenVertex = () => {
     window.open(vertexUrl, '_blank', 'noopener,noreferrer');
   };
+
+  // Check if we should show deploy devices section
+  const shouldShowDeployDevices = activeGroup?.title?.toLowerCase() !== 'airqo';
 
   return (
     <div className={className}>
@@ -42,29 +49,33 @@ export const EmptyAnalyticsState: React.FC<EmptyAnalyticsStateProps> = ({
               >
                 Add Favorite Locations
               </Button>
-              <Button
-                onClick={handleOpenVertex}
-                variant="outlined"
-                size="sm"
-                className="flex-1 sm:flex-none"
-              >
-                Deploy Devices
-              </Button>
+              {shouldShowDeployDevices && (
+                <Button
+                  onClick={handleOpenVertex}
+                  variant="outlined"
+                  size="sm"
+                  className="flex-1 sm:flex-none"
+                >
+                  Deploy Devices
+                </Button>
+              )}
             </div>
-            <p className="text-sm">
-              <strong>Next Steps:</strong> Visit{' '}
-              <a
-                href={vertexUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:text-primary/80 underline font-medium"
-              >
-                AirQo Vertex
-              </a>{' '}
-              to deploy monitoring devices and configure your air quality
-              monitoring network. Once devices are deployed and collecting data,
-              you can add favorite locations here for analysis.
-            </p>
+            {shouldShowDeployDevices && (
+              <p className="text-sm">
+                <strong>Next Steps:</strong> Visit{' '}
+                <a
+                  href={vertexUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:text-primary/80 underline font-medium"
+                >
+                  AirQo Vertex
+                </a>{' '}
+                to deploy monitoring devices and configure your air quality
+                monitoring network. Once devices are deployed and collecting
+                data, you can add favorite locations here for analysis.
+              </p>
+            )}
           </div>
         }
       />
