@@ -164,6 +164,9 @@ const DataExportPage = () => {
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
           deviceCategory={deviceCategory}
+          setDeviceCategory={(value: string) =>
+            setDeviceCategory(value as DeviceCategory)
+          }
         />
 
         {/* Main Content */}
@@ -218,16 +221,12 @@ const DataExportPage = () => {
               selectedItems={
                 activeTab === 'sites' ? selectedSiteIds : selectedDeviceIds
               }
-              deviceCategory={deviceCategory}
               onPageChange={page => updateTabState(activeTab, { page })}
               onPageSizeChange={size =>
                 updateTabState(activeTab, { pageSize: size })
               }
               onSearchChange={search => updateTabState(activeTab, { search })}
               onSelectedItemsChange={handleSelectedItemsChange}
-              onDeviceCategoryChange={(category: string) =>
-                setDeviceCategory(category as DeviceCategory)
-              }
             />
           </div>
         </main>
