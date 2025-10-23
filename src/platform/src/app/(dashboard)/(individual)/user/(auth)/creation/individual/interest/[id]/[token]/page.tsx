@@ -106,13 +106,11 @@ const Page: React.FC = () => {
   const hasVerifiedRef = useRef(false);
   const searchInputId = useId();
 
-  const { control, watch } = useForm({
+  const { control, getValues } = useForm({
     defaultValues: {
       notes: '',
     },
   });
-
-  const notesValue = watch('notes');
 
   const maxLocations = 4;
 
@@ -353,18 +351,18 @@ const Page: React.FC = () => {
                         user_id: userId,
                       };
 
-                      await updatePreferences(preferencesPayload);
-
-                      // Update user details
                       const userDetailsPayload = {
                         interests: [selectedIndustry!],
-                        interestsDescription: notesValue.trim(),
+                        interestsDescription: getValues('notes').trim(),
                       };
 
-                      await updateUserDetails({
-                        userId,
-                        details: userDetailsPayload,
-                      });
+                      await Promise.all([
+                        updatePreferences(preferencesPayload),
+                        updateUserDetails({
+                          userId,
+                          details: userDetailsPayload,
+                        }),
+                      ]);
 
                       showToast({
                         title: 'Setup Complete',

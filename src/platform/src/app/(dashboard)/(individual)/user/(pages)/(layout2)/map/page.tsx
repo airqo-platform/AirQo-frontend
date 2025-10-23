@@ -1,7 +1,7 @@
 import React from 'react';
 
-const page = () => {
-  return <div>page</div>;
+const Page = () => {
+  return <div>Map Page - Coming Soon</div>;
 };
 
-export default page;
+export default Page;
