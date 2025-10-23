@@ -564,7 +564,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
               )?.label || pollutant.toUpperCase()
             } ${visibleSites.size >= MAX_VISIBLE_SITES ? '(Max sites reached)' : ''}`}
             loading={isChartLoading}
-            className="h-full flex py-2 flex-col border"
+            className="h-full flex flex-col border"
             showTitle={false}
             showMoreButton={false}
           >
