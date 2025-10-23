@@ -223,7 +223,6 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       title="Export Preview"
       subtitle="Review your data export configuration and preview sample data"
       size="2xl"
-      maxHeight="max-h-[90vh]"
       primaryAction={{
         label: isDownloading ? 'Downloading...' : 'Confirm & Download',
         onClick: onConfirm,
