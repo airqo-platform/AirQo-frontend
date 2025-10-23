@@ -107,6 +107,18 @@ const DataExportPage = () => {
     }
   }, [deviceCategory, frequency, setFrequency]);
 
+  // Handle sidebar visibility based on screen size
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setSidebarOpen(e.matches);
+    };
+    // Set initial state
+    setSidebarOpen(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [setSidebarOpen]);
+
   // Check if download is ready
   const isDownloadReady = useMemo(() => {
     const hasDateRange = dateRange?.from && dateRange?.to;
