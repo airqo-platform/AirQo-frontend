@@ -95,7 +95,7 @@ export function ServerSideTable<T extends TableItem>({
   const customFooter = (
     <div className="mt-4 border shadow-sm rounded-md bg-card">
       <div className="flex flex-col gap-3 sm:gap-4 items-start sm:items-center sm:justify-between p-3 sm:p-4 sm:flex-row">
-        <div className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 order-2 sm:order-1 text-center sm:text-left w-full sm:w-auto">
+        <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1 text-center sm:text-left w-full sm:w-auto">
           Showing {(currentPage - 1) * pageSize + 1} to{' '}
           {Math.min(currentPage * pageSize, totalItems)} of{' '}
           {totalItems.toLocaleString()} results
@@ -104,13 +104,13 @@ export function ServerSideTable<T extends TableItem>({
         <div className="flex flex-col gap-2 sm:gap-3 w-full sm:w-auto sm:flex-row sm:items-center order-1 sm:order-2">
           {/* Page Size Selector */}
           <div className="flex items-center gap-2 justify-center sm:justify-start">
-            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
               Rows per page:
             </span>
             <select
               value={pageSize}
               onChange={e => handlePageSizeChange(Number(e.target.value))}
-              className="px-2 py-1 border border-gray-300 rounded text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              className="px-2 py-1 border border-input rounded text-xs sm:text-sm focus:ring-2 focus:ring-ring focus:border-primary bg-background text-foreground"
             >
               {[6, 10, 20, 40, 80].map(size => (
                 <option key={size} value={size}>
@@ -125,19 +125,19 @@ export function ServerSideTable<T extends TableItem>({
             <button
               onClick={handlePreviousPage}
               disabled={currentPage <= 1}
-              className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+              className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-input rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted text-foreground"
             >
               Prev
             </button>
 
-            <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
               {currentPage} of {totalPages}
             </span>
 
             <button
               onClick={handleNextPage}
               disabled={currentPage >= totalPages}
-              className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700 dark:text-white"
+              className="px-2 sm:px-3 py-1 text-xs sm:text-sm border border-input rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted text-foreground"
             >
               Next
             </button>

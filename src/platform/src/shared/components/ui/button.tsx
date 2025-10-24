@@ -90,30 +90,30 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             'border border-primary text-primary bg-transparent',
             'hover:bg-primary hover:text-white',
             'focus:ring-primary focus:border-primary',
-            'disabled:border-gray-300 disabled:text-gray-400 disabled:bg-transparent disabled:hover:bg-transparent'
+            'disabled:border-muted disabled:text-muted-foreground disabled:bg-transparent disabled:hover:bg-transparent'
           );
         case 'text':
           return clsx(
             'text-primary bg-transparent border-transparent',
             'hover:bg-primary/10 hover:text-primary',
             'focus:ring-primary',
-            'disabled:text-gray-400 disabled:bg-transparent disabled:hover:bg-transparent'
+            'disabled:text-muted-foreground disabled:bg-transparent disabled:hover:bg-transparent'
           );
         case 'ghost':
           return clsx(
             'bg-transparent text-primary border-transparent',
             'hover:bg-primary/5',
             'focus:ring-primary',
-            'disabled:text-gray-400 disabled:hover:bg-transparent'
+            'disabled:text-muted-foreground disabled:hover:bg-transparent'
           );
         case 'disabled':
-          return 'bg-gray-300 text-gray-500 cursor-not-allowed border-gray-300 opacity-50';
+          return 'bg-muted text-muted-foreground cursor-not-allowed border-muted opacity-50';
         default: // filled
           return clsx(
             'bg-primary text-white border-primary',
             'hover:bg-primary/90',
             'focus:ring-primary',
-            'disabled:bg-gray-300 disabled:text-gray-500 disabled:border-gray-300 disabled:hover:bg-gray-300'
+            'disabled:bg-muted disabled:text-muted-foreground disabled:border-muted disabled:hover:bg-muted'
           );
       }
     })();

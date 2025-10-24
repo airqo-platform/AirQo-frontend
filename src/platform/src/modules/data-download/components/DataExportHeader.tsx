@@ -41,19 +41,21 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div className="flex items-center gap-4 w-full sm:w-auto">
-        {/* Sidebar Toggle - Always visible */}
+        {/* Sidebar Toggle - Hidden on desktop */}
         {onToggleSidebar && (
-          <Button
-            variant="outlined"
-            size="sm"
-            onClick={onToggleSidebar}
-            className="flex-shrink-0"
-          >
-            <span className="sr-only">
-              {sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
-            </span>
-            {sidebarOpen ? '✕' : '☰'}
-          </Button>
+          <div className="block lg:hidden">
+            <Button
+              variant="outlined"
+              size="sm"
+              onClick={onToggleSidebar}
+              className="flex-shrink-0"
+            >
+              <span className="sr-only">
+                {sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              </span>
+              {sidebarOpen ? '✕' : '☰'}
+            </Button>
+          </div>
         )}
 
         {/* Tab Navigation */}

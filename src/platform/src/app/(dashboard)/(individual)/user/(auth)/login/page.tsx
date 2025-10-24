@@ -128,12 +128,13 @@ export default function LoginPage() {
       pageTitle="Login"
       heading={"Let's get started"}
       subtitle={'Get access to air quality analytics across Africa'}
+      rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
         <Input
           label="Email Address"
           type="email"
-          placeholder="test@example.com"
+          placeholder="user@example.com"
           error={errors.email?.message}
           containerClassName="mb-4"
           {...register('email')}

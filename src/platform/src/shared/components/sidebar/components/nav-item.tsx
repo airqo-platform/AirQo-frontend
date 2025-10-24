@@ -15,18 +15,14 @@ export const NavItem = React.memo<NavItemProps>(
 
     const baseStyles = cn(
       'relative flex items-center transition-all duration-300 ease-in-out',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+      'focus-visible:outline-none'
     );
 
-    const textClass = isActive
-      ? 'text-primary'
-      : 'text-gray-600 dark:text-white';
-    const iconColor = isActive
-      ? 'text-primary'
-      : 'text-gray-600 dark:text-white';
+    const textClass = isActive ? 'text-primary' : 'text-foreground';
+    const iconColor = isActive ? 'text-primary' : 'text-foreground';
     const bgClass = isActive
       ? 'bg-primary/10'
-      : 'hover:bg-gray-50 hover: dark:hover:bg-gray-700 dark:hover:text-white';
+      : 'hover:bg-muted dark:hover:text-foreground';
 
     if (isCollapsed) {
       return (
@@ -91,7 +87,7 @@ export const NavItem = React.memo<NavItemProps>(
           {/* Badge */}
           {item.badge && (
             <span
-              className="flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs font-semibold text-white bg-red-500 rounded-full flex-shrink-0"
+              className="flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs text-white bg-red-500 rounded-full flex-shrink-0"
               aria-label={`${item.badge} notifications`}
             >
               {item.badge}

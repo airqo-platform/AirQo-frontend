@@ -36,7 +36,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Page Title */}
           <div className="flex-1 ml-4">
-            <h1 className="text-xl dark:text-white truncate">{pageTitle}</h1>
+            <h1 className="text-xl text-foreground truncate">{pageTitle}</h1>
           </div>
 
           {/* App Dropdown and Profile Dropdown */}

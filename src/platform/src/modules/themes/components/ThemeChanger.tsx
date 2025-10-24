@@ -34,7 +34,7 @@ const ThemeChanger = () => {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <h3 className="text-lg font-semibold">Theme</h3>
+        <h3 className="text-lg">Theme</h3>
         <div className="flex gap-2">
           <Button
             variant={theme.mode === 'light' ? 'filled' : 'outlined'}
@@ -60,7 +60,7 @@ const ThemeChanger = () => {
         </div>
       </div>
       <div>
-        <h3 className="text-lg font-semibold">Primary Color</h3>
+        <h3 className="text-lg">Primary Color</h3>
         <div className="flex gap-2">
           <button
             className="w-8 h-8 rounded-full border-2 border-gray-300 disabled:opacity-50"

@@ -15,8 +15,10 @@ const PageHeading: React.FC<PageHeadingProps> = ({
 }) => {
   return (
     <div className={`mb-6 ${className}`}>
-      <h1 className="text-2xl font-semibold">{title}</h1>
-      {subtitle && <p className="mt-2 text-sm text-gray-600">{subtitle}</p>}
+      <h1 className="text-2xl">{title}</h1>
+      {subtitle && (
+        <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
+      )}
       {children && <div className="mt-4">{children}</div>}
     </div>
   );

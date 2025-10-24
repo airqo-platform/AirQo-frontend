@@ -135,7 +135,7 @@ export const OrganizationSelector: React.FC = () => {
                   className={`w-full text-left px-3 py-2.5 rounded-md transition-colors duration-150 flex items-center justify-between group relative ${
                     activeGroup?.id === group.id
                       ? 'bg-primary/10 border border-primary/20 shadow-sm'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border border-transparent'
+                      : 'hover:bg-muted border border-transparent'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -147,14 +147,14 @@ export const OrganizationSelector: React.FC = () => {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <div className="font-medium text-sm  dark:text-white truncate uppercase">
+                        <div className="font-medium text-sm text-foreground truncate uppercase">
                           {cleanDisplayText(group.title)}
                         </div>
                         <span
                           className={`px-1.5 py-0.5 rounded text-xs font-medium ml-2 flex-shrink-0 ${
                             group.status === 'active'
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                              : 'bg-muted text-muted-foreground'
                           }`}
                         >
                           {group.status === 'active' ? 'Active' : 'Inactive'}
@@ -165,7 +165,7 @@ export const OrganizationSelector: React.FC = () => {
                 </button>
               ))
             ) : (
-              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <div className="text-center py-8 text-muted-foreground">
                 <div className="text-sm font-medium mb-1">
                   No organizations found
                 </div>

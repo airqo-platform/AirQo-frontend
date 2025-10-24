@@ -135,7 +135,7 @@ const ThemeManager: React.FC = () => {
                       <AqPalette size={20} className="text-primary" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold">Customize</h2>
+                      <h2 className="text-xl">Customize</h2>
                       <p className="text-xs text-muted-foreground">
                         Personalize your experience
                       </p>
@@ -183,7 +183,7 @@ const ThemeManager: React.FC = () => {
                 {/* Color Palette */}
                 <section>
                   <div className="mb-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
                       Color Palette
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -290,7 +290,7 @@ const ThemeManager: React.FC = () => {
                 {/* Appearance */}
                 <section>
                   <div className="mb-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
                       Appearance
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -335,7 +335,7 @@ const ThemeManager: React.FC = () => {
                 {/* Interface Style */}
                 <section>
                   <div className="mb-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
                       Interface Style
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -420,7 +420,7 @@ const ThemeManager: React.FC = () => {
                 {/* Content Layout */}
                 <section>
                   <div className="mb-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
                       Content Layout
                     </h3>
                     <p className="text-xs text-muted-foreground mt-1">

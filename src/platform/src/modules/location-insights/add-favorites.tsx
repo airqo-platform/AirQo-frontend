@@ -228,7 +228,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
     <WideDialog
       isOpen={isOpen}
       onClose={onClose}
-      headerLeft={<h2 className="text-xl font-semibold">Add Favorites</h2>}
+      headerLeft={<h2 className="text-xl">Add Favorites</h2>}
       sidebar={
         <div className="h-full">
           {allSelectedLocations.length === 0 ? (

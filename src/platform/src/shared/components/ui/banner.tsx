@@ -48,11 +48,11 @@ const SEVERITY_CONFIG: Record<
     iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
   error: {
-    bgColor: 'bg-red-50 dark:bg-red-950/20',
-    borderColor: 'border-red-200 dark:border-red-800',
-    textColor: 'text-red-800 dark:text-red-200',
+    bgColor: 'bg-destructive/10',
+    borderColor: 'border-destructive/20',
+    textColor: 'text-destructive',
     icon: <AqMessageXCircle className="h-5 w-5" />,
-    iconColor: 'text-red-600 dark:text-red-400',
+    iconColor: 'text-destructive',
   },
   warning: {
     bgColor: 'bg-amber-50 dark:bg-amber-950/20',
@@ -107,11 +107,7 @@ export const Banner: React.FC<BannerProps> = ({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        {title && (
-          <h4 className={cn('font-semibold text-sm', config.textColor)}>
-            {title}
-          </h4>
-        )}
+        {title && <h4 className={cn('text-sm', config.textColor)}>{title}</h4>}
         {message && (
           <div className={cn('mt-1 text-sm', config.textColor)}>{message}</div>
         )}

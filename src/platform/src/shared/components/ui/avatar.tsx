@@ -87,10 +87,7 @@ const Avatar = React.forwardRef<HTMLDivElement, AvatarProps>(
         ) : fallback ? (
           <div className="flex h-full w-full items-center justify-center">
             <span
-              className={cn(
-                'font-semibold text-primary uppercase',
-                textSizeClasses[size]
-              )}
+              className={cn('text-primary uppercase', textSizeClasses[size])}
             >
               {getFallbackText(fallback)}
             </span>

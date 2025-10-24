@@ -107,6 +107,25 @@ const DataExportPage = () => {
     }
   }, [deviceCategory, frequency, setFrequency]);
 
+  // Set device category to lowcost and disable when sites tab is active
+  useEffect(() => {
+    if (activeTab === 'sites') {
+      setDeviceCategory('lowcost');
+    }
+  }, [activeTab, setDeviceCategory]);
+
+  // Handle sidebar visibility based on screen size
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(min-width: 1024px)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setSidebarOpen(e.matches);
+    };
+    // Set initial state
+    setSidebarOpen(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [setSidebarOpen]);
+
   // Check if download is ready
   const isDownloadReady = useMemo(() => {
     const hasDateRange = dateRange?.from && dateRange?.to;
@@ -167,6 +186,7 @@ const DataExportPage = () => {
           setDeviceCategory={(value: string) =>
             setDeviceCategory(value as DeviceCategory)
           }
+          activeTab={activeTab}
         />
 
         {/* Main Content */}

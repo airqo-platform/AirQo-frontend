@@ -271,10 +271,10 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
       {label && (
         <label
           htmlFor={buttonId}
-          className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-200"
+          className="flex items-center mb-2 text-sm font-medium text-foreground"
         >
           {label}
-          {required && <span className="ml-1 text-red-600">*</span>}
+          {required && <span className="ml-1 text-destructive">*</span>}
         </label>
       )}
 
@@ -305,28 +305,26 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
             transition duration-150 ease-in-out focus:outline-none
             ${
               error
-                ? 'border border-red-500'
-                : 'border border-gray-300 dark:border-gray-600 focus:border-primary'
+                ? 'border border-destructive focus:border-destructive'
+                : 'border border-input focus:border-primary'
             }
             ${
               disabled
-                ? 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700'
+                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                : 'bg-background text-foreground hover:bg-muted'
             }
             ${className}
           `}
           {...rest}
         >
           <span
-            className={`truncate ${!selectedItem ? 'text-gray-400 dark:text-gray-500' : ''}`}
+            className={`truncate ${!selectedItem ? 'text-muted-foreground' : ''}`}
           >
             {selectedItem ? selectedItem.label : placeholder}
           </span>
           <svg
             className={`w-5 h-5 ml-2 transition-transform duration-200 flex-shrink-0 ${open ? 'transform rotate-180' : ''} ${
-              disabled
-                ? 'text-gray-400 dark:text-gray-500'
-                : 'text-gray-500 dark:text-gray-400'
+              disabled ? 'text-muted-foreground' : 'text-muted-foreground'
             }`}
             fill="none"
             stroke="currentColor"
@@ -352,8 +350,8 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
             }}
             {...(popperAttributes.popper ?? {})}
             className={`
-              bg-white dark:bg-gray-800 rounded-md shadow-lg ring-1 ring-black ring-opacity-5
-              border border-gray-200 dark:border-gray-700 overflow-hidden
+              bg-popover rounded-md shadow-lg
+              border border-primary overflow-hidden
               ${listClassName}
             `}
           >
@@ -380,27 +378,27 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
                       cursor-pointer px-4 py-2.5 text-sm transition-colors duration-150
                       ${
                         item.disabled
-                          ? 'opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500'
-                          : 'text-gray-700 dark:text-gray-200'
+                          ? 'opacity-50 cursor-not-allowed text-muted-foreground'
+                          : 'text-foreground'
                       }
                       ${
                         highlightedIndex === index && !item.disabled
-                          ? 'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:bg-opacity-20'
+                          ? 'bg-primary/10'
                           : ''
                       }
                       ${
                         selectedItem && selectedItem.value === item.value
-                          ? 'bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--color-primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium'
+                          ? 'bg-primary/20 text-primary font-medium'
                           : ''
                       }
-                      ${!item.disabled ? 'hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20' : ''}
+                      ${!item.disabled ? 'hover:bg-primary/10' : ''}
                     `}
                   >
                     {item.label}
                   </li>
                 ))
               ) : (
-                <li className="px-4 py-2.5 text-sm text-gray-500 dark:text-gray-400">
+                <li className="px-4 py-2.5 text-sm text-muted-foreground">
                   No options available
                 </li>
               )}
@@ -412,7 +410,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
       {error && (
         <div
           id={`${buttonId}-error`}
-          className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400"
+          className="mt-1.5 flex items-center text-xs text-destructive"
         >
           <svg
             className="flex-shrink-0 w-4 h-4 mr-1"
@@ -432,7 +430,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
       {!error && description && (
         <div
           id={`${buttonId}-description`}
-          className="mt-1.5 text-xs text-gray-500 dark:text-gray-400"
+          className="mt-1.5 text-xs text-muted-foreground"
         >
           {description}
         </div>

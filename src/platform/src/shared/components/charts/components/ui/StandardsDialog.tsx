@@ -170,12 +170,12 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
         </div>
 
         {/* Reference Line Option */}
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
           <div className="flex flex-col">
             <label htmlFor="referenceLine" className="text-sm font-medium">
               Show Reference Line
             </label>
-            <span className="text-xs text-gray-600">
+            <span className="text-xs text-muted-foreground">
               Display guideline threshold at {referenceLine} µg/m³
             </span>
           </div>
@@ -186,7 +186,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
           />
         </div>
 
-        <hr className="border-gray-200" />
+        <hr className="border-border" />
 
         {/* Standards Preview */}
         <div className="space-y-4">
@@ -195,7 +195,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
               {STANDARDS_ORGANIZATIONS[selectedOrg]} - {selectedPollutant}{' '}
               Standards
             </h3>
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               Annual guideline levels
             </span>
           </div>
@@ -212,7 +212,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
                     'px-3 py-2 text-sm font-medium rounded-md transition-colors',
                     selectedPollutant === pollutant
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
                   )}
                 >
                   {pollutant}
@@ -229,7 +229,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
               return (
                 <div
                   key={index}
-                  className="border border-gray-200 rounded-md p-4 hover:shadow-md transition-shadow"
+                  className="border border-border rounded-md p-4 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium text-sm">
@@ -239,12 +239,12 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
                       <IconComponent className="h-5 w-5" />
                     </span>
                   </div>
-                  <div className="text-xs text-gray-600 mt-2">
+                  <div className="text-xs text-muted-foreground mt-2">
                     {standard.range.min}-
                     {standard.range.max === Infinity ? '∞' : standard.range.max}{' '}
                     µg/m³
                   </div>
-                  <p className="text-xs text-gray-600 leading-relaxed mt-2">
+                  <p className="text-xs text-muted-foreground leading-relaxed mt-2">
                     {standard.description}
                   </p>
                 </div>

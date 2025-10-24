@@ -59,12 +59,10 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const baseClasses = [
-      'bg-white dark:bg-[#1d1f20]',
+      'bg-card',
       rounded ? radius || 'rounded-lg' : '',
       shadow || 'shadow-md',
-      bordered
-        ? `border ${borderColor || 'border-gray-200 dark:border-gray-700'}`
-        : '',
+      bordered ? `border ${borderColor || 'border-border'}` : '',
       background || '',
       className,
     ]
@@ -75,10 +73,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       <div ref={ref} className={baseClasses} {...props}>
         {header && (
           <div
-            className={
-              headerProps?.className ||
-              'p-4 border-b border-gray-200 dark:border-gray-700'
-            }
+            className={headerProps?.className || 'p-4 border-b border-border'}
           >
             {header}
           </div>
@@ -86,10 +81,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         <div className={`${padding} ${contentClassName}`}>{children}</div>
         {footer && (
           <div
-            className={
-              footerProps?.className ||
-              'p-4 border-t border-gray-200 dark:border-gray-700'
-            }
+            className={footerProps?.className || 'p-4 border-t border-border'}
           >
             {footer}
           </div>
@@ -253,13 +245,9 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
           )}
           {(title || subtitle) && (
             <div>
-              {title && (
-                <h2 className="text-lg font-semibold  dark:text-white">
-                  {title}
-                </h2>
-              )}
+              {title && <h2 className="text-lg text-foreground">{title}</h2>}
               {subtitle && (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {subtitle}
                 </p>
               )}
@@ -270,7 +258,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-shrink-0 p-2 text-gray-400 transition-colors duration-200 rounded-lg hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex-shrink-0 p-2 text-muted-foreground transition-colors duration-200 rounded-lg hover:text-foreground hover:bg-muted"
             aria-label="Close dialog"
           >
             <AqXClose className="w-4 h-4" />
@@ -358,12 +346,12 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
                       header={createHeaderContent()}
                       headerProps={{
                         className:
-                          'px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
+                          'px-6 py-4 border-b border-border bg-muted/50',
                       }}
                       footer={createFooterContent()}
                       footerProps={{
                         className:
-                          'px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50',
+                          'px-6 py-4 border-t border-border bg-muted/50',
                       }}
                       role="dialog"
                       aria-modal="true"

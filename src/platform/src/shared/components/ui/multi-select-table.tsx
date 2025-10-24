@@ -394,7 +394,7 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         type="button"
-        className="w-full px-3 py-2 text-sm text-left bg-white border rounded-md shadow-sm dark:bg-[#1d1f20] border-input focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
+        className="w-full px-3 py-2 text-sm text-left bg-background border rounded-md shadow-sm border-input focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring text-foreground"
       >
         <span className="block truncate">{getDisplayValue()}</span>
         <span className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
@@ -975,7 +975,7 @@ const MultiSelectTable = <T extends TableItem>({
 
   return (
     <Card
-      className={`p-0 shadow border border-gray-200 dark:border-gray-700 w-full overflow-hidden ${className}`}
+      className={`p-0 shadow border border-border w-full overflow-hidden ${className}`}
     >
       {/* Header 2 */}
       {headerComponent && (
@@ -986,11 +986,11 @@ const MultiSelectTable = <T extends TableItem>({
 
       {/* Header 2 */}
       <div
-        className={`px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-white dark:bg-[#1d1f20] border-b border-border ${headerComponent ? '' : 'rounded-t-md'}`}
+        className={`px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-card border-b border-border ${headerComponent ? '' : 'rounded-t-md'}`}
       >
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground truncate">
+            <h2 className="text-base sm:text-lg text-foreground truncate">
               {title}
             </h2>
             <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center">
@@ -1093,7 +1093,7 @@ const MultiSelectTable = <T extends TableItem>({
             (loadingComponent ?? (
               <LoadingState
                 text="Loading data..."
-                className="w-full h-64 border border-gray-200 dark:border-gray-700 rounded-none bg-gray-50 dark:bg-gray-800/50"
+                className="w-full h-64 border border-border rounded-none bg-muted/50"
               />
             ))
           ) : paginatedData.length === 0 ? (
@@ -1111,8 +1111,8 @@ const MultiSelectTable = <T extends TableItem>({
               className="min-h-[300px] border-0 bg-transparent"
             />
           ) : (
-            <table className="w-full">
-              <thead className="border-b bg-muted dark:bg-[#1d1f20] border-border">
+            <table className="w-full bg-card">
+              <thead className="border-b bg-muted border-border">
                 <tr>
                   {displayColumns.map(column => (
                     <th
@@ -1170,7 +1170,7 @@ const MultiSelectTable = <T extends TableItem>({
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-border">
+              <tbody className="bg-card divide-y divide-border">
                 {paginatedData.map((item, index) => (
                   <tr
                     key={item.id ?? index}
@@ -1209,7 +1209,7 @@ const MultiSelectTable = <T extends TableItem>({
 
       {/* Pagination */}
       {!loading && showPagination && sortedData.length > 0 && (
-        <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-border bg-muted/50 dark:bg-[#1d1f20]/50">
+        <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-border bg-muted">
           <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4 order-2 sm:order-1">
               <PageSizeSelector

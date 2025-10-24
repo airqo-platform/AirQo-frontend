@@ -209,8 +209,7 @@ export function Calendar({
       if (!isInRange && !isStart && !isEnd) classes.push('rounded-md');
 
       // Visual styles and layering: ensure selected date appears on top
-      if (isToday && !isSelected)
-        classes.push('font-semibold ring-1 ring-primary z-20');
+      if (isToday && !isSelected) classes.push('ring-1 ring-primary z-20');
 
       // Selected date: highest z-index so it renders above range/hover highlights
       if (isSelected)
@@ -265,7 +264,7 @@ export function Calendar({
                     {monthIndex !== 0 && <div className="w-8" />}
 
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">
+                      <span className="text-sm">
                         {dateUtils.formatDate(month, 'short-month')}
                       </span>
                       {monthIndex === 0 && (
@@ -275,9 +274,7 @@ export function Calendar({
                         />
                       )}
                       {monthIndex !== 0 && (
-                        <span className="text-sm font-semibold">
-                          {month.getFullYear()}
-                        </span>
+                        <span className="text-sm">{month.getFullYear()}</span>
                       )}
                     </div>
 

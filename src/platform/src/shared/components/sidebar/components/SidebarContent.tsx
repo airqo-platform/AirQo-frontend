@@ -38,7 +38,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         {sidebarConfig.map((group, index) => (
           <React.Fragment key={group.id}>
             {index > 0 && isCollapsed && (
-              <div className="my-4 border-t border-gray-200 dark:border-gray-600" />
+              <div className="my-4 border-t border-border" />
             )}
             <div
               className={cn(
@@ -55,7 +55,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
                     transition={{ duration: 0.2 }}
                     className="mb-3"
                   >
-                    <h3 className="px-3 text-xs font-normal tracking-wide text-gray-400 dark:text-gray-300 capitalize">
+                    <h3 className="px-3 text-xs font-normal tracking-wide text-muted-foreground capitalize">
                       {group.label}
                     </h3>
                   </motion.div>

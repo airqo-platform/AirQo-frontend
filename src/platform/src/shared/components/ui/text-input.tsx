@@ -38,15 +38,16 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
         {label && (
           <label
             htmlFor={id}
-            className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
+            className="mb-2 text-sm font-medium text-foreground flex items-center"
           >
-            {label} {required && <span className="ml-1 text-red-600">*</span>}
+            {label}{' '}
+            {required && <span className="ml-1 text-destructive">*</span>}
           </label>
         )}
 
         <div className="relative flex items-start">
           {Icon && (
-            <div className="absolute left-0 top-0 pt-3 pl-3 flex items-start justify-center text-gray-500 dark:text-gray-400">
+            <div className="absolute left-0 top-0 pt-3 pl-3 flex items-start justify-center text-muted-foreground">
               <Icon className="w-5 h-5" />
             </div>
           )}
@@ -58,18 +59,16 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
             required={required}
             rows={rows}
             className={`
-            w-full px-4 py-2.5 rounded-md border bg-white outline-none text-sm
-            text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500
-            border-gray-300 transition-colors duration-150 ease-in-out
-            dark:border-gray-600 dark:bg-gray-800
+            w-full px-4 py-2.5 rounded-md border bg-background outline-none text-sm
+            text-foreground placeholder-muted-foreground
+            border-input transition-colors duration-150 ease-in-out
             ${Icon ? 'pl-10' : ''}
 
             hover:border-primary/50
 
             focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none
 
-            disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500
-            dark:disabled:border-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-400
+            disabled:cursor-not-allowed disabled:border-input disabled:bg-muted disabled:text-muted-foreground
             ${inputClassName}
           `}
             style={{
@@ -82,7 +81,7 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
         </div>
 
         {error && (
-          <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
+          <div className="mt-1.5 flex items-center text-xs text-destructive">
             <svg
               className="w-4 h-4 mr-1 flex-shrink-0"
               fill="currentColor"

@@ -94,9 +94,9 @@ const DEFAULT_MOBILE_MAX_WIDTH = 300;
 
 const BUTTON_STYLES = {
   default:
-    'flex items-center justify-between rounded-lg px-4 py-2 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm transition active:scale-95',
+    'flex items-center justify-between rounded-lg px-4 py-2 border border-input bg-background hover:bg-muted text-foreground shadow-sm transition active:scale-95',
   collapsed:
-    'flex items-center justify-center rounded-lg px-4 py-3 border border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-700 dark:bg-[#1d1f20] dark:text-white shadow-sm',
+    'flex items-center justify-center rounded-lg px-4 py-3 border border-input bg-background hover:bg-muted text-foreground shadow-sm',
 } as const;
 
 // ============================================================================
@@ -154,7 +154,7 @@ const TriggerButton = React.forwardRef<HTMLButtonElement, TriggerButtonProps>(
           <span>{icon}</span>
         ) : (
           <>
-            <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200">
+            <div className="flex items-center gap-2 text-foreground">
               {icon && iconPosition === 'left' && <span>{icon}</span>}
               {showText && <span className="truncate">{text}</span>}
               {icon && iconPosition === 'right' && <span>{icon}</span>}
@@ -414,13 +414,13 @@ const ButtonDropdown: React.FC<ButtonDropdownProps> = ({
           target: 'inline-block',
           base: 'absolute z-50 whitespace-nowrap rounded-lg py-1.5 px-3 text-sm font-medium shadow-sm',
           content:
-            'relative z-10 rounded-lg bg-gray-900 px-2.5 py-1.5 text-white dark:bg-gray-700',
+            'relative z-10 rounded-lg bg-popover px-2.5 py-1.5 text-popover-foreground',
           arrow: {
             base: 'absolute z-10 h-2 w-2 rotate-45',
             style: {
-              dark: 'bg-gray-700',
-              light: 'bg-gray-900',
-              auto: 'bg-gray-900 dark:bg-gray-700',
+              dark: 'bg-popover',
+              light: 'bg-popover',
+              auto: 'bg-popover',
             },
           },
         }}
@@ -458,7 +458,7 @@ const ButtonDropdown: React.FC<ButtonDropdownProps> = ({
           >
             <div
               className={clsx(
-                'mt-1 p-1 rounded-lg shadow-md border bg-white dark:border-gray-700 dark:bg-[#1d1f20]',
+                'mt-1 p-1 rounded-lg shadow-md border bg-popover',
                 'w-full sm:min-w-[200px]',
                 menuClassName
               )}
@@ -524,9 +524,9 @@ export const DropdownItem: React.FC<DropdownItemProps> = ({
     role="menuitem"
     aria-current={active ? 'true' : undefined}
     className={clsx(
-      'w-full px-4 py-2 text-left rounded-lg flex items-center text-gray-700 dark:text-gray-200 transition-colors',
-      !disabled && 'hover:bg-primary/10 dark:hover:bg-primary/20',
-      active && 'bg-primary/10 dark:bg-primary/40',
+      'w-full px-4 py-2 text-left rounded-lg flex items-center text-foreground transition-colors',
+      !disabled && 'hover:bg-accent',
+      active && 'bg-accent',
       disabled && 'opacity-60 cursor-not-allowed',
       className
     )}
