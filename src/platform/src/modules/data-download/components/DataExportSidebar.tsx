@@ -29,6 +29,7 @@ interface DataExportSidebarProps {
   setSidebarOpen: (value: boolean) => void;
   deviceCategory: string;
   setDeviceCategory: (value: string) => void;
+  activeTab: string; // Add activeTab prop
 }
 
 const dataTypeOptions = Object.entries(DATA_TYPE_LABELS).map(
@@ -69,6 +70,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
   setSidebarOpen,
   deviceCategory,
   setDeviceCategory,
+  activeTab,
 }) => {
   const frequencyOptions = useMemo(() => {
     const allOptions = Object.entries(FREQUENCY_LABELS).map(
@@ -88,7 +90,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
     <>
       {/* Sidebar - Hidden by default, shown when toggled */}
       <aside
-        className={`fixed lg:static top-0 left-0 z-[60] w-80 lg:w-64 h-full lg:h-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-y-auto flex-col shadow-lg lg:shadow-sm transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:static top-0 left-0 z-[60] w-80 lg:w-64 h-full lg:h-auto bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 p-4 overflow-visible flex-col shadow-lg lg:shadow-sm transition-transform duration-300 ease-in-out ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         } ${sidebarOpen ? 'flex' : 'hidden'}`}
       >
@@ -113,6 +115,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             onChange={setDeviceCategory}
             options={deviceCategoryOptions}
             placeholder="Select device category"
+            disabled={activeTab === 'sites'}
           />
 
           {/* Date Range - Required */}
@@ -204,7 +207,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
 
       {/* Mobile Sidebar - Within Content Area */}
       <aside
-        className={`md:hidden fixed inset-y-0 left-0 z-[60] w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out ${
+        className={`md:hidden fixed inset-y-0 left-0 z-[60] w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out overflow-visible ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -225,7 +228,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
           </div>
 
           {/* Mobile Sidebar Content */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-visible p-4 space-y-4">
             {/* File Title Input - First */}
             <Input
               type="text"
@@ -242,6 +245,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               onChange={setDeviceCategory}
               options={deviceCategoryOptions}
               placeholder="Select device category"
+              disabled={activeTab === 'sites'}
             />
 
             {/* Date Range - Required */}

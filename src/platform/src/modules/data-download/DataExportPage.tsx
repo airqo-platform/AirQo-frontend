@@ -107,6 +107,13 @@ const DataExportPage = () => {
     }
   }, [deviceCategory, frequency, setFrequency]);
 
+  // Set device category to lowcost and disable when sites tab is active
+  useEffect(() => {
+    if (activeTab === 'sites') {
+      setDeviceCategory('lowcost');
+    }
+  }, [activeTab, setDeviceCategory]);
+
   // Handle sidebar visibility based on screen size
   useEffect(() => {
     const mediaQuery = window.matchMedia('(min-width: 1024px)');
@@ -179,6 +186,7 @@ const DataExportPage = () => {
           setDeviceCategory={(value: string) =>
             setDeviceCategory(value as DeviceCategory)
           }
+          activeTab={activeTab}
         />
 
         {/* Main Content */}

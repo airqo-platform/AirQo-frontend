@@ -126,7 +126,7 @@ export const CustomField: React.FC<CustomFieldProps> = ({
             type="button"
             disabled={disabled}
             className={cn(
-              'w-full dark:bg-[#1d1f20] justify-start flex gap-2 items-center rounded-md border border-gray-300 dark:border-gray-700 text-left font-normal text-sm px-3 py-2 bg-white',
+              'w-full dark:bg-[#1d1f20] justify-start flex gap-2 items-center rounded-md border border-gray-300 dark:border-gray-700 text-left font-normal text-sm px-3 py-2 bg-white hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors',
               disabled && 'opacity-50 cursor-not-allowed'
             )}
           >
@@ -147,7 +147,7 @@ export const CustomField: React.FC<CustomFieldProps> = ({
           align="start"
           sideOffset={4}
           className={cn(
-            'p-1',
+            'p-1 overflow-visible z-[70]',
             mode === 'dropdown' && 'max-h-[300px] overflow-y-auto'
           )}
           matchTriggerWidth={true}
@@ -155,7 +155,7 @@ export const CustomField: React.FC<CustomFieldProps> = ({
           {options.map(opt => (
             <DropdownMenuItem
               key={opt.value}
-              onClick={() => handleSelect(opt.value)}
+              onSelect={() => handleSelect(opt.value)}
               className={cn(
                 'cursor-pointer flex items-center justify-between gap-2',
                 value === opt.value && 'bg-accent text-accent-foreground'
