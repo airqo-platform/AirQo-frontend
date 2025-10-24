@@ -171,7 +171,7 @@ const AuthLayout = ({
                   <div className="flex flex-col w-full gap-3">
                     {/** Render centralized heading/subtitle when provided by pages */}
                     {typeof heading !== 'undefined' && (
-                      <h3 className={headingClassName || ''}>{heading}</h3>
+                      <h1 className={headingClassName || ''}>{heading}</h1>
                     )}
 
                     {typeof subtitle !== 'undefined' && (

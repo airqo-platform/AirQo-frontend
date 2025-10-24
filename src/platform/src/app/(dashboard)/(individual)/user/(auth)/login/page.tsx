@@ -134,7 +134,7 @@ export default function LoginPage() {
         <Input
           label="Email Address"
           type="email"
-          placeholder="greta.nagawa@gmail.com"
+          placeholder="user@example.com"
           error={errors.email?.message}
           containerClassName="mb-4"
           {...register('email')}

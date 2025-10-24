@@ -41,11 +41,11 @@ const SEVERITY_CONFIG: Record<
   }
 > = {
   success: {
-    bgColor: 'bg-primary/10',
-    borderColor: 'border-primary/20',
-    textColor: 'text-primary',
+    bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
+    borderColor: 'border-emerald-200 dark:border-emerald-800',
+    textColor: 'text-emerald-800 dark:text-emerald-200',
     icon: <AqMessageCheckCircle className="h-5 w-5" />,
-    iconColor: 'text-primary',
+    iconColor: 'text-emerald-600 dark:text-emerald-400',
   },
   error: {
     bgColor: 'bg-destructive/10',

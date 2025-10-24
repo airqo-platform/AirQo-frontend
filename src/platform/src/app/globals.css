@@ -239,6 +239,17 @@ html {
     outline: none;
   }
 
+  /* Alternative focus styles for accessibility */
+  textarea:focus {
+    border-color: rgb(var(--ring));
+    box-shadow: 0 0 0 1px rgb(var(--ring));
+  }
+
+  a:focus {
+    background-color: rgb(var(--accent));
+    color: rgb(var(--accent-foreground));
+  }
+
   /* Responsive typography */
   @media (max-width: 640px) {
     h1 {
