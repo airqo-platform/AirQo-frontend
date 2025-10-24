@@ -88,18 +88,18 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           }
         }}
       >
-        <CardContent className="p-6 flex flex-col justify-between space-y-4">
+        <CardContent className="p-4 flex flex-col justify-between space-y-4">
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0 pr-4">
               <Tooltip content={displayName}>
-                <h3
+                <h5
                   ref={nameRef}
                   className="text-md font-semibold  truncate max-w-[140px] mb-1"
                   title={isNameTruncated ? displayName : ''}
                 >
                   {displayName}
-                </h3>
+                </h5>
               </Tooltip>
               <Tooltip content={location}>
                 <p

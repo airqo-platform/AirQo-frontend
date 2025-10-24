@@ -15,11 +15,11 @@ export const NavItem = React.memo<NavItemProps>(
 
     const baseStyles = cn(
       'relative flex items-center transition-all duration-300 ease-in-out',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
+      'focus-visible:outline-none'
     );
 
-    const textClass = isActive ? 'text-primary' : 'text-muted-foreground';
-    const iconColor = isActive ? 'text-primary' : 'text-muted-foreground';
+    const textClass = isActive ? 'text-primary' : 'text-foreground';
+    const iconColor = isActive ? 'text-primary' : 'text-foreground';
     const bgClass = isActive
       ? 'bg-primary/10'
       : 'hover:bg-muted dark:hover:text-foreground';

@@ -350,7 +350,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
             }}
             {...(popperAttributes.popper ?? {})}
             className={`
-              bg-popover rounded-md shadow-lg ring-1 ring-ring
+              bg-popover rounded-md shadow-lg
               border border-primary overflow-hidden
               ${listClassName}
             `}
@@ -383,15 +383,15 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
                       }
                       ${
                         highlightedIndex === index && !item.disabled
-                          ? 'bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:bg-opacity-20'
+                          ? 'bg-primary/10'
                           : ''
                       }
                       ${
                         selectedItem && selectedItem.value === item.value
-                          ? 'bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--color-primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium'
+                          ? 'bg-primary/20 text-primary font-medium'
                           : ''
                       }
-                      ${!item.disabled ? 'hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20' : ''}
+                      ${!item.disabled ? 'hover:bg-primary/10' : ''}
                     `}
                   >
                     {item.label}

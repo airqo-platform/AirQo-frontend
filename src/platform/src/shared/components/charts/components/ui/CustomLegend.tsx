@@ -61,7 +61,7 @@ export const CustomLegend: React.FC<CustomLegendProps> = ({
               style={{ backgroundColor: color }}
             />
             <span
-              className="text-foreground font-medium truncate"
+              className="text-foreground font-normal truncate"
               title={needsTooltip ? value : undefined}
             >
               {truncatedValue}
@@ -111,7 +111,7 @@ export const CompactLegend: React.FC<CompactLegendProps> = ({
             className="w-2 h-2 rounded-full flex-shrink-0"
             style={{ backgroundColor: item.color }}
           />
-          <span className="text-foreground font-medium">{item.name}</span>
+          <span className="text-foreground font-normal">{item.name}</span>
           {item.value !== undefined && (
             <span className="text-muted-foreground">
               ({item.value.toFixed(1)})
@@ -196,7 +196,7 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
               />
               <span
                 className={cn(
-                  'text-foreground font-medium truncate transition-all',
+                  'text-foreground font-normal truncate transition-all',
                   isHidden && 'line-through opacity-75'
                 )}
                 title={needsTooltip ? value : undefined}

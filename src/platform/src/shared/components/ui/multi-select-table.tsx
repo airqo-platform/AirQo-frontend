@@ -986,7 +986,7 @@ const MultiSelectTable = <T extends TableItem>({
 
       {/* Header 2 */}
       <div
-        className={`px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-background border-b border-border ${headerComponent ? '' : 'rounded-t-md'}`}
+        className={`px-3 sm:px-4 md:px-6 py-3 sm:py-4 bg-white border-b border-border ${headerComponent ? '' : 'rounded-t-md'}`}
       >
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -1111,7 +1111,7 @@ const MultiSelectTable = <T extends TableItem>({
               className="min-h-[300px] border-0 bg-transparent"
             />
           ) : (
-            <table className="w-full">
+            <table className="w-full bg-white">
               <thead className="border-b bg-muted border-border">
                 <tr>
                   {displayColumns.map(column => (
@@ -1170,7 +1170,7 @@ const MultiSelectTable = <T extends TableItem>({
                   ))}
                 </tr>
               </thead>
-              <tbody className="bg-background divide-y divide-border">
+              <tbody className="bg-white divide-y divide-border">
                 {paginatedData.map((item, index) => (
                   <tr
                     key={item.id ?? index}
@@ -1209,7 +1209,7 @@ const MultiSelectTable = <T extends TableItem>({
 
       {/* Pagination */}
       {!loading && showPagination && sortedData.length > 0 && (
-        <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-border bg-muted/50">
+        <div className="px-3 sm:px-4 md:px-6 py-3 sm:py-4 border-t border-border bg-muted">
           <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:space-x-4 order-2 sm:order-1">
               <PageSizeSelector
