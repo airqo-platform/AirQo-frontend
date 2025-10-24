@@ -95,21 +95,17 @@ const TestimonialSection = ({
     className={`hidden lg:flex lg:col-span-6 ${backgroundColor} items-center justify-center w-full`}
   >
     <div className="h-auto max-w-3xl px-12 py-10">
-      <blockquote className="space-y-4">
-        <p className="font-medium text-[24px] leading-8  dark:text-white max-w-[820px]">
-          {text}
-        </p>
-        <footer className="space-y-1">
-          <cite className="not-italic">
-            <p className="text-lg font-medium leading-9  dark:text-white">
-              — {author}
-            </p>
-            <p className="text-base font-normal leading-6 text-gray-500 dark:text-gray-400">
-              {role}. {organization}
-            </p>
-          </cite>
-        </footer>
-      </blockquote>
+      <div className="space-y-4">
+        <h3 className="font-medium dark:text-white max-w-[820px]">{text}</h3>
+        <div className="space-y-1">
+          <p className="text-lg font-medium leading-6 dark:text-white">
+            — {author}
+          </p>
+          <p className="text-base font-normal leading-6 text-gray-500 dark:text-gray-400">
+            {role}. {organization}
+          </p>
+        </div>
+      </div>
 
       <div className="flex justify-center w-full mt-6">
         <div className="w-full max-w-[920px]">
@@ -175,9 +171,7 @@ const AuthLayout = ({
                   <div className="flex flex-col w-full gap-3">
                     {/** Render centralized heading/subtitle when provided by pages */}
                     {typeof heading !== 'undefined' && (
-                      <h1 className={headingClassName || 'text-3xl font-light'}>
-                        {heading}
-                      </h1>
+                      <h3 className={headingClassName || ''}>{heading}</h3>
                     )}
 
                     {typeof subtitle !== 'undefined' && (
