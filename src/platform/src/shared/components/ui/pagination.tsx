@@ -42,8 +42,8 @@ const Pagination: React.FC<PaginationProps> = ({
           key={i}
           className={`w-8 h-8 flex justify-center items-center mx-1 text-sm font-medium rounded-md transition-colors duration-200 ${
             currentPage === i
-              ? 'bg-primary text-white border border-primary'
-              : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent'
+              ? 'bg-primary text-primary-foreground border border-primary'
+              : 'text-foreground hover:bg-muted border border-transparent'
           }`}
           onClick={() => onPageChange(i)}
           aria-label={`Go to page ${i}`}
@@ -58,7 +58,7 @@ const Pagination: React.FC<PaginationProps> = ({
       pageNumbers.unshift(
         <button
           key={1}
-          className="flex items-center justify-center w-8 h-8 mx-1 text-sm font-medium text-gray-700 transition-colors duration-200 rounded-md dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="flex items-center justify-center w-8 h-8 mx-1 text-sm font-medium text-foreground transition-colors duration-200 rounded-md hover:bg-muted"
           onClick={() => onPageChange(1)}
           aria-label="Go to first page"
         >
@@ -67,10 +67,7 @@ const Pagination: React.FC<PaginationProps> = ({
       );
       if (startPage > 3) {
         pageNumbers.unshift(
-          <span
-            key="start-ellipsis"
-            className="mx-1 text-gray-500 dark:text-gray-400"
-          >
+          <span key="start-ellipsis" className="mx-1 text-muted-foreground">
             ...
           </span>
         );
@@ -80,10 +77,7 @@ const Pagination: React.FC<PaginationProps> = ({
     if (endPage < totalPages - 1) {
       if (endPage < totalPages - 2) {
         pageNumbers.push(
-          <span
-            key="end-ellipsis"
-            className="mx-1 text-gray-500 dark:text-gray-400"
-          >
+          <span key="end-ellipsis" className="mx-1 text-muted-foreground">
             ...
           </span>
         );
@@ -91,7 +85,7 @@ const Pagination: React.FC<PaginationProps> = ({
       pageNumbers.push(
         <button
           key={totalPages}
-          className="flex items-center justify-center w-8 h-8 mx-1 text-sm font-medium text-gray-700 transition-colors duration-200 rounded-md dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="flex items-center justify-center w-8 h-8 mx-1 text-sm font-medium text-foreground transition-colors duration-200 rounded-md hover:bg-muted"
           onClick={() => onPageChange(totalPages)}
           aria-label="Go to last page"
         >
@@ -113,15 +107,15 @@ const Pagination: React.FC<PaginationProps> = ({
       aria-label="Pagination Navigation"
     >
       {showTotal && (
-        <span className="mr-4 text-sm text-gray-600 dark:text-gray-400">
+        <span className="mr-4 text-sm text-muted-foreground">
           {totalItems} items total
         </span>
       )}
       <button
         className={`w-8 h-8 flex justify-center items-center rounded-md border transition-colors duration-200 ${
           isPrevDisabled
-            ? 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-            : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ? 'border-input text-muted-foreground cursor-not-allowed'
+            : 'border-input text-foreground hover:bg-muted'
         }`}
         onClick={onPrevClick}
         disabled={isPrevDisabled}
@@ -133,8 +127,8 @@ const Pagination: React.FC<PaginationProps> = ({
       <button
         className={`w-8 h-8 flex justify-center items-center rounded-md border transition-colors duration-200 ${
           isNextDisabled
-            ? 'border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 cursor-not-allowed'
-            : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+            ? 'border-input text-muted-foreground cursor-not-allowed'
+            : 'border-input text-foreground hover:bg-muted'
         }`}
         onClick={onNextClick}
         disabled={isNextDisabled}

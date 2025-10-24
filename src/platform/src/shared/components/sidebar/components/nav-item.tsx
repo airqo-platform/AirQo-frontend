@@ -18,15 +18,11 @@ export const NavItem = React.memo<NavItemProps>(
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
     );
 
-    const textClass = isActive
-      ? 'text-primary'
-      : 'text-gray-600 dark:text-white';
-    const iconColor = isActive
-      ? 'text-primary'
-      : 'text-gray-600 dark:text-white';
+    const textClass = isActive ? 'text-primary' : 'text-muted-foreground';
+    const iconColor = isActive ? 'text-primary' : 'text-muted-foreground';
     const bgClass = isActive
       ? 'bg-primary/10'
-      : 'hover:bg-gray-50 hover: dark:hover:bg-gray-700 dark:hover:text-white';
+      : 'hover:bg-muted dark:hover:text-foreground';
 
     if (isCollapsed) {
       return (

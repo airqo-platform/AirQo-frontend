@@ -34,19 +34,19 @@ const VARIANT_CONFIG: Record<
 > = {
   success: {
     stripe: 'bg-emerald-500',
-    titleColor: ' dark:text-gray-100',
+    titleColor: 'text-foreground',
   },
   error: {
     stripe: 'bg-rose-500',
-    titleColor: ' dark:text-gray-100',
+    titleColor: 'text-foreground',
   },
   warning: {
     stripe: 'bg-amber-500',
-    titleColor: ' dark:text-gray-100',
+    titleColor: 'text-foreground',
   },
   info: {
     stripe: 'bg-sky-500',
-    titleColor: ' dark:text-gray-100',
+    titleColor: 'text-foreground',
   },
 };
 
@@ -84,7 +84,7 @@ const ToastBody: React.FC<ToastBodyProps> = ({
             </div>
           )}
           {description && (
-            <div className="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400">
+            <div className="text-[13px] leading-relaxed text-muted-foreground">
               {description}
             </div>
           )}
@@ -95,7 +95,7 @@ const ToastBody: React.FC<ToastBodyProps> = ({
           type="button"
           onClick={onClose}
           aria-label="Dismiss notification"
-          className="flex-shrink-0 p-0.5 rounded-md text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-600"
+          className="flex-shrink-0 p-0.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted dark:hover:bg-muted transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -158,7 +158,7 @@ const showToast = (options: ToastOptions) => {
         role="alert"
         aria-live="polite"
         aria-atomic="true"
-        className="w-full min-w-[360px] max-w-[560px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden"
+        className="w-full min-w-[360px] max-w-[560px] bg-background border border-border rounded-lg shadow-lg overflow-hidden"
       >
         <ToastBody
           title={title}

@@ -111,10 +111,10 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
   return (
     <DropdownMenu className={className}>
       <DropdownMenuTrigger
-        className="p-2.5 rounded-full transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="p-2.5 rounded-full transition hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
         aria-label="Applications"
       >
-        <AqDotsGrid className="w-6 h-6 text-gray-700" />
+        <AqDotsGrid className="w-6 h-6 text-muted-foreground" />
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
@@ -132,7 +132,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
                   type="button"
                   title={app.name}
                   onClick={() => handleAppClick(app)}
-                  className="flex flex-col items-center gap-3 p-3 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors"
+                  className="flex flex-col items-center gap-3 p-3 rounded-md hover:bg-muted focus:outline-none transition-colors"
                   aria-label={app.name}
                 >
                   <div
@@ -152,17 +152,17 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={handleBackClick}
-                className="p-2 rounded-full hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                className="p-2 rounded-full hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring transition-colors"
                 aria-label="Back to apps"
               >
-                <AqArrowNarrowLeft className="w-5 h-5 text-gray-600" />
+                <AqArrowNarrowLeft className="w-5 h-5 text-muted-foreground" />
               </button>
               <h3 className="text-lg font-semibold ">Get AirQo Mobile App</h3>
               <div className="w-9" aria-hidden="true" />
             </div>
 
             <div className="flex justify-center mb-6">
-              <div className="w-56 h-56 bg-white rounded-2xl border-2 border-blue-300 shadow-sm overflow-hidden">
+              <div className="w-56 h-56 bg-white rounded-2xl border-2 border-primary shadow-sm overflow-hidden">
                 <Image
                   src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132437/website/photos/QR_code_ysf0ca.jpg"
                   alt="AirQo Mobile App QR Code"
@@ -176,7 +176,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
             <p className="text-center text-base font-medium mb-2">
               Scan with your phone camera
             </p>
-            <p className="text-center text-sm text-gray-500 mb-6">
+            <p className="text-center text-sm text-muted-foreground mb-6">
               Or search &quot;AirQo&quot; in your app store
             </p>
 
@@ -187,7 +187,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
                     'https://play.google.com/store/apps/details?id=com.airqo.app'
                   )
                 }
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Download on Google Play"
               >
                 <FaGooglePlay className="text-base" />
@@ -199,7 +199,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
                     'https://apps.apple.com/ug/app/airqo-air-quality/id1337573091'
                   )
                 }
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-black text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
                 aria-label="Download on App Store"
               >
                 <FaApple className="text-lg" />

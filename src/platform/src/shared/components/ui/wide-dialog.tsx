@@ -199,12 +199,12 @@ const WideDialog: React.FC<WideDialogProps> = ({
                     >
                       {/* Header */}
                       {showHeader && (
-                        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2 sm:py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                        <div className="flex items-center justify-between gap-3 px-4 sm:px-6 py-2 sm:py-3 border-b border-border bg-muted/50">
                           <div className="flex items-center gap-3">
                             {/* hamburger - visible on small screens */}
                             <button
                               type="button"
-                              className="md:hidden p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="md:hidden p-2 rounded-md text-muted-foreground hover:bg-muted"
                               onClick={() => setSidebarOpen(s => !s)}
                               aria-label="Toggle sidebar"
                             >
@@ -220,7 +220,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
                             <button
                               type="button"
                               aria-label="Close dialog"
-                              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              className="p-2 rounded-md text-muted-foreground hover:bg-muted"
                               onClick={() => onClose()}
                             >
                               <AqXClose className="w-4 h-4" />
@@ -233,7 +233,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
                       <div className="flex flex-1 min-h-0">
                         {/* Sidebar (hidden on small) */}
                         {showSidebar && (
-                          <aside className="hidden md:block w-48 md:w-64 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 p-3 sm:p-4 overflow-auto h-full">
+                          <aside className="hidden md:block w-48 md:w-64 border-r border-border bg-muted/50 p-3 sm:p-4 overflow-auto h-full">
                             {sidebar}
                           </aside>
                         )}
@@ -246,7 +246,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
                               animate={{ x: 0, opacity: 1 }}
                               exit={{ x: -280, opacity: 0 }}
                               transition={{ type: 'tween', duration: 0.18 }}
-                              className="md:hidden fixed left-4 top-20 bottom-20 z-[10002] w-64 bg-white dark:bg-[#141516] rounded-lg shadow-lg p-3 sm:p-4 overflow-auto border border-gray-200 dark:border-gray-700"
+                              className="md:hidden fixed left-4 top-20 bottom-20 z-[10002] w-64 bg-card rounded-lg shadow-lg p-3 sm:p-4 overflow-auto border border-border"
                             >
                               <div className="flex items-center justify-between mb-3">
                                 <div className="text-sm font-semibold">
@@ -254,7 +254,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
                                 </div>
                                 <button
                                   type="button"
-                                  className="p-1 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                  className="p-1 rounded-md text-muted-foreground hover:bg-muted"
                                   onClick={() => setSidebarOpen(false)}
                                   aria-label="Close sidebar"
                                 >
@@ -274,7 +274,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
 
                           {/* Footer */}
                           {showFooter && (
-                            <div className="px-4 sm:px-6 py-2 sm:py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                            <div className="px-4 sm:px-6 py-2 sm:py-3 border-t border-border bg-muted/50">
                               {Footer}
                             </div>
                           )}

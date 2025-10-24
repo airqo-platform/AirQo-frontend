@@ -72,15 +72,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   type="button"
                   onClick={handleToggle}
-                  className="flex items-center justify-center w-full h-full p-1 transition-all duration-200 bg-white dark:bg-gray-700 rounded-full shadow-md focus:outline-none hover:shadow-lg"
+                  className="flex items-center justify-center w-full h-full p-1 transition-all duration-200 bg-background border border-border rounded-full shadow-md focus:outline-none hover:shadow-lg"
                   aria-label={
                     isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'
                   }
                 >
                   {isCollapsed ? (
-                    <AqChevronRight className="w-3 h-3 text-gray-600 dark:text-gray-300" />
+                    <AqChevronRight className="w-3 h-3 text-muted-foreground" />
                   ) : (
-                    <AqChevronLeft className="w-3 h-3 text-gray-600 dark:text-gray-300" />
+                    <AqChevronLeft className="w-3 h-3 text-muted-foreground" />
                   )}
                 </button>
               </div>

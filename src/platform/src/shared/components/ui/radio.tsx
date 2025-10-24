@@ -49,25 +49,21 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
             className={cn(
               // Base styles - custom radio appearance
               'appearance-none h-4 w-4 shrink-0 cursor-pointer',
-              'rounded-full border-2 border-gray-300 bg-white transition-all',
-              // Dark mode
-              'dark:border-gray-600 dark:bg-gray-800',
+              'rounded-full border-2 border-input bg-background transition-all',
               // Hover states
-              'hover:border-gray-400 dark:hover:border-gray-500',
+              'hover:border-primary',
               // Checked state - solid fill
               'checked:border-primary checked:bg-primary',
               'checked:hover:border-primary checked:hover:bg-primary',
               // Inner dot using background-image for checked state
               'checked:bg-[radial-gradient(circle,white_0%,white_35%,transparent_40%,transparent_100%)]',
               // Focus visible (keyboard navigation)
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-              'dark:focus-visible:ring-offset-gray-900',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
               // Error state
-              error && 'border-red-500 dark:border-red-500',
-              error && 'checked:border-red-500 checked:bg-red-500',
+              error &&
+                'border-destructive checked:border-destructive checked:bg-destructive',
               // Disabled state
-              disabled && 'cursor-not-allowed opacity-50 hover:border-gray-300',
-              disabled && 'dark:hover:border-gray-600',
+              disabled && 'cursor-not-allowed opacity-50 hover:border-input',
               className
             )}
             {...props}
@@ -82,9 +78,9 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
                 htmlFor={radioId}
                 className={cn(
                   'text-sm font-medium leading-none cursor-pointer select-none',
-                  'text-gray-900 dark:text-gray-100',
+                  'text-foreground',
                   disabled && 'cursor-not-allowed opacity-50',
-                  error && 'text-red-700 dark:text-red-400',
+                  error && 'text-destructive',
                   labelClassName
                 )}
               >
@@ -97,7 +93,7 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
                 id={descriptionId}
                 className={cn(
                   'text-xs leading-relaxed',
-                  'text-gray-500 dark:text-gray-400',
+                  'text-muted-foreground',
                   disabled && 'opacity-50',
                   descriptionClassName
                 )}
@@ -107,11 +103,7 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
             )}
 
             {error && (
-              <p
-                id={errorId}
-                className="text-xs text-red-600 dark:text-red-400"
-                role="alert"
-              >
+              <p id={errorId} className="text-xs text-destructive" role="alert">
                 {error}
               </p>
             )}

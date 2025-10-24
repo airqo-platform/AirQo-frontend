@@ -65,7 +65,7 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             className={`absolute inset-0 rounded-md border transition-all duration-200 flex items-center justify-center ${
               isChecked || indeterminate
                 ? 'bg-primary border-primary'
-                : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                : 'bg-background border-input hover:border-primary'
             } ${
               props.disabled
                 ? 'opacity-50 cursor-not-allowed'

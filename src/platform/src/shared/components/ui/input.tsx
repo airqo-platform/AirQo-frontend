@@ -58,13 +58,13 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={`flex flex-col mb-4 ${containerClassName}`}>
         {label && (
-          <label className="flex items-center mb-2 text-sm font-medium text-gray-700 dark:text-gray-200">
+          <label className="flex items-center mb-2 text-sm font-medium text-foreground">
             {label}
             {required &&
               (primaryColor ? (
-                <span className="ml-1 text-red-600">*</span>
+                <span className="ml-1 text-destructive">*</span>
               ) : (
-                <span className="ml-1 text-red-600">*</span>
+                <span className="ml-1 text-destructive">*</span>
               ))}
           </label>
         )}
@@ -80,17 +80,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 : type
             }
             className={`
-            w-full rounded-md border bg-white px-4 py-2.5 text-sm
-            text-gray-700 placeholder-gray-400
-            border-gray-300 transition-colors duration-150 ease-in-out
-            dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder-gray-500
+            w-full rounded-md border bg-background px-4 py-2.5 text-sm
+            text-foreground placeholder-muted-foreground
+            border-input transition-colors duration-150 ease-in-out
+            dark:border-input dark:bg-background dark:text-foreground dark:placeholder-muted-foreground
 
             hover:border-primary/50
 
             focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none
 
-            disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-500
-            dark:disabled:border-gray-700 dark:disabled:bg-gray-700 dark:disabled:text-gray-400
+            disabled:cursor-not-allowed disabled:border-input disabled:bg-muted disabled:text-muted-foreground
+            dark:disabled:border-input dark:disabled:bg-muted dark:disabled:text-muted-foreground
             ${className}
           `}
             style={
@@ -116,7 +116,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               type="button"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
               onClick={() => setShowPassword(s => !s)}
-              className="absolute flex items-center justify-center w-5 h-5 text-gray-500 transform -translate-y-1/2 right-2 top-1/2 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="absolute flex items-center justify-center w-5 h-5 text-muted-foreground transform -translate-y-1/2 right-2 top-1/2 hover:text-foreground dark:text-muted-foreground dark:hover:text-foreground"
             >
               {showPassword ? (
                 <AqEyeOff className="w-4 h-4" />
@@ -128,14 +128,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         </div>
 
         {error && (
-          <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
+          <div className="mt-1.5 flex items-center text-xs text-destructive dark:text-destructive">
             <AqAlertCircle className="flex-shrink-0 w-4 h-4 mr-1" />
             {error}
           </div>
         )}
 
         {!error && description && (
-          <div className="mt-1.5 text-xs text-gray-500 dark:text-gray-400">
+          <div className="mt-1.5 text-xs text-muted-foreground dark:text-muted-foreground">
             {description}
           </div>
         )}

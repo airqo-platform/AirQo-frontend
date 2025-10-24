@@ -63,20 +63,20 @@ const LocationCard: React.FC<LocationCardProps> = ({
         <CardContent className="p-0">
           {/* Skeleton for interactive element */}
           <div className="absolute top-3 right-3">
-            <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-full animate-pulse" />
+            <div className="h-8 w-8 bg-muted rounded-full animate-pulse" />
           </div>
 
           <div className="pr-10 space-y-2">
             {/* Skeleton for title */}
             <div
-              className={`h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${
+              className={`h-4 bg-muted rounded animate-pulse ${
                 compact ? 'w-3/4' : 'w-2/3'
               }`}
             />
 
             {/* Skeleton for subtitle */}
             <div
-              className={`h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse ${
+              className={`h-3 bg-muted rounded animate-pulse ${
                 compact ? 'w-1/2' : 'w-1/3'
               }`}
             />
@@ -106,7 +106,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
                 e.stopPropagation();
                 onClose();
               }}
-              className="p-1.5 h-8 w-8 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors duration-150 flex items-center justify-center"
+              className="p-1.5 h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-colors duration-150 flex items-center justify-center"
               aria-label={`Remove ${displayName}`}
             >
               <AqXClose className="w-4 h-4" />
@@ -123,7 +123,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
         <div className="pr-10">
           <h3
             ref={nameRef}
-            className={`font-medium  dark:text-gray-100 truncate ${
+            className={`font-medium text-foreground truncate ${
               compact ? 'text-sm' : 'text-base'
             } ${isNameTruncated ? 'cursor-help' : ''}`}
             title={isNameTruncated ? displayName : undefined}
@@ -132,7 +132,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
           </h3>
           {deviceName && (
             <p
-              className={`text-gray-500 dark:text-gray-500 mt-0.5 ${
+              className={`text-muted-foreground mt-0.5 ${
                 compact ? 'text-xs' : 'text-sm'
               }`}
             >
@@ -141,7 +141,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
           )}
           {displaySubtitle && (
             <p
-              className={`text-gray-600 dark:text-gray-400 mt-1 ${
+              className={`text-muted-foreground mt-1 ${
                 compact ? 'text-xs' : 'text-sm'
               }`}
             >

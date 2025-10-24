@@ -82,18 +82,18 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
-          <div className="text-center p-8 bg-white rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold text-red-600 mb-4">
+        <div className="flex items-center justify-center min-h-screen bg-muted">
+          <div className="text-center p-8 bg-background rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold text-destructive mb-4">
               Something went wrong
             </h1>
-            <p className="text-gray-600 mb-4">
+            <p className="text-muted-foreground mb-4">
               We&apos;re sorry, but an unexpected error occurred. Our team has
               been notified.
             </p>
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
             >
               Reload Page
             </button>

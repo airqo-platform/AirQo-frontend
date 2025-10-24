@@ -296,7 +296,7 @@ const DropdownMenuContent = ({
         {...attributes.popper}
         data-dropdown-content
         className={cn(
-          'z-40 overflow-hidden rounded-md border dark:border-gray-700 bg-popover p-1 text-popover-foreground shadow-md',
+          'z-40 overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
           !matchTriggerWidth && 'min-w-[8rem]',
           'data-[state=open]:animate-in data-[state=closed]:animate-out',
           'data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0',

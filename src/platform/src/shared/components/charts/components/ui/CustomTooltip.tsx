@@ -106,7 +106,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   return (
     <div
       className={cn(
-        'bg-card dark:bg-[#1d1f20] border border-border dark:border-gray-700 rounded-lg shadow-lg p-3 max-w-xs break-words z-50',
+        'bg-card border border-border rounded-lg shadow-lg p-3 max-w-xs break-words z-50',
         className
       )}
       style={{ wordBreak: 'break-word' }}
@@ -144,7 +144,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       {showAirQualityLevel &&
         payload.length === 1 &&
         typeof value === 'number' && (
-          <div className="mt-3 pt-2 border-t border-border dark:border-gray-700">
+          <div className="mt-3 pt-2 border-t border-border">
             <div className="flex items-center justify-between">
               <span className="text-xs text-muted-foreground">
                 Air Quality:
@@ -164,7 +164,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
       {/* Location info if available */}
       {primaryData.payload?.site && (
-        <div className="mt-2 pt-2 border-t border-border dark:border-gray-700">
+        <div className="mt-2 pt-2 border-t border-border">
           <div className="text-xs text-muted-foreground">
             <span className="font-medium">Location:</span>{' '}
             {String(primaryData.payload.site || '').replace(/_/g, ' ')}

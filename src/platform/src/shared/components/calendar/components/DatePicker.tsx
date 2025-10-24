@@ -222,7 +222,7 @@ export function DatePicker({
       <>
         <button
           className={cn(
-            'w-auto justify-start flex gap-2 items-center rounded-md border border-gray-300 text-left font-normal text-sm px-3 py-2',
+            'w-auto justify-start flex gap-2 items-center rounded-md border border-input text-left font-normal text-sm px-3 py-2',
             !value && !internalValue && 'text-muted-foreground',
             className
           )}
@@ -249,7 +249,7 @@ export function DatePicker({
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'w-auto justify-start flex gap-2 items-center rounded-md border border-gray-300 text-left font-normal text-sm px-3 py-2',
+            'w-auto justify-start flex gap-2 items-center rounded-md border border-input text-left font-normal text-sm px-3 py-2',
             !value && !internalValue && 'text-muted-foreground',
             className
           )}

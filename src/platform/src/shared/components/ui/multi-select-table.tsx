@@ -975,7 +975,7 @@ const MultiSelectTable = <T extends TableItem>({
 
   return (
     <Card
-      className={`p-0 shadow border border-gray-200 dark:border-gray-700 w-full overflow-hidden ${className}`}
+      className={`p-0 shadow border border-border w-full overflow-hidden ${className}`}
     >
       {/* Header 2 */}
       {headerComponent && (
@@ -1093,7 +1093,7 @@ const MultiSelectTable = <T extends TableItem>({
             (loadingComponent ?? (
               <LoadingState
                 text="Loading data..."
-                className="w-full h-64 border border-gray-200 dark:border-gray-700 rounded-none bg-gray-50 dark:bg-gray-800/50"
+                className="w-full h-64 border border-border rounded-none bg-muted/50"
               />
             ))
           ) : paginatedData.length === 0 ? (

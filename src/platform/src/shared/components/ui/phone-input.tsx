@@ -12,13 +12,13 @@ const ReactPhoneNumberInput = dynamic(
     ssr: false,
     loading: () => (
       <div className="flex">
-        <div className="px-3 py-2.5 border border-r-0 rounded-l-md bg-gray-50 dark:bg-gray-700 text-sm text-gray-500">
+        <div className="px-3 py-2.5 border border-r-0 rounded-l-md bg-muted text-sm text-muted-foreground">
           +1
         </div>
         <input
           type="tel"
           disabled
-          className="flex-1 px-4 py-2.5 rounded-r-md border bg-gray-50 text-sm text-gray-500"
+          className="flex-1 px-4 py-2.5 rounded-r-md border bg-muted text-sm text-muted-foreground"
           placeholder="Loading..."
         />
       </div>
@@ -76,9 +76,10 @@ const PhoneNumberInput = React.forwardRef<
         {label && (
           <label
             htmlFor={id}
-            className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
+            className="mb-2 text-sm font-medium text-foreground flex items-center"
           >
-            {label} {required && <span className="ml-1 text-red-600">*</span>}
+            {label}{' '}
+            {required && <span className="ml-1 text-destructive">*</span>}
           </label>
         )}
 

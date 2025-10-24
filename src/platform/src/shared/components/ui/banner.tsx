@@ -41,18 +41,18 @@ const SEVERITY_CONFIG: Record<
   }
 > = {
   success: {
-    bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
-    borderColor: 'border-emerald-200 dark:border-emerald-800',
-    textColor: 'text-emerald-800 dark:text-emerald-200',
+    bgColor: 'bg-primary/10',
+    borderColor: 'border-primary/20',
+    textColor: 'text-primary',
     icon: <AqMessageCheckCircle className="h-5 w-5" />,
-    iconColor: 'text-emerald-600 dark:text-emerald-400',
+    iconColor: 'text-primary',
   },
   error: {
-    bgColor: 'bg-red-50 dark:bg-red-950/20',
-    borderColor: 'border-red-200 dark:border-red-800',
-    textColor: 'text-red-800 dark:text-red-200',
+    bgColor: 'bg-destructive/10',
+    borderColor: 'border-destructive/20',
+    textColor: 'text-destructive',
     icon: <AqMessageXCircle className="h-5 w-5" />,
-    iconColor: 'text-red-600 dark:text-red-400',
+    iconColor: 'text-destructive',
   },
   warning: {
     bgColor: 'bg-amber-50 dark:bg-amber-950/20',
