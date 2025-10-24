@@ -23,9 +23,7 @@ const SettingsLayout: React.FC<SettingsLayoutProps> = ({
           {/* Left Section - Title and Description */}
           <div className="lg:col-span-1 p-6 bg-gray-50 dark:bg-[#1d1f20] border-r border-gray-200 dark:border-gray-700">
             <div className="sticky top-6">
-              <h2 className="text-xl font-semibold  dark:text-white mb-3">
-                {title}
-              </h2>
+              <h2 className="text-xl  dark:text-white mb-3">{title}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
                 {description}
               </p>

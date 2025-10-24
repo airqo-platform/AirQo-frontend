@@ -249,9 +249,7 @@ const WideDialog: React.FC<WideDialogProps> = ({
                               className="md:hidden fixed left-4 top-20 bottom-20 z-[10002] w-64 bg-card rounded-lg shadow-lg p-3 sm:p-4 overflow-auto border border-border"
                             >
                               <div className="flex items-center justify-between mb-3">
-                                <div className="text-sm font-semibold">
-                                  Menu
-                                </div>
+                                <div className="text-sm">Menu</div>
                                 <button
                                   type="button"
                                   className="p-1 rounded-md text-muted-foreground hover:bg-muted"

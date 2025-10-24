@@ -990,7 +990,7 @@ const MultiSelectTable = <T extends TableItem>({
       >
         <div className="flex flex-col gap-3 sm:gap-4">
           <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-base sm:text-lg font-semibold text-foreground truncate">
+            <h2 className="text-base sm:text-lg text-foreground truncate">
               {title}
             </h2>
             <div className="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-center">

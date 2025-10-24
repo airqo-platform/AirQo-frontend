@@ -93,7 +93,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
         } ${sidebarOpen ? 'flex' : 'hidden'}`}
       >
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h2 className="text-lg text-gray-900 dark:text-gray-100">
             Export Configuration
           </h2>
 
@@ -211,7 +211,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
         <div className="flex flex-col h-full">
           {/* Mobile Sidebar Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <h2 className="text-lg text-gray-900 dark:text-gray-100">
               Export Configuration
             </h2>
             <Button

@@ -39,7 +39,7 @@ const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         </div>
         <h3
           className={cn(
-            'font-semibold text-foreground mb-2 text-center',
+            'text-foreground mb-2 text-center',
             compact ? 'text-base' : 'text-lg'
           )}
         >

@@ -239,7 +239,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       <div className="space-y-6">
         {/* Configuration Summary */}
         <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h3 className="text-sm text-gray-900 dark:text-gray-100 mb-3">
             Export Configuration Summary
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
@@ -288,7 +288,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
 
         {/* Data Preview */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">
+          <h3 className="text-sm text-gray-900 dark:text-gray-100 mb-3">
             Data Preview (Sample Rows)
           </h3>
 

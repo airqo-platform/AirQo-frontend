@@ -157,7 +157,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
               >
                 <AqArrowNarrowLeft className="w-5 h-5 text-muted-foreground" />
               </button>
-              <h3 className="text-lg font-semibold ">Get AirQo Mobile App</h3>
+              <h3 className="text-lg ">Get AirQo Mobile App</h3>
               <div className="w-9" aria-hidden="true" />
             </div>
 

@@ -125,9 +125,7 @@ export default function ResetPwdPage() {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold mb-2">
-              Password Reset Successful!
-            </h3>
+            <h3 className="text-lg mb-2">Password Reset Successful!</h3>
             <p className="text-gray-600 mb-6">
               Your password has been successfully updated. You can now log in
               with your new password.

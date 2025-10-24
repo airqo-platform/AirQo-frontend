@@ -526,9 +526,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
       onClose={handleClose}
       headerLeft={
         <div>
-          <h2 className="text-xl font-semibold  dark:text-gray-100">
-            {getHeaderTitle()}
-          </h2>
+          <h2 className="text-xl  dark:text-gray-100">{getHeaderTitle()}</h2>
           {getHeaderSubtitle() && (
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               {getHeaderSubtitle()}

@@ -130,7 +130,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
               </span>
             </div>
             <div className="text-right ml-2 flex-shrink-0">
-              <span className="text-sm font-semibold text-foreground">
+              <span className="text-sm text-foreground">
                 {typeof entry.value === 'number'
                   ? `${entry.value.toFixed(2)} µg/m³`
                   : entry.value}

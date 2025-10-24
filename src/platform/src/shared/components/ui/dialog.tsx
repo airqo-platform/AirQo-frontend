@@ -245,11 +245,7 @@ const ReusableDialog: React.FC<ReusableDialogProps> = ({
           )}
           {(title || subtitle) && (
             <div>
-              {title && (
-                <h2 className="text-lg font-semibold text-foreground">
-                  {title}
-                </h2>
-              )}
+              {title && <h2 className="text-lg text-foreground">{title}</h2>}
               {subtitle && (
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {subtitle}

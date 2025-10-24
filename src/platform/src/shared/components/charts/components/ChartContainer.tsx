@@ -139,9 +139,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           {showTitle && (
             <div className="space-y-1">
-              <CardTitle className="text-xl font-semibold text-foreground">
-                {title}
-              </CardTitle>
+              <CardTitle className="text-xl text-foreground">{title}</CardTitle>
               {subtitle && (
                 <p className="text-sm text-muted-foreground">{subtitle}</p>
               )}

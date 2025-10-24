@@ -107,11 +107,7 @@ export const Banner: React.FC<BannerProps> = ({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        {title && (
-          <h4 className={cn('font-semibold text-sm', config.textColor)}>
-            {title}
-          </h4>
-        )}
+        {title && <h4 className={cn('text-sm', config.textColor)}>{title}</h4>}
         {message && (
           <div className={cn('mt-1 text-sm', config.textColor)}>{message}</div>
         )}

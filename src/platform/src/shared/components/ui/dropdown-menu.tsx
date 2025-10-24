@@ -383,7 +383,7 @@ const DropdownMenuLabel = ({
 }) => {
   return (
     <div
-      className={cn('px-2 py-1.5 text-sm font-semibold', className)}
+      className={cn('px-2 py-1.5 text-sm', className)}
       role="heading"
       aria-level={6}
     >

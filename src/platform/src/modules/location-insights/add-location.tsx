@@ -227,9 +227,7 @@ const AddLocation: React.FC = () => {
             <AqChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
           <div>
-            <h2 className="text-xl font-semibold  dark:text-gray-100">
-              Add Locations
-            </h2>
+            <h2 className="text-xl  dark:text-gray-100">Add Locations</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Modify your site selection for insights
             </p>

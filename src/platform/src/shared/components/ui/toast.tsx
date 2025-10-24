@@ -78,7 +78,7 @@ const ToastBody: React.FC<ToastBodyProps> = ({
         <div className="flex-1 min-w-0 pr-3">
           {title && (
             <div
-              className={`font-semibold text-[15px] leading-tight mb-0.5 ${config.titleColor}`}
+              className={`text-[15px] leading-tight mb-0.5 ${config.titleColor}`}
             >
               {title}
             </div>

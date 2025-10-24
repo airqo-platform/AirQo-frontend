@@ -87,7 +87,7 @@ export const NavItem = React.memo<NavItemProps>(
           {/* Badge */}
           {item.badge && (
             <span
-              className="flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs font-semibold text-white bg-red-500 rounded-full flex-shrink-0"
+              className="flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs text-white bg-red-500 rounded-full flex-shrink-0"
               aria-label={`${item.badge} notifications`}
             >
               {item.badge}

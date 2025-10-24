@@ -95,7 +95,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
               <Tooltip content={displayName}>
                 <h5
                   ref={nameRef}
-                  className="text-md font-semibold  truncate max-w-[140px] mb-1"
+                  className="text-md  truncate max-w-[140px] mb-1"
                   title={isNameTruncated ? displayName : ''}
                 >
                   {displayName}

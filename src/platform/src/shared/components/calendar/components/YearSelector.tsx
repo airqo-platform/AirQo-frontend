@@ -51,7 +51,7 @@ export function YearSelector({ currentYear, onYearChange }: YearSelectorProps) {
       <Button
         variant="ghost"
         size="sm"
-        className="h-8 px-2 text-sm font-semibold hover:bg-accent"
+        className="h-8 px-2 text-sm hover:bg-accent"
         Icon={AqChevronDown}
         iconPosition="end"
         onClick={() => setIsOpen(!isOpen)}
