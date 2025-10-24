@@ -351,7 +351,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
             {...(popperAttributes.popper ?? {})}
             className={`
               bg-popover rounded-md shadow-lg ring-1 ring-ring
-              border border-border overflow-hidden
+              border border-primary overflow-hidden
               ${listClassName}
             `}
           >

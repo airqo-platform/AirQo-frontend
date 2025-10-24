@@ -101,7 +101,7 @@ const PhoneNumberInput = React.forwardRef<
         </div>
 
         {error && (
-          <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
+          <div className="mt-1.5 flex items-center text-xs text-destructive">
             <AqAlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
             {error}
           </div>

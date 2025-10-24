@@ -52,13 +52,13 @@ interface WideDialogProps {
 const severityClass = (s: Severity) => {
   switch (s) {
     case 'success':
-      return 'text-green-700 bg-green-50 dark:bg-green-900/30';
+      return 'text-green-700 bg-green-50 dark:bg-green-950/20';
     case 'error':
-      return 'text-red-700 bg-red-50 dark:bg-red-900/30';
+      return 'text-red-700 bg-red-50 dark:bg-red-950/20';
     case 'warning':
-      return 'text-yellow-700 bg-yellow-50 dark:bg-yellow-900/30';
+      return 'text-amber-700 bg-amber-50 dark:bg-amber-950/20';
     case 'info':
-      return 'text-blue-700 bg-blue-50 dark:bg-blue-900/30';
+      return 'text-blue-700 bg-blue-50 dark:bg-blue-950/20';
     default:
       return '';
   }

@@ -147,7 +147,7 @@ export const OrganizationSelector: React.FC = () => {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between">
-                        <div className="font-medium text-sm  dark:text-white truncate uppercase">
+                        <div className="font-medium text-sm text-foreground truncate uppercase">
                           {cleanDisplayText(group.title)}
                         </div>
                         <span
