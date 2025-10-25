@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
-import { useUpdateDeviceLocal, useUpdateDeviceGlobal } from "@/core/hooks/useDevices";
+import { useUpdateDeviceLocal, useUpdateDeviceGlobal, useDecryptDeviceKeys } from "@/core/hooks/useDevices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { Device } from "@/app/types/devices";
@@ -13,8 +13,9 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
-import { AqEdit01 as AqEdit } from "@airqo/icons-react";
+import { AqEdit01 as AqEdit, AqKey01 } from "@airqo/icons-react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
+import logger from "@/lib/logger";
 
 interface DeviceDetailsModalProps {
   open: boolean;
@@ -57,6 +58,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
   const [isEditMode, setIsEditMode] = useState(false);
   const updateLocal = useUpdateDeviceLocal();
   const updateGlobal = useUpdateDeviceGlobal();
+  const decryptKeys = useDecryptDeviceKeys();
 
   const form = useForm<DeviceUpdateFormData>({
     resolver: zodResolver(deviceUpdateSchema),
@@ -213,6 +215,44 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
         },
       }
     );
+  };
+
+  const handleCopy = async (valueToCopy: string | number) => {
+    if (valueToCopy !== undefined && valueToCopy !== null) {
+      try {
+        await navigator.clipboard?.writeText(String(valueToCopy))
+        ReusableToast({ message: "Decrypted Key Copied", type: "SUCCESS" })
+      } catch (err) {
+        ReusableToast({ message: `Failed to copy key: ${String(err)}`, type: "ERROR" })
+      }
+    }
+  }
+
+  const handleDecryptKey = async (keyType: 'readKey' | 'writeKey') => {
+    const encryptedKey = keyType === 'readKey' ? device.readKey : device.writeKey;
+    const deviceNumber = device.device_number;
+
+    if (!encryptedKey || !deviceNumber) {
+      ReusableToast({ message: `No ${keyType} or device number available for decryption.`, type: "WARNING" });
+      return;
+    }
+
+    try {
+      const response = await decryptKeys.mutateAsync([
+        {
+          encrypted_key: encryptedKey,
+          device_number: Number(deviceNumber),
+        },
+      ]);
+
+      if (response.success && response.decrypted_keys && response.decrypted_keys.length > 0) {
+        handleCopy(response.decrypted_keys[0].decrypted_key);
+      } else {
+        ReusableToast({ message: "Decryption failed or no key returned.", type: "ERROR" });
+      }
+    } catch {
+      logger.error("Decryption failed")
+    }
   };
 
   const isLoading = updateLocal.isPending || updateGlobal.isPending;
@@ -412,6 +452,8 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                     readOnly={!isEditMode}
                     showCopyButton={true}
                     error={fieldState.error?.message}
+                    customActionIcon={AqKey01}
+                    onCustomAction={() => handleDecryptKey('writeKey')}
                     {...field}
                   />
                 )}
@@ -427,6 +469,8 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                     readOnly={!isEditMode}
                     showCopyButton={true}
                     error={fieldState.error?.message}
+                    customActionIcon={AqKey01}
+                    onCustomAction={() => handleDecryptKey('readKey')}
                     {...field}
                   />
                 )}
