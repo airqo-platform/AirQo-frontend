@@ -250,8 +250,8 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       } else {
         ReusableToast({ message: "Decryption failed or no key returned.", type: "ERROR" });
       }
-    } catch {
-      logger.error("Decryption failed")
+    } catch (error) {
+      logger.error("Decryption failed", error)
     }
   };
 
