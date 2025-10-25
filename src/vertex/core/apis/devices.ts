@@ -11,6 +11,9 @@ import type {
   DeviceCreationResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
+  DecryptionRequest,
+  DecryptionResponse,
+  DecryptedKeyResult,
 } from "@/app/types/devices";
 
 // Create secure API clients that use the proxy
@@ -469,6 +472,21 @@ export const devices = {
         `/devices/bulk`,
         requestBody,
         { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  decryptDeviceKeys: async (
+    requestBody: DecryptionRequest[]
+  ): Promise<DecryptionResponse> => {
+    try {
+      const response = await jwtApiClient.post<DecryptionResponse>(
+        `/devices/decrypt/bulk`,
+        requestBody,
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {

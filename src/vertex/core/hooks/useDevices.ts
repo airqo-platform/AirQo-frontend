@@ -14,12 +14,15 @@ import type {
   DeviceCreationResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
+  DecryptionRequest,
+  DecryptionResponse,
   MyDevicesResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useDispatch } from "react-redux";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
+import logger from "@/lib/logger";
 
 interface ErrorResponse {
   message: string;
@@ -459,5 +462,24 @@ export const useDeviceMaintenanceLogs = (deviceName: string) => {
     queryFn: () => devices.getDeviceMaintenanceLogs(deviceName),
     enabled: !!deviceName,
     staleTime: 60_000,
+  });
+};
+
+export const useDecryptDeviceKeys = () => {
+  return useMutation<
+    DecryptionResponse,
+    AxiosError<ErrorResponse>,
+    DecryptionRequest[]
+  >({
+    mutationFn: devices.decryptDeviceKeys,
+    onSuccess: () => {
+      logger.info("Keys decrypted successfully!");
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Decryption Failed: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
   });
 };
