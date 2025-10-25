@@ -79,8 +79,15 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   const showPasswordToggle = isPasswordInput && !readOnly && !showCopyButton
   const showCustomActionButton = CustomActionIcon && onCustomAction
 
-  const iconCount = [canShowCopyButton, showPasswordToggle, showCustomActionButton].filter(Boolean).length;
-  const paddingRightClass = iconCount > 0 ? `pr-${iconCount * 8 + 2}` : "";
+  const paddingRightClass = (() => {
+    const count = [canShowCopyButton, showPasswordToggle, showCustomActionButton].filter(Boolean).length;
+    switch (count) {
+      case 1: return "pr-10";
+      case 2: return "pr-18";
+      case 3: return "pr-26";
+      default: return "";
+    }
+  })();
 
   return (
     <div className={`flex flex-col ${containerClassName}`}>
