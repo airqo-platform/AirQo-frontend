@@ -1,0 +1,415 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================================
+   CSS CUSTOM PROPERTIES
+   ========================================================================== */
+
+:root {
+  /* Colors */
+  --background: 246 246 247;
+  --foreground: 17 24 39;
+  --primary: 20 95 255;
+  --primary-foreground: 255 255 255;
+  --secondary: 241 245 249;
+  --secondary-foreground: 15 23 42;
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+  --accent: 241 245 249;
+  --accent-foreground: 15 23 42;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 226 232 240;
+  --input: 226 232 240;
+  --ring: 20 95 255;
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --text: 31 41 55;
+  --heading: 16 24 40;
+
+  /* Primary color variations for highlights */
+  --primary-50: 239 246 255; /* Very light blue */
+  --primary-100: 219 234 254; /* Light blue */
+  --primary-700: 3 105 161; /* Dark blue */
+  --primary-800: 7 89 133; /* Darker blue */
+  --primary-900: 12 74 110; /* Darkest blue */
+
+  /* Layout */
+  --radius: 0.5rem;
+
+  /* Scrollbars */
+  --scrollbar-track: 241 245 249;
+  --scrollbar-thumb: 100 116 139;
+  --scrollbar-hover: 51 65 85;
+
+  /* Typography */
+  --font-mono:
+    'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro',
+    monospace;
+  --heading-weight: 600;
+  --heading-line-height: 1.25;
+  --heading-letter-spacing: -0.025em;
+}
+
+.dark {
+  --background: 29 31 32;
+  --foreground: 237 237 237;
+  --primary: 20 95 255;
+  --primary-foreground: 255 255 255;
+  --secondary: 30 41 59;
+  --secondary-foreground: 248 250 252;
+  --muted: 30 41 59;
+  --muted-foreground: 148 163 184;
+  --accent: 30 41 59;
+  --accent-foreground: 248 250 252;
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+  --border: 51 65 85;
+  --input: 51 65 85;
+  --ring: 20 95 255;
+  --card: 29 31 32;
+  --card-foreground: 248 250 252;
+  --popover: 29 31 32;
+  --popover-foreground: 248 250 252;
+  --text: 249 250 251;
+  --heading: 255 255 255;
+  --scrollbar-track: 30 41 59;
+  --scrollbar-thumb: 148 163 184;
+  --scrollbar-hover: 51 65 85;
+}
+
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
+
+body,
+html {
+  color: rgb(var(--foreground));
+  background: rgb(var(--background));
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+}
+
+.dark body,
+.dark html {
+  background: rgb(42 44 45);
+}
+
+/* ==========================================================================
+   TYPOGRAPHY SYSTEM
+   ========================================================================== */
+
+@layer base {
+  /* Base heading styles */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: rgb(var(--heading));
+    font-weight: var(--heading-weight);
+    line-height: var(--heading-line-height);
+    letter-spacing: var(--heading-letter-spacing);
+    margin: 0;
+  }
+
+  /* Individual heading sizes */
+  h1 {
+    font-size: 2.25rem;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+  }
+  h2 {
+    font-size: 1.875rem;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+  }
+  h3 {
+    font-size: 1.5rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+  h4 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+  h5 {
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+  h6 {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Body text */
+  p {
+    color: rgb(var(--foreground));
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  /* Links */
+  a {
+    color: rgb(var(--primary));
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  a:focus {
+    outline: none;
+  }
+
+  /* Lists */
+  ul,
+  ol {
+    color: rgb(var(--foreground));
+    line-height: 1.6;
+  }
+
+  ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+  }
+  ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+  }
+
+  /* Dropdown menus - remove list styles */
+  [role='listbox'] {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  /* Blockquotes */
+  blockquote {
+    border-left: 4px solid rgb(var(--border));
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: rgb(var(--muted-foreground));
+    font-style: italic;
+  }
+
+  /* Code blocks */
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: rgb(var(--muted));
+    color: rgb(var(--foreground));
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgb(var(--border));
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    background: rgb(var(--muted));
+    color: rgb(var(--foreground));
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(var(--border));
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  /* Form elements */
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* Focus styles - removed blue ring */
+  button:focus,
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+  }
+
+  /* Alternative focus styles for accessibility */
+  textarea:focus {
+    border-color: rgb(var(--ring));
+    box-shadow: 0 0 0 1px rgb(var(--ring));
+  }
+
+  a:focus {
+    background-color: rgb(var(--accent));
+    color: rgb(var(--accent-foreground));
+  }
+
+  /* Responsive typography */
+  @media (max-width: 640px) {
+    h1 {
+      font-size: 1.875rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+    }
+    h3 {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+/* ==========================================================================
+   UTILITIES
+   ========================================================================== */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Text color utilities */
+  .text-primary {
+    color: rgb(var(--primary));
+  }
+  .text-primary-foreground {
+    color: rgb(var(--primary-foreground));
+  }
+  .text-secondary {
+    color: rgb(var(--secondary));
+  }
+  .text-secondary-foreground {
+    color: rgb(var(--secondary-foreground));
+  }
+  .text-muted {
+    color: rgb(var(--muted-foreground));
+  }
+  .text-accent {
+    color: rgb(var(--accent));
+  }
+  .text-accent-foreground {
+    color: rgb(var(--accent-foreground));
+  }
+  .text-destructive {
+    color: rgb(var(--destructive));
+  }
+  .text-destructive-foreground {
+    color: rgb(var(--destructive-foreground));
+  }
+  .text-foreground {
+    color: rgb(var(--foreground));
+  }
+  .text-background {
+    color: rgb(var(--background));
+  }
+  .text-text {
+    color: rgb(var(--text));
+  }
+  .text-heading {
+    color: rgb(var(--heading));
+  }
+}
+
+/* ==========================================================================
+   COMPONENTS
+   ========================================================================== */
+
+/* Spinner */
+.SecondaryMainloader {
+  width: 50px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(farthest-side, rgb(var(--primary)) 94%, #0000) top/8px 8px
+      no-repeat,
+    conic-gradient(#0000 30%, rgb(var(--primary)));
+  -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
+  animation: l13 1s infinite linear;
+}
+
+@keyframes l13 {
+  100% {
+    transform: rotate(1turn);
+  }
+}
+
+/* ==========================================================================
+   SCROLLBARS
+   ========================================================================== */
+
+/* Hide scrollbars */
+.custom-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Default scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--scrollbar-track));
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--scrollbar-thumb));
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--scrollbar-hover));
+}
+
+/* Horizontal scrollbars */
+.country-scroll-bar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: pointer;
+}
+
+.country-scroll-bar::-webkit-scrollbar {
+  height: 4px;
+  display: none;
+}
+
+.country-scroll-bar:hover::-webkit-scrollbar {
+  display: block;
+}
+.map-scrollbar::-webkit-scrollbar {
+  height: 2px;
+}
+
+/* ==========================================================================
+   FLOWBITE TOOLTIP STYLES
+   ========================================================================== */
+
+/* Basic tooltip styling for Flowbite tooltips */
+.tooltip {
+  background-color: rgb(31 41 55) !important; /* gray-800 */
+  color: rgb(255 255 255) !important; /* white */
+  border-radius: 0.375rem !important; /* rounded-md */
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.875rem !important; /* text-sm */
+  font-weight: 500 !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  z-index: 50 !important;
+  max-width: 20rem !important;
+  word-wrap: break-word !important;
+}
+
+/* Dark mode tooltip styling */
+.dark .tooltip {
+  background-color: rgb(17 24 39) !important; /* gray-900 */
+  color: rgb(243 244 246) !important; /* gray-100 */
+}
+
+/* Arrow styling */
+.tooltip-arrow:before {
+  background-color: inherit !important;
+}
