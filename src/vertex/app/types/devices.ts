@@ -252,7 +252,7 @@ export interface DecryptionRequest {
 
 export interface DecryptedKeyResult {
   encrypted_key: string;
-  device_number: string | number;
+  device_number: string;
   decrypted_key: string;
 }
 
