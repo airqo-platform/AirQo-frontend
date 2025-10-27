@@ -1,7 +1,7 @@
 'use client';
 
 import { SessionProvider, useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
@@ -32,7 +32,6 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
       if (isUserPath) {
         router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
       } else if (isOrgPath) {
-        // Check if accessing the correct org
         const pathParts = pathname.split('/');
         if (
           pathParts.length >= 3 &&
@@ -63,64 +62,46 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const activeGroup = useSelector(selectActiveGroup);
   const logout = useLogout();
+  const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] =
+    useState(false);
 
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
   // Listen for unauthorized events from API client
-  useEffect(() => {
-    const handleUnauthorized = async () => {
-      // Check if session is expired before logging out
-      try {
-        await update();
+  const handleUnauthorized = useCallback(async () => {
+    // Check if session is expired before logging out
+    try {
+      await update();
 
-        // If session is still valid after update, it's likely a permissions issue
-        if (status === 'authenticated' && session) {
-          console.log(
-            '401 received but session is valid - likely permissions issue'
-          );
-          return;
-        }
-
-        // Session is expired, logout
-        console.log('Session expired, logging out...');
-        toast.error(
-          'Session Expired',
-          'Your session has expired. Please log in again.',
-          5000
+      // If session is still valid after update, it's likely a permissions issue
+      if (status === 'authenticated' && session) {
+        console.log(
+          '401 received but session is valid - likely permissions issue'
         );
-        logout();
-      } catch (error) {
-        console.error('Error handling unauthorized event:', error);
-        // If update fails, assume session is invalid and logout
-        logout();
+        return;
       }
-    };
 
+      // Session is expired, logout
+      console.log('Session expired, logging out...');
+      toast.error(
+        'Session Expired',
+        'Your session has expired. Please log in again.',
+        5000
+      );
+      logout();
+    } catch (error) {
+      console.error('Error handling unauthorized event:', error);
+      logout();
+    }
+  }, [logout, update, status, session]);
+
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       window.addEventListener('auth:unauthorized', handleUnauthorized);
       return () =>
         window.removeEventListener('auth:unauthorized', handleUnauthorized);
     }
-  }, [logout, update, status, session]);
-
-  // Periodic session validation - check every 5 minutes
-  useEffect(() => {
-    if (status !== 'authenticated') return;
-
-    const interval = setInterval(
-      async () => {
-        try {
-          // Force a session update to check if token is still valid
-          await update();
-        } catch (error) {
-          console.error('Session validation failed:', error);
-        }
-      },
-      5 * 60 * 1000
-    ); // 5 minutes
-
-    return () => clearInterval(interval);
-  }, [status, update]);
+  }, [handleUnauthorized]);
 
   // If authenticated and on an auth page, redirect based on active group
   useEffect(() => {
@@ -133,6 +114,19 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isAuthRoute, activeGroup, router]);
 
+  // Logout when status becomes unauthenticated on protected routes
+  useEffect(() => {
+    if (
+      status === 'unauthenticated' &&
+      !isAuthRoute &&
+      !hasLoggedOutForExpiration
+    ) {
+      console.log('Status unauthenticated on protected route, logging out');
+      setHasLoggedOutForExpiration(true);
+      logout();
+    }
+  }, [status, isAuthRoute, logout, hasLoggedOutForExpiration]);
+
   // While session is being fetched, show a loading overlay
   if (status === 'loading') {
     return <LoadingOverlay />;
@@ -144,7 +138,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }
 
   // For protected routes, require authentication
-  if (!session) return null;
+  if (!session) {
+    return <LoadingOverlay />;
+  }
 
   return (
     <UserDataFetcher>
@@ -155,7 +151,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider refetchOnWindowFocus={false}>
+    <SessionProvider refetchOnWindowFocus={false} refetchInterval={0}>
       <AuthWrapper>{children}</AuthWrapper>
     </SessionProvider>
   );

@@ -1,19 +1,38 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { JWT } from 'next-auth/jwt';
-
-// Extend JWT type to include exp property
-interface ExtendedJWT extends JWT {
-  exp?: number;
-}
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const isTokenExpired = (token: ExtendedJWT): boolean => {
-  if (!token?.exp || typeof token.exp !== 'number') return true;
-  return Date.now() / 1000 > token.exp;
+export const isTokenExpired = (token: string): boolean => {
+  if (!token || typeof token !== 'string') {
+    return true;
+  }
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return false;
+    }
+    const payload = parts[1];
+    const decoded = JSON.parse(
+      atob(payload.replace(/-/g, '+').replace(/_/g, '/'))
+    );
+    if (!decoded?.exp) {
+      return true;
+    }
+    const exp =
+      typeof decoded.exp === 'string' ? parseInt(decoded.exp, 10) : decoded.exp;
+    if (typeof exp !== 'number' || isNaN(exp)) {
+      return true;
+    }
+
+    const now = Date.now() / 1000;
+
+    return now > exp;
+  } catch {
+    return true;
+  }
 };
 
 /**
