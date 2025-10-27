@@ -72,10 +72,10 @@ export const authOptions: any = {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
-      // Check if token is expired and handle accordingly
+      // Check if token is expired and invalidate session
       if (isTokenExpired(token)) {
-        console.warn('JWT token is expired');
-        // Could trigger logout or refresh token
+        console.warn('JWT token is expired, invalidating session');
+        return null;
       }
 
       // Add access token and user ID to session
