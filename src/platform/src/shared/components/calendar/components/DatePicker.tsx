@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
-import { HiCalendar, HiChevronDown } from 'react-icons/hi2';
+import { HiCalendar } from 'react-icons/hi2';
 import { useMediaQuery } from 'react-responsive';
 import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
@@ -231,12 +231,6 @@ export function DatePicker({
         >
           <HiCalendar className="h-4 w-4" />
           <span className="truncate">{getDisplayValue()}</span>
-          <HiChevronDown
-            className={cn(
-              'h-4 w-4 transition-transform duration-200',
-              open && 'rotate-180'
-            )}
-          />
         </button>
 
         <DatePickerDialog />
@@ -256,12 +250,6 @@ export function DatePicker({
         >
           <HiCalendar className="h-4 w-4" />
           <span className="truncate">{getDisplayValue()}</span>
-          <HiChevronDown
-            className={cn(
-              'h-4 w-4 transition-transform duration-200',
-              open && 'rotate-180'
-            )}
-          />
         </button>
       </DropdownMenuTrigger>
 

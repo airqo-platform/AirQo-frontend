@@ -352,7 +352,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
 
           {/* Export loading overlay */}
           {isExporting && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-50">
               <div className="flex flex-col items-center space-y-3">
                 <LoadingSpinner />
                 <p className="text-sm text-muted-foreground">
