@@ -244,3 +244,20 @@ export interface MaintenanceLogData {
   lastName: string;
   user_id: string;
 }
+
+export interface DecryptionRequest {
+  encrypted_key: string;
+  device_number: number;
+}
+
+export interface DecryptedKeyResult {
+  encrypted_key: string;
+  device_number: string;
+  decrypted_key: string;
+}
+
+export interface DecryptionResponse {
+  success: boolean;
+  message: string;
+  decrypted_keys: DecryptedKeyResult[];
+}
