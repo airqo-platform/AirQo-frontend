@@ -160,7 +160,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
             </div>
 
             {/* Air quality icon or status text when hidden */}
-            <div className="flex-shrink-0 ml-4 flex items-center justify-center">
+            <div className="flex-shrink-0 ml-4 flex items-center justify-center min-w-0">
               {showIcon ? (
                 <Tooltip content={`Air quality status: ${statusLabel}`}>
                   <div style={{ color: statusColor }}>
@@ -169,7 +169,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
                 </Tooltip>
               ) : (
                 <div
-                  className="text-sm font-medium"
+                  className="text-sm font-medium text-center break-words max-w-[80px] leading-tight"
                   style={{ color: statusColor }}
                 >
                   {statusLabel}
