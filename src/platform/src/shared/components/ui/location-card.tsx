@@ -120,7 +120,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
           )}
         </div>
 
-        <div className="pr-10">
+        <div className="pr-10 flex flex-col gap-1">
           <h3
             ref={nameRef}
             className={`font-medium text-foreground truncate ${
@@ -132,7 +132,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
           </h3>
           {deviceName && (
             <p
-              className={`text-muted-foreground mt-0.5 ${
+              className={`text-muted-foreground m-0 ${
                 compact ? 'text-xs' : 'text-sm'
               }`}
             >
@@ -141,7 +141,7 @@ const LocationCard: React.FC<LocationCardProps> = ({
           )}
           {displaySubtitle && (
             <p
-              className={`text-muted-foreground mt-1 ${
+              className={`text-muted-foreground m-0 ${
                 compact ? 'text-xs' : 'text-sm'
               }`}
             >
