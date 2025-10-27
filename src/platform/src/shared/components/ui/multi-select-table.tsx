@@ -1072,7 +1072,7 @@ const MultiSelectTable = <T extends TableItem>({
       )}
 
       <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-        <div className="min-w-full">
+        <div className="min-w-full inline-block">
           {error ? (
             (errorComponent ?? (
               <ErrorState
@@ -1179,20 +1179,17 @@ const MultiSelectTable = <T extends TableItem>({
                     {displayColumns.map(column => (
                       <td
                         key={column.key}
-                        className={`py-2 sm:py-4 text-sm text-foreground ${
+                        className={`py-2 sm:py-4 text-sm text-foreground align-top ${
                           column.key === 'checkbox'
                             ? 'w-8 sm:w-12 px-1 sm:px-2 pl-2 sm:pl-4'
-                            : 'px-2 sm:px-4 md:px-6 min-w-0 max-w-0'
+                            : 'px-2 sm:px-4 md:px-6 min-w-0'
                         }`}
                       >
                         <div
                           className={
-                            column.key === 'checkbox' ? '' : 'truncate'
-                          }
-                          title={
                             column.key === 'checkbox'
                               ? ''
-                              : String(renderCell(item, column))
+                              : 'break-words whitespace-pre-wrap overflow-wrap-anywhere'
                           }
                         >
                           {renderCell(item, column)}
