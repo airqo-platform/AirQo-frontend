@@ -4,12 +4,16 @@ import { format } from 'date-fns';
 import Image from 'next/image';
 import React from 'react';
 
-import { CustomButton, NoData } from '@/components/ui';
+import { CustomButton, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { usePressArticles } from '@/hooks/useApiHooks';
 
 const PressPage: React.FC = () => {
-  const { data, error, isLoading } = usePressArticles();
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const { data, error, isLoading } = usePressArticles({
+    page: currentPage,
+    page_size: 6,
+  });
 
   const formatDate = (date: string) => {
     return format(new Date(date), 'MMMM d, yyyy');
@@ -28,7 +32,7 @@ const PressPage: React.FC = () => {
     </div>
   );
 
-  const articles = data ?? [];
+  const articles = data?.results ?? [];
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -57,9 +61,11 @@ const PressPage: React.FC = () => {
         ) : articles.length > 0 ? (
           <div className="w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {articles.map((article: any) => {
-              const articleLink = article.has_slug
-                ? `/press/${article.public_identifier}`
-                : article.api_url;
+              const articleLink = article.article_link
+                ? article.article_link
+                : article.has_slug
+                  ? `/press/${article.public_identifier}`
+                  : article.api_url;
 
               return (
                 <div
@@ -101,6 +107,18 @@ const PressPage: React.FC = () => {
           </div>
         ) : (
           <NoData />
+        )}
+
+        {/* Pagination */}
+        {!error && data && data.total_pages > 1 && articles.length > 0 && (
+          <div className="w-full px-4 lg:px-0 mt-8 mb-8">
+            <Pagination
+              totalPages={data.total_pages}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              scrollToTop={true}
+            />
+          </div>
         )}
       </section>
     </div>
