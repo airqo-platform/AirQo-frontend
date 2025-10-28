@@ -8,6 +8,7 @@ import { Accordion, Input, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useFAQs } from '@/hooks/useApiHooks';
 import { FAQ } from '@/types';
+import { sanitizeAndCleanHTML } from '@/utils/htmlValidator';
 
 // Configure DOMPurify once on the client to allow common tags/attributes
 // and to harden links (external links open with rel=noopener noreferrer and target=_blank)
@@ -275,7 +276,7 @@ const FAQPage: React.FC = () => {
   );
 
   const renderFAQContent = (answerHtml: string) => {
-    const safeHtml = DOMPurify.sanitize(answerHtml || '', {
+    const safeHtml = sanitizeAndCleanHTML(answerHtml || '', {
       ALLOWED_TAGS: [
         'a',
         'p',

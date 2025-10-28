@@ -105,7 +105,10 @@ const CountrySelectorDialog: React.FC = () => {
           fetchUserCountry(latitude, longitude, controller.signal);
         }
       } catch (error) {
-        if ((error as any)?.name !== 'AbortError') {
+        if (
+          (error as any)?.name !== 'AbortError' &&
+          (error as any)?.code !== 3
+        ) {
           console.error('Error getting location:', error);
         }
         if (isMounted) {

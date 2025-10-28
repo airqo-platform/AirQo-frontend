@@ -32,7 +32,6 @@ const EventPage: React.FC = () => {
   const currentEvents = Array.isArray(eventsData?.results)
     ? eventsData.results
     : [];
-  const allEvents = currentEvents;
 
   // Featured events are selected from upcoming events (look for featured tag or just use first upcoming event)
   const featuredEvents = currentEvents.filter(

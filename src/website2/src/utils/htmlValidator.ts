@@ -1,5 +1,7 @@
 // src/utils/htmlValidator.ts
 
+import DOMPurify from 'dompurify';
+
 /**
  * Checks if the provided HTML content is valid for display.
  * It will return false if the content is empty or if it contains any
@@ -27,4 +29,16 @@ export function isValidHTMLContent(html: string): boolean {
     }
   }
   return true;
+}
+
+/**
+ * Sanitizes HTML content and removes unwanted attributes like data-external-decorated.
+ * @param html The HTML content to sanitize and clean.
+ * @param config Optional DOMPurify config.
+ * @returns The cleaned HTML string.
+ */
+export function sanitizeAndCleanHTML(html: string, config?: any): string {
+  const sanitized = DOMPurify.sanitize(html, config) as unknown as string;
+  // Remove data-external-decorated attribute to avoid React warnings
+  return sanitized.replace(/data-external-decorated="[^"]*"/g, '');
 }
