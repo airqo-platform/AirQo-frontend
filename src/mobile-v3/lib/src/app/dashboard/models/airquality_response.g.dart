@@ -259,3 +259,54 @@ Map<String, dynamic> _$SiteCategoryToJson(SiteCategory instance) =>
       'search_radius': instance.searchRadius,
       'waterway': instance.waterway,
     };
+
+HistoricalAirQualityResponse _$HistoricalAirQualityResponseFromJson(
+        Map<String, dynamic> json) =>
+    HistoricalAirQualityResponse(
+      success: json['success'] as bool?,
+      message: json['message'] as String?,
+      measurements: (json['measurements'] as List<dynamic>?)
+          ?.map(
+              (e) => HistoricalMeasurement.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+
+Map<String, dynamic> _$HistoricalAirQualityResponseToJson(
+        HistoricalAirQualityResponse instance) =>
+    <String, dynamic>{
+      'success': instance.success,
+      'message': instance.message,
+      'measurements': instance.measurements?.map((e) => e.toJson()).toList(),
+    };
+
+HistoricalMeasurement _$HistoricalMeasurementFromJson(
+        Map<String, dynamic> json) =>
+    HistoricalMeasurement(
+      device: json['device'] as String?,
+      deviceId: json['device_id'] as String?,
+      siteId: json['site_id'] as String?,
+      time: json['time'] as String?,
+      pm25: json['pm2_5'] == null
+          ? null
+          : Pm25.fromJson(json['pm2_5'] as Map<String, dynamic>),
+      pm10: json['pm10'] == null
+          ? null
+          : Pm10.fromJson(json['pm10'] as Map<String, dynamic>),
+      frequency: json['frequency'] as String?,
+      siteDetails: json['siteDetails'] == null
+          ? null
+          : SiteDetails.fromJson(json['siteDetails'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$HistoricalMeasurementToJson(
+        HistoricalMeasurement instance) =>
+    <String, dynamic>{
+      'device': instance.device,
+      'device_id': instance.deviceId,
+      'site_id': instance.siteId,
+      'time': instance.time,
+      'pm2_5': instance.pm25?.toJson(),
+      'pm10': instance.pm10?.toJson(),
+      'frequency': instance.frequency,
+      'siteDetails': instance.siteDetails?.toJson(),
+    };

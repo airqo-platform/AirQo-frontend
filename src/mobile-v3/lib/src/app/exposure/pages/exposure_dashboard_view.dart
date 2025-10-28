@@ -1730,9 +1730,8 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
       final userPosition = locationResult.position!;
       const double maxDistanceKm = 10.0; // Same radius as Near You view
       
-      // Find the measurement with highest PM2.5 from NEARBY sensors only
-      Measurement? peakMeasurement;
-      double peakPm25 = 0.0;
+      // Find sensors within distance and prioritize closer ones
+      List<Map<String, dynamic>> nearbySensors = [];
       
       for (final measurement in response.measurements!) {
         // Skip if no PM2.5 data
@@ -1755,20 +1754,54 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
           longitude,
         ) / 1000; // Convert to km
         
-        // Only consider nearby sensors (within 10km like Near You view)
-        if (distance > maxDistanceKm) continue;
-        
-        // Check if this is the highest PM2.5 value among nearby sensors
-        if (measurement.pm25!.value! > peakPm25) {
-          peakPm25 = measurement.pm25!.value!;
-          peakMeasurement = measurement;
+        // Only consider nearby sensors (within 10km)
+        if (distance <= maxDistanceKm) {
+          nearbySensors.add({
+            'measurement': measurement,
+            'distance': distance,
+            'pm25': measurement.pm25!.value!,
+          });
         }
       }
       
-      if (peakMeasurement == null) return null;
+      if (nearbySensors.isEmpty) return null;
+      
+      // Sort by distance first, then find peak among closest sensors
+      nearbySensors.sort((a, b) => (a['distance'] as double).compareTo(b['distance'] as double));
+      
+      // Strategy: Use closest sensor, or if multiple sensors are very close, pick the one with highest reading
+      Measurement? peakMeasurement;
+      double peakPm25 = 0.0;
+      
+      // Define "very close" as within 3km
+      const double veryCloseDistanceKm = 3.0;
+      final closestDistance = nearbySensors.first['distance'] as double;
+      
+      if (closestDistance <= veryCloseDistanceKm) {
+        // If closest sensor is very close, check if others are also very close
+        final veryCloseSensors = nearbySensors
+            .where((sensor) => (sensor['distance'] as double) <= veryCloseDistanceKm)
+            .toList();
+        
+        if (veryCloseSensors.length > 1) {
+          // Multiple very close sensors - pick the one with highest reading
+          veryCloseSensors.sort((a, b) => (b['pm25'] as double).compareTo(a['pm25'] as double));
+          peakMeasurement = veryCloseSensors.first['measurement'] as Measurement;
+          peakPm25 = veryCloseSensors.first['pm25'] as double;
+        } else {
+          // Only one very close sensor - use it regardless of reading
+          peakMeasurement = veryCloseSensors.first['measurement'] as Measurement;
+          peakPm25 = veryCloseSensors.first['pm25'] as double;
+        }
+      } else {
+        // No very close sensors - use the closest one available
+        peakMeasurement = nearbySensors.first['measurement'] as Measurement;
+        peakPm25 = nearbySensors.first['pm25'] as double;
+      }
       
       // Get location name from site details
       String locationName = 'unknown location';
+      
       if (peakMeasurement.siteDetails != null) {
         locationName = peakMeasurement.siteDetails!.searchName ??
                      peakMeasurement.siteDetails!.locationName ??
@@ -1789,11 +1822,14 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         }
       }
       
+      // Clean location name without distance information
+      String contextualLocation = locationName;
+      
       return {
         'pm25': peakPm25,
         'timeString': timeString,
         'category': peakMeasurement.aqiCategory ?? 'Unknown',
-        'location': locationName,
+        'location': contextualLocation,
       };
     } catch (e) {
       loggy.error('Error getting peak air quality reading: $e');
