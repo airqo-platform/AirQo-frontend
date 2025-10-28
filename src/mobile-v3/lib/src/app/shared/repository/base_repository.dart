@@ -201,4 +201,50 @@ class BaseRepository with UiLoggy {
       throw _httpError(response, url);
     }
   }
+
+  Future<Response> createDeleteRequest({
+    required String path,
+    dynamic data,
+  }) async {
+    final token = await _getToken();
+    if (token == null) {
+      throw Exception('Authentication token not found');
+    }
+
+    String url = ApiUtils.baseUrl + path;
+
+    loggy.info("Making DELETE request to: $url");
+
+    final headers = {
+      "Authorization": "JWT $token",
+      "Accept": "*/*",
+      "Content-Type": "application/json"
+    };
+
+    Response response;
+    if (data != null) {
+      response = await http.delete(
+        Uri.parse(url),
+        body: json.encode(data),
+        headers: headers,
+      );
+    } else {
+      response = await http.delete(
+        Uri.parse(url),
+        headers: headers,
+      );
+    }
+
+    loggy.info("DELETE response status: ${response.statusCode}");
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      await _handleTokenRefresh(response);
+      return response;
+    } else if (response.statusCode == 401) {
+      await _handleSessionExpiry();
+      throw Exception('Your session has expired. Please log in again.');
+    } else {
+      throw _httpError(response, url);
+    }
+  }
 }

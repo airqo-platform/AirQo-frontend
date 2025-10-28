@@ -6,14 +6,14 @@ import 'package:loggy/loggy.dart';
 
 class AlertResponseRepository extends BaseRepository with UiLoggy {
   static const String _alertResponsesBoxName = 'alert_responses';
-  static const String _alertResponsesEndpoint = '/api/v2/users/alert-responses';
+  static const String _alertResponsesEndpoint = '/api/v2/users/behavioral/alert-responses';
 
   Future<bool> saveAlertResponse(AlertResponse response) async {
     try {
       await _cacheAlertResponse(response);
 
       try {
-        final responseData = response.toJson();
+        final responseData = _formatResponseForAPI(response);
         final apiResponse = await createPostRequest(
           path: _alertResponsesEndpoint,
           data: responseData,
@@ -37,10 +37,39 @@ class AlertResponseRepository extends BaseRepository with UiLoggy {
     }
   }
 
-  Future<List<AlertResponse>> getAlertResponses({String? alertId}) async {
+  Future<List<AlertResponse>> getAlertResponses({String? alertId, int? limit, int? skip}) async {
     try {
       final cachedResponses = await _getCachedAlertResponses();
       
+      try {
+        final queryParams = <String, String>{};
+        if (limit != null) queryParams['limit'] = limit.toString();
+        if (skip != null) queryParams['skip'] = skip.toString();
+
+        final apiResponse = await createAuthenticatedGetRequest(
+          _alertResponsesEndpoint,
+          queryParams,
+        );
+
+        final data = json.decode(apiResponse.body);
+        
+        if (data['success'] == true && data['responses'] != null) {
+          final responses = (data['responses'] as List)
+              .map((response) => AlertResponse.fromJson(response))
+              .toList();
+          
+          await _cacheAlertResponses(responses);
+          
+          if (alertId != null) {
+            return responses.where((r) => r.alertId == alertId).toList();
+          }
+          
+          return responses;
+        }
+      } catch (e) {
+        loggy.warning('Failed to fetch responses from API, using cached: $e');
+      }
+
       if (alertId != null) {
         return cachedResponses.where((r) => r.alertId == alertId).toList();
       }
@@ -54,6 +83,21 @@ class AlertResponseRepository extends BaseRepository with UiLoggy {
 
   Future<Map<String, dynamic>> getResponseStats() async {
     try {
+      try {
+        final apiResponse = await createAuthenticatedGetRequest(
+          '$_alertResponsesEndpoint/stats',
+          {},
+        );
+
+        final data = json.decode(apiResponse.body);
+        
+        if (data['success'] == true && data['stats'] != null) {
+          return data['stats'];
+        }
+      } catch (e) {
+        loggy.warning('Failed to fetch stats from API, calculating from cached: $e');
+      }
+
       final responses = await getAlertResponses();
       
       final totalResponses = responses.length;
@@ -160,6 +204,15 @@ class AlertResponseRepository extends BaseRepository with UiLoggy {
     }
   }
 
+  Future<void> _cacheAlertResponses(List<AlertResponse> responses) async {
+    try {
+      final responsesJson = responses.map((r) => r.toJson()).toList();
+      await HiveRepository.saveData(_alertResponsesBoxName, 'responses', json.encode(responsesJson));
+    } catch (e) {
+      loggy.error('Error caching alert responses: $e');
+    }
+  }
+
   Future<void> _removeFromCache(String responseId) async {
     try {
       final responses = await _getCachedAlertResponses();
@@ -170,5 +223,20 @@ class AlertResponseRepository extends BaseRepository with UiLoggy {
     } catch (e) {
       loggy.error('Error removing alert response from cache: $e');
     }
+  }
+
+  Map<String, dynamic> _formatResponseForAPI(AlertResponse response) {
+    String? followedReasonForAPI;
+    
+    if (response.responseType == AlertResponseType.followed && response.followedReason != null) {
+      followedReasonForAPI = response.followedReason!.toString().split('.').last;
+    }
+
+    return {
+      'alertId': response.alertId,
+      'responseType': response.responseType.toString().split('.').last,
+      if (followedReasonForAPI != null) 'followedReason': followedReasonForAPI,
+      'respondedAt': response.respondedAt.toIso8601String(),
+    };
   }
 }

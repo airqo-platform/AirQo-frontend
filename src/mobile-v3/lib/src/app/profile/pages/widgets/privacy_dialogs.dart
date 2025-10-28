@@ -2,6 +2,7 @@ import 'package:airqo/src/meta/utils/date_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/profile/models/location_data_model.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class AddPrivacyZoneDialog extends StatefulWidget {

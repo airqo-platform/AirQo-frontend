@@ -4,6 +4,8 @@ import 'package:loggy/loggy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/profile/models/location_data_model.dart';
+import 'package:airqo/src/app/profile/repository/privacy_repository.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
@@ -16,6 +18,8 @@ class ExposureCalculator with UiLoggy {
   static const String _exposureDataBoxName = 'exposure_data';
   static const String _dailySummariesKey = 'daily_summaries';
   static const Duration _locationProximityThreshold = Duration(hours: 2);
+  
+  final PrivacyRepository _privacyRepository = PrivacyRepository();
 
   /// Calculate exposure data points from location history and air quality data
   Future<List<ExposureDataPoint>> calculateExposurePoints({
@@ -221,15 +225,12 @@ class ExposureCalculator with UiLoggy {
 
   Future<List<LocationDataPoint>> _getLocationHistory(DateTime startDate, DateTime endDate) async {
     try {
-      final locationService = EnhancedLocationServiceManager();
+      final response = await _privacyRepository.getLocationData(
+        startDate: startDate,
+        endDate: endDate,
+      );
       
-      // Filter location history by date range
-      final allHistory = locationService.locationHistory;
-      final filteredHistory = allHistory.where((point) {
-        return point.timestamp.isAfter(startDate) && point.timestamp.isBefore(endDate);
-      }).toList();
-
-      return filteredHistory;
+      return response.data;
     } catch (e) {
       loggy.error('Error getting location history: $e');
       return [];

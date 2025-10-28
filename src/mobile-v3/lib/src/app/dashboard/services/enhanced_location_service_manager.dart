@@ -2,80 +2,8 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:loggy/loggy.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
-
-class PrivacyZone {
-  final String id;
-  final String name;
-  final double latitude;
-  final double longitude;
-  final double radius;
-  final DateTime createdAt;
-
-  PrivacyZone({
-    required this.id,
-    required this.name,
-    required this.latitude,
-    required this.longitude,
-    required this.radius,
-    required this.createdAt,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'latitude': latitude,
-        'longitude': longitude,
-        'radius': radius,
-        'createdAt': createdAt.toIso8601String(),
-      };
-
-  factory PrivacyZone.fromJson(Map<String, dynamic> json) => PrivacyZone(
-        id: json['id'],
-        name: json['name'],
-        latitude: json['latitude'],
-        longitude: json['longitude'],
-        radius: json['radius'],
-        createdAt: DateTime.parse(json['createdAt']),
-      );
-}
-
-class LocationDataPoint {
-  final String id;
-  final double latitude;
-  final double longitude;
-  final DateTime timestamp;
-  final double? accuracy;
-  final bool isSharedWithResearchers;
-
-  LocationDataPoint({
-    required this.id,
-    required this.latitude,
-    required this.longitude,
-    required this.timestamp,
-    this.accuracy,
-    this.isSharedWithResearchers = false,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'latitude': latitude,
-        'longitude': longitude,
-        'timestamp': timestamp.toIso8601String(),
-        'accuracy': accuracy,
-        'isSharedWithResearchers': isSharedWithResearchers,
-      };
-
-  factory LocationDataPoint.fromJson(Map<String, dynamic> json) =>
-      LocationDataPoint(
-        id: json['id'],
-        latitude: json['latitude'],
-        longitude: json['longitude'],
-        timestamp: DateTime.parse(json['timestamp']),
-        accuracy: json['accuracy'],
-        isSharedWithResearchers: json['isSharedWithResearchers'] ?? false,
-      );
-}
+import 'package:airqo/src/app/profile/models/privacy_zone_model.dart';
+import 'package:airqo/src/app/profile/repository/privacy_repository.dart';
 
 class EnhancedLocationServiceManager with UiLoggy {
   static final EnhancedLocationServiceManager _instance =
@@ -83,11 +11,11 @@ class EnhancedLocationServiceManager with UiLoggy {
   factory EnhancedLocationServiceManager() => _instance;
   EnhancedLocationServiceManager._internal();
 
+  final PrivacyRepository _privacyRepository = PrivacyRepository();
   Position? _lastKnownPosition;
   bool _isTrackingActive = false;
   bool _isTrackingPaused = false;
   List<PrivacyZone> _privacyZones = [];
-  List<LocationDataPoint> _locationHistory = [];
   final StreamController<bool> _trackingStatusController =
       StreamController<bool>.broadcast();
   final StreamController<Position?> _locationController =
@@ -98,88 +26,28 @@ class EnhancedLocationServiceManager with UiLoggy {
   Position? get lastKnownPosition => _lastKnownPosition;
   bool get isTrackingActive => _isTrackingActive;
   bool get isTrackingPaused => _isTrackingPaused;
-  List<PrivacyZone> get privacyZones => List.unmodifiable(_privacyZones);
-  List<LocationDataPoint> get locationHistory =>
-      List.unmodifiable(_locationHistory);
   Stream<bool> get trackingStatusStream => _trackingStatusController.stream;
   Stream<Position?> get locationStream => _locationController.stream;
+
+  // Privacy zones are now managed through the repository
+  Future<List<PrivacyZone>> get privacyZones async => 
+      await _privacyRepository.getPrivacyZones();
 
   // Initialize the service
   Future<void> initialize() async {
     await _loadPrivacyZones();
-    await _loadLocationHistory();
     await _loadTrackingSettings();
   }
 
-  // Privacy Zone Management
-  Future<void> addPrivacyZone(
-      String name, double lat, double lng, double radius) async {
-    final zone = PrivacyZone(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: name,
-      latitude: lat,
-      longitude: lng,
-      radius: radius,
-      createdAt: DateTime.now(),
-    );
-
-    _privacyZones.add(zone);
-    await _savePrivacyZones();
-    loggy.info('Added privacy zone: $name');
-  }
-
-  Future<void> removePrivacyZone(String zoneId) async {
-    _privacyZones.removeWhere((zone) => zone.id == zoneId);
-    await _savePrivacyZones();
-    loggy.info('Removed privacy zone: $zoneId');
-  }
-
-  Future<void> _savePrivacyZones() async {
-    final prefs = await SharedPreferences.getInstance();
-    final zonesJson = _privacyZones.map((zone) => zone.toJson()).toList();
-    await prefs.setString('privacy_zones', jsonEncode(zonesJson));
-  }
-
   Future<void> _loadPrivacyZones() async {
-    final prefs = await SharedPreferences.getInstance();
-    final zonesString = prefs.getString('privacy_zones');
-    if (zonesString != null) {
-      final zonesList = jsonDecode(zonesString) as List;
-      _privacyZones =
-          zonesList.map((json) => PrivacyZone.fromJson(json)).toList();
+    try {
+      _privacyZones = await _privacyRepository.getPrivacyZones();
+      loggy.info('Loaded ${_privacyZones.length} privacy zones');
+    } catch (e) {
+      loggy.error('Failed to load privacy zones from repository: $e');
+      _privacyZones = [];
+      loggy.info('Initialized empty privacy zones list');
     }
-  }
-
-  // Location Data Management
-  Future<void> _saveLocationHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyJson =
-        _locationHistory.map((point) => point.toJson()).toList();
-    await prefs.setString('location_history', jsonEncode(historyJson));
-  }
-
-  Future<void> _loadLocationHistory() async {
-    final prefs = await SharedPreferences.getInstance();
-    final historyString = prefs.getString('location_history');
-    if (historyString != null) {
-      final historyList = jsonDecode(historyString) as List;
-      _locationHistory =
-          historyList.map((json) => LocationDataPoint.fromJson(json)).toList();
-    }
-  }
-
-  Future<void> deleteLocationPoint(String pointId) async {
-    _locationHistory.removeWhere((point) => point.id == pointId);
-    await _saveLocationHistory();
-    loggy.info('Deleted location point: $pointId');
-  }
-
-  Future<void> deleteLocationPointsInRange(DateTime start, DateTime end) async {
-    _locationHistory.removeWhere((point) =>
-        point.timestamp.isAfter(start.subtract(Duration(milliseconds: 1))) &&
-        point.timestamp.isBefore(end.add(Duration(milliseconds: 1))));
-    await _saveLocationHistory();
-    loggy.info('Deleted location points between $start and $end');
   }
 
   // Tracking Control
@@ -234,24 +102,13 @@ class EnhancedLocationServiceManager with UiLoggy {
       );
 
       // Check if current location is in a privacy zone
-      if (_isInPrivacyZone(position.latitude, position.longitude)) {
+      if (await _isInPrivacyZone(position.latitude, position.longitude)) {
         loggy.info('Location not recorded - in privacy zone');
         return;
       }
 
-      final dataPoint = LocationDataPoint(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        latitude: position.latitude,
-        longitude: position.longitude,
-        timestamp: DateTime.now(),
-        accuracy: position.accuracy,
-      );
-
-      _locationHistory.add(dataPoint);
       _lastKnownPosition = position;
       _locationController.add(position);
-
-      await _saveLocationHistory();
 
       loggy.info(
           'Location point captured: ${position.latitude}, ${position.longitude}');
@@ -260,8 +117,9 @@ class EnhancedLocationServiceManager with UiLoggy {
     }
   }
 
-  bool _isInPrivacyZone(double latitude, double longitude) {
-    for (final zone in _privacyZones) {
+  Future<bool> _isInPrivacyZone(double latitude, double longitude) async {
+    final zones = await _privacyRepository.getPrivacyZones();
+    for (final zone in zones) {
       final distance = Geolocator.distanceBetween(
           latitude, longitude, zone.latitude, zone.longitude);
       if (distance <= zone.radius) {
@@ -287,28 +145,6 @@ class EnhancedLocationServiceManager with UiLoggy {
     }
   }
 
-  // Data Sharing Control
-  List<LocationDataPoint> getDataForResearchers() {
-    return _locationHistory
-        .where((point) => point.isSharedWithResearchers)
-        .toList();
-  }
-
-  Future<void> updateDataSharingConsent(
-      String pointId, bool shareWithResearchers) async {
-    final index = _locationHistory.indexWhere((point) => point.id == pointId);
-    if (index != -1) {
-      _locationHistory[index] = LocationDataPoint(
-        id: _locationHistory[index].id,
-        latitude: _locationHistory[index].latitude,
-        longitude: _locationHistory[index].longitude,
-        timestamp: _locationHistory[index].timestamp,
-        accuracy: _locationHistory[index].accuracy,
-        isSharedWithResearchers: shareWithResearchers,
-      );
-      await _saveLocationHistory();
-    }
-  }
 
   // Original methods from LocationServiceManager
   Future<LocationResult> checkLocationPermission() async {

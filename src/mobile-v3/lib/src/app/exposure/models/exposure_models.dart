@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
-import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/profile/models/location_data_model.dart';
 
 /// Represents a data point combining location and air quality at a specific time
 class ExposureDataPoint extends Equatable {

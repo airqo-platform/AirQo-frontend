@@ -4,6 +4,8 @@ import 'package:airqo/src/app/profile/pages/widgets/privacy_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/profile/models/privacy_zone_model.dart';
+import 'package:airqo/src/app/profile/repository/privacy_repository.dart';
 import 'package:airqo/src/app/profile/pages/location_data_view_screen.dart';
 import 'package:airqo/src/app/profile/pages/data_sharing_screen.dart';
 import 'package:geolocator/geolocator.dart';
@@ -18,10 +20,11 @@ class LocationPrivacyScreen extends StatefulWidget {
 class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   final EnhancedLocationServiceManager _locationManager =
       EnhancedLocationServiceManager();
+  final PrivacyRepository _privacyRepository = PrivacyRepository();
   bool _isTrackingActive = false;
   bool _isTrackingPaused = false;
   bool _locationEnabled = false;
-  bool _isProcessing = false;
+  List<PrivacyZone> _privacyZones = [];
   StreamSubscription? _trackingSubscription;
 
   @override
@@ -30,6 +33,21 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     _initializeLocationManager();
     _setupTrackingListener();
     _checkLocationStatus();
+    _loadPrivacyZones();
+  }
+
+  Future<void> _loadPrivacyZones() async {
+    try {
+      final zones = await _privacyRepository.getPrivacyZones();
+      setState(() {
+        _privacyZones = zones;
+      });
+    } catch (e) {
+      // Handle error - could show a snackbar or similar
+      setState(() {
+        _privacyZones = [];
+      });
+    }
   }
 
   Future<void> _initializeLocationManager() async {
@@ -65,7 +83,6 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   }
 
   Future<void> _toggleLocation(bool value) async {
-    setState(() => _isProcessing = true);
     
     bool shouldUpdateState = false;
     
@@ -108,7 +125,6 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
       if (mounted) {
         setState(() {
           _locationEnabled = shouldUpdateState ? value : _locationEnabled;
-          _isProcessing = false;
         });
       }
     }
@@ -429,7 +445,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        if (_locationManager.privacyZones.isEmpty)
+        if (_privacyZones.isEmpty)
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(screenWidth * 0.04),
@@ -480,7 +496,7 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
           )
         else
           Column(
-            children: _locationManager.privacyZones
+            children: _privacyZones
                 .map((zone) => _buildPrivacyZoneCard(zone))
                 .toList(),
           ),
@@ -563,7 +579,8 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   Widget _buildDataManagementSection() {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final totalCount = _locationManager.locationHistory.length;
+    // Location data is now managed by Privacy Repository - show placeholder count
+    final totalCount = 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -696,10 +713,9 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
   Widget _buildDataSharingSection() {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final totalCount = _locationManager.locationHistory.length;
-    final sharedCount = _locationManager.locationHistory
-        .where((point) => point.isSharedWithResearchers)
-        .length;
+    // Location data is now managed by Privacy Repository - show placeholder counts
+    final totalCount = 0;
+    final sharedCount = 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -836,8 +852,16 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
       builder: (context) => AddPrivacyZoneDialog(
         locationManager: locationManager,
         onAddZone: (name, lat, lng, radius) async {
-          await _locationManager.addPrivacyZone(name, lat, lng, radius);
-          setState(() {});
+          final zone = PrivacyZone(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            name: name,
+            latitude: lat,
+            longitude: lng,
+            radius: radius,
+            createdAt: DateTime.now(),
+          );
+          await _privacyRepository.createPrivacyZone(zone);
+          await _loadPrivacyZones(); // Refresh the list
         },
       ),
     );
@@ -894,24 +918,40 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
     );
 
     if (confirmed == true) {
-      await _locationManager.removePrivacyZone(zoneId);
-      setState(() {});
+      await _privacyRepository.deletePrivacyZone(zoneId);
+      await _loadPrivacyZones(); // Refresh the list
     }
   }
 
-  void _showLocationDataView() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => LocationDataViewScreen(
-          locationHistory: _locationManager.locationHistory,
-          onDeletePoint: (pointId) async {
-            await _locationManager.deleteLocationPoint(pointId);
-            setState(() {});
-          },
-        ),
-      ),
-    );
+  void _showLocationDataView() async {
+    try {
+      final locationData = await _privacyRepository.getLocationData();
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LocationDataViewScreen(
+              locationHistory: locationData.data,
+              onDeletePoint: (pointId) async {
+                // Location data deletion would need to be implemented in Privacy Repository
+                // For now, just show a placeholder message
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Location data management moved to Privacy Repository')),
+                  );
+                }
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load location data: $e')),
+        );
+      }
+    }
   }
 
   void _showDeleteDataRangeDialog() {
@@ -919,26 +959,40 @@ class _LocationPrivacyScreenState extends State<LocationPrivacyScreen> {
       context: context,
       builder: (context) => DeleteDataRangeDialog(
         onDeleteRange: (start, end) async {
-          await _locationManager.deleteLocationPointsInRange(start, end);
-          setState(() {});
+          await _privacyRepository.deleteLocationDataInRange(start, end);
+          // No need to setState since location data is fetched on demand
         },
       ),
     );
   }
 
-  void _showDataSharingDetails() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => DataSharingScreen(
-          locationHistory: _locationManager.locationHistory,
-          onUpdateSharing: (pointId, share) async {
-            await _locationManager.updateDataSharingConsent(pointId, share);
-            setState(() {});
-          },
-        ),
-      ),
-    );
+  void _showDataSharingDetails() async {
+    try {
+      final locationData = await _privacyRepository.getLocationData();
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DataSharingScreen(
+              locationHistory: locationData.data,
+              onUpdateSharing: (pointId, share) async {
+                // Data sharing updates would need to be implemented in Privacy Repository
+                // For now, just show a placeholder message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Data sharing management moved to Privacy Repository')),
+                );
+              },
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load location data: $e')),
+        );
+      }
+    }
   }
 
   @override
