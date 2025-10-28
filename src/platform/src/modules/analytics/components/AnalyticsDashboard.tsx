@@ -31,6 +31,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Get filters from Redux
   const { filters } = useAnalytics();
 
+  // Local state for UI preferences (doesn't trigger data reloads)
+  const [showIcons, setShowIcons] = useState(true);
+
   // Get user preferences and selected sites
   const {
     selectedSiteIds,
@@ -181,6 +184,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         selectedPollutant={filters.pollutant}
         onCardClick={handleCardClick}
         isLoading={siteCardsLoading}
+        showIcon={showIcons}
+        onShowIconsChange={setShowIcons}
       />
 
       {/* Charts Grid */}

@@ -3,6 +3,14 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { isTokenExpired } from './utils';
 import { authService } from '../services/authService';
 
+// Helper function to check token expiration and log
+const isTokenInvalid = (accessToken: string | undefined): boolean => {
+  if (!accessToken || isTokenExpired(accessToken)) {
+    return true;
+  }
+  return false;
+};
+
 export const authOptions: any = {
   providers: [
     CredentialsProvider({
@@ -68,14 +76,18 @@ export const authOptions: any = {
         token.firstName = (user as any).firstName;
         token.lastName = (user as any).lastName;
       }
+
       return token;
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async session({ session, token }: any) {
-      // Check if token is expired and handle accordingly
-      if (isTokenExpired(token)) {
-        console.warn('JWT token is expired');
-        // Could trigger logout or refresh token
+      // Check if token is expired and invalidate session
+      const accessToken =
+        typeof (token as any)?.accessToken === 'string'
+          ? ((token as any).accessToken as string)
+          : undefined;
+      if (isTokenInvalid(accessToken)) {
+        return { user: null };
       }
 
       // Add access token and user ID to session

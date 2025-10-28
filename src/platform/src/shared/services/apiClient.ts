@@ -29,7 +29,6 @@ export class ApiClient {
   }
 
   private buildBaseUrl(): string {
-    // Prioritize NEXT_PUBLIC_API_BASE_URL for client-side, fallback to API_BASE_URL for server-side
     const baseUrl =
       process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
     if (!baseUrl) {
@@ -39,7 +38,6 @@ export class ApiClient {
     // Remove trailing slash
     const cleanBaseUrl = baseUrl.replace(/\/$/, '');
 
-    // Check if base URL already ends with /api/v2 (with or without trailing slash)
     if (cleanBaseUrl.endsWith('/api/v2')) {
       return cleanBaseUrl;
     }
@@ -72,8 +70,21 @@ export class ApiClient {
       error => {
         // Handle common errors
         if (error.response?.status === 401) {
-          // Handle unauthorized
-          console.error('Unauthorized access');
+          // Handle unauthorized - check if it's session expiry vs permissions
+          console.error('Unauthorized access - checking session validity');
+
+          // Dispatch event with error details for smart handling
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(
+              new CustomEvent('auth:unauthorized', {
+                detail: {
+                  status: error.response.status,
+                  data: error.response.data,
+                  url: error.config?.url,
+                },
+              })
+            );
+          }
         }
         return Promise.reject(error);
       }

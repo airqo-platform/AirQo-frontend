@@ -2,9 +2,11 @@ import { signOut } from 'next-auth/react';
 import { useDispatch } from 'react-redux';
 import { clearUser } from '@/shared/store/userSlice';
 import { persistor } from '@/shared/store';
+import { useRouter } from 'next/navigation';
 
 export const useLogout = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const logout = async () => {
     try {
@@ -14,10 +16,10 @@ export const useLogout = () => {
       // Clear persisted Redux data
       await persistor.purge();
 
-      // Sign out from NextAuth (this will clear its own session data)
+      // Sign out from NextAuth with redirect
       await signOut({ callbackUrl: '/user/login' });
 
-      // After NextAuth signout, clear any remaining application storage
+      // Clear any remaining application storage
       if (typeof window !== 'undefined') {
         const keysToRemove: string[] = [];
         for (let i = 0; i < localStorage.length; i++) {
@@ -33,7 +35,8 @@ export const useLogout = () => {
       }
     } catch (error) {
       console.error('Logout error:', error);
-      await signOut({ callbackUrl: '/user/login' });
+      // Fallback redirect
+      router.push('/user/login');
     }
   };
 
