@@ -17,13 +17,15 @@ const CareerPage: React.FC = () => {
     error: departmentsError,
   } = useDepartments();
 
-  const departments = departmentsPage ?? [];
+  const departments = departmentsPage?.results ?? [];
 
   const {
-    data: careers,
+    data: careersData,
     error: careersError,
     isLoading: careersLoading,
   } = useCareers();
+
+  const careers = careersData?.results ?? [];
 
   const [selectedDepartmentId, setSelectedDepartmentId] =
     useState<string>('all'); // Default to All

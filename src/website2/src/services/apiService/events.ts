@@ -47,7 +47,7 @@ class EventsService extends BaseApiService {
    */
   async getAirQoEvents(
     options: ServiceOptions = {},
-    params: { page?: number; page_size?: number } = {},
+    params: { page?: number; page_size?: number; event_status?: string } = {},
   ): Promise<any> {
     return this.getEvents({ ...params, category: 'airqo' }, options);
   }

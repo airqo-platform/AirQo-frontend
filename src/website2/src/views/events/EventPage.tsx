@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { FiCalendar } from 'react-icons/fi';
 
-import { CustomButton } from '@/components/ui';
+import { CustomButton, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useAirQoEvents } from '@/hooks/useApiHooks';
 import { EventV2 } from '@/services/types/api';
@@ -14,37 +14,43 @@ import EventCardsSection from '@/views/events/EventCardsSection';
 const EventPage: React.FC = () => {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('upcoming');
+  const [upcomingPage, setUpcomingPage] = useState(1);
+  const [pastPage, setPastPage] = useState(1);
 
-  // Get all events
+  // Get events based on selected tab with pagination
   const {
-    data: allEvents,
-    isLoading: isLoadingAllEvents,
-    error: allEventsError,
-  } = useAirQoEvents();
+    data: eventsData,
+    isLoading: isLoadingEvents,
+    error: eventsError,
+  } = useAirQoEvents({
+    page: selectedTab === 'upcoming' ? upcomingPage : pastPage,
+    page_size: 6,
+    event_status: selectedTab,
+  });
 
-  // Filter events based on selected tab
-  const now = new Date();
-  const upcomingEvents = (allEvents ?? []).filter(
-    (event: any) => new Date(event.start_date) >= now,
-  );
-  const pastEvents = (allEvents ?? []).filter(
-    (event: any) => new Date(event.start_date) < now,
-  );
+  // Extract events array from paginated response
+  const currentEvents = Array.isArray(eventsData?.results)
+    ? eventsData.results
+    : [];
+  const allEvents = currentEvents;
 
-  // Get current tab's data
-  const currentEvents =
-    selectedTab === 'upcoming' ? upcomingEvents : pastEvents;
-  const isLoadingInitialData = isLoadingAllEvents;
-  const error = allEventsError;
-
-  // Featured events are selected from all events
-  const featuredEvents = (allEvents ?? []).filter(
+  // Featured events are selected from upcoming events (look for featured tag or just use first upcoming event)
+  const featuredEvents = currentEvents.filter(
     (event: EventV2) =>
-      ((event as any).event_tag || '').toLowerCase() === 'featured',
+      selectedTab === 'upcoming' &&
+      (((event as any).event_tag || '').toLowerCase() === 'featured' ||
+        ((event as any).tags || []).some(
+          (tag: string) => tag.toLowerCase() === 'featured',
+        )),
   );
 
+  // If no featured events, use the first upcoming event as featured
   const firstFeaturedEvent =
-    featuredEvents.length > 0 ? featuredEvents[0] : null;
+    selectedTab === 'upcoming' && featuredEvents.length > 0
+      ? featuredEvents[0]
+      : selectedTab === 'upcoming' && currentEvents.length > 0
+        ? currentEvents[0]
+        : null;
 
   // Function to format the date range based on whether the months are the same
   const formatDateRange = (startDate?: string, endDate?: string) => {
@@ -65,6 +71,12 @@ const EventPage: React.FC = () => {
 
   const handleTabClick = (tab: string) => {
     setSelectedTab(tab);
+    // Reset page when switching tabs
+    if (tab === 'upcoming') {
+      setUpcomingPage(1);
+    } else {
+      setPastPage(1);
+    }
   };
 
   // const handleLoadMore = () => {
@@ -72,8 +84,8 @@ const EventPage: React.FC = () => {
   // };
 
   // Determine loading and error states
-  const isHeaderLoading = isLoadingAllEvents;
-  const hasHeaderError = allEventsError;
+  const isHeaderLoading = selectedTab === 'upcoming' && isLoadingEvents;
+  const hasHeaderError = selectedTab === 'upcoming' && eventsError;
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -220,7 +232,7 @@ const EventPage: React.FC = () => {
       </section>
 
       {/* Event Cards Section */}
-      {isLoadingInitialData ? (
+      {isLoadingEvents ? (
         <div
           className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8`}
         >
@@ -243,7 +255,7 @@ const EventPage: React.FC = () => {
         <EventCardsSection
           selectedTab={selectedTab}
           events={currentEvents as EventV2[]}
-          error={error}
+          error={eventsError}
         />
       )}
 
@@ -251,19 +263,16 @@ const EventPage: React.FC = () => {
       <div
         className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8 mt-6`}
       >
-        {/* {!isReachingEnd &&
-          !isLoadingInitialData &&
-          (currentEvents as EventV2[])?.length > 0 && (
-            <div className="flex justify-center">
-              <CustomButton
-                onClick={handleLoadMore}
-                className="px-6 py-3 bg-blue-600 text-white"
-                disabled={isLoadingMore}
-              >
-                {isLoadingMore ? 'Loading...' : 'Load more events'}
-              </CustomButton>
-            </div>
-          )} */}
+        {eventsData && eventsData.total_pages > 1 && (
+          <Pagination
+            totalPages={eventsData.total_pages}
+            currentPage={selectedTab === 'upcoming' ? upcomingPage : pastPage}
+            onPageChange={
+              selectedTab === 'upcoming' ? setUpcomingPage : setPastPage
+            }
+            scrollToTop={true}
+          />
+        )}
       </div>
     </div>
   );

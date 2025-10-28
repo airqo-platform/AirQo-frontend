@@ -61,6 +61,7 @@ export const useImpactNumbers = () =>
 export const useAirQoEvents = (params?: {
   page?: number;
   page_size?: number;
+  event_status?: string;
 }) =>
   useServiceData(
     () => eventsService.getAirQoEvents({}, params || {}),
