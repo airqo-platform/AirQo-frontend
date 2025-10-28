@@ -27,7 +27,7 @@ const GlossaryPage = () => {
   }
 
   // Extract the events list from eventTitles.
-  const eventsList: ApiForumEvent[] = eventTitlesData ?? [];
+  const eventsList: ApiForumEvent[] = eventTitlesData?.results ?? [];
 
   if (eventsList.length === 0) {
     return <NoData message="No events found" />;
