@@ -128,13 +128,4 @@ const apiClient = new ApiClient({
   timeout: 30000,
 });
 
-// Debug logging
-if (process.env.NODE_ENV === 'development') {
-  console.log('API Client Config:', {
-    baseURL: apiUrl,
-    hasToken: !!process.env.API_TOKEN,
-    tokenLength: process.env.API_TOKEN?.length,
-  });
-}
-
 export default apiClient;
