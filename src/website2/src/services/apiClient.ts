@@ -4,7 +4,7 @@ import { EnhancedApiError, RequestConfig, ServiceResponse } from './base';
 
 interface ApiClientConfig {
   baseURL: string;
-  token?: string;
+  token?: string; // Not used anymore, token handled server-side
   timeout?: number;
 }
 
@@ -41,18 +41,13 @@ class ApiClient {
       ...headers,
     };
 
-    // Add API token if available
-    let requestUrl = fullUrl;
-    if (this.token) {
-      const separator = fullUrl.includes('?') ? '&' : '?';
-      requestUrl = `${fullUrl}${separator}token=${this.token}`;
-    }
+    // Note: Token is handled server-side by the internal API route
 
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const response = await fetch(requestUrl, {
+      const response = await fetch(fullUrl, {
         method,
         headers: requestHeaders,
         body: data ? JSON.stringify(data) : undefined,
@@ -118,13 +113,11 @@ class ApiClient {
 }
 
 // Create the API client instance
-const apiUrl = removeTrailingSlash(
-  process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || '',
-);
+const apiUrl = '/api/v2'; // Use internal API route
 
 const apiClient = new ApiClient({
   baseURL: apiUrl,
-  token: process.env.API_TOKEN,
+  token: undefined, // Token is handled server-side
   timeout: 30000,
 });
 
