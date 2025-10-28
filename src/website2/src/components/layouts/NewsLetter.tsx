@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { subscribeToNewsletter } from '@/services/externalService';
+import { externalService } from '@/services/apiService';
 
 import { trackEvent } from '../GoogleAnalytics';
 
@@ -31,7 +31,7 @@ const NewsLetter: React.FC = () => {
     };
 
     try {
-      const response = await subscribeToNewsletter(formData);
+      const response = await externalService.subscribeToNewsletter(formData);
       if (response.success) {
         setFormStatus('success');
         trackEvent({

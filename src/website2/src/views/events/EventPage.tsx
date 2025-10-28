@@ -1,17 +1,13 @@
 'use client';
-import { format, isSameMonth, parse } from 'date-fns';
+import { format, isSameMonth } from 'date-fns';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
-import { FiCalendar, FiClock } from 'react-icons/fi';
+import { FiCalendar } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import {
-  useInfiniteEvents,
-  useInfinitePastEvents,
-  useInfiniteUpcomingEvents,
-} from '@/services/hooks/endpoints';
+import { useAirQoEvents } from '@/hooks/useApiHooks';
 import { EventV2 } from '@/services/types/api';
 import EventCardsSection from '@/views/events/EventCardsSection';
 
@@ -19,33 +15,30 @@ const EventPage: React.FC = () => {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('upcoming');
 
-  // Use separate hooks for upcoming and past events
-  const upcomingEventsHook = useInfiniteUpcomingEvents({ page_size: 20 });
-  const pastEventsHook = useInfinitePastEvents({ page_size: 20 });
-
-  // Use general events hook for featured events (all events)
+  // Get all events
   const {
-    results: allEventsResults,
-    isLoadingInitialData: isLoadingAllEvents,
+    data: allEvents,
+    isLoading: isLoadingAllEvents,
     error: allEventsError,
-  } = useInfiniteEvents({ page_size: 100 }); // Get more for featured selection
+  } = useAirQoEvents();
+
+  // Filter events based on selected tab
+  const now = new Date();
+  const upcomingEvents = (allEvents ?? []).filter(
+    (event: any) => new Date(event.start_date) >= now,
+  );
+  const pastEvents = (allEvents ?? []).filter(
+    (event: any) => new Date(event.start_date) < now,
+  );
 
   // Get current tab's data
-  const currentTabData =
-    selectedTab === 'upcoming' ? upcomingEventsHook : pastEventsHook;
-  const {
-    results: currentEvents,
-    isLoadingInitialData,
-    isLoadingMore,
-    error,
-    isReachingEnd,
-    size,
-    setSize,
-  } = currentTabData;
+  const currentEvents =
+    selectedTab === 'upcoming' ? upcomingEvents : pastEvents;
+  const isLoadingInitialData = isLoadingAllEvents;
+  const error = allEventsError;
 
   // Featured events are selected from all events
-  const allEvents: EventV2[] = (allEventsResults as EventV2[]) || [];
-  const featuredEvents = allEvents.filter(
+  const featuredEvents = (allEvents ?? []).filter(
     (event: EventV2) =>
       ((event as any).event_tag || '').toLowerCase() === 'featured',
   );
@@ -74,9 +67,9 @@ const EventPage: React.FC = () => {
     setSelectedTab(tab);
   };
 
-  const handleLoadMore = () => {
-    setSize(size + 1);
-  };
+  // const handleLoadMore = () => {
+  //   setSize(size + 1);
+  // };
 
   // Determine loading and error states
   const isHeaderLoading = isLoadingAllEvents;
@@ -126,11 +119,11 @@ const EventPage: React.FC = () => {
                 <h1 className="text-4xl font-bold mb-4">
                   {firstFeaturedEvent?.title}
                 </h1>
-                {firstFeaturedEvent?.title_subtext && (
+                {/* {firstFeaturedEvent?.title_subtext && (
                   <p className="text-lg text-gray-600 mb-6">
                     {firstFeaturedEvent.title_subtext}
                   </p>
-                )}
+                )} */}
                 <div className="flex flex-col flex-wrap gap-4 mb-6">
                   <div className="flex items-center space-x-2">
                     <FiCalendar className="text-gray-500 w-5 h-5" />
@@ -141,7 +134,7 @@ const EventPage: React.FC = () => {
                       )}
                     </p>
                   </div>
-                  {firstFeaturedEvent?.start_time &&
+                  {/* {firstFeaturedEvent?.start_time &&
                     firstFeaturedEvent?.end_time && (
                       <div className="flex items-center space-x-2">
                         <FiClock className="text-gray-500 w-5 h-5" />
@@ -163,13 +156,13 @@ const EventPage: React.FC = () => {
                           )}`}
                         </p>
                       </div>
-                    )}
+                    )} */}
                 </div>
                 <CustomButton
                   onClick={() =>
                     router.push(
                       `/events/${
-                        firstFeaturedEvent?.public_identifier ||
+                        (firstFeaturedEvent as any)?.public_identifier ||
                         firstFeaturedEvent?.id
                       }`,
                     )
@@ -180,9 +173,9 @@ const EventPage: React.FC = () => {
                 </CustomButton>
               </div>
               <div className="flex justify-center items-center flex-1 w-full mb-6 lg:mb-0">
-                {firstFeaturedEvent?.event_image_url && (
+                {(firstFeaturedEvent as any)?.event_image_url && (
                   <Image
-                    src={firstFeaturedEvent.event_image_url}
+                    src={(firstFeaturedEvent as any).event_image_url}
                     alt={firstFeaturedEvent.title || ''}
                     width={800}
                     height={600}
@@ -258,7 +251,7 @@ const EventPage: React.FC = () => {
       <div
         className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8 mt-6`}
       >
-        {!isReachingEnd &&
+        {/* {!isReachingEnd &&
           !isLoadingInitialData &&
           (currentEvents as EventV2[])?.length > 0 && (
             <div className="flex justify-center">
@@ -270,7 +263,7 @@ const EventPage: React.FC = () => {
                 {isLoadingMore ? 'Loading...' : 'Load more events'}
               </CustomButton>
             </div>
-          )}
+          )} */}
       </div>
     </div>
   );

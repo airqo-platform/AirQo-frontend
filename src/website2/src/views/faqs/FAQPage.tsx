@@ -6,7 +6,7 @@ import { FiSearch, FiX } from 'react-icons/fi';
 
 import { Accordion, Input, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useFAQs } from '@/services/hooks/endpoints';
+import { useFAQs } from '@/hooks/useApiHooks';
 import { FAQ } from '@/types';
 
 // Configure DOMPurify once on the client to allow common tags/attributes
@@ -208,23 +208,13 @@ const FAQPage: React.FC = () => {
   const [openAccordionId, setOpenAccordionId] = useState<number | null>(null);
   const itemsPerPage = 20;
 
-  // Use v2 API with server-side pagination normally, but the backend search
-  // parameter is unreliable for this endpoint. When the user searches we
-  // fetch a larger page (first page with a big page_size) and filter client-side.
-  const fetchParams = searchQuery
-    ? { page: 1, page_size: 1000 }
-    : { page: currentPage, page_size: itemsPerPage };
-
-  const { data, isLoading, error: isError } = useFAQs(fetchParams as any);
+  const { data, isLoading, error: isError } = useFAQs();
 
   // FAQs returned by API (only active ones)
-  const allFetched: FAQ[] = (data?.results ?? []).filter(
-    (f: any) => f.is_active,
-  );
+  const allFetched: FAQ[] = (data ?? []).filter((f: any) => f.is_active);
 
   // If the user has entered a search query, perform client-side filtering
-  // against question and answer text (case-insensitive). Otherwise use the
-  // paginated results as-is.
+  // against question and answer text (case-insensitive). Otherwise use all results.
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const filtered = normalizedQuery
     ? allFetched.filter((f) => {
@@ -240,21 +230,14 @@ const FAQPage: React.FC = () => {
       })
     : allFetched;
 
-  // For UI pagination, when searching we paginate the filtered result client-side
-  const faqsList: FAQ[] = normalizedQuery
-    ? filtered.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage,
-      )
-    : filtered;
+  // For UI pagination, paginate the filtered result client-side
+  const faqsList: FAQ[] = filtered.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage,
+  );
 
-  const totalCount = normalizedQuery
-    ? filtered.length
-    : (data?.count ?? faqsList.length);
-
-  const totalPages = normalizedQuery
-    ? Math.max(1, Math.ceil(totalCount / itemsPerPage))
-    : (data?.total_pages ?? 1);
+  const totalCount = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);

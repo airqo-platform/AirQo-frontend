@@ -6,15 +6,15 @@ import { useState } from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useImpactNumbers } from '@/services/hooks/endpoints';
+import { useImpactNumbers } from '@/hooks/useApiHooks';
 
 import { Accordion } from './Accordion';
 import { accordionItems, partnerLogos, statItems } from './data';
 
 const HomeStatsSection: React.FC = () => {
   const { data: impactNumbersResponse } = useImpactNumbers();
-  // v2 endpoints return a paginated response: { results: [ ... ] }
-  const impactNumbers = impactNumbersResponse?.results?.[0] ?? null;
+  // API returns array of impact numbers, take the first one
+  const impactNumbers = impactNumbersResponse?.[0] ?? null;
   const [activeTab, setActiveTab] = useState<'cities' | 'communities'>(
     'cities',
   );

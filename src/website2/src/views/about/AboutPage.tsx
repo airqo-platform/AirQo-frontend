@@ -7,15 +7,16 @@ import React from 'react';
 import { FaArrowRightLong } from 'react-icons/fa6';
 
 import LogoDisplay from '@/components/sections/LogoDisplay';
-import { CustomButton, Divider, MemberCard } from '@/components/ui';
+import { CustomButton, Divider, MemberCard, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks/reduxHooks';
 import {
+  // Regular hooks with pagination support
+  useBoardMembers,
   useExternalTeamMembers,
-  useInfiniteBoardMembers,
-  useInfinitePartners,
-  useInfiniteTeamMembers,
-} from '@/services/hooks/endpoints';
+  usePartners,
+  useTeamMembers,
+} from '@/hooks/useApiHooks';
 import { openModal } from '@/store/slices/modalSlice';
 
 // Helper to normalize paginated responses to arrays
@@ -61,45 +62,55 @@ const AboutPage: React.FC = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
-  // Use infinite hooks for load more functionality
-  const {
-    results: teamMembers,
-    size: teamSize,
-    setSize: setTeamSize,
-    isLoadingInitialData: teamLoading,
-    isLoadingMore: teamLoadingMore,
-    isReachingEnd: teamReachingEnd,
-  } = useInfiniteTeamMembers({ page_size: 6 });
+  // Use regular hooks with pagination support
+  const [teamPage, setTeamPage] = React.useState(1);
+  const { data: teamMembersData, isLoading: teamLoading } = useTeamMembers({
+    page: teamPage,
+    page_size: 6,
+  });
 
-  const {
-    results: boardMembers,
-    size: boardSize,
-    setSize: setBoardSize,
-    isLoadingInitialData: boardLoading,
-    isLoadingMore: boardLoadingMore,
-    isReachingEnd: boardReachingEnd,
-  } = useInfiniteBoardMembers({ page_size: 6 });
+  const [boardPage, setBoardPage] = React.useState(1);
+  const { data: boardMembersData, isLoading: boardLoading } = useBoardMembers({
+    page: boardPage,
+    page_size: 6,
+  });
 
-  const {
-    results: allPartners,
-    size: partnersSize,
-    setSize: setPartnersSize,
-    isLoadingInitialData: partnersLoading,
-    isLoadingMore: partnersLoadingMore,
-    isReachingEnd: partnersReachingEnd,
-  } = useInfinitePartners({ page_size: 8 });
+  // For partners, fetch all data and paginate client-side to handle filtering properly
+  const { data: allPartnersData, isLoading: allPartnersLoading } = usePartners({
+    page_size: 100, // Fetch more to ensure we get all non-cleanair partners
+  });
 
-  // External team members don't have infinite hook, so use regular one
+  const [partnersPage, setPartnersPage] = React.useState(1);
+
+  const [externalPage, setExternalPage] = React.useState(1);
   const { data: externalTeamData, isLoading: externalLoading } =
-    useExternalTeamMembers({ page_size: 50 }); // Get more initially
+    useExternalTeamMembers({ page: externalPage, page_size: 6 });
 
+  // Normalize data to arrays
+  const teamMembers = normalizeList(teamMembersData);
+  const boardMembers = normalizeList(boardMembersData);
+  const allPartnersRaw = normalizeList(allPartnersData);
   const externalTeamMembers = normalizeList(externalTeamData);
 
-  // Filter out cleanair partners
-  const filteredPartners = allPartners.filter((partner: any) => {
+  // Filter out cleanair partners from all partners data
+  const filteredPartners = allPartnersRaw.filter((partner: any) => {
     const cat = (partner.website_category || partner.category || '') as string;
     return cat.toLowerCase() !== 'cleanair';
   });
+
+  // Check if there are more pages
+  const teamTotalPages = teamMembersData?.total_pages || 1;
+  const boardTotalPages = boardMembersData?.total_pages || 1;
+  const externalTotalPages = externalTeamData?.total_pages || 1;
+
+  // Client-side pagination for partners (6 items per page)
+  const partnersPerPage = 6;
+  const totalPartnersPages = Math.ceil(
+    filteredPartners.length / partnersPerPage,
+  );
+  const startIndex = (partnersPage - 1) * partnersPerPage;
+  const endIndex = startIndex + partnersPerPage;
+  const currentPartnersPage = filteredPartners.slice(startIndex, endIndex);
 
   // Handle partner click to navigate to details page
   const handlePartnerClick = (partner: any) => {
@@ -114,9 +125,9 @@ const AboutPage: React.FC = () => {
     loading: boolean,
     sectionId: string,
     title: string,
-    loadingMore?: boolean,
-    hasMore?: boolean,
-    onLoadMore?: () => void,
+    currentPage: number,
+    totalPages: number,
+    onPageChange: (page: number) => void,
   ) => {
     if (loading) {
       // Display Skeleton Loaders
@@ -192,18 +203,13 @@ const AboutPage: React.FC = () => {
             ))}
           </div>
 
-          {/* Load More Button for Members */}
-          {hasMore && onLoadMore && (
-            <div className="flex justify-center mt-8">
-              <CustomButton
-                onClick={onLoadMore}
-                disabled={loadingMore}
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-              >
-                {loadingMore ? 'Loading...' : 'Load More'}
-              </CustomButton>
-            </div>
-          )}
+          {/* Pagination for Members */}
+          <Pagination
+            totalPages={totalPages}
+            currentPage={currentPage}
+            onPageChange={onPageChange}
+            scrollToTop={false}
+          />
         </section>
 
         <Divider className="bg-black w-full p-0 h-[1px] mx-auto" />
@@ -423,13 +429,13 @@ const AboutPage: React.FC = () => {
 
         {/* Team Section */}
         {renderMembersSection(
-          teamMembers,
+          teamMembers ?? [],
           teamLoading,
           'team',
           'Meet the team',
-          teamLoadingMore,
-          !teamReachingEnd,
-          () => setTeamSize(teamSize + 1),
+          teamPage,
+          teamTotalPages,
+          setTeamPage,
         )}
 
         {/* External Team Section */}
@@ -438,17 +444,20 @@ const AboutPage: React.FC = () => {
           externalLoading,
           'external-team',
           'External team',
+          externalPage,
+          externalTotalPages,
+          setExternalPage,
         )}
 
         {/* Board Section */}
         {renderMembersSection(
-          boardMembers,
+          boardMembers ?? [],
           boardLoading,
           'board',
           'Meet the Board',
-          boardLoadingMore,
-          !boardReachingEnd,
-          () => setBoardSize(boardSize + 1),
+          boardPage,
+          boardTotalPages,
+          setBoardPage,
         )}
 
         {/* Partners Section */}
@@ -483,12 +492,12 @@ const AboutPage: React.FC = () => {
           </div>
 
           {/* Partners Content */}
-          {partnersLoading ? (
+          {allPartnersLoading ? (
             <PartnerSkeletonLoader />
-          ) : filteredPartners && filteredPartners.length > 0 ? (
+          ) : currentPartnersPage && currentPartnersPage.length > 0 ? (
             <>
               <LogoDisplay
-                logos={filteredPartners.map((partner: any) => ({
+                logos={currentPartnersPage.map((partner: any) => ({
                   id: partner.id,
                   logoUrl: partner.partner_logo_url || '',
                   onClick: () => handlePartnerClick(partner),
@@ -496,18 +505,13 @@ const AboutPage: React.FC = () => {
                 columns={3}
               />
 
-              {/* Load More Button for Partners */}
-              {!partnersReachingEnd && (
-                <div className="flex justify-center mt-8">
-                  <CustomButton
-                    onClick={() => setPartnersSize(partnersSize + 1)}
-                    disabled={partnersLoadingMore}
-                    className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-                  >
-                    {partnersLoadingMore ? 'Loading...' : 'Load More Partners'}
-                  </CustomButton>
-                </div>
-              )}
+              {/* Pagination for Partners */}
+              <Pagination
+                totalPages={totalPartnersPages}
+                currentPage={partnersPage}
+                onPageChange={setPartnersPage}
+                scrollToTop={false}
+              />
             </>
           ) : null}
         </section>

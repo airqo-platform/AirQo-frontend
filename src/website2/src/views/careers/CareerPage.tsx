@@ -7,7 +7,7 @@ import { FiArrowRight } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useDepartments, useInfiniteCareers } from '@/services/hooks/endpoints';
+import { useCareers, useDepartments } from '@/hooks/useApiHooks';
 
 const CareerPage: React.FC = () => {
   const router = useRouter();
@@ -17,17 +17,13 @@ const CareerPage: React.FC = () => {
     error: departmentsError,
   } = useDepartments();
 
-  const departments = departmentsPage?.results || [];
+  const departments = departmentsPage ?? [];
 
   const {
-    results: careers,
+    data: careers,
     error: careersError,
-    isLoadingInitialData: careersLoading,
-    isLoadingMore: careersLoadingMore,
-    isReachingEnd: careersReachingEnd,
-    size: careersSize,
-    setSize: setCareersSize,
-  } = useInfiniteCareers({ page_size: 10 });
+    isLoading: careersLoading,
+  } = useCareers();
 
   const [selectedDepartmentId, setSelectedDepartmentId] =
     useState<string>('all'); // Default to All
@@ -49,7 +45,7 @@ const CareerPage: React.FC = () => {
   };
 
   // Filter jobs based on the selected department ID and show only open positions
-  const filteredJobs = careers.filter((career: any) => {
+  const filteredJobs = (careers ?? []).filter((career: any) => {
     const isOpen = isJobOpen(career.closing_date);
     if (selectedDepartmentId === 'all') return isOpen;
     return isOpen && career.department?.id == selectedDepartmentId;
@@ -190,19 +186,6 @@ const CareerPage: React.FC = () => {
                   </div>
                 ),
               )
-            )}
-
-            {/* Load More Button */}
-            {!careersReachingEnd && (
-              <div className="flex justify-center mt-8">
-                <CustomButton
-                  onClick={() => setCareersSize(careersSize + 1)}
-                  disabled={careersLoadingMore}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-                >
-                  {careersLoadingMore ? 'Loading...' : 'Load More Careers'}
-                </CustomButton>
-              </div>
             )}
           </section>
         )}

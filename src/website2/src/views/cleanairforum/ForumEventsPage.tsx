@@ -8,21 +8,17 @@ import { FiCalendar, FiClock, FiMapPin } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
 import ForumListSkeleton from '@/components/ui/ForumListSkeleton';
-import { useInfiniteForumEvents } from '@/services/hooks/endpoints';
+import { useForumEvents } from '@/hooks/useApiHooks';
 import { ForumEvent } from '@/services/types/api';
 
 const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
   const router = useRouter();
 
   const {
-    results: forumEvents,
-    isLoadingInitialData,
-    isLoadingMore,
+    data: forumEvents,
+    isLoading: isLoadingInitialData,
     error,
-    isReachingEnd,
-    size,
-    setSize,
-  } = useInfiniteForumEvents({ page_size: 12 });
+  } = useForumEvents();
 
   const handleEventClick = (event: ForumEvent) => {
     router.push(`/clean-air-forum/${event.unique_title}`);
@@ -101,7 +97,7 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
       {/* Events Section */}
       <section className="py-16 bg-white">
         <div className="max-w-5xl mx-auto px-6 lg:px-8">
-          {forumEvents.length === 0 ? (
+          {(forumEvents ?? []).length === 0 ? (
             <div className="text-center py-20">
               <FiCalendar className="w-16 h-16 text-gray-300 mx-auto mb-6" />
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
@@ -116,7 +112,7 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
             <>
               {/* Events Grid - 2 columns as requested */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {forumEvents.map((event) => (
+                {(forumEvents ?? []).map((event: any) => (
                   <div
                     key={event.unique_title}
                     className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer group h-[400px] flex flex-col"
@@ -195,26 +191,6 @@ const ForumEventsPage: React.FC<{ skipHero?: boolean }> = ({ skipHero }) => {
                   </div>
                 ))}
               </div>
-
-              {/* Load More Button */}
-              {!isReachingEnd && (
-                <div className="text-center mt-12">
-                  <CustomButton
-                    onClick={() => setSize(size + 1)}
-                    disabled={isLoadingMore}
-                    className="px-8 py-3 bg-gray-800 text-white hover:bg-gray-900 disabled:opacity-50 disabled:cursor-not-allowed rounded-md font-medium transition-colors duration-300"
-                  >
-                    {isLoadingMore ? (
-                      <div className="flex items-center">
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                        Loading...
-                      </div>
-                    ) : (
-                      'Load More Events'
-                    )}
-                  </CustomButton>
-                </div>
-              )}
             </>
           )}
         </div>

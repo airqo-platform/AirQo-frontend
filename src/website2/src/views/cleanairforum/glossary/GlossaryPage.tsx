@@ -8,7 +8,7 @@ import Loading from '@/components/loading';
 import { Divider } from '@/components/ui';
 import { NoData } from '@/components/ui';
 import { useForumData } from '@/context/ForumDataContext';
-import { useForumEvents } from '@/services/hooks/endpoints';
+import { useForumEvents } from '@/hooks/useApiHooks';
 import { ForumEvent as ApiForumEvent } from '@/services/types/api';
 import { isValidGlossaryContent } from '@/utils/glossaryValidator';
 import { renderContent } from '@/utils/quillUtils';
@@ -19,7 +19,7 @@ const GlossaryPage = () => {
   const { selectedEvent } = useForumData();
 
   // Fetch event titles for the sidebar
-  const { data: eventTitlesData } = useForumEvents({ page_size: 100 });
+  const { data: eventTitlesData } = useForumEvents();
 
   // If either is not available, show a loading state.
   if (!selectedEvent) {
@@ -27,7 +27,7 @@ const GlossaryPage = () => {
   }
 
   // Extract the events list from eventTitles.
-  const eventsList: ApiForumEvent[] = eventTitlesData?.results || [];
+  const eventsList: ApiForumEvent[] = eventTitlesData ?? [];
 
   if (eventsList.length === 0) {
     return <NoData message="No events found" />;

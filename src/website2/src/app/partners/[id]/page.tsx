@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
 
-import { usePartnerDetail } from '@/services/hooks/endpoints';
+import { usePartnerDetails } from '@/hooks/useApiHooks';
 
 const PartnerDetailsPage: React.FC = () => {
   const router = useRouter();
@@ -12,7 +12,7 @@ const PartnerDetailsPage: React.FC = () => {
   const { id } = params as { id: string };
 
   // fetch partner detail by public_identifier
-  const { data: partner, isLoading, error } = usePartnerDetail(id);
+  const { data: partner, isLoading, error } = usePartnerDetails(id);
 
   // Skeleton loader component
   const SkeletonLoader = () => (

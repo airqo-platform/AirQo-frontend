@@ -2,94 +2,39 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HiArrowSmallLeft, HiArrowSmallRight } from 'react-icons/hi2';
 
 import mainConfig from '@/configs/mainConfigs';
-import { useHighlights } from '@/services/hooks/endpoints';
+import { useHighlights } from '@/hooks/useApiHooks';
 
 const FeaturedCarousel = () => {
-  const [page, setPage] = useState(1);
-  const pageSize = 6; // fixed page size for highlights
   const [currentIndex, setCurrentIndex] = useState(0);
-  // when we change pages via the arrows we may want to land on a specific index
-  // e.g. when going to previous page land on the last item of the loaded page.
-  const [pendingIndex, setPendingIndex] = useState<number | null>(null);
-  const lastAppliedPageRef = useRef<number | null>(null);
 
-  const { data: highlightsResponse, isLoading } = useHighlights({
-    page,
-    page_size: pageSize,
-  });
-
-  const highlights = highlightsResponse?.results || [];
-  const totalPages = highlightsResponse?.total_pages ?? 1;
-
-  useEffect(() => {
-    // Only act when the response corresponds to the currently requested page
-    if (highlightsResponse?.current_page !== page) return;
-
-    const pageChanged = lastAppliedPageRef.current !== page;
-
-    if (pendingIndex !== null && pageChanged) {
-      const target =
-        pendingIndex === -1
-          ? Math.max(0, highlights.length - 1)
-          : Math.min(
-              Math.max(0, pendingIndex),
-              Math.max(0, highlights.length - 1),
-            );
-      setCurrentIndex(target);
-      setPendingIndex(null);
-      lastAppliedPageRef.current = page;
-      return;
-    }
-
-    if (pageChanged) {
-      setCurrentIndex(0);
-      lastAppliedPageRef.current = page;
-    }
-  }, [page, highlightsResponse?.current_page, highlights.length, pendingIndex]);
+  const { data: highlights, isLoading } = useHighlights();
 
   // Clamp index when highlights length changes without resetting user position
   useEffect(() => {
-    setCurrentIndex((i) => Math.min(i, Math.max(0, highlights.length - 1)));
-  }, [highlights.length]);
+    if (highlights) {
+      setCurrentIndex((i) => Math.min(i, Math.max(0, highlights.length - 1)));
+    }
+  }, [highlights]);
 
   const nextSlide = () => {
-    if (isLoading) return;
-    // advance within current page
+    if (isLoading || !highlights) return;
     if (currentIndex < highlights.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      return;
-    }
-
-    // we're at the end of the items on this page
-    if (page < totalPages) {
-      // load next page; when it arrives default effect will set currentIndex to 0
-      setPage((p) => p + 1);
+      setCurrentIndex(currentIndex + 1);
     } else {
-      // wrap to first item on same page
-      setCurrentIndex(0);
+      setCurrentIndex(0); // Loop back to start
     }
   };
 
   const prevSlide = () => {
-    if (isLoading) return;
-    // move back within current page
+    if (isLoading || !highlights) return;
     if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1);
-      return;
-    }
-
-    // at first item of current page
-    if (page > 1) {
-      // request previous page and then land on its last item (-1 sentinel)
-      setPendingIndex(-1);
-      setPage((p) => p - 1);
+      setCurrentIndex(currentIndex - 1);
     } else {
-      // already on first page and first item -> wrap to last item of current page
-      setCurrentIndex(highlights.length > 0 ? highlights.length - 1 : 0);
+      setCurrentIndex(highlights.length > 0 ? highlights.length - 1 : 0); // Loop to end
     }
   };
 

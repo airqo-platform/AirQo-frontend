@@ -190,16 +190,15 @@ export interface CleanAirResource {
 }
 
 export interface ImpactNumber {
-  id: string;
-  metric: string;
-  value: number;
-  unit: string;
-  description: string;
-  icon?: string;
-  order?: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  id: number;
+  african_cities: number;
+  champions: number;
+  deployed_monitors: number;
+  data_records: number;
+  research_papers: number;
+  partners: number;
+  created: string;
+  modified: string;
 }
 
 export interface ForumEvent {

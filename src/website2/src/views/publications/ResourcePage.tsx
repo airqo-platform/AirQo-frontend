@@ -6,7 +6,7 @@ import { FiDownload } from 'react-icons/fi';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { usePublications } from '@/services/hooks/endpoints';
+import { usePublications } from '@/hooks/useApiHooks';
 
 const ResourcePage: React.FC = () => {
   const router = useRouter();
@@ -39,24 +39,134 @@ const ResourcePage: React.FC = () => {
   // Pagination logic
   const itemsPerPage = 4;
 
-  // Build category param
-  const categoryParam = Array.isArray(selectedTab)
-    ? selectedTab.join(',')
-    : (selectedTab as string);
+  // Check if this is a combined category (guide + manual)
+  const isCombinedCategory =
+    Array.isArray(selectedTab) &&
+    selectedTab.includes('guide') &&
+    selectedTab.includes('manual');
 
-  // Fetch paginated publications from the v2 endpoint
-  const {
-    data: publicationsPage,
-    error,
-    isLoading,
-  } = usePublications({
-    page: currentPage,
-    page_size: itemsPerPage,
-    category: categoryParam,
-  } as any);
+  // For combined categories, fetch guide and manual separately with page_size: 4
+  // We need to fetch all pages for client-side pagination
+  const guidePage1 = usePublications(
+    isCombinedCategory
+      ? { category: 'guide', page_size: 4, page: 1 }
+      : undefined,
+  );
+  const guidePage2 = usePublications(
+    isCombinedCategory
+      ? { category: 'guide', page_size: 4, page: 2 }
+      : undefined,
+  );
+  const guidePage3 = usePublications(
+    isCombinedCategory
+      ? { category: 'guide', page_size: 4, page: 3 }
+      : undefined,
+  );
 
-  const results = publicationsPage?.results ?? [];
-  const totalPages = publicationsPage?.total_pages ?? 1;
+  const manualPage1 = usePublications(
+    isCombinedCategory
+      ? { category: 'manual', page_size: 4, page: 1 }
+      : undefined,
+  );
+  const manualPage2 = usePublications(
+    isCombinedCategory
+      ? { category: 'manual', page_size: 4, page: 2 }
+      : undefined,
+  );
+  const manualPage3 = usePublications(
+    isCombinedCategory
+      ? { category: 'manual', page_size: 4, page: 3 }
+      : undefined,
+  );
+
+  // For single categories, use traditional pagination with page_size: 4
+  const singleCategoryData = usePublications(
+    !isCombinedCategory
+      ? {
+          page: currentPage,
+          page_size: 4,
+          category: selectedTab as string,
+        }
+      : undefined,
+  );
+
+  // Process data based on category type
+  const { results, totalPages, error, isLoading } = useMemo(() => {
+    if (isCombinedCategory) {
+      // Combine guide and manual data from all pages
+      const guideResults = [
+        ...(guidePage1.data?.results || []),
+        ...(guidePage2.data?.results || []),
+        ...(guidePage3.data?.results || []),
+      ];
+      const manualResults = [
+        ...(manualPage1.data?.results || []),
+        ...(manualPage2.data?.results || []),
+        ...(manualPage3.data?.results || []),
+      ];
+      const combinedResults = [...guideResults, ...manualResults];
+
+      // Client-side pagination for combined results
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const paginatedResults = combinedResults.slice(startIndex, endIndex);
+      const calculatedTotalPages = Math.ceil(
+        combinedResults.length / itemsPerPage,
+      );
+
+      return {
+        results: paginatedResults,
+        totalPages: calculatedTotalPages,
+        error:
+          guidePage1.error ||
+          guidePage2.error ||
+          guidePage3.error ||
+          manualPage1.error ||
+          manualPage2.error ||
+          manualPage3.error,
+        isLoading:
+          guidePage1.isLoading ||
+          guidePage2.isLoading ||
+          guidePage3.isLoading ||
+          manualPage1.isLoading ||
+          manualPage2.isLoading ||
+          manualPage3.isLoading,
+      };
+    } else {
+      // Single category with server-side pagination
+      return {
+        results: singleCategoryData.data?.results || [],
+        totalPages: singleCategoryData.data?.total_pages || 1,
+        error: singleCategoryData.error,
+        isLoading: singleCategoryData.isLoading,
+      };
+    }
+  }, [
+    isCombinedCategory,
+    guidePage1.data,
+    guidePage1.error,
+    guidePage1.isLoading,
+    guidePage2.data,
+    guidePage2.error,
+    guidePage2.isLoading,
+    guidePage3.data,
+    guidePage3.error,
+    guidePage3.isLoading,
+    manualPage1.data,
+    manualPage1.error,
+    manualPage1.isLoading,
+    manualPage2.data,
+    manualPage2.error,
+    manualPage2.isLoading,
+    manualPage3.data,
+    manualPage3.error,
+    manualPage3.isLoading,
+    singleCategoryData.data,
+    singleCategoryData.error,
+    singleCategoryData.isLoading,
+    currentPage,
+    itemsPerPage,
+  ]);
 
   // Handle tab click
   const handleTabClick = (tabValue: string | string[]) => {
