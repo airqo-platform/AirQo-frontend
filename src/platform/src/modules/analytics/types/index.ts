@@ -59,6 +59,7 @@ export interface QuickAccessLocationsProps {
   title?: string;
   subtitle?: string;
   showIcon?: boolean;
+  onShowIconsChange?: (showIcons: boolean) => void;
   selectedPollutant?: PollutantType;
   isLoading?: boolean;
   onCardClick?: (site: SiteData) => void;

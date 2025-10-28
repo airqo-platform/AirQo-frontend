@@ -92,7 +92,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           {/* Header */}
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0 pr-4">
-              <Tooltip content={displayName}>
+              <Tooltip content={displayName} className="bg-black">
                 <h5
                   ref={nameRef}
                   className="text-md  truncate max-w-[140px] mb-1"
@@ -101,7 +101,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
                   {displayName}
                 </h5>
               </Tooltip>
-              <Tooltip content={location}>
+              <Tooltip content={location} className="bg-black">
                 <p
                   ref={locationRef}
                   className="text-sm text-gray-500 truncate max-w-[180px]"
@@ -120,6 +120,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
                     ? `Air quality ${percentageDifference > 0 ? 'worsened' : 'improved'} by ${Math.abs(percentageDifference).toFixed(2)}% compared to last week.`
                     : 'Air quality trend compared to last week.'
                 }
+                className="bg-black"
               >
                 <div
                   className={cn(
@@ -142,7 +143,10 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
             <div className="flex-1">
               {/* Pollutant info above value */}
               <div className="flex items-center gap-2 mb-2">
-                <Tooltip content="Air quality pollutant measurement">
+                <Tooltip
+                  content="Air quality pollutant measurement"
+                  className="bg-black"
+                >
                   <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-100">
                     <AqWind01 className="h-3 w-3 text-gray-600" />
                   </div>
@@ -160,16 +164,19 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
             </div>
 
             {/* Air quality icon or status text when hidden */}
-            <div className="flex-shrink-0 ml-4 flex items-center justify-center">
+            <div className="flex-shrink-0 ml-4 flex items-center justify-center min-w-0">
               {showIcon ? (
-                <Tooltip content={`Air quality status: ${statusLabel}`}>
+                <Tooltip
+                  content={`Air quality status: ${statusLabel}`}
+                  className="bg-black"
+                >
                   <div style={{ color: statusColor }}>
                     <AirQualityIcon className="h-16 w-16" />
                   </div>
                 </Tooltip>
               ) : (
                 <div
-                  className="text-sm font-medium"
+                  className="text-sm font-medium text-center break-words max-w-[80px] leading-tight"
                   style={{ color: statusColor }}
                 >
                   {statusLabel}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HiChevronDown, HiCheck } from 'react-icons/hi';
-import { AqStar02 } from '@airqo/icons-react';
+import { AqStar02, AqSettings01 } from '@airqo/icons-react';
 
 import { Button } from '@/shared/components/ui/button';
 import { DatePicker } from '@/shared/components/calendar';
@@ -43,17 +43,22 @@ const POLLUTANT_OPTIONS = Object.entries(POLLUTANT_LABELS).map(
 
 type FilterBarProps = Pick<QuickAccessLocationsProps, 'onManageFavorites'> & {
   className?: string;
+  showIcons?: boolean;
+  onShowIconsChange?: (showIcons: boolean) => void;
 };
 
 export const FilterBar: React.FC<FilterBarProps> = ({
   onManageFavorites,
   className,
+  showIcons = true,
+  onShowIconsChange,
 }) => {
   const { filters, setFrequency, setDateRange, setPollutant } = useAnalytics();
   const { selectedSiteIds } = useAnalyticsPreferences();
 
   const [frequencyOpen, setFrequencyOpen] = useState(false);
   const [pollutantOpen, setPollutantOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [downloadDialogOpen, setDownloadDialogOpen] = useState(false);
   const [selectedDataType, setSelectedDataType] = useState<
     'calibrated' | 'raw'
@@ -180,6 +185,25 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   )}
                 </DropdownMenuItem>
               ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        <div>
+          <DropdownMenu open={settingsOpen} onOpenChange={setSettingsOpen}>
+            <DropdownMenuTrigger asChild>
+              <button className="w-auto dark:bg-[#1d1f20] justify-center flex items-center rounded-md border border-gray-300 dark:border-gray-700 text-left font-normal text-sm px-3 py-2 bg-white">
+                <AqSettings01 className="h-5 w-5" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-[180px]">
+              <DropdownMenuItem
+                onClick={() => onShowIconsChange?.(!showIcons)}
+                className="cursor-pointer flex items-center justify-between"
+              >
+                <span>Show Emojis</span>
+                {showIcons && <HiCheck className="h-4 w-4 text-primary" />}
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

@@ -2,6 +2,8 @@
 
 import React from 'react';
 import log from 'loglevel';
+import OopsIcon from './ui/OopsIcon';
+import { Button } from './ui/button';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -82,21 +84,21 @@ class ErrorBoundary extends React.Component<
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex items-center justify-center min-h-screen bg-muted">
-          <div className="text-center p-8 bg-background rounded-lg shadow-md">
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center p-8 bg-background rounded-lg">
+            <div className="mb-6 flex justify-center">
+              <OopsIcon className="w-24 h-24" />
+            </div>
             <h1 className="text-2xl font-bold text-destructive mb-4">
               Something went wrong
             </h1>
-            <p className="text-muted-foreground mb-4">
+            <p className="text-muted-foreground mb-6">
               We&apos;re sorry, but an unexpected error occurred. Our team has
               been notified.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-            >
+            <Button onClick={() => window.location.reload()}>
               Reload Page
-            </button>
+            </Button>
           </div>
         </div>
       );
