@@ -12,7 +12,7 @@ export const isTokenExpired = (token: string): boolean => {
   try {
     const parts = token.split('.');
     if (parts.length !== 3) {
-      return false;
+      return true;
     }
     const payload = parts[1];
     const decoded = JSON.parse(

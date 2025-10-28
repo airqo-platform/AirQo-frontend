@@ -1,6 +1,6 @@
 'use client';
 
-import { SessionProvider, useSession } from 'next-auth/react';
+import { SessionProvider, useSession, getSession } from 'next-auth/react';
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
@@ -73,8 +73,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     try {
       await update();
 
-      // If session is still valid after update, it's likely a permissions issue
-      if (status === 'authenticated' && session) {
+      // Get fresh session data
+      const freshSession = await getSession();
+      if (freshSession && freshSession.user) {
         console.log(
           '401 received but session is valid - likely permissions issue'
         );
@@ -93,7 +94,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       console.error('Error handling unauthorized event:', error);
       logout();
     }
-  }, [logout, update, status, session]);
+  }, [logout, update]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -113,6 +114,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       }
     }
   }, [status, isAuthRoute, activeGroup, router]);
+
+  useEffect(() => {
+    if (status === 'authenticated') {
+      setHasLoggedOutForExpiration(false);
+    }
+  }, [status]);
 
   // Logout when status becomes unauthenticated on protected routes
   useEffect(() => {
