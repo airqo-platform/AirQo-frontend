@@ -4,7 +4,7 @@ import BaseApiService, { ServiceOptions } from '../base';
  * FAQ API Endpoints
  */
 const FAQ_ENDPOINTS = {
-  FAQ: '/website/api/v2/faq/',
+  FAQ: '/website/api/v2/faqs/',
 } as const;
 
 class FAQService extends BaseApiService {

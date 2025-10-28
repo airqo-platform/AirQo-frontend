@@ -211,7 +211,9 @@ const FAQPage: React.FC = () => {
   const { data, isLoading, error: isError } = useFAQs();
 
   // FAQs returned by API (only active ones)
-  const allFetched: FAQ[] = (data ?? []).filter((f: any) => f.is_active);
+  const allFetched: FAQ[] = (data?.results ?? []).filter(
+    (f: any) => f.is_active,
+  );
 
   // If the user has entered a search query, perform client-side filtering
   // against question and answer text (case-insensitive). Otherwise use all results.
