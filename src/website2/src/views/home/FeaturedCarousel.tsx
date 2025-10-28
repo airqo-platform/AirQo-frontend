@@ -10,31 +10,61 @@ import { useHighlights } from '@/hooks/useApiHooks';
 
 const FeaturedCarousel = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [allHighlights, setAllHighlights] = useState<any[]>([]);
+  const [hasMorePages, setHasMorePages] = useState(true);
 
-  const { data: highlights, isLoading } = useHighlights();
+  const { data: highlights, isLoading } = useHighlights({
+    page: currentPage,
+    page_size: 4,
+  });
 
-  // Clamp index when highlights length changes without resetting user position
+  // Accumulate highlights when new data loads
   useEffect(() => {
-    if (highlights) {
-      setCurrentIndex((i) => Math.min(i, Math.max(0, highlights.length - 1)));
+    if (highlights?.results && highlights.results.length > 0) {
+      setAllHighlights((prev) => {
+        // Avoid duplicates by checking if we already have these items
+        const existingIds = new Set(prev.map((item) => item.id));
+        const newItems = highlights.results.filter(
+          (item: any) => !existingIds.has(item.id),
+        );
+        return [...prev, ...newItems];
+      });
+
+      // Check if there are more pages
+      setHasMorePages(!!highlights.next);
     }
   }, [highlights]);
 
+  // Reset when highlights change significantly
+  useEffect(() => {
+    if (!isLoading && allHighlights.length === 0 && highlights?.results) {
+      setAllHighlights(highlights.results);
+      setHasMorePages(!!highlights.next);
+    }
+  }, [highlights, isLoading, allHighlights.length]);
+
   const nextSlide = () => {
-    if (isLoading || !highlights) return;
-    if (currentIndex < highlights.length - 1) {
+    if (isLoading) return;
+
+    if (currentIndex < allHighlights.length - 1) {
       setCurrentIndex(currentIndex + 1);
+    } else if (hasMorePages) {
+      // Load next page
+      setCurrentPage((prev) => prev + 1);
     } else {
-      setCurrentIndex(0); // Loop back to start
+      // Loop back to start when no more pages
+      setCurrentIndex(0);
     }
   };
 
   const prevSlide = () => {
-    if (isLoading || !highlights) return;
+    if (isLoading) return;
+
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     } else {
-      setCurrentIndex(highlights.length > 0 ? highlights.length - 1 : 0); // Loop to end
+      setCurrentIndex(allHighlights.length > 0 ? allHighlights.length - 1 : 0);
     }
   };
 
@@ -60,7 +90,7 @@ const FeaturedCarousel = () => {
     );
   }
 
-  if (!highlights || highlights.length === 0) return null;
+  if (!allHighlights || allHighlights.length === 0) return null;
 
   return (
     <section className="w-full bg-[#F0F4FA] py-16 md:py-24 overflow-hidden">
@@ -73,7 +103,7 @@ const FeaturedCarousel = () => {
             className="flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           >
-            {highlights.map((item: any) => (
+            {allHighlights.map((item: any) => (
               <div
                 key={item.id}
                 className="w-full flex-shrink-0 flex flex-col md:flex-row gap-8 md:gap-16"
@@ -124,7 +154,10 @@ const FeaturedCarousel = () => {
                 {String(currentIndex + 1).padStart(2, '0')}
               </span>
               <span className="text-gray-400">
-                / {String(highlights.length).padStart(2, '0')}
+                / {String(allHighlights.length).padStart(2, '0')}
+                {hasMorePages && (
+                  <span className="text-xs text-gray-500 ml-1">+</span>
+                )}
               </span>
             </div>
 
@@ -133,6 +166,7 @@ const FeaturedCarousel = () => {
                 onClick={prevSlide}
                 className="p-2 rounded-full border border-gray-200 hover:border-blue-600 hover:text-blue-600 transition-colors"
                 aria-label="Previous slide"
+                disabled={isLoading}
               >
                 <HiArrowSmallLeft className="w-5 h-5" />
               </button>
@@ -141,8 +175,12 @@ const FeaturedCarousel = () => {
                 onClick={nextSlide}
                 className="p-2 rounded-full border border-gray-200 hover:border-blue-600 hover:text-blue-600 transition-colors"
                 aria-label="Next slide"
+                disabled={isLoading}
               >
                 <HiArrowSmallRight className="w-5 h-5" />
+                {isLoading && currentIndex === allHighlights.length - 1 && (
+                  <span className="ml-1 text-xs">Loading...</span>
+                )}
               </button>
             </div>
           </div>
