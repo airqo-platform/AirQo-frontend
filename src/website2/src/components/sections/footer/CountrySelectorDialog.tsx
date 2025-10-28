@@ -212,9 +212,9 @@ const CountrySelectorDialog: React.FC = () => {
           <FiChevronDown size={16} className="text-gray-600" />
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col h-full w-full overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col rounded-md h-full w-full overflow-hidden">
         <DialogHeader className="border-b flex justify-center px-4 py-6 w-full h-[40px] border-gray-300">
-          <DialogTitle className="text-xl">Country AirQloud</DialogTitle>
+          <DialogTitle className="text-xl">Country Coverage</DialogTitle>
         </DialogHeader>
 
         <div className="flex-grow flex flex-col overflow-y-auto">
