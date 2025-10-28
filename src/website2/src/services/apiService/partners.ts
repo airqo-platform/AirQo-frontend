@@ -18,7 +18,7 @@ class PartnersService extends BaseApiService {
    */
   async getPartners(
     options: ServiceOptions = {},
-    params: { page?: number; page_size?: number } = {},
+    params: { page?: number; page_size?: number; featured?: boolean } = {},
   ): Promise<any> {
     const response = await this.get<any>(PARTNERS_ENDPOINTS.PARTNERS, params, {
       ...options,

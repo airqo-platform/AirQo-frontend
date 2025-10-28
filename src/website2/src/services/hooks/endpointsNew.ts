@@ -177,7 +177,11 @@ export const useExternalTeamMembers = (params?: {
   );
 
 // Partners
-export const usePartners = (params?: { page?: number; page_size?: number }) =>
+export const usePartners = (params?: {
+  page?: number;
+  page_size?: number;
+  featured?: boolean;
+}) =>
   useServiceData(
     () => partnersService.getPartners({}, params || {}),
     `partners-${JSON.stringify(params || {})}`,
