@@ -263,8 +263,15 @@ export abstract class BaseApiService {
     }
 
     // Determine if error should be retried
+    const method = (originalConfig.method || 'GET').toUpperCase();
+    const isIdempotent =
+      method === 'GET' ||
+      method === 'HEAD' ||
+      method === 'OPTIONS' ||
+      method === 'DELETE' ||
+      method === 'PUT';
     const shouldRetry =
-      enhancedError.retryable && (options.retryCount || 0) > 0;
+      enhancedError.retryable && isIdempotent && (options.retryCount || 0) > 0;
 
     if (shouldRetry) {
       // Implement exponential backoff
@@ -332,7 +339,9 @@ export abstract class BaseApiService {
     params: Record<string, any>,
     required: string[],
   ): void {
-    const missing = required.filter((key) => !params[key]);
+    const missing = required.filter(
+      (key) => params[key] === undefined || params[key] === null,
+    );
     if (missing.length > 0) {
       throw new Error(`Missing required parameters: ${missing.join(', ')}`);
     }

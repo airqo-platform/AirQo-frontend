@@ -28,8 +28,16 @@ class PressService extends BaseApiService {
       return response.data; // Return full paginated response
     }
 
-    // Return empty array on error to match legacy behavior
-    return [];
+    // Return empty paginated response structure
+    return {
+      results: [],
+      total_pages: 1,
+      count: 0,
+      next: null,
+      previous: null,
+      page_size: params.page_size || 10,
+      current_page: 1,
+    };
   }
 }
 

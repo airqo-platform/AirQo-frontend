@@ -58,13 +58,14 @@ async function handleRequest(
     const searchParams = url.searchParams;
 
     // Build the final URL with query parameters and token
-    let finalUrl = externalUrl;
-    if (searchParams.toString()) {
-      finalUrl += `?${searchParams.toString()}`;
+    const final = new URL(externalUrl);
+    // carry over incoming query params
+    searchParams.forEach((v, k) => final.searchParams.append(k, v));
+    // ensure exactly one token param
+    if (!final.searchParams.has('token')) {
+      final.searchParams.set('token', encodeURIComponent(API_TOKEN!));
     }
-    // Add token as query parameter (as originally implemented)
-    const separator = finalUrl.includes('?') ? '&' : '?';
-    finalUrl += `${separator}token=${API_TOKEN}`;
+    const finalUrl = final.toString();
 
     // Prepare headers for the external API request
     const headers = new Headers();

@@ -19,7 +19,12 @@ class EventsService extends BaseApiService {
    * Get all events with optional filtering
    */
   async getEvents(
-    params: { category?: string; page?: number; page_size?: number } = {},
+    params: {
+      category?: string;
+      page?: number;
+      page_size?: number;
+      event_status?: string;
+    } = {},
     options: ServiceOptions = {},
   ): Promise<any> {
     const response = await this.get<any>(EVENTS_ENDPOINTS.EVENTS, params, {

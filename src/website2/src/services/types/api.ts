@@ -86,6 +86,7 @@ export interface EventV2 extends Event {
   public_identifier?: string;
   api_url?: string;
   event_tag?: string;
+  tags?: string[];
   title_subtext?: string;
   start_time?: string; // e.g. '09:00:00'
   end_time?: string; // e.g. '17:00:00'

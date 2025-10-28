@@ -1,4 +1,5 @@
 import BaseApiService, { ServiceOptions } from '../base';
+import { BoardMember, PaginatedResponse } from '../types/api';
 
 /**
  * Board Members API Endpoints
@@ -18,8 +19,8 @@ class BoardMembersService extends BaseApiService {
   async getBoardMembers(
     options: ServiceOptions = {},
     params: { page?: number; page_size?: number } = {},
-  ): Promise<any> {
-    const response = await this.get<any>(
+  ): Promise<PaginatedResponse<BoardMember>> {
+    const response = await this.get<PaginatedResponse<BoardMember>>(
       BOARD_MEMBERS_ENDPOINTS.BOARD_MEMBERS,
       params,
       {

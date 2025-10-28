@@ -37,8 +37,8 @@ const EventPage: React.FC = () => {
   const featuredEvents = currentEvents.filter(
     (event: EventV2) =>
       selectedTab === 'upcoming' &&
-      (((event as any).event_tag || '').toLowerCase() === 'featured' ||
-        ((event as any).tags || []).some(
+      ((event.event_tag || '').toLowerCase() === 'featured' ||
+        (event.tags || []).some(
           (tag: string) => tag.toLowerCase() === 'featured',
         )),
   );
