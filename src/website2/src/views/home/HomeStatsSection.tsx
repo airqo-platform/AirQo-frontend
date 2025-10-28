@@ -47,7 +47,7 @@ const PartnerLogosSection: React.FC<{ partners: any[] }> = ({ partners }) => (
         {partners.map((partner, index) => (
           <div
             key={partner.id || index}
-            className="flex items-center justify-center h-[100px] p-4 border border-gray-300"
+            className="flex items-center justify-center h-[100px] p-4 border border-gray-300 relative overflow-hidden"
           >
             <Image
               src={
@@ -56,9 +56,9 @@ const PartnerLogosSection: React.FC<{ partners: any[] }> = ({ partners }) => (
               alt={
                 partner.partner_name || partner.name || `Partner ${index + 1}`
               }
-              width={120}
-              height={50}
-              className="mix-blend-multiply w-auto h-auto transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+              fill
+              className="object-contain mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
           </div>
         ))}
