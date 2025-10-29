@@ -1,8 +1,8 @@
 'use client';
-import DOMPurify from 'dompurify';
 import React from 'react';
 
 import Divider from '@/components/ui/Divider';
+import { sanitizeAndCleanHTML } from '@/utils/htmlValidator';
 import { renderContent } from '@/utils/quillUtils';
 
 export interface SectionData {
@@ -23,7 +23,7 @@ export interface SectionData {
  *   If the title is empty, only the content is displayed.
  */
 const SectionDisplay: React.FC<{ section: SectionData }> = ({ section }) => {
-  const contentHTML = DOMPurify.sanitize(renderContent(section.content));
+  const contentHTML = sanitizeAndCleanHTML(renderContent(section.content));
   // If title is empty, just show the content in full width.
   if (!section.title.trim()) {
     return (

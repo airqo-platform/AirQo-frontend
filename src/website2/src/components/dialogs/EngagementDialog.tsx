@@ -7,7 +7,7 @@ import { FiArrowLeft } from 'react-icons/fi';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch, useSelector } from '@/hooks';
-import { postContactUs } from '@/services/externalService';
+import { externalService } from '@/services/apiService';
 import { closeModal } from '@/store/slices/modalSlice';
 
 import { trackEvent } from '../GoogleAnalytics';
@@ -170,7 +170,7 @@ const EngagementDialog = () => {
       };
 
       try {
-        const res = await postContactUs(requestBody);
+        const res = await externalService.postContactUs(requestBody);
         if (res.success) {
           setSubmissionSuccess(true);
 
