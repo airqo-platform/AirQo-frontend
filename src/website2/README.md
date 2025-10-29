@@ -1,4 +1,4 @@
-# Website.
+# Website
 
 Welcome to the Website repository, part of the AirQo Frontend project. This website is built with [Next.js](https://nextjs.org) and was bootstrapped using [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app). The live website can be found at [airqo.net](https://airqo.net)
 
