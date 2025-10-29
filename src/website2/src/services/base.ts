@@ -169,43 +169,6 @@ export abstract class BaseApiService {
   }
 
   /**
-   * Transform successful API response
-   */
-  private transformResponse<T>(
-    data: any,
-    statusCode: number,
-    headers?: Record<string, string>,
-  ): ServiceResponse<T> {
-    // Handle different response formats
-    let responseData: T;
-    let success = true;
-    let message: string | undefined;
-
-    if (data && typeof data === 'object') {
-      // Standard API response format
-      if ('success' in data && 'data' in data) {
-        responseData = data.data;
-        success = data.success;
-        message = data.message;
-      }
-      // Direct data response
-      else {
-        responseData = data;
-      }
-    } else {
-      responseData = data;
-    }
-
-    return {
-      data: responseData,
-      success,
-      message,
-      statusCode,
-      headers,
-    };
-  }
-
-  /**
    * Enhanced error handling with context
    */
   private async handleError<T>(
@@ -241,25 +204,14 @@ export abstract class BaseApiService {
       errorMessage = `API Error: ${statusCode}`;
     }
 
-    // Log error for debugging only in non-production environments.
-    // Use non-error console methods so Next.js devtools doesn't capture these as runtime errors
-    // (which can produce noisy stack traces). Also avoid serializing very large response objects
-    // directly to prevent devtools flooding.
+    // Log error for debugging only in non-production environments
     if (process.env.NODE_ENV !== 'production') {
-      try {
-        const _safeResponse = enhancedError?.response?.data
-          ? JSON.parse(JSON.stringify(enhancedError.response.data))
-          : undefined;
-        void _safeResponse;
-
-        // TODO: use LoggerService for structured API error logging in the future
-        // API error: (serviceName, endpoint, statusCode, message)
-      } catch (_err) {
-        void _err;
-        // Fallback if response can't be serialized: use debug to avoid Next devtools interception
-        // TODO: use LoggerService for structured API error logging in the future
-        // API error fallback: (serviceName, message, endpoint, statusCode)
-      }
+      console.warn(`[${this.serviceName}] API Error:`, {
+        endpoint: originalConfig.url,
+        method: originalConfig.method,
+        statusCode,
+        message: errorMessage,
+      });
     }
 
     // Determine if error should be retried
@@ -330,21 +282,6 @@ export abstract class BaseApiService {
 
     const queryString = searchParams.toString();
     return queryString ? `${baseUrl}?${queryString}` : baseUrl;
-  }
-
-  /**
-   * Validate required parameters
-   */
-  protected validateParams(
-    params: Record<string, any>,
-    required: string[],
-  ): void {
-    const missing = required.filter(
-      (key) => params[key] === undefined || params[key] === null,
-    );
-    if (missing.length > 0) {
-      throw new Error(`Missing required parameters: ${missing.join(', ')}`);
-    }
   }
 
   /**

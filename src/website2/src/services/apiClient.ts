@@ -88,12 +88,33 @@ class ApiClient {
   }
 
   private buildUrl(endpoint: string, params?: Record<string, any>): string {
-    // Ensure endpoint starts with /
-    const normalizedEndpoint = endpoint.startsWith('/')
-      ? endpoint
-      : `/${endpoint}`;
+    // Build URL for the Next.js API proxy route
+    // The proxy expects: /api/v2/{actual-api-path}
+    // where actual-api-path is like "website/api/v2/publications/"
 
-    let url = `${this.baseURL}${normalizedEndpoint}`;
+    let url: string;
+
+    // If endpoint starts with /website/ or starts with website/, it's a full API path
+    if (endpoint.startsWith('/website/') || endpoint.startsWith('website/')) {
+      const cleanEndpoint = endpoint.startsWith('/')
+        ? endpoint.slice(1)
+        : endpoint;
+      url = `${this.baseURL}/${cleanEndpoint}`;
+    }
+    // If endpoint starts with /api/ or api/, it's also a full API path
+    else if (endpoint.startsWith('/api/') || endpoint.startsWith('api/')) {
+      const cleanEndpoint = endpoint.startsWith('/')
+        ? endpoint.slice(1)
+        : endpoint;
+      url = `${this.baseURL}/${cleanEndpoint}`;
+    }
+    // For other endpoints, treat as relative
+    else {
+      const normalizedEndpoint = endpoint.startsWith('/')
+        ? endpoint
+        : `/${endpoint}`;
+      url = `${this.baseURL}${normalizedEndpoint}`;
+    }
 
     if (params && Object.keys(params).length > 0) {
       const searchParams = new URLSearchParams();
@@ -113,11 +134,11 @@ class ApiClient {
 }
 
 // Create the API client instance
-const apiUrl = '/api/v2'; // Use internal API route
+const apiUrl = '/api/v2';
 
 const apiClient = new ApiClient({
   baseURL: apiUrl,
-  token: undefined, // Token is handled server-side
+  token: undefined,
   timeout: 30000,
 });
 
