@@ -43,11 +43,11 @@ const PartnerLogosSection: React.FC<{ partners: any[] }> = ({ partners }) => (
       <h3 className="text-lg font-semibold text-gray-500">
         AIRQO IS SUPPORTED BY
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="flex flex-wrap justify-center">
         {partners.map((partner, index) => (
           <div
             key={partner.id || index}
-            className="flex items-center justify-center h-[100px] p-4 border border-gray-300 relative overflow-hidden"
+            className="flex items-center justify-center h-[100px] p-4 border border-gray-300 relative overflow-hidden w-1/2 sm:w-1/3 lg:w-1/5"
           >
             <Image
               src={
@@ -57,7 +57,7 @@ const PartnerLogosSection: React.FC<{ partners: any[] }> = ({ partners }) => (
                 partner.partner_name || partner.name || `Partner ${index + 1}`
               }
               fill
-              className="object-contain mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+              className="object-contain p-3 mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
           </div>
