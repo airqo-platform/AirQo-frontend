@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
-import { postContactUs } from '@/services/externalService';
+import { externalService } from '@/services/apiService';
 
 const FormPage: React.FC = () => {
   const router = useRouter();
@@ -50,7 +50,7 @@ const FormPage: React.FC = () => {
     };
 
     try {
-      const response = await postContactUs(body);
+      const response = await externalService.postContactUs(body);
 
       if (response.success) {
         setSuccess(true);

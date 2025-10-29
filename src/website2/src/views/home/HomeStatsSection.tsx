@@ -6,15 +6,19 @@ import { useState } from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useImpactNumbers } from '@/services/hooks/endpoints';
+import { useImpactNumbers, usePartners } from '@/hooks/useApiHooks';
 
 import { Accordion } from './Accordion';
-import { accordionItems, partnerLogos, statItems } from './data';
+import { accordionItems, statItems } from './data';
 
 const HomeStatsSection: React.FC = () => {
   const { data: impactNumbersResponse } = useImpactNumbers();
-  // v2 endpoints return a paginated response: { results: [ ... ] }
-  const impactNumbers = impactNumbersResponse?.results?.[0] ?? null;
+  const { data: partnersResponse, isLoading: partnersLoading } = usePartners({
+    featured: true,
+  });
+  // API returns array of impact numbers, take the first one
+  const impactNumbers = impactNumbersResponse?.[0] ?? null;
+  const featuredPartners = partnersResponse?.results ?? [];
   const [activeTab, setActiveTab] = useState<'cities' | 'communities'>(
     'cities',
   );
@@ -22,7 +26,9 @@ const HomeStatsSection: React.FC = () => {
   return (
     <section className="py-8 px-4 w-full space-y-20 bg-[#ECF2FF]">
       <div className={`${mainConfig.containerClass} space-y-16`}>
-        <PartnerLogosSection />
+        {!partnersLoading && featuredPartners.length > 0 && (
+          <PartnerLogosSection partners={featuredPartners} />
+        )}
         <HeadingSection activeTab={activeTab} setActiveTab={setActiveTab} />
         <AccordionAndImageSection activeTab={activeTab} />
       </div>
@@ -31,24 +37,40 @@ const HomeStatsSection: React.FC = () => {
   );
 };
 
-const PartnerLogosSection: React.FC = () => (
+interface Partner {
+  id: string | number;
+  partner_logo_url?: string;
+  logo?: string;
+  partner_name?: string;
+  name?: string;
+}
+
+const PartnerLogosSection: React.FC<{ partners: Partner[] }> = ({
+  partners,
+}) => (
   <section className="max-w-6xl mx-auto py-12 px-4">
     <div className="text-center space-y-6">
       <h3 className="text-lg font-semibold text-gray-500">
         AIRQO IS SUPPORTED BY
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-        {partnerLogos.map((partner, index) => (
+      <div className="flex flex-wrap justify-center">
+        {partners.map((partner, index) => (
           <div
-            key={index}
-            className="flex items-center justify-center h-[100px] p-4 border border-gray-300"
+            key={partner.id || index}
+            className="flex items-center justify-center h-[100px] p-4 border border-gray-300 relative overflow-hidden w-1/2 sm:w-1/3 lg:w-1/5"
           >
             <Image
-              src={partner || '/placeholder.svg'}
-              alt={`Partner ${index + 1}`}
-              width={120}
-              height={50}
-              className="mix-blend-multiply w-auto h-auto transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+              src={
+                partner.partner_logo_url ||
+                partner.logo ||
+                '/assets/images/placeholder.webp'
+              }
+              alt={
+                partner.partner_name || partner.name || `Partner ${index + 1}`
+              }
+              fill
+              className="object-contain p-3 mix-blend-multiply transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             />
           </div>
         ))}

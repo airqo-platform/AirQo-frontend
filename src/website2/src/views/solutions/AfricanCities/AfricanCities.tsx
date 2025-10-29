@@ -2,18 +2,15 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 
 import mainConfig from '@/configs/mainConfigs';
-import { useInfiniteAfricanCountries } from '@/services/hooks/endpoints';
-import { useAfricanCountryDetail } from '@/services/hooks/endpoints';
+import {
+  useAfricanCountries,
+  useAfricanCountryDetail,
+} from '@/hooks/useApiHooks';
 import type { AfricanCountry, City } from '@/services/types/api';
 
 const AfricanCities: React.FC = () => {
-  // Use infinite loading to get all countries with pagination support
-  const {
-    results: africanCountries,
-    isLoadingInitialData,
-    isReachingEnd,
-    setSize,
-  } = useInfiniteAfricanCountries({ page_size: 1000 });
+  // Get all African countries
+  const { data: africanCountries } = useAfricanCountries();
 
   const [selectedCountry, setSelectedCountry] = useState<AfricanCountry | null>(
     null,
@@ -24,13 +21,6 @@ const AfricanCities: React.FC = () => {
   const { data: countryDetail } = useAfricanCountryDetail(
     selectedCountry?.id || null,
   );
-
-  // Load all countries on mount (if there are more pages)
-  useEffect(() => {
-    if (!isLoadingInitialData && !isReachingEnd) {
-      setSize((prevSize) => prevSize + 1);
-    }
-  }, [isLoadingInitialData, isReachingEnd, setSize]);
 
   // Set default country when data loads
   useEffect(() => {
@@ -61,12 +51,7 @@ const AfricanCities: React.FC = () => {
     setSelectedCity(city);
   };
 
-  if (
-    isLoadingInitialData ||
-    !africanCountries ||
-    africanCountries.length === 0
-  )
-    return null;
+  if (!africanCountries || africanCountries.length === 0) return null;
 
   return (
     <div className={`${mainConfig.containerClass} p-4 lg:p-0`}>

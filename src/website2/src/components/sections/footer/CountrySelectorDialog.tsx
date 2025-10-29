@@ -17,9 +17,8 @@ import {
   Pagination,
 } from '@/components/ui';
 import { useDispatch } from '@/hooks';
-import { getCountriesData } from '@/services/externalService';
+import { useCountriesData } from '@/hooks/useApiHooks';
 import { setSelectedCountry } from '@/store/slices/countrySlice';
-import logger from '@/utils/logger';
 
 interface AirqloudCountry {
   _id: string;
@@ -45,40 +44,8 @@ const CountrySelectorDialog: React.FC = () => {
     [airqloudData.length],
   );
 
-  // Fetch countries data using the new API endpoint
-  const fetchCountriesData = useCallback(async () => {
-    try {
-      const data = await getCountriesData();
-      const countries =
-        (data as any)?.countries ?? (data as any)?.data?.countries;
-      if (!Array.isArray(countries)) {
-        setAirqloudData([]);
-        return;
-      }
-
-      // Map the countries data to the expected format
-      type CountryApiRow = {
-        country?: string;
-        sites?: number;
-        flag_url?: string;
-      };
-      const mappedCountries: AirqloudCountry[] = (
-        countries as CountryApiRow[]
-      ).map((row, index: number) => ({
-        _id: row.country ?? `country_${index}`,
-        name: row.country ?? '',
-        long_name: row.country ?? '',
-        numberOfSites: row.sites ?? 0,
-        flag: row.flag_url,
-      }));
-
-      setAirqloudData(mappedCountries);
-    } catch (error) {
-      logger.error('Error fetching countries data:', error as Error, {
-        context: 'CountrySelectorDialog.fetchCountriesData',
-      });
-    }
-  }, []);
+  // Fetch countries data using SWR
+  const { data: countriesData } = useCountriesData();
 
   // Helper: Wrap the geolocation API in a promise
   const getCurrentPositionAsync = (
@@ -138,7 +105,10 @@ const CountrySelectorDialog: React.FC = () => {
           fetchUserCountry(latitude, longitude, controller.signal);
         }
       } catch (error) {
-        if ((error as any)?.name !== 'AbortError') {
+        if (
+          (error as any)?.name !== 'AbortError' &&
+          (error as any)?.code !== 3
+        ) {
           console.error('Error getting location:', error);
         }
         if (isMounted) {
@@ -153,14 +123,36 @@ const CountrySelectorDialog: React.FC = () => {
     };
   }, [fetchUserCountry]);
 
-  // Effect: Fetch countries data
+  // Process countries data when it loads
   useEffect(() => {
-    const controller = new AbortController();
-    fetchCountriesData();
-    return () => {
-      controller.abort();
-    };
-  }, [fetchCountriesData]);
+    if (countriesData) {
+      const countries =
+        (countriesData as any)?.countries ??
+        (countriesData as any)?.data?.countries;
+      if (!Array.isArray(countries)) {
+        setAirqloudData([]);
+        return;
+      }
+
+      // Map the countries data to the expected format
+      type CountryApiRow = {
+        country?: string;
+        sites?: number;
+        flag_url?: string;
+      };
+      const mappedCountries: AirqloudCountry[] = (
+        countries as CountryApiRow[]
+      ).map((row, index: number) => ({
+        _id: row.country ?? `country_${index}`,
+        name: row.country ?? '',
+        long_name: row.country ?? '',
+        numberOfSites: row.sites ?? 0,
+        flag: row.flag_url,
+      }));
+
+      setAirqloudData(mappedCountries);
+    }
+  }, [countriesData]);
 
   // Effect: Set the default selected country once data is loaded
   useEffect(() => {
@@ -220,9 +212,9 @@ const CountrySelectorDialog: React.FC = () => {
           <FiChevronDown size={16} className="text-gray-600" />
         </button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col h-full w-full overflow-hidden">
+      <DialogContent className="max-w-2xl max-h-[90vh] p-0 flex flex-col rounded-md h-full w-full overflow-hidden">
         <DialogHeader className="border-b flex justify-center px-4 py-6 w-full h-[40px] border-gray-300">
-          <DialogTitle className="text-xl">Country AirQloud</DialogTitle>
+          <DialogTitle className="text-xl">Country Coverage</DialogTitle>
         </DialogHeader>
 
         <div className="flex-grow flex flex-col overflow-y-auto">

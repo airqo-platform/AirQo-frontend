@@ -16,7 +16,6 @@ import {
   Divider,
 } from '@/components/ui';
 import { cn } from '@/lib/utils';
-import { useApiData } from '@/services/hooks/useApiData';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
 // Define types for member data
@@ -47,27 +46,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   btnText = 'Read Bio',
   cardClassName,
 }) => {
-  // When dialog opens, fetch detailed member data if a public_identifier or id is available
-  const identifier = member.public_identifier || member.id;
-
-  const { data: detailData } = useApiData<any>(
-    identifier
-      ? member.public_identifier
-        ? `team-members/${identifier}`
-        : `board-members/${identifier}`
-      : null,
-  );
-
-  const detailed = React.useMemo(() => {
-    if (!detailData) return member;
-    if (Array.isArray(detailData)) return detailData[0] || member;
-    if (
-      (detailData as any).results &&
-      Array.isArray((detailData as any).results)
-    )
-      return (detailData as any).results[0] || member;
-    return detailData;
-  }, [detailData, member]);
+  // Use the member data directly (no additional fetching needed)
 
   const renderContent = (content?: string) => {
     const raw = (content || '').trim();
@@ -92,12 +71,8 @@ const MemberCard: React.FC<MemberCardProps> = ({
           */}
           <div className="relative w-full h-[350px] rounded-xl overflow-hidden mt-[-20px]">
             <Image
-              src={
-                (detailed as any).picture_url ||
-                (detailed as any).picture ||
-                PlaceholderImage
-              }
-              alt={(detailed as any).name || ''}
+              src={member.picture_url || member.picture || PlaceholderImage}
+              alt={member.name || ''}
               fill
               sizes="(max-width: 640px) 100vw, 300px"
               className="object-cover transition-transform duration-300 ease-in-out hover:scale-105"
@@ -108,15 +83,15 @@ const MemberCard: React.FC<MemberCardProps> = ({
           <div className="w-full text-left">
             <h3
               className="text-lg font-semibold leading-tight truncate"
-              title={(detailed as any).name || ''}
+              title={member.name || ''}
             >
-              {(detailed as any).name}
+              {member.name}
             </h3>
             <p
               className="text-gray-600 text-sm leading-snug truncate"
-              title={(detailed as any).title || ''}
+              title={member.title || ''}
             >
-              {(detailed as any).title}
+              {member.title}
             </p>
           </div>
 
@@ -129,9 +104,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
 
           {/* Social Icons */}
           <div className="flex items-center space-x-3 self-start mt-1">
-            {(detailed as any).twitter && (
+            {member.twitter && (
               <a
-                href={(detailed as any).twitter}
+                href={member.twitter}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-600 transition"
@@ -139,9 +114,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
                 <FaTwitter size={20} />
               </a>
             )}
-            {(detailed as any).linked_in && (
+            {member.linked_in && (
               <a
-                href={(detailed as any).linked_in}
+                href={member.linked_in}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-600 transition"
@@ -195,12 +170,8 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {/* Dialog Image */}
             <div className="flex-shrink-0 w-full lg:w-[300px] h-[300px] lg:h-auto overflow-hidden rounded-lg">
               <Image
-                src={
-                  (detailed as any).picture_url ||
-                  (detailed as any).picture ||
-                  PlaceholderImage
-                }
-                alt={(detailed as any).name || ''}
+                src={member.picture_url || member.picture || PlaceholderImage}
+                alt={member.name || ''}
                 width={300}
                 height={300}
                 className="w-full h-full object-cover"
@@ -213,29 +184,27 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {/* Description with scroll if content is long */}
             <div className="flex-1 max-h-[50vh] md:max-h-[60vh] overflow-y-auto pr-2">
               <DialogDescription className="leading-relaxed">
-                {(detailed as any).descriptions?.length
-                  ? (detailed as any).descriptions.map(
-                      (desc: any, idx: number) => (
-                        <p key={idx} className="mb-2">
-                          {desc.description}
-                        </p>
-                      ),
-                    )
+                {member.descriptions?.length
+                  ? member.descriptions.map((desc: any, idx: number) => (
+                      <p key={idx} className="mb-2">
+                        {desc.description}
+                      </p>
+                    ))
                   : null}
 
-                {(detailed as any).bio && (
+                {member.bio && (
                   <div
                     className="mb-2"
                     dangerouslySetInnerHTML={{
-                      __html: renderContent((detailed as any).bio),
+                      __html: renderContent(member.bio),
                     }}
                   />
                 )}
 
                 {/* If no descriptions and no bio */}
-                {!(detailed as any).bio &&
-                  (!(detailed as any).descriptions ||
-                    (detailed as any).descriptions.length === 0) && (
+                {!member.bio &&
+                  (!member.descriptions ||
+                    member.descriptions.length === 0) && (
                     <p className="text-gray-500">Bio is not available.</p>
                   )}
               </DialogDescription>

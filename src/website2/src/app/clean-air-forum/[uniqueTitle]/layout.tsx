@@ -7,7 +7,7 @@ import MainLayout from '@/components/layouts/MainLayout';
 import { NoData } from '@/components/ui';
 import ForumDetailSkeleton from '@/components/ui/ForumDetailSkeleton';
 import { ForumDataProvider } from '@/context/ForumDataContext';
-import { useForumEventDetail } from '@/services/hooks/endpoints';
+import { useForumEventDetails } from '@/hooks/useApiHooks';
 import { ForumEventDetail } from '@/services/types/api';
 import logger from '@/utils/logger';
 
@@ -26,7 +26,7 @@ const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
     data: forumEventData,
     isLoading: detailsLoading,
     error: detailsError,
-  } = useForumEventDetail(uniqueTitle);
+  } = useForumEventDetails(uniqueTitle);
 
   // Normalize the response - handle paginated vs single object
   const selectedEvent = React.useMemo(() => {
