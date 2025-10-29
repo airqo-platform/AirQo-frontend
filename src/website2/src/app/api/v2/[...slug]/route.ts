@@ -14,6 +14,33 @@ if (!API_TOKEN) {
   throw new Error('API_TOKEN environment variable is required');
 }
 
+function sanitizeResponseData(data: any): any {
+  if (!data || typeof data !== 'object') return data;
+
+  const sanitized = { ...data };
+
+  // Remove token from pagination URLs
+  if (sanitized.next && typeof sanitized.next === 'string') {
+    sanitized.next = removeTokenFromUrl(sanitized.next);
+  }
+  if (sanitized.previous && typeof sanitized.previous === 'string') {
+    sanitized.previous = removeTokenFromUrl(sanitized.previous);
+  }
+
+  return sanitized;
+}
+
+function removeTokenFromUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    urlObj.searchParams.delete('token');
+    return urlObj.toString();
+  } catch {
+    // If not a valid URL, return as is
+    return url;
+  }
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string[] } },
@@ -97,8 +124,11 @@ async function handleRequest(
     // Get response data
     const responseData = await response.json().catch(() => null);
 
+    // Sanitize response data to remove token from pagination URLs
+    const sanitizedData = sanitizeResponseData(responseData);
+
     // Return the response with the same status and data
-    return NextResponse.json(responseData, {
+    return NextResponse.json(sanitizedData, {
       status: response.status,
       headers: {
         'Content-Type': 'application/json',
