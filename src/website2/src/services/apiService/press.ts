@@ -35,8 +35,8 @@ class PressService extends BaseApiService {
       count: 0,
       next: null,
       previous: null,
-      page_size: params.page_size || 10,
-      current_page: 1,
+      page_size: params.page_size ?? 10,
+      current_page: params.page ?? 1,
     };
   }
 }

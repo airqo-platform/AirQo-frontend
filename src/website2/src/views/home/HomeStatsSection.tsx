@@ -37,7 +37,17 @@ const HomeStatsSection: React.FC = () => {
   );
 };
 
-const PartnerLogosSection: React.FC<{ partners: any[] }> = ({ partners }) => (
+interface Partner {
+  id: string | number;
+  partner_logo_url?: string;
+  logo?: string;
+  partner_name?: string;
+  name?: string;
+}
+
+const PartnerLogosSection: React.FC<{ partners: Partner[] }> = ({
+  partners,
+}) => (
   <section className="max-w-6xl mx-auto py-12 px-4">
     <div className="text-center space-y-6">
       <h3 className="text-lg font-semibold text-gray-500">
@@ -51,7 +61,9 @@ const PartnerLogosSection: React.FC<{ partners: any[] }> = ({ partners }) => (
           >
             <Image
               src={
-                partner.partner_logo_url || partner.logo || '/placeholder.svg'
+                partner.partner_logo_url ||
+                partner.logo ||
+                '/assets/images/placeholder.webp'
               }
               alt={
                 partner.partner_name || partner.name || `Partner ${index + 1}`

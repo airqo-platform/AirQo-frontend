@@ -86,17 +86,23 @@ async function handleRequest(
 
     // Build the final URL with query parameters and token
     const final = new URL(externalUrl);
-    // carry over incoming query params
-    searchParams.forEach((v, k) => final.searchParams.append(k, v));
+    // carry over incoming query params, but strip token
+    searchParams.forEach((v, k) => {
+      if (k !== 'token') final.searchParams.append(k, v);
+    });
     // ensure exactly one token param
-    if (!final.searchParams.has('token')) {
-      final.searchParams.set('token', encodeURIComponent(API_TOKEN!));
-    }
+    final.searchParams.set('token', API_TOKEN!);
     const finalUrl = final.toString();
 
     // Prepare headers for the external API request
     const headers = new Headers();
-    headers.set('Content-Type', 'application/json');
+    // Forward incoming content-type if present, else default to JSON
+    const incomingContentType = request.headers.get('content-type');
+    if (incomingContentType) {
+      headers.set('Content-Type', incomingContentType);
+    } else {
+      headers.set('Content-Type', 'application/json');
+    }
     headers.set('Accept', 'application/json');
 
     // Get request body if it exists
@@ -104,9 +110,6 @@ async function handleRequest(
     if (method === 'POST' || method === 'PUT') {
       try {
         body = await request.text();
-        if (body) {
-          headers.set('Content-Type', 'application/json');
-        }
       } catch {
         // Body might not be JSON, ignore
       }
