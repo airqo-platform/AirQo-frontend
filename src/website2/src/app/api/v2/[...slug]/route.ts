@@ -10,10 +10,6 @@ if (!API_BASE_URL) {
   );
 }
 
-if (!API_TOKEN) {
-  throw new Error('API_TOKEN environment variable is required');
-}
-
 function sanitizeResponseData(data: any): any {
   if (!data || typeof data !== 'object') return data;
 
@@ -74,6 +70,10 @@ async function handleRequest(
   slug: string[],
   method: string,
 ) {
+  if (!API_TOKEN) {
+    throw new Error('API_TOKEN environment variable is required');
+  }
+
   try {
     // Build the external API URL
     const path = slug.join('/');
