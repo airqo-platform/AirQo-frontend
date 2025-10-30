@@ -51,7 +51,7 @@ const authRoutes = [
   '/user/login',
   '/user/creation/individual/register',
   '/user/creation/individual/verify-email',
-  '/user/creation/individual/interest',
+  '/user/creation/individual/interest', // covers /user/creation/individual/interest/[id]/[token]
   '/user/forgotPwd',
   '/user/forgotPwd/reset',
 ];
@@ -69,6 +69,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   // Listen for unauthorized events from API client
   const handleUnauthorized = useCallback(async () => {
+    // Don't handle unauthorized on auth routes (login, register, etc.)
+    if (isAuthRoute) return;
+
     // Check if session is expired before logging out
     try {
       await update();
@@ -94,7 +97,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       console.error('Error handling unauthorized event:', error);
       logout();
     }
-  }, [logout, update]);
+  }, [logout, update, isAuthRoute]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
