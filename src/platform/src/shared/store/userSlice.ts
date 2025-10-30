@@ -6,6 +6,7 @@ interface UserState {
   groups: NormalizedGroup[];
   activeGroup: NormalizedGroup | null;
   isLoading: boolean;
+  isLoggingOut: boolean;
   error: string | null;
 }
 
@@ -14,6 +15,7 @@ const initialState: UserState = {
   groups: [],
   activeGroup: null,
   isLoading: false,
+  isLoggingOut: false,
   error: null,
 };
 
@@ -64,11 +66,15 @@ const userSlice = createSlice({
       state.error = action.payload;
       state.isLoading = false;
     },
+    setLoggingOut: (state, action: PayloadAction<boolean>) => {
+      state.isLoggingOut = action.payload;
+    },
     clearUser: state => {
       state.user = null;
       state.groups = [];
       state.activeGroup = null;
       state.error = null;
+      state.isLoggingOut = false;
     },
   },
 });
@@ -80,6 +86,7 @@ export const {
   setActiveGroupById,
   setLoading,
   setError,
+  setLoggingOut,
   clearUser,
 } = userSlice.actions;
 

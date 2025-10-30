@@ -30,7 +30,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const sidebarCollapsed = useAppSelector(state => state.ui.sidebarCollapsed);
   const theme = useAppSelector(state => state.theme);
-  const { isLoading: userLoading } = useUser();
+  const { isLoading: userLoading, isLoggingOut } = useUser();
 
   return (
     <div
@@ -74,7 +74,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                   theme.contentLayout === 'compact' ? 'max-w-5xl' : 'max-w-7xl'
                 )}
               >
-                {userLoading ? (
+                {userLoading || isLoggingOut ? (
                   <div className="flex items-center justify-center min-h-[400px]">
                     <LoadingSpinner size={28} />
                   </div>

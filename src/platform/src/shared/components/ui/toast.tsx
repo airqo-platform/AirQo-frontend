@@ -69,7 +69,7 @@ const ToastBody: React.FC<ToastBodyProps> = ({
     <div className="flex items-stretch w-full py-1 pl-1">
       {/* Left colored stripe - with spacing from edge */}
       <div
-        className={`w-1 ${config.stripe} flex-shrink-0 rounded-full`}
+        className={`w-1.5 ${config.stripe} flex-shrink-0 rounded-full`}
         role="presentation"
       />
 
