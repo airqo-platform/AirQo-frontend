@@ -74,7 +74,7 @@ const userSlice = createSlice({
       state.groups = [];
       state.activeGroup = null;
       state.error = null;
-      state.isLoggingOut = false;
+      // Don't reset isLoggingOut here - it should be managed separately
     },
   },
 });

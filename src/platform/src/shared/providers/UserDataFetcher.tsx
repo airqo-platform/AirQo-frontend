@@ -13,7 +13,11 @@ import {
   clearUser,
 } from '@/shared/store/userSlice';
 import { normalizeUser, normalizeGroups } from '@/shared/utils/userUtils';
-import { selectActiveGroup, selectUser } from '@/shared/store/selectors';
+import {
+  selectActiveGroup,
+  selectUser,
+  selectLoggingOut,
+} from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import type { User } from '@/shared/types/api';
 
@@ -28,6 +32,7 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const activeGroup = useSelector(selectActiveGroup);
   const user = useSelector(selectUser);
   const logout = useLogout();
+  const isLoggingOut = useSelector(selectLoggingOut);
 
   // Memoize userId to prevent unnecessary re-calculations
   const userId = useMemo(() => {
@@ -63,13 +68,13 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
     const prevStatus = prevStatusRef.current;
     prevStatusRef.current = status;
 
-    // Only dispatch when status actually changes
+    // Only dispatch when status actually changes and we're not logging out
     if (status !== prevStatus) {
-      if (status === 'unauthenticated') {
+      if (status === 'unauthenticated' && !isLoggingOut) {
         dispatch(clearUser());
       }
     }
-  }, [status, dispatch]);
+  }, [status, dispatch, isLoggingOut]);
 
   // Handle loading state changes
   useEffect(() => {

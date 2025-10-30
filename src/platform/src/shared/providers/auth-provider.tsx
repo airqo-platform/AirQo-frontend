@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { UserDataFetcher } from './UserDataFetcher';
-import { selectActiveGroup } from '@/shared/store/selectors';
+import { selectActiveGroup, selectLoggingOut } from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
 
@@ -61,6 +61,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const activeGroup = useSelector(selectActiveGroup);
+  const isLoggingOut = useSelector(selectLoggingOut);
   const logout = useLogout();
   const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] =
     useState(false);
@@ -125,17 +126,19 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }, [status]);
 
   // Logout when status becomes unauthenticated on protected routes
+  // But skip if we're already logging out to prevent loops
   useEffect(() => {
     if (
       status === 'unauthenticated' &&
       !isAuthRoute &&
-      !hasLoggedOutForExpiration
+      !hasLoggedOutForExpiration &&
+      !isLoggingOut
     ) {
       console.log('Status unauthenticated on protected route, logging out');
       setHasLoggedOutForExpiration(true);
       logout();
     }
-  }, [status, isAuthRoute, logout, hasLoggedOutForExpiration]);
+  }, [status, isAuthRoute, logout, hasLoggedOutForExpiration, isLoggingOut]);
 
   // While session is being fetched, show a loading overlay
   if (status === 'loading') {

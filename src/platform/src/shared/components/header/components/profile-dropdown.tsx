@@ -19,7 +19,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   className,
 }) => {
   const { data: session } = useSession();
-  const { user } = useUser();
+  const { user, isLoggingOut } = useUser();
   const logout = useLogout();
 
   const handleSignOut = async () => {
@@ -75,8 +75,14 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
 
           <DropdownMenuSeparator />
 
-          <DropdownMenuItem onClick={handleSignOut}>
-            <span className="text-red-600">Log out</span>
+          <DropdownMenuItem
+            onClick={handleSignOut}
+            disabled={isLoggingOut}
+            className={isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}
+          >
+            <span className="text-red-600">
+              {isLoggingOut ? 'Logging out...' : 'Log out'}
+            </span>
           </DropdownMenuItem>
         </div>
       </DropdownMenuContent>

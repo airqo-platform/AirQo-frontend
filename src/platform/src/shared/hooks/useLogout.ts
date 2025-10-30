@@ -3,12 +3,20 @@ import { useDispatch } from 'react-redux';
 import { clearUser, setLoggingOut } from '@/shared/store/userSlice';
 import { persistor } from '@/shared/store';
 import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { selectLoggingOut } from '@/shared/store/selectors';
 
 export const useLogout = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const isLoggingOut = useSelector(selectLoggingOut);
 
   const logout = async () => {
+    // Prevent multiple logout calls
+    if (isLoggingOut) {
+      return;
+    }
+
     try {
       // Set logging out state to show loading
       dispatch(setLoggingOut(true));
@@ -31,15 +39,11 @@ export const useLogout = () => {
         sessionStorage.clear();
       }
 
-      // Redirect immediately to prevent empty state
-      router.push('/user/login');
+      // Clear persisted Redux data
+      await persistor.purge();
 
-      // Sign out from NextAuth in the background (don't await)
-      // This ensures the session is cleared on the server side
-      signOut({ callbackUrl: '/user/login' });
-
-      // Clear persisted Redux data in the background
-      persistor.purge();
+      // Sign out from NextAuth and redirect
+      await signOut({ callbackUrl: '/user/login' });
     } catch (error) {
       console.error('Logout error:', error);
       // Reset logging out state on error
