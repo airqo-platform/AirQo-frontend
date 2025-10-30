@@ -78,13 +78,13 @@ const ToastBody: React.FC<ToastBodyProps> = ({
         <div className="flex-1 min-w-0 pr-3">
           {title && (
             <div
-              className={`text-[15px] leading-tight mb-0.5 ${config.titleColor}`}
+              className={`text-[15px] leading-tight mb-0.5 font-medium ${config.titleColor}`}
             >
               {title}
             </div>
           )}
           {description && (
-            <div className="text-[13px] leading-relaxed text-muted-foreground">
+            <div className="text-[13px] leading-relaxed text-muted-foreground font-normal">
               {description}
             </div>
           )}
