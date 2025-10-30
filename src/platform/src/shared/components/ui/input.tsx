@@ -58,7 +58,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={`flex flex-col mb-4 ${containerClassName}`}>
         {label && (
-          <label className="flex items-center mb-2 text-sm font-medium text-foreground">
+          <label className="flex items-center mb-2 text-sm text-foreground">
             {label}
             {required &&
               (primaryColor ? (
