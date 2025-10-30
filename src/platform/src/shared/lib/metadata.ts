@@ -7,11 +7,11 @@ import {
 // Base metadata configuration
 const baseMetadata: Metadata = {
   title: {
-    default: 'AirQo Platform',
-    template: '%s | AirQo Platform',
+    default: 'AirQo Analytics',
+    template: '%s | AirQo Analytics',
   },
   description:
-    'AirQo Platform - Advanced air quality monitoring and analytics for Africa.',
+    'AirQo Analytics - Advanced air quality monitoring and analytics for Africa.',
   keywords: ['air quality', 'monitoring', 'Africa', 'analytics', 'environment'],
   authors: [{ name: 'AirQo Team' }],
   creator: 'AirQo',
@@ -30,21 +30,21 @@ const baseMetadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    siteName: 'AirQo Platform',
-    title: 'AirQo Platform',
+    siteName: 'AirQo Analytics',
+    title: 'AirQo Analytics',
     description: 'Advanced air quality monitoring and analytics for Africa.',
     images: [
       {
         url: '/images/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'AirQo Platform',
+        alt: 'AirQo Analytics',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'AirQo Platform',
+    title: 'AirQo Analytics',
     description: 'Advanced air quality monitoring and analytics for Africa.',
     images: ['/images/twitter-image.jpg'],
     creator: '@AirQoProject',
@@ -72,7 +72,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     description:
       'Welcome to your AirQo dashboard. Monitor air quality data and insights.',
     openGraph: {
-      title: 'Home | AirQo Platform',
+      title: 'Home | AirQo Analytics',
       description:
         'Welcome to your AirQo dashboard. Monitor air quality data and insights.',
     },
@@ -82,7 +82,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     description:
       'Interactive map showing real-time air quality data across monitoring locations.',
     openGraph: {
-      title: 'Air Quality Map | AirQo Platform',
+      title: 'Air Quality Map | AirQo Analytics',
       description:
         'Interactive map showing real-time air quality data across monitoring locations.',
     },
@@ -91,7 +91,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     title: 'User Profile',
     description: 'Manage your AirQo account settings and preferences.',
     openGraph: {
-      title: 'User Profile | AirQo Platform',
+      title: 'User Profile | AirQo Analytics',
       description: 'Manage your AirQo account settings and preferences.',
     },
   },
@@ -100,7 +100,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     description:
       'View and manage your favorite air quality monitoring locations.',
     openGraph: {
-      title: 'Favorite Locations | AirQo Platform',
+      title: 'Favorite Locations | AirQo Analytics',
       description:
         'View and manage your favorite air quality monitoring locations.',
     },
@@ -109,7 +109,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     title: 'Data Export',
     description: 'Export air quality data for analysis and reporting.',
     openGraph: {
-      title: 'Data Export | AirQo Platform',
+      title: 'Data Export | AirQo Analytics',
       description: 'Export air quality data for analysis and reporting.',
     },
   },
@@ -118,7 +118,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     description:
       'Comprehensive dashboard for organization air quality monitoring and management.',
     openGraph: {
-      title: 'Organization Dashboard | AirQo Platform',
+      title: 'Organization Dashboard | AirQo Analytics',
       description:
         'Comprehensive dashboard for organization air quality monitoring and management.',
     },
@@ -128,7 +128,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     description:
       'Export organization air quality data for analysis and reporting.',
     openGraph: {
-      title: 'Organization Data Export | AirQo Platform',
+      title: 'Organization Data Export | AirQo Analytics',
       description:
         'Export organization air quality data for analysis and reporting.',
     },
@@ -137,7 +137,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     title: 'Organization Favorites',
     description: 'Manage favorite locations for your organization.',
     openGraph: {
-      title: 'Organization Favorites | AirQo Platform',
+      title: 'Organization Favorites | AirQo Analytics',
       description: 'Manage favorite locations for your organization.',
     },
   },
@@ -145,7 +145,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     title: 'Organization Members',
     description: 'Manage organization members and their access permissions.',
     openGraph: {
-      title: 'Organization Members | AirQo Platform',
+      title: 'Organization Members | AirQo Analytics',
       description: 'Manage organization members and their access permissions.',
     },
   },
@@ -153,7 +153,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     title: 'Organization Profile',
     description: 'Manage your organization profile and settings.',
     openGraph: {
-      title: 'Organization Profile | AirQo Platform',
+      title: 'Organization Profile | AirQo Analytics',
       description: 'Manage your organization profile and settings.',
     },
   },
@@ -161,7 +161,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     title: 'Role Permissions',
     description: 'Configure roles and permissions for organization members.',
     openGraph: {
-      title: 'Role Permissions | AirQo Platform',
+      title: 'Role Permissions | AirQo Analytics',
       description: 'Configure roles and permissions for organization members.',
     },
   },
@@ -169,7 +169,7 @@ const pageMetadata: Record<string, Partial<Metadata>> = {
     title: 'Organization Settings',
     description: 'Configure organization-wide settings and preferences.',
     openGraph: {
-      title: 'Organization Settings | AirQo Platform',
+      title: 'Organization Settings | AirQo Analytics',
       description: 'Configure organization-wide settings and preferences.',
     },
   },
@@ -236,13 +236,13 @@ export function generateOrgMetadata(slug: string, subPath: string): Metadata {
     openGraph: {
       ...baseMetadata.openGraph,
       ...pageSpecificMetadata.openGraph,
-      title: `${capitalizedTitle} - ${slug} | AirQo Platform`,
+      title: `${capitalizedTitle} - ${slug} | AirQo Analytics`,
       description: `${pageSpecificMetadata.openGraph?.description || pageSpecificMetadata.description || 'Organization management and air quality monitoring.'} - ${slug}`,
     },
     twitter: {
       ...baseMetadata.twitter,
       ...pageSpecificMetadata.twitter,
-      title: `${capitalizedTitle} - ${slug} | AirQo Platform`,
+      title: `${capitalizedTitle} - ${slug} | AirQo Analytics`,
       description: `${pageSpecificMetadata.twitter?.description || pageSpecificMetadata.description || 'Organization management and air quality monitoring.'} - ${slug}`,
     },
   };
