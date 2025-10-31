@@ -4,7 +4,6 @@ import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
 import { Card, CardContent, CardHeader } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { SingleCalendar } from '@/shared/components/calendar';
 import { CollapsibleCard } from '@/modules/airqo-map/components/sidebar/collapsible-card';
 import { CurrentAirQualityCard } from '@/modules/airqo-map/components/sidebar/CurrentAirQualityCard';
 import { WeeklyForecastCard } from '@/modules/airqo-map/components/sidebar/WeeklyForecastCard';
@@ -16,7 +15,7 @@ import {
   AqVeryUnhealthy,
   AqHazardous,
 } from '@airqo/icons-react';
-import { AqChevronLeft, AqCalendar } from '@airqo/icons-react';
+import { AqXClose } from '@airqo/icons-react';
 import {
   getAirQualityLevel,
   getAirQualityColor,
@@ -94,18 +93,8 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   onBack,
   className,
 }) => {
-  const [showCalendar, setShowCalendar] = React.useState(false);
-  const [selectedDate, setSelectedDate] = React.useState(new Date());
-
   const pm25Value = locationData.pm25Value || 8.63;
   const airQualityInfo = getAirQualityIcon(pm25Value);
-
-  const handleDateSelect = (range: { from?: Date; to?: Date }) => {
-    if (range.from) {
-      setSelectedDate(range.from);
-      setShowCalendar(false);
-    }
-  };
 
   return (
     <Card
@@ -114,47 +103,23 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
         className
       )}
     >
-      {/* Header with back button and date */}
+      {/* Header with location name and close button */}
       <CardHeader className="p-4 pb-2 border-b">
         <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <h2 className="text-lg font-semibold text-foreground truncate">
+              {locationData.name}
+            </h2>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="p-1 h-8 w-8"
+            className="p-1 h-8 w-8 ml-2 flex-shrink-0"
           >
-            <AqChevronLeft className="h-4 w-4" />
+            <AqXClose className="h-4 w-4" />
           </Button>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>
-              {selectedDate.toLocaleDateString('en-US', {
-                weekday: 'short',
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-              })}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowCalendar(!showCalendar)}
-              className="p-1 h-6 w-6"
-            >
-              <AqCalendar className="h-3 w-3" />
-            </Button>
-          </div>
         </div>
-
-        {/* Calendar dropdown */}
-        {showCalendar && (
-          <div className="absolute top-16 right-4 z-50 bg-background border rounded-lg shadow-lg">
-            <SingleCalendar
-              onApply={handleDateSelect}
-              onCancel={() => setShowCalendar(false)}
-              initialRange={{ from: selectedDate, to: selectedDate }}
-            />
-          </div>
-        )}
       </CardHeader>
 
       {/* Main content */}

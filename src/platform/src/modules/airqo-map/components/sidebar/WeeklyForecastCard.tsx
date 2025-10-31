@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { Card, CardContent } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
+import { Button } from '@/shared/components/ui/button';
+import { SingleCalendar } from '@/shared/components/calendar';
 import {
   AqGood,
   AqModerate,
@@ -10,6 +11,7 @@ import {
   AqUnhealthy,
   AqVeryUnhealthy,
   AqHazardous,
+  AqCalendar,
 } from '@airqo/icons-react';
 import {
   getAirQualityLevel,
@@ -71,49 +73,119 @@ const generateWeeklyForecast = (): WeeklyForecast[] => {
 };
 
 export const WeeklyForecastCard: React.FC = () => {
+  const [showCalendar, setShowCalendar] = React.useState(false);
+  const [selectedDate, setSelectedDate] = React.useState(new Date());
+
   const weeklyForecast = React.useMemo(() => generateWeeklyForecast(), []);
+  const today = new Date().getDay();
+  // Convert Sunday (0) to 6, and shift Monday to 0
+  const todayIndex = today === 0 ? 6 : today - 1;
+
+  const handleDateSelect = (range: { from?: Date; to?: Date }) => {
+    if (range.from) {
+      setSelectedDate(range.from);
+      setShowCalendar(false);
+    }
+  };
 
   return (
-    <Card className="border">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-center mb-4">
+    <div className="w-full space-y-3">
+      {/* Date picker at top left */}
+      <div className="flex items-center justify-start">
+        <div className="relative">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCalendar(!showCalendar)}
+            className="p-2 h-8 w-8"
+          >
+            <AqCalendar className="h-4 w-4" />
+          </Button>
+
+          {/* Calendar dropdown */}
+          {showCalendar && (
+            <div className="absolute top-10 left-0 z-50 bg-background border rounded-lg shadow-lg">
+              <SingleCalendar
+                onApply={handleDateSelect}
+                onCancel={() => setShowCalendar(false)}
+                initialRange={{ from: selectedDate, to: selectedDate }}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Horizontally scrollable forecast */}
+      <div className="w-full overflow-x-auto overflow-y-hidden">
+        <div className="flex gap-2 sm:gap-3 min-w-max py-2">
           {weeklyForecast.map((forecast, index) => {
             const forecastAqInfo = getAirQualityIcon(forecast.pm25);
             const ForecastIcon = forecastAqInfo.icon;
-            const isToday =
-              index === new Date().getDay() - 1 ||
-              (new Date().getDay() === 0 && index === 6);
+            const isToday = index === todayIndex;
+
+            // Get background color based on air quality
+            const getBgColorClass = () => {
+              const level = getAirQualityLevel(forecast.pm25, 'pm2_5');
+              switch (level) {
+                case 'good':
+                  return 'bg-green-50';
+                case 'moderate':
+                  return 'bg-yellow-50';
+                case 'unhealthy-sensitive-groups':
+                  return 'bg-orange-50';
+                case 'unhealthy':
+                  return 'bg-red-50';
+                case 'very-unhealthy':
+                  return 'bg-purple-50';
+                case 'hazardous':
+                  return 'bg-pink-50';
+                default:
+                  return 'bg-gray-50';
+              }
+            };
 
             return (
               <div
                 key={index}
                 className={cn(
-                  'flex flex-col items-center gap-1',
-                  isToday && 'bg-primary/10 rounded-lg p-2'
+                  'flex flex-col items-center rounded-full py-2 px-1 min-w-[36px] sm:min-w-[40px] transition-all duration-200 flex-shrink-0',
+                  isToday
+                    ? 'bg-blue-600 shadow-lg scale-105'
+                    : `${getBgColorClass()} border border-gray-200`
                 )}
               >
-                <span className="text-xs font-medium text-muted-foreground">
-                  {forecast.day}
-                </span>
+                {/* Day letter */}
                 <span
                   className={cn(
-                    'text-sm font-semibold',
-                    isToday ? 'text-primary' : 'text-foreground'
+                    'text-xs font-medium mb-0.5',
+                    isToday ? 'text-white' : 'text-gray-600'
                   )}
                 >
-                  {forecast.date}
+                  {forecast.day}
                 </span>
-                <div className="w-6 h-6">
+
+                {/* Date number */}
+                <span
+                  className={cn(
+                    'text-sm font-semibold mb-1',
+                    isToday ? 'text-white' : 'text-gray-400'
+                  )}
+                >
+                  {String(forecast.date).padStart(2, '0')}
+                </span>
+
+                {/* Air quality icon */}
+                <div className="flex items-center justify-center">
                   <ForecastIcon
-                    className="w-full h-full"
-                    color={forecastAqInfo.color}
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    color={isToday ? '#ffffff' : forecastAqInfo.color}
                   />
                 </div>
               </div>
             );
           })}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
