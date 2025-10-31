@@ -41,7 +41,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {!isLoggingOut && (
         <div
           className={cn(
-            'flex flex-col h-screen gap-2 px-1.5 pt-1.5 overflow-hidden',
+            'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
             theme.interfaceStyle === 'bordered' && 'border border-border'
           )}
         >

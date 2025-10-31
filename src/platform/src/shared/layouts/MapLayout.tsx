@@ -15,14 +15,12 @@ import ThemeManager from '@/modules/themes/components/ThemeManager';
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  className?: string;
   showSidebar?: boolean;
   showBottomNav?: boolean;
 }
 
 export const MapLayout: React.FC<MainLayoutProps> = ({
   children,
-  className,
   showSidebar = true,
   showBottomNav = true,
 }) => {
@@ -37,7 +35,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
       {!isLoggingOut && (
         <div
           className={cn(
-            'flex flex-col h-screen gap-2 px-1.5 pt-1.5 overflow-hidden',
+            'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
             theme.interfaceStyle === 'bordered' && 'border border-border'
           )}
         >
@@ -52,7 +50,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
             {/* Sidebar - Desktop */}
             {showSidebar && (
               <motion.aside
-                className="hidden md:block shrink-0"
+                className="hidden md:block mr-2 shrink-0"
                 animate={{ width: 64 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
               >
@@ -60,27 +58,17 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
               </motion.aside>
             )}
 
-            {/* Scrollable Main Content Area */}
+            {/* Main Content Area - Full Height for Map */}
             <div className="flex flex-col flex-1 min-h-0">
-              <main
-                className={cn(
-                  'flex-1 overflow-y-auto overflow-x-hidden flex flex-col pb-16 md:pb-0',
-                  className
-                )}
-              >
-                {/* Content Container with proper padding */}
-                <div className="flex-grow">
-                  <div className="bg-green-300 px-4 py-6 mx-auto md:px-6 lg:px-8">
-                    {userLoading ? (
-                      <div className="flex items-center justify-center min-h-[400px]">
-                        <LoadingSpinner size={28} />
-                      </div>
-                    ) : (
-                      children
-                    )}
+              <div className="flex-1 flex flex-col">
+                {userLoading ? (
+                  <div className="flex items-center justify-center flex-1">
+                    <LoadingSpinner size={28} />
                   </div>
-                </div>
-              </main>
+                ) : (
+                  children
+                )}
+              </div>
             </div>
           </div>
 
