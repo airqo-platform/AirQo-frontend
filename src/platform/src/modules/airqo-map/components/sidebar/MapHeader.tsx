@@ -26,11 +26,9 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
   };
 
   return (
-    <div className="p-4 border-b border-gray-100">
+    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
       <div className="mb-4">
-        <h1 className="text-xl font-semibold text-gray-900 mb-1">
-          Air Quality Map
-        </h1>
+        <h1 className="text-xl font-semibold mb-1">Air Quality Map</h1>
         <p className="text-sm text-gray-600">
           Navigate air quality analytics with precision and actionable tips.
         </p>

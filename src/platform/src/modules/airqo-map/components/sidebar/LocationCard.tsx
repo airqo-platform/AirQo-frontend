@@ -23,7 +23,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
     <Card
       onClick={onClick}
       className={cn(
-        'cursor-pointer hover:bg-primary/10 hover:border-primary/20 transition-all duration-200 border border-primary/20 shadow-sm rounded-lg',
+        'cursor-pointer hover:bg-primary/10  dark:bg-gray-700 dark:hover:bg-primary/20 hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-200 border border-primary/20 dark:border-primary/30 shadow-sm rounded-lg',
         className
       )}
     >
@@ -57,7 +57,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
           </Tooltip>
         </div>
         <div className="flex-shrink-0 ml-3">
-          <div className="bg-slate-100 hover:bg-slate-200 rounded-full p-1.5 transition-colors duration-200">
+          <div className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full p-1.5 transition-colors duration-200">
             <AqMarkerPin02 className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors duration-200" />
           </div>
         </div>
@@ -76,7 +76,7 @@ export const LocationCardSkeleton: React.FC<LocationCardSkeletonProps> = ({
   return (
     <Card
       className={cn(
-        'border border-primary/20 shadow-sm rounded-lg animate-pulse',
+        'border border-primary/20  shadow-sm rounded-lg animate-pulse',
         className
       )}
     >
