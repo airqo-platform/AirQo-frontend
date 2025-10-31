@@ -82,9 +82,9 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   const hasNoResults = isSearching && filteredLocations.length === 0;
 
   return (
-    <div className={cn('flex-1 flex flex-col', className)}>
+    <div className={cn('flex-1 flex flex-col min-h-0', className)}>
       {/* Locations List */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {hasNoResults ? (
           // Empty state
           <div className="flex flex-col items-center justify-center h-full p-8 text-center">

@@ -73,18 +73,20 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   const AirQualityIcon = airQualityInfo.icon;
 
   return (
-    <Card className="border border-gray-200 shadow-sm">
+    <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
       <CardContent className="p-6">
         {/* Header with PM2.5 value and icon */}
         <div className="flex items-start justify-between mb-6">
           <div>
             <div className="flex items-center gap-2">
-              <div className="flex items-center justify-center flex-shrink-0 p-1 bg-gray-200 rounded-full">
+              <div className="flex items-center justify-center flex-shrink-0 p-1 bg-gray-200 dark:bg-gray-800 rounded-full">
                 <AqWind01 className="w-4 h-4 text-gray-400" />
               </div>
-              <span className="text-sm text-gray-500">PM2.5</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                PM2.5
+              </span>
             </div>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {pm25Value}µg/m³
             </div>
           </div>
@@ -94,20 +96,23 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
         {/* Location section */}
         <div className="space-y-4">
           <div className="pb-3">
-            <div className="border-b border-gray-200 pb-1">
-              <div className="text-xs text-gray-500">Location</div>
+            <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Location
+              </div>
             </div>
-            <div className="font-semibold text-base text-gray-900">
+            <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
               {locationData.name}
             </div>
           </div>
 
-          {/* Air Quality section */}
           <div className="pb-3">
-            <div className="border-b border-gray-200 pb-1">
-              <div className="text-xs text-gray-500">Air Quality</div>
+            <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Air Quality
+              </div>
             </div>
-            <div className="font-semibold text-base text-gray-900">
+            <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
               {airQualityInfo.level}
             </div>
           </div>
@@ -119,20 +124,24 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               {locationData.monitor && (
                 <>
                   <div className="pb-3">
-                    <div className="border-b border-gray-200 pb-1">
-                      <div className="text-xs text-gray-500">Site name</div>
+                    <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Site name
+                      </div>
                     </div>
-                    <div className="font-semibold text-base text-gray-900">
+                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       {locationData.name}
                     </div>
                   </div>
 
                   {/* Monitor section */}
                   <div className="pb-3">
-                    <div className="border-b border-gray-200 pb-1">
-                      <div className="text-xs text-gray-500">Monitor</div>
+                    <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        Monitor
+                      </div>
                     </div>
-                    <div className="font-semibold text-base text-gray-900">
+                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       {locationData.monitor}
                     </div>
                   </div>
@@ -141,19 +150,21 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
               {locationData.pollutionSource && locationData.pollutant && (
                 <div className="pb-3">
-                  <div className="border-b border-gray-200 pb-1">
+                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                     <div className="flex justify-between">
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         Pollution Source
                       </span>
-                      <span className="text-xs text-gray-500">Pollutant</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Pollutant
+                      </span>
                     </div>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900">
+                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       {locationData.pollutionSource}
                     </span>
-                    <span className="font-semibold text-base text-gray-900">
+                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       {locationData.pollutant}
                     </span>
                   </div>
@@ -162,19 +173,21 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
               {locationData.time && (
                 <div className="pb-3">
-                  <div className="border-b border-gray-200 pb-1">
+                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                     <div className="flex justify-between">
-                      <span className="text-xs text-gray-500">Date</span>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Date
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         Time • GMT(+3)
                       </span>
                     </div>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900">
+                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       Apr 12th, 2024
                     </span>
-                    <span className="font-semibold text-base text-gray-900">
+                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       1:28PM
                     </span>
                   </div>
@@ -183,17 +196,21 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 
               {locationData.city && locationData.country && (
                 <div className="pb-3">
-                  <div className="border-b border-gray-200 pb-1">
+                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                     <div className="flex justify-between">
-                      <span className="text-xs text-gray-500">City</span>
-                      <span className="text-xs text-gray-500">Country</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        City
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Country
+                      </span>
                     </div>
                   </div>
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900">
+                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       {locationData.city}
                     </span>
-                    <span className="font-semibold text-base text-gray-900">
+                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
                       {locationData.country}
                     </span>
                   </div>

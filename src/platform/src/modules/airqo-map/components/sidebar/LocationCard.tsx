@@ -23,7 +23,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
     <Card
       onClick={onClick}
       className={cn(
-        'cursor-pointer hover:bg-primary/10  dark:bg-gray-700 dark:hover:bg-primary/20 hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-200 border border-primary/20 dark:border-primary/30 shadow-sm rounded-lg',
+        'cursor-pointer hover:bg-primary/10  border border-gray-200 dark:border-gray-700 dark:hover:bg-primary/20 hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-200 shadow-sm rounded-lg',
         className
       )}
     >

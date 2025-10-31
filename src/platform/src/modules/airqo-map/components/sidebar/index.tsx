@@ -55,7 +55,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   return (
     <Card
       className={cn(
-        'flex flex-col h-full md:max-w-[340px] md:min-w-[340px] rounded-none md:rounded-lg',
+        'flex flex-col h-[calc(100vh-64px)] md:max-w-[340px] md:min-w-[340px] rounded-none md:rounded-lg overflow-hidden',
         className
       )}
     >
