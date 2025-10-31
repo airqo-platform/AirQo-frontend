@@ -3,7 +3,7 @@ import { MapSidebar, MapBox } from '@/modules/airqo-map';
 
 const Page = () => {
   return (
-    <div className="flex h-full gap-2">
+    <div className="flex h-full overflow-hidden shadow rounded">
       {/* Left Sidebar */}
       <div className="flex-shrink-0 h-full">
         <MapSidebar>
