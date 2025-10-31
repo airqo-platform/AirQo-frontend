@@ -30,8 +30,8 @@ export const CountryList: React.FC<CountryListProps> = ({
   className,
 }) => {
   return (
-    <div className={cn('p-4 border-b border-primary/10', className)}>
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+    <div className={cn('pt-3 pb-1 pl-4 border-b border-primary/10', className)}>
+      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-3">
         {countries.map(country => (
           <button
             key={country.code}
