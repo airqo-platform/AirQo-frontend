@@ -15,6 +15,7 @@ interface MapSidebarProps {
   onLocationSelect?: (locationId: string) => void;
   selectedCountry?: string;
   searchQuery?: string;
+  loading?: boolean;
 }
 
 export const MapSidebar: React.FC<MapSidebarProps> = ({
@@ -25,6 +26,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   onLocationSelect,
   selectedCountry = 'all',
   searchQuery = '',
+  loading = false,
 }) => {
   if (children) {
     // Backward compatibility - render children if provided
@@ -43,6 +45,8 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   }
 
   // New implementation with integrated components
+  const hasSearch = searchQuery.trim().length > 0;
+
   return (
     <Card
       className={cn(
@@ -50,14 +54,21 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
         className
       )}
     >
-      <MapHeader onSearch={onSearch} />
-      <CountryList
-        selectedCountry={selectedCountry}
-        onCountrySelect={onCountrySelect}
+      <MapHeader
+        onSearch={onSearch}
+        showSearchHeader={hasSearch}
+        searchQuery={searchQuery}
       />
+      {!hasSearch && (
+        <CountryList
+          selectedCountry={selectedCountry}
+          onCountrySelect={onCountrySelect}
+        />
+      )}
       <LocationsList
         onLocationSelect={onLocationSelect}
         searchQuery={searchQuery}
+        loading={loading}
       />
     </Card>
   );
@@ -67,4 +78,4 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
 export { MapHeader } from './MapHeader';
 export { CountryList } from './CountryList';
 export { LocationsList } from './LocationsList';
-export { LocationCard } from './LocationCard';
+export { LocationCard, LocationCardSkeleton } from './LocationCard';

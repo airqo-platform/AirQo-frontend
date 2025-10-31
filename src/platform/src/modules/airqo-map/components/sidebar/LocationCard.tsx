@@ -65,3 +65,32 @@ export const LocationCard: React.FC<LocationCardProps> = ({
     </Card>
   );
 };
+
+interface LocationCardSkeletonProps {
+  className?: string;
+}
+
+export const LocationCardSkeleton: React.FC<LocationCardSkeletonProps> = ({
+  className,
+}) => {
+  return (
+    <Card
+      className={cn(
+        'border border-primary/20 shadow-sm rounded-lg animate-pulse',
+        className
+      )}
+    >
+      <CardContent className="flex items-center justify-between p-4">
+        <div className="flex-1 min-w-0 max-w-[180px] sm:max-w-[200px] md:max-w-[220px]">
+          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+        </div>
+        <div className="flex-shrink-0 ml-3">
+          <div className="bg-gray-200 rounded-full p-1.5">
+            <div className="h-4 w-4 bg-gray-300 rounded"></div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};

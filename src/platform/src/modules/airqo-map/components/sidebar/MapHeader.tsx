@@ -6,22 +6,22 @@ import { SearchField } from '@/shared/components/ui/search-field';
 interface MapHeaderProps {
   onSearch?: (query: string) => void;
   searchPlaceholder?: string;
+  showSearchHeader?: boolean;
+  searchQuery?: string;
 }
 
 export const MapHeader: React.FC<MapHeaderProps> = ({
   onSearch,
   searchPlaceholder = 'Search villages, cities or country',
+  showSearchHeader = false,
+  searchQuery = '',
 }) => {
-  const [searchQuery, setSearchQuery] = React.useState('');
-
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
-    setSearchQuery(query);
     onSearch?.(query);
   };
 
   const handleClear = () => {
-    setSearchQuery('');
     onSearch?.('');
   };
 
@@ -42,6 +42,15 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
         onChange={handleSearchChange}
         onClear={handleClear}
       />
+
+      {/* Search Results Header */}
+      {showSearchHeader && (
+        <div className="pt-3">
+          <p className="text-sm m-0 text-muted-foreground">
+            Results for &ldquo;{searchQuery}&rdquo;
+          </p>
+        </div>
+      )}
     </div>
   );
 };

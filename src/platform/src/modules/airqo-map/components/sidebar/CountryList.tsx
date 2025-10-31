@@ -40,7 +40,7 @@ export const CountryList: React.FC<CountryListProps> = ({
               'flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0',
               selectedCountry === country.code
                 ? 'bg-primary text-primary-foreground ring-2 ring-primary/20 shadow-md'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                : 'bg-gray-100 text-muted-foreground hover:bg-gray-200'
             )}
           >
             <span className="text-base">{country.flag}</span>

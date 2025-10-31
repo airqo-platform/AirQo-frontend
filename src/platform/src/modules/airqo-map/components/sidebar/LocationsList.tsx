@@ -2,7 +2,8 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { LocationCard } from './LocationCard';
+import { LocationCard, LocationCardSkeleton } from './LocationCard';
+import { AqMarkerPin02 } from '@airqo/icons-react';
 
 interface Location {
   id: string;
@@ -15,6 +16,7 @@ interface LocationsListProps {
   onLocationSelect?: (locationId: string) => void;
   className?: string;
   searchQuery?: string;
+  loading?: boolean;
 }
 
 const defaultLocations: Location[] = [
@@ -60,6 +62,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   onLocationSelect,
   className,
   searchQuery = '',
+  loading = false,
 }) => {
   // Filter locations based on search query
   const filteredLocations = locations.filter(
@@ -68,31 +71,60 @@ export const LocationsList: React.FC<LocationsListProps> = ({
       location.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Show only first 6 locations initially
-  const displayedLocations = filteredLocations.slice(0, 6);
-  const hasMoreLocations = filteredLocations.length > 6;
+  // Determine if currently searching
+  const isSearching = searchQuery.trim().length > 0;
+
+  // Show only first 6 locations initially when not searching, show all when searching
+  const displayedLocations = isSearching
+    ? filteredLocations
+    : filteredLocations.slice(0, 6);
+  const hasMoreLocations = !isSearching && filteredLocations.length > 6;
+  const hasNoResults = isSearching && filteredLocations.length === 0;
 
   return (
-    <div className={cn('flex-1 p-4 flex flex-col', className)}>
+    <div className={cn('flex-1 flex flex-col', className)}>
       {/* Locations List */}
       <div className="flex-1 overflow-y-auto">
-        <div className="flex flex-col gap-3">
-          {displayedLocations.map(location => (
-            <LocationCard
-              key={location.id}
-              title={location.title}
-              location={location.location}
-              onClick={() => onLocationSelect?.(location.id)}
-            />
-          ))}
-        </div>
+        {hasNoResults ? (
+          // Empty state
+          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <AqMarkerPin02 className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-2">
+              No results
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Please try again with a different location name
+            </p>
+          </div>
+        ) : (
+          <div className="p-4">
+            <div className="flex flex-col gap-3">
+              {loading
+                ? // Show loading skeletons
+                  Array.from({ length: 6 }, (_, index) => (
+                    <LocationCardSkeleton key={`skeleton-${index}`} />
+                  ))
+                : // Show actual location cards
+                  displayedLocations.map(location => (
+                    <LocationCard
+                      key={location.id}
+                      title={location.title}
+                      location={location.location}
+                      onClick={() => onLocationSelect?.(location.id)}
+                    />
+                  ))}
+            </div>
 
-        {/* Show more button - only when there are more than 6 locations */}
-        {hasMoreLocations && (
-          <div className="p-4 text-center border-t border-primary/10">
-            <button className="text-primary hover:text-primary/80 text-sm font-medium transition-colors">
-              Show more
-            </button>
+            {/* Show more button - only when there are more than 6 locations and not searching and not loading */}
+            {hasMoreLocations && !loading && (
+              <div className="pt-4 text-center mt-4">
+                <button className="text-primary hover:text-primary/80 text-sm font-medium transition-colors">
+                  Show more
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
