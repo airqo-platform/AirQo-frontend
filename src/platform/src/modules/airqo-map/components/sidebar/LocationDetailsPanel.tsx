@@ -99,12 +99,12 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   return (
     <Card
       className={cn(
-        'flex flex-col h-full md:max-w-[340px] md:min-w-[340px] rounded-none md:rounded-lg overflow-hidden',
+        'flex flex-col h-full md:max-w-[340px] rounded-none md:rounded-lg overflow-y-auto',
         className
       )}
     >
       {/* Header with location name and close button */}
-      <CardHeader className="p-4 pb-2 border-b">
+      <CardHeader className="flex-shrink-0 p-4 pb-2 border-b">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <h2 className="text-lg font-semibold text-foreground truncate">
@@ -123,7 +123,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
       </CardHeader>
 
       {/* Main content */}
-      <CardContent className="flex-1 overflow-y-auto p-4 space-y-4">
+      <CardContent className="flex-1 p-4 space-y-4 min-h-0">
         {/* Weekly Forecast */}
         <WeeklyForecastCard />
 
