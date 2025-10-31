@@ -2,8 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { Button } from '@/shared/components/ui/button';
-import { SingleCalendar } from '@/shared/components/calendar';
+import { DatePicker, DateRange } from '@/shared/components/calendar';
 import {
   AqGood,
   AqModerate,
@@ -11,7 +10,6 @@ import {
   AqUnhealthy,
   AqVeryUnhealthy,
   AqHazardous,
-  AqCalendar,
 } from '@airqo/icons-react';
 import {
   getAirQualityLevel,
@@ -73,7 +71,6 @@ const generateWeeklyForecast = (): WeeklyForecast[] => {
 };
 
 export const WeeklyForecastCard: React.FC = () => {
-  const [showCalendar, setShowCalendar] = React.useState(false);
   const [selectedDate, setSelectedDate] = React.useState(new Date());
 
   const weeklyForecast = React.useMemo(() => generateWeeklyForecast(), []);
@@ -81,10 +78,29 @@ export const WeeklyForecastCard: React.FC = () => {
   // Convert Sunday (0) to 6, and shift Monday to 0
   const todayIndex = today === 0 ? 6 : today - 1;
 
-  const handleDateSelect = (range: { from?: Date; to?: Date }) => {
-    if (range.from) {
-      setSelectedDate(range.from);
-      setShowCalendar(false);
+  const handleDateChange = (
+    date: string | Date | DateRange | { from: string; to: string } | undefined
+  ) => {
+    if (date instanceof Date) {
+      setSelectedDate(date);
+    } else if (
+      date &&
+      typeof date === 'object' &&
+      'from' in date &&
+      typeof date.from === 'string'
+    ) {
+      // Handle string date ranges
+      const fromDate = new Date(date.from);
+      if (!isNaN(fromDate.getTime())) {
+        setSelectedDate(fromDate);
+      }
+    } else if (
+      date &&
+      typeof date === 'object' &&
+      'from' in date &&
+      date.from instanceof Date
+    ) {
+      setSelectedDate(date.from);
     }
   };
 
@@ -92,27 +108,14 @@ export const WeeklyForecastCard: React.FC = () => {
     <div className="w-full space-y-3">
       {/* Date picker at top left */}
       <div className="flex items-center justify-start">
-        <div className="relative">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowCalendar(!showCalendar)}
-            className="p-2 h-8 w-8"
-          >
-            <AqCalendar className="h-4 w-4" />
-          </Button>
-
-          {/* Calendar dropdown */}
-          {showCalendar && (
-            <div className="absolute top-10 left-0 z-50 bg-background border rounded-lg shadow-lg">
-              <SingleCalendar
-                onApply={handleDateSelect}
-                onCancel={() => setShowCalendar(false)}
-                initialRange={{ from: selectedDate, to: selectedDate }}
-              />
-            </div>
-          )}
-        </div>
+        <DatePicker
+          value={selectedDate}
+          onChange={handleDateChange}
+          mode="single"
+          placeholder="Select date"
+          className="w-auto min-w-0 shadow-sm"
+          align="start"
+        />
       </div>
 
       {/* Horizontally scrollable forecast */}
