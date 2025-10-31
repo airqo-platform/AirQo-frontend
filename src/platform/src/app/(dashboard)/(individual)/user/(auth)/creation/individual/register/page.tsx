@@ -55,7 +55,7 @@ export default function RegisterPage() {
 
       toast.success(
         'Registration successful!',
-        response.message || 'Welcome to AirQo platform'
+        response.message || 'Welcome to AirQo Analytics'
       );
 
       sessionStorage.setItem('registeredUserEmail', data.email);

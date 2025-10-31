@@ -18,6 +18,7 @@ import { useDataExportState } from './hooks/useDataExportState';
 import { useDataExportActions } from './hooks/useDataExportActions';
 import { useDataExportData } from './hooks/useDataExportData';
 import MoreInsights from '@/modules/location-insights/more-insights';
+import AddLocation from '@/modules/location-insights/add-location';
 
 const DataExportPage = () => {
   const pathname = usePathname();
@@ -270,7 +271,10 @@ const DataExportPage = () => {
       />
 
       {/* More Insights Dialog */}
-      <MoreInsights />
+      <MoreInsights activeTab={activeTab} />
+
+      {/* Add Location Dialog */}
+      <AddLocation />
     </div>
   );
 };

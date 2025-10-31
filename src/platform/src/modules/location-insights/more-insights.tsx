@@ -34,6 +34,7 @@ import {
   openAddLocation,
   removeSelectedSite,
 } from '@/shared/store/insightsSlice';
+import type { SelectedSite } from '@/shared/store/insightsSlice';
 import InsightsFilters from './insights-filters';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { InfoBanner } from '@/shared/components/ui/banner';
@@ -42,13 +43,15 @@ import { useGetChartData } from '@/shared/hooks/useAnalytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
 import { toast } from '@/shared/components/ui/toast';
 
-type MoreInsightsProps = Record<string, never>;
+type MoreInsightsProps = {
+  activeTab?: 'sites' | 'devices';
+};
 
 // Configuration constants for site management
 const MAX_VISIBLE_SITES = 8; // Maximum sites that can be displayed on chart simultaneously
 const INITIAL_VISIBLE_SITES = 5; // Number of sites to show initially when dialog opens
 
-export const MoreInsights: React.FC<MoreInsightsProps> = () => {
+export const MoreInsights: React.FC<MoreInsightsProps> = ({ activeTab }) => {
   const dispatch = useDispatch();
 
   // Get state from Redux
@@ -109,7 +112,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
     if (!searchQuery.trim()) return selectedSites;
     const query = searchQuery.toLowerCase();
     return selectedSites.filter(
-      site =>
+      (site: SelectedSite) =>
         site.name.toLowerCase().includes(query) ||
         (site.country && site.country.toLowerCase().includes(query)) ||
         (site.city && site.city.toLowerCase().includes(query)) ||
@@ -130,7 +133,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
     }
 
     const sitesToAdd = filteredSites
-      .filter(site => !visibleSites.has(site._id))
+      .filter((site: SelectedSite) => !visibleSites.has(site._id))
       .slice(0, availableSlots);
 
     if (sitesToAdd.length === 0) {
@@ -143,7 +146,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
 
     setVisibleSites(prev => {
       const newSet = new Set(prev);
-      sitesToAdd.forEach(site => newSet.add(site._id));
+      sitesToAdd.forEach((site: SelectedSite) => newSet.add(site._id));
       return newSet;
     });
 
@@ -233,7 +236,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
       );
       const initialVisibleSites = selectedSites
         .slice(0, initialVisibleCount)
-        .map(site => site._id);
+        .map((site: SelectedSite) => site._id);
       setVisibleSites(new Set(initialVisibleSites));
 
       // Show toast notification if there are more sites available
@@ -381,7 +384,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
           metaDataFields: ['latitude', 'longitude'],
           weatherFields: ['temperature', 'humidity'],
           startDateTime,
-          sites: selectedSites.map(site => site._id),
+          sites: selectedSites.map((site: SelectedSite) => site._id),
           device_category: 'lowcost' as const,
         };
 
@@ -464,7 +467,7 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
               : 'No locations selected.'}
           </div>
         ) : (
-          filteredSites.map(site => (
+          filteredSites.map((site: SelectedSite) => (
             <LocationCard
               key={site._id}
               locationName={site.name}
@@ -480,20 +483,22 @@ export const MoreInsights: React.FC<MoreInsightsProps> = () => {
         )}
 
         {/* Add Location Card */}
-        <Card
-          className={cn(
-            'cursor-pointer border-dashed bg-primary/10 border-primary hover:bg-primary/20 transition-colors',
-            'dark:bg-primary/5 dark:border-primary dark:hover:bg-primary/10'
-          )}
-          onClick={handleAddLocation}
-        >
-          <CardContent className="flex items-center justify-center p-4">
-            <div className="flex items-center gap-2 text-primary dark:text-primary">
-              <HiPlus className="h-4 w-4" />
-              <span className="font-medium text-sm">Add Location</span>
-            </div>
-          </CardContent>
-        </Card>
+        {activeTab !== 'devices' && (
+          <Card
+            className={cn(
+              'cursor-pointer border-dashed bg-primary/10 border-primary hover:bg-primary/20 transition-colors',
+              'dark:bg-primary/5 dark:border-primary dark:hover:bg-primary/10'
+            )}
+            onClick={handleAddLocation}
+          >
+            <CardContent className="flex items-center justify-center p-4">
+              <div className="flex items-center gap-2 text-primary dark:text-primary">
+                <HiPlus className="h-4 w-4" />
+                <span className="font-medium text-sm">Add Location</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

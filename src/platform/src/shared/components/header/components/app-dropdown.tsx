@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   AqDotsGrid,
   AqCalibration,
-  AqBarChartSquarePlus,
+  // AqBarChartSquarePlus,
   AqGlobe02Maps_Travel,
   AqBookOpen01,
   AqPhone01,
@@ -54,12 +54,12 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
       href: getUrl('https://airqalibrate.airqo.net/'),
       color: 'bg-blue-500',
     },
-    {
-      name: 'Analytics',
-      icon: AqBarChartSquarePlus,
-      href: getUrl('https://analytics.airqo.net/'),
-      color: 'bg-green-500',
-    },
+    // {
+    //   name: 'Analytics',
+    //   icon: AqBarChartSquarePlus,
+    //   href: getUrl('https://analytics.airqo.net/'),
+    //   color: 'bg-green-500',
+    // },
     {
       name: 'Website',
       icon: AqGlobe02Maps_Travel,

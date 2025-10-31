@@ -11,7 +11,13 @@ export default withAuth(
         // Allow public auth routes
         if (
           pathname === '/user/login' ||
-          pathname === '/user/register' ||
+          pathname === '/user/creation/individual/register' ||
+          pathname === '/user/creation/individual/verify-email' ||
+          pathname.match(
+            /^\/user\/creation\/individual\/interest\/[^\/]+\/[^\/]+$/
+          ) ||
+          pathname === '/user/forgotPwd' ||
+          pathname.match(/^\/user\/forgotPwd\/reset/) ||
           pathname.match(/^\/org\/[^\/]+\/login$/) ||
           pathname.match(/^\/org\/[^\/]+\/register$/)
         ) {
