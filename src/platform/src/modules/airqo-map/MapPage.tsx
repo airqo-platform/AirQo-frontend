@@ -1,22 +1,35 @@
+'use client';
+
 import React from 'react';
 import { MapSidebar, MapBox } from '@/modules/airqo-map';
 
 const MapPage = () => {
+  const [searchQuery, setSearchQuery] = React.useState('');
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleCountrySelect = (countryCode: string) => {
+    console.log('Country selected:', countryCode);
+  };
+
+  const handleLocationSelect = (locationId: string) => {
+    console.log('Location selected:', locationId);
+  };
+
   return (
     <>
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full overflow-hidden shadow rounded">
         {/* Left Sidebar */}
         <div className="flex-shrink-0 h-full">
-          <MapSidebar>
-            {/* Sidebar content will go here */}
-            <div className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Map Controls</h3>
-              <p className="text-sm text-muted-foreground">
-                Map controls and filters will be added here.
-              </p>
-            </div>
-          </MapSidebar>
+          <MapSidebar
+            onSearch={handleSearch}
+            onCountrySelect={handleCountrySelect}
+            onLocationSelect={handleLocationSelect}
+            searchQuery={searchQuery}
+          />
         </div>
 
         {/* Right Map Area */}
@@ -34,15 +47,13 @@ const MapPage = () => {
 
         {/* Sidebar Area - Bottom 2/3 */}
         <div className="flex-1 min-h-0 overflow-hidden">
-          <MapSidebar className="h-full rounded-none">
-            {/* Sidebar content will go here */}
-            <div className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Map Controls</h3>
-              <p className="text-sm text-muted-foreground">
-                Map controls and filters will be added here.
-              </p>
-            </div>
-          </MapSidebar>
+          <MapSidebar
+            className="h-full rounded-none"
+            onSearch={handleSearch}
+            onCountrySelect={handleCountrySelect}
+            onLocationSelect={handleLocationSelect}
+            searchQuery={searchQuery}
+          />
         </div>
       </div>
     </>
