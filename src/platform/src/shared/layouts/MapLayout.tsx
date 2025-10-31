@@ -6,7 +6,6 @@ import { cn } from '@/shared/lib/utils';
 import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
 import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
-import { SecondaryNavigation } from '@/shared/components/ui/secondary-navigation';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
@@ -41,9 +40,6 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
         >
           {/* Fixed Header */}
           <Header hideOnScroll={false} />
-
-          {/* Secondary Navigation - Mobile Only */}
-          <SecondaryNavigation className="z-30 md:hidden" />
 
           {/* Main Container with Sidebar and Content */}
           <div className="flex flex-1 overflow-hidden">

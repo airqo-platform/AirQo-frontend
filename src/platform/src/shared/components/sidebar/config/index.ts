@@ -176,6 +176,12 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       icon: AqStar06,
     },
     {
+      id: 'map',
+      label: 'Map',
+      href: '/user/map',
+      icon: AqGlobe05,
+    },
+    {
       id: 'bulk-export',
       label: 'Export',
       href: '/user/data-export',
