@@ -2,7 +2,7 @@ import {
   AqHomeSmile,
   AqUser03,
   AqStar06,
-  // AqGlobe05,
+  AqGlobe05,
   AqDownload01,
   // AqUsers01,
   // AqSettings01,
@@ -53,12 +53,12 @@ const userSidebarConfig: NavGroup[] = [
         href: '/user/data-export',
         icon: AqDownload01,
       },
-      // {
-      //   id: 'map',
-      //   label: 'Map',
-      //   href: '/user/map',
-      //   icon: AqGlobe05,
-      // },
+      {
+        id: 'map',
+        label: 'Map',
+        href: '/user/map',
+        icon: AqGlobe05,
+      },
     ],
   },
   {
