@@ -38,7 +38,7 @@ const TextInput = React.forwardRef<HTMLTextAreaElement, TextInputProps>(
         {label && (
           <label
             htmlFor={id}
-            className="mb-2 text-sm font-medium text-foreground flex items-center"
+            className="mb-2 text-sm text-foreground flex items-center"
           >
             {label}{' '}
             {required && <span className="ml-1 text-destructive">*</span>}

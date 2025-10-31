@@ -11,7 +11,8 @@ import type { NormalizedGroup } from '@/shared/utils/userUtils';
 export const useUserActions = () => {
   const dispatch = useDispatch();
   const { mutate } = useSWRConfig();
-  const { user, groups, activeGroup, isLoading, error } = useUser();
+  const { user, groups, activeGroup, isLoading, isLoggingOut, error } =
+    useUser();
   const logout = useLogout();
 
   const switchGroup = (group: NormalizedGroup) => {
@@ -59,6 +60,7 @@ export const useUserActions = () => {
     groups,
     activeGroup,
     isLoading,
+    isLoggingOut,
     error,
     // Actions
     switchGroup,

@@ -12,6 +12,7 @@ import {
   selectGroups,
   selectActiveGroup,
   selectUserLoading,
+  selectLoggingOut,
   selectUserError,
 } from '../store/selectors';
 
@@ -74,6 +75,7 @@ export const useUser = () => {
   const groups = useSelector(selectGroups);
   const activeGroup = useSelector(selectActiveGroup);
   const isLoading = useSelector(selectUserLoading);
+  const isLoggingOut = useSelector(selectLoggingOut);
   const error = useSelector(selectUserError);
 
   return {
@@ -81,6 +83,7 @@ export const useUser = () => {
     groups,
     activeGroup,
     isLoading,
+    isLoggingOut,
     error,
   };
 };

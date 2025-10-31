@@ -6,7 +6,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { UserDataFetcher } from './UserDataFetcher';
-import { selectActiveGroup } from '@/shared/store/selectors';
+import { selectActiveGroup, selectLoggingOut } from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
 
@@ -51,7 +51,7 @@ const authRoutes = [
   '/user/login',
   '/user/creation/individual/register',
   '/user/creation/individual/verify-email',
-  '/user/creation/individual/interest',
+  '/user/creation/individual/interest', // covers /user/creation/individual/interest/[id]/[token]
   '/user/forgotPwd',
   '/user/forgotPwd/reset',
 ];
@@ -61,6 +61,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const activeGroup = useSelector(selectActiveGroup);
+  const isLoggingOut = useSelector(selectLoggingOut);
   const logout = useLogout();
   const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] =
     useState(false);
@@ -69,6 +70,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   // Listen for unauthorized events from API client
   const handleUnauthorized = useCallback(async () => {
+    // Don't handle unauthorized on auth routes (login, register, etc.)
+    if (isAuthRoute) return;
+
     // Check if session is expired before logging out
     try {
       await update();
@@ -94,7 +98,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       console.error('Error handling unauthorized event:', error);
       logout();
     }
-  }, [logout, update]);
+  }, [logout, update, isAuthRoute]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -122,17 +126,19 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }, [status]);
 
   // Logout when status becomes unauthenticated on protected routes
+  // But skip if we're already logging out to prevent loops
   useEffect(() => {
     if (
       status === 'unauthenticated' &&
       !isAuthRoute &&
-      !hasLoggedOutForExpiration
+      !hasLoggedOutForExpiration &&
+      !isLoggingOut
     ) {
       console.log('Status unauthenticated on protected route, logging out');
       setHasLoggedOutForExpiration(true);
       logout();
     }
-  }, [status, isAuthRoute, logout, hasLoggedOutForExpiration]);
+  }, [status, isAuthRoute, logout, hasLoggedOutForExpiration, isLoggingOut]);
 
   // While session is being fetched, show a loading overlay
   if (status === 'loading') {

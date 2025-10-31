@@ -69,7 +69,7 @@ const ToastBody: React.FC<ToastBodyProps> = ({
     <div className="flex items-stretch w-full py-1 pl-1">
       {/* Left colored stripe - with spacing from edge */}
       <div
-        className={`w-1 ${config.stripe} flex-shrink-0 rounded-full`}
+        className={`w-1.5 ${config.stripe} flex-shrink-0 rounded-full`}
         role="presentation"
       />
 
@@ -78,13 +78,13 @@ const ToastBody: React.FC<ToastBodyProps> = ({
         <div className="flex-1 min-w-0 pr-3">
           {title && (
             <div
-              className={`text-[15px] leading-tight mb-0.5 ${config.titleColor}`}
+              className={`text-[15px] leading-tight mb-0.5 font-semibold ${config.titleColor}`}
             >
               {title}
             </div>
           )}
           {description && (
-            <div className="text-[13px] leading-relaxed text-muted-foreground">
+            <div className="text-[13px] leading-relaxed text-muted-foreground font-medium">
               {description}
             </div>
           )}

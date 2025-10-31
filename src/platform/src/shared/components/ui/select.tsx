@@ -271,7 +271,7 @@ const SelectField: React.FC<SelectFieldProps & Record<string, unknown>> = ({
       {label && (
         <label
           htmlFor={buttonId}
-          className="flex items-center mb-2 text-sm font-medium text-foreground"
+          className="flex items-center mb-2 text-sm text-foreground"
         >
           {label}
           {required && <span className="ml-1 text-destructive">*</span>}
