@@ -16,6 +16,7 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   group?: string;
   badge?: string | number;
+  disabled?: boolean;
 }
 
 export interface NavGroup {
@@ -58,6 +59,7 @@ const userSidebarConfig: NavGroup[] = [
         label: 'Map',
         href: '/user/map',
         icon: AqGlobe05,
+        disabled: true,
       },
     ],
   },
