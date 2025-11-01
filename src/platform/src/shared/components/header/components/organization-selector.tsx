@@ -150,15 +150,6 @@ export const OrganizationSelector: React.FC = () => {
                         <div className="font-medium text-sm text-foreground truncate uppercase">
                           {cleanDisplayText(group.title)}
                         </div>
-                        <span
-                          className={`px-1.5 py-0.5 rounded text-xs font-medium ml-2 flex-shrink-0 ${
-                            group.status === 'active'
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : 'bg-muted text-muted-foreground'
-                          }`}
-                        >
-                          {group.status === 'active' ? 'Active' : 'Inactive'}
-                        </span>
                       </div>
                     </div>
                   </div>

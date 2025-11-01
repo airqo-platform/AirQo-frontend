@@ -20,6 +20,7 @@ export interface NavItemProps {
     icon: React.ComponentType<{ className?: string }>;
     group?: string;
     badge?: string | number;
+    disabled?: boolean;
   };
   isCollapsed?: boolean;
   onClick?: () => void;

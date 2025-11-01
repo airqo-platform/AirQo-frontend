@@ -12,6 +12,7 @@ import { SecondaryNavigation } from '@/shared/components/ui/secondary-navigation
 import { Footer } from '@/shared/components/ui/footer';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { useUser } from '@/shared/hooks/useUser';
 import ThemeManager from '@/modules/themes/components/ThemeManager';
 
@@ -33,70 +34,79 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const { isLoading: userLoading, isLoggingOut } = useUser();
 
   return (
-    <div
-      className={cn(
-        'flex flex-col h-screen gap-2 px-1.5 pt-1.5 overflow-hidden',
-        theme.interfaceStyle === 'bordered' && 'border border-border'
-      )}
-    >
-      {/* Fixed Header */}
-      <Header hideOnScroll={false} />
+    <>
+      {/* Full-screen loading overlay during logout */}
+      <LoadingOverlay isVisible={isLoggingOut} />
 
-      {/* Secondary Navigation - Mobile Only */}
-      <SecondaryNavigation className="z-30 md:hidden" />
+      {!isLoggingOut && (
+        <div
+          className={cn(
+            'flex flex-col h-screen gap-2 px-1.5 pt-1.5 pb-0.5 overflow-hidden',
+            theme.interfaceStyle === 'bordered' && 'border border-border'
+          )}
+        >
+          {/* Fixed Header */}
+          <Header hideOnScroll={false} />
 
-      {/* Main Container with Sidebar and Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Desktop */}
-        {showSidebar && (
-          <motion.aside
-            className="hidden md:block shrink-0"
-            animate={{ width: sidebarCollapsed ? 64 : 256 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
-          >
-            <Sidebar />
-          </motion.aside>
-        )}
+          {/* Secondary Navigation - Mobile Only */}
+          <SecondaryNavigation className="z-30 md:hidden" />
 
-        {/* Scrollable Main Content Area */}
-        <div className="flex flex-col flex-1 min-h-0">
-          <main
-            className={cn(
-              'flex-1 overflow-y-auto overflow-x-hidden flex flex-col pb-16 md:pb-0',
-              className
+          {/* Main Container with Sidebar and Content */}
+          <div className="flex flex-1 overflow-hidden">
+            {/* Sidebar - Desktop */}
+            {showSidebar && (
+              <motion.aside
+                className="hidden md:block shrink-0"
+                animate={{ width: sidebarCollapsed ? 64 : 256 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+              >
+                <Sidebar />
+              </motion.aside>
             )}
-          >
-            {/* Content Container with proper padding */}
-            <div className="flex-grow">
-              <div
+
+            {/* Scrollable Main Content Area */}
+            <div className="flex flex-col flex-1 min-h-0">
+              <main
                 className={cn(
-                  'container px-4 py-6 mx-auto md:px-6 lg:px-8',
-                  theme.contentLayout === 'compact' ? 'max-w-5xl' : 'max-w-7xl'
+                  'flex-1 overflow-y-auto overflow-x-hidden flex flex-col pb-16 md:pb-0',
+                  className
                 )}
               >
-                {userLoading || isLoggingOut ? (
-                  <div className="flex items-center justify-center min-h-[400px]">
-                    <LoadingSpinner size={28} />
+                {/* Content Container with proper padding */}
+                <div className="flex-grow">
+                  <div
+                    className={cn(
+                      'container px-4 py-6 mx-auto md:px-6 lg:px-8',
+                      theme.contentLayout === 'compact'
+                        ? 'max-w-5xl'
+                        : 'max-w-7xl'
+                    )}
+                  >
+                    {userLoading ? (
+                      <div className="flex items-center justify-center min-h-[400px]">
+                        <LoadingSpinner size={28} />
+                      </div>
+                    ) : (
+                      children
+                    )}
                   </div>
-                ) : (
-                  children
-                )}
-              </div>
+                </div>
+                {/* Footer at the end of the main container */}
+                <Footer />
+              </main>
             </div>
-            {/* Footer at the end of the main container */}
-            <Footer />
-          </main>
-        </div>
-      </div>
+          </div>
 
-      {/* Bottom Navigation - Mobile Only */}
-      {showBottomNav && (
-        <div className="md:hidden shrink-0">
-          <BottomNavigation />
+          {/* Bottom Navigation - Mobile Only */}
+          {showBottomNav && (
+            <div className="md:hidden shrink-0">
+              <BottomNavigation />
+            </div>
+          )}
+
+          <ThemeManager />
         </div>
       )}
-
-      <ThemeManager />
-    </div>
+    </>
   );
 };

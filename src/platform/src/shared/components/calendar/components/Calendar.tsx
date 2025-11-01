@@ -236,7 +236,7 @@ export function Calendar({
 
   return (
     <Card
-      className={`shadow-lg border-border ${numberOfMonths === 1 ? 'w-auto' : 'max-w-2xl'}`}
+      className={`shadow-lg border border-border ${numberOfMonths === 1 ? 'w-auto' : 'max-w-2xl'}`}
     >
       <CardContent className="p-0">
         <div className="flex">

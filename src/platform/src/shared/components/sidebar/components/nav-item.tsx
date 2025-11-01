@@ -24,6 +24,12 @@ export const NavItem = React.memo<NavItemProps>(
       ? 'bg-primary/10'
       : 'hover:bg-muted dark:hover:text-foreground';
 
+    // Handle disabled state
+    const isDisabled = item.disabled;
+    const disabledStyles = isDisabled
+      ? 'opacity-50 cursor-not-allowed pointer-events-none'
+      : '';
+
     if (isCollapsed) {
       return (
         <div className="relative flex items-center justify-center">
@@ -34,6 +40,7 @@ export const NavItem = React.memo<NavItemProps>(
               baseStyles,
               'w-10 h-10 rounded-lg justify-center',
               bgClass,
+              disabledStyles,
               className
             )}
             aria-current={isActive ? 'page' : undefined}
@@ -65,6 +72,7 @@ export const NavItem = React.memo<NavItemProps>(
             baseStyles,
             'w-full gap-3 py-2.5 px-3 rounded-lg',
             bgClass,
+            disabledStyles,
             className
           )}
           aria-current={isActive ? 'page' : undefined}

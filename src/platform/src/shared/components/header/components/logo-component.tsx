@@ -13,14 +13,16 @@ interface LogoComponentProps {
 
 export const LogoComponent: React.FC<LogoComponentProps> = ({ className }) => {
   const { activeGroup } = useUserActions();
+  const [imageError, setImageError] = React.useState(false);
 
   // Determine navigation target and logo based on active group
-  const { href, logoSrc, logoAlt } = React.useMemo(() => {
+  const { href, logoSrc, logoAlt, showFallback } = React.useMemo(() => {
     if (!activeGroup) {
       return {
         href: '/user/home',
         logoSrc: '/images/airqo_logo.svg',
         logoAlt: 'AirQo Logo',
+        showFallback: false,
       };
     }
 
@@ -40,15 +42,27 @@ export const LogoComponent: React.FC<LogoComponentProps> = ({ className }) => {
         href: '/user/home',
         logoSrc: '/images/airqo_logo.svg',
         logoAlt: 'AirQo Logo',
+        showFallback: false,
       };
     } else {
+      const hasValidProfilePicture =
+        activeGroup.profilePicture && activeGroup.profilePicture.trim() !== '';
       return {
         href: `/org/${activeGroup.organizationSlug}/dashboard`,
-        logoSrc: activeGroup.profilePicture || '/images/airqo_logo.svg',
+        logoSrc: hasValidProfilePicture
+          ? activeGroup.profilePicture
+          : '/images/airqo_logo.svg',
         logoAlt: `${activeGroup.title} Logo`,
+        showFallback: !hasValidProfilePicture,
       };
     }
   }, [activeGroup]);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  const shouldShowFallback = showFallback || imageError;
 
   return (
     <Link href={href} className={cn('flex items-center space-x-2', className)}>
@@ -57,14 +71,21 @@ export const LogoComponent: React.FC<LogoComponentProps> = ({ className }) => {
         whileTap={{ scale: 0.95 }}
         transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       >
-        <Image
-          src={logoSrc}
-          alt={logoAlt}
-          width={120}
-          height={32}
-          className="w-auto h-6"
-          priority
-        />
+        {shouldShowFallback ? (
+          <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+            {activeGroup?.title?.charAt(0)?.toUpperCase() || 'A'}
+          </div>
+        ) : (
+          <Image
+            src={logoSrc}
+            alt={logoAlt}
+            width={120}
+            height={32}
+            className="w-auto h-6"
+            priority
+            onError={handleImageError}
+          />
+        )}
       </motion.div>
     </Link>
   );
