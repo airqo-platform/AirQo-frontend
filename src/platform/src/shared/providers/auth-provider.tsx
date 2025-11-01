@@ -65,6 +65,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const logout = useLogout();
   const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] =
     useState(false);
+  const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
 
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
@@ -72,6 +73,9 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const handleUnauthorized = useCallback(async () => {
     // Don't handle unauthorized on auth routes (login, register, etc.)
     if (isAuthRoute) return;
+
+    // Prevent multiple unauthorized handling
+    if (hasHandledUnauthorized) return;
 
     // Check if session is expired before logging out
     try {
@@ -88,6 +92,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
       // Session is expired, logout
       console.log('Session expired, logging out...');
+      setHasHandledUnauthorized(true);
       toast.error(
         'Session Expired',
         'Your session has expired. Please log in again.',
@@ -96,9 +101,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       logout();
     } catch (error) {
       console.error('Error handling unauthorized event:', error);
+      setHasHandledUnauthorized(true);
       logout();
     }
-  }, [logout, update, isAuthRoute]);
+  }, [logout, update, isAuthRoute, hasHandledUnauthorized]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -122,23 +128,32 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (status === 'authenticated') {
       setHasLoggedOutForExpiration(false);
+      setHasHandledUnauthorized(false);
     }
   }, [status]);
 
   // Logout when status becomes unauthenticated on protected routes
-  // But skip if we're already logging out to prevent loops
+  // But skip if we're already logging out or have handled unauthorized
   useEffect(() => {
     if (
       status === 'unauthenticated' &&
       !isAuthRoute &&
       !hasLoggedOutForExpiration &&
-      !isLoggingOut
+      !isLoggingOut &&
+      !hasHandledUnauthorized
     ) {
       console.log('Status unauthenticated on protected route, logging out');
       setHasLoggedOutForExpiration(true);
       logout();
     }
-  }, [status, isAuthRoute, logout, hasLoggedOutForExpiration, isLoggingOut]);
+  }, [
+    status,
+    isAuthRoute,
+    logout,
+    hasLoggedOutForExpiration,
+    isLoggingOut,
+    hasHandledUnauthorized,
+  ]);
 
   // While session is being fetched, show a loading overlay
   if (status === 'loading') {

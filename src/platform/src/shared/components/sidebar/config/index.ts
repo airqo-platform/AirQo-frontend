@@ -2,7 +2,7 @@ import {
   AqHomeSmile,
   AqUser03,
   AqStar06,
-  // AqGlobe05,
+  AqGlobe05,
   AqDownload01,
   // AqUsers01,
   // AqSettings01,
@@ -16,6 +16,7 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   group?: string;
   badge?: string | number;
+  disabled?: boolean;
 }
 
 export interface NavGroup {
@@ -53,12 +54,13 @@ const userSidebarConfig: NavGroup[] = [
         href: '/user/data-export',
         icon: AqDownload01,
       },
-      // {
-      //   id: 'map',
-      //   label: 'Map',
-      //   href: '/user/map',
-      //   icon: AqGlobe05,
-      // },
+      {
+        id: 'map',
+        label: 'Map',
+        href: '/user/map',
+        icon: AqGlobe05,
+        disabled: true,
+      },
     ],
   },
   {
@@ -174,6 +176,12 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       label: 'Favorites',
       href: '/user/favorites',
       icon: AqStar06,
+    },
+    {
+      id: 'map',
+      label: 'Map',
+      href: '/user/map',
+      icon: AqGlobe05,
     },
     {
       id: 'bulk-export',

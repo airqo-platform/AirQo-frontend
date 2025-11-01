@@ -1,7 +1,8 @@
 import React from 'react';
+import { MapPage } from '@/modules/airqo-map';
 
 const Page = () => {
-  return <div>Map Page - Coming Soon</div>;
+  return <MapPage />;
 };
 
 export default Page;
