@@ -96,10 +96,9 @@ const ThemeManager: React.FC = () => {
     <>
       {/* Floating Button */}
       <motion.button
-        className={`fixed right-6 bottom-6 bg-primary text-primary-foreground p-3 rounded-md shadow-lg hover:shadow-xl transition-shadow ${
+        className={`fixed right-0 top-1/3 bg-primary text-primary-foreground p-3 rounded-l-full shadow-lg hover:shadow-xl transition-shadow ${
           isOpen ? 'z-30' : 'z-50'
         }`}
-        whileHover={{ scale: 1.05, rotate: 90 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
       >
