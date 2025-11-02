@@ -11,10 +11,15 @@ import {
   getPollutantLabel,
   getPollutantUnits,
 } from '@/shared/components/charts/utils';
+// Use centralized air quality utilities
 import {
   AIR_QUALITY_STANDARDS,
-  POLLUTANT_RANGES,
-} from '@/shared/components/charts/constants';
+  getAirQualityLevel as getSharedAirQualityLevel,
+  getAirQualityColor as getSharedAirQualityColor,
+  getAirQualityLabel as getSharedAirQualityLabel,
+  mapAqiCategoryToLevel as mapSharedAqiCategoryToLevel,
+  type PollutantType,
+} from '@/shared/utils/airQuality';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { RecentReading } from '@/shared/types/api';
 
@@ -33,7 +38,7 @@ export {
 };
 
 /**
- * Determine air quality level based on pollutant value using shared ranges
+ * Determine air quality level based on pollutant value using shared utility
  * @param value - Pollutant concentration value
  * @param pollutant - Pollutant type (pm2_5, pm10, no2, o3, co, so2)
  * @returns Air quality level
@@ -42,36 +47,7 @@ export const getAirQualityLevel = (
   value: number | null | undefined,
   pollutant: string = 'pm2_5'
 ): AirQualityLevel => {
-  if (value === null || value === undefined || isNaN(value)) {
-    return 'no-value';
-  }
-
-  // Get the ranges for the specified pollutant
-  const pollutantRanges =
-    POLLUTANT_RANGES[pollutant as keyof typeof POLLUTANT_RANGES];
-  if (!pollutantRanges) {
-    return 'no-value';
-  }
-
-  // Find the first range where value is greater than or equal to the limit
-  const range = pollutantRanges.find(r => value >= r.limit);
-
-  if (!range) {
-    return 'no-value';
-  }
-
-  // Map category to analytics level names
-  const levelMapping: Record<string, AirQualityLevel> = {
-    GoodAir: 'good',
-    ModerateAir: 'moderate',
-    UnhealthyForSensitiveGroups: 'unhealthy-sensitive-groups',
-    Unhealthy: 'unhealthy',
-    VeryUnhealthy: 'very-unhealthy',
-    Hazardous: 'hazardous',
-    Invalid: 'no-value',
-  };
-
-  return levelMapping[range.category] || 'no-value';
+  return getSharedAirQualityLevel(value, pollutant as PollutantType);
 };
 
 /**
@@ -95,66 +71,28 @@ export const getAirQualityThreshold = (level: AirQualityLevel) => {
 
 /**
  * Map an incoming `aqi_category` string to the internal AirQualityLevel keys
- * Handles several formatting variants (spaces, camelCase, different naming)
+ * Uses the centralized utility for consistency
  */
 export const mapAqiCategoryToLevel = (category?: string): AirQualityLevel => {
-  if (!category || typeof category !== 'string') return 'no-value';
-
-  const normalized = category.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-
-  switch (normalized) {
-    case 'good':
-    case 'goodair':
-      return 'good';
-    case 'moderate':
-    case 'moderateair':
-      return 'moderate';
-    case 'unhealthyforsensitivegroups':
-    case 'unhealthyforsensitivegroup':
-    case 'unhealthyforsensitive':
-    case 'unhealthyforsensitivegroupS':
-      return 'unhealthy-sensitive-groups';
-    case 'unhealthy':
-      return 'unhealthy';
-    case 'veryunhealthy':
-    case 'veryunhealthyair':
-      return 'very-unhealthy';
-    case 'hazardous':
-      return 'hazardous';
-    case 'invalid':
-      return 'no-value';
-    default:
-      return 'no-value';
-  }
+  return mapSharedAqiCategoryToLevel(category);
 };
 
 /**
- * Get label for air quality level using shared standards
+ * Get label for air quality level using centralized utility
  * @param level - Air quality level
  * @returns Human readable label
  */
 export const getAirQualityLabel = (level: AirQualityLevel): string => {
-  const threshold = getAirQualityThreshold(level);
-  return threshold?.level || 'No Data';
+  return getSharedAirQualityLabel(level);
 };
 
 /**
- * Get color for air quality level
+ * Get color for air quality level using centralized utility
  * @param level - Air quality level
  * @returns Hex color string
  */
 export const getAirQualityColor = (level: AirQualityLevel): string => {
-  const colorMapping: Record<AirQualityLevel, string> = {
-    good: '#10B981', // green-500
-    moderate: '#F59E0B', // amber-500
-    'unhealthy-sensitive-groups': '#EF4444', // red-500
-    unhealthy: '#8B5CF6', // violet-500
-    'very-unhealthy': '#DC2626', // red-600
-    hazardous: '#7C2D12', // red-900
-    'no-value': '#9ca3af', // gray-400
-  };
-
-  return colorMapping[level] || '#9ca3af';
+  return getSharedAirQualityColor(level);
 };
 
 /**

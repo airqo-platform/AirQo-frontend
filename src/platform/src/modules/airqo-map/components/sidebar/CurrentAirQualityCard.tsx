@@ -4,20 +4,8 @@ import * as React from 'react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
-import {
-  AqGood,
-  AqModerate,
-  AqUnhealthyForSensitiveGroups,
-  AqUnhealthy,
-  AqVeryUnhealthy,
-  AqHazardous,
-  AqWind01,
-} from '@airqo/icons-react';
-import {
-  getAirQualityLevel,
-  getAirQualityColor,
-  getAirQualityLabel,
-} from '@/modules/analytics';
+import { AqWind01 } from '@airqo/icons-react';
+import { getAirQualityInfo } from '@/shared/utils/airQuality';
 
 // Types for location data
 interface LocationData {
@@ -40,36 +28,13 @@ interface CurrentAirQualityCardProps {
   locationData: LocationData;
 }
 
-// Air quality icon mapping based on PM2.5 value using analytics utilities
-const getAirQualityIcon = (pm25Value: number) => {
-  const level = getAirQualityLevel(pm25Value, 'pm2_5');
-  const color = getAirQualityColor(level);
-  const label = getAirQualityLabel(level);
-
-  const iconMap = {
-    good: AqGood,
-    moderate: AqModerate,
-    'unhealthy-sensitive-groups': AqUnhealthyForSensitiveGroups,
-    unhealthy: AqUnhealthy,
-    'very-unhealthy': AqVeryUnhealthy,
-    hazardous: AqHazardous,
-    'no-value': AqGood, // fallback
-  };
-
-  return {
-    icon: iconMap[level] || AqGood,
-    color,
-    level: label,
-  };
-};
-
 export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   locationData,
 }) => {
   const [showMoreDetails, setShowMoreDetails] = React.useState(false);
 
   const pm25Value = locationData.pm25Value || 8.63;
-  const airQualityInfo = getAirQualityIcon(pm25Value);
+  const airQualityInfo = getAirQualityInfo(pm25Value, 'pm2_5');
   const AirQualityIcon = airQualityInfo.icon;
 
   return (
@@ -90,7 +55,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               {pm25Value}µg/m³
             </div>
           </div>
-          <AirQualityIcon className="w-12 h-12" color={airQualityInfo.color} />
+          <AirQualityIcon className="w-12 h-12" />
         </div>
 
         {/* Location section */}

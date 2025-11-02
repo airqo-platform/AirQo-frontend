@@ -9,16 +9,9 @@ import {
   WHO_PM10_STANDARDS,
   STANDARDS_ORGANIZATIONS,
   REFERENCE_LINES,
+  AIR_QUALITY_ICONS,
 } from '../../constants';
 import { AirQualityStandardsConfig, ChartStandardsType } from '../../types';
-import {
-  AqGood,
-  AqHazardous,
-  AqModerate,
-  AqUnhealthy,
-  AqUnhealthyForSensitiveGroups,
-  AqVeryUnhealthy,
-} from '@airqo/icons-react';
 
 // Air quality level colors for consistency
 export const colors = {
@@ -59,19 +52,18 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
 
   // Get the appropriate icon for air quality level
   const getAirQualityIcon = (level: string) => {
-    const iconMap: Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    > = {
-      Good: AqGood,
-      Moderate: AqModerate,
-      'Unhealthy for Sensitive Groups': AqUnhealthyForSensitiveGroups,
-      Unhealthy: AqUnhealthy,
-      'Very Unhealthy': AqVeryUnhealthy,
-      Hazardous: AqHazardous,
+    // Map level names to air quality level keys
+    const levelKeyMap: Record<string, keyof typeof AIR_QUALITY_ICONS> = {
+      Good: 'good',
+      Moderate: 'moderate',
+      'Unhealthy for Sensitive Groups': 'unhealthy-sensitive-groups',
+      Unhealthy: 'unhealthy',
+      'Very Unhealthy': 'very-unhealthy',
+      Hazardous: 'hazardous',
     };
-    const IconComponent = iconMap[level] || AqGood;
-    return IconComponent;
+
+    const levelKey = levelKeyMap[level] || 'good';
+    return AIR_QUALITY_ICONS[levelKey];
   };
 
   // Get color for air quality level

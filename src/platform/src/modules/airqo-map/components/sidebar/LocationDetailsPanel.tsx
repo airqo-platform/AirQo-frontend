@@ -5,20 +5,9 @@ import { Button } from '@/shared/components/ui/button';
 import { CollapsibleCard } from '@/modules/airqo-map/components/sidebar/collapsible-card';
 import { CurrentAirQualityCard } from '@/modules/airqo-map/components/sidebar/CurrentAirQualityCard';
 import { WeeklyForecastCard } from '@/modules/airqo-map/components/sidebar/WeeklyForecastCard';
-import {
-  AqGood,
-  AqModerate,
-  AqUnhealthyForSensitiveGroups,
-  AqUnhealthy,
-  AqVeryUnhealthy,
-  AqHazardous,
-} from '@airqo/icons-react';
+// Icons are now imported from the centralized utility
 import { AqXClose } from '@airqo/icons-react';
-import {
-  getAirQualityLevel,
-  getAirQualityColor,
-  getAirQualityLabel,
-} from '@/modules/analytics';
+import { getAirQualityInfo } from '@/shared/utils/airQuality';
 
 // Types for location data
 interface LocationData {
@@ -41,29 +30,6 @@ interface LocationDetailsPanelProps {
   locationData: LocationData;
   onBack?: () => void;
 }
-
-// Air quality icon mapping based on PM2.5 value using analytics utilities
-const getAirQualityIcon = (pm25Value: number) => {
-  const level = getAirQualityLevel(pm25Value, 'pm2_5');
-  const color = getAirQualityColor(level);
-  const label = getAirQualityLabel(level);
-
-  const iconMap = {
-    good: AqGood,
-    moderate: AqModerate,
-    'unhealthy-sensitive-groups': AqUnhealthyForSensitiveGroups,
-    unhealthy: AqUnhealthy,
-    'very-unhealthy': AqVeryUnhealthy,
-    hazardous: AqHazardous,
-    'no-value': AqGood, // fallback
-  };
-
-  return {
-    icon: iconMap[level] || AqGood,
-    color,
-    level: label,
-  };
-};
 
 // Get health tip based on air quality level
 const getHealthTip = (level: string): string => {
@@ -116,7 +82,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 }) => {
   const pm25Value = locationData.pm25Value || 8.63;
   const airQualityInfo = React.useMemo(
-    () => getAirQualityIcon(pm25Value),
+    () => getAirQualityInfo(pm25Value, 'pm2_5'),
     [pm25Value]
   );
 
@@ -137,8 +103,8 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
         <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
           <div className="p-3 bg-green-50 rounded-lg">
             <p className="text-sm font-medium text-green-800">
-              {locationData.name}&apos;s Air Quality is {airQualityInfo.level}{' '}
-              for breathing. {getHealthTip(airQualityInfo.level)}
+              {locationData.name}&apos;s Air Quality is {airQualityInfo.label}{' '}
+              for breathing. {getHealthTip(airQualityInfo.label)}
             </p>
           </div>
         </CollapsibleCard>

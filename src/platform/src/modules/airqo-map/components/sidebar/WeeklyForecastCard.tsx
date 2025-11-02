@@ -3,19 +3,8 @@
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
 import { DatePicker, DateRange } from '@/shared/components/calendar';
-import {
-  AqGood,
-  AqModerate,
-  AqUnhealthyForSensitiveGroups,
-  AqUnhealthy,
-  AqVeryUnhealthy,
-  AqHazardous,
-} from '@airqo/icons-react';
-import {
-  getAirQualityLevel,
-  getAirQualityColor,
-  getAirQualityLabel,
-} from '@/modules/analytics';
+// Icons are now imported from the centralized utility
+import { getAirQualityInfo } from '@/shared/utils/airQuality';
 
 interface WeeklyForecast {
   day: string;
@@ -23,29 +12,6 @@ interface WeeklyForecast {
   pm25: number;
   airQuality: string;
 }
-
-// Air quality icon mapping based on PM2.5 value using analytics utilities
-const getAirQualityIcon = (pm25Value: number) => {
-  const level = getAirQualityLevel(pm25Value, 'pm2_5');
-  const color = getAirQualityColor(level);
-  const label = getAirQualityLabel(level);
-
-  const iconMap = {
-    good: AqGood,
-    moderate: AqModerate,
-    'unhealthy-sensitive-groups': AqUnhealthyForSensitiveGroups,
-    unhealthy: AqUnhealthy,
-    'very-unhealthy': AqVeryUnhealthy,
-    hazardous: AqHazardous,
-    'no-value': AqGood, // fallback
-  };
-
-  return {
-    icon: iconMap[level] || AqGood,
-    color,
-    level: label,
-  };
-};
 
 // Generate weekly forecast data (mock data for now)
 const generateWeeklyForecast = (): WeeklyForecast[] => {
@@ -59,13 +25,13 @@ const generateWeeklyForecast = (): WeeklyForecast[] => {
     const date = new Date(mondayDate);
     date.setDate(mondayDate.getDate() + index);
     const pm25 = Math.random() * 30 + 5; // Random PM2.5 value between 5-35
-    const aqInfo = getAirQualityIcon(pm25);
+    const aqInfo = getAirQualityInfo(pm25, 'pm2_5');
 
     return {
       day,
       date: date.getDate(),
       pm25: Math.round(pm25 * 10) / 10,
-      airQuality: aqInfo.level,
+      airQuality: aqInfo.label,
     };
   });
 };
@@ -122,29 +88,21 @@ export const WeeklyForecastCard: React.FC = () => {
       <div className="w-full overflow-x-auto overflow-y-hidden">
         <div className="flex gap-2 sm:gap-3 min-w-max py-2">
           {weeklyForecast.map((forecast, index) => {
-            const forecastAqInfo = getAirQualityIcon(forecast.pm25);
+            const forecastAqInfo = getAirQualityInfo(forecast.pm25, 'pm2_5');
             const ForecastIcon = forecastAqInfo.icon;
             const isToday = index === todayIndex;
 
             // Get background color based on air quality
             const getBgColorClass = () => {
-              const level = getAirQualityLevel(forecast.pm25, 'pm2_5');
-              switch (level) {
-                case 'good':
-                  return 'bg-green-50';
-                case 'moderate':
-                  return 'bg-yellow-50';
-                case 'unhealthy-sensitive-groups':
-                  return 'bg-orange-50';
-                case 'unhealthy':
-                  return 'bg-red-50';
-                case 'very-unhealthy':
-                  return 'bg-purple-50';
-                case 'hazardous':
-                  return 'bg-pink-50';
-                default:
-                  return 'bg-gray-50';
-              }
+              const level = forecastAqInfo.level.toLowerCase();
+              if (level.includes('good')) return 'bg-green-50';
+              if (level.includes('moderate')) return 'bg-yellow-50';
+              if (level.includes('sensitive')) return 'bg-orange-50';
+              if (level.includes('unhealthy') && !level.includes('very'))
+                return 'bg-red-50';
+              if (level.includes('very unhealthy')) return 'bg-purple-50';
+              if (level.includes('hazardous')) return 'bg-pink-50';
+              return 'bg-gray-50';
             };
 
             return (
@@ -179,10 +137,7 @@ export const WeeklyForecastCard: React.FC = () => {
 
                 {/* Air quality icon */}
                 <div className="flex items-center justify-center">
-                  <ForecastIcon
-                    className="w-4 h-4 sm:w-5 sm:h-5"
-                    color={isToday ? '#ffffff' : forecastAqInfo.color}
-                  />
+                  <ForecastIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
               </div>
             );
