@@ -38,7 +38,8 @@ export type AirQualityLevel =
   | 'hazardous'
   | 'no-value';
 
-export type PollutantType = 'pm2_5' | 'pm10' | 'no2' | 'o3' | 'co' | 'so2';
+// TODO: Expand to support additional pollutants (no2, o3, co, so2) when needed
+export type PollutantType = 'pm2_5' | 'pm10';
 
 export type StandardsOrganization = 'WHO' | 'NEMA';
 
@@ -131,42 +132,8 @@ export const POLLUTANT_RANGES: Record<PollutantType, PollutantRange[]> = {
     { limit: 54.1, category: 'ModerateAir' },
     { limit: 0.0, category: 'GoodAir' },
   ],
-  no2: [
-    { limit: 2049.1, category: 'Invalid' },
-    { limit: 1249.1, category: 'Hazardous' },
-    { limit: 649.1, category: 'VeryUnhealthy' },
-    { limit: 360.1, category: 'Unhealthy' },
-    { limit: 100.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 53.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  o3: [
-    { limit: 604.1, category: 'Invalid' },
-    { limit: 504.1, category: 'Hazardous' },
-    { limit: 404.1, category: 'VeryUnhealthy' },
-    { limit: 204.1, category: 'Unhealthy' },
-    { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  co: [
-    { limit: 50.5, category: 'Invalid' },
-    { limit: 40.5, category: 'Hazardous' },
-    { limit: 30.5, category: 'VeryUnhealthy' },
-    { limit: 10.5, category: 'Unhealthy' },
-    { limit: 4.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 2.5, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
-  so2: [
-    { limit: 1004.1, category: 'Invalid' },
-    { limit: 804.1, category: 'Hazardous' },
-    { limit: 604.1, category: 'VeryUnhealthy' },
-    { limit: 304.1, category: 'Unhealthy' },
-    { limit: 185.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 75.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
-  ],
+  // TODO: Add support for additional pollutants when needed:
+  // no2, o3, co, so2 with their respective ranges
 } as const;
 
 // ========================================
@@ -510,11 +477,7 @@ export const getAirQualityInfo = (
   const pollutantDisplayMap: Record<PollutantType, 'PM2.5' | 'PM10'> = {
     pm2_5: 'PM2.5',
     pm10: 'PM10',
-    // For other pollutants, default to PM2.5 for now (can be extended later)
-    no2: 'PM2.5',
-    o3: 'PM2.5',
-    co: 'PM2.5',
-    so2: 'PM2.5',
+    // TODO: Add mappings for additional pollutants when expanded
   };
 
   const displayType = pollutantDisplayMap[pollutant];
@@ -596,10 +559,8 @@ export const STANDARDS_ORGANIZATIONS = {
 export const POLLUTANT_LABELS = {
   pm2_5: 'PM₂.₅',
   pm10: 'PM₁₀',
-  no2: 'NO₂',
-  o3: 'O₃',
-  co: 'CO',
-  so2: 'SO₂',
+  // TODO: Add labels for additional pollutants when expanded:
+  // no2: 'NO₂', o3: 'O₃', co: 'CO', so2: 'SO₂'
 } as const;
 
 /**

@@ -10,7 +10,7 @@ interface CustomTooltipProps extends TooltipData {
   className?: string;
   showAirQualityLevel?: boolean;
   frequency?: string;
-  pollutant?: 'pm2_5' | 'pm10' | 'no2' | 'o3' | 'co' | 'so2';
+  pollutant?: 'pm2_5' | 'pm10';
 }
 
 const formatTooltipDate = (
