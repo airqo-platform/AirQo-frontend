@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { RiRefreshLine } from 'react-icons/ri';
+import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { cn } from '@/shared/lib/utils';
 
 interface MapLoadingOverlayProps {
@@ -31,11 +31,7 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = ({
       <div className="bg-white rounded-lg shadow-xl p-6 max-w-xs mx-4 text-center">
         {/* Spinning refresh icon */}
         <div className="flex justify-center mb-4">
-          <RiRefreshLine
-            size={32}
-            className="text-blue-600 animate-spin"
-            aria-hidden="true"
-          />
+          <LoadingSpinner size={32} className="text-primary" />
         </div>
 
         {/* Loading message */}
@@ -44,15 +40,15 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = ({
         {/* Progress dots */}
         <div className="flex justify-center space-x-1">
           <div
-            className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+            className="w-2 h-2 bg-primary rounded-full animate-bounce"
             style={{ animationDelay: '0ms' }}
           />
           <div
-            className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+            className="w-2 h-2 bg-primary rounded-full animate-bounce"
             style={{ animationDelay: '150ms' }}
           />
           <div
-            className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"
+            className="w-2 h-2 bg-primary rounded-full animate-bounce"
             style={{ animationDelay: '300ms' }}
           />
         </div>
