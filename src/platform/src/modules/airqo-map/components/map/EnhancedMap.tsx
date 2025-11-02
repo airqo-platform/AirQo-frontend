@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useRef } from 'react';
 import Map, { MapRef, ViewState, Marker } from 'react-map-gl/mapbox';
+import { useDispatch, useSelector } from 'react-redux';
 import { cn } from '@/shared/lib/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -19,6 +20,10 @@ import { CustomTooltip } from './CustomTooltip';
 import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import { dummyAirQualityData } from './dummyData';
+
+// Import Redux actions and selectors
+import { setMapSettings } from '@/shared/store/mapSettingsSlice';
+import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
 
 interface EnhancedMapProps {
   className?: string;
@@ -39,6 +44,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   onNodeClick,
   onClusterClick,
 }) => {
+  const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
   const [viewState, setViewState] =
     useState<Partial<ViewState>>(initialViewState);
@@ -47,10 +53,11 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     AirQualityReading | ClusterData | null
   >(null);
   const [isStyleDialogOpen, setIsStyleDialogOpen] = useState(false);
-  const [currentMapStyle, setCurrentMapStyle] = useState(
-    'mapbox://styles/mapbox/streets-v12'
-  );
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Get map settings from Redux store
+  const currentMapStyle = useSelector(selectMapStyle);
+  const currentNodeType = useSelector(selectNodeType);
 
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
@@ -172,10 +179,18 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     setIsStyleDialogOpen(true);
   }, []);
 
-  const handleStyleChange = useCallback((style: MapStyle) => {
-    setCurrentMapStyle(style.url);
-    setIsStyleDialogOpen(false);
-  }, []);
+  const handleStyleChange = useCallback(
+    (style: MapStyle) => {
+      dispatch(
+        setMapSettings({
+          mapStyle: style.url,
+          nodeType: style.nodeStyle,
+        })
+      );
+      setIsStyleDialogOpen(false);
+    },
+    [dispatch]
+  );
 
   const handleNodeClick = useCallback(
     (reading: AirQualityReading) => {
@@ -261,6 +276,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               >
                 <MapNodes
                   cluster={cluster}
+                  nodeType={currentNodeType}
                   onClick={data => handleClusterClick(data as ClusterData)}
                   onHover={handleNodeHover}
                 />
@@ -275,10 +291,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               >
                 <MapNodes
                   reading={reading}
+                  nodeType={currentNodeType}
                   onClick={data => handleNodeClick(data as AirQualityReading)}
                   onHover={handleNodeHover}
                   isSelected={selectedNode === reading.id}
-                  showValue={true}
                   size="md"
                 />
               </Marker>
@@ -313,7 +329,13 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       />
 
       {/* Hover tooltip */}
-      {hoveredNode && <CustomTooltip data={hoveredNode} />}
+      {hoveredNode && (
+        <div className="fixed inset-0 pointer-events-none z-50">
+          <CustomTooltip data={hoveredNode}>
+            <div className="w-0 h-0" />
+          </CustomTooltip>
+        </div>
+      )}
     </div>
   );
 };

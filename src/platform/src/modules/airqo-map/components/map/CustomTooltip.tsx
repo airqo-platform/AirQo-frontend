@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { Tooltip } from 'flowbite-react';
 import { cn } from '@/shared/lib/utils';
 import {
   getAirQualityLevel,
@@ -12,7 +13,7 @@ import type { AirQualityReading, ClusterData } from './MapNodes';
 
 interface CustomTooltipProps {
   data: AirQualityReading | ClusterData | null;
-  position?: { x: number; y: number };
+  children: React.ReactNode;
   className?: string;
 }
 
@@ -29,13 +30,7 @@ const formatDate = (date: Date): string => {
   }).format(date);
 };
 
-export const CustomTooltip: React.FC<CustomTooltipProps> = ({
-  data,
-  position,
-  className,
-}) => {
-  if (!data) return null;
-
+const getTooltipContent = (data: AirQualityReading | ClusterData) => {
   // Check if it's a cluster
   const isCluster = 'readings' in data && 'pointCount' in data;
 
@@ -57,66 +52,58 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
     const worstColor = getAirQualityColor(worstLevel);
 
     return (
-      <div
-        className={cn(
-          'absolute top-4 left-1/2 transform -translate-x-1/2 z-20',
-          'bg-white rounded-lg shadow-xl border border-gray-200 p-3 max-w-sm w-full mx-4',
-          'sm:p-4 sm:mx-0 sm:w-auto',
-          className
-        )}
-        style={position ? { left: position.x, top: position.y } : undefined}
-      >
-        <div className="text-center">
-          <h3 className="font-semibold text-gray-900 text-sm mb-2">
+      <div className="w-80 p-4">
+        <div className="text-center mb-3">
+          <h3 className="font-semibold text-gray-900 text-sm">
             Monitoring Cluster ({cluster.pointCount} stations)
           </h3>
+        </div>
 
-          <div className="space-y-3">
-            {/* Average values */}
-            <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: avgColor }}
-              >
-                <AvgIconComponent className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 text-left">
-                <div className="text-xs text-gray-600">Average</div>
-                <div className="text-sm font-medium text-gray-900">
-                  {getAirQualityLabel(avgLevel)}
-                </div>
-                <div className="text-xs text-gray-600">
-                  PM2.5: {formatValue(avgPM25)} µg/m³ | PM10:{' '}
-                  {formatValue(avgPM10)} µg/m³
-                </div>
-              </div>
+        <div className="space-y-3">
+          {/* Average values */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: avgColor }}
+            >
+              <AvgIconComponent className="w-4 h-4 text-white" />
             </div>
-
-            {/* Worst values */}
-            <div className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: worstColor }}
-              >
-                <WorstIconComponent className="w-4 h-4 text-white" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-gray-600">Average</div>
+              <div className="text-sm font-medium text-gray-900 truncate">
+                {getAirQualityLabel(avgLevel)}
               </div>
-              <div className="flex-1 text-left">
-                <div className="text-xs text-gray-600">Worst</div>
-                <div className="text-sm font-medium text-gray-900">
-                  {getAirQualityLabel(worstLevel)}
-                </div>
-                <div className="text-xs text-gray-600">
-                  PM2.5: {formatValue(worstPM25)} µg/m³
-                </div>
+              <div className="text-xs text-gray-600">
+                PM2.5: {formatValue(avgPM25)} | PM10: {formatValue(avgPM10)}{' '}
+                µg/m³
               </div>
             </div>
           </div>
 
-          <div className="mt-3 pt-3 border-t border-gray-100">
-            <p className="text-xs text-gray-500">
-              Click to zoom in and see individual stations
-            </p>
+          {/* Worst values */}
+          <div className="flex items-center gap-3">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: worstColor }}
+            >
+              <WorstIconComponent className="w-4 h-4 text-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-xs text-gray-600">Worst</div>
+              <div className="text-sm font-medium text-gray-900 truncate">
+                {getAirQualityLabel(worstLevel)}
+              </div>
+              <div className="text-xs text-gray-600">
+                PM2.5: {formatValue(worstPM25)} µg/m³
+              </div>
+            </div>
           </div>
+        </div>
+
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <p className="text-xs text-gray-500 text-center">
+            Click to zoom in and see individual stations
+          </p>
         </div>
       </div>
     );
@@ -132,86 +119,102 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   const pm10Color = getAirQualityColor(pm10Level);
 
   return (
-    <div
-      className={cn(
-        'absolute top-4 left-1/2 transform -translate-x-1/2 z-20',
-        'bg-white rounded-lg shadow-xl border border-gray-200 p-3 max-w-sm w-full mx-4',
-        'sm:p-4 sm:mx-0 sm:w-auto',
-        className
-      )}
-      style={position ? { left: position.x, top: position.y } : undefined}
-    >
-      <div className="text-center">
-        <h3 className="font-semibold text-gray-900 text-sm mb-1">
+    <div className="w-80 p-4">
+      <div className="text-center mb-3">
+        <h3 className="font-semibold text-gray-900 text-sm">
           {reading.locationName || 'Air Quality Station'}
         </h3>
+      </div>
 
-        <div className="space-y-3 mt-3">
-          {/* PM2.5 */}
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: pm25Color }}
-            >
-              <PM25IconComponent className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="text-xs text-gray-600">PM₂.₅</div>
-              <div className="text-sm font-medium text-gray-900">
-                {getAirQualityLabel(pm25Level)} -{' '}
-                {formatValue(reading.pm25Value)} µg/m³
-              </div>
-            </div>
+      <div className="space-y-3">
+        {/* PM2.5 */}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: pm25Color }}
+          >
+            <PM25IconComponent className="w-4 h-4 text-white" />
           </div>
-
-          {/* PM10 */}
-          <div className="flex items-center gap-3">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: pm10Color }}
-            >
-              <PM10IconComponent className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex-1 text-left">
-              <div className="text-xs text-gray-600">PM₁₀</div>
-              <div className="text-sm font-medium text-gray-900">
-                {getAirQualityLabel(pm10Level, 'WHO', 'PM10')} -{' '}
-                {formatValue(reading.pm10Value)} µg/m³
-              </div>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-gray-600">PM₂.₅</div>
+            <div className="text-sm font-medium text-gray-900 truncate">
+              {getAirQualityLabel(pm25Level)} - {formatValue(reading.pm25Value)}{' '}
+              µg/m³
             </div>
           </div>
         </div>
 
-        <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-500">Site:</span>
-            <span className="text-gray-900">{reading.siteId}</span>
+        {/* PM10 */}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ backgroundColor: pm10Color }}
+          >
+            <PM10IconComponent className="w-4 h-4 text-white" />
           </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-500">Provider:</span>
-            <span className="text-gray-900">{reading.provider}</span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-500">Status:</span>
-            <span
-              className={cn(
-                'font-medium',
-                reading.status === 'active' && 'text-green-600',
-                reading.status === 'inactive' && 'text-red-600',
-                reading.status === 'maintenance' && 'text-yellow-600'
-              )}
-            >
-              {reading.status || 'Active'}
-            </span>
-          </div>
-          <div className="flex justify-between text-xs">
-            <span className="text-gray-500">Updated:</span>
-            <span className="text-gray-900">
-              {formatDate(reading.lastUpdated)}
-            </span>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs text-gray-600">PM₁₀</div>
+            <div className="text-sm font-medium text-gray-900 truncate">
+              {getAirQualityLabel(pm10Level, 'WHO', 'PM10')} -{' '}
+              {formatValue(reading.pm10Value)} µg/m³
+            </div>
           </div>
         </div>
       </div>
+
+      <div className="mt-3 pt-3 border-t border-gray-100 space-y-1">
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500">Site:</span>
+          <span className="text-gray-900 truncate ml-2">{reading.siteId}</span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500">Provider:</span>
+          <span className="text-gray-900 truncate ml-2">
+            {reading.provider}
+          </span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500">Status:</span>
+          <span
+            className={cn(
+              'font-medium truncate ml-2',
+              reading.status === 'active' && 'text-green-600',
+              reading.status === 'inactive' && 'text-red-600',
+              reading.status === 'maintenance' && 'text-yellow-600'
+            )}
+          >
+            {reading.status || 'Active'}
+          </span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-gray-500">Updated:</span>
+          <span className="text-gray-900 truncate ml-2">
+            {formatDate(reading.lastUpdated)}
+          </span>
+        </div>
+      </div>
     </div>
+  );
+};
+
+export const CustomTooltip: React.FC<CustomTooltipProps> = ({
+  data,
+  children,
+  className,
+}) => {
+  if (!data) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Tooltip
+      content={getTooltipContent(data)}
+      placement="top"
+      style="light"
+      className={cn('z-[1000]', className)}
+      trigger="hover"
+    >
+      {children}
+    </Tooltip>
   );
 };
