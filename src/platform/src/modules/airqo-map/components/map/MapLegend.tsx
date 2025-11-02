@@ -39,10 +39,15 @@ export const MapLegend: React.FC<MapLegendProps> = ({
       // Skip invalid category
       if (current.category === 'Invalid') continue;
 
+      // For the last valid range, use Infinity as max
+      const isLastValid =
+        i === sortedRanges.length - 2 || next.category === 'Invalid';
+      const max = isLastValid ? Infinity : next.limit;
+
       displayRanges.push({
         level: current.category,
         min: current.limit,
-        max: next.limit,
+        max: max,
       });
     }
 
@@ -116,16 +121,18 @@ export const MapLegend: React.FC<MapLegendProps> = ({
                 <Tooltip
                   content={
                     <div className="w-[250px] flex flex-col justify-center items-center">
-                      <div className="font-semibold mb-1">{displayName}</div>
-                      <div className="text-xs">
+                      <div className="font-semibold text-muted-foreground mb-1 text-center leading-tight">
+                        Air Quality is {displayName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
                         {range.min}-{range.max === Infinity ? '∞' : range.max}{' '}
                         µg/m³
                       </div>
                     </div>
                   }
-                  placement="right"
+                  placement="auto"
                   style="light"
-                  className="z-[1000]"
+                  className="ml-3 z-[1000]"
                 >
                   <IconComponent className="w-7 h-7" />
                 </Tooltip>
