@@ -5,5 +5,13 @@ export {
   LocationsList,
   LocationCard,
 } from './components/sidebar';
-export { MapBox } from './components/map';
+export {
+  MapBox,
+  EnhancedMap,
+  MapNodes,
+  MapLegend,
+  MapControls,
+  MapStyleDialog,
+  CustomTooltip,
+} from './components/map';
 export { default as MapPage } from './MapPage';

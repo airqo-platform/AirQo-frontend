@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { MapSidebar, MapBox } from '@/modules/airqo-map';
+import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
 
 interface LocationData {
   _id: string;
@@ -77,7 +77,7 @@ const MapPage = () => {
 
         {/* Right Map Area */}
         <div className="flex-1 min-w-0 h-full">
-          <MapBox />
+          <EnhancedMap />
         </div>
       </div>
 
@@ -85,7 +85,7 @@ const MapPage = () => {
       <div className="flex flex-col h-full md:hidden">
         {/* Map Area - Top 1/3 */}
         <div className="h-1/2 flex-shrink-0">
-          <MapBox />
+          <EnhancedMap />
         </div>
 
         {/* Sidebar Area - Bottom 2/3 */}
