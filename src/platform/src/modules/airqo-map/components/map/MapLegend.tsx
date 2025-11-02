@@ -1,27 +1,55 @@
 'use client';
-
 import React, { useState } from 'react';
 import { Tooltip } from 'flowbite-react';
 import { IoChevronDown, IoChevronUp } from 'react-icons/io5';
 import { cn } from '@/shared/lib/utils';
 import {
-  WHO_PM25_STANDARDS,
+  POLLUTANT_RANGES,
   getAirQualityIcon,
   mapAqiCategoryToLevel,
+  type PollutantType,
 } from '@/shared/utils/airQuality';
 
 interface MapLegendProps {
   className?: string;
   defaultCollapsed?: boolean;
+  pollutant?: PollutantType;
 }
 
 export const MapLegend: React.FC<MapLegendProps> = ({
   className,
   defaultCollapsed = false,
+  pollutant = 'pm2_5',
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  const standards = WHO_PM25_STANDARDS;
+  // Convert POLLUTANT_RANGES to displayable format
+  const getPollutantRanges = (pollutantType: PollutantType) => {
+    const ranges = POLLUTANT_RANGES[pollutantType];
+    if (!ranges) return [];
+
+    // Sort by limit ascending
+    const sortedRanges = [...ranges].sort((a, b) => a.limit - b.limit);
+    const displayRanges = [];
+
+    for (let i = 0; i < sortedRanges.length - 1; i++) {
+      const current = sortedRanges[i];
+      const next = sortedRanges[i + 1];
+
+      // Skip invalid category
+      if (current.category === 'Invalid') continue;
+
+      displayRanges.push({
+        level: current.category,
+        min: current.limit,
+        max: next.limit,
+      });
+    }
+
+    return displayRanges;
+  };
+
+  const ranges = getPollutantRanges(pollutant);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -64,24 +92,33 @@ export const MapLegend: React.FC<MapLegendProps> = ({
       {/* Legend items - only show when expanded */}
       {!isCollapsed && (
         <div className="px-2 pb-2 space-y-1">
-          {standards.map(standard => {
-            const level = mapAqiCategoryToLevel(standard.level);
+          {ranges.map(range => {
+            const level = mapAqiCategoryToLevel(range.level);
             const IconComponent = getAirQualityIcon(level);
+
+            // Map category to display name
+            const displayNameMapping: Record<string, string> = {
+              GoodAir: 'Good',
+              ModerateAir: 'Moderate',
+              UnhealthyForSensitiveGroups: 'Unhealthy for Sensitive Groups',
+              Unhealthy: 'Unhealthy',
+              VeryUnhealthy: 'Very Unhealthy',
+              Hazardous: 'Hazardous',
+            };
+
+            const displayName = displayNameMapping[range.level] || range.level;
 
             return (
               <div
-                key={standard.level}
+                key={range.level}
                 className="flex items-center gap-2 py-1 px-1 rounded-lg hover:bg-gray-50/80 transition-all cursor-pointer group"
               >
                 <Tooltip
                   content={
                     <div className="w-[250px] flex flex-col justify-center items-center">
-                      <div className="font-semibold mb-1">{standard.level}</div>
+                      <div className="font-semibold mb-1">{displayName}</div>
                       <div className="text-xs">
-                        {standard.range.min}-
-                        {standard.range.max === Infinity
-                          ? '∞'
-                          : standard.range.max}{' '}
+                        {range.min}-{range.max === Infinity ? '∞' : range.max}{' '}
                         µg/m³
                       </div>
                     </div>
