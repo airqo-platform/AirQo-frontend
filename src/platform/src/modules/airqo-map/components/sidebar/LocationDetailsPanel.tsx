@@ -5,6 +5,7 @@ import { Button } from '@/shared/components/ui/button';
 import { CollapsibleCard } from '@/modules/airqo-map/components/sidebar/collapsible-card';
 import { CurrentAirQualityCard } from '@/modules/airqo-map/components/sidebar/CurrentAirQualityCard';
 import { WeeklyForecastCard } from '@/modules/airqo-map/components/sidebar/WeeklyForecastCard';
+import { LocationDetailsSkeleton } from '@/modules/airqo-map/components/sidebar/LocationDetailsSkeleton';
 // Icons are now imported from the centralized utility
 import { AqXClose } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
@@ -13,22 +14,14 @@ import { getAirQualityInfo } from '@/shared/utils/airQuality';
 interface LocationData {
   _id: string;
   name: string;
-  location: string;
   latitude: number;
   longitude: number;
-  pm25Value?: number;
-  airQuality?: string;
-  monitor?: string;
-  pollutionSource?: string;
-  pollutant?: string;
-  time?: string;
-  city?: string;
-  country?: string;
 }
 
 interface LocationDetailsPanelProps {
   locationData: LocationData;
   onBack?: () => void;
+  loading?: boolean;
 }
 
 // Get health tip based on air quality level
@@ -59,7 +52,10 @@ export const LocationDetailsHeader: React.FC<{
   <div className="flex-shrink-0 p-4 pb-2 border-b">
     <div className="flex items-center justify-between">
       <div className="flex-1">
-        <h2 className="text-lg font-semibold text-foreground truncate">
+        <h2
+          className="text-lg font-semibold text-foreground truncate max-w-[calc(100%-3rem)]"
+          title={locationData.name}
+        >
           {locationData.name}
         </h2>
       </div>
@@ -79,8 +75,9 @@ export const LocationDetailsHeader: React.FC<{
 export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   locationData,
   onBack,
+  loading = false,
 }) => {
-  const pm25Value = locationData.pm25Value || 8.63;
+  const pm25Value = 8.63; // Default value, will be fetched from API
   const airQualityInfo = React.useMemo(
     () => getAirQualityInfo(pm25Value, 'pm2_5'),
     [pm25Value]
@@ -88,32 +85,40 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
   return (
     <>
-      {/* Header */}
-      <LocationDetailsHeader locationData={locationData} onBack={onBack} />
+      {loading ? (
+        // Full loading skeleton including header
+        <LocationDetailsSkeleton />
+      ) : (
+        <>
+          {/* Header - Show when not loading */}
+          <LocationDetailsHeader locationData={locationData} onBack={onBack} />
 
-      {/* Scrollable Content */}
-      <div className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
-        {/* Weekly Forecast */}
-        <WeeklyForecastCard />
+          {/* Scrollable Content */}
+          <div className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
+            {/* Weekly Forecast */}
+            <WeeklyForecastCard />
 
-        {/* Current Air Quality */}
-        <CurrentAirQualityCard locationData={locationData} />
+            {/* Current Air Quality */}
+            <CurrentAirQualityCard locationData={locationData} />
 
-        {/* Health Alerts */}
-        <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
-          <div className="p-3 bg-green-50 rounded-lg">
-            <p className="text-sm font-medium text-green-800">
-              {locationData.name}&apos;s Air Quality is {airQualityInfo.label}{' '}
-              for breathing. {getHealthTip(airQualityInfo.label)}
-            </p>
+            {/* Health Alerts */}
+            <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
+              <div className="p-3 bg-green-50 rounded-lg">
+                <p className="text-sm font-medium text-green-800">
+                  {locationData.name}&apos;s Air Quality is{' '}
+                  {airQualityInfo.label} for breathing.{' '}
+                  {getHealthTip(airQualityInfo.label)}
+                </p>
+              </div>
+            </CollapsibleCard>
+
+            {/* More Insights */}
+            <CollapsibleCard title="More Insights" defaultExpanded={false}>
+              <PM25Chart locationName={locationData.name} />
+            </CollapsibleCard>
           </div>
-        </CollapsibleCard>
-
-        {/* More Insights */}
-        <CollapsibleCard title="More Insights" defaultExpanded={false}>
-          <PM25Chart locationName={locationData.name} />
-        </CollapsibleCard>
-      </div>
+        </>
+      )}
     </>
   );
 };

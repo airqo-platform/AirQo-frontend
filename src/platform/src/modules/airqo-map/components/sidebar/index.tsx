@@ -11,17 +11,8 @@ import { LocationDetailsPanel } from './LocationDetailsPanel';
 interface LocationData {
   _id: string;
   name: string;
-  location: string;
   latitude: number;
   longitude: number;
-  pm25Value?: number;
-  airQuality?: string;
-  monitor?: string;
-  pollutionSource?: string;
-  pollutant?: string;
-  time?: string;
-  city?: string;
-  country?: string;
 }
 
 interface MapSidebarProps {
@@ -35,6 +26,7 @@ interface MapSidebarProps {
   loading?: boolean;
   selectedLocation?: LocationData | null;
   onBackToList?: () => void;
+  locationDetailsLoading?: boolean;
 }
 
 export const MapSidebar: React.FC<MapSidebarProps> = ({
@@ -48,6 +40,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   loading = false,
   selectedLocation = null,
   onBackToList,
+  locationDetailsLoading = false,
 }) => {
   // Single Card wrapper for consistent styling
   const hasSearch = searchQuery.trim().length > 0;
@@ -69,6 +62,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
         <LocationDetailsPanel
           locationData={selectedLocation}
           onBack={onBackToList}
+          loading={locationDetailsLoading}
         />
       ) : (
         // Show location list
@@ -102,3 +96,5 @@ export { MapHeader } from './MapHeader';
 export { CountryList } from './CountryList';
 export { LocationsList } from './LocationsList';
 export { LocationCard, LocationCardSkeleton } from './LocationCard';
+export { LocationDetailsPanel } from './LocationDetailsPanel';
+export { LocationDetailsSkeleton } from './LocationDetailsSkeleton';

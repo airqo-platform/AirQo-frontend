@@ -11,17 +11,8 @@ import { getAirQualityInfo } from '@/shared/utils/airQuality';
 interface LocationData {
   _id: string;
   name: string;
-  location: string;
   latitude: number;
   longitude: number;
-  pm25Value?: number;
-  airQuality?: string;
-  monitor?: string;
-  pollutionSource?: string;
-  pollutant?: string;
-  time?: string;
-  city?: string;
-  country?: string;
 }
 
 interface CurrentAirQualityCardProps {
@@ -33,7 +24,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 }) => {
   const [showMoreDetails, setShowMoreDetails] = React.useState(false);
 
-  const pm25Value = locationData.pm25Value || 8.63;
+  const pm25Value = 8.63; // Default value, will be fetched from API
   const airQualityInfo = getAirQualityInfo(pm25Value, 'pm2_5');
   const AirQualityIcon = airQualityInfo.icon;
 
@@ -86,101 +77,94 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
           {showMoreDetails && (
             <>
               {/* Site name section */}
-              {locationData.monitor && (
-                <>
-                  <div className="pb-3">
-                    <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Site name
-                      </div>
-                    </div>
-                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.name}
-                    </div>
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Site name
                   </div>
+                </div>
+                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                  {locationData.name}
+                </div>
+              </div>
 
-                  {/* Monitor section */}
-                  <div className="pb-3">
-                    <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Monitor
-                      </div>
-                    </div>
-                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.monitor}
-                    </div>
+              {/* Monitor section */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Monitor
                   </div>
-                </>
-              )}
+                </div>
+                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                  Loading...
+                </div>
+              </div>
 
-              {locationData.pollutionSource && locationData.pollutant && (
-                <div className="pb-3">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Pollution Source
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Pollutant
-                      </span>
-                    </div>
-                  </div>
+              {/* Pollution source and pollutant - will be fetched from API */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.pollutionSource}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Pollution Source
                     </span>
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.pollutant}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Pollutant
                     </span>
                   </div>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    Loading...
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    Loading...
+                  </span>
+                </div>
+              </div>
 
-              {locationData.time && (
-                <div className="pb-3">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Date
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Time • GMT(+3)
-                      </span>
-                    </div>
-                  </div>
+              {/* Date and time - will be fetched from API */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      Apr 12th, 2024
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Date
                     </span>
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      1:28PM
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Time • GMT(+3)
                     </span>
                   </div>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    Loading...
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    Loading...
+                  </span>
+                </div>
+              </div>
 
-              {locationData.city && locationData.country && (
-                <div className="pb-3">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        City
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Country
-                      </span>
-                    </div>
-                  </div>
+              {/* City and country - will be fetched from API */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.city}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      City
                     </span>
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.country}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Country
                     </span>
                   </div>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    Loading...
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    Loading...
+                  </span>
+                </div>
+              </div>
             </>
           )}
 
