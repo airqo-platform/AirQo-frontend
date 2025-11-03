@@ -121,9 +121,6 @@ export const LocationsList: React.FC<LocationsListProps> = ({
               <div className="pt-4 text-center">
                 <div className="flex items-center justify-center">
                   <LoadingSpinner size={16} />
-                  <span className="ml-2 text-sm text-muted-foreground">
-                    Loading...
-                  </span>
                 </div>
               </div>
             )}
