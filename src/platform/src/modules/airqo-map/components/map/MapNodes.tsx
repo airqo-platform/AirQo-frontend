@@ -101,8 +101,8 @@ export const MapNodes: React.FC<MapNodesProps> = React.memo(
             <div
               className={cn(
                 'cursor-pointer pointer-events-auto transition-all duration-200',
-                'hover:scale-110 hover:z-[1000]',
-                isSelected && 'z-[900] scale-110',
+                'hover:scale-110 hover:z-[100]',
+                isSelected && 'z-[50] scale-110',
                 isInactive && 'opacity-60',
                 className
               )}
@@ -150,8 +150,8 @@ export const MapNodes: React.FC<MapNodesProps> = React.memo(
             <div
               className={cn(
                 'cursor-pointer pointer-events-auto transition-all duration-200',
-                'hover:scale-110 hover:z-[1000]',
-                isSelected && 'z-[900] scale-110',
+                'hover:scale-110 hover:z-[100]',
+                isSelected && 'z-[50] scale-110',
                 isInactive && 'opacity-60',
                 className
               )}
@@ -197,8 +197,8 @@ export const MapNodes: React.FC<MapNodesProps> = React.memo(
             <div
               className={cn(
                 'cursor-pointer pointer-events-auto transition-all duration-200',
-                'hover:scale-110 hover:z-[1000]',
-                isSelected && 'z-[900] scale-110',
+                'hover:scale-110 hover:z-[100]',
+                isSelected && 'z-[50] scale-110',
                 isInactive && 'opacity-60',
                 className
               )}
@@ -273,7 +273,7 @@ export const MapNodes: React.FC<MapNodesProps> = React.memo(
           <div
             className={cn(
               'flex items-center cursor-pointer pointer-events-auto transition-all duration-300',
-              'hover:scale-110 hover:z-[1000]',
+              'hover:scale-110 hover:z-[100]',
               className
             )}
             onClick={handleClick}
