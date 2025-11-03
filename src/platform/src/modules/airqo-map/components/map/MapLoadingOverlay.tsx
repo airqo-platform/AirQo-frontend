@@ -20,7 +20,7 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = ({
   return (
     <div
       className={cn(
-        'absolute inset-0 z-50 flex items-center justify-center',
+        'absolute inset-0 z-[1100] flex items-center justify-center',
         'bg-black bg-opacity-30 backdrop-blur-sm transition-all duration-300',
         className
       )}
@@ -28,33 +28,11 @@ export const MapLoadingOverlay: React.FC<MapLoadingOverlayProps> = ({
       aria-live="polite"
       aria-label={message}
     >
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-xs mx-4 text-center">
+      <div className="bg-white rounded-lg shadow-xl p-4 max-w-xs mx-4 text-center">
         {/* Spinning refresh icon */}
-        <div className="flex justify-center mb-4">
-          <LoadingSpinner size={32} className="text-primary" />
+        <div className="flex justify-center">
+          <LoadingSpinner className="text-primary" />
         </div>
-
-        {/* Loading message */}
-        <p className="text-gray-700 font-medium mb-2">{message}</p>
-
-        {/* Progress dots */}
-        <div className="flex justify-center space-x-1">
-          <div
-            className="w-2 h-2 bg-primary rounded-full animate-bounce"
-            style={{ animationDelay: '0ms' }}
-          />
-          <div
-            className="w-2 h-2 bg-primary rounded-full animate-bounce"
-            style={{ animationDelay: '150ms' }}
-          />
-          <div
-            className="w-2 h-2 bg-primary rounded-full animate-bounce"
-            style={{ animationDelay: '300ms' }}
-          />
-        </div>
-
-        {/* Accessible text for screen readers */}
-        <span className="sr-only">Loading content, please wait...</span>
       </div>
     </div>
   );
