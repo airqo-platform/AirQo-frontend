@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Dialog } from '@/shared/components/ui';
+import Image from 'next/image';
 
 // Map style dialog component for selecting map appearance
 
@@ -20,11 +21,11 @@ const mapDetailStyles = [
     name: 'Emoji',
     nodeStyle: 'emoji' as const,
   },
-  // {
-  //   id: 'heatmap',
-  //   name: 'Heatmap',
-  //   nodeStyle: 'heatmap' as const,
-  // },
+  {
+    id: 'heatmap',
+    name: 'Heatmap',
+    nodeStyle: 'heatmap' as const,
+  },
   {
     id: 'node',
     name: 'Node',
@@ -119,21 +120,64 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
       <div className="space-y-6">
         {/* Map Details Section */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-3">
+          <h3 className="text-sm font-medium text-gray-900 mb-4">
             Map Details
           </h3>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="flex gap-2">
             {mapDetailStyles.map(detail => (
               <button
                 key={detail.id}
-                onClick={() => setSelectedDetail(detail.id)}
-                className={`p-3 text-sm rounded-lg border transition-all duration-200 hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  selectedDetail === detail.id
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
-                    : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                onClick={() =>
+                  detail.id !== 'heatmap' && setSelectedDetail(detail.id)
+                }
+                disabled={detail.id === 'heatmap'}
+                className={`flex-shrink-0 flex flex-col items-center p-3 rounded-lg border transition-all duration-200 hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary min-w-[90px] ${
+                  detail.id === 'heatmap'
+                    ? 'opacity-50 cursor-not-allowed border-gray-300 bg-gray-100 text-gray-400'
+                    : selectedDetail === detail.id
+                      ? 'border-primary bg-primary/10 text-primary'
+                      : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                {detail.name}
+                <div className="w-12 h-8 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                  {detail.id === 'emoji' && (
+                    <Image
+                      src="/images/map/Emoji.webp"
+                      alt="Emoji style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                  {detail.id === 'node' && (
+                    <Image
+                      src="/images/map/Node.webp"
+                      alt="Node style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                  {detail.id === 'number' && (
+                    <Image
+                      src="/images/map/Node_number.webp"
+                      alt="Number style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                  {detail.id === 'heatmap' && (
+                    <Image
+                      src="/images/map/Heatmap.webp"
+                      alt="Heatmap style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                </div>
+                <span className="text-xs font-medium">{detail.name}</span>
               </button>
             ))}
           </div>
@@ -141,30 +185,57 @@ export const MapStyleDialog: React.FC<MapStyleDialogProps> = ({
 
         {/* Map Type Section */}
         <div>
-          <h3 className="text-sm font-medium text-gray-900 mb-3">Map Type</h3>
-          <div className="grid grid-cols-2 gap-2">
+          <h3 className="text-sm font-medium text-gray-900 mb-4">Map Type</h3>
+          <div className="flex gap-2">
             {defaultMapStyles.map(style => (
               <button
                 key={style.id}
                 onClick={() => setSelectedMapType(style.id)}
-                className={`p-3 text-sm rounded-lg border transition-all duration-200 text-left hover:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                className={`flex-shrink-0 flex flex-col items-center p-3 rounded-lg border transition-all duration-200 text-center hover:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary min-w-[90px] ${
                   selectedMapType === style.id
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    ? 'border-primary bg-primary/10 text-primary'
                     : 'border-gray-200 text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <div className="font-medium">{style.name}</div>
-                {style.id === 'satellite' && (
-                  <div className="text-xs text-gray-500 mt-1">Aerial view</div>
-                )}
-                {style.id === 'light' && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    Minimal design
-                  </div>
-                )}
-                {style.id === 'dark' && (
-                  <div className="text-xs text-gray-500 mt-1">Dark theme</div>
-                )}
+                <div className="w-12 h-8 bg-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                  {style.id === 'streets' && (
+                    <Image
+                      src="/images/map/street.webp"
+                      alt="Streets map style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                  {style.id === 'satellite' && (
+                    <Image
+                      src="/images/map/satellite.webp"
+                      alt="Satellite map style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                  {style.id === 'light' && (
+                    <Image
+                      src="/images/map/light.webp"
+                      alt="Light map style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                  {style.id === 'dark' && (
+                    <Image
+                      src="/images/map/dark.webp"
+                      alt="Dark map style"
+                      width={48}
+                      height={32}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  )}
+                </div>
+                <div className="font-medium text-xs">{style.name}</div>
               </button>
             ))}
           </div>
