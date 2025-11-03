@@ -110,7 +110,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
       {/* Top right controls */}
       <div
         className={cn(
-          'absolute top-4 right-4 z-10 flex flex-col gap-2',
+          'absolute top-4 right-4 z-[1100] flex flex-col gap-2',
           'sm:top-6 sm:right-6',
           className
         )}
@@ -153,7 +153,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
       {/* Bottom right controls - grouped zoom controls */}
       <div
         className={cn(
-          'absolute bottom-4 right-4 z-10 flex flex-col',
+          'absolute bottom-4 right-4 z-[1100] flex flex-col',
           'sm:bottom-6 sm:right-6'
         )}
       >

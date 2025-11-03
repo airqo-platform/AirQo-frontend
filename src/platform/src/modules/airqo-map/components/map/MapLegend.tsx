@@ -63,7 +63,7 @@ export const MapLegend: React.FC<MapLegendProps> = ({
   return (
     <div
       className={cn(
-        'absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-full shadow-xl border border-gray-200/50 z-10',
+        'absolute bottom-4 left-4 bg-white/95 backdrop-blur-sm rounded-full shadow-xl border border-gray-200/50 z-[1100]',
         'transition-all duration-300 ease-in-out',
         isCollapsed ? 'w-12 h-12' : 'w-30 h-auto',
         className
