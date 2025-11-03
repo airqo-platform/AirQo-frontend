@@ -21,6 +21,9 @@ import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import { dummyAirQualityData } from './dummyData';
 
+// Import air quality utilities
+import { getAirQualityLevel } from '@/shared/utils/airQuality';
+
 // Import Redux actions and selectors
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
@@ -65,67 +68,118 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const clusterThreshold = 11;
   const shouldShowClusters = (viewState.zoom || 12) < clusterThreshold;
 
-  // Simple clustering logic (in a real app, you'd use a proper clustering library)
-  const getClusters = useCallback(() => {
-    if (!shouldShowClusters) return [];
+  // Utility function to calculate distance between two points in kilometers
+  const calculateDistance = useCallback(
+    (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+      const R = 6371; // Earth's radius in kilometers
+      const dLat = ((lat2 - lat1) * Math.PI) / 180;
+      const dLng = ((lng2 - lng1) * Math.PI) / 180;
+      const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos((lat1 * Math.PI) / 180) *
+          Math.cos((lat2 * Math.PI) / 180) *
+          Math.sin(dLng / 2) *
+          Math.sin(dLng / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    },
+    []
+  );
 
-    // Group nearby readings into clusters
+  // Get clustering distance based on zoom level (in kilometers)
+  const getClusteringDistance = useCallback((zoom: number): number => {
+    // At zoom 11, cluster points within ~2km
+    // At lower zooms, cluster at larger distances
+    const baseDistance = 2; // km at zoom 11
+    const zoomDiff = clusterThreshold - zoom;
+    return baseDistance * Math.pow(2, zoomDiff);
+  }, []);
+
+  // Improved clustering logic
+  const getClusters = useCallback(() => {
+    if (!shouldShowClusters || airQualityData.length === 0) return [];
+
     const clusters: Array<{
       id: string;
       longitude: number;
       latitude: number;
       pointCount: number;
       readings: AirQualityReading[];
+      mostCommonLevel: string;
     }> = [];
 
     const processed = new Set<string>();
+    const clusteringDistance = getClusteringDistance(viewState.zoom || 12);
 
     airQualityData.forEach(reading => {
       if (processed.has(reading.id)) return;
 
-      const nearby = airQualityData.filter(other => {
-        if (processed.has(other.id) || other.id === reading.id) return false;
+      const nearby: AirQualityReading[] = [];
 
-        const distance = Math.sqrt(
-          Math.pow(other.longitude - reading.longitude, 2) +
-            Math.pow(other.latitude - reading.latitude, 2)
+      // Find all unprocessed readings within clustering distance
+      airQualityData.forEach(other => {
+        if (processed.has(other.id) || other.id === reading.id) return;
+
+        const distance = calculateDistance(
+          reading.latitude,
+          reading.longitude,
+          other.latitude,
+          other.longitude
         );
 
-        return distance < 0.01; // Adjust clustering distance as needed
+        if (distance <= clusteringDistance) {
+          nearby.push(other);
+        }
       });
 
-      if (nearby.length > 0) {
-        const allReadings = [reading, ...nearby];
-        const centerLng =
-          allReadings.reduce((sum, r) => sum + r.longitude, 0) /
-          allReadings.length;
-        const centerLat =
-          allReadings.reduce((sum, r) => sum + r.latitude, 0) /
-          allReadings.length;
+      // Create cluster with current reading and nearby readings
+      const clusterReadings = [reading, ...nearby];
 
-        clusters.push({
-          id: `cluster-${reading.id}`,
-          longitude: centerLng,
-          latitude: centerLat,
-          pointCount: allReadings.length,
-          readings: allReadings,
-        });
+      // Calculate center point
+      const centerLng =
+        clusterReadings.reduce((sum, r) => sum + r.longitude, 0) /
+        clusterReadings.length;
+      const centerLat =
+        clusterReadings.reduce((sum, r) => sum + r.latitude, 0) /
+        clusterReadings.length;
 
-        allReadings.forEach(r => processed.add(r.id));
-      } else {
-        processed.add(reading.id);
-        clusters.push({
-          id: `cluster-${reading.id}`,
-          longitude: reading.longitude,
-          latitude: reading.latitude,
-          pointCount: 1,
-          readings: [reading],
-        });
-      }
+      // Determine most common air quality level
+      const levelCounts: Record<string, number> = {};
+      clusterReadings.forEach(r => {
+        const level = getAirQualityLevel(r.pm25Value, 'pm2_5');
+        levelCounts[level] = (levelCounts[level] || 0) + 1;
+      });
+
+      let mostCommonLevel = 'good';
+      let maxCount = 0;
+      Object.entries(levelCounts).forEach(([level, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          mostCommonLevel = level;
+        }
+      });
+
+      clusters.push({
+        id: `cluster-${reading.id}-${Date.now()}`,
+        longitude: centerLng,
+        latitude: centerLat,
+        pointCount: clusterReadings.length,
+        readings: clusterReadings,
+        mostCommonLevel,
+      });
+
+      // Mark all readings in this cluster as processed
+      clusterReadings.forEach(r => processed.add(r.id));
     });
 
     return clusters;
-  }, [airQualityData, shouldShowClusters]);
+  }, [
+    airQualityData,
+    shouldShowClusters,
+    viewState.zoom,
+    calculateDistance,
+    getClusteringDistance,
+  ]);
 
   // Map control handlers
   const handleGeolocation = useCallback(() => {

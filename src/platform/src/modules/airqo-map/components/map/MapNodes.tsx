@@ -5,6 +5,7 @@ import { cn } from '@/shared/lib/utils';
 import {
   getAirQualityLevel,
   getAirQualityIcon,
+  type AirQualityLevel,
 } from '@/shared/utils/airQuality';
 import { CustomTooltip } from './CustomTooltip';
 
@@ -28,6 +29,7 @@ export interface ClusterData {
   latitude: number;
   pointCount: number;
   readings: AirQualityReading[];
+  mostCommonLevel?: string;
 }
 
 interface MapNodesProps {
@@ -52,28 +54,6 @@ const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
     default:
       return 'w-10 h-10';
   }
-};
-
-const getClusterSize = (pointCount: number, baseSize: 'sm' | 'md' | 'lg') => {
-  let multiplier = 1;
-  if (pointCount >= 50) multiplier = 2.2;
-  else if (pointCount >= 20) multiplier = 1.8;
-  else if (pointCount >= 10) multiplier = 1.5;
-  else if (pointCount >= 5) multiplier = 1.3;
-
-  const baseSizes = {
-    sm: 28,
-    md: 40,
-    lg: 48,
-  };
-
-  const size = Math.min(baseSizes[baseSize] * multiplier, 80);
-  return size;
-};
-
-const getWorstAirQuality = (readings: AirQualityReading[]): number => {
-  if (readings.length === 0) return 0;
-  return Math.max(...readings.map(reading => reading.pm25Value));
 };
 
 export const MapNodes: React.FC<MapNodesProps> = ({
@@ -271,11 +251,39 @@ export const MapNodes: React.FC<MapNodesProps> = ({
 
   // Render cluster
   if (isCluster && cluster) {
-    const worstPM25 = getWorstAirQuality(cluster.readings);
-    const level = getAirQualityLevel(worstPM25, 'pm2_5');
-    const IconComponent = getAirQualityIcon(level);
+    // Get the best and worst air quality levels from the cluster
+    const readings = cluster.readings || [];
+    const pm25Values = readings.map(r => r.pm25Value).filter(v => !isNaN(v));
 
-    const clusterSize = getClusterSize(cluster.pointCount, size);
+    // Get different levels for visual variety
+    const bestValue = Math.min(...pm25Values);
+    const worstValue = Math.max(...pm25Values);
+
+    const bestLevel = getAirQualityLevel(bestValue, 'pm2_5');
+    const worstLevel = getAirQualityLevel(worstValue, 'pm2_5');
+
+    const BestIcon = getAirQualityIcon(bestLevel);
+    const WorstIcon = getAirQualityIcon(worstLevel);
+
+    // Get background colors for each level
+    const getBgColor = (level: AirQualityLevel) => {
+      switch (level) {
+        case 'good':
+          return 'bg-green-500';
+        case 'moderate':
+          return 'bg-yellow-500';
+        case 'unhealthy-sensitive-groups':
+          return 'bg-orange-500';
+        case 'unhealthy':
+          return 'bg-red-500';
+        case 'very-unhealthy':
+          return 'bg-purple-500';
+        case 'hazardous':
+          return 'bg-red-900';
+        default:
+          return 'bg-gray-400';
+      }
+    };
 
     return (
       <CustomTooltip data={cluster}>
@@ -285,10 +293,6 @@ export const MapNodes: React.FC<MapNodesProps> = ({
             'hover:scale-110 hover:z-30',
             className
           )}
-          style={{
-            width: clusterSize,
-            height: clusterSize / 2,
-          }}
           onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -296,22 +300,33 @@ export const MapNodes: React.FC<MapNodesProps> = ({
           tabIndex={0}
           aria-label={`Cluster of ${cluster.pointCount} air quality monitoring stations`}
         >
-          {/* First node */}
-          <div className="w-10 h-10 rounded-full border-2 border-gray-300 shadow-lg flex items-center justify-center relative z-10 bg-white">
-            <IconComponent className="w-7 h-7 text-gray-700 drop-shadow-sm" />
-          </div>
-
-          {/* Second node */}
-          <div className="w-10 h-10 rounded-full border-2 border-gray-300 shadow-lg flex items-center justify-center relative -ml-3 z-20 bg-white">
-            <IconComponent className="w-7 h-7 text-gray-700 drop-shadow-sm" />
-          </div>
-
-          {/* Count badge */}
-          {cluster.pointCount > 2 && (
-            <div className="bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-full -ml-1 z-30 shadow-lg">
-              +{cluster.pointCount - 2}
+          {/* Background container for styling */}
+          <div className="bg-white rounded-full px-3 py-1 shadow-lg border border-gray-200 flex items-center">
+            {/* First node (best air quality) */}
+            <div
+              className={cn(
+                'w-8 h-8 rounded-full flex items-center justify-center relative z-10 border-2 border-white shadow-sm',
+                getBgColor(bestLevel)
+              )}
+            >
+              <BestIcon className="w-5 h-5 text-white drop-shadow-sm" />
             </div>
-          )}
+
+            {/* Second node (worst air quality) - overlapping */}
+            <div
+              className={cn(
+                'w-8 h-8 rounded-full flex items-center justify-center relative -ml-2 z-20 border-2 border-white shadow-sm',
+                getBgColor(worstLevel)
+              )}
+            >
+              <WorstIcon className="w-5 h-5 text-white drop-shadow-sm" />
+            </div>
+
+            {/* Count text */}
+            <span className="ml-2 text-sm font-semibold text-gray-700">
+              {cluster.pointCount}+
+            </span>
+          </div>
         </div>
       </CustomTooltip>
     );
