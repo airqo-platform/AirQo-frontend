@@ -17,6 +17,7 @@ interface LocationsListProps {
   onLocationSelect?: (locationId: string) => void;
   className?: string;
   searchQuery?: string;
+  selectedLocationId?: string;
 }
 
 export const LocationsList: React.FC<LocationsListProps> = ({
@@ -24,6 +25,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   onLocationSelect,
   className,
   searchQuery = '',
+  selectedLocationId,
 }) => {
   const { sites, isLoading, isLoadingMore, loadMore, hasNextPage } =
     useSitesByCountry({
@@ -100,6 +102,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
                       title={location.title}
                       location={location.location}
                       onClick={() => onLocationSelect?.(location.id)}
+                      isSelected={location.id === selectedLocationId}
                     />
                   ))}
             </div>

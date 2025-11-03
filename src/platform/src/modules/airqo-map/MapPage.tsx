@@ -16,7 +16,6 @@ import type {
 import {
   normalizeMapReadings,
   DEFAULT_POLLUTANT,
-  type PollutantType,
 } from './utils/dataNormalization';
 
 const MapPage = () => {
@@ -30,6 +29,17 @@ const MapPage = () => {
     React.useState<string>('uganda');
   const [locationDetailsLoading, setLocationDetailsLoading] =
     React.useState(false);
+  const [flyToLocation, setFlyToLocation] = React.useState<
+    | {
+        longitude: number;
+        latitude: number;
+        zoom?: number;
+      }
+    | undefined
+  >(undefined);
+  const [selectedLocationId, setSelectedLocationId] = React.useState<
+    string | null
+  >(null);
 
   // Use the new hooks
   const { setCountry } = useSitesByCountry({
@@ -54,20 +64,33 @@ const MapPage = () => {
 
   const handleLocationSelect = async (locationId: string) => {
     console.log('Location selected from sidebar:', locationId);
-    setLocationDetailsLoading(true);
 
     try {
       // Find the reading for this location
       const reading = readings.find(
         r => r.site_id === locationId || r._id === locationId
       );
-      if (reading) {
-        dispatch(setSelectedLocation(reading));
+      if (reading && reading.siteDetails) {
+        // Set the selected location ID for active state
+        setSelectedLocationId(locationId);
+
+        // Fly to the location on the map instead of opening details
+        setFlyToLocation({
+          longitude: reading.siteDetails.approximate_longitude,
+          latitude: reading.siteDetails.approximate_latitude,
+          zoom: 14, // Good zoom level for individual locations
+        });
+
+        // Clear the flyToLocation after animation completes
+        setTimeout(() => {
+          setFlyToLocation(undefined);
+        }, 1100); // Slightly longer than animation duration
+
+        // Clear any selected location from Redux (we don't need details panel)
+        dispatch(clearSelectedLocation());
       }
     } catch (error) {
-      console.error('Error loading location details:', error);
-    } finally {
-      setLocationDetailsLoading(false);
+      console.error('Error flying to location:', error);
     }
   };
 
@@ -79,6 +102,8 @@ const MapPage = () => {
       // Find the full reading data from our readings
       const fullReading = readings.find(r => r.site_id === reading.id);
       if (fullReading) {
+        // Clear the selected location ID from sidebar when clicking on map node
+        setSelectedLocationId(null);
         dispatch(setSelectedLocation(fullReading));
       }
     } catch (error) {
@@ -90,6 +115,8 @@ const MapPage = () => {
 
   const handleClusterClick = (cluster: ClusterData) => {
     console.log('Cluster clicked:', cluster);
+    // Clear the selected location ID from sidebar when clicking on cluster
+    setSelectedLocationId(null);
     // For clusters, we could show cluster summary or zoom in
     // For now, just log it
   };
@@ -111,6 +138,7 @@ const MapPage = () => {
             searchQuery={searchQuery}
             selectedCountry={selectedCountry}
             selectedMapReading={selectedLocation}
+            selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
             locationDetailsLoading={locationDetailsLoading}
           />
@@ -124,6 +152,7 @@ const MapPage = () => {
             onClusterClick={handleClusterClick}
             isLoading={mapDataLoading}
             onRefreshData={refetch}
+            flyToLocation={flyToLocation}
           />
         </div>
       </div>
@@ -138,6 +167,7 @@ const MapPage = () => {
             onClusterClick={handleClusterClick}
             isLoading={mapDataLoading}
             onRefreshData={refetch}
+            flyToLocation={flyToLocation}
           />
         </div>
 
@@ -151,6 +181,7 @@ const MapPage = () => {
             searchQuery={searchQuery}
             selectedCountry={selectedCountry}
             selectedMapReading={selectedLocation}
+            selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
           />
         </div>

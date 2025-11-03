@@ -33,6 +33,7 @@ interface EnhancedMapProps {
   onClusterClick?: (cluster: ClusterData) => void;
   isLoading?: boolean;
   onRefreshData?: () => Promise<void>;
+  flyToLocation?: { longitude: number; latitude: number; zoom?: number };
 }
 
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
@@ -47,6 +48,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   onClusterClick,
   isLoading = false,
   onRefreshData,
+  flyToLocation,
 }) => {
   const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
@@ -81,6 +83,18 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       return () => clearTimeout(timeoutId);
     }
   }, [viewState.zoom, debouncedZoom, clusterThreshold]);
+
+  // Handle programmatic fly-to location
+  useEffect(() => {
+    if (flyToLocation && mapRef.current) {
+      mapRef.current.flyTo({
+        center: [flyToLocation.longitude, flyToLocation.latitude],
+        zoom: flyToLocation.zoom || 14,
+        duration: 1000,
+        easing: t => t * (2 - t), // Ease-out quadratic for smooth animation
+      });
+    }
+  }, [flyToLocation]);
 
   const clusters = useMemo(() => {
     if (airQualityData.length === 0) return [];

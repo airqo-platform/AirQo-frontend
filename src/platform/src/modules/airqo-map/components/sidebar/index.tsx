@@ -26,6 +26,7 @@ interface MapSidebarProps {
   searchQuery?: string;
   selectedLocation?: LocationData | null;
   selectedMapReading?: MapReading | null;
+  selectedLocationId?: string | null;
   onBackToList?: () => void;
   locationDetailsLoading?: boolean;
 }
@@ -40,6 +41,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   searchQuery = '',
   selectedLocation = null,
   selectedMapReading = null,
+  selectedLocationId = null,
   onBackToList,
   locationDetailsLoading = false,
 }) => {
@@ -83,6 +85,12 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
               selectedCountry={selectedCountry}
               onLocationSelect={onLocationSelect}
               searchQuery={searchQuery}
+              selectedLocationId={
+                selectedLocationId ||
+                (selectedMapReading
+                  ? (selectedMapReading as MapReading).site_id
+                  : undefined)
+              }
             />
           </div>
         </>

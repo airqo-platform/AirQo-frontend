@@ -11,6 +11,7 @@ interface LocationCardProps {
   location: string;
   onClick?: () => void;
   className?: string;
+  isSelected?: boolean;
 }
 
 export const LocationCard: React.FC<LocationCardProps> = ({
@@ -18,12 +19,14 @@ export const LocationCard: React.FC<LocationCardProps> = ({
   location,
   onClick,
   className,
+  isSelected = false,
 }) => {
   return (
     <Card
       onClick={onClick}
       className={cn(
-        'cursor-pointer hover:bg-primary/10  border border-gray-200 dark:border-gray-700 dark:hover:bg-primary/20 hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-200 shadow-sm rounded-lg',
+        'cursor-pointer hover:bg-primary/10 border border-gray-200 dark:border-gray-700 dark:hover:bg-primary/20 hover:border-primary/20 dark:hover:border-primary/30 transition-all duration-200 shadow-sm rounded-lg',
+        isSelected && 'border-primary bg-primary/5 ring-2 ring-primary/20',
         className
       )}
     >
