@@ -100,12 +100,12 @@ export const TREND_ICONS = {
 // ========================================
 
 export const AIR_QUALITY_COLORS: Record<AirQualityLevel, string> = {
-  good: '#10B981', // green-500
-  moderate: '#F59E0B', // amber-500
-  'unhealthy-sensitive-groups': '#EF4444', // red-500
-  unhealthy: '#8B5CF6', // violet-500
-  'very-unhealthy': '#DC2626', // red-600
-  hazardous: '#7C2D12', // red-900
+  good: '#34C759', // green-500
+  moderate: '#ECAA06', // amber-500
+  'unhealthy-sensitive-groups': '#FF851F', // red-500
+  unhealthy: '#F7453C', // violet-500
+  'very-unhealthy': '#AC5CD9', // red-600
+  hazardous: '#D95BA3', // red-900
   'no-value': '#6B7280', // gray-500
 } as const;
 
