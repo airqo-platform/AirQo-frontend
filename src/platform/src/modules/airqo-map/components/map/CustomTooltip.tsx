@@ -211,8 +211,10 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       content={getTooltipContent(data)}
       placement="top"
       style="light"
-      className={cn('z-[1000]', className)}
+      className={cn('z-[9999] relative overflow-visible', className)}
       trigger="hover"
+      arrow={false}
+      animation="duration-0"
     >
       {children}
     </Tooltip>
