@@ -288,6 +288,7 @@ export interface SitesSummaryParams {
   tenant?: string;
   detailLevel?: string;
   search?: string;
+  country?: string;
 }
 
 // Cohort-based API types
@@ -405,7 +406,121 @@ export interface GridsSummaryParams {
   search?: string;
 }
 
-// Email verification
+// Countries list types
+export interface CountryData {
+  country: string;
+  sites: number;
+  flag_url: string;
+}
+
+export interface CountriesResponse {
+  success: boolean;
+  message: string;
+  countries: CountryData[];
+}
+
+// Map readings types
+export interface AQIRange {
+  min: number;
+  max: number | null;
+}
+
+export interface AQIRanges {
+  good: { min: number; max: number };
+  moderate: { min: number; max: number };
+  u4sg: { min: number; max: number };
+  unhealthy: { min: number; max: number };
+  very_unhealthy: { min: number; max: number };
+  hazardous: { min: number; max: number | null };
+}
+
+export interface Averages {
+  dailyAverage: number;
+  percentageDifference: number;
+  weeklyAverages: {
+    currentWeek: number;
+    previousWeek: number;
+  };
+}
+
+export interface HealthTip {
+  title: string;
+  description: string;
+  image: string;
+  tag_line: string;
+}
+
+export interface MapSiteDetails {
+  _id: string;
+  formatted_name: string;
+  location_name: string;
+  search_name: string;
+  town?: string;
+  city: string;
+  district: string;
+  county: string;
+  region: string;
+  country: string;
+  name: string;
+  approximate_latitude: number;
+  approximate_longitude: number;
+  bearing_in_radians: number;
+  data_provider: string;
+  description: string;
+  site_category: {
+    tags: string[];
+    category: string;
+  };
+}
+
+export interface MapReading {
+  _id: string;
+  site_id: string;
+  time: string;
+  aqi_category: string;
+  aqi_color: string;
+  aqi_color_name: string;
+  aqi_ranges: AQIRanges;
+  averages: Averages;
+  createdAt: string;
+  device: string;
+  device_id: string;
+  frequency: string;
+  health_tips: HealthTip[];
+  is_reading_primary: boolean;
+  no2: {
+    value: number | null;
+  };
+  pm10: {
+    value: number | null;
+  };
+  pm2_5: {
+    value: number | null;
+  };
+  siteDetails: MapSiteDetails;
+  timeDifferenceHours: number;
+  updatedAt: string;
+}
+
+export interface MapReadingsResponse {
+  success: boolean;
+  message: string;
+  measurements: MapReading[];
+}
+
+// Forecast types
+export interface ForecastData {
+  time: string;
+  pm2_5: number;
+  aqi_category: string;
+  aqi_color: string;
+  aqi_color_name: string;
+}
+
+export interface ForecastResponse {
+  forecasts: ForecastData[];
+  aqi_ranges: AQIRanges;
+}
 export interface VerifyEmailResponse {
   success: boolean;
   message: string;

@@ -2,31 +2,44 @@
 
 import React from 'react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
+import { useSitesByCountry, useMapReadings } from './hooks';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  setSelectedLocation,
+  clearSelectedLocation,
+} from '../../shared/store/selectedLocationSlice';
+import type { RootState } from '../../shared/store';
 import type {
   AirQualityReading,
   ClusterData,
 } from '@/modules/airqo-map/components/map/MapNodes';
 
-interface LocationData {
-  _id: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-}
-
 const MapPage = () => {
+  const dispatch = useDispatch();
+  const selectedLocation = useSelector(
+    (state: RootState) => state.selectedLocation.selectedReading
+  );
+
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedLocation, setSelectedLocation] =
-    React.useState<LocationData | null>(null);
+  const [selectedCountry, setSelectedCountry] =
+    React.useState<string>('uganda');
   const [locationDetailsLoading, setLocationDetailsLoading] =
     React.useState(false);
+
+  // Use the new hooks
+  const { setCountry } = useSitesByCountry({
+    country: selectedCountry,
+  });
+  const { readings } = useMapReadings();
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
 
   const handleCountrySelect = (countryCode: string) => {
-    console.log('Country selected:', countryCode);
+    const countryName = countryCode === 'all' ? undefined : countryCode;
+    setSelectedCountry(countryCode);
+    setCountry(countryName);
   };
 
   const handleLocationSelect = async (locationId: string) => {
@@ -34,18 +47,13 @@ const MapPage = () => {
     setLocationDetailsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock location data based on the images - this would normally come from an API
-      const mockLocationData: LocationData = {
-        _id: locationId,
-        name: 'Kyebando',
-        latitude: 0.347596,
-        longitude: 32.58252,
-      };
-
-      setSelectedLocation(mockLocationData);
+      // Find the reading for this location
+      const reading = readings.find(
+        r => r.site_id === locationId || r._id === locationId
+      );
+      if (reading) {
+        dispatch(setSelectedLocation(reading));
+      }
     } catch (error) {
       console.error('Error loading location details:', error);
     } finally {
@@ -58,18 +66,11 @@ const MapPage = () => {
     setLocationDetailsLoading(true);
 
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Convert the reading data to LocationData format
-      const locationData: LocationData = {
-        _id: reading.id,
-        name: reading.locationName || 'Unknown Location',
-        latitude: reading.latitude,
-        longitude: reading.longitude,
-      };
-
-      setSelectedLocation(locationData);
+      // Find the full reading data from our readings
+      const fullReading = readings.find(r => r.site_id === reading.id);
+      if (fullReading) {
+        dispatch(setSelectedLocation(fullReading));
+      }
     } catch (error) {
       console.error('Error loading location details:', error);
     } finally {
@@ -84,7 +85,7 @@ const MapPage = () => {
   };
 
   const handleBackToList = () => {
-    setSelectedLocation(null);
+    dispatch(clearSelectedLocation());
   };
 
   return (
@@ -98,7 +99,8 @@ const MapPage = () => {
             onCountrySelect={handleCountrySelect}
             onLocationSelect={handleLocationSelect}
             searchQuery={searchQuery}
-            selectedLocation={selectedLocation}
+            selectedCountry={selectedCountry}
+            selectedMapReading={selectedLocation}
             onBackToList={handleBackToList}
             locationDetailsLoading={locationDetailsLoading}
           />
@@ -131,7 +133,8 @@ const MapPage = () => {
             onCountrySelect={handleCountrySelect}
             onLocationSelect={handleLocationSelect}
             searchQuery={searchQuery}
-            selectedLocation={selectedLocation}
+            selectedCountry={selectedCountry}
+            selectedMapReading={selectedLocation}
             onBackToList={handleBackToList}
           />
         </div>

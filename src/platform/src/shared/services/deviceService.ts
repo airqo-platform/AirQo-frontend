@@ -18,6 +18,9 @@ import type {
   GroupCohortsResponse,
   GridsSummaryResponse,
   GridsSummaryParams,
+  CountriesResponse,
+  MapReadingsResponse,
+  ForecastResponse,
 } from '../types/api';
 
 export class DeviceService {
@@ -153,6 +156,45 @@ export class DeviceService {
     }
 
     return data as GridsSummaryResponse;
+  }
+
+  // Get countries list - authenticated endpoint
+  async getCountriesAuthenticated(): Promise<CountriesResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      CountriesResponse | ApiErrorResponse
+    >('/devices/grids/countries');
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get countries');
+    }
+
+    return data as CountriesResponse;
+  }
+
+  // Get map readings - authenticated endpoint
+  async getMapReadingsAuthenticated(): Promise<MapReadingsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      MapReadingsResponse | ApiErrorResponse
+    >('/devices/readings/map');
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get map readings');
+    }
+
+    return data as MapReadingsResponse;
+  }
+
+  // Get forecast data - authenticated endpoint
+  async getForecastAuthenticated(siteId: string): Promise<ForecastResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<ForecastResponse>(
+      `/predict/daily-forecast?site_id=${siteId}`
+    );
+    return response.data;
   }
 }
 

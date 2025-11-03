@@ -36,7 +36,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
             className="bg-black text-white rounded-md px-2 py-1 text-xs max-w-xs"
           >
             <h3
-              className="text-sm font-medium text-foreground truncate cursor-pointer"
+              className="text-sm font-medium text-foreground truncate max-w-[200px] cursor-pointer"
               title={title}
             >
               {title}
@@ -49,7 +49,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({
             className="bg-black text-white rounded-md px-2 py-1 text-xs max-w-xs"
           >
             <p
-              className="text-xs text-muted-foreground mb-0 truncate cursor-pointer"
+              className="text-xs text-muted-foreground mb-0 truncate max-w-[200px] cursor-pointer"
               title={location}
             >
               {location}

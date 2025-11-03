@@ -7,6 +7,7 @@ import { MapHeader } from './MapHeader';
 import { CountryList } from './CountryList';
 import { LocationsList } from './LocationsList';
 import { LocationDetailsPanel } from './LocationDetailsPanel';
+import type { MapReading } from '../../../../shared/types/api';
 
 interface LocationData {
   _id: string;
@@ -23,8 +24,8 @@ interface MapSidebarProps {
   onLocationSelect?: (locationId: string, locationData?: LocationData) => void;
   selectedCountry?: string;
   searchQuery?: string;
-  loading?: boolean;
   selectedLocation?: LocationData | null;
+  selectedMapReading?: MapReading | null;
   onBackToList?: () => void;
   locationDetailsLoading?: boolean;
 }
@@ -35,10 +36,10 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   onSearch,
   onCountrySelect,
   onLocationSelect,
-  selectedCountry = 'all',
+  selectedCountry = 'uganda',
   searchQuery = '',
-  loading = false,
   selectedLocation = null,
+  selectedMapReading = null,
   onBackToList,
   locationDetailsLoading = false,
 }) => {
@@ -54,13 +55,12 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
     >
       {children ? (
         // Backward compatibility - render children if provided
-        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-          {children}
-        </div>
-      ) : selectedLocation ? (
+        <div className="flex-1 overflow-x-hidden min-h-0">{children}</div>
+      ) : selectedLocation || selectedMapReading ? (
         // Show location details
         <LocationDetailsPanel
-          locationData={selectedLocation}
+          locationData={selectedLocation || undefined}
+          mapReading={selectedMapReading || undefined}
           onBack={onBackToList}
           loading={locationDetailsLoading}
         />
@@ -80,9 +80,9 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
           )}
           <div className="flex-1 min-h-0">
             <LocationsList
+              selectedCountry={selectedCountry}
               onLocationSelect={onLocationSelect}
               searchQuery={searchQuery}
-              loading={loading}
             />
           </div>
         </>

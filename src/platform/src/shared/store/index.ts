@@ -7,6 +7,7 @@ import userReducer from './userSlice';
 import insightsReducer from './insightsSlice';
 import cohortReducer from './cohortSlice';
 import mapSettingsReducer from './mapSettingsSlice';
+import selectedLocationReducer from './selectedLocationSlice';
 import analyticsReducer from '@/modules/analytics/store/analyticsSlice';
 
 const userPersistConfig = {
@@ -42,6 +43,7 @@ export const store = configureStore({
     insights: insightsReducer,
     cohorts: cohortReducer,
     mapSettings: persistedMapSettingsReducer,
+    selectedLocation: selectedLocationReducer,
     analytics: analyticsReducer,
   },
   middleware: getDefaultMiddleware =>

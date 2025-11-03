@@ -9,6 +9,7 @@ import { LocationDetailsSkeleton } from '@/modules/airqo-map/components/sidebar/
 // Icons are now imported from the centralized utility
 import { AqXClose } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import type { MapReading } from '../../../../shared/types/api';
 
 // Types for location data
 interface LocationData {
@@ -19,7 +20,8 @@ interface LocationData {
 }
 
 interface LocationDetailsPanelProps {
-  locationData: LocationData;
+  locationData?: LocationData; // Keep for backward compatibility
+  mapReading?: MapReading; // New prop for full reading data
   onBack?: () => void;
   loading?: boolean;
 }
@@ -74,14 +76,32 @@ export const LocationDetailsHeader: React.FC<{
 // Location Details Content Component
 export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   locationData,
+  mapReading,
   onBack,
   loading = false,
 }) => {
-  const pm25Value = 8.63; // Default value, will be fetched from API
+  // Use mapReading data if available, otherwise fall back to locationData
+  const currentLocationData = React.useMemo(() => {
+    if (mapReading) {
+      return {
+        _id: mapReading.site_id,
+        name: mapReading.siteDetails.formatted_name,
+        latitude: mapReading.siteDetails.approximate_latitude,
+        longitude: mapReading.siteDetails.approximate_longitude,
+      };
+    }
+    return locationData;
+  }, [mapReading, locationData]);
+
+  const pm25Value = mapReading?.pm2_5?.value || 8.63; // Use actual PM2.5 value or default
   const airQualityInfo = React.useMemo(
     () => getAirQualityInfo(pm25Value, 'pm2_5'),
     [pm25Value]
   );
+
+  if (!currentLocationData) {
+    return <LocationDetailsSkeleton />;
+  }
 
   return (
     <>
@@ -91,7 +111,10 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
       ) : (
         <>
           {/* Header - Show when not loading */}
-          <LocationDetailsHeader locationData={locationData} onBack={onBack} />
+          <LocationDetailsHeader
+            locationData={currentLocationData}
+            onBack={onBack}
+          />
 
           {/* Scrollable Content */}
           <div className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
@@ -99,13 +122,13 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
             <WeeklyForecastCard />
 
             {/* Current Air Quality */}
-            <CurrentAirQualityCard locationData={locationData} />
+            <CurrentAirQualityCard locationData={currentLocationData} />
 
             {/* Health Alerts */}
             <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
               <div className="p-3 bg-green-50 rounded-lg">
                 <p className="text-sm font-medium text-green-800">
-                  {locationData.name}&apos;s Air Quality is{' '}
+                  {currentLocationData.name}&apos;s Air Quality is{' '}
                   {airQualityInfo.label} for breathing.{' '}
                   {getHealthTip(airQualityInfo.label)}
                 </p>
@@ -114,7 +137,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
             {/* More Insights */}
             <CollapsibleCard title="More Insights" defaultExpanded={false}>
-              <PM25Chart locationName={locationData.name} />
+              <PM25Chart locationName={currentLocationData.name} />
             </CollapsibleCard>
           </div>
         </>
