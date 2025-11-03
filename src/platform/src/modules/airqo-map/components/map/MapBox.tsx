@@ -48,7 +48,7 @@ export const MapBox: React.FC<MapBoxProps> = ({
 
   return (
     <div
-      className={cn('h-full w-full overflow-hidden', className)}
+      className={cn('h-full w-full overflow-visible', className)}
       style={style}
     >
       <Map

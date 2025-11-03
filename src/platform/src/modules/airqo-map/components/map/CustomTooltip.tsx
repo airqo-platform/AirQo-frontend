@@ -150,12 +150,17 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
       content={getTooltipContent(data, selectedPollutant)}
       placement="auto"
       style="light"
-      className={cn('z-[9999] relative overflow-visible', className)}
+      className={cn(
+        'z-[9999999] !important transform-gpu pointer-events-none',
+        className
+      )}
       trigger="hover"
       arrow={true}
-      animation="duration-0"
+      animation="duration-150"
     >
-      {children}
+      <div className="inline-block relative z-[1] isolate pointer-events-auto">
+        {children}
+      </div>
     </Tooltip>
   );
 };

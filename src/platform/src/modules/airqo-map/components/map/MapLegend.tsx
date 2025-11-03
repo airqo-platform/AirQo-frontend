@@ -130,9 +130,9 @@ export const MapLegend: React.FC<MapLegendProps> = ({
                       </div>
                     </div>
                   }
-                  placement="auto"
+                  placement="right"
                   style="light"
-                  className="ml-3 z-[1000]"
+                  className="ml-3 z-[9999]"
                 >
                   <IconComponent className="w-7 h-7" />
                 </Tooltip>

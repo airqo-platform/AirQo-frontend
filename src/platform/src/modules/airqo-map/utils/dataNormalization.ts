@@ -118,3 +118,92 @@ export function limitLocationsForDisplay(
 
   return { displayed, hasMore };
 }
+
+import type { MapReading } from '../../../shared/types/api';
+import type { AirQualityReading } from '../components/map/MapNodes';
+
+/**
+ * Pollutant type for dynamic selection
+ */
+export type PollutantType = 'pm2_5' | 'pm10';
+
+/**
+ * Configuration for pollutant display
+ */
+export interface PollutantConfig {
+  type: PollutantType;
+  label: string;
+  unit: string;
+}
+
+/**
+ * Available pollutant configurations
+ */
+export const POLLUTANT_CONFIGS: Record<PollutantType, PollutantConfig> = {
+  pm2_5: {
+    type: 'pm2_5',
+    label: 'PM2.5',
+    unit: 'µg/m³',
+  },
+  pm10: {
+    type: 'pm10',
+    label: 'PM10',
+    unit: 'µg/m³',
+  },
+};
+
+/**
+ * Default pollutant for display
+ */
+export const DEFAULT_POLLUTANT: PollutantType = 'pm2_5';
+
+/**
+ * Normalizes API map readings to UI air quality readings format
+ * Converts MapReading[] to AirQualityReading[] with dynamic pollutant support
+ */
+export function normalizeMapReadings(
+  readings: MapReading[],
+  pollutantType: PollutantType = DEFAULT_POLLUTANT
+): AirQualityReading[] {
+  return readings
+    .filter(reading => {
+      // Filter out readings without required data
+      const pollutantValue = reading[pollutantType]?.value;
+      return (
+        pollutantValue !== null &&
+        pollutantValue !== undefined &&
+        reading.siteDetails?.approximate_latitude &&
+        reading.siteDetails?.approximate_longitude
+      );
+    })
+    .map(reading => {
+      const pollutantValue = reading[pollutantType]?.value as number;
+
+      return {
+        id: reading.site_id || reading._id,
+        siteId: reading.site_id,
+        longitude: reading.siteDetails.approximate_longitude,
+        latitude: reading.siteDetails.approximate_latitude,
+        pm25Value: reading.pm2_5?.value || 0,
+        pm10Value: reading.pm10?.value || 0,
+        locationName:
+          reading.siteDetails.search_name ||
+          reading.siteDetails.formatted_name ||
+          reading.siteDetails.name ||
+          `${reading.siteDetails.city}, ${reading.siteDetails.country}`,
+        lastUpdated: new Date(reading.time || reading.updatedAt),
+        provider: reading.siteDetails.data_provider || 'AirQo',
+        status: reading.is_reading_primary ? 'active' : 'inactive',
+        isPrimary: reading.is_reading_primary,
+        aqiCategory: reading.aqi_category,
+        aqiColor: reading.aqi_color,
+        pollutantValue,
+        pollutantType,
+      } as AirQualityReading & {
+        aqiCategory: string;
+        aqiColor: string;
+        pollutantValue: number;
+        pollutantType: PollutantType;
+      };
+    });
+}

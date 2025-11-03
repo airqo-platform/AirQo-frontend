@@ -13,6 +13,11 @@ import type {
   AirQualityReading,
   ClusterData,
 } from '@/modules/airqo-map/components/map/MapNodes';
+import {
+  normalizeMapReadings,
+  DEFAULT_POLLUTANT,
+  type PollutantType,
+} from './utils/dataNormalization';
 
 const MapPage = () => {
   const dispatch = useDispatch();
@@ -30,7 +35,12 @@ const MapPage = () => {
   const { setCountry } = useSitesByCountry({
     country: selectedCountry,
   });
-  const { readings } = useMapReadings();
+  const { readings, isLoading: mapDataLoading, refetch } = useMapReadings();
+
+  // Normalize map readings for display
+  const normalizedReadings = React.useMemo(() => {
+    return normalizeMapReadings(readings, DEFAULT_POLLUTANT);
+  }, [readings]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -91,7 +101,7 @@ const MapPage = () => {
   return (
     <>
       {/* Desktop Layout */}
-      <div className="hidden md:flex h-full overflow-hidden shadow rounded">
+      <div className="hidden md:flex h-full overflow-visible shadow rounded">
         {/* Left Sidebar */}
         <div className="flex-shrink-0 h-full">
           <MapSidebar
@@ -109,8 +119,11 @@ const MapPage = () => {
         {/* Right Map Area */}
         <div className="flex-1 min-w-0 h-full">
           <EnhancedMap
+            airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
+            isLoading={mapDataLoading}
+            onRefreshData={refetch}
           />
         </div>
       </div>
@@ -120,8 +133,11 @@ const MapPage = () => {
         {/* Map Area - Top 1/3 */}
         <div className="h-1/2 flex-shrink-0">
           <EnhancedMap
+            airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
+            isLoading={mapDataLoading}
+            onRefreshData={refetch}
           />
         </div>
 

@@ -18,12 +18,12 @@ import { MapControls } from './MapControls';
 import { MapLegend } from './MapLegend';
 import { MapNodes } from './MapNodes';
 import { MapLoadingOverlay } from './MapLoadingOverlay';
+import { getAirQualityLevel } from '@/shared/utils/airQuality';
 import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
-import { dummyAirQualityData } from './dummyData';
-import { getAirQualityLevel } from '@/shared/utils/airQuality';
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
+import { DEFAULT_POLLUTANT } from '@/modules/airqo-map/utils/dataNormalization';
 
 interface EnhancedMapProps {
   className?: string;
@@ -31,6 +31,8 @@ interface EnhancedMapProps {
   airQualityData?: AirQualityReading[];
   onNodeClick?: (reading: AirQualityReading) => void;
   onClusterClick?: (cluster: ClusterData) => void;
+  isLoading?: boolean;
+  onRefreshData?: () => Promise<void>;
 }
 
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
@@ -40,9 +42,11 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     latitude: 0,
     zoom: 3,
   },
-  airQualityData = dummyAirQualityData,
+  airQualityData = [],
   onNodeClick,
   onClusterClick,
+  isLoading = false,
+  onRefreshData,
 }) => {
   const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
@@ -53,78 +57,37 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [debouncedZoom, setDebouncedZoom] = useState(viewState.zoom || 12);
 
-  // Debounce zoom changes to prevent excessive clustering recalculations
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setDebouncedZoom(viewState.zoom || 12);
-    }, 150);
-    return () => clearTimeout(timeoutId);
-  }, [viewState.zoom]);
-
   const currentMapStyle = useSelector(selectMapStyle);
   const currentNodeType = useSelector(selectNodeType);
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-  const clusterThreshold = 10;
+  const clusterThreshold = 14;
 
-  // Create spatial grid for faster neighbor lookups (performance optimization)
-  const spatialGrid = useMemo(() => {
-    const grid: Record<string, AirQualityReading[]> = {};
-    const cellSize = 0.1; // Degrees (~11km at equator)
+  useEffect(() => {
+    const currentZoom = viewState.zoom || 12;
+    const currentZoomLevel = Math.floor(currentZoom);
+    const debouncedZoomLevel = Math.floor(debouncedZoom);
 
-    airQualityData.forEach(reading => {
-      const cellX = Math.floor(reading.longitude / cellSize);
-      const cellY = Math.floor(reading.latitude / cellSize);
-      const key = `${cellX},${cellY}`;
+    if (
+      Math.abs(currentZoomLevel - debouncedZoomLevel) >= 0.3 ||
+      currentZoom >= clusterThreshold !== debouncedZoom >= clusterThreshold
+    ) {
+      const timeoutId = setTimeout(() => {
+        setDebouncedZoom(currentZoom);
+      }, 50); // Faster response for better UX
+      return () => clearTimeout(timeoutId);
+    }
+  }, [viewState.zoom, debouncedZoom, clusterThreshold]);
 
-      if (!grid[key]) {
-        grid[key] = [];
-      }
-      grid[key].push(reading);
-    });
-
-    return grid;
-  }, [airQualityData]);
-
-  // Utility function to calculate distance between two points in kilometers
-  const calculateDistance = useCallback(
-    (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-      const R = 6371; // Earth's radius in kilometers
-      const dLat = ((lat2 - lat1) * Math.PI) / 180;
-      const dLng = ((lng2 - lng1) * Math.PI) / 180;
-      const a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos((lat1 * Math.PI) / 180) *
-          Math.cos((lat2 * Math.PI) / 180) *
-          Math.sin(dLng / 2) *
-          Math.sin(dLng / 2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      return R * c;
-    },
-    []
-  );
-
-  // Get clustering distance based on zoom level (in kilometers)
-  const getClusteringDistance = useCallback((zoom: number): number => {
-    if (zoom >= clusterThreshold) return 0;
-
-    // Exponential decay for more natural clustering
-    const scale = Math.pow(2, clusterThreshold - zoom);
-    const baseDistance = 0.5 * scale; // 0.5km at zoom 9, doubles for each zoom level down
-
-    return Math.max(baseDistance, 0.3); // Minimum 300m clustering
-  }, []);
-
-  // Improved clustering logic with density-based approach for stable clusters
   const clusters = useMemo(() => {
     if (airQualityData.length === 0) return [];
 
-    const clusteringDistance = getClusteringDistance(debouncedZoom);
+    // Aggressive cluster breakup - clusters should disappear at higher zoom levels
+    if (debouncedZoom >= 14) {
+      return []; // No clustering at high zoom levels
+    }
 
-    // No clustering at high zoom
-    if (clusteringDistance === 0) return [];
-
-    const clusterList: Array<{
+    const clusters: Array<{
       id: string;
       longitude: number;
       latitude: number;
@@ -135,129 +98,72 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
     const processed = new Set<string>();
 
-    // Calculate density for each point (number of neighbors within clustering distance)
-    const readingsWithDensity = airQualityData.map(reading => {
-      // Use spatial grid to find nearby cells for faster lookup
-      const cellX = Math.floor(reading.longitude / 0.1);
-      const cellY = Math.floor(reading.latitude / 0.1);
-      let neighborCount = 0;
+    // Much more aggressive distance reduction based on zoom
+    const getClusterDistance = (zoom: number) => {
+      if (zoom < 6) return 8.0; // Very low zoom - large clusters
+      if (zoom < 8) return 5.0; // Low zoom
+      if (zoom < 10) return 3.0; // Medium zoom
+      if (zoom < 12) return 1.5; // Higher zoom - smaller clusters
+      if (zoom < 14) return 0.8; // Very high zoom - tiny clusters
+      return 0; // No clustering above zoom 14
+    };
 
-      // Check neighboring cells (3x3 grid around current cell)
-      for (let dx = -1; dx <= 1; dx++) {
-        for (let dy = -1; dy <= 1; dy++) {
-          const key = `${cellX + dx},${cellY + dy}`;
-          const cellReadings = spatialGrid[key] || [];
+    const clusterDistance = getClusterDistance(debouncedZoom);
 
-          cellReadings.forEach(other => {
-            if (other.id === reading.id) return;
-            const distance = calculateDistance(
-              reading.latitude,
-              reading.longitude,
-              other.latitude,
-              other.longitude
-            );
-            if (distance <= clusteringDistance) {
-              neighborCount++;
-            }
-          });
-        }
-      }
+    // Minimum nodes required for a cluster - more aggressive
+    const getMinClusterSize = (zoom: number) => {
+      if (zoom < 8) return 2; // Allow small clusters at low zoom
+      if (zoom < 10) return 3; // Medium clusters
+      if (zoom < 12) return 4; // Larger clusters required
+      return 5; // High threshold for high zoom
+    };
 
-      return { reading, density: neighborCount };
-    });
+    const minClusterSize = getMinClusterSize(debouncedZoom);
 
-    // Process highest density points first for better clustering stability
-    readingsWithDensity
-      .sort((a, b) => b.density - a.density)
-      .forEach(({ reading }) => {
-        if (processed.has(reading.id)) return;
+    airQualityData.forEach((reading, index) => {
+      if (processed.has(reading.id)) return;
 
-        // Find all unprocessed points within clustering distance
-        const nearbyPoints = airQualityData.filter(other => {
-          if (processed.has(other.id) || other.id === reading.id) return false;
+      const nearby = airQualityData.filter((other, otherIndex) => {
+        if (otherIndex <= index || processed.has(other.id)) return false;
 
-          const distance = calculateDistance(
-            reading.latitude,
-            reading.longitude,
-            other.latitude,
-            other.longitude
-          );
-
-          return distance <= clusteringDistance;
-        });
-
-        // Create cluster if we have at least 2 nearby points (3+ total for meaningful clusters)
-        if (nearbyPoints.length >= 2) {
-          const clusterReadings = [reading, ...nearbyPoints];
-
-          // Calculate centroid with equal weighting for smoother positioning
-          let totalWeight = 0;
-          let weightedLng = 0;
-          let weightedLat = 0;
-
-          clusterReadings.forEach(r => {
-            const weight = 1; // Equal weighting for simplicity and stability
-            totalWeight += weight;
-            weightedLng += r.longitude * weight;
-            weightedLat += r.latitude * weight;
-          });
-
-          const centerLng = weightedLng / totalWeight;
-          const centerLat = weightedLat / totalWeight;
-
-          // Determine most severe air quality level (prioritize worse conditions)
-          const levelSeverity: Record<string, number> = {
-            good: 0,
-            moderate: 1,
-            'unhealthy-sensitive': 2,
-            unhealthy: 3,
-            'very-unhealthy': 4,
-            hazardous: 5,
-          };
-
-          let mostSevereLevel = 'good';
-          let maxSeverity = -1;
-
-          clusterReadings.forEach(r => {
-            const level = getAirQualityLevel(r.pm25Value, 'pm2_5');
-            const severity = levelSeverity[level] ?? 0;
-            if (severity > maxSeverity) {
-              maxSeverity = severity;
-              mostSevereLevel = level;
-            }
-          });
-
-          // Create stable cluster ID based on sorted member IDs for consistent rendering
-          const stableId = clusterReadings
-            .map(r => r.id)
-            .sort()
-            .join('-');
-
-          clusterList.push({
-            id: `cluster-${stableId}`,
-            longitude: centerLng,
-            latitude: centerLat,
-            pointCount: clusterReadings.length,
-            readings: clusterReadings,
-            mostCommonLevel: mostSevereLevel,
-          });
-
-          // Mark all readings in this cluster as processed
-          clusterReadings.forEach(r => processed.add(r.id));
-        } else {
-          // Mark isolated point as processed
-          processed.add(reading.id);
-        }
+        const distance = Math.sqrt(
+          Math.pow((other.longitude - reading.longitude) * 111, 2) +
+            Math.pow((other.latitude - reading.latitude) * 111, 2)
+        );
+        return distance <= clusterDistance;
       });
 
-    return clusterList;
-  }, [
-    airQualityData,
-    debouncedZoom,
-    calculateDistance,
-    getClusteringDistance,
-    spatialGrid,
-  ]);
+      if (nearby.length >= minClusterSize - 1) {
+        const allReadings = [reading, ...nearby];
+        allReadings.forEach(r => processed.add(r.id));
+
+        const avgLng =
+          allReadings.reduce((sum, r) => sum + r.longitude, 0) /
+          allReadings.length;
+        const avgLat =
+          allReadings.reduce((sum, r) => sum + r.latitude, 0) /
+          allReadings.length;
+
+        const pm25Values = allReadings
+          .map(r => r.pm25Value)
+          .filter(v => !isNaN(v));
+        const avgPm25 =
+          pm25Values.reduce((sum, val) => sum + val, 0) / pm25Values.length;
+        const mostCommonLevel = getAirQualityLevel(avgPm25, 'pm2_5');
+
+        clusters.push({
+          id: `cluster-${reading.id}-${index}`,
+          longitude: avgLng,
+          latitude: avgLat,
+          pointCount: allReadings.length,
+          readings: allReadings,
+          mostCommonLevel,
+        });
+      }
+    });
+
+    return clusters;
+  }, [airQualityData, debouncedZoom]);
 
   // Map control handlers
   const handleGeolocation = useCallback(() => {
@@ -287,17 +193,19 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   }, []);
 
   const handleRefreshMap = useCallback(async () => {
+    if (!onRefreshData) return;
+
     setIsRefreshing(true);
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await onRefreshData();
       console.log('Map data refreshed successfully');
     } catch (error) {
       console.error('Failed to refresh map data:', error);
     } finally {
       setIsRefreshing(false);
     }
-  }, []);
+  }, [onRefreshData]);
 
   const handleMapStyleToggle = useCallback(() => {
     setIsStyleDialogOpen(true);
@@ -334,19 +242,44 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
     }) => {
       if (cluster.pointCount === 1) {
         handleNodeClick(cluster.readings[0]);
-      } else {
-        // Calculate optimal zoom to show cluster members
-        const targetZoom = Math.min(clusterThreshold + 1, 18);
-
-        mapRef.current?.flyTo({
-          center: [cluster.longitude, cluster.latitude],
-          zoom: targetZoom,
-          duration: 1000,
-        });
-        onClusterClick?.(cluster);
+        return;
       }
+
+      const currentZoom = viewState.zoom || 10;
+
+      // AGGRESSIVE ZOOM STRATEGY
+      // Always zoom to at least level 14 to ensure cluster breakup
+      let targetZoom = Math.max(14, currentZoom + 2);
+
+      // For very close points, zoom even higher
+      const lons = cluster.readings.map(r => r.longitude);
+      const lats = cluster.readings.map(r => r.latitude);
+      const lonSpan = Math.max(...lons) - Math.min(...lons);
+      const latSpan = Math.max(...lats) - Math.min(...lats);
+
+      if (lonSpan < 0.001 && latSpan < 0.001) {
+        targetZoom = Math.max(16, currentZoom + 4); // Very tight clusters
+      } else if (lonSpan < 0.01 && latSpan < 0.01) {
+        targetZoom = Math.max(15, currentZoom + 3); // Moderate clusters
+      }
+
+      // Cap at reasonable max zoom
+      targetZoom = Math.min(18, targetZoom);
+
+      // Calculate center point of cluster
+      const centerLon = lons.reduce((sum, lon) => sum + lon, 0) / lons.length;
+      const centerLat = lats.reduce((sum, lat) => sum + lat, 0) / lats.length;
+
+      // Use flyTo instead of fitBounds for more predictable zoom behavior
+      mapRef.current?.flyTo({
+        center: [centerLon, centerLat],
+        zoom: targetZoom,
+        duration: 1200,
+      });
+
+      onClusterClick?.(cluster);
     },
-    [handleNodeClick, onClusterClick, clusterThreshold]
+    [handleNodeClick, onClusterClick, viewState.zoom]
   );
 
   if (!mapboxAccessToken) {
@@ -380,55 +313,93 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         mapStyle={currentMapStyle}
         attributionControl={false}
         interactiveLayerIds={[]}
-        reuseMaps
+        reuseMaps={true}
         projection="mercator"
         pitchWithRotate={false}
         touchZoomRotate={false}
+        dragPan={true}
+        doubleClickZoom={true}
+        onClick={e => {
+          if (!e.features || e.features.length === 0) {
+            setSelectedNode(null);
+          }
+        }}
       >
         {/* Render nodes and clusters based on zoom level and proximity */}
         <>
-          {/* Show clusters when they exist (at lower zoom levels) */}
+          {/* Show clusters - always render for clickability, but style differently based on zoom */}
           {clusters.map(cluster => (
             <Marker
-              key={`cluster-${cluster.id}`}
+              key={cluster.id}
               longitude={cluster.longitude}
               latitude={cluster.latitude}
               anchor="center"
-              style={{ zIndex: 1000 }}
             >
               <MapNodes
                 cluster={cluster}
                 nodeType={currentNodeType}
                 onClick={data => handleClusterClick(data as ClusterData)}
+                selectedPollutant={DEFAULT_POLLUTANT}
+                zoomLevel={debouncedZoom}
               />
             </Marker>
           ))}
 
           {/* Show individual nodes that are not part of any cluster */}
+          {/* Render non-primary readings first (lower z-index) */}
           {airQualityData
             .filter(reading => {
-              // Check if this reading is part of any cluster
-              const isInCluster = clusters.some(cluster =>
-                cluster.readings.some(
-                  clusterReading => clusterReading.id === reading.id
-                )
+              return (
+                !clusters.some(cluster =>
+                  cluster.readings.some(
+                    clusterReading => clusterReading.id === reading.id
+                  )
+                ) && reading.isPrimary === false
               );
-              return !isInCluster;
             })
             .map(reading => (
               <Marker
-                key={`node-${reading.id}`}
+                key={reading.id}
                 longitude={reading.longitude}
                 latitude={reading.latitude}
                 anchor="center"
-                style={{ zIndex: 1000 }}
               >
                 <MapNodes
                   reading={reading}
                   nodeType={currentNodeType}
                   onClick={data => handleNodeClick(data as AirQualityReading)}
                   isSelected={selectedNode === reading.id}
-                  size="lg"
+                  size="md"
+                  selectedPollutant={DEFAULT_POLLUTANT}
+                />
+              </Marker>
+            ))}
+
+          {/* Render primary readings last (higher z-index) */}
+          {airQualityData
+            .filter(reading => {
+              return (
+                !clusters.some(cluster =>
+                  cluster.readings.some(
+                    clusterReading => clusterReading.id === reading.id
+                  )
+                ) && reading.isPrimary !== false
+              );
+            })
+            .map(reading => (
+              <Marker
+                key={reading.id}
+                longitude={reading.longitude}
+                latitude={reading.latitude}
+                anchor="center"
+              >
+                <MapNodes
+                  reading={reading}
+                  nodeType={currentNodeType}
+                  onClick={data => handleNodeClick(data as AirQualityReading)}
+                  isSelected={selectedNode === reading.id}
+                  size="md"
+                  selectedPollutant={DEFAULT_POLLUTANT}
                 />
               </Marker>
             ))}
@@ -444,7 +415,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         isRefreshing={isRefreshing}
       />
 
-      <MapLegend />
+      <MapLegend pollutant={DEFAULT_POLLUTANT} />
 
       <MapStyleDialog
         isOpen={isStyleDialogOpen}
@@ -454,8 +425,12 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       />
 
       <MapLoadingOverlay
-        isVisible={isRefreshing}
-        message="Refreshing air quality data..."
+        isVisible={isLoading || isRefreshing}
+        message={
+          isLoading
+            ? 'Loading air quality data...'
+            : 'Refreshing air quality data...'
+        }
       />
     </div>
   );
