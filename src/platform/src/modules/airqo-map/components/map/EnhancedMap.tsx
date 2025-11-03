@@ -36,9 +36,9 @@ interface EnhancedMapProps {
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   className,
   initialViewState = {
-    longitude: 32.5825,
-    latitude: 0.3476,
-    zoom: 12,
+    longitude: 20,
+    latitude: 0,
+    zoom: 3,
   },
   airQualityData = dummyAirQualityData,
   onNodeClick,
@@ -65,7 +65,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   const currentNodeType = useSelector(selectNodeType);
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
-  const clusterThreshold = 9;
+  const clusterThreshold = 10;
 
   // Create spatial grid for faster neighbor lookups (performance optimization)
   const spatialGrid = useMemo(() => {
