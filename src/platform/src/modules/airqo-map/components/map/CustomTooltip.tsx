@@ -148,10 +148,10 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   return (
     <Tooltip
       content={getTooltipContent(data, selectedPollutant)}
-      placement="auto"
+      placement="top"
       style="light"
       className={cn(
-        'z-[9999999] !important transform-gpu pointer-events-none',
+        'z-[10000000] !important transform-gpu pointer-events-none',
         className
       )}
       trigger="hover"

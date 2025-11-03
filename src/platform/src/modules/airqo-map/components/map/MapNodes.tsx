@@ -48,6 +48,7 @@ interface MapNodesProps {
   onClick?: (data: AirQualityReading | ClusterData) => void;
   onHover?: (data: AirQualityReading | ClusterData | null) => void;
   isSelected?: boolean;
+  isHovered?: boolean;
   className?: string;
   selectedPollutant?: PollutantType;
   zoomLevel?: number; // Add zoom level for cluster styling
@@ -64,6 +65,46 @@ const getSizeClasses = (size: 'sm' | 'md' | 'lg') => {
   }
 };
 
+// Enhanced z-index calculation for proper layering with hover support
+const getZIndexClasses = (
+  isSelected: boolean,
+  isHovered: boolean,
+  isPrimary: boolean,
+  isCluster: boolean
+) => {
+  // Base z-index levels (higher for more important items)
+  const baseLevels = {
+    cluster: 30,
+    primary: 20,
+    regular: 10,
+  };
+
+  const baseLevel = isCluster
+    ? baseLevels.cluster
+    : isPrimary
+      ? baseLevels.primary
+      : baseLevels.regular;
+
+  // Priority modifiers (higher numbers = higher priority)
+  const modifiers = {
+    base: 0,
+    selected: 200,
+    hovered: 300,
+    selectedHovered: 400,
+  };
+
+  let modifier = modifiers.base;
+  if (isSelected && isHovered) {
+    modifier = modifiers.selectedHovered;
+  } else if (isHovered) {
+    modifier = modifiers.hovered;
+  } else if (isSelected) {
+    modifier = modifiers.selected;
+  }
+
+  return `z-[${baseLevel + modifier}]`;
+};
+
 const MapNodesComponent: React.FC<MapNodesProps> = ({
   reading,
   cluster,
@@ -72,6 +113,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   onClick,
   onHover,
   isSelected = false,
+  isHovered = false,
   className,
   selectedPollutant = 'pm2_5',
   zoomLevel = 10,
@@ -119,10 +161,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
               'hover:scale-105 active:scale-95',
-              isSelected && 'z-[200]',
-              isPrimaryReading
-                ? 'z-[50] hover:z-[250]'
-                : 'z-[30] hover:z-[200]',
+              getZIndexClasses(isSelected, isHovered, isPrimaryReading, false),
               isInactive && 'opacity-60',
               className
             )}
@@ -181,10 +220,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
               'hover:scale-105 active:scale-95',
-              isSelected && 'z-[200]',
-              isPrimaryReading
-                ? 'z-[50] hover:z-[250]'
-                : 'z-[30] hover:z-[200]',
+              getZIndexClasses(isSelected, isHovered, isPrimaryReading, false),
               isInactive && 'opacity-60',
               className
             )}
@@ -241,10 +277,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             className={cn(
               'relative cursor-pointer pointer-events-auto transition-all duration-150',
               'hover:scale-105 active:scale-95',
-              isSelected && 'z-[200]',
-              isPrimaryReading
-                ? 'z-[50] hover:z-[250]'
-                : 'z-[30] hover:z-[200]',
+              getZIndexClasses(isSelected, isHovered, isPrimaryReading, false),
               isInactive && 'opacity-60',
               className
             )}
@@ -344,7 +377,8 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         <div
           className={cn(
             'relative flex items-center cursor-pointer pointer-events-auto transition-all duration-200',
-            'hover:scale-105 active:scale-95 z-[60] hover:z-[400]',
+            'hover:scale-105 active:scale-95',
+            getZIndexClasses(isSelected, isHovered, false, true),
             isHighZoom && 'opacity-100',
             className
           )}
