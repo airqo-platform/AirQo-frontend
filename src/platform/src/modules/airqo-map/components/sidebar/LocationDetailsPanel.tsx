@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Image from 'next/image';
 import { Button } from '@/shared/components/ui/button';
 import { CollapsibleCard } from '@/modules/airqo-map/components/sidebar/collapsible-card';
 import { CurrentAirQualityCard } from '@/modules/airqo-map/components/sidebar/CurrentAirQualityCard';
@@ -52,10 +53,10 @@ export const LocationDetailsHeader: React.FC<{
   onBack?: () => void;
 }> = ({ locationData, onBack }) => (
   <div className="flex-shrink-0 p-4 pb-2 border-b">
-    <div className="flex items-center justify-between">
-      <div className="flex-1">
+    <div className="flex items-center gap-2">
+      <div className="flex-1 min-w-0">
         <h2
-          className="text-lg font-semibold text-foreground truncate max-w-[calc(100%-3rem)]"
+          className="text-lg font-semibold text-foreground truncate"
           title={locationData.name}
         >
           {locationData.name}
@@ -65,7 +66,7 @@ export const LocationDetailsHeader: React.FC<{
         variant="ghost"
         size="sm"
         onClick={onBack}
-        className="p-1 h-8 w-8 ml-2 flex-shrink-0"
+        className="p-1 h-8 w-8 flex-shrink-0"
       >
         <AqXClose className="h-4 w-4" />
       </Button>
@@ -85,7 +86,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
     if (mapReading) {
       return {
         _id: mapReading.site_id,
-        name: mapReading.siteDetails.formatted_name,
+        name: mapReading.siteDetails.location_name,
         latitude: mapReading.siteDetails.approximate_latitude,
         longitude: mapReading.siteDetails.approximate_longitude,
       };
@@ -93,11 +94,13 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
     return locationData;
   }, [mapReading, locationData]);
 
-  const pm25Value = mapReading?.pm2_5?.value || 8.63; // Use actual PM2.5 value or default
-  const airQualityInfo = React.useMemo(
-    () => getAirQualityInfo(pm25Value, 'pm2_5'),
-    [pm25Value]
-  );
+  const pm25Value = mapReading?.pm2_5?.value;
+  const airQualityInfo = React.useMemo(() => {
+    if (pm25Value !== null && pm25Value !== undefined) {
+      return getAirQualityInfo(pm25Value, 'pm2_5');
+    }
+    return null;
+  }, [pm25Value]);
 
   if (!currentLocationData) {
     return <LocationDetailsSkeleton />;
@@ -119,20 +122,65 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
           {/* Scrollable Content */}
           <div className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
             {/* Weekly Forecast */}
-            <WeeklyForecastCard />
+            <WeeklyForecastCard siteId={mapReading?.site_id} />
 
             {/* Current Air Quality */}
-            <CurrentAirQualityCard locationData={currentLocationData} />
+            <CurrentAirQualityCard
+              locationData={currentLocationData}
+              mapReading={mapReading}
+            />
 
             {/* Health Alerts */}
             <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <p className="text-sm font-medium text-green-800">
-                  {currentLocationData.name}&apos;s Air Quality is{' '}
-                  {airQualityInfo.label} for breathing.{' '}
-                  {getHealthTip(airQualityInfo.label)}
-                </p>
-              </div>
+              {mapReading?.health_tips && mapReading.health_tips.length > 0 ? (
+                <div className="space-y-3">
+                  {mapReading.health_tips.map((tip, index) => (
+                    <div
+                      key={index}
+                      className="p-3 bg-orange-50 rounded-lg border border-orange-200"
+                    >
+                      <div className="flex items-start gap-3">
+                        {tip.image && (
+                          <Image
+                            src={tip.image}
+                            alt={tip.title}
+                            width={48}
+                            height={48}
+                            className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold text-orange-900 mb-1">
+                            {tip.title}
+                          </h4>
+                          <p className="text-sm text-orange-800 mb-2">
+                            {tip.description}
+                          </p>
+                          {tip.tag_line && (
+                            <p className="text-xs text-orange-700 italic">
+                              {tip.tag_line}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : airQualityInfo ? (
+                <div className="p-3 bg-green-50 rounded-lg">
+                  <p className="text-sm font-medium text-green-800">
+                    {currentLocationData.name}&apos;s Air Quality is{' '}
+                    {airQualityInfo.label} for breathing.{' '}
+                    {getHealthTip(airQualityInfo.label)}
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3 bg-gray-50 rounded-lg">
+                  <p className="text-sm text-gray-600">
+                    No health information available at this time.
+                  </p>
+                </div>
+              )}
             </CollapsibleCard>
 
             {/* More Insights */}

@@ -99,8 +99,10 @@ const MapPage = () => {
     setLocationDetailsLoading(true);
 
     try {
-      // Find the full reading data from our readings
-      const fullReading = readings.find(r => r.site_id === reading.id);
+      // Use the full reading data if available, otherwise find it from readings
+      const fullReading =
+        reading.fullReadingData || readings.find(r => r.site_id === reading.id);
+
       if (fullReading) {
         // Clear the selected location ID from sidebar when clicking on map node
         setSelectedLocationId(null);

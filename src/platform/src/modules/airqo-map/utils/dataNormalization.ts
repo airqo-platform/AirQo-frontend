@@ -199,11 +199,13 @@ export function normalizeMapReadings(
         aqiColor: reading.aqi_color,
         pollutantValue,
         pollutantType,
+        fullReadingData: reading,
       } as AirQualityReading & {
         aqiCategory: string;
         aqiColor: string;
         pollutantValue: number;
         pollutantType: PollutantType;
+        fullReadingData: MapReading;
       };
     });
 }

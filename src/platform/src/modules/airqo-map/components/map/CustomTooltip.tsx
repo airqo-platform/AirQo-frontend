@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Tooltip } from 'flowbite-react';
-import { cn } from '@/shared/lib/utils';
+import { cn, formatTruncatedNumber } from '@/shared/lib/utils';
 import {
   getAirQualityLevel,
   getAirQualityIcon,
@@ -21,7 +21,7 @@ interface CustomTooltipProps {
 }
 
 const formatValue = (value: number): string => {
-  return value.toFixed(1);
+  return formatTruncatedNumber(value, 2);
 };
 
 const formatDate = (date: Date): string => {

@@ -6,6 +6,8 @@ import { Button } from '@/shared/components/ui/button';
 import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
 import { AqWind01 } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import { formatTruncatedNumber } from '@/shared/lib/utils';
+import type { MapReading } from '../../../../shared/types/api';
 
 // Types for location data
 interface LocationData {
@@ -17,16 +19,43 @@ interface LocationData {
 
 interface CurrentAirQualityCardProps {
   locationData: LocationData;
+  mapReading?: MapReading;
 }
 
 export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   locationData,
+  mapReading,
 }) => {
   const [showMoreDetails, setShowMoreDetails] = React.useState(false);
 
-  const pm25Value = 8.63; // Default value, will be fetched from API
-  const airQualityInfo = getAirQualityInfo(pm25Value, 'pm2_5');
-  const AirQualityIcon = airQualityInfo.icon;
+  const pm25Value = mapReading?.pm2_5?.value;
+  const pm10Value = mapReading?.pm10?.value;
+  const airQualityInfo = React.useMemo(() => {
+    if (pm25Value !== null && pm25Value !== undefined) {
+      return getAirQualityInfo(pm25Value, 'pm2_5');
+    }
+    return null;
+  }, [pm25Value]);
+  const AirQualityIcon = airQualityInfo?.icon;
+
+  // Format date and time
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return { date: 'N/A', time: 'N/A' };
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    });
+    const formattedTime = date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return { date: formattedDate, time: formattedTime };
+  };
+
+  const { date, time } = formatDateTime(mapReading?.time);
 
   return (
     <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -43,10 +72,12 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               </span>
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {pm25Value}µg/m³
+              {pm25Value !== null && pm25Value !== undefined
+                ? `${formatTruncatedNumber(pm25Value, 2)}µg/m³`
+                : 'N/A'}
             </div>
           </div>
-          <AirQualityIcon className="w-12 h-12" />
+          {AirQualityIcon && <AirQualityIcon className="w-12 h-12" />}
         </div>
 
         {/* Location section */}
@@ -69,7 +100,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               </div>
             </div>
             <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-              {airQualityInfo.level}
+              {airQualityInfo?.level || mapReading?.aqi_category || 'N/A'}
             </div>
           </div>
 
@@ -84,7 +115,7 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                   </div>
                 </div>
                 <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                  {locationData.name}
+                  {mapReading?.siteDetails?.name || locationData.name}
                 </div>
               </div>
 
@@ -96,11 +127,11 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                   </div>
                 </div>
                 <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                  Loading...
+                  {mapReading?.device || 'N/A'}
                 </div>
               </div>
 
-              {/* Pollution source and pollutant - will be fetched from API */}
+              {/* Pollution source and pollutant */}
               <div className="pb-3">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
@@ -114,15 +145,19 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    Loading...
+                    N/A
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    Loading...
+                    {pm25Value !== null && pm25Value !== undefined
+                      ? `PM2.5: ${formatTruncatedNumber(pm25Value, 2)}`
+                      : pm10Value !== null && pm10Value !== undefined
+                        ? `PM10: ${formatTruncatedNumber(pm10Value, 2)}`
+                        : 'N/A'}
                   </span>
                 </div>
               </div>
 
-              {/* Date and time - will be fetched from API */}
+              {/* Date and time */}
               <div className="pb-3">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
@@ -136,15 +171,15 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    Loading...
+                    {date}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    Loading...
+                    {time}
                   </span>
                 </div>
               </div>
 
-              {/* City and country - will be fetched from API */}
+              {/* City and country */}
               <div className="pb-3">
                 <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
@@ -158,10 +193,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    Loading...
+                    {mapReading?.siteDetails?.city || 'N/A'}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    Loading...
+                    {mapReading?.siteDetails?.country || 'N/A'}
                   </span>
                 </div>
               </div>

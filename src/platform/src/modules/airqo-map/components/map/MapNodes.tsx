@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { cn } from '@/shared/lib/utils';
+import { cn, truncateDecimals } from '@/shared/lib/utils';
 import {
   getAirQualityLevel,
   getAirQualityIcon,
@@ -25,6 +25,8 @@ export interface AirQualityReading {
   aqiColor?: string;
   pollutantValue?: number;
   pollutantType?: 'pm2_5' | 'pm10';
+  // Add reference to full reading data for details panel
+  fullReadingData?: import('../../../../shared/types/api').MapReading;
 }
 
 export interface ClusterData {
@@ -208,7 +210,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
                 level === 'hazardous' && 'bg-red-900'
               )}
             >
-              {Math.round(reading.pm25Value)}
+              {truncateDecimals(reading.pm25Value, 2)}
             </div>
           </div>
         </CustomTooltip>
