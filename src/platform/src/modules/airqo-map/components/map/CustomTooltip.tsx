@@ -24,13 +24,14 @@ const formatValue = (value: number): string => {
   return formatTruncatedNumber(value, 2);
 };
 
-const formatDate = (date: Date): string => {
+const formatDate = (date: Date | string): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  }).format(date);
+  }).format(dateObj);
 };
 
 const getTooltipContent = (

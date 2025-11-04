@@ -9,6 +9,7 @@ import type {
 export interface UseForecastParams {
   siteId?: string;
   enabled?: boolean;
+  waqiForecastData?: ForecastData[];
 }
 
 export interface UseForecastResult {
@@ -25,6 +26,7 @@ export interface UseForecastResult {
 export function useForecast({
   siteId,
   enabled = true,
+  waqiForecastData,
 }: UseForecastParams = {}): UseForecastResult {
   const [forecast, setForecast] = useState<ForecastData[]>([]);
   const [aqiRanges, setAqiRanges] = useState<AQIRanges | null>(null);
@@ -32,7 +34,21 @@ export function useForecast({
   const [error, setError] = useState<string | null>(null);
 
   const fetchForecast = useCallback(async () => {
-    if (!siteId || !enabled) return;
+    if (!siteId || !enabled) {
+      // Clear data when no siteId or disabled
+      setForecast([]);
+      setAqiRanges(null);
+      setIsLoading(false);
+      return;
+    }
+
+    // Check if this is a WAQI site - always use embedded forecast data if available
+    if (siteId.startsWith('waqi-')) {
+      setForecast(waqiForecastData || []);
+      setAqiRanges(null); // WAQI doesn't provide AQI ranges
+      setIsLoading(false);
+      return;
+    }
 
     try {
       setIsLoading(true);
@@ -46,7 +62,7 @@ export function useForecast({
     } finally {
       setIsLoading(false);
     }
-  }, [siteId, enabled]);
+  }, [siteId, enabled, waqiForecastData]);
 
   useEffect(() => {
     fetchForecast();

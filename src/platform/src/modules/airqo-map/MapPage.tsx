@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
-import { useSitesByCountry, useMapReadings } from './hooks';
+import { useSitesByCountry, useMapReadings, useWAQICities } from './hooks';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   setSelectedLocation,
@@ -13,6 +13,7 @@ import type {
   AirQualityReading,
   ClusterData,
 } from '@/modules/airqo-map/components/map/MapNodes';
+import type { MapReading } from '../../shared/types/api';
 import {
   normalizeMapReadings,
   DEFAULT_POLLUTANT,
@@ -21,7 +22,21 @@ import {
 const MapPage = () => {
   const dispatch = useDispatch();
   const selectedLocation = useSelector(
-    (state: RootState) => state.selectedLocation.selectedReading
+    (state: RootState): MapReading | AirQualityReading | null => {
+      const reading = state.selectedLocation.selectedReading;
+      if (
+        reading &&
+        'lastUpdated' in reading &&
+        typeof reading.lastUpdated === 'string'
+      ) {
+        // Convert string back to Date for AirQualityReading
+        return {
+          ...reading,
+          lastUpdated: new Date(reading.lastUpdated),
+        } as AirQualityReading;
+      }
+      return reading as MapReading | AirQualityReading | null;
+    }
   );
 
   const [searchQuery, setSearchQuery] = React.useState('');
@@ -47,10 +62,44 @@ const MapPage = () => {
   });
   const { readings, isLoading: mapDataLoading, refetch } = useMapReadings();
 
+  // WAQI data for major cities - memoize to prevent infinite re-renders
+  const majorCities = React.useMemo(
+    () => [
+      // Europe
+      'london',
+      'paris',
+      'berlin',
+      'madrid',
+      'rome',
+      'amsterdam',
+      'vienna',
+      // America
+      'new york',
+      'los angeles',
+      'chicago',
+      'houston',
+      'phoenix',
+      'philadelphia',
+      // Asia
+      'tokyo',
+      'delhi',
+      'shanghai',
+      'mumbai',
+      'beijing',
+      'seoul',
+      'bangkok',
+    ],
+    []
+  );
+  const { citiesReadings: waqiReadings, isLoading: waqiLoading } =
+    useWAQICities(majorCities);
+
   // Normalize map readings for display
   const normalizedReadings = React.useMemo(() => {
-    return normalizeMapReadings(readings, DEFAULT_POLLUTANT);
-  }, [readings]);
+    const airqoReadings = normalizeMapReadings(readings, DEFAULT_POLLUTANT);
+    // Combine AirQo and WAQI readings
+    return [...airqoReadings, ...waqiReadings];
+  }, [readings, waqiReadings]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -99,15 +148,18 @@ const MapPage = () => {
     setLocationDetailsLoading(true);
 
     try {
-      // Use the full reading data if available, otherwise find it from readings
-      const fullReading =
-        reading.fullReadingData || readings.find(r => r.site_id === reading.id);
+      // Create a serializable version of the reading
+      const serializableReading: AirQualityReading = {
+        ...reading,
+        lastUpdated:
+          reading.lastUpdated instanceof Date
+            ? reading.lastUpdated.toISOString()
+            : reading.lastUpdated,
+      };
 
-      if (fullReading) {
-        // Clear the selected location ID from sidebar when clicking on map node
-        setSelectedLocationId(null);
-        dispatch(setSelectedLocation(fullReading));
-      }
+      // Clear the selected location ID from sidebar when clicking on map node
+      setSelectedLocationId(null);
+      dispatch(setSelectedLocation(serializableReading));
     } catch (error) {
       console.error('Error loading location details:', error);
     } finally {
@@ -152,7 +204,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading}
+            isLoading={mapDataLoading || waqiLoading}
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
           />
@@ -167,7 +219,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading}
+            isLoading={mapDataLoading || waqiLoading}
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
           />

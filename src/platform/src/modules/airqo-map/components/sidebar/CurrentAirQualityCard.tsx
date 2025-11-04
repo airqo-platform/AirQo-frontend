@@ -8,6 +8,7 @@ import { AqWind01 } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
 import { formatTruncatedNumber } from '@/shared/lib/utils';
 import type { MapReading } from '../../../../shared/types/api';
+import type { AirQualityReading } from '../map/MapNodes';
 
 // Types for location data
 interface LocationData {
@@ -19,7 +20,7 @@ interface LocationData {
 
 interface CurrentAirQualityCardProps {
   locationData: LocationData;
-  mapReading?: MapReading;
+  mapReading?: MapReading | AirQualityReading;
 }
 
 export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
@@ -28,8 +29,12 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
 }) => {
   const [showMoreDetails, setShowMoreDetails] = React.useState(false);
 
-  const pm25Value = mapReading?.pm2_5?.value;
-  const pm10Value = mapReading?.pm10?.value;
+  const pm25Value =
+    (mapReading as MapReading)?.pm2_5?.value ||
+    (mapReading as AirQualityReading)?.pm25Value;
+  const pm10Value =
+    (mapReading as MapReading)?.pm10?.value ||
+    (mapReading as AirQualityReading)?.pm10Value;
   const airQualityInfo = React.useMemo(() => {
     if (pm25Value !== null && pm25Value !== undefined) {
       return getAirQualityInfo(pm25Value, 'pm2_5');
@@ -55,7 +60,18 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
     return { date: formattedDate, time: formattedTime };
   };
 
-  const { date, time } = formatDateTime(mapReading?.time);
+  const getLastUpdatedISOString = (
+    lastUpdated: Date | string | undefined
+  ): string | undefined => {
+    if (!lastUpdated) return undefined;
+    if (typeof lastUpdated === 'string') return lastUpdated;
+    return lastUpdated.toISOString();
+  };
+
+  const { date, time } = formatDateTime(
+    (mapReading as MapReading)?.time ||
+      getLastUpdatedISOString((mapReading as AirQualityReading)?.lastUpdated)
+  );
 
   return (
     <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -100,7 +116,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               </div>
             </div>
             <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-              {airQualityInfo?.level || mapReading?.aqi_category || 'N/A'}
+              {airQualityInfo?.level ||
+                (mapReading as MapReading)?.aqi_category ||
+                (mapReading as AirQualityReading)?.aqiCategory ||
+                'N/A'}
             </div>
           </div>
 
@@ -115,7 +134,9 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                   </div>
                 </div>
                 <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                  {mapReading?.siteDetails?.name || locationData.name}
+                  {(mapReading as MapReading)?.siteDetails?.name ||
+                    (mapReading as AirQualityReading)?.locationName ||
+                    locationData.name}
                 </div>
               </div>
 
@@ -127,7 +148,9 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                   </div>
                 </div>
                 <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                  {mapReading?.device || 'N/A'}
+                  {(mapReading as MapReading)?.device ||
+                    (mapReading as AirQualityReading)?.provider ||
+                    'N/A'}
                 </div>
               </div>
 
@@ -193,10 +216,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {mapReading?.siteDetails?.city || 'N/A'}
+                    {(mapReading as MapReading)?.siteDetails?.city || 'N/A'}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {mapReading?.siteDetails?.country || 'N/A'}
+                    {(mapReading as MapReading)?.siteDetails?.country || 'N/A'}
                   </span>
                 </div>
               </div>

@@ -8,6 +8,7 @@ import { CountryList } from './CountryList';
 import { LocationsList } from './LocationsList';
 import { LocationDetailsPanel } from './LocationDetailsPanel';
 import type { MapReading } from '../../../../shared/types/api';
+import type { AirQualityReading } from '../map/MapNodes';
 
 interface LocationData {
   _id: string;
@@ -25,7 +26,7 @@ interface MapSidebarProps {
   selectedCountry?: string;
   searchQuery?: string;
   selectedLocation?: LocationData | null;
-  selectedMapReading?: MapReading | null;
+  selectedMapReading?: MapReading | AirQualityReading | null;
   selectedLocationId?: string | null;
   onBackToList?: () => void;
   locationDetailsLoading?: boolean;

@@ -121,6 +121,12 @@ export function limitLocationsForDisplay(
 
 import type { MapReading } from '../../../shared/types/api';
 import type { AirQualityReading } from '../components/map/MapNodes';
+import type { WAQICityResponse } from '../types/waqi';
+import type { ForecastData } from '../../../shared/types/api';
+import {
+  getAirQualityLevel,
+  getAirQualityColor,
+} from '../../../shared/utils/airQuality';
 
 /**
  * Pollutant type for dynamic selection
@@ -206,6 +212,58 @@ export function normalizeMapReadings(
         pollutantValue: number;
         pollutantType: PollutantType;
         fullReadingData: MapReading;
+      };
+    });
+}
+
+/**
+ * Normalizes WAQI city data to UI air quality readings format
+ */
+export function normalizeWAQIReadings(
+  waqiData: Array<{ city: string; data: WAQICityResponse['data'] }>
+): AirQualityReading[] {
+  return waqiData
+    .filter(item => item.data)
+    .map(item => {
+      const data = item.data;
+      const pm25 = data.iaqi.pm25?.v || 0;
+      const pm10 = data.iaqi.pm10?.v || 0;
+
+      // Use PM2.5 for AQI calculation
+      const level = getAirQualityLevel(pm25, 'pm2_5');
+      const color = getAirQualityColor(level);
+
+      // Convert WAQI forecast to AirQo forecast format if available
+      let forecastData: ForecastData[] = [];
+      if (data.forecast?.daily?.pm25) {
+        forecastData = data.forecast.daily.pm25.map(f => ({
+          time: f.day,
+          pm2_5: f.avg,
+          aqi_category: getAirQualityLevel(f.avg, 'pm2_5'),
+          aqi_color: getAirQualityColor(getAirQualityLevel(f.avg, 'pm2_5')),
+          aqi_color_name: getAirQualityLevel(f.avg, 'pm2_5'),
+        }));
+      }
+
+      return {
+        id: `waqi-${data.city.name.replace(/\s+/g, '-').toLowerCase()}`,
+        siteId: `waqi-${data.city.name.replace(/\s+/g, '-').toLowerCase()}`,
+        longitude: parseFloat(data.city.geo[1]),
+        latitude: parseFloat(data.city.geo[0]),
+        pm25Value: pm25,
+        pm10Value: pm10,
+        locationName: data.city.name,
+        lastUpdated: new Date(data.time.s),
+        provider: 'WAQI',
+        status: 'active',
+        isPrimary: false,
+        aqiCategory: level,
+        aqiColor: color,
+        pollutantValue: pm25, // Default to PM2.5
+        pollutantType: 'pm2_5',
+        // Add WAQI-specific data including forecast
+        waqiData: data,
+        forecastData: forecastData.length > 0 ? forecastData : undefined,
       };
     });
 }

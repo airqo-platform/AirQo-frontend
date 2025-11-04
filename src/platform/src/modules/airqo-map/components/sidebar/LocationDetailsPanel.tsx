@@ -11,6 +11,7 @@ import { LocationDetailsSkeleton } from '@/modules/airqo-map/components/sidebar/
 import { AqXClose } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
 import type { MapReading } from '../../../../shared/types/api';
+import type { AirQualityReading } from '../map/MapNodes';
 
 // Types for location data
 interface LocationData {
@@ -22,7 +23,7 @@ interface LocationData {
 
 interface LocationDetailsPanelProps {
   locationData?: LocationData; // Keep for backward compatibility
-  mapReading?: MapReading; // New prop for full reading data
+  mapReading?: MapReading | AirQualityReading; // Can be MapReading or AirQualityReading
   onBack?: () => void;
   loading?: boolean;
 }
@@ -84,17 +85,32 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   // Use mapReading data if available, otherwise fall back to locationData
   const currentLocationData = React.useMemo(() => {
     if (mapReading) {
-      return {
-        _id: mapReading.site_id,
-        name: mapReading.siteDetails.location_name,
-        latitude: mapReading.siteDetails.approximate_latitude,
-        longitude: mapReading.siteDetails.approximate_longitude,
-      };
+      // Check if it's a MapReading (has siteDetails)
+      if ((mapReading as MapReading).siteDetails) {
+        const mr = mapReading as MapReading;
+        return {
+          _id: mr.site_id,
+          name: mr.siteDetails.location_name,
+          latitude: mr.siteDetails.approximate_latitude,
+          longitude: mr.siteDetails.approximate_longitude,
+        };
+      } else {
+        // It's an AirQualityReading
+        const aqr = mapReading as AirQualityReading;
+        return {
+          _id: aqr.siteId,
+          name: aqr.locationName || aqr.siteId,
+          latitude: aqr.latitude,
+          longitude: aqr.longitude,
+        };
+      }
     }
     return locationData;
   }, [mapReading, locationData]);
 
-  const pm25Value = mapReading?.pm2_5?.value;
+  const pm25Value =
+    (mapReading as MapReading)?.pm2_5?.value ||
+    (mapReading as AirQualityReading)?.pm25Value;
   const airQualityInfo = React.useMemo(() => {
     if (pm25Value !== null && pm25Value !== undefined) {
       return getAirQualityInfo(pm25Value, 'pm2_5');
@@ -122,7 +138,13 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
           {/* Scrollable Content */}
           <div className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
             {/* Weekly Forecast */}
-            <WeeklyForecastCard siteId={mapReading?.site_id} />
+            <WeeklyForecastCard
+              siteId={
+                (mapReading as MapReading)?.site_id ||
+                (mapReading as AirQualityReading)?.siteId
+              }
+              waqiForecastData={(mapReading as AirQualityReading)?.forecastData}
+            />
 
             {/* Current Air Quality */}
             <CurrentAirQualityCard
@@ -132,9 +154,10 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
             {/* Health Alerts */}
             <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
-              {mapReading?.health_tips && mapReading.health_tips.length > 0 ? (
+              {(mapReading as MapReading)?.health_tips &&
+              (mapReading as MapReading).health_tips.length > 0 ? (
                 <div className="space-y-3">
-                  {mapReading.health_tips.map((tip, index) => (
+                  {(mapReading as MapReading).health_tips.map((tip, index) => (
                     <div
                       key={index}
                       className="p-3 bg-orange-50 rounded-lg border border-orange-200"

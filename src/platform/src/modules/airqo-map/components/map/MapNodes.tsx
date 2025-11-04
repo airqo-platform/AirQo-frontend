@@ -17,7 +17,7 @@ export interface AirQualityReading {
   pm25Value: number;
   pm10Value: number;
   locationName?: string;
-  lastUpdated: Date;
+  lastUpdated: Date | string;
   provider: string;
   status?: 'active' | 'inactive' | 'maintenance';
   isPrimary?: boolean;
@@ -27,6 +27,8 @@ export interface AirQualityReading {
   pollutantType?: 'pm2_5' | 'pm10';
   // Add reference to full reading data for details panel
   fullReadingData?: import('../../../../shared/types/api').MapReading;
+  // WAQI forecast data
+  forecastData?: import('../../../../shared/types/api').ForecastData[];
 }
 
 export interface ClusterData {

@@ -8,17 +8,22 @@ import { useForecast } from '../../hooks';
 import { AqCloudOff } from '@airqo/icons-react';
 import { LoadingSpinner } from '../../../../shared/components/ui/loading-spinner';
 
+import type { ForecastData } from '../../../../shared/types/api';
+
 interface WeeklyForecastCardProps {
   siteId?: string;
+  waqiForecastData?: ForecastData[];
 }
 
 export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   siteId,
+  waqiForecastData,
 }) => {
   // Use the forecast hook to fetch real data
   const { forecast, isLoading, error } = useForecast({
     siteId,
     enabled: !!siteId,
+    waqiForecastData,
   });
 
   // Handle loading state
