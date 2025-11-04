@@ -182,7 +182,7 @@ const MapPage = () => {
       {/* Desktop Layout */}
       <div className="hidden md:flex h-full overflow-visible shadow rounded">
         {/* Left Sidebar */}
-        <div className="flex-shrink-0 h-full">
+        <div className="flex-shrink-0 md:ml-2 h-full">
           <MapSidebar
             onSearch={handleSearch}
             onCountrySelect={handleCountrySelect}
