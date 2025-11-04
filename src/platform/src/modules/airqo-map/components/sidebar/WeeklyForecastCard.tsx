@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
-import { DatePicker, DateRange } from '@/shared/components/calendar';
 // Icons are now imported from the centralized utility
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
 import { useForecast } from '../../hooks';
@@ -16,8 +15,6 @@ interface WeeklyForecastCardProps {
 export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   siteId,
 }) => {
-  const [selectedDate, setSelectedDate] = React.useState(new Date());
-
   // Use the forecast hook to fetch real data
   const { forecast, isLoading, error } = useForecast({
     siteId,
@@ -66,46 +63,8 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
     );
   }
 
-  const handleDateChange = (
-    date: string | Date | DateRange | { from: string; to: string } | undefined
-  ) => {
-    if (date instanceof Date) {
-      setSelectedDate(date);
-    } else if (
-      date &&
-      typeof date === 'object' &&
-      'from' in date &&
-      typeof date.from === 'string'
-    ) {
-      // Handle string date ranges
-      const fromDate = new Date(date.from);
-      if (!isNaN(fromDate.getTime())) {
-        setSelectedDate(fromDate);
-      }
-    } else if (
-      date &&
-      typeof date === 'object' &&
-      'from' in date &&
-      date.from instanceof Date
-    ) {
-      setSelectedDate(date.from);
-    }
-  };
-
   return (
     <div className="w-full space-y-3">
-      {/* Date picker at top left */}
-      <div className="flex items-center justify-start">
-        <DatePicker
-          value={selectedDate}
-          onChange={handleDateChange}
-          mode="single"
-          placeholder="Select date"
-          className="w-auto min-w-0 shadow-sm"
-          align="start"
-        />
-      </div>
-
       {/* Horizontally scrollable forecast */}
       <div className="w-full overflow-x-auto overflow-y-hidden">
         <div className="flex gap-2 sm:gap-3 min-w-max py-2">
