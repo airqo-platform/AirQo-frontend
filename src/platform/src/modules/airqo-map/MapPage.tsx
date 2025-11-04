@@ -56,6 +56,13 @@ const MapPage = () => {
   const [selectedLocationId, setSelectedLocationId] = React.useState<
     string | null
   >(null);
+  const [selectedPollutant, setSelectedPollutant] = React.useState<
+    'pm2_5' | 'pm10'
+  >('pm2_5');
+
+  const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {
+    setSelectedPollutant(pollutant);
+  };
 
   // Use the new hooks
   const { setCountry } = useSitesByCountry({
@@ -186,6 +193,7 @@ const MapPage = () => {
             selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
             locationDetailsLoading={locationDetailsLoading}
+            selectedPollutant={selectedPollutant}
           />
         </div>
 
@@ -198,6 +206,8 @@ const MapPage = () => {
             isLoading={mapDataLoading} // Only show loading for AirQo data
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
+            selectedPollutant={selectedPollutant}
+            onPollutantChange={handlePollutantChange}
           />
         </div>
       </div>
@@ -213,6 +223,8 @@ const MapPage = () => {
             isLoading={mapDataLoading} // Only show loading for AirQo data
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
+            selectedPollutant={selectedPollutant}
+            onPollutantChange={handlePollutantChange}
           />
         </div>
 
@@ -228,6 +240,7 @@ const MapPage = () => {
             selectedMapReading={selectedLocation}
             selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
+            selectedPollutant={selectedPollutant}
           />
         </div>
       </div>

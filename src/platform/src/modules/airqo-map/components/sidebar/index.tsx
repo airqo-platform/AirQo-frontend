@@ -9,6 +9,7 @@ import { LocationsList } from './LocationsList';
 import { LocationDetailsPanel } from './LocationDetailsPanel';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
+import type { PollutantType } from '@/modules/airqo-map/utils/dataNormalization';
 
 interface LocationData {
   _id: string;
@@ -33,6 +34,7 @@ interface MapSidebarProps {
   selectedLocationId?: string | null;
   onBackToList?: () => void;
   locationDetailsLoading?: boolean;
+  selectedPollutant?: PollutantType;
 }
 
 export const MapSidebar: React.FC<MapSidebarProps> = ({
@@ -48,6 +50,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   selectedLocationId = null,
   onBackToList,
   locationDetailsLoading = false,
+  selectedPollutant = 'pm2_5',
 }) => {
   // Single Card wrapper for consistent styling
   const hasSearch = searchQuery.trim().length > 0;
@@ -69,6 +72,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
           mapReading={selectedMapReading || undefined}
           onBack={onBackToList}
           loading={locationDetailsLoading}
+          selectedPollutant={selectedPollutant}
         />
       ) : (
         // Show location list

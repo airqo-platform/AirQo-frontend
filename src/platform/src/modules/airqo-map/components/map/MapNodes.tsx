@@ -148,9 +148,13 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
 
   // Render individual node
   if (!isCluster && reading) {
-    const pollutantValue = reading.pollutantValue ?? reading.pm25Value;
-    const pollutantType = reading.pollutantType ?? selectedPollutant;
-    const level = getAirQualityLevel(pollutantValue, pollutantType);
+    // Determine the pollutant value based on selected pollutant
+    const pollutantValue =
+      selectedPollutant === 'pm2_5'
+        ? reading.pm25Value
+        : (reading as AirQualityReading).pm10Value;
+
+    const level = getAirQualityLevel(pollutantValue, selectedPollutant);
     const IconComponent = getAirQualityIcon(level);
     const sizeClasses = getSizeClasses(size);
     const isInactive =
@@ -202,7 +206,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             {/* Number node */}
             <div
               className={cn(
-                'rounded-full border-2 border-white shadow flex items-center justify-center relative transition-all duration-200 font-bold text-white',
+                'rounded-full border-2 border-white shadow-sm flex items-center justify-center relative transition-all duration-200 font-bold text-white',
                 sizeClasses,
                 level === 'good' && 'bg-green-500',
                 level === 'moderate' && 'bg-yellow-500',
@@ -261,7 +265,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             {/* Colored node */}
             <div
               className={cn(
-                'rounded-full border-2 border-white shadow relative transition-all duration-200',
+                'rounded-full border-2 border-white shadow-sm relative transition-all duration-200',
                 sizeClasses,
                 level === 'good' && 'bg-green-500',
                 level === 'moderate' && 'bg-yellow-500',
@@ -318,7 +322,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
             {/* Main node */}
             <div
               className={cn(
-                'rounded-full border-2 border-white shadow flex items-center justify-center relative transition-all duration-200 bg-white',
+                'rounded-full border-2 border-white shadow-sm flex items-center justify-center relative transition-all duration-200 bg-white',
                 sizeClasses
               )}
             >
@@ -349,18 +353,24 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
   // Render cluster
   if (isCluster && cluster) {
     const readings = cluster.readings || [];
-    const validReadings = readings.filter(r => !isNaN(r.pm25Value));
+    const validReadings = readings.filter(r => {
+      const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+      return val !== undefined && !isNaN(val);
+    });
 
     if (validReadings.length === 0) return null;
 
-    const pm25Values = validReadings.map(r => r.pm25Value);
-    const sortedValues = [...pm25Values].sort((a, b) => a - b);
+    const values = validReadings.map(r => {
+      return selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+    });
+
+    const sortedValues = [...values].sort((a, b) => a - b);
 
     const bestValue = sortedValues[0];
     const worstValue = sortedValues[sortedValues.length - 1];
 
-    const bestLevel = getAirQualityLevel(bestValue, 'pm2_5');
-    const worstLevel = getAirQualityLevel(worstValue, 'pm2_5');
+    const bestLevel = getAirQualityLevel(bestValue, selectedPollutant);
+    const worstLevel = getAirQualityLevel(worstValue, selectedPollutant);
 
     const BestIcon = getAirQualityIcon(bestLevel);
     const WorstIcon = getAirQualityIcon(worstLevel);
@@ -411,7 +421,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
         >
           <div
             className={cn(
-              'bg-white rounded-full shadow flex items-center relative',
+              'bg-white rounded-full shadow-sm flex items-center relative',
               clusterSize
             )}
           >

@@ -54,12 +54,39 @@ const getTooltipContent = (
 
   if (isCluster) {
     const cluster = data as ClusterData;
+    const validReadings = cluster.readings.filter(r => {
+      const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+      return val !== undefined && !isNaN(val);
+    });
+
+    if (validReadings.length === 0) {
+      return (
+        <div className="p-2 min-w-[250px] w-full max-w-[350px]">
+          <div className="text-left mb-2">
+            <div className="text-xs text-gray-500">
+              {formatDate(new Date())}
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0"></div>
+              <div className="font-medium text-gray-900 text-sm">
+                Cluster ({cluster.pointCount} stations)
+              </div>
+            </div>
+          </div>
+          <div className="text-left">
+            <div className="text-sm text-gray-500">
+              No data available for {getPollutantLabel(selectedPollutant)}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const avgValue =
-      selectedPollutant === 'pm2_5'
-        ? cluster.readings.reduce((sum, r) => sum + r.pm25Value, 0) /
-          cluster.readings.length
-        : cluster.readings.reduce((sum, r) => sum + r.pm10Value, 0) /
-          cluster.readings.length;
+      validReadings.reduce((sum, r) => {
+        const val = selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value;
+        return sum + val;
+      }, 0) / validReadings.length;
 
     const level = getAirQualityLevel(avgValue, selectedPollutant);
     const IconComponent = getAirQualityIcon(level);
@@ -104,6 +131,30 @@ const getTooltipContent = (
   const reading = data as AirQualityReading;
   const pollutantValue =
     selectedPollutant === 'pm2_5' ? reading.pm25Value : reading.pm10Value;
+
+  if (pollutantValue === undefined || isNaN(pollutantValue)) {
+    return (
+      <div className="p-2 min-w-[250px] max-w-[350px]">
+        <div className="text-left mb-2">
+          <div className="text-xs text-gray-500">
+            {formatDate(reading.lastUpdated)}
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-primary rounded-full flex-shrink-0"></div>
+            <div className="font-medium text-gray-900 text-sm">
+              {reading.locationName || 'Air Quality Station'}
+            </div>
+          </div>
+        </div>
+        <div className="text-left">
+          <div className="text-sm text-gray-500">
+            No data available for {getPollutantLabel(selectedPollutant)}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const level = getAirQualityLevel(pollutantValue, selectedPollutant);
   const IconComponent = getAirQualityIcon(level);
   const color = getAirQualityColor(level);

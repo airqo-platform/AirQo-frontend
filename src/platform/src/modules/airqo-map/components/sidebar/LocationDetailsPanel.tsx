@@ -13,6 +13,7 @@ import { AqXClose } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
+import type { PollutantType } from '@/modules/airqo-map/utils/dataNormalization';
 
 // Types for location data
 interface LocationData {
@@ -27,6 +28,7 @@ interface LocationDetailsPanelProps {
   mapReading?: MapReading | AirQualityReading; // Can be MapReading or AirQualityReading
   onBack?: () => void;
   loading?: boolean;
+  selectedPollutant?: PollutantType;
 }
 
 // Get health tip based on air quality level
@@ -82,6 +84,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
   mapReading,
   onBack,
   loading = false,
+  selectedPollutant = 'pm2_5',
 }) => {
   // Use mapReading data if available, otherwise fall back to locationData
   const currentLocationData = React.useMemo(() => {
@@ -109,17 +112,21 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
     return locationData;
   }, [mapReading, locationData]);
 
-  const pm25Value =
-    (mapReading as MapReading)?.pm2_5?.value ||
-    (mapReading as AirQualityReading)?.pm25Value ||
-    (mapReading as AirQualityReading)?.fullReadingData?.pm2_5?.value;
+  const pollutantValue =
+    selectedPollutant === 'pm2_5'
+      ? (mapReading as MapReading)?.pm2_5?.value ||
+        (mapReading as AirQualityReading)?.pm25Value ||
+        (mapReading as AirQualityReading)?.fullReadingData?.pm2_5?.value
+      : (mapReading as MapReading)?.pm10?.value ||
+        (mapReading as AirQualityReading)?.pm10Value ||
+        (mapReading as AirQualityReading)?.fullReadingData?.pm10?.value;
 
   const airQualityInfo = React.useMemo(() => {
-    if (pm25Value !== null && pm25Value !== undefined) {
-      return getAirQualityInfo(pm25Value, 'pm2_5');
+    if (pollutantValue !== null && pollutantValue !== undefined) {
+      return getAirQualityInfo(pollutantValue, selectedPollutant);
     }
     return null;
-  }, [pm25Value]);
+  }, [pollutantValue, selectedPollutant]);
 
   const healthTips =
     (mapReading as MapReading)?.health_tips ||
@@ -157,6 +164,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
             <CurrentAirQualityCard
               locationData={currentLocationData!}
               mapReading={mapReading}
+              selectedPollutant={selectedPollutant}
             />
 
             {/* Health Alerts */}

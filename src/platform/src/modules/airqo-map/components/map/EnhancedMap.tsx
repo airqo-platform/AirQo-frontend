@@ -18,12 +18,16 @@ import { MapControls } from './MapControls';
 import { MapLegend } from './MapLegend';
 import { MapNodes } from './MapNodes';
 import { MapLoadingOverlay } from './MapLoadingOverlay';
+import { PollutantSelector } from './PollutantSelector';
 import { getAirQualityLevel } from '@/shared/utils/airQuality';
 import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
-import { DEFAULT_POLLUTANT } from '@/modules/airqo-map/utils/dataNormalization';
+import {
+  DEFAULT_POLLUTANT,
+  type PollutantType,
+} from '@/modules/airqo-map/utils/dataNormalization';
 
 interface EnhancedMapProps {
   className?: string;
@@ -34,6 +38,8 @@ interface EnhancedMapProps {
   isLoading?: boolean;
   onRefreshData?: () => Promise<void>;
   flyToLocation?: { longitude: number; latitude: number; zoom?: number };
+  selectedPollutant?: PollutantType;
+  onPollutantChange?: (pollutant: PollutantType) => void;
 }
 
 export const EnhancedMap: React.FC<EnhancedMapProps> = ({
@@ -49,6 +55,8 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   isLoading = false,
   onRefreshData,
   flyToLocation,
+  selectedPollutant = DEFAULT_POLLUTANT,
+  onPollutantChange,
 }) => {
   const dispatch = useDispatch();
   const mapRef = useRef<MapRef>(null);
@@ -421,7 +429,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
                   onClick={data => handleClusterClick(data as ClusterData)}
                   onHover={handleHover}
                   isHovered={false}
-                  selectedPollutant={DEFAULT_POLLUTANT}
+                  selectedPollutant={selectedPollutant}
                   zoomLevel={debouncedZoom}
                 />
               </Marker>
@@ -457,7 +465,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
                   isSelected={selectedNode === reading.id}
                   isHovered={false}
                   size="md"
-                  selectedPollutant={DEFAULT_POLLUTANT}
+                  selectedPollutant={selectedPollutant}
                 />
               </Marker>
             ))}
@@ -491,7 +499,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
                   isSelected={selectedNode === reading.id}
                   isHovered={false}
                   size="md"
-                  selectedPollutant={DEFAULT_POLLUTANT}
+                  selectedPollutant={selectedPollutant}
                 />
               </Marker>
             ))}
@@ -512,7 +520,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
                   onClick={data => handleClusterClick(data as ClusterData)}
                   onHover={handleHover}
                   isHovered={true}
-                  selectedPollutant={DEFAULT_POLLUTANT}
+                  selectedPollutant={selectedPollutant}
                   zoomLevel={debouncedZoom}
                 />
               </Marker>
@@ -532,7 +540,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
                   isSelected={selectedNode === hoveredItem.id}
                   isHovered={true}
                   size="md"
-                  selectedPollutant={DEFAULT_POLLUTANT}
+                  selectedPollutant={selectedPollutant}
                 />
               </Marker>
             ))}
@@ -548,7 +556,16 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
         isRefreshing={isRefreshing}
       />
 
-      <MapLegend pollutant={DEFAULT_POLLUTANT} />
+      <MapLegend pollutant={selectedPollutant} />
+
+      {onPollutantChange && (
+        <div className="absolute top-4 left-4 z-20">
+          <PollutantSelector
+            selectedPollutant={selectedPollutant}
+            onPollutantChange={onPollutantChange}
+          />
+        </div>
+      )}
 
       <MapStyleDialog
         isOpen={isStyleDialogOpen}

@@ -5,10 +5,14 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
 import { AqWind01 } from '@airqo/icons-react';
-import { getAirQualityInfo } from '@/shared/utils/airQuality';
+import {
+  getAirQualityInfo,
+  getPollutantLabel,
+} from '@/shared/utils/airQuality';
 import { formatTruncatedNumber } from '@/shared/lib/utils';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
+import type { PollutantType } from '@/modules/airqo-map/utils/dataNormalization';
 
 // Types for location data
 interface LocationData {
@@ -21,26 +25,29 @@ interface LocationData {
 interface CurrentAirQualityCardProps {
   locationData: LocationData;
   mapReading?: MapReading | AirQualityReading;
+  selectedPollutant?: PollutantType;
 }
 
 export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   locationData,
   mapReading,
+  selectedPollutant = 'pm2_5',
 }) => {
   const [showMoreDetails, setShowMoreDetails] = React.useState(false);
 
-  const pm25Value =
-    (mapReading as MapReading)?.pm2_5?.value ||
-    (mapReading as AirQualityReading)?.pm25Value;
-  const pm10Value =
-    (mapReading as MapReading)?.pm10?.value ||
-    (mapReading as AirQualityReading)?.pm10Value;
+  const pollutantValue =
+    selectedPollutant === 'pm2_5'
+      ? (mapReading as MapReading)?.pm2_5?.value ||
+        (mapReading as AirQualityReading)?.pm25Value
+      : (mapReading as MapReading)?.pm10?.value ||
+        (mapReading as AirQualityReading)?.pm10Value;
+
   const airQualityInfo = React.useMemo(() => {
-    if (pm25Value !== null && pm25Value !== undefined) {
-      return getAirQualityInfo(pm25Value, 'pm2_5');
+    if (pollutantValue !== null && pollutantValue !== undefined) {
+      return getAirQualityInfo(pollutantValue, selectedPollutant);
     }
     return null;
-  }, [pm25Value]);
+  }, [pollutantValue, selectedPollutant]);
   const AirQualityIcon = airQualityInfo?.icon;
 
   // Format date and time
@@ -84,12 +91,12 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 <AqWind01 className="w-4 h-4 text-gray-400" />
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                PM2.5
+                {getPollutantLabel(selectedPollutant)}
               </span>
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {pm25Value !== null && pm25Value !== undefined
-                ? `${formatTruncatedNumber(pm25Value, 2)}µg/m³`
+              {pollutantValue !== null && pollutantValue !== undefined
+                ? `${formatTruncatedNumber(pollutantValue, 2)}µg/m³`
                 : 'N/A'}
             </div>
           </div>
@@ -171,11 +178,9 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                     N/A
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {pm25Value !== null && pm25Value !== undefined
-                      ? `PM2.5: ${formatTruncatedNumber(pm25Value, 2)}`
-                      : pm10Value !== null && pm10Value !== undefined
-                        ? `PM10: ${formatTruncatedNumber(pm10Value, 2)}`
-                        : 'N/A'}
+                    {pollutantValue !== null && pollutantValue !== undefined
+                      ? `${getPollutantLabel(selectedPollutant)}: ${formatTruncatedNumber(pollutantValue, 2)}`
+                      : 'N/A'}
                   </span>
                 </div>
               </div>
