@@ -141,11 +141,39 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
       {loading ? (
         // Full loading skeleton including header
         <LocationDetailsSkeleton />
+      ) : !currentLocationData ? (
+        // No location data available
+        <div className="flex flex-col h-full">
+          <div className="flex-shrink-0 p-4 pb-2 border-b">
+            <div className="flex items-center gap-2">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Location Details
+                </h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onBack}
+                className="p-1 h-8 w-8 flex-shrink-0"
+              >
+                <AqXClose className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="text-center">
+              <p className="text-muted-foreground">
+                No location data available
+              </p>
+            </div>
+          </div>
+        </div>
       ) : (
         <>
           {/* Header - Show when not loading */}
           <LocationDetailsHeader
-            locationData={currentLocationData!}
+            locationData={currentLocationData}
             onBack={onBack}
           />
 
@@ -162,7 +190,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
             {/* Current Air Quality */}
             <CurrentAirQualityCard
-              locationData={currentLocationData!}
+              locationData={currentLocationData}
               mapReading={mapReading}
               selectedPollutant={selectedPollutant}
             />
@@ -206,7 +234,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
               ) : airQualityInfo ? (
                 <div className="p-3 bg-green-50 rounded-lg">
                   <p className="text-sm font-medium text-green-800">
-                    {currentLocationData!.name}&apos;s Air Quality is{' '}
+                    {currentLocationData.name}&apos;s Air Quality is{' '}
                     {airQualityInfo.label} for breathing.{' '}
                     {getHealthTip(airQualityInfo.label)}
                   </p>
@@ -224,7 +252,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
             {hasSiteDetails && (
               <CollapsibleCard title="More Insights" defaultExpanded={false}>
                 <SiteInsightsChart
-                  siteId={currentLocationData!._id}
+                  siteId={currentLocationData._id}
                   height={150}
                 />
               </CollapsibleCard>
