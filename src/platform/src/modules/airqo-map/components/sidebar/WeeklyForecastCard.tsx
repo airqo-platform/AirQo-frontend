@@ -30,7 +30,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   if (isLoading) {
     return (
       <div className="w-full space-y-3">
-        <div className="flex items-center justify-center py-8">
+        <div className="flex items-center justify-center py-4">
           <LoadingSpinner size={24} />
           <span className="ml-2 text-sm text-muted-foreground">
             Loading forecast...
@@ -44,7 +44,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   if (error) {
     return (
       <div className="w-full space-y-3">
-        <div className="flex items-center justify-center py-8 text-center">
+        <div className="flex items-center justify-center py-4 text-center">
           <AqCloudOff className="w-8 h-8 text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground">
             Unable to load forecast data
@@ -58,7 +58,7 @@ export const WeeklyForecastCard: React.FC<WeeklyForecastCardProps> = ({
   if (!forecast || forecast.length === 0) {
     return (
       <div className="w-full space-y-3">
-        <div className="flex items-center justify-center py-8 text-center">
+        <div className="flex items-center justify-center py-4 text-center">
           <AqCloudOff className="w-8 h-8 text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground">
             No forecast data available
