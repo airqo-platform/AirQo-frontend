@@ -405,36 +405,41 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
       >
         {/* Render nodes and clusters based on zoom level and proximity */}
         <>
-          {/* Show clusters - always render for clickability, but style differently based on zoom */}
-          {clusters.map(cluster => (
-            <Marker
-              key={cluster.id}
-              longitude={cluster.longitude}
-              latitude={cluster.latitude}
-              anchor="center"
-            >
-              <MapNodes
-                cluster={cluster}
-                nodeType={currentNodeType}
-                onClick={data => handleClusterClick(data as ClusterData)}
-                onHover={handleHover}
-                isHovered={hoveredItem?.id === cluster.id}
-                selectedPollutant={DEFAULT_POLLUTANT}
-                zoomLevel={debouncedZoom}
-              />
-            </Marker>
-          ))}
+          {/* Render all clusters except the hovered one */}
+          {clusters
+            .filter(cluster => hoveredItem?.id !== cluster.id)
+            .map(cluster => (
+              <Marker
+                key={cluster.id}
+                longitude={cluster.longitude}
+                latitude={cluster.latitude}
+                anchor="center"
+              >
+                <MapNodes
+                  cluster={cluster}
+                  nodeType={currentNodeType}
+                  onClick={data => handleClusterClick(data as ClusterData)}
+                  onHover={handleHover}
+                  isHovered={false}
+                  selectedPollutant={DEFAULT_POLLUTANT}
+                  zoomLevel={debouncedZoom}
+                />
+              </Marker>
+            ))}
 
-          {/* Show individual nodes that are not part of any cluster */}
+          {/* Render individual nodes that are not part of any cluster and not hovered */}
           {/* Render non-primary readings first (lower z-index) */}
           {airQualityData
             .filter(reading => {
+              const isInCluster = clusters.some(cluster =>
+                cluster.readings.some(
+                  clusterReading => clusterReading.id === reading.id
+                )
+              );
               return (
-                !clusters.some(cluster =>
-                  cluster.readings.some(
-                    clusterReading => clusterReading.id === reading.id
-                  )
-                ) && reading.isPrimary === false
+                !isInCluster &&
+                reading.isPrimary === false &&
+                hoveredItem?.id !== reading.id
               );
             })
             .map(reading => (
@@ -450,22 +455,25 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
                   onClick={data => handleNodeClick(data as AirQualityReading)}
                   onHover={handleHover}
                   isSelected={selectedNode === reading.id}
-                  isHovered={hoveredItem?.id === reading.id}
+                  isHovered={false}
                   size="md"
                   selectedPollutant={DEFAULT_POLLUTANT}
                 />
               </Marker>
             ))}
 
-          {/* Render primary readings last (higher z-index) */}
+          {/* Render primary readings that are not hovered */}
           {airQualityData
             .filter(reading => {
+              const isInCluster = clusters.some(cluster =>
+                cluster.readings.some(
+                  clusterReading => clusterReading.id === reading.id
+                )
+              );
               return (
-                !clusters.some(cluster =>
-                  cluster.readings.some(
-                    clusterReading => clusterReading.id === reading.id
-                  )
-                ) && reading.isPrimary !== false
+                !isInCluster &&
+                reading.isPrimary !== false &&
+                hoveredItem?.id !== reading.id
               );
             })
             .map(reading => (
@@ -481,7 +489,48 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
                   onClick={data => handleNodeClick(data as AirQualityReading)}
                   onHover={handleHover}
                   isSelected={selectedNode === reading.id}
-                  isHovered={hoveredItem?.id === reading.id}
+                  isHovered={false}
+                  size="md"
+                  selectedPollutant={DEFAULT_POLLUTANT}
+                />
+              </Marker>
+            ))}
+
+          {/* Render the hovered item last to ensure highest z-index */}
+          {hoveredItem &&
+            (hoveredItem.hasOwnProperty('readings') ? (
+              // It's a cluster
+              <Marker
+                key={hoveredItem.id}
+                longitude={(hoveredItem as ClusterData).longitude}
+                latitude={(hoveredItem as ClusterData).latitude}
+                anchor="center"
+              >
+                <MapNodes
+                  cluster={hoveredItem as ClusterData}
+                  nodeType={currentNodeType}
+                  onClick={data => handleClusterClick(data as ClusterData)}
+                  onHover={handleHover}
+                  isHovered={true}
+                  selectedPollutant={DEFAULT_POLLUTANT}
+                  zoomLevel={debouncedZoom}
+                />
+              </Marker>
+            ) : (
+              // It's a reading
+              <Marker
+                key={hoveredItem.id}
+                longitude={(hoveredItem as AirQualityReading).longitude}
+                latitude={(hoveredItem as AirQualityReading).latitude}
+                anchor="center"
+              >
+                <MapNodes
+                  reading={hoveredItem as AirQualityReading}
+                  nodeType={currentNodeType}
+                  onClick={data => handleNodeClick(data as AirQualityReading)}
+                  onHover={handleHover}
+                  isSelected={selectedNode === hoveredItem.id}
+                  isHovered={true}
                   size="md"
                   selectedPollutant={DEFAULT_POLLUTANT}
                 />
