@@ -197,7 +197,20 @@ export function normalizeMapReadings(
           reading.siteDetails.formatted_name ||
           reading.siteDetails.name ||
           `${reading.siteDetails.city}, ${reading.siteDetails.country}`,
-        lastUpdated: new Date(reading.time || reading.updatedAt),
+        lastUpdated: (() => {
+          try {
+            const date = new Date(reading.time || reading.updatedAt);
+            return isNaN(date.getTime()) ? new Date() : date;
+          } catch (error) {
+            console.warn(
+              'Invalid date in AirQo reading:',
+              reading.time,
+              reading.updatedAt,
+              error
+            );
+            return new Date();
+          }
+        })(),
         provider: reading.siteDetails.data_provider || 'AirQo',
         status: reading.is_reading_primary ? 'active' : 'inactive',
         isPrimary: reading.is_reading_primary,
@@ -222,8 +235,10 @@ export function normalizeMapReadings(
 export function normalizeWAQIReadings(
   waqiData: Array<{ city: string; data: WAQICityResponse['data'] }>
 ): AirQualityReading[] {
+  const seenIds = new Set<string>();
+
   return waqiData
-    .filter(item => item.data)
+    .filter(item => item.data && item.data.city && item.data.city.url)
     .map(item => {
       const data = item.data;
       const pm25 = data.iaqi.pm25?.v || 0;
@@ -245,15 +260,39 @@ export function normalizeWAQIReadings(
         }));
       }
 
+      // Safely parse the date
+      let lastUpdated: Date;
+      try {
+        lastUpdated = data.time?.s ? new Date(data.time.s) : new Date();
+        // Check if the date is valid
+        if (isNaN(lastUpdated.getTime())) {
+          lastUpdated = new Date(); // Fallback to current date
+        }
+      } catch (error) {
+        console.warn('Invalid date from WAQI API:', data.time?.s, error);
+        lastUpdated = new Date(); // Fallback to current date
+      }
+
+      // Generate unique ID from URL to prevent duplicates
+      const rawId = `waqi-${data.city.url.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
+      // Ensure uniqueness by appending counter if needed
+      let uniqueId = rawId;
+      let counter = 1;
+      while (seenIds.has(uniqueId)) {
+        uniqueId = `${rawId}-${counter}`;
+        counter++;
+      }
+      seenIds.add(uniqueId);
+
       return {
-        id: `waqi-${data.city.name.replace(/\s+/g, '-').toLowerCase()}`,
-        siteId: `waqi-${data.city.name.replace(/\s+/g, '-').toLowerCase()}`,
+        id: uniqueId,
+        siteId: uniqueId,
         longitude: parseFloat(data.city.geo[1]),
         latitude: parseFloat(data.city.geo[0]),
         pm25Value: pm25,
         pm10Value: pm10,
         locationName: data.city.name,
-        lastUpdated: new Date(data.time.s),
+        lastUpdated,
         provider: 'WAQI',
         status: 'active',
         isPrimary: false,

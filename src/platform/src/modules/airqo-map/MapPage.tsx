@@ -18,6 +18,7 @@ import {
   normalizeMapReadings,
   DEFAULT_POLLUTANT,
 } from './utils/dataNormalization';
+import citiesData from './data/cities.json';
 
 const MapPage = () => {
   const dispatch = useDispatch();
@@ -62,42 +63,19 @@ const MapPage = () => {
   });
   const { readings, isLoading: mapDataLoading, refetch } = useMapReadings();
 
-  // WAQI data for major cities - memoize to prevent infinite re-renders
-  const majorCities = React.useMemo(
-    () => [
-      // Europe
-      'london',
-      'paris',
-      'berlin',
-      'madrid',
-      'rome',
-      'amsterdam',
-      'vienna',
-      // America
-      'new york',
-      'los angeles',
-      'chicago',
-      'houston',
-      'phoenix',
-      'philadelphia',
-      // Asia
-      'tokyo',
-      'delhi',
-      'shanghai',
-      'mumbai',
-      'beijing',
-      'seoul',
-      'bangkok',
-    ],
-    []
-  );
-  const { citiesReadings: waqiReadings, isLoading: waqiLoading } =
-    useWAQICities(majorCities);
+  // WAQI data for major cities - load all unique cities progressively to optimize performance
+  // Cities load progressively in background while showing AirQo data immediately
+  // Batched loading prevents API overwhelming and memory leaks
+  const allCities = React.useMemo(() => {
+    return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
+  }, []);
 
-  // Normalize map readings for display
+  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500); // Load 10 cities per batch with 500ms delay
+
+  // Normalize map readings for display - prioritize AirQo data
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, DEFAULT_POLLUTANT);
-    // Combine AirQo and WAQI readings
+    // Include WAQI readings progressively as they load
     return [...airqoReadings, ...waqiReadings];
   }, [readings, waqiReadings]);
 
@@ -217,7 +195,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading || waqiLoading}
+            isLoading={mapDataLoading} // Only show loading for AirQo data
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
           />
@@ -232,7 +210,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading || waqiLoading}
+            isLoading={mapDataLoading} // Only show loading for AirQo data
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
           />

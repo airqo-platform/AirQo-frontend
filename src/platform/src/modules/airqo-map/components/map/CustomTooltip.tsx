@@ -25,13 +25,24 @@ const formatValue = (value: number): string => {
 };
 
 const formatDate = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(dateObj);
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+
+    // Check if the date is valid
+    if (isNaN(dateObj.getTime())) {
+      return 'Invalid date';
+    }
+
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(dateObj);
+  } catch (error) {
+    console.warn('Error formatting date:', error, date);
+    return 'Invalid date';
+  }
 };
 
 const getTooltipContent = (

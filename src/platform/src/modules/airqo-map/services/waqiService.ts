@@ -44,11 +44,16 @@ export class WAQIService {
   /**
    * Get air quality data for a specific city
    * @param city - City name or station ID
+   * @param signal - Abort signal for cancelling the request
    */
-  async getCityData(city: string): Promise<WAQICityResponse['data'] | null> {
+  async getCityData(
+    city: string,
+    signal?: AbortSignal
+  ): Promise<WAQICityResponse['data'] | null> {
     try {
       const response = await fetch(
-        `${this.baseUrl}?endpoint=feed/${encodeURIComponent(city)}/`
+        `${this.baseUrl}?endpoint=feed/${encodeURIComponent(city)}/`,
+        { signal }
       );
 
       if (!response.ok) {
@@ -64,6 +69,10 @@ export class WAQIService {
 
       return data.data;
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        // Request was cancelled, return null silently
+        return null;
+      }
       console.error(`Error fetching WAQI data for ${city}:`, error);
       return null;
     }
@@ -72,11 +81,13 @@ export class WAQIService {
   /**
    * Get air quality data for multiple cities
    * @param cities - Array of city names
+   * @param signal - Abort signal for cancelling the requests
    */
   async getMultipleCitiesData(
-    cities: string[]
+    cities: string[],
+    signal?: AbortSignal
   ): Promise<WAQICityResponse['data'][]> {
-    const promises = cities.map(city => this.getCityData(city));
+    const promises = cities.map(city => this.getCityData(city, signal));
     const results = await Promise.all(promises);
     return results.filter(
       result => result !== null
