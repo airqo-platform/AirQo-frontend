@@ -107,3 +107,4 @@ export { LocationsList } from './LocationsList';
 export { LocationCard, LocationCardSkeleton } from './LocationCard';
 export { LocationDetailsPanel } from './LocationDetailsPanel';
 export { LocationDetailsSkeleton } from './LocationDetailsSkeleton';
+export { SiteInsightsChart } from './SiteInsightsChart';

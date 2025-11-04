@@ -7,6 +7,7 @@ import { CollapsibleCard } from '@/modules/airqo-map/components/sidebar/collapsi
 import { CurrentAirQualityCard } from '@/modules/airqo-map/components/sidebar/CurrentAirQualityCard';
 import { WeeklyForecastCard } from '@/modules/airqo-map/components/sidebar/WeeklyForecastCard';
 import { LocationDetailsSkeleton } from '@/modules/airqo-map/components/sidebar/LocationDetailsSkeleton';
+import { SiteInsightsChart } from '@/modules/airqo-map/components/sidebar/SiteInsightsChart';
 // Icons are now imported from the centralized utility
 import { AqXClose } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
@@ -89,7 +90,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
       if ((mapReading as MapReading).siteDetails) {
         const mr = mapReading as MapReading;
         return {
-          _id: mr.site_id,
+          _id: mr.siteDetails._id,
           name: mr.siteDetails.location_name,
           latitude: mr.siteDetails.approximate_latitude,
           longitude: mr.siteDetails.approximate_longitude,
@@ -110,7 +111,9 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
   const pm25Value =
     (mapReading as MapReading)?.pm2_5?.value ||
-    (mapReading as AirQualityReading)?.pm25Value;
+    (mapReading as AirQualityReading)?.pm25Value ||
+    (mapReading as AirQualityReading)?.fullReadingData?.pm2_5?.value;
+
   const airQualityInfo = React.useMemo(() => {
     if (pm25Value !== null && pm25Value !== undefined) {
       return getAirQualityInfo(pm25Value, 'pm2_5');
@@ -118,9 +121,13 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
     return null;
   }, [pm25Value]);
 
-  if (!currentLocationData) {
-    return <LocationDetailsSkeleton />;
-  }
+  const healthTips =
+    (mapReading as MapReading)?.health_tips ||
+    (mapReading as AirQualityReading)?.fullReadingData?.health_tips;
+
+  const hasSiteDetails =
+    (mapReading as MapReading)?.siteDetails ||
+    (mapReading as AirQualityReading)?.fullReadingData?.siteDetails;
 
   return (
     <>
@@ -131,7 +138,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
         <>
           {/* Header - Show when not loading */}
           <LocationDetailsHeader
-            locationData={currentLocationData}
+            locationData={currentLocationData!}
             onBack={onBack}
           />
 
@@ -148,16 +155,15 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
             {/* Current Air Quality */}
             <CurrentAirQualityCard
-              locationData={currentLocationData}
+              locationData={currentLocationData!}
               mapReading={mapReading}
             />
 
             {/* Health Alerts */}
             <CollapsibleCard title="Health Alerts" defaultExpanded={false}>
-              {(mapReading as MapReading)?.health_tips &&
-              (mapReading as MapReading).health_tips.length > 0 ? (
+              {healthTips && healthTips.length > 0 ? (
                 <div className="space-y-3">
-                  {(mapReading as MapReading).health_tips.map((tip, index) => (
+                  {healthTips.map((tip, index) => (
                     <div
                       key={index}
                       className="p-3 bg-orange-50 rounded-lg border border-orange-200"
@@ -192,7 +198,7 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
               ) : airQualityInfo ? (
                 <div className="p-3 bg-green-50 rounded-lg">
                   <p className="text-sm font-medium text-green-800">
-                    {currentLocationData.name}&apos;s Air Quality is{' '}
+                    {currentLocationData!.name}&apos;s Air Quality is{' '}
                     {airQualityInfo.label} for breathing.{' '}
                     {getHealthTip(airQualityInfo.label)}
                   </p>
@@ -206,60 +212,18 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
               )}
             </CollapsibleCard>
 
-            {/* More Insights */}
-            <CollapsibleCard title="More Insights" defaultExpanded={false}>
-              <PM25Chart locationName={currentLocationData.name} />
-            </CollapsibleCard>
+            {/* More Insights - Only show for readings with site data */}
+            {hasSiteDetails && (
+              <CollapsibleCard title="More Insights" defaultExpanded={false}>
+                <SiteInsightsChart
+                  siteId={currentLocationData!._id}
+                  height={150}
+                />
+              </CollapsibleCard>
+            )}
           </div>
         </>
       )}
     </>
   );
 };
-
-// Create a reusable chart component for the More Insights section
-const PM25ChartComponent: React.FC<{ locationName: string }> = ({
-  locationName,
-}) => (
-  <div>
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-xs text-muted-foreground">PM2.5</span>
-      <span className="text-xs text-primary">{locationName}</span>
-    </div>
-
-    <div className="flex items-center justify-between text-xs text-muted-foreground mb-2">
-      <span>20</span>
-      <span>15</span>
-      <span>10</span>
-      <span>5</span>
-      <span>00</span>
-    </div>
-
-    {/* Simple chart representation */}
-    <div className="h-16 bg-gradient-to-r from-blue-100 to-blue-200 rounded relative overflow-hidden">
-      <svg
-        width="100%"
-        height="100%"
-        viewBox="0 0 100 40"
-        className="absolute inset-0"
-      >
-        <path
-          d="M 0 30 Q 20 20 40 25 T 80 15 T 100 20"
-          stroke="#3B82F6"
-          strokeWidth="2"
-          fill="none"
-        />
-        <circle cx="70" cy="15" r="2" fill="#3B82F6" />
-      </svg>
-    </div>
-
-    <div className="flex justify-between text-xs text-muted-foreground mt-2">
-      <span>Apr 10</span>
-      <span>Apr 14</span>
-      <span>Apr 16</span>
-    </div>
-  </div>
-);
-
-PM25ChartComponent.displayName = 'PM25Chart';
-export const PM25Chart = React.memo(PM25ChartComponent);

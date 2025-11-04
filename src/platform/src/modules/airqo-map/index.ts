@@ -4,6 +4,7 @@ export {
   CountryList,
   LocationsList,
   LocationCard,
+  SiteInsightsChart,
 } from './components/sidebar';
 export {
   MapBox,
@@ -15,3 +16,4 @@ export {
   CustomTooltip,
 } from './components/map';
 export { default as MapPage } from './MapPage';
+export { useSiteChartData } from './hooks';

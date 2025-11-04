@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { deviceService } from '../../../shared/services/deviceService';
 import type { CountriesResponse, CountryData } from '../../../shared/types/api';

@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { waqiService } from '../services/waqiService';
 import type { WAQICityResponse } from '../types/waqi';
