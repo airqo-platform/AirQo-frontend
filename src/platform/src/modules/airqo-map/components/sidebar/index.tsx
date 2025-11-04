@@ -22,7 +22,10 @@ interface MapSidebarProps {
   className?: string;
   onSearch?: (query: string) => void;
   onCountrySelect?: (countryCode: string) => void;
-  onLocationSelect?: (locationId: string, locationData?: LocationData) => void;
+  onLocationSelect?: (
+    locationId: string,
+    locationData?: { latitude: number; longitude: number; name: string }
+  ) => void;
   selectedCountry?: string;
   searchQuery?: string;
   selectedLocation?: LocationData | null;

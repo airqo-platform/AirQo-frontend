@@ -14,7 +14,10 @@ import {
 
 interface LocationsListProps {
   selectedCountry?: string;
-  onLocationSelect?: (locationId: string) => void;
+  onLocationSelect?: (
+    locationId: string,
+    locationData?: { latitude: number; longitude: number; name: string }
+  ) => void;
   className?: string;
   searchQuery?: string;
   selectedLocationId?: string;
@@ -101,7 +104,24 @@ export const LocationsList: React.FC<LocationsListProps> = ({
                       key={location.id}
                       title={location.title}
                       location={location.location}
-                      onClick={() => onLocationSelect?.(location.id)}
+                      onClick={() => {
+                        // Find the original site data to get coordinates
+                        const siteData = sites.find(
+                          site => site._id === location.id
+                        );
+                        onLocationSelect?.(
+                          location.id,
+                          siteData
+                            ? {
+                                latitude:
+                                  siteData.approximate_latitude as number,
+                                longitude:
+                                  siteData.approximate_longitude as number,
+                                name: location.title,
+                              }
+                            : undefined
+                        );
+                      }}
                       isSelected={location.id === selectedLocationId}
                     />
                   ))}

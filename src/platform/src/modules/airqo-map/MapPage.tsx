@@ -111,22 +111,19 @@ const MapPage = () => {
     setCountry(countryName);
   };
 
-  const handleLocationSelect = async (locationId: string) => {
-    console.log('Location selected from sidebar:', locationId);
-
+  const handleLocationSelect = async (
+    locationId: string,
+    locationData?: { latitude: number; longitude: number; name: string }
+  ) => {
     try {
-      // Find the reading for this location
-      const reading = readings.find(
-        r => r.site_id === locationId || r._id === locationId
-      );
-      if (reading && reading.siteDetails) {
-        // Set the selected location ID for active state
-        setSelectedLocationId(locationId);
+      // Set the selected location ID for active state
+      setSelectedLocationId(locationId);
 
-        // Fly to the location on the map instead of opening details
+      // Fly to the location on the map
+      if (locationData) {
         setFlyToLocation({
-          longitude: reading.siteDetails.approximate_longitude,
-          latitude: reading.siteDetails.approximate_latitude,
+          longitude: locationData.longitude,
+          latitude: locationData.latitude,
           zoom: 14, // Good zoom level for individual locations
         });
 
@@ -134,10 +131,26 @@ const MapPage = () => {
         setTimeout(() => {
           setFlyToLocation(undefined);
         }, 1100); // Slightly longer than animation duration
+      } else {
+        // Fallback: try to find in readings (for backward compatibility)
+        const reading = readings.find(
+          r => r.site_id === locationId || r._id === locationId
+        );
+        if (reading && reading.siteDetails) {
+          setFlyToLocation({
+            longitude: reading.siteDetails.approximate_longitude,
+            latitude: reading.siteDetails.approximate_latitude,
+            zoom: 14,
+          });
 
-        // Clear any selected location from Redux (we don't need details panel)
-        dispatch(clearSelectedLocation());
+          setTimeout(() => {
+            setFlyToLocation(undefined);
+          }, 1100);
+        }
       }
+
+      // Clear any selected location from Redux (we don't need details panel)
+      dispatch(clearSelectedLocation());
     } catch (error) {
       console.error('Error flying to location:', error);
     }
