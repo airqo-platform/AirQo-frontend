@@ -50,11 +50,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
                 animate={{ width: 64 }}
                 transition={{ duration: 0.3, ease: 'easeInOut' }}
               >
-                <Sidebar
-                  className="pr-2"
-                  isCollapsed={true}
-                  hideToggle={true}
-                />
+                <Sidebar isCollapsed={true} hideToggle={true} />
               </motion.aside>
             )}
 

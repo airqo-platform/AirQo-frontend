@@ -59,7 +59,7 @@ const userSidebarConfig: NavGroup[] = [
         label: 'Map',
         href: '/user/map',
         icon: AqGlobe05,
-        disabled: true,
+        disabled: false,
       },
     ],
   },

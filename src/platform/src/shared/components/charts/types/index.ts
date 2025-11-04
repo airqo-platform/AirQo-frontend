@@ -165,16 +165,6 @@ export interface DynamicChartProps {
 }
 
 // Air quality standards
-export interface AirQualityStandard {
-  level: string;
-  range: {
-    min: number;
-    max: number;
-  };
-  color: string;
-  description: string;
-}
-
 export interface AirQualityStandardsConfig {
   organization: 'WHO' | 'NEMA';
   pollutant: 'PM2.5' | 'PM10';

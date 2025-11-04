@@ -382,6 +382,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
         onClose={() => setShowStandardsDialog(false)}
         currentStandards={currentStandards}
         onApplyStandards={handleApplyStandards}
+        activePollutant={currentFilters?.pollutant as 'pm2_5' | 'pm10'}
       />
     </Card>
   );

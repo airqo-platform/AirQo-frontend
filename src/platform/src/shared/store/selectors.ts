@@ -29,3 +29,8 @@ export const selectCohortsLoading = (state: RootState) =>
 export const selectCohortsError = (state: RootState) => state.cohorts.error;
 export const selectLastFetchedGroupId = (state: RootState) =>
   state.cohorts.lastFetchedGroupId;
+
+// Map settings selectors
+export const selectMapStyle = (state: RootState) => state.mapSettings.mapStyle;
+export const selectNodeType = (state: RootState) => state.mapSettings.nodeType;
+export const selectMapSettings = (state: RootState) => state.mapSettings;

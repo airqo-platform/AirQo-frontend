@@ -4,90 +4,69 @@ import * as React from 'react';
 import { cn } from '@/shared/lib/utils';
 import { LocationCard, LocationCardSkeleton } from './LocationCard';
 import { AqMarkerPin02 } from '@airqo/icons-react';
-
-interface Location {
-  id: string;
-  title: string;
-  location: string;
-}
+import { useSitesByCountry } from '../../hooks';
+import { LoadingSpinner } from '../../../../shared/components/ui/loading-spinner';
+import {
+  normalizeLocations,
+  filterLocations,
+  limitLocationsForDisplay,
+} from '../../utils/dataNormalization';
 
 interface LocationsListProps {
-  locations?: Location[];
-  onLocationSelect?: (locationId: string) => void;
+  selectedCountry?: string;
+  onLocationSelect?: (
+    locationId: string,
+    locationData?: { latitude: number; longitude: number; name: string }
+  ) => void;
   className?: string;
   searchQuery?: string;
-  loading?: boolean;
+  selectedLocationId?: string;
 }
 
-const defaultLocations: Location[] = [
-  {
-    id: '1',
-    title: 'Kampala',
-    location: 'Central, Uganda',
-  },
-  {
-    id: '2',
-    title: 'Kampala Road',
-    location: 'Kampala, Uganda',
-  },
-  {
-    id: '3',
-    title: 'Kampala - Northern Bypa...',
-    location: 'Ggaba Road, Kampala, Ugan...',
-  },
-  {
-    id: '4',
-    title: 'Kampala Old Taxi Pack',
-    location: 'Burton Street, Kampala, Ugan...',
-  },
-  {
-    id: '5',
-    title: 'Kampala Old Taxi Pack',
-    location: 'Burton Street, Kampala, Ugan...',
-  },
-  {
-    id: '6',
-    title: 'Kampala Old Taxi Pack',
-    location: 'Burton Street, Kampala, Ugan...',
-  },
-  {
-    id: '7',
-    title: 'Kampala Old Taxi Pack',
-    location: 'Burton Street, Kampala, Ugan...',
-  },
-];
-
 export const LocationsList: React.FC<LocationsListProps> = ({
-  locations = defaultLocations,
+  selectedCountry,
   onLocationSelect,
   className,
   searchQuery = '',
-  loading = false,
+  selectedLocationId,
 }) => {
-  // Filter locations based on search query
-  const filteredLocations = locations.filter(
-    location =>
-      location.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      location.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const { sites, isLoading, isLoadingMore, loadMore, hasNextPage } =
+    useSitesByCountry({
+      country: selectedCountry === 'all' ? undefined : selectedCountry,
+    });
+
+  // Transform sites data to Location format using utility function
+  const locations = React.useMemo(() => {
+    return normalizeLocations(sites);
+  }, [sites]);
+
+  // Filter locations based on search query using utility function
+  const filteredLocations = React.useMemo(() => {
+    return filterLocations(locations, searchQuery);
+  }, [locations, searchQuery]);
 
   // Determine if currently searching
   const isSearching = searchQuery.trim().length > 0;
 
-  // Show only first 6 locations initially when not searching, show all when searching
-  const displayedLocations = isSearching
-    ? filteredLocations
-    : filteredLocations.slice(0, 6);
-  const hasMoreLocations = !isSearching && filteredLocations.length > 6;
+  // Limit locations for display using utility function
+  const { displayed: displayedLocations } = React.useMemo(() => {
+    return limitLocationsForDisplay(
+      filteredLocations,
+      isSearching || hasNextPage,
+      6
+    );
+  }, [filteredLocations, isSearching, hasNextPage]);
+
   const hasNoResults = isSearching && filteredLocations.length === 0;
+  const hasNoSites = !isSearching && !isLoading && sites.length === 0;
 
   return (
-    <div className={cn('flex-1 flex flex-col min-h-0', className)}>
-      {/* Locations List */}
-      <div className="flex-1 overflow-y-auto min-h-0">
+    <div className={cn('flex flex-col h-full', className)}>
+      {/* Scrollable Content */}
+      <div className="flex-1 p-4 space-y-4 overflow-y-auto overflow-x-hidden min-h-0">
         {hasNoResults ? (
-          // Empty state
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+          // Empty state for search results
+          <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <AqMarkerPin02 className="w-8 h-8 text-muted-foreground" />
             </div>
@@ -98,11 +77,24 @@ export const LocationsList: React.FC<LocationsListProps> = ({
               Please try again with a different location name
             </p>
           </div>
+        ) : hasNoSites ? (
+          // Empty state for no sites available
+          <div className="flex flex-col items-center justify-center h-full text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <AqMarkerPin02 className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium text-foreground mb-2">
+              No locations available
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              There are currently no monitoring sites in this country
+            </p>
+          </div>
         ) : (
-          <div className="p-4">
+          <>
             <div className="flex flex-col gap-3">
-              {loading
-                ? // Show loading skeletons
+              {isLoading && !isLoadingMore
+                ? // Show loading skeletons only for initial load
                   Array.from({ length: 6 }, (_, index) => (
                     <LocationCardSkeleton key={`skeleton-${index}`} />
                   ))
@@ -112,20 +104,50 @@ export const LocationsList: React.FC<LocationsListProps> = ({
                       key={location.id}
                       title={location.title}
                       location={location.location}
-                      onClick={() => onLocationSelect?.(location.id)}
+                      onClick={() => {
+                        // Find the original site data to get coordinates
+                        const siteData = sites.find(
+                          site => site._id === location.id
+                        );
+                        onLocationSelect?.(
+                          location.id,
+                          siteData
+                            ? {
+                                latitude:
+                                  siteData.approximate_latitude as number,
+                                longitude:
+                                  siteData.approximate_longitude as number,
+                                name: location.title,
+                              }
+                            : undefined
+                        );
+                      }}
+                      isSelected={location.id === selectedLocationId}
                     />
                   ))}
             </div>
 
-            {/* Show more button - only when there are more than 6 locations and not searching and not loading */}
-            {hasMoreLocations && !loading && (
-              <div className="pt-4 text-center mt-4">
-                <button className="text-primary hover:text-primary/80 text-sm font-medium transition-colors">
+            {/* Load more button or loading spinner */}
+            {hasNextPage && !isSearching && !isLoading && !isLoadingMore && (
+              <div className="pt-4 text-center">
+                <button
+                  onClick={loadMore}
+                  className="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
+                >
                   Show more
                 </button>
               </div>
             )}
-          </div>
+
+            {/* Loading spinner for load more */}
+            {isLoadingMore && (
+              <div className="pt-4 text-center">
+                <div className="flex items-center justify-center">
+                  <LoadingSpinner size={16} />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

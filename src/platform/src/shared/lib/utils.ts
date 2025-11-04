@@ -61,3 +61,30 @@ export const capitalizeWords = (str: string): string => {
 export const normalizeText = (str: string): string => {
   return capitalizeWords(str.toLowerCase());
 };
+
+/**
+ * Truncates a number to specified decimal places without rounding
+ * @param value The number to truncate
+ * @param decimalPlaces The number of decimal places to keep (default: 2)
+ * @returns The truncated number
+ */
+export const truncateDecimals = (
+  value: number,
+  decimalPlaces: number = 2
+): number => {
+  const multiplier = Math.pow(10, decimalPlaces);
+  return Math.trunc(value * multiplier) / multiplier;
+};
+
+/**
+ * Formats a number by truncating to specified decimal places and converting to string
+ * @param value The number to format
+ * @param decimalPlaces The number of decimal places to keep (default: 2)
+ * @returns The formatted string
+ */
+export const formatTruncatedNumber = (
+  value: number,
+  decimalPlaces: number = 2
+): string => {
+  return truncateDecimals(value, decimalPlaces).toFixed(decimalPlaces);
+};

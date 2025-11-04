@@ -5,13 +5,13 @@ import { Card, CardContent } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
 import type { AnalyticsCardProps } from '../types';
 import type { AirQualityLevel } from '../types';
-import { getAirQualityColor, getAirQualityLabel } from '..';
-import { mapAqiCategoryToLevel } from '../utils';
-import { Tooltip } from 'flowbite-react';
 import {
-  AIR_QUALITY_ICONS,
-  TREND_ICONS,
-} from '@/shared/components/charts/constants';
+  getAirQualityColor,
+  getAirQualityLabel,
+  mapAqiCategoryToLevel,
+} from '../utils';
+import { Tooltip } from 'flowbite-react';
+import { AIR_QUALITY_ICONS, TREND_ICONS } from '@/shared/utils/airQuality';
 import { getPollutantLabel } from '@/shared/components/charts/utils';
 import type { PollutantType } from '@/shared/components/charts/types';
 import { useResizeObserver } from '@/shared/hooks';
@@ -170,9 +170,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
                   content={`Air quality status: ${statusLabel}`}
                   className="bg-black"
                 >
-                  <div style={{ color: statusColor }}>
-                    <AirQualityIcon className="h-16 w-16" />
-                  </div>
+                  <AirQualityIcon className="h-16 w-16" />
                 </Tooltip>
               ) : (
                 <div
