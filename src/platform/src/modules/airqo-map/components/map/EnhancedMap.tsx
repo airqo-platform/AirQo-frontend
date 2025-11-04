@@ -64,6 +64,10 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
   const currentMapStyle = useSelector(selectMapStyle);
   const currentNodeType = useSelector(selectNodeType);
+  // SECURITY NOTE: Mapbox access token must be client-side accessible
+  // because react-map-gl requires it for map initialization and API calls.
+  // Token security is managed through Mapbox dashboard restrictions.
+  // See docs/MAPBOX_SECURITY.md for security best practices.
   const mapboxAccessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
   const clusterThreshold = 14;
