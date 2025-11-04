@@ -66,7 +66,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
         'w-10 h-10 sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200 rounded-full',
         'shadow-md hover:shadow-lg transition-all duration-200',
         'flex items-center justify-center text-gray-700 hover:text-gray-900',
-        'focus:outline-none',
+        'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         control.disabled && 'cursor-not-allowed opacity-50'
       )}
@@ -90,7 +90,7 @@ export const MapControls: React.FC<MapControlsProps> = ({
         'w-10 h-10 sm:w-12 sm:h-12 bg-white hover:bg-gray-50 border border-gray-200',
         'shadow-md hover:shadow-lg transition-all duration-200',
         'flex items-center justify-center text-gray-700 hover:text-gray-900',
-        'focus:outline-none',
+        'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         control.disabled && 'cursor-not-allowed opacity-50',
         // Rounded corners based on position

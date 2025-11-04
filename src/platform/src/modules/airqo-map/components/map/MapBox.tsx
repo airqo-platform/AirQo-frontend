@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Map from 'react-map-gl/mapbox';
+import MapGL from 'react-map-gl/mapbox';
 import { cn } from '@/shared/lib/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -55,7 +55,7 @@ export const MapBox: React.FC<MapBoxProps> = ({
       className={cn('h-full w-full overflow-visible', className)}
       style={style}
     >
-      <Map
+      <MapGL
         mapboxAccessToken={mapboxAccessToken}
         initialViewState={initialViewState}
         style={{ width: '100%', height: '100%' }}

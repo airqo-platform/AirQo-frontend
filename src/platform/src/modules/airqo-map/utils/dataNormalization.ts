@@ -178,8 +178,10 @@ export function normalizeMapReadings(
       return (
         pollutantValue !== null &&
         pollutantValue !== undefined &&
-        reading.siteDetails?.approximate_latitude &&
-        reading.siteDetails?.approximate_longitude
+        reading.siteDetails?.approximate_latitude !== null &&
+        reading.siteDetails?.approximate_latitude !== undefined &&
+        reading.siteDetails?.approximate_longitude !== null &&
+        reading.siteDetails?.approximate_longitude !== undefined
       );
     })
     .map(reading => {

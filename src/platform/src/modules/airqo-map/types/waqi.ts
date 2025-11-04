@@ -19,7 +19,7 @@ export interface WAQIMapBoundsResponse {
 export interface WAQICityResponse {
   status: 'ok' | 'error';
   data: {
-    aqi: number;
+    aqi: string;
     time: {
       s: string; // ISO timestamp
     };

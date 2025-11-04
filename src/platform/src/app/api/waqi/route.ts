@@ -20,9 +20,18 @@ export async function GET(request: NextRequest) {
 
   try {
     // Build the WAQI API URL
-    const waqiUrl = `${WAQI_BASE_URL}/${endpoint}?token=${WAQI_TOKEN}`;
+    const sanitizedEndpoint = endpoint.startsWith('/')
+      ? endpoint
+      : `/${endpoint}`;
+    const waqiUrl = new URL(sanitizedEndpoint, WAQI_BASE_URL);
+    for (const [key, value] of Array.from(searchParams.entries())) {
+      if (key !== 'endpoint') {
+        waqiUrl.searchParams.set(key, value);
+      }
+    }
+    waqiUrl.searchParams.set('token', WAQI_TOKEN!);
 
-    const response = await fetch(waqiUrl, {
+    const response = await fetch(waqiUrl.toString(), {
       headers: {
         Accept: 'application/json',
         'User-Agent': 'AirQo/1.0',

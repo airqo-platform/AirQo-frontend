@@ -191,10 +191,16 @@ export class DeviceService {
   // Get forecast data - authenticated endpoint
   async getForecastAuthenticated(siteId: string): Promise<ForecastResponse> {
     await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.get<ForecastResponse>(
-      `/predict/daily-forecast?site_id=${siteId}`
-    );
-    return response.data;
+    const response = await this.authenticatedClient.get<
+      ForecastResponse | ApiErrorResponse
+    >(`/predict/daily-forecast?site_id=${siteId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get forecast data');
+    }
+
+    return data as ForecastResponse;
   }
 }
 

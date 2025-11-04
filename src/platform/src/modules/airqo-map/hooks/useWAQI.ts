@@ -18,6 +18,7 @@ export interface UseWAQICitiesResult {
  * @param cities - Array of city names
  * @param batchSize - Number of cities to load per batch (default: 15)
  * @param batchDelay - Delay between batches in ms (default: 300)
+ * @note Ensure the cities array is memoized in the calling component to avoid infinite re-renders
  */
 export function useWAQICities(
   cities: string[],
@@ -31,7 +32,8 @@ export function useWAQICities(
   const isMountedRef = useRef(true);
 
   // Memoize cities to prevent infinite re-renders
-  const memoizedCities = useMemo(() => cities, [cities]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const memoizedCities = useMemo(() => cities, [JSON.stringify(cities)]);
 
   const fetchCitiesProgressive = useCallback(async () => {
     if (!waqiService || memoizedCities.length === 0) {

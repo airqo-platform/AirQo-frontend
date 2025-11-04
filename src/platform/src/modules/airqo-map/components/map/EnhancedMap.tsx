@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useEffect,
 } from 'react';
-import Map, { MapRef, ViewState, Marker } from 'react-map-gl/mapbox';
+import MapboxMap, { MapRef, ViewState, Marker } from 'react-map-gl/mapbox';
 import { useDispatch, useSelector } from 'react-redux';
 import { cn } from '@/shared/lib/utils';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -207,8 +207,13 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               ? pm25Values.reduce((sum, v) => sum + v, 0) / pm25Values.length
               : 0;
 
+          const clusterId = cluster
+            .map(r => r.id)
+            .sort()
+            .join('|');
+
           clusters.push({
-            id: `cluster-${avgLng}-${avgLat}-${Date.now()}`,
+            id: `cluster-${clusterId}`,
             longitude: avgLng,
             latitude: avgLat,
             pointCount: cluster.length,
@@ -377,7 +382,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
 
   return (
     <div className={cn('relative h-full w-full', className)}>
-      <Map
+      <MapboxMap
         ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
@@ -483,7 +488,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
               </Marker>
             ))}
         </>
-      </Map>
+      </MapboxMap>
 
       <MapControls
         onGeolocation={handleGeolocation}

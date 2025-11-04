@@ -512,7 +512,6 @@ export const mapAqiCategoryToLevel = (category?: string): AirQualityLevel => {
     case 'unhealthyforsensitivegroups':
     case 'unhealthyforsensitivegroup':
     case 'unhealthyforsensitive':
-    case 'unhealthyforsensitivegroups':
       return 'unhealthy-sensitive-groups';
     case 'unhealthy':
       return 'unhealthy';
