@@ -86,12 +86,10 @@ export class WAQIService {
   async getMultipleCitiesData(
     cities: string[],
     signal?: AbortSignal
-  ): Promise<WAQICityResponse['data'][]> {
+  ): Promise<(WAQICityResponse['data'] | null)[]> {
     const promises = cities.map(city => this.getCityData(city, signal));
     const results = await Promise.all(promises);
-    return results.filter(
-      result => result !== null
-    ) as WAQICityResponse['data'][];
+    return results;
   }
 }
 

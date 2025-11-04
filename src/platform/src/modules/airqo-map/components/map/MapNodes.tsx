@@ -40,7 +40,7 @@ export interface ClusterData {
   mostCommonLevel?: string;
 }
 
-import type { PollutantType } from '@/modules/airqo-map/utils/dataNormalization';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
 interface MapNodesProps {
   // For individual nodes

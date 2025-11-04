@@ -13,7 +13,7 @@ import { AqXClose } from '@airqo/icons-react';
 import { getAirQualityInfo } from '@/shared/utils/airQuality';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
-import type { PollutantType } from '@/modules/airqo-map/utils/dataNormalization';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
 // Types for location data
 interface LocationData {

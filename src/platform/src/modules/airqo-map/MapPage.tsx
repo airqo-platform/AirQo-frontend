@@ -14,10 +14,7 @@ import type {
   ClusterData,
 } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
-import {
-  normalizeMapReadings,
-  DEFAULT_POLLUTANT,
-} from './utils/dataNormalization';
+import { normalizeMapReadings } from './utils/dataNormalization';
 import citiesData from './data/cities.json';
 
 const MapPage = () => {
@@ -60,6 +57,18 @@ const MapPage = () => {
     'pm2_5' | 'pm10'
   >('pm2_5');
 
+  // Ref to store timeout ID for flyToLocation cleanup
+  const flyToTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (flyToTimeoutRef.current) {
+        clearTimeout(flyToTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {
     setSelectedPollutant(pollutant);
   };
@@ -81,10 +90,10 @@ const MapPage = () => {
 
   // Normalize map readings for display - prioritize AirQo data
   const normalizedReadings = React.useMemo(() => {
-    const airqoReadings = normalizeMapReadings(readings, DEFAULT_POLLUTANT);
+    const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
     // Include WAQI readings progressively as they load
     return [...airqoReadings, ...waqiReadings];
-  }, [readings, waqiReadings]);
+  }, [readings, waqiReadings, selectedPollutant]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -113,8 +122,12 @@ const MapPage = () => {
         });
 
         // Clear the flyToLocation after animation completes
-        setTimeout(() => {
+        if (flyToTimeoutRef.current) {
+          clearTimeout(flyToTimeoutRef.current);
+        }
+        flyToTimeoutRef.current = setTimeout(() => {
           setFlyToLocation(undefined);
+          flyToTimeoutRef.current = null;
         }, 1100); // Slightly longer than animation duration
       } else {
         // Fallback: try to find in readings (for backward compatibility)
@@ -128,8 +141,13 @@ const MapPage = () => {
             zoom: 14,
           });
 
-          setTimeout(() => {
+          // Clear the flyToLocation after animation completes
+          if (flyToTimeoutRef.current) {
+            clearTimeout(flyToTimeoutRef.current);
+          }
+          flyToTimeoutRef.current = setTimeout(() => {
             setFlyToLocation(undefined);
+            flyToTimeoutRef.current = null;
           }, 1100);
         }
       }
@@ -203,7 +221,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading} // Only show loading for AirQo data
+            isLoading={mapDataLoading} // Shows loading only for AirQo data; WAQI cities load progressively in background
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
             selectedPollutant={selectedPollutant}
@@ -220,7 +238,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading} // Only show loading for AirQo data
+            isLoading={mapDataLoading} // Shows loading only for AirQo data; WAQI cities load progressively in background
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
             selectedPollutant={selectedPollutant}

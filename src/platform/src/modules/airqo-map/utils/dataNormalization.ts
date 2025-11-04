@@ -62,14 +62,6 @@ export function normalizeLocations(
 }
 
 /**
- * Capitalizes the first letter of each word in a string
- * Used for formatting country names and other display text
- */
-export function capitalizeWords(str: string): string {
-  return str.replace(/\b\w/g, l => l.toUpperCase());
-}
-
-/**
  * Converts a country code (with underscores) back to a properly formatted country name
  * Used when passing country parameters to APIs that expect capitalized names
  */
@@ -126,12 +118,8 @@ import type { ForecastData } from '../../../shared/types/api';
 import {
   getAirQualityLevel,
   getAirQualityColor,
+  type PollutantType,
 } from '../../../shared/utils/airQuality';
-
-/**
- * Pollutant type for dynamic selection
- */
-export type PollutantType = 'pm2_5' | 'pm10';
 
 /**
  * Configuration for pollutant display

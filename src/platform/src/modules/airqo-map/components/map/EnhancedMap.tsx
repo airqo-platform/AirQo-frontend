@@ -24,10 +24,7 @@ import type { MapStyle } from './MapStyleDialog';
 import type { AirQualityReading, ClusterData } from './MapNodes';
 import { setMapSettings } from '@/shared/store/mapSettingsSlice';
 import { selectMapStyle, selectNodeType } from '@/shared/store/selectors';
-import {
-  DEFAULT_POLLUTANT,
-  type PollutantType,
-} from '@/modules/airqo-map/utils/dataNormalization';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
 interface EnhancedMapProps {
   className?: string;
@@ -55,7 +52,7 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
   isLoading = false,
   onRefreshData,
   flyToLocation,
-  selectedPollutant = DEFAULT_POLLUTANT,
+  selectedPollutant = 'pm2_5',
   onPollutantChange,
 }) => {
   const dispatch = useDispatch();
@@ -207,12 +204,15 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
           const avgLat =
             cluster.reduce((sum, r) => sum + r.latitude, 0) / cluster.length;
 
-          const pm25Values = cluster
-            .map(r => r.pm25Value)
-            .filter(v => !isNaN(v));
-          const avgPm25 =
-            pm25Values.length > 0
-              ? pm25Values.reduce((sum, v) => sum + v, 0) / pm25Values.length
+          const pollutantValues = cluster
+            .map(r =>
+              selectedPollutant === 'pm2_5' ? r.pm25Value : r.pm10Value
+            )
+            .filter(v => v !== undefined && !isNaN(v));
+          const avgValue =
+            pollutantValues.length > 0
+              ? pollutantValues.reduce((sum, v) => sum + v, 0) /
+                pollutantValues.length
               : 0;
 
           const clusterId = cluster
@@ -226,14 +226,14 @@ export const EnhancedMap: React.FC<EnhancedMapProps> = ({
             latitude: avgLat,
             pointCount: cluster.length,
             readings: cluster,
-            mostCommonLevel: getAirQualityLevel(avgPm25, 'pm2_5'),
+            mostCommonLevel: getAirQualityLevel(avgValue, selectedPollutant),
           });
         }
       });
     });
 
     return clusters;
-  }, [airQualityData, debouncedZoom]);
+  }, [airQualityData, debouncedZoom, selectedPollutant]);
 
   // Map control handlers
   const handleGeolocation = useCallback(() => {

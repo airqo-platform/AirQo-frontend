@@ -19,8 +19,13 @@ export const PollutantSelector: React.FC<PollutantSelectorProps> = ({
   className,
 }) => {
   const handleChange = (event: { target: { value: unknown } }) => {
-    const pollutant = event.target.value as PollutantType;
-    onPollutantChange(pollutant);
+    const value = event.target.value;
+    // Runtime validation to ensure type safety
+    if (value === 'pm2_5' || value === 'pm10') {
+      onPollutantChange(value);
+    } else {
+      console.warn('Invalid pollutant type received:', value);
+    }
   };
 
   return (

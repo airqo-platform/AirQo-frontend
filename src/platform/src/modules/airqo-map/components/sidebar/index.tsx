@@ -9,7 +9,7 @@ import { LocationsList } from './LocationsList';
 import { LocationDetailsPanel } from './LocationDetailsPanel';
 import type { MapReading } from '../../../../shared/types/api';
 import type { AirQualityReading } from '../map/MapNodes';
-import type { PollutantType } from '@/modules/airqo-map/utils/dataNormalization';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
 interface LocationData {
   _id: string;
@@ -96,7 +96,9 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
               selectedLocationId={
                 selectedLocationId ||
                 (selectedMapReading
-                  ? (selectedMapReading as MapReading).site_id
+                  ? 'site_id' in selectedMapReading
+                    ? (selectedMapReading as MapReading).site_id
+                    : (selectedMapReading as AirQualityReading).siteId
                   : undefined)
               }
             />

@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { waqiService } from '../services/waqiService';
-import type { WAQICityResponse } from '../types/waqi';
 import { normalizeWAQIReadings } from '../utils/dataNormalization';
 import type { AirQualityReading } from '../components/map/MapNodes';
 
@@ -87,14 +86,12 @@ export function useWAQICities(
           }
 
           // Convert to the format expected by normalizeWAQIReadings
+          // Preserve nulls to maintain alignment with batchCities
           const formattedData = data
             .map((item, index) =>
               item ? { city: batchCities[index], data: item } : null
             )
-            .filter(item => item !== null) as Array<{
-            city: string;
-            data: WAQICityResponse['data'];
-          }>;
+            .filter((item): item is NonNullable<typeof item> => item !== null);
 
           const newReadings = normalizeWAQIReadings(formattedData);
 

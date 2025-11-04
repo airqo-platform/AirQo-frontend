@@ -2,11 +2,10 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { cn } from '@/shared/lib/utils';
+import { cn, capitalizeWords } from '@/shared/lib/utils';
 import { useCountries } from '../../hooks';
 import {
   normalizeCountries,
-  capitalizeWords,
   type Country,
 } from '../../utils/dataNormalization';
 
