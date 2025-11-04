@@ -114,12 +114,12 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
 
   const pollutantValue =
     selectedPollutant === 'pm2_5'
-      ? (mapReading as MapReading)?.pm2_5?.value ||
-        (mapReading as AirQualityReading)?.pm25Value ||
-        (mapReading as AirQualityReading)?.fullReadingData?.pm2_5?.value
-      : (mapReading as MapReading)?.pm10?.value ||
-        (mapReading as AirQualityReading)?.pm10Value ||
-        (mapReading as AirQualityReading)?.fullReadingData?.pm10?.value;
+      ? ((mapReading as MapReading)?.pm2_5?.value ??
+        (mapReading as AirQualityReading)?.pm25Value ??
+        (mapReading as AirQualityReading)?.fullReadingData?.pm2_5?.value)
+      : ((mapReading as MapReading)?.pm10?.value ??
+        (mapReading as AirQualityReading)?.pm10Value ??
+        (mapReading as AirQualityReading)?.fullReadingData?.pm10?.value);
 
   const airQualityInfo = React.useMemo(() => {
     if (pollutantValue !== null && pollutantValue !== undefined) {
