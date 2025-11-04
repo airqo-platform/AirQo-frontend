@@ -9,16 +9,9 @@ import {
   WHO_PM10_STANDARDS,
   STANDARDS_ORGANIZATIONS,
   REFERENCE_LINES,
+  AIR_QUALITY_ICONS,
 } from '../../constants';
 import { AirQualityStandardsConfig, ChartStandardsType } from '../../types';
-import {
-  AqGood,
-  AqHazardous,
-  AqModerate,
-  AqUnhealthy,
-  AqUnhealthyForSensitiveGroups,
-  AqVeryUnhealthy,
-} from '@airqo/icons-react';
 
 // Air quality level colors for consistency
 export const colors = {
@@ -39,6 +32,7 @@ interface StandardsDialogProps {
   onClose: () => void;
   currentStandards?: AirQualityStandardsConfig;
   onApplyStandards: (config: AirQualityStandardsConfig) => void;
+  activePollutant?: 'pm2_5' | 'pm10'; // Pollutant from active filter
 }
 
 export const StandardsDialog: React.FC<StandardsDialogProps> = ({
@@ -46,32 +40,34 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   onClose,
   currentStandards,
   onApplyStandards,
+  activePollutant = 'pm2_5',
 }) => {
   const [selectedOrg, setSelectedOrg] = useState<ChartStandardsType>(
     currentStandards?.organization || 'WHO'
   );
-  const [selectedPollutant, setSelectedPollutant] = useState<'PM2.5' | 'PM10'>(
-    'PM2.5'
-  );
   const [showReferenceLine, setShowReferenceLine] = useState(
     currentStandards?.showReferenceLine ?? true
   );
+  const [viewMode, setViewMode] = useState<'annual' | '24hour'>('annual');
+
+  // Convert pollutant format from filter to display format
+  const displayPollutant: 'PM2.5' | 'PM10' =
+    activePollutant === 'pm2_5' ? 'PM2.5' : 'PM10';
 
   // Get the appropriate icon for air quality level
   const getAirQualityIcon = (level: string) => {
-    const iconMap: Record<
-      string,
-      React.ComponentType<{ className?: string }>
-    > = {
-      Good: AqGood,
-      Moderate: AqModerate,
-      'Unhealthy for Sensitive Groups': AqUnhealthyForSensitiveGroups,
-      Unhealthy: AqUnhealthy,
-      'Very Unhealthy': AqVeryUnhealthy,
-      Hazardous: AqHazardous,
+    // Map level names to air quality level keys
+    const levelKeyMap: Record<string, keyof typeof AIR_QUALITY_ICONS> = {
+      Good: 'good',
+      Moderate: 'moderate',
+      'Unhealthy for Sensitive Groups': 'unhealthy-sensitive-groups',
+      Unhealthy: 'unhealthy',
+      'Very Unhealthy': 'very-unhealthy',
+      Hazardous: 'hazardous',
     };
-    const IconComponent = iconMap[level] || AqGood;
-    return IconComponent;
+
+    const levelKey = levelKeyMap[level] || 'good';
+    return AIR_QUALITY_ICONS[levelKey];
   };
 
   // Get color for air quality level
@@ -88,7 +84,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   };
 
   const getStandardsData = () => {
-    switch (`${selectedOrg}_${selectedPollutant}`) {
+    switch (`${selectedOrg}_${displayPollutant}`) {
       case 'WHO_PM2.5':
         return WHO_PM25_STANDARDS;
       case 'WHO_PM10':
@@ -100,7 +96,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
 
   const getReferenceLine = () => {
     if (selectedOrg === 'WHO') {
-      switch (selectedPollutant) {
+      switch (displayPollutant) {
         case 'PM2.5':
           return REFERENCE_LINES.WHO.PM25_ANNUAL;
         case 'PM10':
@@ -110,7 +106,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
       }
     } else {
       // NEMA only supports PM2.5 and PM10
-      switch (selectedPollutant) {
+      switch (displayPollutant) {
         case 'PM2.5':
           return REFERENCE_LINES.NEMA.PM25_ANNUAL;
         case 'PM10':
@@ -124,7 +120,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   const handleApply = () => {
     onApplyStandards({
       organization: selectedOrg,
-      pollutant: selectedPollutant,
+      pollutant: displayPollutant,
       showReferenceLine,
     });
     onClose();
@@ -139,9 +135,9 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
     <Dialog
       isOpen={open}
       onClose={onClose}
-      title="Air Quality Standards & Reference Lines"
+      title={`Air Quality Standards - ${displayPollutant} Research Guidelines`}
       size="lg"
-      contentClassName="overflow-y-auto"
+      contentClassName="overflow-y-auto max-h-[80vh]"
       primaryAction={{
         label: 'Apply Standards',
         onClick: handleApply,
@@ -176,7 +172,17 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
               Show Reference Line
             </label>
             <span className="text-xs text-muted-foreground">
-              Display guideline threshold at {referenceLine} µg/m³
+              Display {selectedOrg} {displayPollutant} annual guideline at{' '}
+              {referenceLine} µg/m³ on charts
+            </span>
+            <span className="text-xs text-blue-600 mt-1">
+              {selectedOrg === 'WHO'
+                ? displayPollutant === 'PM2.5'
+                  ? 'WHO 2021: 5 µg/m³ annual, 15 µg/m³ 24-hour'
+                  : 'WHO 2021: 15 µg/m³ annual, 45 µg/m³ 24-hour'
+                : displayPollutant === 'PM2.5'
+                  ? 'NEMA Uganda: 25 µg/m³ annual, 35 µg/m³ 24-hour'
+                  : 'NEMA Uganda: 40 µg/m³ annual, 60 µg/m³ 24-hour'}
             </span>
           </div>
           <Checkbox
@@ -191,62 +197,179 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
         {/* Standards Preview */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-normal">
-              {STANDARDS_ORGANIZATIONS[selectedOrg]} - {selectedPollutant}{' '}
+            <h3 className="text-base font-medium">
+              {STANDARDS_ORGANIZATIONS[selectedOrg]} - {displayPollutant}{' '}
               Standards
             </h3>
-            <span className="text-sm text-muted-foreground">
-              Annual guideline levels
-            </span>
-          </div>
-
-          {/* Pollutant Selection Tabs */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-normal">View Standards For</h3>
-            <div className="flex gap-2">
-              {(['PM2.5', 'PM10'] as const).map(pollutant => (
-                <button
-                  key={pollutant}
-                  onClick={() => setSelectedPollutant(pollutant)}
-                  className={cn(
-                    'px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                    selectedPollutant === pollutant
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                  )}
-                >
-                  {pollutant}
-                </button>
-              ))}
+            <div className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+              Active Pollutant: {displayPollutant}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Time Period Selection */}
+          <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-100">
+            <div className="flex items-center gap-1 text-blue-600">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="text-sm font-medium">Research Note:</span>
+            </div>
+            <span className="text-sm text-blue-700">
+              Standards shown are{' '}
+              {selectedOrg === 'WHO'
+                ? 'WHO 2021 guidelines'
+                : 'NEMA Uganda standards'}{' '}
+              for {displayPollutant} measurements
+            </span>
+          </div>
+
+          {/* View Mode Selector */}
+          <div className="flex gap-1 p-1 bg-muted rounded-lg">
+            {(['annual', '24hour'] as const).map(mode => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={cn(
+                  'flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors',
+                  viewMode === mode
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {mode === 'annual' ? 'Annual Guidelines' : '24-Hour Guidelines'}
+              </button>
+            ))}
+          </div>
+
+          {/* Enhanced Standards Display */}
+          <div className="space-y-3">
             {standards.map((standard: (typeof standards)[0], index: number) => {
               const IconComponent = getAirQualityIcon(standard.level);
               const iconColor = getAirQualityColor(standard.level);
 
+              // Get specific values for annual and 24-hour based on WHO 2021 and NEMA standards
+              const getDetailedValues = () => {
+                const orgPrefix =
+                  selectedOrg === 'WHO' ? 'WHO 2021' : 'NEMA Uganda';
+
+                if (selectedOrg === 'WHO' && displayPollutant === 'PM2.5') {
+                  switch (standard.level) {
+                    case 'Good':
+                      return {
+                        annual: '0-5 µg/m³',
+                        daily: '0-15 µg/m³',
+                        note: `${orgPrefix}: Annual guideline 5 µg/m³, 24-hour guideline 15 µg/m³`,
+                      };
+                    case 'Moderate':
+                      return {
+                        annual: '5-15 µg/m³',
+                        daily: '15-25 µg/m³',
+                        note: `${orgPrefix}: Above annual guideline, approaching 24-hour limit`,
+                      };
+                    default:
+                      return {
+                        annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
+                        daily: 'Exceeds 24-hour guidelines',
+                        note: `${orgPrefix}: Significantly above health-protective levels`,
+                      };
+                  }
+                } else if (
+                  selectedOrg === 'WHO' &&
+                  displayPollutant === 'PM10'
+                ) {
+                  switch (standard.level) {
+                    case 'Good':
+                      return {
+                        annual: '0-15 µg/m³',
+                        daily: '0-45 µg/m³',
+                        note: `${orgPrefix}: Annual guideline 15 µg/m³, 24-hour guideline 45 µg/m³`,
+                      };
+                    case 'Moderate':
+                      return {
+                        annual: '15-45 µg/m³',
+                        daily: '45-75 µg/m³',
+                        note: `${orgPrefix}: Above annual guideline, approaching 24-hour limit`,
+                      };
+                    default:
+                      return {
+                        annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
+                        daily: 'Exceeds 24-hour guidelines',
+                        note: `${orgPrefix}: Significantly above health-protective levels`,
+                      };
+                  }
+                } else {
+                  // NEMA standards
+                  return {
+                    annual: `${standard.range.min}-${standard.range.max === Infinity ? '∞' : standard.range.max} µg/m³`,
+                    daily:
+                      viewMode === '24hour'
+                        ? 'See NEMA regulations'
+                        : 'Annual average',
+                    note: `${orgPrefix}: Local regulatory standards for Uganda`,
+                  };
+                }
+              };
+
+              const detailedValues = getDetailedValues();
+
               return (
                 <div
                   key={index}
-                  className="border border-border rounded-md p-4 hover:shadow-md transition-shadow"
+                  className="border border-border rounded-lg p-4 hover:shadow-sm transition-all bg-card"
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm">
-                      {standard.level}
-                    </span>
-                    <span style={{ color: iconColor }}>
-                      <IconComponent className="h-5 w-5" />
-                    </span>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span style={{ color: iconColor }}>
+                        <IconComponent className="h-5 w-5" />
+                      </span>
+                      <span className="font-medium text-sm text-foreground">
+                        {standard.level}
+                      </span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      AQI Category
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground mt-2">
-                    {standard.range.min}-
-                    {standard.range.max === Infinity ? '∞' : standard.range.max}{' '}
-                    µg/m³
+
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="space-y-1">
+                        <div className="text-muted-foreground font-medium">
+                          Annual Average
+                        </div>
+                        <div className="font-mono text-foreground">
+                          {detailedValues.annual}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-muted-foreground font-medium">
+                          24-Hour Average
+                        </div>
+                        <div className="font-mono text-foreground">
+                          {detailedValues.daily}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t border-border">
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {standard.description}
+                      </p>
+                      <p className="text-xs text-blue-600 mt-1 font-medium">
+                        {detailedValues.note}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed mt-2">
-                    {standard.description}
-                  </p>
                 </div>
               );
             })}

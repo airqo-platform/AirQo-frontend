@@ -4,72 +4,14 @@ import React from 'react';
 import { TooltipData } from '../../types';
 import { cn } from '@/shared/lib/utils';
 import { format, parseISO } from 'date-fns';
-import { POLLUTANT_RANGES } from '../../constants';
-import {
-  AqGood,
-  AqHazardous,
-  AqModerate,
-  AqUnhealthy,
-  AqUnhealthyForSensitiveGroups,
-  AqVeryUnhealthy,
-} from '@airqo/icons-react';
+import { getAirQualityInfo } from '@/shared/utils/airQuality';
 
 interface CustomTooltipProps extends TooltipData {
   className?: string;
   showAirQualityLevel?: boolean;
   frequency?: string;
+  pollutant?: 'pm2_5' | 'pm10';
 }
-
-const getAirQualityLevel = (
-  value: number,
-  pollutant: 'pm2_5' | 'pm10' = 'pm2_5'
-): {
-  level: string;
-  color: string;
-  icon: React.ComponentType<{ className?: string }>;
-} => {
-  const ranges = POLLUTANT_RANGES[pollutant];
-
-  for (const range of ranges) {
-    if (value >= range.limit) {
-      // Map category names to display names and icons
-      const categoryMappings: Record<
-        string,
-        {
-          level: string;
-          color: string;
-          icon: React.ComponentType<{ className?: string }>;
-        }
-      > = {
-        GoodAir: { level: 'Good', color: '#10B981', icon: AqGood },
-        ModerateAir: { level: 'Moderate', color: '#F59E0B', icon: AqModerate },
-        UnhealthyForSensitiveGroups: {
-          level: 'Unhealthy for Sensitive Groups',
-          color: '#EF4444',
-          icon: AqUnhealthyForSensitiveGroups,
-        },
-        Unhealthy: { level: 'Unhealthy', color: '#8B5CF6', icon: AqUnhealthy },
-        VeryUnhealthy: {
-          level: 'Very Unhealthy',
-          color: '#DC2626',
-          icon: AqVeryUnhealthy,
-        },
-        Hazardous: { level: 'Hazardous', color: '#7C2D12', icon: AqHazardous },
-        Invalid: { level: 'Invalid', color: '#6B7280', icon: AqHazardous },
-      };
-
-      return (
-        categoryMappings[range.category] || {
-          level: 'Unknown',
-          color: '#6B7280',
-          icon: AqHazardous,
-        }
-      );
-    }
-  }
-
-  return { level: 'Unknown', color: '#6B7280', icon: AqHazardous };
-};
 
 const formatTooltipDate = (
   label: string | number,
@@ -94,6 +36,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   className,
   showAirQualityLevel = true,
   frequency,
+  pollutant = 'pm2_5',
 }) => {
   if (!active || !payload || !payload.length) {
     return null;
@@ -101,7 +44,7 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
   const primaryData = payload[0];
   const value = primaryData.value as number;
-  const airQualityLevel = getAirQualityLevel(value, 'pm2_5'); // Default to PM2.5, can be enhanced later
+  const airQualityLevel = getAirQualityInfo(value, pollutant);
 
   return (
     <div
@@ -151,11 +94,8 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
               </span>
               <div className="flex items-center space-x-2">
                 <airQualityLevel.icon className="w-4 h-4" />
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: airQualityLevel.color }}
-                >
-                  {airQualityLevel.level}
+                <span className="text-xs font-medium">
+                  {airQualityLevel.label}
                 </span>
               </div>
             </div>
@@ -191,14 +131,13 @@ export const AirQualityIndicator: React.FC<AirQualityIndicatorProps> = ({
   value,
   className,
 }) => {
-  const { level, color, icon: Icon } = getAirQualityLevel(value, 'pm2_5');
+  const airQualityInfo = getAirQualityInfo(value, 'pm2_5'); // This component could be enhanced to accept pollutant prop
+  const Icon = airQualityInfo.icon;
 
   return (
     <div className={cn('flex items-center space-x-2', className)}>
       <Icon className="w-4 h-4" />
-      <span className="text-sm font-medium" style={{ color }}>
-        {level}
-      </span>
+      <span className="text-sm font-medium">{airQualityInfo.label}</span>
     </div>
   );
 };

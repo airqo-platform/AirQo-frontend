@@ -196,7 +196,11 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
   // Render tooltip
   const renderTooltip = () => {
     if (!chartConfig.showTooltip) return null;
-    return <Tooltip content={<CustomTooltip />} />;
+    return (
+      <Tooltip
+        content={<CustomTooltip pollutant={pollutant} frequency={frequency} />}
+      />
+    );
   };
 
   // Render legend

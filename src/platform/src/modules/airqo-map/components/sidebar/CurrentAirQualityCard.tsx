@@ -4,73 +4,81 @@ import * as React from 'react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
 import { AqChevronUp, AqChevronDown } from '@airqo/icons-react';
+import { AqWind01 } from '@airqo/icons-react';
 import {
-  AqGood,
-  AqModerate,
-  AqUnhealthyForSensitiveGroups,
-  AqUnhealthy,
-  AqVeryUnhealthy,
-  AqHazardous,
-  AqWind01,
-} from '@airqo/icons-react';
-import {
-  getAirQualityLevel,
-  getAirQualityColor,
-  getAirQualityLabel,
-} from '@/modules/analytics';
+  getAirQualityInfo,
+  getPollutantLabel,
+} from '@/shared/utils/airQuality';
+import { formatTruncatedNumber } from '@/shared/lib/utils';
+import type { MapReading } from '../../../../shared/types/api';
+import type { AirQualityReading } from '../map/MapNodes';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
 // Types for location data
 interface LocationData {
   _id: string;
   name: string;
-  location: string;
   latitude: number;
   longitude: number;
-  pm25Value?: number;
-  airQuality?: string;
-  monitor?: string;
-  pollutionSource?: string;
-  pollutant?: string;
-  time?: string;
-  city?: string;
-  country?: string;
 }
 
 interface CurrentAirQualityCardProps {
   locationData: LocationData;
+  mapReading?: MapReading | AirQualityReading;
+  selectedPollutant?: PollutantType;
 }
-
-// Air quality icon mapping based on PM2.5 value using analytics utilities
-const getAirQualityIcon = (pm25Value: number) => {
-  const level = getAirQualityLevel(pm25Value, 'pm2_5');
-  const color = getAirQualityColor(level);
-  const label = getAirQualityLabel(level);
-
-  const iconMap = {
-    good: AqGood,
-    moderate: AqModerate,
-    'unhealthy-sensitive-groups': AqUnhealthyForSensitiveGroups,
-    unhealthy: AqUnhealthy,
-    'very-unhealthy': AqVeryUnhealthy,
-    hazardous: AqHazardous,
-    'no-value': AqGood, // fallback
-  };
-
-  return {
-    icon: iconMap[level] || AqGood,
-    color,
-    level: label,
-  };
-};
 
 export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   locationData,
+  mapReading,
+  selectedPollutant = 'pm2_5',
 }) => {
   const [showMoreDetails, setShowMoreDetails] = React.useState(false);
 
-  const pm25Value = locationData.pm25Value || 8.63;
-  const airQualityInfo = getAirQualityIcon(pm25Value);
-  const AirQualityIcon = airQualityInfo.icon;
+  const pollutantValue =
+    selectedPollutant === 'pm2_5'
+      ? (mapReading as MapReading)?.pm2_5?.value ||
+        (mapReading as AirQualityReading)?.pm25Value
+      : (mapReading as MapReading)?.pm10?.value ||
+        (mapReading as AirQualityReading)?.pm10Value;
+
+  const airQualityInfo = React.useMemo(() => {
+    if (pollutantValue !== null && pollutantValue !== undefined) {
+      return getAirQualityInfo(pollutantValue, selectedPollutant);
+    }
+    return null;
+  }, [pollutantValue, selectedPollutant]);
+  const AirQualityIcon = airQualityInfo?.icon;
+
+  // Format date and time
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return { date: 'N/A', time: 'N/A' };
+    const date = new Date(dateString);
+    const formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    });
+    const formattedTime = date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    });
+    return { date: formattedDate, time: formattedTime };
+  };
+
+  const getLastUpdatedISOString = (
+    lastUpdated: Date | string | undefined
+  ): string | undefined => {
+    if (!lastUpdated) return undefined;
+    if (typeof lastUpdated === 'string') return lastUpdated;
+    return lastUpdated.toISOString();
+  };
+
+  const { date, time } = formatDateTime(
+    (mapReading as MapReading)?.time ||
+      getLastUpdatedISOString((mapReading as AirQualityReading)?.lastUpdated)
+  );
 
   return (
     <Card className="border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -83,14 +91,16 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 <AqWind01 className="w-4 h-4 text-gray-400" />
               </div>
               <span className="text-sm text-gray-500 dark:text-gray-400">
-                PM2.5
+                {getPollutantLabel(selectedPollutant)}
               </span>
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {pm25Value}µg/m³
+              {pollutantValue !== null && pollutantValue !== undefined
+                ? `${formatTruncatedNumber(pollutantValue, 2)}µg/m³`
+                : 'N/A'}
             </div>
           </div>
-          <AirQualityIcon className="w-12 h-12" color={airQualityInfo.color} />
+          {AirQualityIcon && <AirQualityIcon className="w-12 h-12" />}
         </div>
 
         {/* Location section */}
@@ -113,7 +123,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
               </div>
             </div>
             <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-              {airQualityInfo.level}
+              {airQualityInfo?.level ||
+                (mapReading as MapReading)?.aqi_category ||
+                (mapReading as AirQualityReading)?.aqiCategory ||
+                'N/A'}
             </div>
           </div>
 
@@ -121,101 +134,100 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
           {showMoreDetails && (
             <>
               {/* Site name section */}
-              {locationData.monitor && (
-                <>
-                  <div className="pb-3">
-                    <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Site name
-                      </div>
-                    </div>
-                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.name}
-                    </div>
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Site name
                   </div>
+                </div>
+                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                  {(mapReading as MapReading)?.siteDetails?.name ||
+                    (mapReading as AirQualityReading)?.locationName ||
+                    locationData.name}
+                </div>
+              </div>
 
-                  {/* Monitor section */}
-                  <div className="pb-3">
-                    <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        Monitor
-                      </div>
-                    </div>
-                    <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.monitor}
-                    </div>
+              {/* Monitor section */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Monitor
                   </div>
-                </>
-              )}
+                </div>
+                <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                  {(mapReading as MapReading)?.device ||
+                    (mapReading as AirQualityReading)?.provider ||
+                    'N/A'}
+                </div>
+              </div>
 
-              {locationData.pollutionSource && locationData.pollutant && (
-                <div className="pb-3">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Pollution Source
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Pollutant
-                      </span>
-                    </div>
-                  </div>
+              {/* Pollution source and pollutant */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.pollutionSource}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Pollution Source
                     </span>
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.pollutant}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Pollutant
                     </span>
                   </div>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    N/A
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {pollutantValue !== null && pollutantValue !== undefined
+                      ? `${getPollutantLabel(selectedPollutant)}: ${formatTruncatedNumber(pollutantValue, 2)}`
+                      : 'N/A'}
+                  </span>
+                </div>
+              </div>
 
-              {locationData.time && (
-                <div className="pb-3">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Date
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Time • GMT(+3)
-                      </span>
-                    </div>
-                  </div>
+              {/* Date and time */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      Apr 12th, 2024
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Date
                     </span>
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      1:28PM
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Time • GMT(+3)
                     </span>
                   </div>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {date}
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {time}
+                  </span>
+                </div>
+              </div>
 
-              {locationData.city && locationData.country && (
-                <div className="pb-3">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
-                    <div className="flex justify-between">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        City
-                      </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        Country
-                      </span>
-                    </div>
-                  </div>
+              {/* City and country */}
+              <div className="pb-3">
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-1">
                   <div className="flex justify-between">
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.city}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      City
                     </span>
-                    <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                      {locationData.country}
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Country
                     </span>
                   </div>
                 </div>
-              )}
+                <div className="flex justify-between">
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {(mapReading as MapReading)?.siteDetails?.city || 'N/A'}
+                  </span>
+                  <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {(mapReading as MapReading)?.siteDetails?.country || 'N/A'}
+                  </span>
+                </div>
+              </div>
             </>
           )}
 

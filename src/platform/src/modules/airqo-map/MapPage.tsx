@@ -1,83 +1,232 @@
 'use client';
 
 import React from 'react';
-import { MapSidebar, MapBox } from '@/modules/airqo-map';
-
-interface LocationData {
-  _id: string;
-  name: string;
-  location: string;
-  latitude: number;
-  longitude: number;
-  pm25Value?: number;
-  airQuality?: string;
-  monitor?: string;
-  pollutionSource?: string;
-  pollutant?: string;
-  time?: string;
-  city?: string;
-  country?: string;
-}
+import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
+import { useSitesByCountry, useMapReadings, useWAQICities } from './hooks';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  setSelectedLocation,
+  clearSelectedLocation,
+} from '../../shared/store/selectedLocationSlice';
+import type { RootState } from '../../shared/store';
+import type {
+  AirQualityReading,
+  ClusterData,
+} from '@/modules/airqo-map/components/map/MapNodes';
+import type { MapReading } from '../../shared/types/api';
+import { normalizeMapReadings } from './utils/dataNormalization';
+import citiesData from './data/cities.json';
 
 const MapPage = () => {
+  const dispatch = useDispatch();
+  const selectedLocation = useSelector(
+    (state: RootState): MapReading | AirQualityReading | null => {
+      const reading = state.selectedLocation.selectedReading;
+      if (
+        reading &&
+        'lastUpdated' in reading &&
+        typeof reading.lastUpdated === 'string'
+      ) {
+        // Convert string back to Date for AirQualityReading
+        return {
+          ...reading,
+          lastUpdated: new Date(reading.lastUpdated),
+        } as AirQualityReading;
+      }
+      return reading as MapReading | AirQualityReading | null;
+    }
+  );
+
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedLocation, setSelectedLocation] =
-    React.useState<LocationData | null>(null);
+  const [selectedCountry, setSelectedCountry] =
+    React.useState<string>('uganda');
+  const [locationDetailsLoading, setLocationDetailsLoading] =
+    React.useState(false);
+  const [flyToLocation, setFlyToLocation] = React.useState<
+    | {
+        longitude: number;
+        latitude: number;
+        zoom?: number;
+      }
+    | undefined
+  >(undefined);
+  const [selectedLocationId, setSelectedLocationId] = React.useState<
+    string | null
+  >(null);
+  const [selectedPollutant, setSelectedPollutant] = React.useState<
+    'pm2_5' | 'pm10'
+  >('pm2_5');
+
+  // Ref to store timeout ID for flyToLocation cleanup
+  const flyToTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  React.useEffect(() => {
+    return () => {
+      if (flyToTimeoutRef.current) {
+        clearTimeout(flyToTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {
+    setSelectedPollutant(pollutant);
+  };
+
+  // Use the new hooks
+  const { setCountry } = useSitesByCountry({
+    country: selectedCountry,
+  });
+  const { readings, isLoading: mapDataLoading, refetch } = useMapReadings();
+
+  // WAQI data for major cities - load all unique cities progressively to optimize performance
+  // Cities load progressively in background while showing AirQo data immediately
+  // Batched loading prevents API overwhelming and memory leaks
+  const allCities = React.useMemo(() => {
+    return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
+  }, []);
+
+  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500); // Load 10 cities per batch with 500ms delay
+
+  // Normalize map readings for display - prioritize AirQo data
+  const normalizedReadings = React.useMemo(() => {
+    const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
+    // Include WAQI readings progressively as they load
+    return [...airqoReadings, ...waqiReadings];
+  }, [readings, waqiReadings, selectedPollutant]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
   };
 
   const handleCountrySelect = (countryCode: string) => {
-    console.log('Country selected:', countryCode);
+    const countryName = countryCode === 'all' ? undefined : countryCode;
+    setSelectedCountry(countryCode);
+    setCountry(countryName);
   };
 
-  const handleLocationSelect = (locationId: string) => {
-    console.log('Location selected:', locationId);
+  const handleLocationSelect = async (
+    locationId: string,
+    locationData?: { latitude: number; longitude: number; name: string }
+  ) => {
+    try {
+      // Set the selected location ID for active state
+      setSelectedLocationId(locationId);
 
-    // Mock location data based on the images - this would normally come from an API
-    const mockLocationData: LocationData = {
-      _id: locationId,
-      name: 'Kyebando',
-      location: 'Central, Uganda',
-      latitude: 0.347596,
-      longitude: 32.58252,
-      pm25Value: 8.63,
-      airQuality: 'Good for everyone!',
-      monitor: 'AQG5231',
-      pollutionSource: 'Factory, Dusty road',
-      pollutant: 'PM2.5',
-      time: '1:28PM',
-      city: 'Kampala',
-      country: 'Uganda',
-    };
+      // Fly to the location on the map
+      if (locationData) {
+        setFlyToLocation({
+          longitude: locationData.longitude,
+          latitude: locationData.latitude,
+          zoom: 14, // Good zoom level for individual locations
+        });
 
-    setSelectedLocation(mockLocationData);
+        // Clear the flyToLocation after animation completes
+        if (flyToTimeoutRef.current) {
+          clearTimeout(flyToTimeoutRef.current);
+        }
+        flyToTimeoutRef.current = setTimeout(() => {
+          setFlyToLocation(undefined);
+          flyToTimeoutRef.current = null;
+        }, 1100); // Slightly longer than animation duration
+      } else {
+        // Fallback: try to find in readings (for backward compatibility)
+        const reading = readings.find(
+          r => r.site_id === locationId || r._id === locationId
+        );
+        if (reading && reading.siteDetails) {
+          setFlyToLocation({
+            longitude: reading.siteDetails.approximate_longitude,
+            latitude: reading.siteDetails.approximate_latitude,
+            zoom: 14,
+          });
+
+          // Clear the flyToLocation after animation completes
+          if (flyToTimeoutRef.current) {
+            clearTimeout(flyToTimeoutRef.current);
+          }
+          flyToTimeoutRef.current = setTimeout(() => {
+            setFlyToLocation(undefined);
+            flyToTimeoutRef.current = null;
+          }, 1100);
+        }
+      }
+
+      // Clear any selected location from Redux (we don't need details panel)
+      dispatch(clearSelectedLocation());
+    } catch (error) {
+      console.error('Error flying to location:', error);
+    }
+  };
+
+  const handleNodeClick = async (reading: AirQualityReading) => {
+    console.log('Node clicked:', reading);
+    setLocationDetailsLoading(true);
+
+    try {
+      // Create a serializable version of the reading
+      const serializableReading: AirQualityReading = {
+        ...reading,
+        lastUpdated:
+          reading.lastUpdated instanceof Date
+            ? reading.lastUpdated.toISOString()
+            : reading.lastUpdated,
+      };
+
+      // Clear the selected location ID from sidebar when clicking on map node
+      setSelectedLocationId(null);
+      dispatch(setSelectedLocation(serializableReading));
+    } catch (error) {
+      console.error('Error loading location details:', error);
+    } finally {
+      setLocationDetailsLoading(false);
+    }
+  };
+
+  const handleClusterClick = (cluster: ClusterData) => {
+    console.log('Cluster clicked:', cluster);
+    // Clear the selected location ID from sidebar when clicking on cluster
+    setSelectedLocationId(null);
+    // For clusters, we could show cluster summary or zoom in
+    // For now, just log it
   };
 
   const handleBackToList = () => {
-    setSelectedLocation(null);
+    dispatch(clearSelectedLocation());
   };
 
   return (
     <>
       {/* Desktop Layout */}
-      <div className="hidden md:flex h-full overflow-hidden shadow rounded">
+      <div className="hidden md:flex h-full overflow-visible shadow rounded">
         {/* Left Sidebar */}
-        <div className="flex-shrink-0 h-full">
+        <div className="flex-shrink-0 md:ml-2 h-full">
           <MapSidebar
             onSearch={handleSearch}
             onCountrySelect={handleCountrySelect}
             onLocationSelect={handleLocationSelect}
             searchQuery={searchQuery}
-            selectedLocation={selectedLocation}
+            selectedCountry={selectedCountry}
+            selectedMapReading={selectedLocation}
+            selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
+            locationDetailsLoading={locationDetailsLoading}
+            selectedPollutant={selectedPollutant}
           />
         </div>
 
         {/* Right Map Area */}
         <div className="flex-1 min-w-0 h-full">
-          <MapBox />
+          <EnhancedMap
+            airQualityData={normalizedReadings}
+            onNodeClick={handleNodeClick}
+            onClusterClick={handleClusterClick}
+            isLoading={mapDataLoading} // Shows loading only for AirQo data; WAQI cities load progressively in background
+            onRefreshData={refetch}
+            flyToLocation={flyToLocation}
+            selectedPollutant={selectedPollutant}
+            onPollutantChange={handlePollutantChange}
+          />
         </div>
       </div>
 
@@ -85,7 +234,16 @@ const MapPage = () => {
       <div className="flex flex-col h-full md:hidden">
         {/* Map Area - Top 1/3 */}
         <div className="h-1/2 flex-shrink-0">
-          <MapBox />
+          <EnhancedMap
+            airQualityData={normalizedReadings}
+            onNodeClick={handleNodeClick}
+            onClusterClick={handleClusterClick}
+            isLoading={mapDataLoading} // Shows loading only for AirQo data; WAQI cities load progressively in background
+            onRefreshData={refetch}
+            flyToLocation={flyToLocation}
+            selectedPollutant={selectedPollutant}
+            onPollutantChange={handlePollutantChange}
+          />
         </div>
 
         {/* Sidebar Area - Bottom 2/3 */}
@@ -96,8 +254,11 @@ const MapPage = () => {
             onCountrySelect={handleCountrySelect}
             onLocationSelect={handleLocationSelect}
             searchQuery={searchQuery}
-            selectedLocation={selectedLocation}
+            selectedCountry={selectedCountry}
+            selectedMapReading={selectedLocation}
+            selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
+            selectedPollutant={selectedPollutant}
           />
         </div>
       </div>

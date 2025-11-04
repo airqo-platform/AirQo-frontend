@@ -7,21 +7,15 @@ import { MapHeader } from './MapHeader';
 import { CountryList } from './CountryList';
 import { LocationsList } from './LocationsList';
 import { LocationDetailsPanel } from './LocationDetailsPanel';
+import type { MapReading } from '../../../../shared/types/api';
+import type { AirQualityReading } from '../map/MapNodes';
+import type { PollutantType } from '@/shared/utils/airQuality';
 
 interface LocationData {
   _id: string;
   name: string;
-  location: string;
   latitude: number;
   longitude: number;
-  pm25Value?: number;
-  airQuality?: string;
-  monitor?: string;
-  pollutionSource?: string;
-  pollutant?: string;
-  time?: string;
-  city?: string;
-  country?: string;
 }
 
 interface MapSidebarProps {
@@ -29,12 +23,18 @@ interface MapSidebarProps {
   className?: string;
   onSearch?: (query: string) => void;
   onCountrySelect?: (countryCode: string) => void;
-  onLocationSelect?: (locationId: string, locationData?: LocationData) => void;
+  onLocationSelect?: (
+    locationId: string,
+    locationData?: { latitude: number; longitude: number; name: string }
+  ) => void;
   selectedCountry?: string;
   searchQuery?: string;
-  loading?: boolean;
   selectedLocation?: LocationData | null;
+  selectedMapReading?: MapReading | AirQualityReading | null;
+  selectedLocationId?: string | null;
   onBackToList?: () => void;
+  locationDetailsLoading?: boolean;
+  selectedPollutant?: PollutantType;
 }
 
 export const MapSidebar: React.FC<MapSidebarProps> = ({
@@ -43,11 +43,14 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   onSearch,
   onCountrySelect,
   onLocationSelect,
-  selectedCountry = 'all',
+  selectedCountry = 'uganda',
   searchQuery = '',
-  loading = false,
   selectedLocation = null,
+  selectedMapReading = null,
+  selectedLocationId = null,
   onBackToList,
+  locationDetailsLoading = false,
+  selectedPollutant = 'pm2_5',
 }) => {
   // Single Card wrapper for consistent styling
   const hasSearch = searchQuery.trim().length > 0;
@@ -61,14 +64,15 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
     >
       {children ? (
         // Backward compatibility - render children if provided
-        <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-          {children}
-        </div>
-      ) : selectedLocation ? (
+        <div className="flex-1 overflow-x-hidden min-h-0">{children}</div>
+      ) : selectedLocation || selectedMapReading ? (
         // Show location details
         <LocationDetailsPanel
-          locationData={selectedLocation}
+          locationData={selectedLocation || undefined}
+          mapReading={selectedMapReading || undefined}
           onBack={onBackToList}
+          loading={locationDetailsLoading}
+          selectedPollutant={selectedPollutant}
         />
       ) : (
         // Show location list
@@ -86,9 +90,17 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
           )}
           <div className="flex-1 min-h-0">
             <LocationsList
+              selectedCountry={selectedCountry}
               onLocationSelect={onLocationSelect}
               searchQuery={searchQuery}
-              loading={loading}
+              selectedLocationId={
+                selectedLocationId ||
+                (selectedMapReading
+                  ? 'site_id' in selectedMapReading
+                    ? (selectedMapReading as MapReading).site_id
+                    : (selectedMapReading as AirQualityReading).siteId
+                  : undefined)
+              }
             />
           </div>
         </>
@@ -102,3 +114,6 @@ export { MapHeader } from './MapHeader';
 export { CountryList } from './CountryList';
 export { LocationsList } from './LocationsList';
 export { LocationCard, LocationCardSkeleton } from './LocationCard';
+export { LocationDetailsPanel } from './LocationDetailsPanel';
+export { LocationDetailsSkeleton } from './LocationDetailsSkeleton';
+export { SiteInsightsChart } from './SiteInsightsChart';
