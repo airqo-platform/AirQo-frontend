@@ -29,6 +29,11 @@ export class ApiClient {
   }
 
   private buildBaseUrl(): string {
+    if (this.authType === AuthType.API_TOKEN) {
+      // For API_TOKEN, use internal proxy route
+      return '/api/external';
+    }
+
     const baseUrl =
       process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_BASE_URL;
     if (!baseUrl) {
@@ -54,10 +59,7 @@ export class ApiClient {
           // JWT tokens are set via setAuthToken() method
           // The Authorization header should already be set on the client defaults
         } else if (this.authType === AuthType.API_TOKEN) {
-          const apiToken = process.env.API_TOKEN;
-          if (apiToken) {
-            config.params = { ...config.params, token: apiToken };
-          }
+          // Token is handled by the internal proxy route
         }
         return config;
       },

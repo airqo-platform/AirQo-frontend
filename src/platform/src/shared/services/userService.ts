@@ -105,13 +105,12 @@ export class UserService {
     return data as UpdatePreferencesResponse;
   }
 
-  // Update user details - authenticated endpoint
+  // Update user details - open endpoint
   async updateUserDetails(
     userId: string,
     details: UpdateUserDetailsRequest
   ): Promise<UpdateUserDetailsResponse> {
-    await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.put<
+    const response = await this.openClient.put<
       UpdateUserDetailsResponse | ApiErrorResponse
     >(`/users/${userId}`, details);
     const data = response.data;
