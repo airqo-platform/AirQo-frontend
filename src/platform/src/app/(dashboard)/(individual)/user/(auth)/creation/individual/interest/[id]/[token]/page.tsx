@@ -237,7 +237,6 @@ const Page: React.FC = () => {
                         <button
                           key={l._id}
                           type="button"
-                          onClick={() => toggleLocation(l._id)}
                           className={`w-full text-left rounded-lg border p-4 transition-shadow flex items-center justify-between ${
                             selected
                               ? 'border-primary bg-primary/10 shadow-sm'
@@ -253,7 +252,7 @@ const Page: React.FC = () => {
                             </div>
                           </div>
 
-                          <div onClick={e => e.stopPropagation()}>
+                          <div>
                             <Checkbox
                               checked={selected}
                               onCheckedChange={() => toggleLocation(l._id)}

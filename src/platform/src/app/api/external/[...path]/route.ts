@@ -50,7 +50,10 @@ async function proxyRequest(request: NextRequest, path: string[]) {
   try {
     const baseUrl = buildBaseUrl();
     const targetPath = path.join('/');
-    const targetUrl = `${baseUrl}/${targetPath}`.replace(/\/+/g, '/');
+    // Clean paths to avoid double slashes
+    const cleanBaseUrl = baseUrl.replace(/\/$/, '');
+    const cleanPath = targetPath.replace(/^\//, '');
+    const targetUrl = cleanPath ? `${cleanBaseUrl}/${cleanPath}` : cleanBaseUrl;
 
     const apiToken = process.env.API_TOKEN;
     if (!apiToken) {
@@ -67,15 +70,23 @@ async function proxyRequest(request: NextRequest, path: string[]) {
     // Add original query params
     const originalUrl = new URL(request.url);
     originalUrl.searchParams.forEach((value, key) => {
+      // Don't allow overriding the API token
+      if (key === 'token') return;
       url.searchParams.set(key, value);
     });
 
     // Prepare fetch options
+    const incomingContentType = request.headers.get('content-type');
+    const headers: Record<string, string> = {};
+    if (incomingContentType) {
+      headers['Content-Type'] = incomingContentType;
+    } else {
+      headers['Content-Type'] = 'application/json';
+    }
+
     const options: RequestInit = {
       method: request.method,
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
     };
 
     // Add body for non-GET requests
@@ -85,7 +96,8 @@ async function proxyRequest(request: NextRequest, path: string[]) {
         if (body) {
           options.body = body;
         }
-      } catch {
+      } catch (error) {
+        console.error('Failed to read request body:', error);
         // Ignore body parsing errors
       }
     }
@@ -101,7 +113,8 @@ async function proxyRequest(request: NextRequest, path: string[]) {
           response.headers.get('Content-Type') || 'application/json',
       },
     });
-  } catch {
+  } catch (error) {
+    console.error('Proxy request failed:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
