@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useRef, useId } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import AuthLayout from '@/shared/layouts/AuthLayout';
 import { Button } from '@/shared/components/ui/button';
 import { AqArrowNarrowLeft } from '@airqo/icons-react';
@@ -95,6 +95,7 @@ const OptionCard: React.FC<{
 
 const Page: React.FC = () => {
   const params = useParams();
+  const router = useRouter();
   const userId = params.id as string;
   const token = params.token as string;
 
@@ -376,13 +377,14 @@ const Page: React.FC = () => {
                       ]);
 
                       showToast({
-                        title: 'Setup Complete',
+                        title: 'Account Created',
                         description:
-                          'Your preferences have been saved successfully.',
+                          'Your account has been successfully created. You can now proceed to login.',
                         variant: 'success',
                       });
 
-                      // TODO: redirect to next step
+                      // Redirect to login page
+                      router.push('/user/login');
                     } catch (error) {
                       const errorMessage = getUserFriendlyErrorMessage(error);
                       showToast({
