@@ -7,8 +7,8 @@ function buildBaseUrl(): string {
     throw new Error('API_BASE_URL is not defined in environment variables');
   }
 
-  // Remove trailing slash and clean double slashes
-  const cleanBaseUrl = baseUrl.replace(/\/+$/, '').replace(/\/+/g, '/');
+  // Remove trailing slash
+  const cleanBaseUrl = baseUrl.replace(/\/+$/, '');
 
   if (cleanBaseUrl.endsWith('/api/v2')) {
     return cleanBaseUrl;
