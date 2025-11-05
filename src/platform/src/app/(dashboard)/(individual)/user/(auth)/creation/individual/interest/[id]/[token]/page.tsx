@@ -7,6 +7,7 @@ import AuthLayout from '@/shared/layouts/AuthLayout';
 import { Button } from '@/shared/components/ui/button';
 import { AqArrowNarrowLeft } from '@airqo/icons-react';
 import { SearchField } from '@/shared/components/ui/search-field';
+import Checkbox from '@/shared/components/ui/checkbox';
 import { TextInput } from '@/shared/components/ui/text-input';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import {
@@ -118,11 +119,14 @@ const Page: React.FC = () => {
   const { trigger: verifyEmail } = useVerifyEmail();
 
   // Get sites data
-  const { data: sitesData, isLoading: isLoadingSites } =
-    useSitesSummaryWithToken(
-      { search: query || undefined },
-      !!userId && !!token
-    );
+  const {
+    data: sitesData,
+    isLoading: isLoadingSites,
+    error: sitesError,
+  } = useSitesSummaryWithToken(
+    { search: query || undefined },
+    !!userId && !!token
+  );
 
   // Update preferences and user details
   const { trigger: updatePreferences, isMutating: isUpdatingPreferences } =
@@ -216,47 +220,49 @@ const Page: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                {isLoadingSites ? (
-                  <div className="col-span-2 flex justify-center py-8">
-                    <LoadingSpinner size={32} />
-                  </div>
-                ) : filteredLocations.length === 0 ? (
-                  <div className="col-span-2 text-center text-gray-500 py-8">
-                    No results found.
-                  </div>
-                ) : (
-                  filteredLocations.map(l => {
-                    const selected = selectedLocations.includes(l._id);
-                    return (
-                      <button
-                        key={l._id}
-                        type="button"
-                        onClick={() => toggleLocation(l._id)}
-                        className={`w-full text-left rounded-lg border p-4 transition-shadow flex items-center justify-between ${
-                          selected
-                            ? 'border-primary bg-primary/10 shadow-sm'
-                            : 'border-gray-200 bg-white hover:shadow-sm'
-                        }`}
-                      >
-                        <div>
-                          <div className="text-sm font-medium text-gray-800">
-                            {l.name}
+              <div className="max-h-80 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-3">
+                  {isLoadingSites ? (
+                    <div className="col-span-2 flex justify-center py-8">
+                      <LoadingSpinner size={32} />
+                    </div>
+                  ) : filteredLocations.length === 0 ? (
+                    <div className="col-span-2 text-center text-gray-500 py-8">
+                      No results found.
+                    </div>
+                  ) : (
+                    filteredLocations.map(l => {
+                      const selected = selectedLocations.includes(l._id);
+                      return (
+                        <button
+                          key={l._id}
+                          type="button"
+                          className={`w-full text-left rounded-lg border p-4 transition-shadow flex items-center justify-between ${
+                            selected
+                              ? 'border-primary bg-primary/10 shadow-sm'
+                              : 'border-gray-200 bg-white hover:shadow-sm'
+                          }`}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-800 truncate">
+                              {l.name?.replace(/_/g, ' ')}
+                            </div>
+                            <div className="text-xs text-gray-400 truncate">
+                              {l.country}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-400">
-                            {l.country}
-                          </div>
-                        </div>
 
-                        {selected ? (
-                          <div className="text-xs text-primary">Selected</div>
-                        ) : (
-                          <div className="text-xs text-gray-400">Select</div>
-                        )}
-                      </button>
-                    );
-                  })
-                )}
+                          <div>
+                            <Checkbox
+                              checked={selected}
+                              onCheckedChange={() => toggleLocation(l._id)}
+                            />
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
               </div>
             </div>
 
@@ -264,7 +270,12 @@ const Page: React.FC = () => {
               <div className="text-sm text-gray-500">
                 {selectedLocations.length}/{maxLocations} selected
               </div>
-              <div>
+              <div className="flex gap-2">
+                {sitesError && (
+                  <Button variant="outlined" onClick={() => setStep(2)}>
+                    Skip Location Selection
+                  </Button>
+                )}
                 <Button
                   variant="filled"
                   disabled={selectedLocations.length === 0}
