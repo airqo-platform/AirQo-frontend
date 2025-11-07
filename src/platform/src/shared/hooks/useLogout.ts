@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import { selectLoggingOut } from '@/shared/store/selectors';
 
-export const useLogout = () => {
+export const useLogout = (callbackUrl?: string) => {
   const dispatch = useDispatch();
   const router = useRouter();
   const isLoggingOut = useSelector(selectLoggingOut);
@@ -37,19 +37,23 @@ export const useLogout = () => {
 
         // Clear sessionStorage
         sessionStorage.clear();
+
+        // Clear unauthorized tracking counters to prevent false positives
+        localStorage.removeItem('unauthorized_count');
+        localStorage.removeItem('last_unauthorized');
       }
 
       // Clear persisted Redux data
       await persistor.purge();
 
       // Sign out from NextAuth and redirect
-      await signOut({ callbackUrl: '/user/login' });
+      await signOut({ callbackUrl: callbackUrl || '/user/login' });
     } catch (error) {
       console.error('Logout error:', error);
       // Reset logging out state on error
       dispatch(setLoggingOut(false));
       // Fallback redirect
-      router.push('/user/login');
+      router.push(callbackUrl || '/user/login');
     }
   };
 
