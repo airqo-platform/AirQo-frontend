@@ -72,7 +72,7 @@ const ConfirmDeletePage: React.FC = () => {
           // Show success message for 1.5 seconds before logging out
           setTimeout(async () => {
             await logout();
-          }, 5000);
+          }, 1500);
         } else {
           // Handle API success but logical failure (success: false)
           setStatus('error');
