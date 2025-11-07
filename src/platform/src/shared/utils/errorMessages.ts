@@ -12,11 +12,15 @@ export interface ErrorMapping {
 interface ApiErrorResponse {
   success?: boolean;
   message?: string;
-  errors?: Array<{
-    param?: string;
-    message?: string;
-    location?: string;
-  }>;
+  errors?:
+    | Array<{
+        param?: string;
+        message?: string;
+        location?: string;
+      }>
+    | {
+        message?: string;
+      };
 }
 
 // Default error mappings for common HTTP status codes and error types
@@ -133,11 +137,11 @@ export function getUserFriendlyErrorMessage(
   if ((error as AxiosError).isAxiosError || (error as AxiosError).response) {
     const axiosError = error as AxiosError;
 
-    // Priority 1: Check response.data.errors array for specific error messages
+    // Priority 1: Check response.data.errors for specific error messages
     if (axiosError.response?.data) {
       const responseData = axiosError.response.data as ApiErrorResponse;
 
-      // Handle errors array if present and has items
+      // Handle errors as an array (original format)
       if (
         responseData.errors &&
         Array.isArray(responseData.errors) &&
@@ -149,6 +153,17 @@ export function getUserFriendlyErrorMessage(
             return errorItem.message;
           }
         }
+      }
+
+      // Handle errors as an object with message property (new format)
+      if (
+        responseData.errors &&
+        typeof responseData.errors === 'object' &&
+        !Array.isArray(responseData.errors) &&
+        'message' in responseData.errors &&
+        typeof (responseData.errors as { message: string }).message === 'string'
+      ) {
+        return (responseData.errors as { message: string }).message;
       }
     }
 

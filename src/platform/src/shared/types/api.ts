@@ -971,6 +971,6 @@ export interface InitiateAccountDeletionResponse {
 }
 
 export interface ConfirmAccountDeletionResponse {
-  success: true;
+  success: boolean;
   message: string;
 }

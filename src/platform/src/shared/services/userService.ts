@@ -216,10 +216,7 @@ export class UserService {
     >(`/users/delete/confirm/${token}`);
     const data = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to confirm account deletion');
-    }
-
+    // Return the data as is - let the caller check success field
     return data as ConfirmAccountDeletionResponse;
   }
 }

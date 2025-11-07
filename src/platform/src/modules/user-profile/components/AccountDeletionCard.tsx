@@ -74,7 +74,7 @@ const AccountDeletionCard: React.FC = () => {
         primaryAction={{
           label: deleting ? 'Initiating deletion process...' : 'Delete Account',
           onClick: handleInitiateDeletion,
-          disabled: deleting,
+          loading: deleting,
           className:
             'bg-red-600 hover:bg-red-700  ring-red-600 outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 text-white',
         }}

@@ -18,6 +18,7 @@ export default withAuth(
           ) ||
           pathname === '/user/forgotPwd' ||
           pathname.match(/^\/user\/forgotPwd\/reset/) ||
+          pathname.match(/^\/user\/delete\/confirm\/[^\/]+$/) ||
           pathname.match(/^\/org\/[^\/]+\/login$/) ||
           pathname.match(/^\/org\/[^\/]+\/register$/)
         ) {
