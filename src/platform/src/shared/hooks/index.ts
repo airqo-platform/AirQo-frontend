@@ -16,6 +16,8 @@ export {
   useUpdatePassword,
   useCreateOrganizationRequest,
   useCheckSlugAvailability,
+  useInitiateAccountDeletion,
+  useConfirmAccountDeletion,
   useUser,
 } from './useUser';
 export { useUserActions } from './useUserActions';

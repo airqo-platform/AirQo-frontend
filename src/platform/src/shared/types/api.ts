@@ -963,3 +963,14 @@ export interface SlugAvailabilityResponse {
   message: string;
   available: boolean;
 }
+
+// Account deletion
+export interface InitiateAccountDeletionResponse {
+  success: true;
+  message: string;
+}
+
+export interface ConfirmAccountDeletionResponse {
+  success: boolean;
+  message: string;
+}

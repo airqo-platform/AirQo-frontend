@@ -69,6 +69,26 @@ export const useCheckSlugAvailability = () => {
   );
 };
 
+// Initiate account deletion
+export const useInitiateAccountDeletion = () => {
+  return useSWRMutation(
+    'user/initiate-account-deletion',
+    async (key, { arg }: { arg: { email: string } }) => {
+      return await userService.initiateAccountDeletion(arg.email);
+    }
+  );
+};
+
+// Confirm account deletion
+export const useConfirmAccountDeletion = () => {
+  return useSWRMutation(
+    'user/confirm-account-deletion',
+    async (key, { arg }: { arg: { token: string } }) => {
+      return await userService.confirmAccountDeletion(arg.token);
+    }
+  );
+};
+
 // Get user data
 export const useUser = () => {
   const user = useSelector(selectUser);

@@ -20,6 +20,8 @@ import type {
   CreateOrganizationRequest,
   CreateOrganizationResponse,
   SlugAvailabilityResponse,
+  InitiateAccountDeletionResponse,
+  ConfirmAccountDeletionResponse,
 } from '../types/api';
 
 export class UserService {
@@ -186,6 +188,36 @@ export class UserService {
     }
 
     return data as SlugAvailabilityResponse;
+  }
+
+  // Initiate account deletion - authenticated endpoint
+  async initiateAccountDeletion(
+    email: string
+  ): Promise<InitiateAccountDeletionResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      InitiateAccountDeletionResponse | ApiErrorResponse
+    >('/users/delete/initiate', { email });
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to initiate account deletion');
+    }
+
+    return data as InitiateAccountDeletionResponse;
+  }
+
+  // Confirm account deletion - open endpoint
+  async confirmAccountDeletion(
+    token: string
+  ): Promise<ConfirmAccountDeletionResponse> {
+    const response = await this.openClient.post<
+      ConfirmAccountDeletionResponse | ApiErrorResponse
+    >(`/users/delete/confirm/${token}`);
+    const data = response.data;
+
+    // Return the data as is - let the caller check success field
+    return data as ConfirmAccountDeletionResponse;
   }
 }
 
