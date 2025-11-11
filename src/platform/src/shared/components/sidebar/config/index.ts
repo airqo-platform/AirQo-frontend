@@ -195,7 +195,7 @@ const globalSidebarConfig: NavGroup[] = [
     items: [
       {
         id: 'admin-panel',
-        label: 'Administration Panel',
+        label: 'Administrative Panel',
         href: '/admin/org-requests',
         icon: AqFolderShield,
       },
