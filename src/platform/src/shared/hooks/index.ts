@@ -7,6 +7,7 @@ export {
   useVerifyEmail,
   useUserDetails,
   useUserRoles,
+  useUserRolesById,
   useMutateUserData,
 } from './useAuth';
 

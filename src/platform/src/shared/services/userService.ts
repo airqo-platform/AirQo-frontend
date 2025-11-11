@@ -74,6 +74,21 @@ export class UserService {
     return data as UserRolesResponse;
   }
 
+  // Get user roles and permissions by user ID - authenticated endpoint
+  async getUserRolesById(userId: string): Promise<UserRolesResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      UserRolesResponse | ApiErrorResponse
+    >(`/users/roles/users/${userId}/roles-simplified`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get user roles');
+    }
+
+    return data as UserRolesResponse;
+  }
+
   // Update user preferences - authenticated endpoint
   async updatePreferencesAuthenticated(
     preferences: UpdatePreferencesRequest
