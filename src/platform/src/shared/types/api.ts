@@ -29,6 +29,124 @@ export interface LoginResponse {
   expiresAt: string;
 }
 
+// Roles and Permissions Types for Admin Management
+export interface RolePermission {
+  _id: string;
+  permission: string;
+  description?: string;
+  network?: {
+    _id: string;
+    net_name: string;
+    net_status: string;
+    net_email: string;
+    net_phoneNumber: number;
+    net_category: string;
+    net_description: string;
+    net_website: string;
+    net_acronym: string;
+    net_profile_picture: string;
+    net_children: string[];
+    net_users: string[];
+    net_departments: string[];
+    net_permissions: string[];
+    net_roles: string[];
+    net_groups: string[];
+  };
+}
+
+export interface RoleGroupInfo {
+  _id: string;
+  grp_status: string;
+  grp_title: string;
+  grp_description: string;
+  grp_manager: string;
+  grp_manager_username: string;
+  grp_manager_firstname: string;
+  grp_manager_lastname: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  grp_profile_picture: string;
+  grp_image: string;
+  organization_slug: string;
+  grp_country: string;
+  grp_industry: string;
+  grp_timezone: string;
+  grp_website: string;
+  theme: {
+    primaryColor: string;
+    mode: string;
+    interfaceStyle: string;
+    contentLayout: string;
+  };
+}
+
+export interface RoleDetails {
+  _id: string;
+  role_status: string;
+  role_code: string;
+  role_name: string;
+  role_description?: string;
+  createdAt: string;
+  updatedAt: string;
+  role_permissions: RolePermission[];
+  role_users: string[];
+  group: RoleGroupInfo;
+}
+
+// API Response types for Roles and Permissions
+export interface GetRolesResponse {
+  success: boolean;
+  message: string;
+  roles: RoleDetails[];
+}
+
+export interface GetRoleByIdResponse {
+  success: boolean;
+  message: string;
+  role?: RoleDetails; // Single role (optional for backward compatibility)
+  roles?: RoleDetails[]; // Array format (actual response)
+}
+
+export interface GetPermissionsResponse {
+  success: boolean;
+  message: string;
+  permissions: RolePermission[];
+}
+
+export interface CreateRoleRequest {
+  role_name: string;
+  group_id: string;
+  role_description?: string;
+}
+
+export interface CreateRoleResponse {
+  success: boolean;
+  message: string;
+  role: RoleDetails;
+}
+
+export interface UpdateRolePermissionsRequest {
+  permission_ids: string[];
+}
+
+export interface UpdateRolePermissionsResponse {
+  success: boolean;
+  message: string;
+  role: RoleDetails;
+}
+
+export interface UpdateRoleDataRequest {
+  role_name?: string;
+  role_status?: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface UpdateRoleDataResponse {
+  success: boolean;
+  message: string;
+  role: RoleDetails;
+}
+
 export interface RegisterRequest {
   firstName: string;
   lastName: string;

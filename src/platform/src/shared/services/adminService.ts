@@ -5,6 +5,15 @@ import type {
   GetOrganizationRequestsResponse,
   ApproveOrganizationRequestResponse,
   RejectOrganizationRequestResponse,
+  GetRolesResponse,
+  GetPermissionsResponse,
+  CreateRoleRequest,
+  CreateRoleResponse,
+  UpdateRolePermissionsRequest,
+  UpdateRolePermissionsResponse,
+  UpdateRoleDataRequest,
+  UpdateRoleDataResponse,
+  GetRoleByIdResponse,
 } from '../types/api';
 
 export class AdminService {
@@ -56,6 +65,75 @@ export class AdminService {
         `/users/org-requests/${requestId}/reject`,
         { rejection_reason }
       );
+    return response.data;
+  }
+
+  // Get roles by group_id - authenticated admin endpoint
+  async getRolesByGroup(groupId?: string): Promise<GetRolesResponse> {
+    await this.ensureAuthenticated();
+    const url = groupId ? `/users/roles?group_id=${groupId}` : '/users/roles';
+    const response = await this.authenticatedClient.get<GetRolesResponse>(url);
+    return response.data;
+  }
+
+  // Get role by ID - authenticated admin endpoint
+  async getRoleById(roleId: string): Promise<GetRoleByIdResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<GetRoleByIdResponse>(
+      `/users/roles/${roleId}`
+    );
+
+    if (!response.data.success) {
+      throw new Error(response.data.message || 'Failed to fetch role');
+    }
+
+    return response.data;
+  }
+
+  // Get all permissions - authenticated admin endpoint
+  async getPermissions(): Promise<GetPermissionsResponse> {
+    await this.ensureAuthenticated();
+    const response =
+      await this.authenticatedClient.get<GetPermissionsResponse>(
+        '/users/permissions'
+      );
+    return response.data;
+  }
+
+  // Create a new role - authenticated admin endpoint
+  async createRole(roleData: CreateRoleRequest): Promise<CreateRoleResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<CreateRoleResponse>(
+      '/users/roles',
+      roleData
+    );
+    return response.data;
+  }
+
+  // Update role permissions - authenticated admin endpoint
+  async updateRolePermissions(
+    roleId: string,
+    permissionData: UpdateRolePermissionsRequest
+  ): Promise<UpdateRolePermissionsResponse> {
+    await this.ensureAuthenticated();
+    const response =
+      await this.authenticatedClient.put<UpdateRolePermissionsResponse>(
+        `/users/roles/${roleId}/permissions`,
+        permissionData
+      );
+    return response.data;
+  }
+
+  // Update role data (name and status) - authenticated admin endpoint
+  async updateRoleData(
+    roleId: string,
+    roleData: UpdateRoleDataRequest
+  ): Promise<UpdateRoleDataResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<UpdateRoleDataResponse>(
+      `/users/roles/${roleId}`,
+      roleData
+    );
     return response.data;
   }
 }
