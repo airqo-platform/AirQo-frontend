@@ -251,10 +251,12 @@ export const LocationDetailsPanel: React.FC<LocationDetailsPanelProps> = ({
             {/* More Insights - Only show for readings with site data */}
             {hasSiteDetails && (
               <CollapsibleCard title="More Insights" defaultExpanded={false}>
-                <SiteInsightsChart
-                  siteId={currentLocationData._id}
-                  height={150}
-                />
+                <div>
+                  <SiteInsightsChart
+                    siteId={currentLocationData._id}
+                    height={150}
+                  />
+                </div>
               </CollapsibleCard>
             )}
           </div>

@@ -50,6 +50,59 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
   }, [pollutantValue, selectedPollutant]);
   const AirQualityIcon = airQualityInfo?.icon;
 
+  // Helper function to extract city and country from location name
+  const parseLocationDetails = (locationName?: string) => {
+    if (!locationName) return { city: 'N/A', country: 'N/A' };
+
+    // For WAQI data, location names are typically in format "City, Country" or just "City"
+    const parts = locationName.split(',').map(part => part.trim());
+
+    if (parts.length >= 2) {
+      return {
+        city: parts[0],
+        country: parts[parts.length - 1], // Last part is usually the country
+      };
+    } else {
+      // If no comma, assume it's just a city name
+      return {
+        city: locationName,
+        country: 'N/A',
+      };
+    }
+  };
+
+  // Get city and country information
+  const getCityAndCountry = () => {
+    // First try AirQo data structure
+    const airQoCity = (mapReading as MapReading)?.siteDetails?.city;
+    const airQoCountry = (mapReading as MapReading)?.siteDetails?.country;
+
+    if (airQoCity && airQoCountry) {
+      return { city: airQoCity, country: airQoCountry };
+    }
+
+    // Then try WAQI data from fullReadingData
+    const waqiCityFromFullData = (mapReading as AirQualityReading)
+      ?.fullReadingData?.siteDetails?.city;
+    const waqiCountryFromFullData = (mapReading as AirQualityReading)
+      ?.fullReadingData?.siteDetails?.country;
+
+    if (waqiCityFromFullData && waqiCountryFromFullData) {
+      return { city: waqiCityFromFullData, country: waqiCountryFromFullData };
+    }
+
+    // Finally, parse from locationName (for WAQI data)
+    const locationName =
+      (mapReading as AirQualityReading)?.locationName ||
+      (mapReading as MapReading)?.siteDetails?.search_name ||
+      (mapReading as MapReading)?.siteDetails?.formatted_name ||
+      (mapReading as MapReading)?.siteDetails?.name;
+
+    return parseLocationDetails(locationName);
+  };
+
+  const { city, country } = getCityAndCountry();
+
   // Format date and time
   const formatDateTime = (dateString?: string) => {
     if (!dateString) return { date: 'N/A', time: 'N/A' };
@@ -221,10 +274,10 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {(mapReading as MapReading)?.siteDetails?.city || 'N/A'}
+                    {city}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {(mapReading as MapReading)?.siteDetails?.country || 'N/A'}
+                    {country}
                   </span>
                 </div>
               </div>

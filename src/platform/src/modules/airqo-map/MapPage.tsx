@@ -79,20 +79,26 @@ const MapPage = () => {
   });
   const { readings, isLoading: mapDataLoading, refetch } = useMapReadings();
 
-  // WAQI data for major cities - load all unique cities progressively to optimize performance
-  // Cities load progressively in background while showing AirQo data immediately
-  // Batched loading prevents API overwhelming and memory leaks
+  // WAQI data for major cities - progressive loading to optimize performance
   const allCities = React.useMemo(() => {
     return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
   }, []);
 
   const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500); // Load 10 cities per batch with 500ms delay
 
-  // Normalize map readings for display - prioritize AirQo data
+  // Normalize map readings - prioritize AirQo data
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
-    // Include WAQI readings progressively as they load
-    return [...airqoReadings, ...waqiReadings];
+    const combined = [...airqoReadings, ...waqiReadings];
+    // Remove duplicates based on ID to prevent React key conflicts
+    const seenIds = new Set<string>();
+    return combined.filter(reading => {
+      if (seenIds.has(reading.id)) {
+        return false;
+      }
+      seenIds.add(reading.id);
+      return true;
+    });
   }, [readings, waqiReadings, selectedPollutant]);
 
   const handleSearch = (query: string) => {
@@ -110,27 +116,23 @@ const MapPage = () => {
     locationData?: { latitude: number; longitude: number; name: string }
   ) => {
     try {
-      // Set the selected location ID for active state
       setSelectedLocationId(locationId);
 
-      // Fly to the location on the map
       if (locationData) {
         setFlyToLocation({
           longitude: locationData.longitude,
           latitude: locationData.latitude,
-          zoom: 14, // Good zoom level for individual locations
+          zoom: 14,
         });
 
-        // Clear the flyToLocation after animation completes
         if (flyToTimeoutRef.current) {
           clearTimeout(flyToTimeoutRef.current);
         }
         flyToTimeoutRef.current = setTimeout(() => {
           setFlyToLocation(undefined);
           flyToTimeoutRef.current = null;
-        }, 1100); // Slightly longer than animation duration
+        }, 1100);
       } else {
-        // Fallback: try to find in readings (for backward compatibility)
         const reading = readings.find(
           r => r.site_id === locationId || r._id === locationId
         );
@@ -141,7 +143,6 @@ const MapPage = () => {
             zoom: 14,
           });
 
-          // Clear the flyToLocation after animation completes
           if (flyToTimeoutRef.current) {
             clearTimeout(flyToTimeoutRef.current);
           }
@@ -152,7 +153,6 @@ const MapPage = () => {
         }
       }
 
-      // Clear any selected location from Redux (we don't need details panel)
       dispatch(clearSelectedLocation());
     } catch (error) {
       console.error('Error flying to location:', error);
@@ -164,7 +164,6 @@ const MapPage = () => {
     setLocationDetailsLoading(true);
 
     try {
-      // Create a serializable version of the reading
       const serializableReading: AirQualityReading = {
         ...reading,
         lastUpdated:
@@ -173,7 +172,6 @@ const MapPage = () => {
             : reading.lastUpdated,
       };
 
-      // Clear the selected location ID from sidebar when clicking on map node
       setSelectedLocationId(null);
       dispatch(setSelectedLocation(serializableReading));
     } catch (error) {
@@ -185,10 +183,7 @@ const MapPage = () => {
 
   const handleClusterClick = (cluster: ClusterData) => {
     console.log('Cluster clicked:', cluster);
-    // Clear the selected location ID from sidebar when clicking on cluster
     setSelectedLocationId(null);
-    // For clusters, we could show cluster summary or zoom in
-    // For now, just log it
   };
 
   const handleBackToList = () => {
@@ -221,7 +216,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading} // Shows loading only for AirQo data; WAQI cities load progressively in background
+            isLoading={mapDataLoading}
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
             selectedPollutant={selectedPollutant}
@@ -238,7 +233,7 @@ const MapPage = () => {
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
             onClusterClick={handleClusterClick}
-            isLoading={mapDataLoading} // Shows loading only for AirQo data; WAQI cities load progressively in background
+            isLoading={mapDataLoading}
             onRefreshData={refetch}
             flyToLocation={flyToLocation}
             selectedPollutant={selectedPollutant}
