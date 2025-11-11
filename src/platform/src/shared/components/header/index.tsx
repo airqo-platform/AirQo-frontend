@@ -40,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
           <Button
             variant="ghost"
             size="sm"
-            className="mr-2"
+            className="-ml-2 mr-2"
             onClick={() => dispatch(toggleGlobalSidebar())}
           >
             <AqMenu03 />
