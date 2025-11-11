@@ -9,10 +9,11 @@ import { RootState } from '@/shared/store';
 import { toggleGlobalSidebar } from '@/shared/store/uiSlice';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { AqXClose, AqShield01 } from '@airqo/icons-react';
+import { AqXClose } from '@airqo/icons-react';
 import { useMediaQuery } from 'react-responsive';
 import { NavItem } from '@/shared/components/sidebar/components/nav-item';
 import { useUserActions } from '@/shared/hooks';
+import { getSidebarConfig } from '@/shared/components/sidebar/config';
 
 export const GlobalSidebar: React.FC = () => {
   const dispatch = useDispatch();
@@ -72,6 +73,12 @@ export const GlobalSidebar: React.FC = () => {
   };
 
   const shouldShowFallback = showFallback || imageError;
+
+  // Get global navigation items (global config)
+  const globalNavItems = React.useMemo(() => {
+    const globalConfig = getSidebarConfig('global');
+    return globalConfig.flatMap(group => group.items);
+  }, []);
 
   // Focus management
   useEffect(() => {
@@ -165,16 +172,9 @@ export const GlobalSidebar: React.FC = () => {
                 </Button>
               </div>
               <div className="space-y-4">
-                {/* Admin Panel */}
-                <NavItem
-                  item={{
-                    id: 'admin-panel',
-                    label: 'Admin Panel',
-                    href: '/admin/dashboard',
-                    icon: AqShield01,
-                  }}
-                  onClick={handleClose}
-                />
+                {globalNavItems.map(item => (
+                  <NavItem key={item.id} item={item} onClick={handleClose} />
+                ))}
               </div>
             </Card>
           </motion.div>

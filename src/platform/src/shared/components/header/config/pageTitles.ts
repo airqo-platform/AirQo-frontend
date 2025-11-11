@@ -18,6 +18,9 @@ export const PAGE_TITLES: Record<string, string> = {
 
   '/request-organization': 'Organization',
 
+  // Admin routes
+  '/admin/org-requests': 'Organization Requests',
+
   // Default fallback
   '/': 'AirQo',
 };
@@ -40,6 +43,15 @@ export const getPageTitle = (pathname: string): string => {
     if (parts.length >= 3) {
       const route = `/user/${parts[2]}`;
       return PAGE_TITLES[route] || 'User';
+    }
+  }
+
+  // Handle admin routes
+  if (pathname.startsWith('/admin/')) {
+    const parts = pathname.split('/');
+    if (parts.length >= 3) {
+      const route = `/admin/${parts[2]}`;
+      return PAGE_TITLES[route] || 'Admin';
     }
   }
 

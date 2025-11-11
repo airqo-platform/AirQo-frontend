@@ -4,6 +4,8 @@ import {
   AqStar06,
   AqGlobe05,
   AqDownload01,
+  AqFolderShield,
+  AqFileQuestion02,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -29,6 +31,7 @@ export interface SidebarConfig {
   user: NavGroup[];
   organization: NavGroup[];
   admin: NavGroup[];
+  global: NavGroup[];
 }
 
 // User flow sidebar configuration
@@ -139,15 +142,29 @@ const orgSidebarConfig: NavGroup[] = [
 const adminSidebarConfig: NavGroup[] = [
   {
     id: 'admin',
-    label: 'Admin',
+    label: 'Dashboard',
     items: [
       {
         id: 'admin-dashboard',
-        label: 'Admin Dashboard',
-        href: '/admin/dashboard',
-        icon: AqHomeSmile,
+        label: 'Organization Requests',
+        href: '/admin/org-requests',
+        icon: AqFileQuestion02,
       },
-      // Add more admin routes here
+    ],
+  },
+];
+
+const globalSidebarConfig: NavGroup[] = [
+  {
+    id: 'global',
+    label: 'Global',
+    items: [
+      {
+        id: 'admin-panel',
+        label: 'Administration Panel',
+        href: '/admin/org-requests',
+        icon: AqFolderShield,
+      },
     ],
   },
 ];
@@ -156,18 +173,19 @@ export const sidebarConfig: SidebarConfig = {
   user: userSidebarConfig,
   organization: orgSidebarConfig,
   admin: adminSidebarConfig,
+  global: globalSidebarConfig,
 };
 
 // Utility functions for sidebar configuration
 export const getSidebarConfig = (
-  type: 'user' | 'organization' | 'admin'
+  type: 'user' | 'organization' | 'admin' | 'global'
 ): NavGroup[] => {
   return sidebarConfig[type];
 };
 
 // Flatten all nav items for a specific type
 export const getAllNavItems = (
-  type: 'user' | 'organization' | 'admin'
+  type: 'user' | 'organization' | 'admin' | 'global'
 ): NavItem[] => {
   return sidebarConfig[type].flatMap(group => group.items);
 };
@@ -175,7 +193,7 @@ export const getAllNavItems = (
 // Get nav item by href for a specific type
 export const getNavItemByHref = (
   href: string,
-  type: 'user' | 'organization' | 'admin'
+  type: 'user' | 'organization' | 'admin' | 'global'
 ): NavItem | undefined => {
   const allNavItems = getAllNavItems(type);
   return allNavItems.find(item => item.href === href);

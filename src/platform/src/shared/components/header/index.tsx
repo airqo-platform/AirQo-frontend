@@ -16,7 +16,7 @@ import { useScrollVisibility, usePageTitle } from './hooks';
 import { HeaderProps } from './types';
 import { useMediaQuery } from 'react-responsive';
 import { toggleGlobalSidebar } from '@/shared/store/uiSlice';
-import { AqMenu03 } from '@airqo/icons-react';
+import { AqMenu01 } from '@airqo/icons-react';
 
 export const Header: React.FC<HeaderProps> = ({
   className,
@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="-ml-2 mr-2"
             onClick={() => dispatch(toggleGlobalSidebar())}
           >
-            <AqMenu03 />
+            <AqMenu01 />
           </Button>
           {/* Logo */}
           <LogoComponent />
