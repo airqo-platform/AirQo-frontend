@@ -11,6 +11,7 @@ import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { AqPlus, AqShield02 } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
 import { AdminPageGuard } from '@/shared/components';
+import { ErrorBanner } from '@/shared/components/ui/banner';
 
 interface GroupMember {
   _id: string;
@@ -47,12 +48,19 @@ const MembersPage: React.FC = () => {
   const [membersSearch, setMembersSearch] = useState('');
 
   // Get group details
-  const { data: groupData, isLoading: groupLoading } = useGroupDetails(
-    activeGroup?.id || null
-  );
+  const {
+    data: groupData,
+    isLoading: groupLoading,
+    error: groupError,
+    mutate,
+  } = useGroupDetails(activeGroup?.id || null);
   const sendInvite = useSendGroupInvite();
 
   const group = groupData?.group;
+
+  const handleRefresh = () => {
+    mutate();
+  };
 
   const handleAddEmail = () => {
     setInviteEmails([...inviteEmails, '']);
@@ -202,105 +210,122 @@ const MembersPage: React.FC = () => {
     <AdminPageGuard
       requiredPermissionsInActiveGroup={['USER_INVITE', 'USER_MANAGEMENT']}
     >
-      <>
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
-          <PageHeading
-            title={`${(group?.grp_title || 'Group').toUpperCase()} MEMBERS`}
-            subtitle={
-              group
-                ? `${group.grp_description} • ${group.numberOfGroupUsers} members`
-                : undefined
-            }
-          />
-          <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
-            Send Invites
-          </Button>
-        </div>
-
-        {/* Group Members Table */}
-        <ServerSideTable
-          title="Group Members"
-          data={paginatedMembers.map(member => ({ ...member, id: member._id }))}
-          columns={membersColumns}
-          loading={groupLoading}
-          currentPage={membersPage}
-          totalPages={membersTotalPages}
-          pageSize={membersPageSize}
-          totalItems={filteredMembers.length}
-          onPageChange={setMembersPage}
-          onPageSizeChange={setMembersPageSize}
-          searchTerm={membersSearch}
-          onSearchChange={setMembersSearch}
+      {groupError ? (
+        <ErrorBanner
+          title="Failed to load group members"
+          message="Unable to load group member information. Please try again later."
+          actions={
+            <Button onClick={handleRefresh} variant="outlined" size="sm">
+              Try again
+            </Button>
+          }
         />
+      ) : (
+        <>
+          {/* Page Header */}
+          <div className="flex items-center justify-between">
+            <PageHeading
+              title={`${(group?.grp_title || 'Group').toUpperCase()} MEMBERS`}
+              subtitle={
+                group
+                  ? `${group.grp_description} • ${group.numberOfGroupUsers} members`
+                  : undefined
+              }
+            />
+            <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
+              Send Invites
+            </Button>
+          </div>
 
-        {/* Invite Dialog */}
-        <Dialog
-          isOpen={showInviteDialog}
-          onClose={() => setShowInviteDialog(false)}
-          title="Send Group Invitations"
-          primaryAction={{
-            label: 'Send Invites',
-            onClick: handleSendInvites,
-            disabled: sendInvite.isMutating,
-            loading: sendInvite.isMutating,
-          }}
-          secondaryAction={{
-            label: 'Cancel',
-            onClick: () => setShowInviteDialog(false),
-            disabled: sendInvite.isMutating,
-            variant: 'outlined',
-          }}
-        >
-          <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Email Addresses *
-              </label>
-              <div className="space-y-2">
-                {inviteEmails.map((email, index) => (
-                  <div key={index} className="flex items-center space-x-2">
-                    <div className="flex-1">
-                      <Input
-                        value={email}
-                        onChange={e => handleEmailChange(index, e.target.value)}
-                        placeholder="user@example.com"
-                        className="w-full"
-                      />
-                      {emailErrors[index] && (
-                        <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                          {emailErrors[index]}
-                        </p>
+          {/* Group Members Table */}
+          <ServerSideTable
+            title="Group Members"
+            data={paginatedMembers.map(member => ({
+              ...member,
+              id: member._id,
+            }))}
+            columns={membersColumns}
+            loading={groupLoading}
+            currentPage={membersPage}
+            totalPages={membersTotalPages}
+            pageSize={membersPageSize}
+            totalItems={filteredMembers.length}
+            onPageChange={setMembersPage}
+            onPageSizeChange={setMembersPageSize}
+            searchTerm={membersSearch}
+            onSearchChange={setMembersSearch}
+          />
+
+          {/* Invite Dialog */}
+          <Dialog
+            isOpen={showInviteDialog}
+            onClose={() => setShowInviteDialog(false)}
+            title="Send Group Invitations"
+            primaryAction={{
+              label: 'Send Invites',
+              onClick: handleSendInvites,
+              disabled: sendInvite.isMutating,
+              loading: sendInvite.isMutating,
+            }}
+            secondaryAction={{
+              label: 'Cancel',
+              onClick: () => setShowInviteDialog(false),
+              disabled: sendInvite.isMutating,
+              variant: 'outlined',
+            }}
+          >
+            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Email Addresses *
+                </label>
+                <div className="space-y-2">
+                  {inviteEmails.map((email, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <div className="flex-1">
+                        <Input
+                          value={email}
+                          onChange={e =>
+                            handleEmailChange(index, e.target.value)
+                          }
+                          placeholder="user@example.com"
+                          className="w-full"
+                        />
+                        {emailErrors[index] && (
+                          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                            {emailErrors[index]}
+                          </p>
+                        )}
+                      </div>
+                      {inviteEmails.length > 1 && (
+                        <Button
+                          variant="outlined"
+                          size="sm"
+                          onClick={() => handleRemoveEmail(index)}
+                          className="px-3"
+                        >
+                          Remove
+                        </Button>
                       )}
                     </div>
-                    {inviteEmails.length > 1 && (
-                      <Button
-                        variant="outlined"
-                        size="sm"
-                        onClick={() => handleRemoveEmail(index)}
-                        className="px-3"
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                ))}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAddEmail}
-                  className="w-full"
-                >
-                  + Add Email Address
-                </Button>
+                  ))}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAddEmail}
+                    className="w-full"
+                  >
+                    + Add Email Address
+                  </Button>
+                </div>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Enter email addresses to send invitations to join the group
+                </p>
               </div>
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Enter email addresses to send invitations to join the group
-              </p>
             </div>
-          </div>
-        </Dialog>
-      </>
+          </Dialog>
+        </>
+      )}
     </AdminPageGuard>
   );
 };
