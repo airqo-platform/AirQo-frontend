@@ -145,7 +145,7 @@ const orgSidebarConfig: NavGroup[] = [
 const adminSidebarConfig: NavGroup[] = [
   {
     id: 'admin',
-    label: 'Dashboard',
+    label: 'Panel',
     items: [
       {
         id: 'admin-dashboard',
