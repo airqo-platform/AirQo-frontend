@@ -50,3 +50,39 @@ export const useSendGroupInvite = () => {
     }
   );
 };
+
+// Approve group join request
+export const useApproveGroupJoinRequest = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'groups/approve-request',
+    async (key, { arg }: { arg: { requestId: string } }) => {
+      return await userService.approveGroupJoinRequest(arg.requestId);
+    },
+    {
+      onSuccess: () => {
+        // Invalidate group-related caches
+        mutate(key => typeof key === 'string' && key.startsWith('groups/'));
+      },
+    }
+  );
+};
+
+// Reject group join request
+export const useRejectGroupJoinRequest = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'groups/reject-request',
+    async (key, { arg }: { arg: { requestId: string } }) => {
+      return await userService.rejectGroupJoinRequest(arg.requestId);
+    },
+    {
+      onSuccess: () => {
+        // Invalidate group-related caches
+        mutate(key => typeof key === 'string' && key.startsWith('groups/'));
+      },
+    }
+  );
+};

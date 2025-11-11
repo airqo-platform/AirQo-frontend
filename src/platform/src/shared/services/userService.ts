@@ -288,6 +288,40 @@ export class UserService {
 
     return data as SendGroupInviteResponse;
   }
+
+  // Approve group join request - authenticated endpoint
+  async approveGroupJoinRequest(
+    requestId: string
+  ): Promise<{ success: boolean; message: string }> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      { success: boolean; message: string } | ApiErrorResponse
+    >(`/users/requests/${requestId}/approve`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to approve group join request');
+    }
+
+    return data as { success: boolean; message: string };
+  }
+
+  // Reject group join request - authenticated endpoint
+  async rejectGroupJoinRequest(
+    requestId: string
+  ): Promise<{ success: boolean; message: string }> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      { success: boolean; message: string } | ApiErrorResponse
+    >(`/users/requests/${requestId}/reject`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to reject group join request');
+    }
+
+    return data as { success: boolean; message: string };
+  }
 }
 
 // Export singleton instance

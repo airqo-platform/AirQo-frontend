@@ -241,6 +241,7 @@ const OrganizationRequestsPage = () => {
                     size="sm"
                     variant="filled"
                     onClick={() => handleApprove(item._id)}
+                    className="bg-green-600 hover:bg-green-700 text-white"
                   >
                     Approve
                   </Button>

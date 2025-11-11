@@ -157,6 +157,12 @@ const adminSidebarConfig: NavGroup[] = [
         href: '/admin/members',
         icon: AqUsers01,
       },
+      {
+        id: 'admin-member-requests',
+        label: 'Member Requests',
+        href: '/admin/member-requests',
+        icon: AqUser03,
+      },
     ],
   },
 ];
