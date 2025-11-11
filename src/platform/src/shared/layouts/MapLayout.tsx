@@ -11,7 +11,6 @@ import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { useUser } from '@/shared/hooks/useUser';
-import ThemeManager from '@/modules/themes/components/ThemeManager';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -75,8 +74,6 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
               <BottomNavigation />
             </div>
           )}
-
-          <ThemeManager />
         </div>
       )}
 
