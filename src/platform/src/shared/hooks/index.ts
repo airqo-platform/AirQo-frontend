@@ -35,6 +35,7 @@ export {
   useUpdateUserTheme,
   useGroupTheme,
   useUserTheme,
+  useUpdateOrganizationGroupTheme,
 } from './usePreferences';
 
 // Checklist hooks

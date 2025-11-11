@@ -892,6 +892,19 @@ export interface GetUserThemeResponse {
   data: Theme;
 }
 
+export interface UpdateOrganizationGroupThemeRequest {
+  primaryColor: string;
+  mode: 'light' | 'dark' | 'system';
+  interfaceStyle: 'default' | 'bordered';
+  contentLayout: 'compact' | 'wide';
+}
+
+export interface UpdateOrganizationGroupThemeResponse {
+  success: boolean;
+  message: string;
+  data: Theme;
+}
+
 // Analytics types
 export interface AnalyticsChartRequest {
   sites: string[];
