@@ -15,6 +15,7 @@ import {
   useRejectOrganizationRequest,
 } from '@/shared/hooks';
 import { toast } from '@/shared/components/ui/toast';
+import { AdminPageGuard } from '@/shared/components';
 
 interface FilterOption {
   label: string;
@@ -311,103 +312,106 @@ const OrganizationRequestsPage = () => {
   }
 
   return (
-    <div className="container mx-auto">
-      <PageHeading
-        title="Organization Requests"
-        subtitle="Manage organization registration requests"
-      />
+    <AdminPageGuard requireAirQoAdmin={true}>
+      <div className="container mx-auto">
+        <PageHeading
+          title="Organization Requests"
+          subtitle="Manage organization registration requests"
+        />
 
-      <div className="space-y-6">
-        {/* Tab Navigation */}
-        <div className="flex space-x-2">
-          <Button
-            variant={activeTab === 'pending' ? 'filled' : 'outlined'}
-            onClick={() => setActiveTab('pending')}
-          >
-            Pending ({requests.filter(r => r.status === 'pending').length})
-          </Button>
-          <Button
-            variant={activeTab === 'approved' ? 'filled' : 'outlined'}
-            onClick={() => setActiveTab('approved')}
-          >
-            Approved ({requests.filter(r => r.status === 'approved').length})
-          </Button>
-          <Button
-            variant={activeTab === 'rejected' ? 'filled' : 'outlined'}
-            onClick={() => setActiveTab('rejected')}
-          >
-            Rejected ({requests.filter(r => r.status === 'rejected').length})
-          </Button>
+        <div className="space-y-6">
+          {/* Tab Navigation */}
+          <div className="flex space-x-2">
+            <Button
+              variant={activeTab === 'pending' ? 'filled' : 'outlined'}
+              onClick={() => setActiveTab('pending')}
+            >
+              Pending ({requests.filter(r => r.status === 'pending').length})
+            </Button>
+            <Button
+              variant={activeTab === 'approved' ? 'filled' : 'outlined'}
+              onClick={() => setActiveTab('approved')}
+            >
+              Approved ({requests.filter(r => r.status === 'approved').length})
+            </Button>
+            <Button
+              variant={activeTab === 'rejected' ? 'filled' : 'outlined'}
+              onClick={() => setActiveTab('rejected')}
+            >
+              Rejected ({requests.filter(r => r.status === 'rejected').length})
+            </Button>
+          </div>
+
+          {/* Table */}
+          <ServerSideTable
+            title="Requests"
+            data={tableData}
+            columns={columns}
+            loading={isLoading}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={filteredRequests.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          />
         </div>
 
-        {/* Table */}
-        <ServerSideTable
-          title="Requests"
-          data={tableData}
-          columns={columns}
-          loading={isLoading}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={filteredRequests.length}
-          onPageChange={setCurrentPage}
-          onPageSizeChange={setPageSize}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-        />
+        {/* Confirmation Dialog */}
+        <ReusableDialog
+          isOpen={!!confirmDialog}
+          onClose={() => setConfirmDialog(null)}
+          title={
+            confirmDialog?.type === 'approve'
+              ? 'Confirm Approval'
+              : 'Confirm Rejection'
+          }
+          subtitle=""
+          primaryAction={{
+            label: confirmDialog?.type === 'approve' ? 'Approve' : 'Reject',
+            onClick:
+              confirmDialog?.type === 'approve'
+                ? handleConfirmApprove
+                : handleConfirmReject,
+            disabled:
+              approveMutation.isMutating ||
+              rejectMutation.isMutating ||
+              (confirmDialog?.type === 'reject' &&
+                !confirmDialog.reason?.trim()),
+            loading:
+              confirmDialog?.type === 'approve'
+                ? approveMutation.isMutating
+                : rejectMutation.isMutating,
+            className:
+              confirmDialog?.type === 'reject'
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : undefined,
+          }}
+          secondaryAction={{
+            label: 'Cancel',
+            onClick: () => setConfirmDialog(null),
+          }}
+        >
+          <p>
+            Are you sure you want to {confirmDialog?.type} the request from{' '}
+            {currentRequest?.organization_name}?
+          </p>
+          {confirmDialog?.type === 'reject' && (
+            <TextInput
+              label="Rejection Reason"
+              value={confirmDialog.reason || ''}
+              onChange={e =>
+                setConfirmDialog({ ...confirmDialog, reason: e.target.value })
+              }
+              required
+              placeholder="Please provide a reason for rejection"
+            />
+          )}
+        </ReusableDialog>
       </div>
-
-      {/* Confirmation Dialog */}
-      <ReusableDialog
-        isOpen={!!confirmDialog}
-        onClose={() => setConfirmDialog(null)}
-        title={
-          confirmDialog?.type === 'approve'
-            ? 'Confirm Approval'
-            : 'Confirm Rejection'
-        }
-        subtitle=""
-        primaryAction={{
-          label: confirmDialog?.type === 'approve' ? 'Approve' : 'Reject',
-          onClick:
-            confirmDialog?.type === 'approve'
-              ? handleConfirmApprove
-              : handleConfirmReject,
-          disabled:
-            approveMutation.isMutating ||
-            rejectMutation.isMutating ||
-            (confirmDialog?.type === 'reject' && !confirmDialog.reason?.trim()),
-          loading:
-            confirmDialog?.type === 'approve'
-              ? approveMutation.isMutating
-              : rejectMutation.isMutating,
-          className:
-            confirmDialog?.type === 'reject'
-              ? 'bg-red-500 hover:bg-red-600 text-white'
-              : undefined,
-        }}
-        secondaryAction={{
-          label: 'Cancel',
-          onClick: () => setConfirmDialog(null),
-        }}
-      >
-        <p>
-          Are you sure you want to {confirmDialog?.type} the request from{' '}
-          {currentRequest?.organization_name}?
-        </p>
-        {confirmDialog?.type === 'reject' && (
-          <TextInput
-            label="Rejection Reason"
-            value={confirmDialog.reason || ''}
-            onChange={e =>
-              setConfirmDialog({ ...confirmDialog, reason: e.target.value })
-            }
-            required
-            placeholder="Please provide a reason for rejection"
-          />
-        )}
-      </ReusableDialog>
-    </div>
+    </AdminPageGuard>
   );
 };
 

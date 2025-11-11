@@ -15,6 +15,7 @@ import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqCheckCircle } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
+import { AdminPageGuard } from '@/shared/components';
 import type { GroupJoinRequest } from '@/shared/types/api';
 
 const MemberRequestsPage: React.FC = () => {
@@ -260,66 +261,68 @@ const MemberRequestsPage: React.FC = () => {
   }
 
   return (
-    <>
-      {/* Page Header */}
-      <PageHeading
-        title="MEMBER REQUESTS"
-        subtitle={`Manage membership requests for ${formatGroupName(activeGroup?.title)}`}
-      />
+    <AdminPageGuard requiredPermissionsInActiveGroup={['USER_MANAGEMENT']}>
+      <>
+        {/* Page Header */}
+        <PageHeading
+          title="MEMBER REQUESTS"
+          subtitle={`Manage membership requests for ${formatGroupName(activeGroup?.title)}`}
+        />
 
-      {/* Member Requests Table */}
-      <ServerSideTable
-        title="Member Requests"
-        data={tableData}
-        columns={columns}
-        loading={isLoading}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        pageSize={pageSize}
-        totalItems={filteredRequests.length}
-        onPageChange={setCurrentPage}
-        onPageSizeChange={setPageSize}
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-      />
+        {/* Member Requests Table */}
+        <ServerSideTable
+          title="Member Requests"
+          data={tableData}
+          columns={columns}
+          loading={isLoading}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredRequests.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
 
-      {/* Confirmation Dialog */}
-      <ReusableDialog
-        isOpen={!!confirmDialog}
-        onClose={() => setConfirmDialog(null)}
-        title={
-          confirmDialog?.type === 'approve'
-            ? 'Confirm Approval'
-            : 'Confirm Rejection'
-        }
-        subtitle=""
-        primaryAction={{
-          label: confirmDialog?.type === 'approve' ? 'Approve' : 'Reject',
-          onClick:
+        {/* Confirmation Dialog */}
+        <ReusableDialog
+          isOpen={!!confirmDialog}
+          onClose={() => setConfirmDialog(null)}
+          title={
             confirmDialog?.type === 'approve'
-              ? handleConfirmApprove
-              : handleConfirmReject,
-          disabled: approveMutation.isMutating || rejectMutation.isMutating,
-          loading:
-            confirmDialog?.type === 'approve'
-              ? approveMutation.isMutating
-              : rejectMutation.isMutating,
-          className:
-            confirmDialog?.type === 'reject'
-              ? 'bg-red-500 hover:bg-red-600 text-white'
-              : undefined,
-        }}
-        secondaryAction={{
-          label: 'Cancel',
-          onClick: () => setConfirmDialog(null),
-        }}
-      >
-        <p>
-          Are you sure you want to {confirmDialog?.type} the membership request
-          from <strong>{confirmDialog?.userName}</strong>?
-        </p>
-      </ReusableDialog>
-    </>
+              ? 'Confirm Approval'
+              : 'Confirm Rejection'
+          }
+          subtitle=""
+          primaryAction={{
+            label: confirmDialog?.type === 'approve' ? 'Approve' : 'Reject',
+            onClick:
+              confirmDialog?.type === 'approve'
+                ? handleConfirmApprove
+                : handleConfirmReject,
+            disabled: approveMutation.isMutating || rejectMutation.isMutating,
+            loading:
+              confirmDialog?.type === 'approve'
+                ? approveMutation.isMutating
+                : rejectMutation.isMutating,
+            className:
+              confirmDialog?.type === 'reject'
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : undefined,
+          }}
+          secondaryAction={{
+            label: 'Cancel',
+            onClick: () => setConfirmDialog(null),
+          }}
+        >
+          <p>
+            Are you sure you want to {confirmDialog?.type} the membership
+            request from <strong>{confirmDialog?.userName}</strong>?
+          </p>
+        </ReusableDialog>
+      </>
+    </AdminPageGuard>
   );
 };
 

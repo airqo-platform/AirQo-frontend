@@ -11,6 +11,9 @@ export {
   useMutateUserData,
 } from './useAuth';
 
+// RBAC hooks
+export { useRBAC } from './useRBAC';
+
 // User management hooks
 export {
   useUpdateUserDetails,
