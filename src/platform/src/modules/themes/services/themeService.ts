@@ -79,10 +79,7 @@ export class ThemeService {
     await this.ensureAuthenticated();
     const response = await this.authenticatedClient.put<
       UpdateOrganizationGroupThemeResponse | ApiErrorResponse
-    >(
-      `/api/v2/users/preferences/theme/organization/group/${groupId}`,
-      themeData
-    );
+    >(`/users/preferences/theme/organization/group/${groupId}`, themeData);
     const data = response.data;
 
     if ('success' in data && !data.success) {

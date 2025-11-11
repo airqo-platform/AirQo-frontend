@@ -175,14 +175,15 @@ export const useRBAC = () => {
    * Check if user is admin (has any admin role)
    */
   const isAdmin = (): boolean => {
-    return allRoles.some(role => role.toLowerCase().includes('admin'));
+    const adminRoles = ['ADMIN'];
+    return allRoles.some(role => adminRoles.includes(role));
   };
 
   /**
    * Check if user is super admin
    */
   const isSuperAdmin = (): boolean => {
-    return allRoles.some(role => role.toLowerCase().includes('super_admin'));
+    return allRoles.includes('SUPER_ADMIN');
   };
 
   /**

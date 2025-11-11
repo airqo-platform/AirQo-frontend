@@ -101,6 +101,11 @@ const OrganizationRequestsPage = () => {
     return filtered;
   }, [requests, activeTab, searchTerm]);
 
+  // Reset pagination when activeTab changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab]);
+
   // Paginate the filtered results
   const paginatedRequests = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -355,7 +360,10 @@ const OrganizationRequestsPage = () => {
               onPageChange={setCurrentPage}
               onPageSizeChange={setPageSize}
               searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
+              onSearchChange={value => {
+                setSearchTerm(value);
+                setCurrentPage(1);
+              }}
             />
           </div>
 

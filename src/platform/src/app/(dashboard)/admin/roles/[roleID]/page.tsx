@@ -55,6 +55,8 @@ const RoleDetailPage = () => {
 
   // Initialize selected permissions when role data loads
   React.useEffect(() => {
+    if (isEditingRole) return; // Don't reset while user is editing
+
     if (role?.role_permissions) {
       const initialPermissions = role.role_permissions.map(rp => rp._id);
       setSelectedPermissions(initialPermissions);
@@ -65,7 +67,7 @@ const RoleDetailPage = () => {
     if (role?.role_status) {
       setEditedRoleStatus(role.role_status as 'ACTIVE' | 'INACTIVE');
     }
-  }, [role]);
+  }, [role, isEditingRole]);
 
   // Validate roleId
   if (!roleId || typeof roleId !== 'string' || roleId.trim() === '') {
@@ -131,7 +133,6 @@ const RoleDetailPage = () => {
         roleId: role._id,
         role_name: editedRoleName,
         role_status: editedRoleStatus,
-        role_code: editedRoleName,
       });
 
       toast.success('Role data updated successfully!');
@@ -248,26 +249,12 @@ const RoleDetailPage = () => {
                 <label className="text-sm font-medium text-gray-700">
                   Role Name *
                 </label>
-                {isEditingRole ? (
-                  <div className="mt-1">
-                    <Input
-                      type="text"
-                      value={editedRoleName}
-                      onChange={e => setEditedRoleName(e.target.value)}
-                      className="w-full"
-                      disabled={updateRoleDataMutation.isMutating}
-                    />
-                  </div>
-                ) : (
-                  <div className="mt-1">
-                    <span className="font-medium text-gray-900">
-                      {role.role_name}
-                    </span>
-                  </div>
-                )}
-                <p className="text-xs text-gray-500 mt-1">
-                  Role name cannot be changed after creation.
-                </p>
+                {/* Role name is read-only in both modes */}
+                <div className="mt-1">
+                  <span className="font-medium text-gray-900">
+                    {role.role_name}
+                  </span>
+                </div>
               </div>
 
               <div>
