@@ -69,6 +69,13 @@ export {
 // Analytics hooks
 export { useGetChartData, useGetRecentReadings } from './useAnalytics';
 
+// Admin hooks
+export {
+  useOrganizationRequests,
+  useApproveOrganizationRequest,
+  useRejectOrganizationRequest,
+} from './useAdmin';
+
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';
 export { useLogout } from './useLogout';

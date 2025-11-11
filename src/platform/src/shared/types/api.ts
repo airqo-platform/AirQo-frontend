@@ -974,3 +974,41 @@ export interface ConfirmAccountDeletionResponse {
   success: boolean;
   message: string;
 }
+
+// Organization Requests Management Types
+export interface OrganizationRequest {
+  _id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  onboarding_completed: boolean;
+  onboarding_method: string;
+  organization_name: string;
+  organization_slug: string;
+  contact_email: string;
+  contact_name: string;
+  use_case: string;
+  organization_type: string;
+  country: string;
+  branding_settings: BrandingSettings;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  approved_by: string | null;
+}
+
+export interface GetOrganizationRequestsResponse {
+  success: boolean;
+  message: string;
+  requests: OrganizationRequest[];
+}
+
+export interface ApproveOrganizationRequestResponse {
+  success: boolean;
+  message: string;
+  request?: OrganizationRequest;
+}
+
+export interface RejectOrganizationRequestResponse {
+  success: boolean;
+  message: string;
+  request?: OrganizationRequest;
+}

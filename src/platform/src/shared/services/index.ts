@@ -10,3 +10,4 @@ export { checklistService } from './checklistService';
 export { clientService } from './clientService';
 export { preferencesService } from './preferencesService';
 export { analyticsService } from './analyticsService';
+export { adminService } from './adminService';
