@@ -78,6 +78,15 @@ export {
   useOrganizationRequests,
   useApproveOrganizationRequest,
   useRejectOrganizationRequest,
+  useRolesByGroup,
+  useRoleById,
+  usePermissions,
+  useCreateRole,
+  useUpdateRolePermissions,
+  useUpdateRoleData,
+  useUsersByRole,
+  useAssignUsersToRole,
+  useUnassignUsersFromRole,
 } from './useAdmin';
 
 // Groups hooks

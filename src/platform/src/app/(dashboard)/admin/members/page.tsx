@@ -3,15 +3,22 @@
 import React, { useState, useMemo } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import Dialog from '@/shared/components/ui/dialog';
-import { Button, Input } from '@/shared/components/ui';
+import { Button, Input, Select } from '@/shared/components/ui';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { useUser } from '@/shared/hooks/useUser';
 import { useGroupDetails, useSendGroupInvite } from '@/shared/hooks/useGroups';
+import { useRolesByGroup, useAssignUsersToRole } from '@/shared/hooks/useAdmin';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { AqPlus, AqShield02 } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
-import { AdminPageGuard } from '@/shared/components';
 import { ErrorBanner } from '@/shared/components/ui/banner';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/shared/components/ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
 
 interface GroupMember {
   _id: string;
@@ -38,9 +45,17 @@ interface GroupMember {
 
 const MembersPage: React.FC = () => {
   const { activeGroup } = useUser();
+  const router = useRouter();
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmails, setInviteEmails] = useState<string[]>(['']);
   const [emailErrors, setEmailErrors] = useState<string[]>(['']);
+
+  // Multi-select states
+  const [selectedMembers, setSelectedMembers] = useState<(string | number)[]>(
+    []
+  );
+  const [showBulkRoleDialog, setShowBulkRoleDialog] = useState(false);
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
 
   // Pagination states for members
   const [membersPage, setMembersPage] = useState(1);
@@ -56,7 +71,14 @@ const MembersPage: React.FC = () => {
   } = useGroupDetails(activeGroup?.id || null);
   const sendInvite = useSendGroupInvite();
 
+  // Get roles for the active group
+  const { data: rolesData, isLoading: rolesLoading } = useRolesByGroup(
+    activeGroup?.id || undefined
+  );
+  const assignUsersToRole = useAssignUsersToRole();
+
   const group = groupData?.group;
+  const roles = rolesData?.roles || [];
 
   const handleRefresh = () => {
     mutate();
@@ -175,8 +197,28 @@ const MembersPage: React.FC = () => {
           <div className="text-sm">{member.country || '--'}</div>
         ),
       },
+      {
+        key: 'actions',
+        label: 'Actions',
+        render: (value: unknown, member: GroupMember) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>⋮
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => router.push(`/admin/members/${member._id}`)}
+              >
+                View Details
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
     ],
-    [group?.grp_manager?._id]
+    [group?.grp_manager?._id, router]
   );
 
   const handleSendInvites = async () => {
@@ -206,10 +248,28 @@ const MembersPage: React.FC = () => {
     }
   };
 
+  const handleBulkAssignRole = async () => {
+    if (!selectedRoleId || selectedMembers.length === 0) {
+      toast.error('Please select a role and members');
+      return;
+    }
+
+    try {
+      await assignUsersToRole.trigger({
+        roleId: selectedRoleId,
+        user_ids: selectedMembers as string[],
+      });
+      toast.success(`Role assigned to ${selectedMembers.length} member(s)`);
+      setSelectedMembers([]);
+      setSelectedRoleId('');
+      setShowBulkRoleDialog(false);
+    } catch {
+      toast.error('Failed to assign role');
+    }
+  };
+
   return (
-    <AdminPageGuard
-      requiredPermissionsInActiveGroup={['USER_INVITE', 'USER_MANAGEMENT']}
-    >
+    <>
       {groupError ? (
         <ErrorBanner
           title="Failed to load group members"
@@ -232,9 +292,19 @@ const MembersPage: React.FC = () => {
                   : undefined
               }
             />
-            <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
-              Send Invites
-            </Button>
+            <div className="flex items-center gap-2">
+              {selectedMembers.length > 0 && (
+                <Button
+                  onClick={() => setShowBulkRoleDialog(true)}
+                  variant="outlined"
+                >
+                  Assign Role ({selectedMembers.length})
+                </Button>
+              )}
+              <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
+                Send Invites
+              </Button>
+            </div>
           </div>
 
           {/* Group Members Table */}
@@ -254,6 +324,9 @@ const MembersPage: React.FC = () => {
             onPageSizeChange={setMembersPageSize}
             searchTerm={membersSearch}
             onSearchChange={setMembersSearch}
+            multiSelect={true}
+            selectedItems={selectedMembers}
+            onSelectedItemsChange={setSelectedMembers}
           />
 
           {/* Invite Dialog */}
@@ -324,9 +397,71 @@ const MembersPage: React.FC = () => {
               </div>
             </div>
           </Dialog>
+
+          {/* Bulk Role Assignment Dialog */}
+          <Dialog
+            isOpen={showBulkRoleDialog}
+            onClose={() => setShowBulkRoleDialog(false)}
+            title={`Assign Role to ${selectedMembers.length} Member${selectedMembers.length > 1 ? 's' : ''}`}
+            primaryAction={{
+              label: 'Assign Role',
+              onClick: handleBulkAssignRole,
+              disabled: assignUsersToRole.isMutating || !selectedRoleId,
+              loading: assignUsersToRole.isMutating,
+            }}
+            secondaryAction={{
+              label: 'Cancel',
+              onClick: () => setShowBulkRoleDialog(false),
+              disabled: assignUsersToRole.isMutating,
+              variant: 'outlined',
+            }}
+          >
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Selected members:
+                </p>
+                <div className="max-h-32 overflow-y-auto space-y-1 mb-4">
+                  {selectedMembers.map(memberId => {
+                    const member = group?.grp_users?.find(
+                      u => u._id === memberId
+                    );
+                    return member ? (
+                      <div key={memberId} className="text-sm">
+                        {member.firstName} {member.lastName} ({member.email})
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Select Role *
+                </label>
+                <Select
+                  value={selectedRoleId}
+                  onChange={e => setSelectedRoleId(e.target.value as string)}
+                  placeholder="Choose a role..."
+                  disabled={rolesLoading}
+                >
+                  {roles.map(role => (
+                    <option key={role._id} value={role._id}>
+                      {role.role_name}
+                    </option>
+                  ))}
+                </Select>
+                {rolesLoading && (
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Loading roles...
+                  </p>
+                )}
+              </div>
+            </div>
+          </Dialog>
         </>
       )}
-    </AdminPageGuard>
+    </>
   );
 };
 

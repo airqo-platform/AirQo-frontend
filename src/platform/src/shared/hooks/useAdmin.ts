@@ -167,3 +167,53 @@ export const useUpdateRoleData = () => {
     }
   );
 };
+
+// Get users by role
+export const useUsersByRole = (roleId: string | null) => {
+  return useSWR(
+    roleId ? `admin/roles/${roleId}/users` : null,
+    roleId ? () => adminService.getUsersByRole(roleId) : null,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
+  );
+};
+
+// Assign users to role
+export const useAssignUsersToRole = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'admin/assign-users-to-role',
+    async (key, { arg }: { arg: { roleId: string; user_ids: string[] } }) => {
+      return await adminService.assignUsersToRole(arg.roleId, {
+        user_ids: arg.user_ids,
+      });
+    },
+    {
+      onSuccess: () => {
+        mutate(key => typeof key === 'string' && key.startsWith('admin/'));
+      },
+    }
+  );
+};
+
+// Unassign users from role
+export const useUnassignUsersFromRole = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'admin/unassign-users-from-role',
+    async (key, { arg }: { arg: { roleId: string; user_ids: string[] } }) => {
+      return await adminService.unassignUsersFromRole(arg.roleId, {
+        user_ids: arg.user_ids,
+      });
+    },
+    {
+      onSuccess: () => {
+        mutate(key => typeof key === 'string' && key.startsWith('admin/'));
+      },
+    }
+  );
+};

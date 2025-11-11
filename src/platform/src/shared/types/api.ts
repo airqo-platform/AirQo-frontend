@@ -148,6 +148,31 @@ export interface UpdateRoleDataResponse {
   role: RoleDetails;
 }
 
+// Role assignment related types
+export interface GetUsersByRoleResponse {
+  success: boolean;
+  message: string;
+  users: User[];
+}
+
+export interface AssignUsersToRoleRequest {
+  user_ids: string[];
+}
+
+export interface AssignUsersToRoleResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface UnassignUsersFromRoleRequest {
+  user_ids: string[];
+}
+
+export interface UnassignUsersFromRoleResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface RegisterRequest {
   firstName: string;
   lastName: string;
@@ -223,6 +248,9 @@ export interface User {
   createdAt: string;
   my_networks: unknown[];
   my_groups: MyGroup[];
+  networks: Network[];
+  clients: Client[];
+  permissions: RolePermission[];
 }
 
 export interface Network {

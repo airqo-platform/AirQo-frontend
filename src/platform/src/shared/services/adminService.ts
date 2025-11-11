@@ -14,6 +14,11 @@ import type {
   UpdateRoleDataRequest,
   UpdateRoleDataResponse,
   GetRoleByIdResponse,
+  GetUsersByRoleResponse,
+  AssignUsersToRoleRequest,
+  AssignUsersToRoleResponse,
+  UnassignUsersFromRoleRequest,
+  UnassignUsersFromRoleResponse,
 } from '../types/api';
 
 export class AdminService {
@@ -134,6 +139,43 @@ export class AdminService {
       `/users/roles/${roleId}`,
       roleData
     );
+    return response.data;
+  }
+
+  // Get users by role - authenticated admin endpoint
+  async getUsersByRole(roleId: string): Promise<GetUsersByRoleResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<GetUsersByRoleResponse>(
+      `/users/roles/${roleId}/users`
+    );
+    return response.data;
+  }
+
+  // Assign users to role - authenticated admin endpoint
+  async assignUsersToRole(
+    roleId: string,
+    userData: AssignUsersToRoleRequest
+  ): Promise<AssignUsersToRoleResponse> {
+    await this.ensureAuthenticated();
+    const response =
+      await this.authenticatedClient.post<AssignUsersToRoleResponse>(
+        `/users/roles/${roleId}/users`,
+        userData
+      );
+    return response.data;
+  }
+
+  // Unassign users from role - authenticated admin endpoint
+  async unassignUsersFromRole(
+    roleId: string,
+    userData: UnassignUsersFromRoleRequest
+  ): Promise<UnassignUsersFromRoleResponse> {
+    await this.ensureAuthenticated();
+    const response =
+      await this.authenticatedClient.delete<UnassignUsersFromRoleResponse>(
+        `/users/roles/${roleId}/users`,
+        { data: userData }
+      );
     return response.data;
   }
 }
