@@ -1012,3 +1012,127 @@ export interface RejectOrganizationRequestResponse {
   message: string;
   request?: OrganizationRequest;
 }
+
+// Group Join Request Types
+export interface GroupJoinRequest {
+  _id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  email: string;
+  targetId: string;
+  requestType: 'group';
+  updatedAt: string;
+  createdAt: string;
+  user: {
+    _id: string;
+    analyticsVersion: number;
+    isActive: boolean;
+    loginCount: number;
+    subscriptionStatus: string;
+    automaticRenewal: boolean;
+    interests?: string[];
+    firstName: string;
+    lastName: string;
+    theme: {
+      primaryColor: string;
+      mode: string;
+      interfaceStyle: string;
+      contentLayout: string;
+    };
+    createdAt: string;
+    interestsDescription?: string;
+    lastLogin: string;
+    preferredTokenStrategy: string;
+  };
+}
+
+export interface GetGroupJoinRequestsResponse {
+  success: boolean;
+  message: string;
+  requests: GroupJoinRequest[];
+}
+
+// Group Information Types
+export interface GroupUser {
+  _id: string;
+  verified: boolean;
+  permissions: string[];
+  firstName: string;
+  lastName: string;
+  email: string;
+  description?: string;
+  country?: string;
+  isActive: boolean;
+  lastLogin: string;
+  timezone?: string;
+  loginCount: number;
+  analyticsVersion: number;
+  theme: {
+    primaryColor: string;
+    mode: string;
+    interfaceStyle: string;
+    contentLayout: string;
+  };
+  preferredTokenStrategy: string;
+  jobTitle?: string;
+  website?: string;
+  category?: string;
+}
+
+export interface GroupManager {
+  _id: string;
+  verified: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  jobTitle?: string;
+  website?: string;
+  description?: string;
+  category?: string;
+  country?: string;
+  isActive: boolean;
+  lastLogin: string;
+  timezone?: string;
+  loginCount: number;
+  analyticsVersion: number;
+  theme: {
+    primaryColor: string;
+    mode: string;
+    interfaceStyle: string;
+    contentLayout: string;
+  };
+  preferredTokenStrategy: string;
+}
+
+export interface GroupDetails {
+  _id: string;
+  grp_status: string;
+  grp_title: string;
+  grp_description: string;
+  createdAt: string;
+  grp_profile_picture: string;
+  grp_image: string;
+  organization_slug: string;
+  grp_country: string;
+  grp_industry: string;
+  grp_timezone: string;
+  grp_website: string;
+  numberOfGroupUsers: number;
+  grp_users: GroupUser[];
+  grp_manager: GroupManager;
+}
+
+export interface GetGroupDetailsResponse {
+  success: boolean;
+  message: string;
+  group: GroupDetails;
+}
+
+// Send Group Invite Types
+export interface SendGroupInviteRequest {
+  emails: string[];
+}
+
+export interface SendGroupInviteResponse {
+  success: boolean;
+  message: string;
+}

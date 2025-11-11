@@ -3,7 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { ErrorState } from '@/shared/components/ui/error-state';
-import { MultiSelectTable } from '@/shared/components/ui/multi-select-table';
+import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { TextInput } from '@/shared/components/ui/text-input';
@@ -74,16 +74,44 @@ const OrganizationRequestsPage = () => {
     Record<string, boolean>
   >({});
 
+  // Pagination and search states for ServerSideTable
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+
   const approveMutation = useApproveOrganizationRequest();
   const rejectMutation = useRejectOrganizationRequest();
 
   const filteredRequests = useMemo(() => {
-    return requests.filter(request => request.status === activeTab);
-  }, [requests, activeTab]);
+    let filtered = requests.filter(request => request.status === activeTab);
+
+    // Apply search filter
+    if (searchTerm.trim()) {
+      const searchLower = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        request =>
+          request.organization_name.toLowerCase().includes(searchLower) ||
+          request.contact_name.toLowerCase().includes(searchLower) ||
+          request.contact_email.toLowerCase().includes(searchLower) ||
+          request.organization_slug.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return filtered;
+  }, [requests, activeTab, searchTerm]);
+
+  // Paginate the filtered results
+  const paginatedRequests = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    const end = start + pageSize;
+    return filteredRequests.slice(start, end);
+  }, [filteredRequests, currentPage, pageSize]);
+
+  const totalPages = Math.ceil(filteredRequests.length / pageSize);
 
   const tableData = useMemo(
-    () => filteredRequests.map(req => ({ ...req, id: req._id })),
-    [filteredRequests]
+    () => paginatedRequests.map(req => ({ ...req, id: req._id })),
+    [paginatedRequests]
   );
 
   const currentRequest = useMemo(() => {
@@ -265,15 +293,7 @@ const OrganizationRequestsPage = () => {
           ]
         : []),
     ],
-    [
-      activeTab,
-      approveMutation.isMutating,
-      rejectMutation.isMutating,
-      handleApprove,
-      handleReject,
-      expandedItems,
-      expandedReasons,
-    ]
+    [activeTab, handleApprove, handleReject, expandedItems, expandedReasons]
   );
 
   if (errorMessage) {
@@ -320,17 +340,19 @@ const OrganizationRequestsPage = () => {
         </div>
 
         {/* Table */}
-        <MultiSelectTable
+        <ServerSideTable
           title="Requests"
           data={tableData}
           columns={columns}
           loading={isLoading}
-          error={null}
-          onRefresh={handleRefresh}
-          multiSelect={false}
-          showPagination={true}
-          searchable={false}
-          sortable={false}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={filteredRequests.length}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
         />
       </div>
 

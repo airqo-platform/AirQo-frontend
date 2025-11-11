@@ -22,6 +22,10 @@ import type {
   SlugAvailabilityResponse,
   InitiateAccountDeletionResponse,
   ConfirmAccountDeletionResponse,
+  GetGroupJoinRequestsResponse,
+  GetGroupDetailsResponse,
+  SendGroupInviteRequest,
+  SendGroupInviteResponse,
 } from '../types/api';
 
 export class UserService {
@@ -233,6 +237,56 @@ export class UserService {
 
     // Return the data as is - let the caller check success field
     return data as ConfirmAccountDeletionResponse;
+  }
+
+  // Get group join requests - authenticated endpoint
+  async getGroupJoinRequests(
+    groupId: string
+  ): Promise<GetGroupJoinRequestsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetGroupJoinRequestsResponse | ApiErrorResponse
+    >(`/users/requests/groups/${groupId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get group join requests');
+    }
+
+    return data as GetGroupJoinRequestsResponse;
+  }
+
+  // Get group details - authenticated endpoint
+  async getGroupDetails(groupId: string): Promise<GetGroupDetailsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetGroupDetailsResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get group details');
+    }
+
+    return data as GetGroupDetailsResponse;
+  }
+
+  // Send group invite - authenticated endpoint
+  async sendGroupInvite(
+    groupId: string,
+    inviteData: SendGroupInviteRequest
+  ): Promise<SendGroupInviteResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      SendGroupInviteResponse | ApiErrorResponse
+    >(`/users/requests/emails/groups/${groupId}`, inviteData);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to send group invite');
+    }
+
+    return data as SendGroupInviteResponse;
   }
 }
 

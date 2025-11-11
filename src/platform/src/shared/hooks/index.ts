@@ -76,6 +76,13 @@ export {
   useRejectOrganizationRequest,
 } from './useAdmin';
 
+// Groups hooks
+export {
+  useGroupJoinRequests,
+  useGroupDetails,
+  useSendGroupInvite,
+} from './useGroups';
+
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';
 export { useLogout } from './useLogout';

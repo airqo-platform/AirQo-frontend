@@ -20,6 +20,7 @@ export const PAGE_TITLES: Record<string, string> = {
 
   // Admin routes
   '/admin/org-requests': 'Organization Requests',
+  '/admin/members': 'Members',
 
   // Default fallback
   '/': 'AirQo',
