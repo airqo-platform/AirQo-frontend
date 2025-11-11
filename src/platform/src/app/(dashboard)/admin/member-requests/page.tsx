@@ -20,6 +20,14 @@ import type { GroupJoinRequest } from '@/shared/types/api';
 const MemberRequestsPage: React.FC = () => {
   const { activeGroup } = useUser();
 
+  // Utility function to format group name
+  const formatGroupName = (name: string | undefined): string => {
+    if (!name) return 'THE GROUP';
+    return name
+      .replace(/[_-]/g, ' ') // Replace underscores and hyphens with spaces
+      .toUpperCase(); // Convert to uppercase
+  };
+
   // Pagination and search states for ServerSideTable
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -256,7 +264,7 @@ const MemberRequestsPage: React.FC = () => {
       {/* Page Header */}
       <PageHeading
         title="MEMBER REQUESTS"
-        subtitle={`Manage membership requests for ${activeGroup?.id || 'the group'}`}
+        subtitle={`Manage membership requests for ${formatGroupName(activeGroup?.title)}`}
       />
 
       {/* Member Requests Table */}
