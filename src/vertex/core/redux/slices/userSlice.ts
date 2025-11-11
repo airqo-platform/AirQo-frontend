@@ -67,13 +67,16 @@ const determineUserContext = (
   activeGroup: Group | null,
   userGroups: Group[] | null | undefined
 ): { context: UserContext; isAirQoStaff: boolean; canSwitchContext: boolean } => {
+  
+  const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
+  const hasMultipleOrgs = Array.isArray(userGroups) && userGroups.length > 1;
+  const canSwitchContext = isAirQoStaff && hasMultipleOrgs;
+
   if (!userDetails || !activeGroup) {
-    return { context: 'personal', isAirQoStaff: false, canSwitchContext: false };
+    return { context: 'personal', isAirQoStaff, canSwitchContext };
   }
 
-  const isAirQoStaff = userDetails.email?.endsWith('@airqo.net') || false;
   const isAirQoOrg = activeGroup.grp_title?.toLowerCase() === 'airqo';
-  const hasMultipleOrgs = Array.isArray(userGroups) && userGroups.length > 1;
 
   let context: UserContext;
   if (isAirQoOrg) {
@@ -81,8 +84,6 @@ const determineUserContext = (
   } else {
     context = 'external-org';
   }
-
-  const canSwitchContext = isAirQoStaff && hasMultipleOrgs;
 
   return { context, isAirQoStaff, canSwitchContext };
 };

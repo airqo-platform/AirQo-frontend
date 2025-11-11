@@ -232,19 +232,12 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Determine if user is AirQo staff (only @airqo.net emails can access AirQo groups)
-      // This is a security measure: non-AirQo staff should never see or access AirQo groups,
-      // even if they are assigned to them in the backend
       const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
 
-      // Filter groups and networks based on email domain
-      // Non-AirQo staff users should NOT have AirQo groups/networks in their list
       let filteredGroups: Group[] = userInfo.groups || [];
       let filteredNetworks: Network[] = userInfo.networks || [];
 
       if (!isAirQoStaff) {
-        // Filter out AirQo groups and networks for non-AirQo staff
-        // This ensures non-AirQo staff cannot access AirQo organization data
         filteredGroups = (userInfo.groups || []).filter(
           (group) => group.grp_title.toLowerCase() !== 'airqo'
         );
@@ -263,28 +256,22 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         });
       }
 
-      // Check if user has manually set a context/group in localStorage (e.g., from organization switching)
-      // This allows us to respect manual switches to personal mode
       const savedUserContext = localStorage.getItem('userContext') as 'personal' | 'airqo-internal' | 'external-org' | null;
       const savedActiveGroup = localStorage.getItem('activeGroup');
       const isManualPersonalMode = savedUserContext === 'personal' && !savedActiveGroup;
 
-      // Set user details, groups, and networks (filtered for non-AirQo staff)
       dispatch(setUserDetails(userInfo));
       dispatch(setUserGroups(filteredGroups));
       dispatch(setAvailableNetworks(filteredNetworks));
 
-      // Save to localStorage (filtered data)
       localStorage.setItem('userDetails', JSON.stringify(userInfo));
       localStorage.setItem('userGroups', JSON.stringify(filteredGroups));
       localStorage.setItem('availableNetworks', JSON.stringify(filteredNetworks));
 
-      // Declare variables in outer scope for logging
       let defaultNetwork: Network | undefined;
       let defaultGroup: Group | undefined;
       let initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
 
-      // If user manually switched to personal mode, respect that choice
       if (isManualPersonalMode) {
         logger.debug('[UserDataFetcher] Respecting manual personal mode switch from localStorage', {
           savedUserContext,
@@ -299,7 +286,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         localStorage.removeItem('activeNetwork');
         localStorage.setItem('userContext', 'personal');
       } else {
-        // Determine default network and group from filtered lists
         const airqoNetwork = filteredNetworks.find(
           (network: Network) => network.net_name.toLowerCase() === 'airqo'
         );
@@ -307,7 +293,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
           (group: Group) => group.grp_title.toLowerCase() === 'airqo'
         );
 
-        // Check if there's a saved activeGroup that's still valid
         if (savedActiveGroup) {
           try {
             const parsedSavedGroup = JSON.parse(savedActiveGroup) as Group;
@@ -438,9 +423,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
   }, [data, dispatch, queryClient, isInitialized]);
 
-  // Check if user has no active group after data is loaded and logout if necessary
-  // IMPORTANT: Personal mode users (userContext === 'personal') are valid and should NOT be logged out
-  // Only log out if user has NO groups AND is NOT in personal mode (which shouldn't happen)
   const userGroups = useAppSelector((state) => state.user.userGroups);
   useEffect(() => {
     logger.debug('[UserDataFetcher] Checking active group', {
