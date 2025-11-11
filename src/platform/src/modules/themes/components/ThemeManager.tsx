@@ -93,7 +93,7 @@ const ThemeManager: React.FC = () => {
       title="Theme Settings"
       description="Customize your interface appearance, colors, and layout preferences."
     >
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Reset Button */}
         <div className="flex justify-end">
           <Tooltip
@@ -106,13 +106,13 @@ const ThemeManager: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={handleResetDefaults}
-                className="h-9 w-9 p-0"
+                className="h-8 w-8 p-0"
                 aria-label={!themesMatch ? 'Use default theme' : 'Reset'}
               >
-                <AqRefreshCcw02 size={16} />
+                <AqRefreshCcw02 size={14} />
               </Button>
               {!themesMatch && (
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background"></div>
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full border border-background"></div>
               )}
             </div>
           </Tooltip>
@@ -120,7 +120,7 @@ const ThemeManager: React.FC = () => {
 
         {/* Color Palette */}
         <section>
-          <div className="mb-4">
+          <div className="mb-3">
             <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
               Color Palette
             </h3>
@@ -130,30 +130,25 @@ const ThemeManager: React.FC = () => {
           </div>
 
           {/* Color Grid: 5 presets + custom button */}
-          <div className="grid grid-cols-6 gap-3">
+          <div className="grid grid-cols-6 gap-1.5 max-w-xs">
             {presetColors.map(color => (
               <button
                 key={color.value}
-                className="relative aspect-square"
+                className="relative w-8 h-8"
                 onClick={() => handlePrimaryColorChange(color.value)}
               >
                 <div
                   className={`w-full h-full rounded-md transition-all ${
                     theme.primaryColor === color.value
-                      ? 'ring-2 ring-offset-2 ring-primary'
+                      ? 'ring-2 ring-offset-1 ring-primary'
                       : 'ring-1 ring-border hover:ring-2'
                   }`}
                   style={{ backgroundColor: color.value }}
                 />
                 {theme.primaryColor === color.value && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-md">
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                      >
+                    <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
+                      <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
                         <path
                           d="M10 3L4.5 8.5L2 6"
                           stroke={color.value}
@@ -170,37 +165,37 @@ const ThemeManager: React.FC = () => {
 
             {/* Custom Color Button - Same size as color swatches */}
             <button
-              className="relative aspect-square"
+              className="relative w-8 h-8"
               onClick={() => setShowColorPicker(!showColorPicker)}
             >
               <div className="w-full h-full rounded-md border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 flex items-center justify-center transition-all">
-                <AqPalette size={20} className="text-muted-foreground" />
+                <AqPalette size={12} className="text-muted-foreground" />
               </div>
             </button>
           </div>
 
           {/* Color Picker */}
           {showColorPicker && (
-            <div className="mt-4">
-              <Card className="p-4 space-y-3">
+            <div className="mt-3">
+              <Card className="p-3 space-y-2">
                 <HexColorPicker
                   color={customColor}
                   onChange={setCustomColor}
-                  style={{ width: '100%', height: '160px' }}
+                  style={{ width: '100%', height: '120px' }}
                 />
                 <div className="flex items-center gap-2">
                   <div
-                    className="w-10 h-10 rounded-md border border-border flex-shrink-0"
+                    className="w-8 h-8 rounded-md border border-border flex-shrink-0"
                     style={{ backgroundColor: customColor }}
                   />
                   <input
                     type="text"
                     value={customColor}
                     onChange={e => setCustomColor(e.target.value)}
-                    className="flex-1 px-3 py-2 text-sm border border-border rounded-md bg-background"
+                    className="flex-1 px-2 py-1 text-sm border border-border rounded-md bg-background"
                   />
                 </div>
-                <Button onClick={applyCustomColor} className="w-full">
+                <Button onClick={applyCustomColor} size="sm" className="w-full">
                   Apply
                 </Button>
               </Card>
@@ -210,7 +205,7 @@ const ThemeManager: React.FC = () => {
 
         {/* Appearance */}
         <section>
-          <div className="mb-4">
+          <div className="mb-3">
             <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
               Appearance
             </h3>
@@ -219,7 +214,7 @@ const ThemeManager: React.FC = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {[
               { value: 'light', label: 'Light', icon: AqSun },
               { value: 'dark', label: 'Dark', icon: AqMoon02 },
@@ -230,7 +225,7 @@ const ThemeManager: React.FC = () => {
               return (
                 <button
                   key={mode.value}
-                  className={`flex flex-col items-center gap-2 py-4 rounded-md transition-all ${
+                  className={`flex flex-col items-center gap-2 py-3 rounded-md transition-all ${
                     isActive
                       ? 'bg-primary text-primary-foreground shadow-md'
                       : 'bg-muted/30 text-muted-foreground hover:bg-muted'
@@ -239,7 +234,7 @@ const ThemeManager: React.FC = () => {
                     handleModeChange(mode.value as 'light' | 'dark' | 'system')
                   }
                 >
-                  <Icon size={20} />
+                  <Icon size={16} />
                   <span className="text-xs font-medium">{mode.label}</span>
                 </button>
               );
@@ -249,7 +244,7 @@ const ThemeManager: React.FC = () => {
 
         {/* Interface Style */}
         <section>
-          <div className="mb-4">
+          <div className="mb-3">
             <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
               Interface Style
             </h3>
@@ -258,7 +253,7 @@ const ThemeManager: React.FC = () => {
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
               {
                 value: 'default',
@@ -278,7 +273,7 @@ const ThemeManager: React.FC = () => {
               return (
                 <button
                   key={style.value}
-                  className={`w-full text-left p-4 rounded-md border-2 transition-all ${
+                  className={`w-full text-left p-3 rounded-md border-2 transition-all ${
                     isActive
                       ? 'border-primary bg-primary/5'
                       : 'border-border hover:border-muted-foreground/30'
@@ -290,8 +285,8 @@ const ThemeManager: React.FC = () => {
                   }
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-muted/60">
-                      <Icon size={18} />
+                    <div className="p-1.5 rounded-md bg-muted/60">
+                      <Icon size={14} />
                     </div>
                     <div className="flex-1">
                       <div className="font-medium text-sm">{style.label}</div>
@@ -300,10 +295,10 @@ const ThemeManager: React.FC = () => {
                       </div>
                     </div>
                     {isActive && (
-                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                         <svg
-                          width="12"
-                          height="12"
+                          width="10"
+                          height="10"
                           viewBox="0 0 12 12"
                           fill="none"
                         >
@@ -326,7 +321,7 @@ const ThemeManager: React.FC = () => {
 
         {/* Content Layout */}
         <section>
-          <div className="mb-4">
+          <div className="mb-3">
             <h3 className="text-sm uppercase tracking-wider text-muted-foreground">
               Content Layout
             </h3>
@@ -335,7 +330,7 @@ const ThemeManager: React.FC = () => {
             </p>
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
               {
                 value: 'compact',
@@ -355,7 +350,7 @@ const ThemeManager: React.FC = () => {
               return (
                 <button
                   key={layout.value}
-                  className={`w-full text-left p-4 rounded-md border-2 transition-all ${
+                  className={`w-full text-left p-3 rounded-md border-2 transition-all ${
                     isActive
                       ? 'border-primary bg-primary/5'
                       : 'border-border hover:border-muted-foreground/30'
@@ -367,8 +362,8 @@ const ThemeManager: React.FC = () => {
                   }
                 >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-md bg-muted/60">
-                      <Icon size={18} />
+                    <div className="p-1.5 rounded-md bg-muted/60">
+                      <Icon size={14} />
                     </div>
                     <div className="flex-1">
                       <div className="font-medium text-sm">{layout.label}</div>
@@ -377,10 +372,10 @@ const ThemeManager: React.FC = () => {
                       </div>
                     </div>
                     {isActive && (
-                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                      <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                         <svg
-                          width="12"
-                          height="12"
+                          width="10"
+                          height="10"
                           viewBox="0 0 12 12"
                           fill="none"
                         >

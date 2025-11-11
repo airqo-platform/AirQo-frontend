@@ -23,6 +23,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/admin/members': 'Members',
   '/admin/member-requests': 'Member Requests',
   '/admin/roles': 'Roles & Permissions',
+  '/admin/organization-settings': 'Organization Settings',
 
   // Default fallback
   '/': 'AirQo',
