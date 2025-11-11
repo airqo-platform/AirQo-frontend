@@ -148,9 +148,9 @@ export const useUpdateRoleData = () => {
       }: {
         arg: {
           roleId: string;
-          role_name?: string;
-          role_status?: 'ACTIVE' | 'INACTIVE';
-          role_code?: string;
+          role_name: string;
+          role_status: 'ACTIVE' | 'INACTIVE';
+          role_code: string;
         };
       }
     ) => {

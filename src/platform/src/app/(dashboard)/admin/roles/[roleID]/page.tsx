@@ -44,7 +44,6 @@ const RoleDetailPage = () => {
 
   // Role data editing state
   const [isEditingRole, setIsEditingRole] = useState(false);
-  const [editedRoleName, setEditedRoleName] = useState('');
   const [editedRoleStatus, setEditedRoleStatus] = useState<
     'ACTIVE' | 'INACTIVE'
   >('ACTIVE');
@@ -60,9 +59,6 @@ const RoleDetailPage = () => {
     if (role?.role_permissions) {
       const initialPermissions = role.role_permissions.map(rp => rp._id);
       setSelectedPermissions(initialPermissions);
-    }
-    if (role?.role_name) {
-      setEditedRoleName(role.role_name);
     }
     if (role?.role_status) {
       setEditedRoleStatus(role.role_status as 'ACTIVE' | 'INACTIVE');
@@ -131,8 +127,9 @@ const RoleDetailPage = () => {
     try {
       await updateRoleDataMutation.trigger({
         roleId: role._id,
-        role_name: editedRoleName,
+        role_name: role.role_name,
         role_status: editedRoleStatus,
+        role_code: role.role_code,
       });
 
       toast.success('Role data updated successfully!');
@@ -146,9 +143,6 @@ const RoleDetailPage = () => {
   };
 
   const handleCancelRoleEdit = () => {
-    if (role?.role_name) {
-      setEditedRoleName(role.role_name);
-    }
     if (role?.role_status) {
       setEditedRoleStatus(role.role_status as 'ACTIVE' | 'INACTIVE');
     }
