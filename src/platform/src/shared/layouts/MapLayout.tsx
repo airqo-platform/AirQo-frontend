@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/shared/lib/utils';
 import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
+import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
@@ -78,6 +79,9 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
           <ThemeManager />
         </div>
       )}
+
+      {/* Global Sidebar */}
+      <GlobalSidebar />
     </>
   );
 };

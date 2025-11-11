@@ -2,8 +2,10 @@
 
 import * as React from 'react';
 import { motion } from 'framer-motion';
+import { useDispatch } from 'react-redux';
 import { cn } from '@/shared/lib/utils';
 import { Card } from '@/shared/components/ui/card';
+import { Button } from '@/shared/components/ui/button';
 import {
   ProfileDropdown,
   AppDropdown,
@@ -13,11 +15,14 @@ import {
 import { useScrollVisibility, usePageTitle } from './hooks';
 import { HeaderProps } from './types';
 import { useMediaQuery } from 'react-responsive';
+import { toggleGlobalSidebar } from '@/shared/store/uiSlice';
+import { AqMenu03 } from '@airqo/icons-react';
 
 export const Header: React.FC<HeaderProps> = ({
   className,
   hideOnScroll = false,
 }) => {
+  const dispatch = useDispatch();
   const isVisible = useScrollVisibility(hideOnScroll);
   const pageTitle = usePageTitle();
   const isMobile = useMediaQuery({ maxWidth: 768 });
@@ -31,6 +36,15 @@ export const Header: React.FC<HeaderProps> = ({
     >
       <Card className="w-full p-0">
         <div className="flex items-center justify-between w-full h-12 px-4">
+          {/* Menu Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mr-2"
+            onClick={() => dispatch(toggleGlobalSidebar())}
+          >
+            <AqMenu03 />
+          </Button>
           {/* Logo */}
           <LogoComponent />
 
