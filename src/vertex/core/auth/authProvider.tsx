@@ -437,8 +437,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       isInitialized,
     });
     
-    // Personal mode is a valid state - users with no groups can use the app in personal mode
-    // IMPORTANT: Don't log out if userContext is null (still being determined) or 'personal' (valid state)
     if (
       user &&
       !activeGroup &&
@@ -458,21 +456,17 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       queryClient.clear();
       signOut({ callbackUrl: '/login' });
     } else if (user && !activeGroup && userGroups.length > 0 && !isLoading && isInitialized) {
-      // User has groups but no active group was set - this shouldn't happen, log warning
       logger.warn('[UserDataFetcher] User has groups but no active group was set', {
         userGroupsCount: userGroups.length,
         userGroups: userGroups.map((g) => g.grp_title),
         userContext,
       });
     } else if (user && !activeGroup && userGroups.length === 0 && userContext === 'personal' && isInitialized) {
-      // User is in personal mode with no groups - this is valid, log for debugging
       logger.debug('[UserDataFetcher] User is in personal mode with no groups - this is valid and allowed', {
         userContext,
         userGroupsCount: userGroups.length,
       });
     } else if (user && !activeGroup && userGroups.length === 0 && userContext === null && isInitialized && !isLoading) {
-      // User context is still being determined - wait for it to be set
-      // This can happen if the logout check runs before userContext is set in Redux
       logger.debug('[UserDataFetcher] User has no groups but context is still being determined, waiting...', {
         userContext,
         userGroupsCount: userGroups.length,
@@ -481,7 +475,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
   }, [activeGroup, user, userGroups, userContext, isLoading, isInitialized, isContextLoading, queryClient]);
 
-  // Guard: if authenticated and not initialized (e.g., mounted after auth), mark initialized
   useEffect(() => {
     if (status === 'authenticated' && !isInitialized) {
       logger.debug('[UserDataFetcher] Guard initializing app (authenticated with no prior status change)');
@@ -620,8 +613,6 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status]);
 
-  // Logout when status becomes unauthenticated on protected routes
-  // But skip if we're already logging out or have handled unauthorized
   useEffect(() => {
     if (
       status === 'unauthenticated' &&
@@ -635,19 +626,16 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isAuthRoute, handleLogout, hasLoggedOutForExpiration, hasHandledUnauthorized]);
 
-  // While session is being fetched, show a loading overlay
   if (status === 'loading') {
     logger.debug('[AuthWrapper] Session status is loading, showing loading state');
     return <SessionLoadingState />;
   }
 
-  // For auth routes, allow rendering even if unauthenticated
   if (isAuthRoute) {
     logger.debug('[AuthWrapper] Auth route detected, rendering children without UserDataFetcher');
     return <>{children}</>;
   }
 
-  // For protected routes, require authentication
   if (!session) {
     logger.debug('[AuthWrapper] No session on protected route, showing loading state');
     return <SessionLoadingState />;

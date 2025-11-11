@@ -141,8 +141,6 @@ const userSlice = createSlice({
     setActiveGroup(state, action: PayloadAction<Group | null>) {
       state.activeGroup = action.payload;
       
-      // Update context when active group changes
-      // If activeGroup is null, context should be 'personal' and clear network
       if (!action.payload) {
         state.userContext = 'personal';
         state.canSwitchContext = false;
