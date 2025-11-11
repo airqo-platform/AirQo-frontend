@@ -228,11 +228,14 @@ export const useRBAC = () => {
   };
 
   /**
-   * Check if user can access admin panel (AIRQO_ADMIN role + @airqo.net email + SYSTEM_ADMIN or SUPER_ADMIN permission)
+   * Check if user can access admin panel (AIRQO_ADMIN or AIRQO_SUPER_ADMIN role + @airqo.net email + SYSTEM_ADMIN or SUPER_ADMIN permission)
    */
   const canAccessAdminPanel = (): boolean => {
     const hasAirQoAdmin = allRoles.some(
       role => role.toUpperCase() === 'AIRQO_ADMIN'
+    );
+    const hasAirQoSuperAdmin = allRoles.some(
+      role => role.toUpperCase() === 'AIRQO_SUPER_ADMIN'
     );
     const hasSystemAdmin = allPermissions.some(
       perm => perm.toUpperCase() === 'SYSTEM_ADMIN'
@@ -242,7 +245,11 @@ export const useRBAC = () => {
     );
     const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
 
-    return hasAirQoAdmin && hasValidEmail && (hasSystemAdmin || hasSuperAdmin);
+    return (
+      (hasAirQoAdmin || hasAirQoSuperAdmin) &&
+      hasValidEmail &&
+      (hasSystemAdmin || hasSuperAdmin)
+    );
   };
 
   return {
