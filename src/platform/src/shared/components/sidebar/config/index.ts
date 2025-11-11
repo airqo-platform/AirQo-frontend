@@ -28,6 +28,7 @@ export interface NavGroup {
 export interface SidebarConfig {
   user: NavGroup[];
   organization: NavGroup[];
+  admin: NavGroup[];
 }
 
 // User flow sidebar configuration
@@ -135,25 +136,46 @@ const orgSidebarConfig: NavGroup[] = [
   },
 ];
 
+const adminSidebarConfig: NavGroup[] = [
+  {
+    id: 'admin',
+    label: 'Admin',
+    items: [
+      {
+        id: 'admin-dashboard',
+        label: 'Admin Dashboard',
+        href: '/admin/dashboard',
+        icon: AqHomeSmile,
+      },
+      // Add more admin routes here
+    ],
+  },
+];
+
 export const sidebarConfig: SidebarConfig = {
   user: userSidebarConfig,
   organization: orgSidebarConfig,
+  admin: adminSidebarConfig,
 };
 
 // Utility functions for sidebar configuration
-export const getSidebarConfig = (type: 'user' | 'organization'): NavGroup[] => {
+export const getSidebarConfig = (
+  type: 'user' | 'organization' | 'admin'
+): NavGroup[] => {
   return sidebarConfig[type];
 };
 
 // Flatten all nav items for a specific type
-export const getAllNavItems = (type: 'user' | 'organization'): NavItem[] => {
+export const getAllNavItems = (
+  type: 'user' | 'organization' | 'admin'
+): NavItem[] => {
   return sidebarConfig[type].flatMap(group => group.items);
 };
 
 // Get nav item by href for a specific type
 export const getNavItemByHref = (
   href: string,
-  type: 'user' | 'organization'
+  type: 'user' | 'organization' | 'admin'
 ): NavItem | undefined => {
   const allNavItems = getAllNavItems(type);
   return allNavItems.find(item => item.href === href);

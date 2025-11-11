@@ -3,13 +3,16 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/shared/store';
 import { toggleGlobalSidebar } from '@/shared/store/uiSlice';
 import { Card } from '@/shared/components/ui/card';
 import { Button } from '@/shared/components/ui/button';
-import { AqXClose } from '@airqo/icons-react';
+import { AqXClose, AqShield01 } from '@airqo/icons-react';
 import { useMediaQuery } from 'react-responsive';
+import { NavItem } from '@/shared/components/sidebar/components/nav-item';
+import { useUserActions } from '@/shared/hooks';
 
 export const GlobalSidebar: React.FC = () => {
   const dispatch = useDispatch();
@@ -17,10 +20,58 @@ export const GlobalSidebar: React.FC = () => {
   const isMobile = useMediaQuery({ maxWidth: 768 });
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
+  const { activeGroup } = useUserActions();
+  const [imageError, setImageError] = React.useState(false);
 
   const handleClose = useCallback(() => {
     dispatch(toggleGlobalSidebar());
   }, [dispatch]);
+
+  // Determine logo display based on active group
+  const { logoSrc, logoAlt, showFallback } = React.useMemo(() => {
+    if (!activeGroup) {
+      return {
+        logoSrc: '/images/airqo_logo.svg',
+        logoAlt: 'AirQo Logo',
+        showFallback: false,
+      };
+    }
+
+    // AIRQO group detection: check multiple conditions for robustness
+    const isAirQoGroup =
+      // Check if title matches AIRQO (case insensitive)
+      activeGroup.title?.toLowerCase() === 'airqo' ||
+      // Check if organization slug is airqo
+      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
+      // Check if no organization slug (default user flow)
+      !activeGroup.organizationSlug ||
+      // Fallback: check if title contains airqo
+      activeGroup.title?.toLowerCase().includes('airqo');
+
+    if (isAirQoGroup) {
+      return {
+        logoSrc: '/images/airqo_logo.svg',
+        logoAlt: 'AirQo Logo',
+        showFallback: false,
+      };
+    } else {
+      const hasValidProfilePicture =
+        activeGroup.profilePicture && activeGroup.profilePicture.trim() !== '';
+      return {
+        logoSrc: hasValidProfilePicture
+          ? activeGroup.profilePicture
+          : '/images/airqo_logo.svg',
+        logoAlt: `${activeGroup.title} Logo`,
+        showFallback: !hasValidProfilePicture,
+      };
+    }
+  }, [activeGroup]);
+
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
+  const shouldShowFallback = showFallback || imageError;
 
   // Focus management
   useEffect(() => {
@@ -88,7 +139,22 @@ export const GlobalSidebar: React.FC = () => {
               tabIndex={-1}
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold">Global Sidebar</h2>
+                <div className="flex items-center gap-2">
+                  {shouldShowFallback ? (
+                    <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                      {activeGroup?.title?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                  ) : (
+                    <Image
+                      src={logoSrc}
+                      alt={logoAlt}
+                      width={120}
+                      height={32}
+                      className="w-auto h-6"
+                      onError={handleImageError}
+                    />
+                  )}
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -99,8 +165,16 @@ export const GlobalSidebar: React.FC = () => {
                 </Button>
               </div>
               <div className="space-y-4">
-                {/* Add sidebar content here */}
-                <p>Sidebar content goes here.</p>
+                {/* Admin Panel */}
+                <NavItem
+                  item={{
+                    id: 'admin-panel',
+                    label: 'Admin Panel',
+                    href: '/admin/dashboard',
+                    icon: AqShield01,
+                  }}
+                  onClick={handleClose}
+                />
               </div>
             </Card>
           </motion.div>
