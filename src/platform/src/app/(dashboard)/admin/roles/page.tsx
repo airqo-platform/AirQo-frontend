@@ -175,7 +175,7 @@ const RolesPage = () => {
   );
 
   return (
-    <AdminPageGuard>
+    <AdminPageGuard requiredPermissionsInActiveGroup={['GROUP_MANAGEMENT']}>
       <div className="py-6 space-y-6">
         {/* Error Banner */}
         {rolesError && (
