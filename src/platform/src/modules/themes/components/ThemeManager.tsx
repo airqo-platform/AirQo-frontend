@@ -96,13 +96,13 @@ const ThemeManager: React.FC = () => {
     <>
       {/* Floating Button */}
       <motion.button
-        className={`fixed right-0 top-1/3 bg-primary text-primary-foreground p-3 rounded-l-full shadow-lg hover:shadow-xl transition-shadow ${
+        className={`fixed right-0 top-1/3 bg-primary text-primary-foreground p-2 rounded-l-full shadow-lg hover:shadow-xl transition-shadow ${
           isOpen ? 'z-30' : 'z-50'
         }`}
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(true)}
       >
-        <AqSettings02 size={24} />
+        <AqSettings02 size={20} />
       </motion.button>
 
       {/* Panel */}
