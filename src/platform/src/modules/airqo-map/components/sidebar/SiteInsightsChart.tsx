@@ -4,6 +4,7 @@ import React from 'react';
 import { DynamicChart } from '@/shared/components/charts';
 import { useSiteChartData } from '@/modules/airqo-map/hooks/useSiteChartData';
 import { useAnalytics } from '@/modules/analytics/hooks/useAnalytics';
+import { LoadingSpinner } from '@/shared/components/ui';
 import type { PollutantType } from '@/shared/components/charts/types';
 import { cn } from '@/shared/lib/utils';
 
@@ -42,7 +43,7 @@ export const SiteInsightsChart: React.FC<SiteInsightsChartProps> = ({
   }, []);
 
   // Fetch chart data for the specific site
-  const { chartData } = useSiteChartData({
+  const { chartData, isLoading, error } = useSiteChartData({
     siteId,
     pollutant: currentPollutant,
     frequency: 'daily',
@@ -51,10 +52,58 @@ export const SiteInsightsChart: React.FC<SiteInsightsChartProps> = ({
     enabled: true,
   });
 
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div
+        className={cn('w-full flex items-center justify-center', className)}
+        style={{ height }}
+      >
+        <div className="flex flex-col items-center gap-2">
+          <LoadingSpinner size={20} />
+          <span className="text-sm text-gray-500">Loading insights...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div
+        className={cn('w-full flex items-center justify-center', className)}
+        style={{ height }}
+      >
+        <div className="text-center">
+          <p className="text-sm text-red-500 mb-2">Failed to load insights</p>
+          <p className="text-xs text-gray-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show no data state
+  if (!chartData || chartData.length === 0) {
+    return (
+      <div
+        className={cn('w-full flex items-center justify-center', className)}
+        style={{ height }}
+      >
+        <div className="text-center">
+          <p className="text-sm text-gray-500">No data available</p>
+          <p className="text-xs text-gray-400">
+            Try selecting a different time range
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={cn('w-full', className)}>
       <DynamicChart
         data={chartData}
+        className="min-h-[250px] -ml-5"
         config={{
           type: 'area',
           height: height,
