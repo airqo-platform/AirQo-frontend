@@ -9,6 +9,7 @@ import {
   AqUsers01,
   AqUserPlus01,
   AqShield02,
+  AqSettings01,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -170,6 +171,18 @@ const adminSidebarConfig: NavGroup[] = [
         label: 'Roles & Permissions',
         href: '/admin/roles',
         icon: AqShield02,
+      },
+    ],
+  },
+  {
+    id: 'organization-settings',
+    label: 'Organization Settings',
+    items: [
+      {
+        id: 'admin-org-settings',
+        label: 'Settings',
+        href: '/admin/organization-settings',
+        icon: AqSettings01,
       },
     ],
   },
