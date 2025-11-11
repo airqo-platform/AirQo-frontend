@@ -67,38 +67,39 @@ const OrganizationPicker: React.FC = () => {
     }
 
     try {
+      // Clear queries first
       await queryClient.cancelQueries();
       queryClient.clear();
-      router.replace("/");
-      router.refresh();
 
+      // Set the new context/group BEFORE navigation
+      // This ensures localStorage is set before UserDataFetcher processes data
       if (group === "private") {
-        const airqoGroup = validUserGroups.find(
-          (g) => g.grp_title.toLowerCase() === "airqo"
-        );
-        if (airqoGroup) {
-          dispatch(setActiveGroup(airqoGroup));
-          dispatch(setUserContext("personal"));
-          localStorage.setItem("activeGroup", JSON.stringify(airqoGroup));
-          localStorage.setItem("userContext", "personal");
-        } else {
-          dispatch(setUserContext("personal"));
-          localStorage.setItem("userContext", "personal");
-        }
+        // For personal/private mode, set activeGroup to null
+        // This allows the user to access their personal data without an organization
+        localStorage.removeItem("activeGroup");
+        localStorage.removeItem("activeNetwork");
+        localStorage.setItem("userContext", "personal");
+        dispatch(setActiveGroup(null));
+        dispatch(setUserContext("personal"));
       } else {
-        dispatch(setActiveGroup(group));
-        if (group.grp_title.toLowerCase() === "airqo") {
-          dispatch(setUserContext("airqo-internal"));
-          localStorage.setItem("userContext", "airqo-internal");
-        } else {
-          dispatch(setUserContext("external-org"));
-          localStorage.setItem("userContext", "external-org");
-        }
         localStorage.setItem("activeGroup", JSON.stringify(group));
+        if (group.grp_title.toLowerCase() === "airqo") {
+          localStorage.setItem("userContext", "airqo-internal");
+          dispatch(setActiveGroup(group));
+          dispatch(setUserContext("airqo-internal"));
+        } else {
+          localStorage.setItem("userContext", "external-org");
+          dispatch(setActiveGroup(group));
+          dispatch(setUserContext("external-org"));
+        }
       }
 
       setIsModalOpen(false);
-    } catch {
+      
+      // Navigate to home after state is set
+      router.push("/home");
+    } catch (error) {
+      console.error("Error switching organization:", error);
     } finally {
       setTimeout(() => {
         dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
