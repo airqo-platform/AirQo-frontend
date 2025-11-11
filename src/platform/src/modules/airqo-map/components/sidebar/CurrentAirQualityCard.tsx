@@ -221,10 +221,16 @@ export const CurrentAirQualityCard: React.FC<CurrentAirQualityCardProps> = ({
                 </div>
                 <div className="flex justify-between">
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {(mapReading as MapReading)?.siteDetails?.city || 'N/A'}
+                    {(mapReading as MapReading)?.siteDetails?.city ||
+                      (mapReading as AirQualityReading)?.fullReadingData
+                        ?.siteDetails?.city ||
+                      'N/A'}
                   </span>
                   <span className="font-semibold text-base text-gray-900 dark:text-gray-100">
-                    {(mapReading as MapReading)?.siteDetails?.country || 'N/A'}
+                    {(mapReading as MapReading)?.siteDetails?.country ||
+                      (mapReading as AirQualityReading)?.fullReadingData
+                        ?.siteDetails?.country ||
+                      'N/A'}
                   </span>
                 </div>
               </div>
