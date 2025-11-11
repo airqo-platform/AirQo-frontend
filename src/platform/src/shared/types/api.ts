@@ -139,6 +139,7 @@ export interface UpdateRolePermissionsResponse {
 export interface UpdateRoleDataRequest {
   role_name?: string;
   role_status?: 'ACTIVE' | 'INACTIVE';
+  role_code?: string;
 }
 
 export interface UpdateRoleDataResponse {

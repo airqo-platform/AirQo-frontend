@@ -150,12 +150,14 @@ export const useUpdateRoleData = () => {
           roleId: string;
           role_name?: string;
           role_status?: 'ACTIVE' | 'INACTIVE';
+          role_code?: string;
         };
       }
     ) => {
       return await adminService.updateRoleData(arg.roleId, {
         role_name: arg.role_name,
         role_status: arg.role_status,
+        role_code: arg.role_code,
       });
     },
     {

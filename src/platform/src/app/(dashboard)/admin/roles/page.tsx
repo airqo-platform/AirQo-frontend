@@ -5,7 +5,6 @@ import { useSelector } from 'react-redux';
 import { useRouter } from 'next/navigation';
 import {
   Button,
-  LoadingState,
   Banner,
   PageHeading,
   Dialog,
@@ -17,7 +16,8 @@ import { selectActiveGroup } from '@/shared/store/selectors';
 import { AdminPageGuard } from '@/shared/components';
 import type { RoleDetails } from '@/shared/types/api';
 import { AqPlus, AqShield02 } from '@airqo/icons-react';
-import { toast } from 'sonner';
+import { toast } from '@/shared/components/ui/toast';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 
 const RolesPage = () => {
@@ -99,7 +99,8 @@ const RolesPage = () => {
       setNewRoleDescription('');
       refetchRoles();
     } catch (error) {
-      toast.error('Failed to create role');
+      const errorMessage = getUserFriendlyErrorMessage(error);
+      toast.error('Failed to create role', errorMessage);
       console.error('Error creating role:', error);
     }
   };
@@ -172,10 +173,6 @@ const RolesPage = () => {
     ],
     [handleRoleClick]
   );
-
-  if (rolesLoading) {
-    return <LoadingState />;
-  }
 
   return (
     <AdminPageGuard>

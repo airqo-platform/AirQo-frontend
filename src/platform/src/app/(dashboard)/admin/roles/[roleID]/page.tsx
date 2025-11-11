@@ -12,9 +12,11 @@ import { AdminPageGuard } from '@/shared/components';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { PageHeading } from '@/shared/components/ui';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 import Checkbox from '@/shared/components/ui/checkbox';
 import Select from '@/shared/components/ui/select';
-import { toast } from 'sonner';
+import { toast } from '@/shared/components/ui/toast';
+import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 
 const RoleDetailPage = () => {
   const params = useParams();
@@ -107,7 +109,8 @@ const RoleDetailPage = () => {
       setHasChanges(false);
       refetchRole();
     } catch (error) {
-      toast.error('Failed to update role permissions');
+      const errorMessage = getUserFriendlyErrorMessage(error);
+      toast.error('Failed to update role permissions', errorMessage);
       console.error('Error updating role permissions:', error);
     }
   };
@@ -128,13 +131,15 @@ const RoleDetailPage = () => {
         roleId: role._id,
         role_name: editedRoleName,
         role_status: editedRoleStatus,
+        role_code: editedRoleName,
       });
 
       toast.success('Role data updated successfully!');
       setIsEditingRole(false);
       refetchRole();
     } catch (error) {
-      toast.error('Failed to update role data');
+      const errorMessage = getUserFriendlyErrorMessage(error);
+      toast.error('Failed to update role data', errorMessage);
       console.error('Error updating role data:', error);
     }
   };
@@ -152,18 +157,7 @@ const RoleDetailPage = () => {
   if (roleLoading || permissionsLoading) {
     return (
       <AdminPageGuard>
-        <div className="flex items-center gap-4 mb-6">
-          <div className="h-8 w-8 bg-gray-200 rounded animate-pulse"></div>
-          <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="space-y-4">
-            <div className="h-32 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-          <div className="lg:col-span-2">
-            <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
-          </div>
-        </div>
+        <LoadingState text="Loading role details..." />
       </AdminPageGuard>
     );
   }
@@ -193,17 +187,18 @@ const RoleDetailPage = () => {
 
   return (
     <AdminPageGuard requiredPermissionsInActiveGroup={['GROUP_MANAGEMENT']}>
+      <Button
+        variant="ghost"
+        size="sm"
+        Icon={AqChevronLeft}
+        onClick={() => router.push('/admin/roles')}
+        className="mb-6"
+      >
+        Back
+      </Button>
+
       {/* Header */}
       <div className="relative">
-        <Button
-          variant="ghost"
-          size="sm"
-          Icon={AqChevronLeft}
-          onClick={() => router.push('/admin/roles')}
-          className="absolute top-0 right-0"
-        >
-          Back
-        </Button>
         <PageHeading
           title="Edit Role"
           subtitle="Modify role details and permissions for your organization"
@@ -239,6 +234,7 @@ const RoleDetailPage = () => {
                   size="sm"
                   onClick={handleSaveRoleData}
                   disabled={updateRoleDataMutation.isMutating}
+                  loading={updateRoleDataMutation.isMutating}
                 >
                   {updateRoleDataMutation.isMutating ? 'Saving...' : 'Save'}
                 </Button>
@@ -358,6 +354,7 @@ const RoleDetailPage = () => {
                   className="w-full"
                   onClick={handleSaveChanges}
                   disabled={updateRolePermissionsMutation.isMutating}
+                  loading={updateRolePermissionsMutation.isMutating}
                 >
                   {updateRolePermissionsMutation.isMutating
                     ? 'Saving...'
