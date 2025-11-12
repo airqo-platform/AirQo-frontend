@@ -26,6 +26,21 @@ export const GlobalSidebar: React.FC = () => {
   const { hasRole } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
 
+  // Helper function to determine if current group is AirQo
+  const isAirQoGroup = React.useMemo(() => {
+    if (!activeGroup) return true;
+    return (
+      // Check if title matches AIRQO (case insensitive)
+      activeGroup.title?.toLowerCase() === 'airqo' ||
+      // Check if organization slug is airqo
+      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
+      // Check if no organization slug (default user flow)
+      !activeGroup.organizationSlug ||
+      // Fallback: check if title contains airqo
+      activeGroup.title?.toLowerCase().includes('airqo')
+    );
+  }, [activeGroup]);
+
   const handleClose = useCallback(() => {
     dispatch(toggleGlobalSidebar());
   }, [dispatch]);
@@ -39,17 +54,6 @@ export const GlobalSidebar: React.FC = () => {
         showFallback: false,
       };
     }
-
-    // AIRQO group detection: check multiple conditions for robustness
-    const isAirQoGroup =
-      // Check if title matches AIRQO (case insensitive)
-      activeGroup.title?.toLowerCase() === 'airqo' ||
-      // Check if organization slug is airqo
-      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
-      // Check if no organization slug (default user flow)
-      !activeGroup.organizationSlug ||
-      // Fallback: check if title contains airqo
-      activeGroup.title?.toLowerCase().includes('airqo');
 
     if (isAirQoGroup) {
       return {
@@ -68,7 +72,7 @@ export const GlobalSidebar: React.FC = () => {
         showFallback: !hasValidProfilePicture,
       };
     }
-  }, [activeGroup]);
+  }, [activeGroup, isAirQoGroup]);
 
   const handleImageError = () => {
     setImageError(true);
@@ -82,21 +86,11 @@ export const GlobalSidebar: React.FC = () => {
       return { flow: 'user' as const, orgSlug: undefined };
     }
 
-    const isAirQoGroup =
-      // Check if title matches AIRQO (case insensitive)
-      activeGroup.title?.toLowerCase() === 'airqo' ||
-      // Check if organization slug is airqo
-      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
-      // Check if no organization slug (default user flow)
-      !activeGroup.organizationSlug ||
-      // Fallback: check if title contains airqo
-      activeGroup.title?.toLowerCase().includes('airqo');
-
     return {
       flow: isAirQoGroup ? ('user' as const) : ('organization' as const),
       orgSlug: activeGroup.organizationSlug || undefined,
     };
-  }, [activeGroup]);
+  }, [activeGroup, isAirQoGroup]);
 
   // Get global navigation items (global config)
   const globalNavItems = React.useMemo(() => {
