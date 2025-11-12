@@ -312,6 +312,7 @@ const DataExportPage = () => {
         activeTab={activeTab}
         selectedSites={selectedSites}
         selectedDevices={selectedDevices}
+        selectedGridIds={selectedGridIds}
         deviceCategory={deviceCategory}
       />
 
