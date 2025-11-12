@@ -58,7 +58,7 @@ export const DataExportTable: React.FC<DataExportTableProps> = ({
       onPageSizeChange={onPageSizeChange}
       searchTerm={searchTerm}
       onSearchChange={onSearchChange}
-      multiSelect={true}
+      multiSelect={activeTab !== 'countries' && activeTab !== 'cities'}
       selectedItems={selectedItems}
       onSelectedItemsChange={onSelectedItemsChange}
       customHeader={undefined}

@@ -874,20 +874,32 @@ const MultiSelectTable = <T extends TableItem>({
   const handleSelectItem = useCallback(
     (itemId: string | number, isChecked: boolean) => {
       if (isControlledSelection) {
-        const updated = isChecked
-          ? [...selectedItems, itemId]
-          : selectedItems.filter(id => id !== itemId);
+        let updated: (string | number)[];
+        if (multiSelect) {
+          updated = isChecked
+            ? [...selectedItems, itemId]
+            : selectedItems.filter(id => id !== itemId);
+        } else {
+          // Single selection mode
+          updated = isChecked ? [itemId] : [];
+        }
         onSelectedItemsChange?.(updated);
       } else {
         setInternalSelectedItems(prev => {
-          const updated = isChecked
-            ? [...prev, itemId]
-            : prev.filter(id => id !== itemId);
+          let updated: (string | number)[];
+          if (multiSelect) {
+            updated = isChecked
+              ? [...prev, itemId]
+              : prev.filter(id => id !== itemId);
+          } else {
+            // Single selection mode
+            updated = isChecked ? [itemId] : [];
+          }
           return updated;
         });
       }
     },
-    [isControlledSelection, selectedItems, onSelectedItemsChange]
+    [isControlledSelection, multiSelect, selectedItems, onSelectedItemsChange]
   );
 
   // Sort icon
@@ -918,16 +930,18 @@ const MultiSelectTable = <T extends TableItem>({
   const displayColumns = useMemo(() => {
     const cols = [...columns];
 
-    if (multiSelect) {
+    if (multiSelect || onSelectedItemsChange) {
       cols.unshift({
         key: 'checkbox',
-        label: (
+        label: multiSelect ? (
           <Checkbox
             checked={isAllSelectedOnPage}
             indeterminate={isIndeterminate}
             onCheckedChange={(checked: boolean) => handleSelectAll(checked)}
             aria-label="Select all on page"
           />
+        ) : (
+          ''
         ),
         render: (_value: unknown, item: T) => (
           <Checkbox
@@ -947,6 +961,7 @@ const MultiSelectTable = <T extends TableItem>({
   }, [
     columns,
     multiSelect,
+    onSelectedItemsChange,
     isAllSelectedOnPage,
     isIndeterminate,
     selectedItems,
@@ -1119,7 +1134,7 @@ const MultiSelectTable = <T extends TableItem>({
                       key={column.key}
                       className={`py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground ${
                         column.key === 'checkbox'
-                          ? 'w-8 sm:w-12 px-1 sm:px-2 pl-2 sm:pl-4'
+                          ? 'w-4 sm:w-6 px-1 pl-2 sm:pl-3'
                           : 'px-2 sm:px-4 md:px-6 min-w-0'
                       }`}
                     >
@@ -1181,7 +1196,7 @@ const MultiSelectTable = <T extends TableItem>({
                         key={column.key}
                         className={`py-2 sm:py-4 text-sm text-foreground align-top ${
                           column.key === 'checkbox'
-                            ? 'w-8 sm:w-12 px-1 sm:px-2 pl-2 sm:pl-4'
+                            ? 'w-4 sm:w-6 px-1 pl-2 sm:pl-3'
                             : 'px-2 sm:px-4 md:px-6 min-w-0'
                         }`}
                       >

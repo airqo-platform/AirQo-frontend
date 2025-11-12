@@ -46,7 +46,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
         </DropdownMenuTrigger>
       </div>
 
-      <DropdownMenuContent>
+      <DropdownMenuContent className="z-[10000]">
         <div className="space-y-3 min-w-[200px]">
           <div className="flex items-center gap-3 pb-3 border-b">
             <Avatar

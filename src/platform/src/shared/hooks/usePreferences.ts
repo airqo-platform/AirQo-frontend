@@ -7,6 +7,7 @@ import type {
   UpdatePreferencesRequest,
   UpdateUserPreferencesRequest,
   UpdateUserThemeRequest,
+  UpdateOrganizationGroupThemeRequest,
 } from '../types/api';
 
 // Authenticated preferences update
@@ -163,6 +164,36 @@ export const useUserTheme = (userId: string, groupId: string) => {
       // Keep error retry to minimum to avoid infinite loops on group switch
       errorRetryCount: 1,
       errorRetryInterval: 1000,
+    }
+  );
+};
+
+// Update organization group theme
+export const useUpdateOrganizationGroupTheme = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'preferences/theme/organization/group/update',
+    async (
+      key,
+      {
+        arg,
+      }: { arg: { groupId: string; data: UpdateOrganizationGroupThemeRequest } }
+    ) => {
+      return await preferencesService.updateOrganizationGroupTheme(
+        arg.groupId,
+        arg.data
+      );
+    },
+    {
+      onSuccess: () => {
+        // Invalidate related caches
+        mutate(
+          key =>
+            typeof key === 'string' &&
+            key.startsWith('preferences/theme/group/')
+        );
+      },
     }
   );
 };

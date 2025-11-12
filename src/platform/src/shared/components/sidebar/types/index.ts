@@ -5,7 +5,7 @@ export interface SidebarProps {
 }
 
 export interface SidebarContentProps {
-  flow?: 'user' | 'organization';
+  flow?: 'user' | 'organization' | 'admin';
   orgSlug?: string;
   isCollapsed?: boolean;
   onItemClick?: () => void;

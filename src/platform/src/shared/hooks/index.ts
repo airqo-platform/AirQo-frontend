@@ -7,8 +7,12 @@ export {
   useVerifyEmail,
   useUserDetails,
   useUserRoles,
+  useUserRolesById,
   useMutateUserData,
 } from './useAuth';
+
+// RBAC hooks
+export { useRBAC } from './useRBAC';
 
 // User management hooks
 export {
@@ -31,6 +35,7 @@ export {
   useUpdateUserTheme,
   useGroupTheme,
   useUserTheme,
+  useUpdateOrganizationGroupTheme,
 } from './usePreferences';
 
 // Checklist hooks
@@ -40,6 +45,8 @@ export { useUserChecklist, useUpdateUserChecklist } from './useChecklist';
 export {
   useSitesSummary,
   useSitesSummaryWithToken,
+  useGridsSummary,
+  useGridsSummaryWithToken,
   useCohortSites,
   useCohortDevices,
   useGroupCohorts,
@@ -67,6 +74,29 @@ export {
 
 // Analytics hooks
 export { useGetChartData, useGetRecentReadings } from './useAnalytics';
+
+// Admin hooks
+export {
+  useOrganizationRequests,
+  useApproveOrganizationRequest,
+  useRejectOrganizationRequest,
+  useRolesByGroup,
+  useRoleById,
+  usePermissions,
+  useCreateRole,
+  useUpdateRolePermissions,
+  useUpdateRoleData,
+  useUsersByRole,
+  useAssignUsersToRole,
+  useUnassignUsersFromRole,
+} from './useAdmin';
+
+// Groups hooks
+export {
+  useGroupJoinRequests,
+  useGroupDetails,
+  useSendGroupInvite,
+} from './useGroups';
 
 // Utility hooks
 export { useAppDispatch, useAppSelector } from './redux';

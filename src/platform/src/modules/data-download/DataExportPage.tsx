@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { DataExportSidebar } from './components/DataExportSidebar';
@@ -12,6 +12,7 @@ import {
   Frequency,
   FileType,
   DeviceCategory,
+  TabType,
 } from './types/dataExportTypes';
 import { getTabConfig } from './utils/tableConfig';
 import { useDataExportState } from './hooks/useDataExportState';
@@ -22,6 +23,9 @@ import AddLocation from '@/modules/location-insights/add-location';
 
 const DataExportPage = () => {
   const pathname = usePathname();
+
+  // Determine if this is org flow based on pathname
+  const isOrgFlow = pathname.includes('/org/');
 
   // State management
   const {
@@ -37,6 +41,8 @@ const DataExportPage = () => {
     selectedDevices,
     selectedSiteIds,
     selectedDeviceIds,
+    selectedGridIds,
+    selectedGridSites,
     deviceCategory,
     dateRange,
     tabStates,
@@ -51,6 +57,8 @@ const DataExportPage = () => {
     setSelectedDevices,
     setSelectedSiteIds,
     setSelectedDeviceIds,
+    setSelectedGridIds,
+    setSelectedGridSites,
     setDeviceCategory,
     setDateRange,
     updateTabState,
@@ -58,16 +66,40 @@ const DataExportPage = () => {
     handleClearSelections,
   } = useDataExportState();
 
+  // Handle org flow: switch to sites tab if countries or cities is active
+  React.useEffect(() => {
+    if (isOrgFlow && (activeTab === 'countries' || activeTab === 'cities')) {
+      handleTabChange('sites');
+    }
+  }, [isOrgFlow, activeTab, handleTabChange]);
+
+  // Wrap handleTabChange to prevent org flow from accessing countries/cities
+  const wrappedHandleTabChange = useCallback(
+    (tab: TabType) => {
+      if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
+        return;
+      }
+      handleTabChange(tab);
+    },
+    [isOrgFlow, handleTabChange]
+  );
+
   // Data fetching and processing (initial call with empty array)
-  const { currentHook, tableData, processedSitesData, processedDevicesData } =
-    useDataExportData(
-      activeTab,
-      tabStates,
-      deviceCategory,
-      selectedDeviceIds,
-      [], // Initial empty array
-      setSelectedDevices
-    );
+  const {
+    currentHook,
+    tableData,
+    processedSitesData,
+    processedDevicesData,
+    processedCountriesData,
+    processedCitiesData,
+  } = useDataExportData(
+    activeTab,
+    tabStates,
+    deviceCategory,
+    selectedDeviceIds,
+    [], // Initial empty array
+    setSelectedDevices
+  );
 
   // Actions and event handlers
   const { handleDownload, handleVisualizeData, isDownloading } =
@@ -78,6 +110,8 @@ const DataExportPage = () => {
       selectedDevices,
       selectedSiteIds,
       selectedDeviceIds,
+      selectedGridIds,
+      selectedGridSites,
       selectedPollutants,
       dataType,
       fileType,
@@ -85,7 +119,9 @@ const DataExportPage = () => {
       deviceCategory,
       fileTitle,
       processedSitesData,
-      processedDevicesData
+      processedDevicesData,
+      processedCountriesData,
+      processedCitiesData
     );
 
   const currentState = tabStates[activeTab];
@@ -108,9 +144,9 @@ const DataExportPage = () => {
     }
   }, [deviceCategory, frequency, setFrequency]);
 
-  // Set device category to lowcost and disable when sites tab is active
+  // Set device category to lowcost when not on devices tab
   useEffect(() => {
-    if (activeTab === 'sites') {
+    if (activeTab !== 'devices') {
       setDeviceCategory('lowcost');
     }
   }, [activeTab, setDeviceCategory]);
@@ -133,7 +169,9 @@ const DataExportPage = () => {
     const hasSelections =
       activeTab === 'sites'
         ? selectedSiteIds.length > 0
-        : selectedDeviceIds.length > 0;
+        : activeTab === 'devices'
+          ? selectedDeviceIds.length > 0
+          : selectedGridIds.length > 0; // countries and cities use grid IDs
     const hasPollutants = selectedPollutants.length > 0;
 
     return Boolean(hasDateRange && hasSelections && hasPollutants);
@@ -142,6 +180,7 @@ const DataExportPage = () => {
     activeTab,
     selectedSiteIds,
     selectedDeviceIds,
+    selectedGridIds,
     selectedPollutants,
   ]);
 
@@ -152,9 +191,29 @@ const DataExportPage = () => {
       setSelectedSiteIds(stringIds);
       // For sites, IDs are the same as names for the API
       setSelectedSites(stringIds);
-    } else {
+    } else if (activeTab === 'devices') {
       setSelectedDeviceIds(stringIds);
       // For devices, names are set by the data hook
+    } else if (activeTab === 'countries' || activeTab === 'cities') {
+      // For countries/cities, use exact selection (single selection mode)
+      setSelectedGridIds(stringIds);
+      // Cache the resolved site IDs to avoid issues when search/pagination changes
+      if (stringIds.length > 0) {
+        const gridData =
+          activeTab === 'countries'
+            ? processedCountriesData
+            : processedCitiesData;
+        const grid = gridData.find(item => String(item.id) === stringIds[0]);
+        if (grid?.sites) {
+          const sites = grid.sites as Array<{ _id: string }>;
+          const siteIds = sites.map(site => site._id);
+          setSelectedGridSites(siteIds);
+        } else {
+          setSelectedGridSites([]);
+        }
+      } else {
+        setSelectedGridSites([]);
+      }
     }
   };
 
@@ -199,6 +258,7 @@ const DataExportPage = () => {
               activeTab={activeTab}
               selectedSiteIds={selectedSiteIds}
               selectedDeviceIds={selectedDeviceIds}
+              selectedGridIds={selectedGridIds}
               selectedPollutants={selectedPollutants}
               deviceCategory={deviceCategory}
               isDownloadReady={isDownloadReady}
@@ -209,20 +269,21 @@ const DataExportPage = () => {
               pathname={pathname}
             />
 
-            {/* Header with Download Button */}
             <DataExportHeader
               activeTab={activeTab}
               selectedSiteIds={selectedSiteIds}
               selectedDeviceIds={selectedDeviceIds}
+              selectedGridIds={selectedGridIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
-              onTabChange={handleTabChange}
+              onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
               onPreview={() => setPreviewOpen(true)}
               onDownload={handleDownload}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
+              isOrgFlow={isOrgFlow}
             />
 
             <DataExportTable
@@ -237,7 +298,11 @@ const DataExportPage = () => {
               totalItems={meta.total}
               searchTerm={currentState.search}
               selectedItems={
-                activeTab === 'sites' ? selectedSiteIds : selectedDeviceIds
+                activeTab === 'sites'
+                  ? selectedSiteIds
+                  : activeTab === 'devices'
+                    ? selectedDeviceIds
+                    : selectedGridIds // countries and cities use grid IDs
               }
               onPageChange={page => updateTabState(activeTab, { page })}
               onPageSizeChange={size =>
@@ -267,11 +332,18 @@ const DataExportPage = () => {
         activeTab={activeTab}
         selectedSites={selectedSites}
         selectedDevices={selectedDevices}
+        selectedGridIds={selectedGridIds}
         deviceCategory={deviceCategory}
       />
 
       {/* More Insights Dialog */}
-      <MoreInsights activeTab={activeTab} />
+      <MoreInsights
+        activeTab={
+          activeTab === 'sites' || activeTab === 'devices'
+            ? activeTab
+            : undefined
+        }
+      />
 
       {/* Add Location Dialog */}
       <AddLocation />

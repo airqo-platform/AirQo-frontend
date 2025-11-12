@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { ProfileForm, SecurityTab } from './components';
 import { ApiClientPage } from '../api-client';
-import { AqUserCircle, AqLock02, AqKey01 } from '@airqo/icons-react';
+import ThemeManager from '../themes/components/ThemeManager';
+import { AqUserCircle, AqLock02, AqKey01, AqPalette } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
 
 interface ExtendedSessionUser {
@@ -44,6 +45,7 @@ const ProfilePage: React.FC = () => {
     },
     { id: 1, title: 'Security', component: () => <SecurityTab /> },
     { id: 2, title: 'API', component: () => <ApiClientPage /> },
+    { id: 3, title: 'Theme', component: () => <ThemeManager /> },
   ];
 
   return (
@@ -66,6 +68,7 @@ const ProfilePage: React.FC = () => {
                 {tab.id === 0 && <AqUserCircle size={16} />}
                 {tab.id === 1 && <AqLock02 size={16} />}
                 {tab.id === 2 && <AqKey01 size={16} />}
+                {tab.id === 3 && <AqPalette size={16} />}
                 {tab.title}
               </span>
             </button>
