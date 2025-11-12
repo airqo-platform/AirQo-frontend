@@ -10,6 +10,7 @@ interface DataExportBannerProps {
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
   selectedGridIds: string[];
+  selectedGridSiteIds: string[];
   selectedPollutants: string[];
   deviceCategory: DeviceCategory;
   isDownloadReady: boolean;
@@ -29,6 +30,7 @@ export const DataExportBanner: React.FC<DataExportBannerProps> = ({
   selectedSiteIds,
   selectedDeviceIds,
   selectedGridIds,
+  selectedGridSiteIds,
   selectedPollutants,
   deviceCategory,
   isDownloadReady,
@@ -44,6 +46,7 @@ export const DataExportBanner: React.FC<DataExportBannerProps> = ({
     selectedSiteIds,
     selectedDeviceIds,
     selectedGridIds,
+    selectedGridSiteIds,
     selectedPollutants,
     deviceCategory,
     isDownloadReady,

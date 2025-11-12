@@ -11,6 +11,7 @@ interface BannerNotificationProps {
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
   selectedGridIds: string[];
+  selectedGridSiteIds: string[];
   selectedPollutants: string[];
   deviceCategory: DeviceCategory;
   isDownloadReady: boolean;
@@ -30,6 +31,7 @@ export const getBannerNotification = ({
   selectedSiteIds,
   selectedDeviceIds,
   selectedGridIds,
+  selectedGridSiteIds,
   selectedPollutants,
   deviceCategory,
   isDownloadReady,

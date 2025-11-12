@@ -25,6 +25,7 @@ export const useDataExportActions = (
   selectedDeviceIds: string[],
   selectedGridIds: string[],
   selectedGridSites: string[],
+  selectedGridSiteIds: string[],
   selectedPollutants: string[],
   dataType: string,
   fileType: string,
@@ -67,11 +68,12 @@ export const useDataExportActions = (
 
     if (
       (activeTab === 'countries' || activeTab === 'cities') &&
-      selectedGridIds.length === 0
+      selectedGridSiteIds.length === 0 &&
+      selectedGridSites.length === 0
     ) {
       toast.error(
         `${activeTab === 'countries' ? 'Country' : 'City'} Selection Required`,
-        `Please select one ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
+        `Please select a ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
       );
       return;
     }
@@ -87,8 +89,11 @@ export const useDataExportActions = (
     // Extract sites for countries/cities
     let sitesForDownload: string[] = [];
     if (activeTab === 'countries' || activeTab === 'cities') {
-      // Use cached site IDs to avoid issues when search/pagination changes after selection
-      sitesForDownload = selectedGridSites;
+      // Use custom selection if available, otherwise use default selection
+      sitesForDownload =
+        selectedGridSiteIds.length > 0
+          ? selectedGridSiteIds
+          : selectedGridSites;
     }
 
     const request: DataDownloadRequest = {

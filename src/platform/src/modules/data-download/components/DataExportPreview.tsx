@@ -23,6 +23,7 @@ interface DataExportPreviewProps {
   selectedSites: string[];
   selectedDevices: string[];
   selectedGridIds: string[];
+  selectedGridSiteIds: string[];
   deviceCategory: string;
 }
 
@@ -44,6 +45,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   selectedSites,
   selectedDevices,
   selectedGridIds,
+  selectedGridSiteIds,
   deviceCategory,
 }) => {
   const [previewData, setPreviewData] = useState<PreviewData[]>([]);
@@ -84,11 +86,11 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
         return selectedDevices;
       case 'countries':
       case 'cities':
-        return selectedGridIds;
+        return selectedGridSiteIds;
       default:
         return [];
     }
-  }, [activeTab, selectedSites, selectedDevices, selectedGridIds]);
+  }, [activeTab, selectedSites, selectedDevices, selectedGridSiteIds]);
 
   const locationType = useMemo(() => {
     switch (activeTab) {
@@ -97,9 +99,8 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
       case 'devices':
         return 'Devices';
       case 'countries':
-        return 'Countries';
       case 'cities':
-        return 'Cities';
+        return 'Sites';
       default:
         return 'Locations';
     }

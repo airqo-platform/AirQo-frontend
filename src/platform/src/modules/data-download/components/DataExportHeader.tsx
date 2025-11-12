@@ -8,6 +8,7 @@ interface DataExportHeaderProps {
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
   selectedGridIds: string[];
+  selectedGridSiteIds: string[];
   isDownloadReady: boolean;
   isDownloading: boolean;
   onTabChange: (tab: TabType) => void;
@@ -28,6 +29,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   selectedSiteIds,
   selectedDeviceIds,
   selectedGridIds,
+  selectedGridSiteIds,
   isDownloadReady,
   isDownloading,
   onTabChange,
@@ -42,7 +44,8 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   const hasSelections =
     selectedSiteIds.length > 0 ||
     selectedDeviceIds.length > 0 ||
-    selectedGridIds.length > 0;
+    selectedGridIds.length > 0 ||
+    selectedGridSiteIds.length > 0;
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
