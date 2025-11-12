@@ -4,6 +4,12 @@ import {
   AqStar06,
   AqGlobe05,
   AqDownload01,
+  AqFolderShield,
+  AqFileQuestion02,
+  AqUsers01,
+  AqUserPlus01,
+  AqShield02,
+  AqSettings01,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -28,6 +34,8 @@ export interface NavGroup {
 export interface SidebarConfig {
   user: NavGroup[];
   organization: NavGroup[];
+  admin: NavGroup[];
+  global: NavGroup[];
 }
 
 // User flow sidebar configuration
@@ -135,25 +143,91 @@ const orgSidebarConfig: NavGroup[] = [
   },
 ];
 
+const adminSidebarConfig: NavGroup[] = [
+  {
+    id: 'admin',
+    label: 'Panel',
+    items: [
+      {
+        id: 'admin-dashboard',
+        label: 'Organization Requests',
+        href: '/admin/org-requests',
+        icon: AqFileQuestion02,
+      },
+      {
+        id: 'admin-members',
+        label: 'Members',
+        href: '/admin/members',
+        icon: AqUsers01,
+      },
+      {
+        id: 'admin-member-requests',
+        label: 'Member Requests',
+        href: '/admin/member-requests',
+        icon: AqUserPlus01,
+      },
+      {
+        id: 'admin-roles',
+        label: 'Roles & Permissions',
+        href: '/admin/roles',
+        icon: AqShield02,
+      },
+    ],
+  },
+  {
+    id: 'organization-settings',
+    label: 'Organization Settings',
+    items: [
+      {
+        id: 'admin-org-settings',
+        label: 'Settings',
+        href: '/admin/organization-settings',
+        icon: AqSettings01,
+      },
+    ],
+  },
+];
+
+const globalSidebarConfig: NavGroup[] = [
+  {
+    id: 'global',
+    label: 'Global',
+    items: [
+      {
+        id: 'admin-panel',
+        label: 'Administrative Panel',
+        href: '/admin/org-requests',
+        icon: AqFolderShield,
+      },
+    ],
+  },
+];
+
 export const sidebarConfig: SidebarConfig = {
   user: userSidebarConfig,
   organization: orgSidebarConfig,
+  admin: adminSidebarConfig,
+  global: globalSidebarConfig,
 };
 
 // Utility functions for sidebar configuration
-export const getSidebarConfig = (type: 'user' | 'organization'): NavGroup[] => {
+export const getSidebarConfig = (
+  type: 'user' | 'organization' | 'admin' | 'global'
+): NavGroup[] => {
   return sidebarConfig[type];
 };
 
 // Flatten all nav items for a specific type
-export const getAllNavItems = (type: 'user' | 'organization'): NavItem[] => {
+export const getAllNavItems = (
+  type: 'user' | 'organization' | 'admin' | 'global'
+): NavItem[] => {
   return sidebarConfig[type].flatMap(group => group.items);
 };
 
 // Get nav item by href for a specific type
 export const getNavItemByHref = (
   href: string,
-  type: 'user' | 'organization'
+  type: 'user' | 'organization' | 'admin' | 'global'
 ): NavItem | undefined => {
   const allNavItems = getAllNavItems(type);
   return allNavItems.find(item => item.href === href);

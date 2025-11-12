@@ -7,6 +7,8 @@ import type {
   UpdateUserThemeResponse,
   GetGroupThemeResponse,
   GetUserThemeResponse,
+  UpdateOrganizationGroupThemeRequest,
+  UpdateOrganizationGroupThemeResponse,
   GetUserPreferencesListResponse,
   ApiErrorResponse,
 } from '../types/api';
@@ -236,6 +238,34 @@ export class PreferencesService {
       return data as GetUserThemeResponse;
     } catch (error: unknown) {
       throw this.handleApiError(error, 'Failed to get user theme');
+    }
+  }
+
+  // Update organization group theme
+  async updateOrganizationGroupTheme(
+    groupId: string,
+    data: UpdateOrganizationGroupThemeRequest
+  ): Promise<UpdateOrganizationGroupThemeResponse> {
+    await this.ensureAuthenticated();
+    try {
+      const response = await this.authenticatedClient.put<
+        UpdateOrganizationGroupThemeResponse | ApiErrorResponse
+      >(`/users/preferences/theme/organization/group/${groupId}`, data);
+      const result = response.data;
+
+      if ('success' in result && !result.success) {
+        throw this.createEnhancedError(
+          result.message || 'Failed to update organization group theme',
+          { status: response.status, data: result as ApiErrorResponse }
+        );
+      }
+
+      return result as UpdateOrganizationGroupThemeResponse;
+    } catch (error: unknown) {
+      throw this.handleApiError(
+        error,
+        'Failed to update organization group theme'
+      );
     }
   }
 }

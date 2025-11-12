@@ -29,6 +29,150 @@ export interface LoginResponse {
   expiresAt: string;
 }
 
+// Roles and Permissions Types for Admin Management
+export interface RolePermission {
+  _id: string;
+  permission: string;
+  description?: string;
+  network?: {
+    _id: string;
+    net_name: string;
+    net_status: string;
+    net_email: string;
+    net_phoneNumber: number;
+    net_category: string;
+    net_description: string;
+    net_website: string;
+    net_acronym: string;
+    net_profile_picture: string;
+    net_children: string[];
+    net_users: string[];
+    net_departments: string[];
+    net_permissions: string[];
+    net_roles: string[];
+    net_groups: string[];
+  };
+}
+
+export interface RoleGroupInfo {
+  _id: string;
+  grp_status: string;
+  grp_title: string;
+  grp_description: string;
+  grp_manager: string;
+  grp_manager_username: string;
+  grp_manager_firstname: string;
+  grp_manager_lastname: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  grp_profile_picture: string;
+  grp_image: string;
+  organization_slug: string;
+  grp_country: string;
+  grp_industry: string;
+  grp_timezone: string;
+  grp_website: string;
+  theme: {
+    primaryColor: string;
+    mode: string;
+    interfaceStyle: string;
+    contentLayout: string;
+  };
+}
+
+export interface RoleDetails {
+  _id: string;
+  role_status: string;
+  role_code: string;
+  role_name: string;
+  role_description?: string;
+  createdAt: string;
+  updatedAt: string;
+  role_permissions: RolePermission[];
+  role_users: string[];
+  group: RoleGroupInfo;
+}
+
+// API Response types for Roles and Permissions
+export interface GetRolesResponse {
+  success: boolean;
+  message: string;
+  roles: RoleDetails[];
+}
+
+export interface GetRoleByIdResponse {
+  success: boolean;
+  message: string;
+  role?: RoleDetails; // Single role (optional for backward compatibility)
+  roles?: RoleDetails[]; // Array format (actual response)
+}
+
+export interface GetPermissionsResponse {
+  success: boolean;
+  message: string;
+  permissions: RolePermission[];
+}
+
+export interface CreateRoleRequest {
+  role_name: string;
+  group_id: string;
+  role_description?: string;
+}
+
+export interface CreateRoleResponse {
+  success: boolean;
+  message: string;
+  role: RoleDetails;
+}
+
+export interface UpdateRolePermissionsRequest {
+  permission_ids: string[];
+}
+
+export interface UpdateRolePermissionsResponse {
+  success: boolean;
+  message: string;
+  role: RoleDetails;
+}
+
+export interface UpdateRoleDataRequest {
+  role_name?: string;
+  role_status?: 'ACTIVE' | 'INACTIVE';
+  role_code?: string;
+}
+
+export interface UpdateRoleDataResponse {
+  success: boolean;
+  message: string;
+  role: RoleDetails;
+}
+
+// Role assignment related types
+export interface GetUsersByRoleResponse {
+  success: boolean;
+  message: string;
+  users: User[];
+}
+
+export interface AssignUsersToRoleRequest {
+  user_ids: string[];
+}
+
+export interface AssignUsersToRoleResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface UnassignUsersFromRoleRequest {
+  user_ids: string[];
+}
+
+export interface UnassignUsersFromRoleResponse {
+  success: boolean;
+  message: string;
+}
+
 export interface RegisterRequest {
   firstName: string;
   lastName: string;
@@ -104,6 +248,9 @@ export interface User {
   createdAt: string;
   my_networks: unknown[];
   my_groups: MyGroup[];
+  networks: Network[];
+  clients: Client[];
+  permissions: RolePermission[];
 }
 
 export interface Network {
@@ -773,6 +920,19 @@ export interface GetUserThemeResponse {
   data: Theme;
 }
 
+export interface UpdateOrganizationGroupThemeRequest {
+  primaryColor: string;
+  mode: 'light' | 'dark' | 'system';
+  interfaceStyle: 'default' | 'bordered';
+  contentLayout: 'compact' | 'wide';
+}
+
+export interface UpdateOrganizationGroupThemeResponse {
+  success: boolean;
+  message: string;
+  data: Theme;
+}
+
 // Analytics types
 export interface AnalyticsChartRequest {
   sites: string[];
@@ -971,6 +1131,168 @@ export interface InitiateAccountDeletionResponse {
 }
 
 export interface ConfirmAccountDeletionResponse {
+  success: boolean;
+  message: string;
+}
+
+// Organization Requests Management Types
+export interface OrganizationRequest {
+  _id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  onboarding_completed: boolean;
+  onboarding_method: string;
+  organization_name: string;
+  organization_slug: string;
+  contact_email: string;
+  contact_name: string;
+  use_case: string;
+  organization_type: string;
+  country: string;
+  branding_settings: BrandingSettings;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+  approved_by: string | null;
+}
+
+export interface GetOrganizationRequestsResponse {
+  success: boolean;
+  message: string;
+  requests: OrganizationRequest[];
+}
+
+export interface ApproveOrganizationRequestResponse {
+  success: boolean;
+  message: string;
+  request?: OrganizationRequest;
+}
+
+export interface RejectOrganizationRequestResponse {
+  success: boolean;
+  message: string;
+  request?: OrganizationRequest;
+}
+
+// Group Join Request Types
+export interface GroupJoinRequest {
+  _id: string;
+  status: 'pending' | 'approved' | 'rejected';
+  email: string;
+  targetId: string;
+  requestType: 'group';
+  updatedAt: string;
+  createdAt: string;
+  user: {
+    _id: string;
+    analyticsVersion: number;
+    isActive: boolean;
+    loginCount: number;
+    subscriptionStatus: string;
+    automaticRenewal: boolean;
+    interests?: string[];
+    firstName: string;
+    lastName: string;
+    theme: {
+      primaryColor: string;
+      mode: string;
+      interfaceStyle: string;
+      contentLayout: string;
+    };
+    createdAt: string;
+    interestsDescription?: string;
+    lastLogin: string;
+    preferredTokenStrategy: string;
+  };
+}
+
+export interface GetGroupJoinRequestsResponse {
+  success: boolean;
+  message: string;
+  requests: GroupJoinRequest[];
+}
+
+// Group Information Types
+export interface GroupUser {
+  _id: string;
+  verified: boolean;
+  permissions: string[];
+  firstName: string;
+  lastName: string;
+  email: string;
+  description?: string;
+  country?: string;
+  isActive: boolean;
+  lastLogin: string;
+  timezone?: string;
+  loginCount: number;
+  analyticsVersion: number;
+  theme: {
+    primaryColor: string;
+    mode: string;
+    interfaceStyle: string;
+    contentLayout: string;
+  };
+  preferredTokenStrategy: string;
+  jobTitle?: string;
+  website?: string;
+  category?: string;
+}
+
+export interface GroupManager {
+  _id: string;
+  verified: boolean;
+  firstName: string;
+  lastName: string;
+  email: string;
+  jobTitle?: string;
+  website?: string;
+  description?: string;
+  category?: string;
+  country?: string;
+  isActive: boolean;
+  lastLogin: string;
+  timezone?: string;
+  loginCount: number;
+  analyticsVersion: number;
+  theme: {
+    primaryColor: string;
+    mode: string;
+    interfaceStyle: string;
+    contentLayout: string;
+  };
+  preferredTokenStrategy: string;
+}
+
+export interface GroupDetails {
+  _id: string;
+  grp_status: string;
+  grp_title: string;
+  grp_description: string;
+  createdAt: string;
+  grp_profile_picture: string;
+  grp_image: string;
+  organization_slug: string;
+  grp_country: string;
+  grp_industry: string;
+  grp_timezone: string;
+  grp_website: string;
+  numberOfGroupUsers: number;
+  grp_users: GroupUser[];
+  grp_manager: GroupManager;
+}
+
+export interface GetGroupDetailsResponse {
+  success: boolean;
+  message: string;
+  group: GroupDetails;
+}
+
+// Send Group Invite Types
+export interface SendGroupInviteRequest {
+  emails: string[];
+}
+
+export interface SendGroupInviteResponse {
   success: boolean;
   message: string;
 }

@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/shared/lib/utils';
 import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
+import { GlobalSidebar } from '@/shared/components/global-sidebar';
 import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
 import { SecondaryNavigation } from '@/shared/components/ui/secondary-navigation';
 import { Footer } from '@/shared/components/ui/footer';
@@ -14,7 +15,6 @@ import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { useUser } from '@/shared/hooks/useUser';
-import ThemeManager from '@/modules/themes/components/ThemeManager';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -103,10 +103,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               <BottomNavigation />
             </div>
           )}
-
-          <ThemeManager />
         </div>
       )}
+
+      {/* Global Sidebar */}
+      <GlobalSidebar />
     </>
   );
 };
