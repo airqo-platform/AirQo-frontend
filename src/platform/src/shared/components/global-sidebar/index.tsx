@@ -74,11 +74,42 @@ export const GlobalSidebar: React.FC = () => {
 
   const shouldShowFallback = showFallback || imageError;
 
+  // Determine flow type and org slug
+  const { flow, orgSlug } = React.useMemo(() => {
+    if (!activeGroup) {
+      return { flow: 'user' as const, orgSlug: undefined };
+    }
+
+    const isAirQoGroup =
+      // Check if title matches AIRQO (case insensitive)
+      activeGroup.title?.toLowerCase() === 'airqo' ||
+      // Check if organization slug is airqo
+      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
+      // Check if no organization slug (default user flow)
+      !activeGroup.organizationSlug ||
+      // Fallback: check if title contains airqo
+      activeGroup.title?.toLowerCase().includes('airqo');
+
+    return {
+      flow: isAirQoGroup ? ('user' as const) : ('organization' as const),
+      orgSlug: activeGroup.organizationSlug || undefined,
+    };
+  }, [activeGroup]);
+
   // Get global navigation items (global config)
   const globalNavItems = React.useMemo(() => {
-    const globalConfig = getSidebarConfig('global');
-    return globalConfig.flatMap(group => group.items);
-  }, []);
+    const config = getSidebarConfig('global');
+    let basePath = '/user';
+    if (flow === 'organization' && orgSlug) {
+      basePath = `/org/${orgSlug}`;
+    }
+    return config.flatMap(group =>
+      group.items.map(item => ({
+        ...item,
+        href: item.href.replace('/favorites', `${basePath}/favorites`),
+      }))
+    );
+  }, [flow, orgSlug]);
 
   // Focus management
   useEffect(() => {
@@ -113,7 +144,7 @@ export const GlobalSidebar: React.FC = () => {
     };
   }, [isOpen, handleClose]);
 
-  const sidebarWidth = isMobile ? 'w-full' : 'w-80';
+  const sidebarWidth = isMobile ? 'w-full' : 'w-64';
 
   return createPortal(
     <AnimatePresence>
@@ -171,7 +202,7 @@ export const GlobalSidebar: React.FC = () => {
                   <AqXClose />
                 </Button>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-1">
                 {globalNavItems.map(item => (
                   <NavItem key={item.id} item={item} onClick={handleClose} />
                 ))}
