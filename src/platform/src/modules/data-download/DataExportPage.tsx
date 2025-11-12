@@ -244,14 +244,14 @@ const DataExportPage = () => {
   const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {
     setSiteSelectionDownloading(true);
     try {
-      // Set the selected sites for the current grid
-      setSelectedGridSiteIds(prev => ({
-        ...prev,
-        [selectedGridForSites!.grid.id]: selectedSiteIds,
-      }));
+      const nextSelectedGridSiteIds = {
+        ...selectedGridSiteIds,
+        [selectedGridForSites!.grid._id]: selectedSiteIds,
+      };
+      setSelectedGridSiteIds(nextSelectedGridSiteIds);
 
-      // Trigger download
-      await handleDownload();
+      // Trigger download with the updated selections
+      await handleDownload(nextSelectedGridSiteIds);
 
       // Close dialog only on successful download
       setSiteSelectionDialogOpen(false);
@@ -430,7 +430,7 @@ const DataExportPage = () => {
           onConfirm={handleSiteSelectionConfirm}
           sites={selectedGridForSites.grid.sites}
           initialSelectedSiteIds={
-            selectedGridSiteIds[selectedGridForSites.grid.id] || []
+            selectedGridSiteIds[selectedGridForSites.grid._id] || []
           }
           gridName={selectedGridForSites.grid.name}
           gridType={
