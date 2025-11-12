@@ -10,6 +10,8 @@ import type {
   GetThemeResponse,
   UpdateThemeRequest,
   UpdateThemeResponse,
+  UpdateOrganizationGroupThemeRequest,
+  UpdateOrganizationGroupThemeResponse,
   ApiErrorResponse,
 } from '../types/api';
 
@@ -67,6 +69,27 @@ export class ThemeService {
     }
 
     return data as UpdateThemeResponse;
+  }
+
+  // Update organization group theme - authenticated endpoint
+  async updateOrganizationGroupTheme(
+    groupId: string,
+    themeData: UpdateOrganizationGroupThemeRequest
+  ): Promise<UpdateOrganizationGroupThemeResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<
+      UpdateOrganizationGroupThemeResponse | ApiErrorResponse
+    >(`/users/preferences/theme/organization/group/${groupId}`, themeData);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(
+        (data as ApiErrorResponse).message ||
+          'Failed to update organization group theme'
+      );
+    }
+
+    return data as UpdateOrganizationGroupThemeResponse;
   }
 }
 

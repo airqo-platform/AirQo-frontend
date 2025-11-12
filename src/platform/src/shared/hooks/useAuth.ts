@@ -24,6 +24,13 @@ const userRolesFetcher = async (): Promise<UserRolesResponse> => {
   return await userService.getUserRoles();
 };
 
+// User Roles by ID fetcher
+const userRolesByIdFetcher = async (
+  userId: string
+): Promise<UserRolesResponse> => {
+  return await userService.getUserRolesById(userId);
+};
+
 // Login mutation
 export const useLogin = () => {
   return useSWRMutation(
@@ -92,6 +99,18 @@ export const useUserRoles = () => {
     revalidateOnFocus: false,
     dedupingInterval: 10000,
   });
+};
+
+// User roles by ID hook
+export const useUserRolesById = (userId: string | null) => {
+  return useSWR<UserRolesResponse>(
+    userId ? `user/roles/${userId}` : null,
+    userId ? () => userRolesByIdFetcher(userId) : null,
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 10000,
+    }
+  );
 };
 
 // Cache invalidation helper

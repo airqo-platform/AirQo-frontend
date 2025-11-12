@@ -11,6 +11,7 @@ import { toggleSidebar } from '@/shared/store/uiSlice';
 import { useUserActions } from '@/shared/hooks';
 import { SidebarProps } from './types';
 import { useMediaQuery } from 'react-responsive';
+import { usePathname } from 'next/navigation';
 
 export const Sidebar: React.FC<SidebarProps> = ({
   className,
@@ -23,6 +24,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     propIsCollapsed !== undefined ? propIsCollapsed : globalIsCollapsed;
   const { activeGroup } = useUserActions();
   const isMobile = useMediaQuery({ maxWidth: 768 });
+  const pathname = usePathname();
 
   const handleToggle = React.useCallback(() => {
     dispatch(toggleSidebar());
@@ -34,6 +36,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Determine flow type and org slug - memoized to prevent unnecessary re-renders
   const { flow, orgSlug } = React.useMemo(() => {
+    // Check if on admin pages
+    if (pathname.startsWith('/admin')) {
+      return { flow: 'admin' as const, orgSlug: undefined };
+    }
+
     if (!activeGroup) {
       return { flow: 'user' as const, orgSlug: undefined };
     }
@@ -52,7 +59,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       flow: isAirQoGroup ? ('user' as const) : ('organization' as const),
       orgSlug: activeGroup.organizationSlug || undefined,
     };
-  }, [activeGroup]);
+  }, [activeGroup, pathname]);
 
   return (
     <>
