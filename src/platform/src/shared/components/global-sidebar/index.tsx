@@ -14,6 +14,7 @@ import { useMediaQuery } from 'react-responsive';
 import { NavItem } from '@/shared/components/sidebar/components/nav-item';
 import { useUserActions } from '@/shared/hooks';
 import { getSidebarConfig } from '@/shared/components/sidebar/config';
+import { useRBAC } from '@/shared/hooks';
 
 export const GlobalSidebar: React.FC = () => {
   const dispatch = useDispatch();
@@ -22,6 +23,7 @@ export const GlobalSidebar: React.FC = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
   const { activeGroup } = useUserActions();
+  const { hasRole } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
 
   const handleClose = useCallback(() => {
@@ -106,12 +108,23 @@ export const GlobalSidebar: React.FC = () => {
       targetPath = '/dashboard';
     }
     return config.flatMap(group =>
-      group.items.map(item => ({
-        ...item,
-        href: item.href.replace('/data-access', `${basePath}${targetPath}`),
-      }))
+      group.items.map(item => {
+        let href = item.href;
+        // Change Administrative Panel href based on permissions
+        if (item.id === 'admin-panel') {
+          href = hasRole('AIRQO_SUPER_ADMIN')
+            ? '/admin/org-requests'
+            : '/admin/members';
+        } else {
+          href = href.replace('/data-access', `${basePath}${targetPath}`);
+        }
+        return {
+          ...item,
+          href,
+        };
+      })
     );
-  }, [flow, orgSlug]);
+  }, [flow, orgSlug, hasRole]);
 
   // Focus management
   useEffect(() => {

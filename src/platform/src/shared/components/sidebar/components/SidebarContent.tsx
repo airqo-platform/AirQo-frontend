@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/utils';
 import { NavItem } from './nav-item';
 import { getSidebarConfig } from '../config';
 import { SidebarContentProps } from '../types';
+import { useRBAC } from '@/shared/hooks';
 
 export const SidebarContent: React.FC<SidebarContentProps> = ({
   flow = 'user',
@@ -14,9 +15,25 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   onItemClick,
   className,
 }) => {
+  const { hasRole } = useRBAC();
+
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
-    const config = getSidebarConfig(flow);
+    let config = getSidebarConfig(flow);
+
+    // Filter admin items based on permissions
+    if (flow === 'admin') {
+      config = config.map(group => ({
+        ...group,
+        items: group.items.filter(item => {
+          // Hide Organization Requests if user doesn't have AIRQO_SUPER_ADMIN role
+          if (item.id === 'admin-dashboard') {
+            return hasRole('AIRQO_SUPER_ADMIN');
+          }
+          return true;
+        }),
+      }));
+    }
 
     // If org flow and orgSlug provided, replace placeholders with actual slug
     if (flow === 'organization' && orgSlug) {
@@ -30,7 +47,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     }
 
     return config;
-  }, [flow, orgSlug]);
+  }, [flow, orgSlug, hasRole]);
 
   return (
     <div className={cn('flex-1 py-6', className)}>
