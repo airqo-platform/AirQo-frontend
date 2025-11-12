@@ -80,7 +80,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 
       {/* Global Sidebar */}
       <GlobalSidebar />
-      <MobileSidebar />
+      {showSidebar && <MobileSidebar />}
     </>
   );
 };
