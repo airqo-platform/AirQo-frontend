@@ -23,7 +23,7 @@ interface DataExportPreviewProps {
   selectedSites: string[];
   selectedDevices: string[];
   selectedGridIds: string[];
-  selectedGridSiteIds: string[];
+  selectedGridSiteIds: Record<string, string[]>;
   deviceCategory: string;
 }
 
@@ -86,7 +86,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
         return selectedDevices;
       case 'countries':
       case 'cities':
-        return selectedGridSiteIds;
+        return Object.values(selectedGridSiteIds).flat();
       default:
         return [];
     }

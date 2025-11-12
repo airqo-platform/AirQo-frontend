@@ -6,7 +6,7 @@ interface SelectedGridsSummaryProps {
   activeTab: 'countries' | 'cities';
   selectedGridIds: string[];
   processedGridsData: Grid[];
-  selectedGridSiteIds: string[];
+  selectedGridSiteIds: Record<string, string[]>;
   onCustomizeSites: (grid: Grid) => void;
 }
 
@@ -20,7 +20,7 @@ export const SelectedGridsSummary: React.FC<SelectedGridsSummaryProps> = ({
   if (selectedGridIds.length === 0) return null;
 
   const selectedGrids = processedGridsData.filter(grid =>
-    selectedGridIds.includes(String(grid._id))
+    selectedGridIds.includes(grid._id)
   );
 
   return (
@@ -31,9 +31,8 @@ export const SelectedGridsSummary: React.FC<SelectedGridsSummaryProps> = ({
       <div className="space-y-3">
         {selectedGrids.map(grid => {
           const totalSites = grid.sites?.length || 0;
-          const selectedSites = selectedGridSiteIds.filter(siteId =>
-            grid.sites?.some(site => site._id === siteId)
-          ).length;
+          const customSites = selectedGridSiteIds[grid._id] || [];
+          const selectedSites = customSites.length;
 
           return (
             <div

@@ -34,9 +34,9 @@ export const useDataExportState = () => {
     selectedSiteIds: [],
     selectedDeviceIds: [],
     selectedGridIds: [],
-    selectedGridSites: [],
+    selectedGridSites: {},
     enableSiteSelection: false,
-    selectedGridSiteIds: [],
+    selectedGridSiteIds: {},
     deviceCategory: 'lowcost',
     dateRange: getDefaultDateRange(),
     tabStates: {
@@ -151,8 +151,19 @@ export const useDataExportState = () => {
   );
 
   const setSelectedGridSites = useCallback(
-    (sites: string[]) => {
-      updateState({ selectedGridSites: sites });
+    (
+      sites:
+        | Record<string, string[]>
+        | ((prev: Record<string, string[]>) => Record<string, string[]>)
+    ) => {
+      if (typeof sites === 'function') {
+        setState(prev => ({
+          ...prev,
+          selectedGridSites: sites(prev.selectedGridSites),
+        }));
+      } else {
+        updateState({ selectedGridSites: sites });
+      }
     },
     [updateState]
   );
@@ -165,8 +176,19 @@ export const useDataExportState = () => {
   );
 
   const setSelectedGridSiteIds = useCallback(
-    (ids: string[]) => {
-      updateState({ selectedGridSiteIds: ids });
+    (
+      ids:
+        | Record<string, string[]>
+        | ((prev: Record<string, string[]>) => Record<string, string[]>)
+    ) => {
+      if (typeof ids === 'function') {
+        setState(prev => ({
+          ...prev,
+          selectedGridSiteIds: ids(prev.selectedGridSiteIds),
+        }));
+      } else {
+        updateState({ selectedGridSiteIds: ids });
+      }
     },
     [updateState]
   );
@@ -211,9 +233,9 @@ export const useDataExportState = () => {
       setSelectedSiteIds([]);
       setSelectedDeviceIds([]);
       setSelectedGridIds([]);
-      setSelectedGridSites([]);
+      setSelectedGridSites({});
       setEnableSiteSelection(false);
-      setSelectedGridSiteIds([]);
+      setSelectedGridSiteIds({});
     },
     [
       setActiveTab,
@@ -223,6 +245,8 @@ export const useDataExportState = () => {
       setSelectedDeviceIds,
       setSelectedGridIds,
       setSelectedGridSites,
+      setEnableSiteSelection,
+      setSelectedGridSiteIds,
     ]
   );
 
@@ -233,9 +257,9 @@ export const useDataExportState = () => {
     setSelectedSiteIds([]);
     setSelectedDeviceIds([]);
     setSelectedGridIds([]);
-    setSelectedGridSites([]);
+    setSelectedGridSites({});
     setEnableSiteSelection(false);
-    setSelectedGridSiteIds([]);
+    setSelectedGridSiteIds({});
   }, [
     setSelectedSites,
     setSelectedDevices,

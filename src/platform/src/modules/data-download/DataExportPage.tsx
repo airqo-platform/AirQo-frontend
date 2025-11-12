@@ -8,7 +8,11 @@ import { DataExportPreview } from './components/DataExportPreview';
 import { DataExportHeader } from './components/DataExportHeader';
 import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
-import { CohortSitesResponse, CohortDevicesResponse } from '@/shared/types/api';
+import {
+  CohortSitesResponse,
+  CohortDevicesResponse,
+  Grid,
+} from '@/shared/types/api';
 import {
   DataType,
   Frequency,
@@ -45,7 +49,6 @@ const DataExportPage = () => {
     selectedDeviceIds,
     selectedGridIds,
     selectedGridSites,
-    enableSiteSelection,
     selectedGridSiteIds,
     deviceCategory,
     dateRange,
@@ -63,7 +66,6 @@ const DataExportPage = () => {
     setSelectedDeviceIds,
     setSelectedGridIds,
     setSelectedGridSites,
-    setEnableSiteSelection,
     setSelectedGridSiteIds,
     setDeviceCategory,
     setDateRange,
@@ -78,7 +80,7 @@ const DataExportPage = () => {
   const [siteSelectionDownloading, setSiteSelectionDownloading] =
     React.useState(false);
   const [selectedGridForSites, setSelectedGridForSites] = React.useState<{
-    grid: any;
+    grid: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     gridType: 'countries' | 'cities';
   } | null>(null);
 
@@ -188,7 +190,8 @@ const DataExportPage = () => {
         ? selectedSiteIds.length > 0
         : activeTab === 'devices'
           ? selectedDeviceIds.length > 0
-          : selectedGridSiteIds.length > 0 || selectedGridSites.length > 0; // countries and cities use custom or default site selections
+          : Object.keys(selectedGridSiteIds).length > 0 ||
+            Object.keys(selectedGridSites).length > 0; // countries and cities use custom or default site selections
     const hasPollutants = selectedPollutants.length > 0;
 
     return Boolean(hasDateRange && hasSelections && hasPollutants);
@@ -198,6 +201,7 @@ const DataExportPage = () => {
     selectedSiteIds,
     selectedDeviceIds,
     selectedGridSiteIds,
+    selectedGridSites,
     selectedPollutants,
   ]);
 
@@ -214,23 +218,25 @@ const DataExportPage = () => {
     } else if (activeTab === 'countries' || activeTab === 'cities') {
       // For countries/cities, select all sites by default
       setSelectedGridIds(stringIds);
+      const newSelectedGridSites: Record<string, string[]> = {};
       if (stringIds.length > 0) {
         const gridData =
           activeTab === 'countries'
             ? processedCountriesData
             : processedCitiesData;
-        const grid = gridData.find(item => String(item.id) === stringIds[0]);
-        if (grid?.sites) {
-          const sites = grid.sites as Array<{ _id: string }>;
-          const siteIds = sites.map(site => site._id);
-          setSelectedGridSites(siteIds);
-        } else {
-          setSelectedGridSites([]);
-        }
-      } else {
-        setSelectedGridSites([]);
+        stringIds.forEach(id => {
+          const grid = gridData.find(item => String(item.id) === id);
+          if (grid?.sites) {
+            const sites = grid.sites as Array<{ _id: string }>;
+            const siteIds = sites.map(site => site._id);
+            newSelectedGridSites[id] = siteIds;
+          } else {
+            newSelectedGridSites[id] = [];
+          }
+        });
       }
-      setSelectedGridSiteIds([]); // Reset custom selection
+      setSelectedGridSites(newSelectedGridSites);
+      setSelectedGridSiteIds({}); // Reset custom selection
     }
   };
 
@@ -238,9 +244,11 @@ const DataExportPage = () => {
   const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {
     setSiteSelectionDownloading(true);
     try {
-      // Set the selected sites
-      setSelectedGridSiteIds(selectedSiteIds);
-      setSelectedGridSites(selectedSiteIds); // Also set for backward compatibility
+      // Set the selected sites for the current grid
+      setSelectedGridSiteIds(prev => ({
+        ...prev,
+        [selectedGridForSites!.grid.id]: selectedSiteIds,
+      }));
 
       // Trigger download
       await handleDownload();
@@ -257,10 +265,6 @@ const DataExportPage = () => {
   };
 
   const handleSiteSelectionCancel = () => {
-    // If cancelled, deselect the grid
-    setSelectedGridIds([]);
-    setSelectedGridSites([]);
-    setSelectedGridSiteIds([]);
     setSiteSelectionDialogOpen(false);
     setSiteSelectionDownloading(false);
     setSelectedGridForSites(null);
@@ -308,7 +312,6 @@ const DataExportPage = () => {
               selectedSiteIds={selectedSiteIds}
               selectedDeviceIds={selectedDeviceIds}
               selectedGridIds={selectedGridIds}
-              selectedGridSiteIds={selectedGridSiteIds}
               selectedPollutants={selectedPollutants}
               deviceCategory={deviceCategory}
               isDownloadReady={isDownloadReady}
@@ -327,11 +330,11 @@ const DataExportPage = () => {
                   selectedGridIds={selectedGridIds}
                   processedGridsData={
                     activeTab === 'countries'
-                      ? processedCountriesData
-                      : processedCitiesData
+                      ? (processedCountriesData as unknown as Grid[])
+                      : (processedCitiesData as unknown as Grid[])
                   }
                   selectedGridSiteIds={selectedGridSiteIds}
-                  onCustomizeSites={grid => {
+                  onCustomizeSites={(grid: Grid) => {
                     setSelectedGridForSites({ grid, gridType: activeTab });
                     setSiteSelectionDialogOpen(true);
                   }}
@@ -426,7 +429,9 @@ const DataExportPage = () => {
           onClose={handleSiteSelectionCancel}
           onConfirm={handleSiteSelectionConfirm}
           sites={selectedGridForSites.grid.sites}
-          initialSelectedSiteIds={selectedGridSiteIds}
+          initialSelectedSiteIds={
+            selectedGridSiteIds[selectedGridForSites.grid.id] || []
+          }
           gridName={selectedGridForSites.grid.name}
           gridType={
             selectedGridForSites.gridType === 'countries' ? 'country' : 'city'
