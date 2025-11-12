@@ -41,7 +41,7 @@ export default function NotFound() {
           Oops! Page Not Found
         </h1>
 
-        <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
+        <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
           The page you&apos;re looking for doesn&apos;t exist or has been moved.
           Don&apos;t worry, let&apos;s get you back on track.
         </p>
