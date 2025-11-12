@@ -14,6 +14,7 @@ import { useMediaQuery } from 'react-responsive';
 import { NavItem } from '@/shared/components/sidebar/components/nav-item';
 import { useUserActions } from '@/shared/hooks';
 import { getSidebarConfig } from '@/shared/components/sidebar/config';
+import { useRBAC } from '@/shared/hooks';
 
 export const GlobalSidebar: React.FC = () => {
   const dispatch = useDispatch();
@@ -22,7 +23,23 @@ export const GlobalSidebar: React.FC = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
   const { activeGroup } = useUserActions();
+  const { hasRole } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
+
+  // Helper function to determine if current group is AirQo
+  const isAirQoGroup = React.useMemo(() => {
+    if (!activeGroup) return true;
+    return (
+      // Check if title matches AIRQO (case insensitive)
+      activeGroup.title?.toLowerCase() === 'airqo' ||
+      // Check if organization slug is airqo
+      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
+      // Check if no organization slug (default user flow)
+      !activeGroup.organizationSlug ||
+      // Fallback: check if title contains airqo
+      activeGroup.title?.toLowerCase().includes('airqo')
+    );
+  }, [activeGroup]);
 
   const handleClose = useCallback(() => {
     dispatch(toggleGlobalSidebar());
@@ -37,17 +54,6 @@ export const GlobalSidebar: React.FC = () => {
         showFallback: false,
       };
     }
-
-    // AIRQO group detection: check multiple conditions for robustness
-    const isAirQoGroup =
-      // Check if title matches AIRQO (case insensitive)
-      activeGroup.title?.toLowerCase() === 'airqo' ||
-      // Check if organization slug is airqo
-      activeGroup.organizationSlug?.toLowerCase() === 'airqo' ||
-      // Check if no organization slug (default user flow)
-      !activeGroup.organizationSlug ||
-      // Fallback: check if title contains airqo
-      activeGroup.title?.toLowerCase().includes('airqo');
 
     if (isAirQoGroup) {
       return {
@@ -66,7 +72,7 @@ export const GlobalSidebar: React.FC = () => {
         showFallback: !hasValidProfilePicture,
       };
     }
-  }, [activeGroup]);
+  }, [activeGroup, isAirQoGroup]);
 
   const handleImageError = () => {
     setImageError(true);
@@ -74,11 +80,45 @@ export const GlobalSidebar: React.FC = () => {
 
   const shouldShowFallback = showFallback || imageError;
 
+  // Determine flow type and org slug
+  const { flow, orgSlug } = React.useMemo(() => {
+    if (!activeGroup) {
+      return { flow: 'user' as const, orgSlug: undefined };
+    }
+
+    return {
+      flow: isAirQoGroup ? ('user' as const) : ('organization' as const),
+      orgSlug: activeGroup.organizationSlug || undefined,
+    };
+  }, [activeGroup, isAirQoGroup]);
+
   // Get global navigation items (global config)
   const globalNavItems = React.useMemo(() => {
-    const globalConfig = getSidebarConfig('global');
-    return globalConfig.flatMap(group => group.items);
-  }, []);
+    const config = getSidebarConfig('global');
+    let basePath = '/user';
+    let targetPath = '/favorites';
+    if (flow === 'organization' && orgSlug) {
+      basePath = `/org/${orgSlug}`;
+      targetPath = '/dashboard';
+    }
+    return config.flatMap(group =>
+      group.items.map(item => {
+        let href = item.href;
+        // Change Administrative Panel href based on permissions
+        if (item.id === 'admin-panel') {
+          href = hasRole('AIRQO_SUPER_ADMIN')
+            ? '/admin/org-requests'
+            : '/admin/members';
+        } else {
+          href = href.replace('/data-access', `${basePath}${targetPath}`);
+        }
+        return {
+          ...item,
+          href,
+        };
+      })
+    );
+  }, [flow, orgSlug, hasRole]);
 
   // Focus management
   useEffect(() => {
@@ -113,7 +153,7 @@ export const GlobalSidebar: React.FC = () => {
     };
   }, [isOpen, handleClose]);
 
-  const sidebarWidth = isMobile ? 'w-full' : 'w-80';
+  const sidebarWidth = isMobile ? 'w-full' : 'w-64';
 
   return createPortal(
     <AnimatePresence>
@@ -171,7 +211,7 @@ export const GlobalSidebar: React.FC = () => {
                   <AqXClose />
                 </Button>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-1">
                 {globalNavItems.map(item => (
                   <NavItem key={item.id} item={item} onClick={handleClose} />
                 ))}
