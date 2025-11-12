@@ -92,7 +92,7 @@ const TestimonialSection = ({
   backgroundColor = 'bg-blue-50 dark:bg-[#252627]',
 }: TestimonialSectionProps) => (
   <div
-    className={`hidden lg:flex lg:col-span-6 ${backgroundColor} items-center justify-center w-full`}
+    className={`hidden lg:flex lg:col-span-6 ${backgroundColor} items-center justify-center w-full h-full overflow-y-auto`}
   >
     <div className="h-auto max-w-3xl px-12 py-10">
       <div className="space-y-4">
@@ -154,9 +154,9 @@ const AuthLayout = ({
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
 
-      <div className="h-screen">
-        <div className="grid w-full h-full lg:grid-cols-11">
-          <section className="lg:col-span-5 bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 h-full flex justify-center items-center">
+      <div className="min-h-screen lg:h-screen">
+        <div className="grid w-full min-h-screen lg:h-full lg:grid-cols-11">
+          <section className="lg:col-span-5 bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 min-h-screen lg:h-full flex justify-center items-center overflow-y-auto">
             <div className="w-full">
               <div className="mx-auto flex flex-col gap-12 w-full max-w-[360px]">
                 {/* Logo */}
