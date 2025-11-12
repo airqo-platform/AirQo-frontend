@@ -10,6 +10,7 @@ import {
   AqUserPlus01,
   AqShield02,
   AqSettings01,
+  AqData,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -94,35 +95,17 @@ const orgSidebarConfig: NavGroup[] = [
       {
         id: 'dashboard',
         label: 'Dashboard',
-        href: '/org/dashboard', // This will be dynamically replaced with slug
+        href: '/org/dashboard',
         icon: AqHomeSmile,
       },
       {
         id: 'bulk-export',
         label: 'Bulk Data Export',
-        href: '/org/data-export', // This will be dynamically replaced with slug
+        href: '/org/data-export',
         icon: AqDownload01,
       },
     ],
   },
-  // {
-  //   id: 'management',
-  //   label: 'Management',
-  //   items: [
-  //     {
-  //       id: 'members',
-  //       label: 'Members',
-  //       href: '/org/members', // This will be dynamically replaced with slug
-  //       icon: AqUsers01,
-  //     },
-  //     {
-  //       id: 'role-permissions',
-  //       label: 'Role Permissions',
-  //       href: '/org/role-permissions', // This will be dynamically replaced with slug
-  //       icon: AqShield01,
-  //     },
-  //   ],
-  // },
   {
     id: 'account',
     label: 'Account',
@@ -130,15 +113,9 @@ const orgSidebarConfig: NavGroup[] = [
       {
         id: 'profile',
         label: 'Profile',
-        href: '/org/profile', // This will be dynamically replaced with slug
+        href: '/org/profile',
         icon: AqUser03,
       },
-      // {
-      //   id: 'settings',
-      //   label: 'Settings',
-      //   href: '/org/settings', // This will be dynamically replaced with slug
-      //   icon: AqSettings01,
-      // },
     ],
   },
 ];
@@ -198,6 +175,12 @@ const globalSidebarConfig: NavGroup[] = [
         label: 'Administrative Panel',
         href: '/admin/org-requests',
         icon: AqFolderShield,
+      },
+      {
+        id: 'data-access',
+        label: 'Data Access',
+        href: '/data-access',
+        icon: AqData,
       },
     ],
   },
