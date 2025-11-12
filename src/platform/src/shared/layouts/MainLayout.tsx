@@ -109,7 +109,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       {/* Global Sidebar */}
       <GlobalSidebar />
-      <MobileSidebar />
+      {showSidebar && <MobileSidebar />}
     </>
   );
 };
