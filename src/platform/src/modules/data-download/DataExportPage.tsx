@@ -42,6 +42,7 @@ const DataExportPage = () => {
     selectedSiteIds,
     selectedDeviceIds,
     selectedGridIds,
+    selectedGridSites,
     deviceCategory,
     dateRange,
     tabStates,
@@ -57,6 +58,7 @@ const DataExportPage = () => {
     setSelectedSiteIds,
     setSelectedDeviceIds,
     setSelectedGridIds,
+    setSelectedGridSites,
     setDeviceCategory,
     setDateRange,
     updateTabState,
@@ -109,6 +111,7 @@ const DataExportPage = () => {
       selectedSiteIds,
       selectedDeviceIds,
       selectedGridIds,
+      selectedGridSites,
       selectedPollutants,
       dataType,
       fileType,
@@ -194,6 +197,23 @@ const DataExportPage = () => {
     } else if (activeTab === 'countries' || activeTab === 'cities') {
       // For countries/cities, use exact selection (single selection mode)
       setSelectedGridIds(stringIds);
+      // Cache the resolved site IDs to avoid issues when search/pagination changes
+      if (stringIds.length > 0) {
+        const gridData =
+          activeTab === 'countries'
+            ? processedCountriesData
+            : processedCitiesData;
+        const grid = gridData.find(item => String(item.id) === stringIds[0]);
+        if (grid?.sites) {
+          const sites = grid.sites as Array<{ _id: string }>;
+          const siteIds = sites.map(site => site._id);
+          setSelectedGridSites(siteIds);
+        } else {
+          setSelectedGridSites([]);
+        }
+      } else {
+        setSelectedGridSites([]);
+      }
     }
   };
 

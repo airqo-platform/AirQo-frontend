@@ -24,6 +24,7 @@ export const useDataExportActions = (
   selectedSiteIds: string[],
   selectedDeviceIds: string[],
   selectedGridIds: string[],
+  selectedGridSites: string[],
   selectedPollutants: string[],
   dataType: string,
   fileType: string,
@@ -86,12 +87,8 @@ export const useDataExportActions = (
     // Extract sites for countries/cities
     let sitesForDownload: string[] = [];
     if (activeTab === 'countries' || activeTab === 'cities') {
-      const gridData = activeTab === 'countries' ? countriesData : citiesData;
-      const sitesFromGrids = createSitesFromGridsForVisualization(
-        selectedGridIds,
-        gridData
-      );
-      sitesForDownload = sitesFromGrids.map(site => site._id);
+      // Use cached site IDs to avoid issues when search/pagination changes after selection
+      sitesForDownload = selectedGridSites;
     }
 
     const request: DataDownloadRequest = {
@@ -135,6 +132,7 @@ export const useDataExportActions = (
     selectedSiteIds,
     selectedDeviceIds,
     selectedGridIds,
+    selectedGridSites,
     selectedPollutants,
     dataType,
     fileType,
@@ -142,8 +140,6 @@ export const useDataExportActions = (
     deviceCategory,
     fileTitle,
     downloadData,
-    countriesData,
-    citiesData,
   ]);
 
   // Handle visualize data - open more insights dialog

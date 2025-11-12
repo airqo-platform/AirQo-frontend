@@ -34,6 +34,7 @@ export const useDataExportState = () => {
     selectedSiteIds: [],
     selectedDeviceIds: [],
     selectedGridIds: [],
+    selectedGridSites: [],
     deviceCategory: 'lowcost',
     dateRange: getDefaultDateRange(),
     tabStates: {
@@ -147,6 +148,13 @@ export const useDataExportState = () => {
     [updateState]
   );
 
+  const setSelectedGridSites = useCallback(
+    (sites: string[]) => {
+      updateState({ selectedGridSites: sites });
+    },
+    [updateState]
+  );
+
   const setDeviceCategory = useCallback(
     (category: DeviceCategory) => {
       updateState({ deviceCategory: category });
@@ -187,6 +195,7 @@ export const useDataExportState = () => {
       setSelectedSiteIds([]);
       setSelectedDeviceIds([]);
       setSelectedGridIds([]);
+      setSelectedGridSites([]);
     },
     [
       setActiveTab,
@@ -195,6 +204,7 @@ export const useDataExportState = () => {
       setSelectedSiteIds,
       setSelectedDeviceIds,
       setSelectedGridIds,
+      setSelectedGridSites,
     ]
   );
 
@@ -205,12 +215,14 @@ export const useDataExportState = () => {
     setSelectedSiteIds([]);
     setSelectedDeviceIds([]);
     setSelectedGridIds([]);
+    setSelectedGridSites([]);
   }, [
     setSelectedSites,
     setSelectedDevices,
     setSelectedSiteIds,
     setSelectedDeviceIds,
     setSelectedGridIds,
+    setSelectedGridSites,
   ]);
 
   return {
@@ -229,6 +241,7 @@ export const useDataExportState = () => {
     setSelectedSiteIds,
     setSelectedDeviceIds,
     setSelectedGridIds,
+    setSelectedGridSites,
     setDeviceCategory,
     setDateRange,
     updateTabState,
