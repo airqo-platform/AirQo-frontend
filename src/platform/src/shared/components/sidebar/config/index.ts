@@ -179,7 +179,7 @@ const globalSidebarConfig: NavGroup[] = [
       {
         id: 'data-access',
         label: 'Data Access',
-        href: '/favorites',
+        href: '/data-access',
         icon: AqData,
       },
     ],

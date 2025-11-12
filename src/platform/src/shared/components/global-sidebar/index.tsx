@@ -100,13 +100,15 @@ export const GlobalSidebar: React.FC = () => {
   const globalNavItems = React.useMemo(() => {
     const config = getSidebarConfig('global');
     let basePath = '/user';
+    let targetPath = '/favorites';
     if (flow === 'organization' && orgSlug) {
       basePath = `/org/${orgSlug}`;
+      targetPath = '/dashboard';
     }
     return config.flatMap(group =>
       group.items.map(item => ({
         ...item,
-        href: item.href.replace('/favorites', `${basePath}/favorites`),
+        href: item.href.replace('/data-access', `${basePath}${targetPath}`),
       }))
     );
   }, [flow, orgSlug]);
