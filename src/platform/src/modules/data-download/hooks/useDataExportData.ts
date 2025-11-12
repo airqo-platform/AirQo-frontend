@@ -91,7 +91,7 @@ export const useDataExportData = (
     const params: GridsSummaryParams = {
       skip: (tabStates.cities.page - 1) * tabStates.cities.pageSize,
       limit: tabStates.cities.pageSize,
-      admin_level: 'city',
+      admin_level: 'state,city',
     };
     if (tabStates.cities.search.trim()) {
       params.search = tabStates.cities.search;
