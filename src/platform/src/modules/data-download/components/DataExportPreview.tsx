@@ -141,9 +141,6 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
                     .replace('T', ' ')
                     .replace('Z', '')
                 : '',
-              ...(activeTab === 'devices' && {
-                device_name: selectedDevices[0] || 'airqo_g5293',
-              }),
               frequency: frequency,
               network: 'airqo',
               latitude: 0.3244820075131162,
@@ -174,9 +171,6 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
                     .replace('T', ' ')
                     .replace('Z', '')
                 : '',
-              ...(activeTab === 'devices' && {
-                device_name: selectedDevices[0] || 'airqo_g5293',
-              }),
               frequency: frequency,
               network: 'airqo',
               latitude: 0.3244820075131162,
