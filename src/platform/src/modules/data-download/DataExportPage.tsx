@@ -141,9 +141,9 @@ const DataExportPage = () => {
     }
   }, [deviceCategory, frequency, setFrequency]);
 
-  // Set device category to lowcost and disable when sites tab is active
+  // Set device category to lowcost when not on devices tab
   useEffect(() => {
-    if (activeTab === 'sites') {
+    if (activeTab !== 'devices') {
       setDeviceCategory('lowcost');
     }
   }, [activeTab, setDeviceCategory]);

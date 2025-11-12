@@ -105,7 +105,10 @@ export const useDataExportActions = (
       weatherFields: ['temperature', 'humidity'],
       outputFormat: 'airqo-standard',
       pollutants: selectedPollutants,
-      device_category: 'lowcost', // Grids are always lowcost devices
+      device_category:
+        activeTab === 'countries' || activeTab === 'cities'
+          ? 'lowcost'
+          : deviceCategory,
       ...(activeTab === 'sites' && { sites: selectedSites }),
       ...(activeTab === 'devices' && { device_names: selectedDevices }),
       ...((activeTab === 'countries' || activeTab === 'cities') && {
@@ -136,6 +139,7 @@ export const useDataExportActions = (
     dataType,
     fileType,
     frequency,
+    deviceCategory,
     fileTitle,
     downloadData,
     countriesData,
