@@ -19,9 +19,10 @@ interface DataExportPreviewProps {
   fileType: string;
   selectedPollutants: string[];
   dateRange: DateRange | undefined;
-  activeTab: 'sites' | 'devices';
+  activeTab: 'sites' | 'devices' | 'countries' | 'cities';
   selectedSites: string[];
   selectedDevices: string[];
+  selectedGridIds: string[];
   deviceCategory: string;
 }
 
@@ -42,6 +43,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   activeTab,
   selectedSites,
   selectedDevices,
+  selectedGridIds,
   deviceCategory,
 }) => {
   const [previewData, setPreviewData] = useState<PreviewData[]>([]);
@@ -74,9 +76,34 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
   }, [dateRange]);
 
   // Get selected locations
-  const selectedLocations =
-    activeTab === 'sites' ? selectedSites : selectedDevices;
-  const locationType = activeTab === 'sites' ? 'Sites' : 'Devices';
+  const selectedLocations = useMemo(() => {
+    switch (activeTab) {
+      case 'sites':
+        return selectedSites;
+      case 'devices':
+        return selectedDevices;
+      case 'countries':
+      case 'cities':
+        return selectedGridIds;
+      default:
+        return [];
+    }
+  }, [activeTab, selectedSites, selectedDevices, selectedGridIds]);
+
+  const locationType = useMemo(() => {
+    switch (activeTab) {
+      case 'sites':
+        return 'Sites';
+      case 'devices':
+        return 'Devices';
+      case 'countries':
+        return 'Countries';
+      case 'cities':
+        return 'Cities';
+      default:
+        return 'Locations';
+    }
+  }, [activeTab]);
 
   // Fetch preview data when dialog opens
   useEffect(() => {
@@ -96,17 +123,24 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
           // Since we can't actually download for preview, we'll show sample structure
           const sampleData: PreviewData[] = [
             {
-              site_name: selectedLocations[0] || 'Sample Site',
+              ...(activeTab === 'sites' && {
+                site_name: selectedLocations[0] || 'Sample Site',
+              }),
+              ...(activeTab === 'devices' && {
+                device_name: selectedLocations[0] || 'sample_device',
+              }),
+              ...(activeTab === 'countries' && {
+                country_name: selectedLocations[0] || 'Sample Country',
+              }),
+              ...(activeTab === 'cities' && {
+                city_name: selectedLocations[0] || 'Sample City',
+              }),
               datetime: dateRange?.from
                 ? dateRange.from
                     .toISOString()
                     .replace('T', ' ')
                     .replace('Z', '')
                 : '',
-              device_name:
-                activeTab === 'devices'
-                  ? selectedDevices[0] || 'sample_device'
-                  : 'airqo_g5293',
               frequency: frequency,
               network: 'airqo',
               latitude: 0.3244820075131162,
@@ -119,17 +153,24 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
               pm10_calibrated_value: 46.42,
             },
             {
-              site_name: selectedLocations[0] || 'Sample Site',
+              ...(activeTab === 'sites' && {
+                site_name: selectedLocations[0] || 'Sample Site',
+              }),
+              ...(activeTab === 'devices' && {
+                device_name: selectedLocations[0] || 'sample_device',
+              }),
+              ...(activeTab === 'countries' && {
+                country_name: selectedLocations[0] || 'Sample Country',
+              }),
+              ...(activeTab === 'cities' && {
+                city_name: selectedLocations[0] || 'Sample City',
+              }),
               datetime: dateRange?.from
                 ? new Date(dateRange.from.getTime() + 24 * 60 * 60 * 1000)
                     .toISOString()
                     .replace('T', ' ')
                     .replace('Z', '')
                 : '',
-              device_name:
-                activeTab === 'devices'
-                  ? selectedDevices[0] || 'sample_device'
-                  : 'airqo_g5293',
               frequency: frequency,
               network: 'airqo',
               latitude: 0.3244820075131162,
@@ -147,8 +188,12 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
           const filteredData = sampleData.map(row => {
             const filteredRow: PreviewData = {
               datetime: row.datetime,
-              site_name: row.site_name,
-              device_name: row.device_name,
+              ...(activeTab === 'sites' && { site_name: row.site_name }),
+              ...(activeTab === 'devices' && { device_name: row.device_name }),
+              ...(activeTab === 'countries' && {
+                country_name: row.country_name,
+              }),
+              ...(activeTab === 'cities' && { city_name: row.city_name }),
               frequency: row.frequency,
               network: row.network,
             };
@@ -197,6 +242,7 @@ export const DataExportPreview: React.FC<DataExportPreviewProps> = ({
     deviceCategory,
     selectedSites,
     selectedDevices,
+    selectedGridIds,
   ]);
 
   // Get table columns based on preview data

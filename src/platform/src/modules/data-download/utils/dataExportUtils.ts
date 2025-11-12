@@ -1,5 +1,9 @@
 import { removeUnderscores, normalizeText } from '@/shared/lib/utils';
-import { CohortSitesResponse, CohortDevicesResponse } from '@/shared/types/api';
+import {
+  CohortSitesResponse,
+  CohortDevicesResponse,
+  GridsSummaryResponse,
+} from '@/shared/types/api';
 import { TableItem } from '../types/dataExportTypes';
 
 /**
@@ -42,6 +46,25 @@ export const processDevicesData = (
     name: (device.name as string) || '--',
     network: ((device.network as string) || '--').toUpperCase(),
     category: (device.category as string) || '--',
+  }));
+};
+
+/**
+ * Processes grids data for table display (countries and cities)
+ */
+export const processGridsData = (
+  gridsData: GridsSummaryResponse['grids'] | undefined
+): TableItem[] => {
+  if (!gridsData) return [];
+
+  return gridsData.map((grid, index) => ({
+    ...grid,
+    id: String(grid._id || index),
+    name: normalizeText(removeUnderscores(grid.long_name || grid.name || '--')),
+    admin_level: grid.admin_level,
+    network: grid.network,
+    numberOfSites: grid.numberOfSites,
+    sites: grid.sites, // Keep sites data for selection
   }));
 };
 
@@ -110,4 +133,44 @@ export const createSitesFromDevicesForVisualization = (
       device_name: normalizeText((device?.name as string) || '--'),
     };
   });
+};
+
+/**
+ * Creates sites data for visualization from selected grid IDs (countries/cities)
+ */
+export const createSitesFromGridsForVisualization = (
+  gridIds: string[],
+  gridsData: TableItem[]
+) => {
+  const allSites: Array<{
+    _id: string;
+    name: string;
+    search_name: string;
+    country: string;
+  }> = [];
+
+  gridIds.forEach(gridId => {
+    const grid = gridsData.find(item => String(item.id) === gridId);
+    if (grid?.sites) {
+      const sites = grid.sites as Array<{
+        _id: string;
+        name: string;
+        search_name?: string;
+        location_name?: string;
+        country: string;
+      }>;
+
+      sites.forEach(site => {
+        allSites.push({
+          _id: site._id,
+          name: normalizeText(site.name || site.search_name || '--'),
+          search_name:
+            site.name || site.search_name || site.location_name || '--',
+          country: site.country,
+        });
+      });
+    }
+  });
+
+  return allSites;
 };

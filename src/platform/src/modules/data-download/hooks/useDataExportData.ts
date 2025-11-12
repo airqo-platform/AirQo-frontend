@@ -2,12 +2,15 @@ import { useMemo, useEffect } from 'react';
 import {
   useActiveGroupCohortSites,
   useActiveGroupCohortDevices,
+  useGridsSummary,
 } from '@/shared/hooks';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
   CohortSitesParams,
   CohortDevicesParams,
+  GridsSummaryResponse,
+  GridsSummaryParams,
 } from '@/shared/types/api';
 import {
   TabType,
@@ -18,6 +21,7 @@ import {
 import {
   processSitesData,
   processDevicesData,
+  processGridsData,
   mapDeviceIdsToNames,
 } from '../utils/dataExportUtils';
 
@@ -65,13 +69,60 @@ export const useDataExportData = (
     deviceCategory,
   ]);
 
+  // Countries params
+  const countriesParams = useMemo(() => {
+    const params: GridsSummaryParams = {
+      skip: (tabStates.countries.page - 1) * tabStates.countries.pageSize,
+      limit: tabStates.countries.pageSize,
+      admin_level: 'country',
+    };
+    if (tabStates.countries.search.trim()) {
+      params.search = tabStates.countries.search;
+    }
+    return params;
+  }, [
+    tabStates.countries.page,
+    tabStates.countries.pageSize,
+    tabStates.countries.search,
+  ]);
+
+  // Cities params
+  const citiesParams = useMemo(() => {
+    const params: GridsSummaryParams = {
+      skip: (tabStates.cities.page - 1) * tabStates.cities.pageSize,
+      limit: tabStates.cities.pageSize,
+      admin_level: 'city',
+    };
+    if (tabStates.cities.search.trim()) {
+      params.search = tabStates.cities.search;
+    }
+    return params;
+  }, [
+    tabStates.cities.page,
+    tabStates.cities.pageSize,
+    tabStates.cities.search,
+  ]);
+
   // Fetch sites data
   const sitesHook = useActiveGroupCohortSites(sitesParams);
 
   // Fetch devices data
   const devicesHook = useActiveGroupCohortDevices(devicesParams);
 
-  const currentHook = activeTab === 'sites' ? sitesHook : devicesHook;
+  // Fetch countries data
+  const countriesHook = useGridsSummary(countriesParams);
+
+  // Fetch cities data
+  const citiesHook = useGridsSummary(citiesParams);
+
+  const currentHook =
+    activeTab === 'sites'
+      ? sitesHook
+      : activeTab === 'devices'
+        ? devicesHook
+        : activeTab === 'countries'
+          ? countriesHook
+          : citiesHook;
 
   // Process data for table display
   const processedSitesData = useMemo(
@@ -85,8 +136,24 @@ export const useDataExportData = (
     [devicesHook.data]
   );
 
+  const processedCountriesData = useMemo(
+    () => processGridsData((countriesHook.data as GridsSummaryResponse)?.grids),
+    [countriesHook.data]
+  );
+
+  const processedCitiesData = useMemo(
+    () => processGridsData((citiesHook.data as GridsSummaryResponse)?.grids),
+    [citiesHook.data]
+  );
+
   const tableData =
-    activeTab === 'sites' ? processedSitesData : processedDevicesData;
+    activeTab === 'sites'
+      ? processedSitesData
+      : activeTab === 'devices'
+        ? processedDevicesData
+        : activeTab === 'countries'
+          ? processedCountriesData
+          : processedCitiesData;
 
   // Update selected devices when device IDs change
   useEffect(() => {
@@ -107,11 +174,17 @@ export const useDataExportData = (
   return {
     sitesHook,
     devicesHook,
+    countriesHook,
+    citiesHook,
     currentHook,
     tableData,
     processedSitesData,
     processedDevicesData,
+    processedCountriesData,
+    processedCitiesData,
     sitesParams,
     devicesParams,
+    countriesParams,
+    citiesParams,
   };
 };

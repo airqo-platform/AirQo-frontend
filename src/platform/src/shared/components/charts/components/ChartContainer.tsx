@@ -139,7 +139,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           {showTitle && (
             <div className="space-y-1">
-              <CardTitle className="text-xl text-foreground">{title}</CardTitle>
+              <CardTitle className="text-lg text-foreground">{title}</CardTitle>
               {subtitle && (
                 <p className="text-sm text-muted-foreground">{subtitle}</p>
               )}
@@ -156,7 +156,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
               <DropdownMenuTrigger asChild>
                 <button
                   className={cn(
-                    'flex items-center space-x-1 px-3 py-2 text-sm font-medium text-muted-foreground',
+                    'flex items-center border shadow-sm space-x-1 px-3 py-2 text-sm font-medium text-muted-foreground',
                     'hover:text-foreground hover:bg-muted rounded-md transition-colors',
                     'focus:outline-none focus:ring-2 focus:ring-primary/20'
                   )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { AqMonitor03, AqMarkerPin03 } from '@airqo/icons-react';
+import { AqMonitor03, AqMarkerPin03, AqGlobe01 } from '@airqo/icons-react';
 import { ColumnConfig, TabConfig, TabType } from '../types/dataExportTypes';
 
 /**
@@ -44,6 +44,58 @@ export const getDevicesColumns = (): ColumnConfig[] => [
 ];
 
 /**
+ * Countries table columns configuration
+ */
+export const getCountriesColumns = (): ColumnConfig[] => [
+  {
+    key: 'name',
+    label: 'Country',
+    render: (value: unknown) => (
+      <div className="flex items-center capitalize gap-2">
+        <span className="bg-gray-100 rounded-full p-1">
+          <AqGlobe01 className="h-4 w-4 shrink-0 text-primary" />
+        </span>
+        <span>{value as string}</span>
+      </div>
+    ),
+  },
+  {
+    key: 'network',
+    label: 'Network',
+    render: (value: unknown) => (
+      <span className="uppercase">{value as string}</span>
+    ),
+  },
+  { key: 'numberOfSites', label: 'Sites Count' },
+];
+
+/**
+ * Cities table columns configuration
+ */
+export const getCitiesColumns = (): ColumnConfig[] => [
+  {
+    key: 'name',
+    label: 'City',
+    render: (value: unknown) => (
+      <div className="flex items-center capitalize gap-2">
+        <span className="bg-gray-100 rounded-full p-1">
+          <AqMarkerPin03 className="h-4 w-4 shrink-0 text-primary" />
+        </span>
+        <span>{value as string}</span>
+      </div>
+    ),
+  },
+  {
+    key: 'network',
+    label: 'Network',
+    render: (value: unknown) => (
+      <span className="uppercase">{value as string}</span>
+    ),
+  },
+  { key: 'numberOfSites', label: 'Sites Count' },
+];
+
+/**
  * Tab configuration
  */
 export const getTabConfig = (tab: TabType): TabConfig => {
@@ -56,6 +108,16 @@ export const getTabConfig = (tab: TabType): TabConfig => {
     devices: {
       columns: getDevicesColumns(),
       title: 'Devices',
+      hasCategory: false,
+    },
+    countries: {
+      columns: getCountriesColumns(),
+      title: 'Countries',
+      hasCategory: false,
+    },
+    cities: {
+      columns: getCitiesColumns(),
+      title: 'Cities',
       hasCategory: false,
     },
   };

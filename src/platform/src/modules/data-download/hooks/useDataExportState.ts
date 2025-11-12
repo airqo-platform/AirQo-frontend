@@ -33,11 +33,15 @@ export const useDataExportState = () => {
     selectedDevices: [],
     selectedSiteIds: [],
     selectedDeviceIds: [],
+    selectedGridIds: [],
+    selectedGridSites: [],
     deviceCategory: 'lowcost',
     dateRange: getDefaultDateRange(),
     tabStates: {
       sites: { ...DEFAULT_TAB_STATE },
       devices: { ...DEFAULT_TAB_STATE },
+      countries: { ...DEFAULT_TAB_STATE },
+      cities: { ...DEFAULT_TAB_STATE },
     },
   });
 
@@ -137,6 +141,20 @@ export const useDataExportState = () => {
     [updateState]
   );
 
+  const setSelectedGridIds = useCallback(
+    (ids: string[]) => {
+      updateState({ selectedGridIds: ids });
+    },
+    [updateState]
+  );
+
+  const setSelectedGridSites = useCallback(
+    (sites: string[]) => {
+      updateState({ selectedGridSites: sites });
+    },
+    [updateState]
+  );
+
   const setDeviceCategory = useCallback(
     (category: DeviceCategory) => {
       updateState({ deviceCategory: category });
@@ -166,12 +184,18 @@ export const useDataExportState = () => {
 
   // Handle tab switching - clear selections to avoid conflicts
   const handleTabChange = useCallback(
-    (tab: TabType) => {
+    (tab: TabType, isOrgFlow = false) => {
+      // Prevent switching to countries or cities tabs in org flow
+      if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
+        return;
+      }
       setActiveTab(tab);
       setSelectedSites([]);
       setSelectedDevices([]);
       setSelectedSiteIds([]);
       setSelectedDeviceIds([]);
+      setSelectedGridIds([]);
+      setSelectedGridSites([]);
     },
     [
       setActiveTab,
@@ -179,6 +203,8 @@ export const useDataExportState = () => {
       setSelectedDevices,
       setSelectedSiteIds,
       setSelectedDeviceIds,
+      setSelectedGridIds,
+      setSelectedGridSites,
     ]
   );
 
@@ -188,11 +214,15 @@ export const useDataExportState = () => {
     setSelectedDevices([]);
     setSelectedSiteIds([]);
     setSelectedDeviceIds([]);
+    setSelectedGridIds([]);
+    setSelectedGridSites([]);
   }, [
     setSelectedSites,
     setSelectedDevices,
     setSelectedSiteIds,
     setSelectedDeviceIds,
+    setSelectedGridIds,
+    setSelectedGridSites,
   ]);
 
   return {
@@ -210,6 +240,8 @@ export const useDataExportState = () => {
     setSelectedDevices,
     setSelectedSiteIds,
     setSelectedDeviceIds,
+    setSelectedGridIds,
+    setSelectedGridSites,
     setDeviceCategory,
     setDateRange,
     updateTabState,

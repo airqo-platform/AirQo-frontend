@@ -7,6 +7,7 @@ interface DataExportHeaderProps {
   activeTab: TabType;
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
+  selectedGridIds: string[];
   isDownloadReady: boolean;
   isDownloading: boolean;
   onTabChange: (tab: TabType) => void;
@@ -16,6 +17,7 @@ interface DataExportHeaderProps {
   onDownload: () => void;
   onToggleSidebar?: () => void;
   sidebarOpen?: boolean;
+  isOrgFlow?: boolean;
 }
 
 /**
@@ -25,6 +27,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   activeTab,
   selectedSiteIds,
   selectedDeviceIds,
+  selectedGridIds,
   isDownloadReady,
   isDownloading,
   onTabChange,
@@ -34,9 +37,12 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   onDownload,
   onToggleSidebar,
   sidebarOpen = false,
+  isOrgFlow = false,
 }) => {
   const hasSelections =
-    selectedSiteIds.length > 0 || selectedDeviceIds.length > 0;
+    selectedSiteIds.length > 0 ||
+    selectedDeviceIds.length > 0 ||
+    selectedGridIds.length > 0;
 
   return (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -72,6 +78,22 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           >
             Devices
           </Button>
+          {!isOrgFlow && (
+            <>
+              <Button
+                variant={activeTab === 'countries' ? 'filled' : 'outlined'}
+                onClick={() => onTabChange('countries')}
+              >
+                Countries
+              </Button>
+              <Button
+                variant={activeTab === 'cities' ? 'filled' : 'outlined'}
+                onClick={() => onTabChange('cities')}
+              >
+                Cities
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -91,7 +113,9 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           onClick={onVisualizeData}
           disabled={
             (activeTab === 'sites' && selectedSiteIds.length === 0) ||
-            (activeTab === 'devices' && selectedDeviceIds.length === 0)
+            (activeTab === 'devices' && selectedDeviceIds.length === 0) ||
+            ((activeTab === 'countries' || activeTab === 'cities') &&
+              selectedGridIds.length === 0)
           }
           className="px-4 py-2 w-full sm:w-auto"
         >

@@ -115,7 +115,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
             onChange={setDeviceCategory}
             options={deviceCategoryOptions}
             placeholder="Select device category"
-            disabled={activeTab === 'sites'}
+            disabled={activeTab !== 'devices'}
           />
 
           {/* Date Range - Required */}
@@ -245,7 +245,7 @@ export const DataExportSidebar: React.FC<DataExportSidebarProps> = ({
               onChange={setDeviceCategory}
               options={deviceCategoryOptions}
               placeholder="Select device category"
-              disabled={activeTab === 'sites'}
+              disabled={activeTab !== 'devices'}
             />
 
             {/* Date Range - Required */}
