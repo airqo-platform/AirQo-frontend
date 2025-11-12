@@ -406,6 +406,7 @@ const DataExportPage = () => {
         selectedSites={selectedSites}
         selectedDevices={selectedDevices}
         selectedGridIds={selectedGridIds}
+        selectedGridSites={selectedGridSites}
         selectedGridSiteIds={selectedGridSiteIds}
         deviceCategory={deviceCategory}
       />
