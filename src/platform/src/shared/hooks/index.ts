@@ -40,6 +40,8 @@ export { useUserChecklist, useUpdateUserChecklist } from './useChecklist';
 export {
   useSitesSummary,
   useSitesSummaryWithToken,
+  useGridsSummary,
+  useGridsSummaryWithToken,
   useCohortSites,
   useCohortDevices,
   useGroupCohorts,

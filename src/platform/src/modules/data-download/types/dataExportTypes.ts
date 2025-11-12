@@ -1,6 +1,6 @@
 import { DateRange } from '@/shared/components/calendar/types';
 
-export type TabType = 'sites' | 'devices';
+export type TabType = 'sites' | 'devices' | 'countries' | 'cities';
 
 export type DeviceCategory = 'lowcost' | 'bam' | 'mobile' | 'gas';
 
@@ -29,6 +29,7 @@ export interface DataExportState {
   selectedDevices: string[];
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
+  selectedGridIds: string[];
   deviceCategory: DeviceCategory;
   dateRange: DateRange | undefined;
   tabStates: Record<TabType, TabState>;

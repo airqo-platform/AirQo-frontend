@@ -10,6 +10,7 @@ interface BannerNotificationProps {
   activeTab: TabType;
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
+  selectedGridIds: string[];
   selectedPollutants: string[];
   deviceCategory: DeviceCategory;
   isDownloadReady: boolean;
@@ -28,6 +29,7 @@ export const getBannerNotification = ({
   activeTab,
   selectedSiteIds,
   selectedDeviceIds,
+  selectedGridIds,
   selectedPollutants,
   deviceCategory,
   isDownloadReady,
@@ -94,13 +96,24 @@ export const getBannerNotification = ({
   const hasSelections =
     activeTab === 'sites'
       ? selectedSiteIds.length > 0
-      : selectedDeviceIds.length > 0;
+      : activeTab === 'devices'
+        ? selectedDeviceIds.length > 0
+        : selectedGridIds.length > 0; // countries and cities use grid IDs
 
   if (!hasSelections) {
+    const locationTypeLabel =
+      activeTab === 'sites'
+        ? 'site'
+        : activeTab === 'devices'
+          ? 'device'
+          : activeTab === 'countries'
+            ? 'country'
+            : 'city';
+
     return (
       <WarningBanner
         title="Location Selection Required"
-        message={`Please select at least one ${activeTab === 'sites' ? 'site' : 'device'} to include in your data export.`}
+        message={`Please select at least one ${locationTypeLabel} to include in your data export.`}
       />
     );
   }

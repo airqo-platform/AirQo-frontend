@@ -19,7 +19,7 @@ interface DataExportPreviewProps {
   fileType: string;
   selectedPollutants: string[];
   dateRange: DateRange | undefined;
-  activeTab: 'sites' | 'devices';
+  activeTab: 'sites' | 'devices' | 'countries' | 'cities';
   selectedSites: string[];
   selectedDevices: string[];
   deviceCategory: string;

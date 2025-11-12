@@ -37,6 +37,7 @@ const DataExportPage = () => {
     selectedDevices,
     selectedSiteIds,
     selectedDeviceIds,
+    selectedGridIds,
     deviceCategory,
     dateRange,
     tabStates,
@@ -51,6 +52,7 @@ const DataExportPage = () => {
     setSelectedDevices,
     setSelectedSiteIds,
     setSelectedDeviceIds,
+    setSelectedGridIds,
     setDeviceCategory,
     setDateRange,
     updateTabState,
@@ -59,15 +61,21 @@ const DataExportPage = () => {
   } = useDataExportState();
 
   // Data fetching and processing (initial call with empty array)
-  const { currentHook, tableData, processedSitesData, processedDevicesData } =
-    useDataExportData(
-      activeTab,
-      tabStates,
-      deviceCategory,
-      selectedDeviceIds,
-      [], // Initial empty array
-      setSelectedDevices
-    );
+  const {
+    currentHook,
+    tableData,
+    processedSitesData,
+    processedDevicesData,
+    processedCountriesData,
+    processedCitiesData,
+  } = useDataExportData(
+    activeTab,
+    tabStates,
+    deviceCategory,
+    selectedDeviceIds,
+    [], // Initial empty array
+    setSelectedDevices
+  );
 
   // Actions and event handlers
   const { handleDownload, handleVisualizeData, isDownloading } =
@@ -78,6 +86,7 @@ const DataExportPage = () => {
       selectedDevices,
       selectedSiteIds,
       selectedDeviceIds,
+      selectedGridIds,
       selectedPollutants,
       dataType,
       fileType,
@@ -85,7 +94,9 @@ const DataExportPage = () => {
       deviceCategory,
       fileTitle,
       processedSitesData,
-      processedDevicesData
+      processedDevicesData,
+      processedCountriesData,
+      processedCitiesData
     );
 
   const currentState = tabStates[activeTab];
@@ -133,7 +144,9 @@ const DataExportPage = () => {
     const hasSelections =
       activeTab === 'sites'
         ? selectedSiteIds.length > 0
-        : selectedDeviceIds.length > 0;
+        : activeTab === 'devices'
+          ? selectedDeviceIds.length > 0
+          : selectedGridIds.length > 0; // countries and cities use grid IDs
     const hasPollutants = selectedPollutants.length > 0;
 
     return Boolean(hasDateRange && hasSelections && hasPollutants);
@@ -142,6 +155,7 @@ const DataExportPage = () => {
     activeTab,
     selectedSiteIds,
     selectedDeviceIds,
+    selectedGridIds,
     selectedPollutants,
   ]);
 
@@ -152,9 +166,12 @@ const DataExportPage = () => {
       setSelectedSiteIds(stringIds);
       // For sites, IDs are the same as names for the API
       setSelectedSites(stringIds);
-    } else {
+    } else if (activeTab === 'devices') {
       setSelectedDeviceIds(stringIds);
       // For devices, names are set by the data hook
+    } else if (activeTab === 'countries' || activeTab === 'cities') {
+      // For countries/cities, use exact selection (single selection mode)
+      setSelectedGridIds(stringIds);
     }
   };
 
@@ -199,6 +216,7 @@ const DataExportPage = () => {
               activeTab={activeTab}
               selectedSiteIds={selectedSiteIds}
               selectedDeviceIds={selectedDeviceIds}
+              selectedGridIds={selectedGridIds}
               selectedPollutants={selectedPollutants}
               deviceCategory={deviceCategory}
               isDownloadReady={isDownloadReady}
@@ -214,6 +232,7 @@ const DataExportPage = () => {
               activeTab={activeTab}
               selectedSiteIds={selectedSiteIds}
               selectedDeviceIds={selectedDeviceIds}
+              selectedGridIds={selectedGridIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
               onTabChange={handleTabChange}
@@ -237,7 +256,11 @@ const DataExportPage = () => {
               totalItems={meta.total}
               searchTerm={currentState.search}
               selectedItems={
-                activeTab === 'sites' ? selectedSiteIds : selectedDeviceIds
+                activeTab === 'sites'
+                  ? selectedSiteIds
+                  : activeTab === 'devices'
+                    ? selectedDeviceIds
+                    : selectedGridIds // countries and cities use grid IDs
               }
               onPageChange={page => updateTabState(activeTab, { page })}
               onPageSizeChange={size =>
@@ -271,7 +294,13 @@ const DataExportPage = () => {
       />
 
       {/* More Insights Dialog */}
-      <MoreInsights activeTab={activeTab} />
+      <MoreInsights
+        activeTab={
+          activeTab === 'sites' || activeTab === 'devices'
+            ? activeTab
+            : undefined
+        }
+      />
 
       {/* Add Location Dialog */}
       <AddLocation />

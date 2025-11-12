@@ -10,6 +10,7 @@ import { TabType, DeviceCategory, TableItem } from '../types/dataExportTypes';
 import {
   createSitesForVisualization,
   createSitesFromDevicesForVisualization,
+  createSitesFromGridsForVisualization,
 } from '../utils/dataExportUtils';
 
 /**
@@ -22,6 +23,7 @@ export const useDataExportActions = (
   selectedDevices: string[],
   selectedSiteIds: string[],
   selectedDeviceIds: string[],
+  selectedGridIds: string[],
   selectedPollutants: string[],
   dataType: string,
   fileType: string,
@@ -29,7 +31,9 @@ export const useDataExportActions = (
   deviceCategory: DeviceCategory,
   fileTitle: string,
   sitesData: TableItem[],
-  devicesData: TableItem[]
+  devicesData: TableItem[],
+  countriesData: TableItem[],
+  citiesData: TableItem[]
 ) => {
   const dispatch = useDispatch();
   const { downloadData, isDownloading } = useDataDownload();
@@ -60,12 +64,34 @@ export const useDataExportActions = (
       return;
     }
 
+    if (
+      (activeTab === 'countries' || activeTab === 'cities') &&
+      selectedGridIds.length === 0
+    ) {
+      toast.error(
+        `${activeTab === 'countries' ? 'Country' : 'City'} Selection Required`,
+        `Please select one ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
+      );
+      return;
+    }
+
     if (selectedPollutants.length === 0) {
       toast.error(
         'Pollutant Selection Required',
         'Please select at least one pollutant for data export.'
       );
       return;
+    }
+
+    // Extract sites for countries/cities
+    let sitesForDownload: string[] = [];
+    if (activeTab === 'countries' || activeTab === 'cities') {
+      const gridData = activeTab === 'countries' ? countriesData : citiesData;
+      const sitesFromGrids = createSitesFromGridsForVisualization(
+        selectedGridIds,
+        gridData
+      );
+      sitesForDownload = sitesFromGrids.map(site => site._id);
     }
 
     const request: DataDownloadRequest = {
@@ -79,12 +105,12 @@ export const useDataExportActions = (
       weatherFields: ['temperature', 'humidity'],
       outputFormat: 'airqo-standard',
       pollutants: selectedPollutants,
-      device_category:
-        activeTab === 'sites'
-          ? 'lowcost'
-          : (deviceCategory as 'lowcost' | 'bam' | 'mobile' | 'gas'),
+      device_category: 'lowcost', // Grids are always lowcost devices
       ...(activeTab === 'sites' && { sites: selectedSites }),
       ...(activeTab === 'devices' && { device_names: selectedDevices }),
+      ...((activeTab === 'countries' || activeTab === 'cities') && {
+        sites: sitesForDownload,
+      }),
     };
 
     try {
@@ -105,13 +131,15 @@ export const useDataExportActions = (
     selectedDevices,
     selectedSiteIds,
     selectedDeviceIds,
+    selectedGridIds,
     selectedPollutants,
     dataType,
     fileType,
     frequency,
-    deviceCategory,
     fileTitle,
     downloadData,
+    countriesData,
+    citiesData,
   ]);
 
   // Handle visualize data - open more insights dialog
@@ -130,13 +158,27 @@ export const useDataExportActions = (
         devicesData
       );
       dispatch(openMoreInsights({ sites: sitesToVisualize }));
+    } else if (
+      (activeTab === 'countries' || activeTab === 'cities') &&
+      selectedGridIds.length > 0
+    ) {
+      // For countries/cities tab, extract sites from selected grids
+      const gridData = activeTab === 'countries' ? countriesData : citiesData;
+      const sitesToVisualize = createSitesFromGridsForVisualization(
+        selectedGridIds,
+        gridData
+      );
+      dispatch(openMoreInsights({ sites: sitesToVisualize }));
     }
   }, [
     activeTab,
     selectedSiteIds,
     selectedDeviceIds,
+    selectedGridIds,
     sitesData,
     devicesData,
+    countriesData,
+    citiesData,
     dispatch,
   ]);
 
