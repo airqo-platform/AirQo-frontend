@@ -26,7 +26,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
       config = config.map(group => ({
         ...group,
         items: group.items.filter(item => {
-          // Hide Organization Requests if user doesn't have AIRQO_SUPER_ADMIN role
+          // Hide admin dashboard if user doesn't have AIRQO_SUPER_ADMIN role
           if (item.id === 'admin-dashboard') {
             return hasRole('AIRQO_SUPER_ADMIN');
           }
