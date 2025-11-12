@@ -501,7 +501,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         onPressed: _retry,
-                        icon: const Icon(Icons.refresh),
+                        icon: const Icon(Icons.refresh, color: Colors.white),
                         label: const Text("Refresh"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
