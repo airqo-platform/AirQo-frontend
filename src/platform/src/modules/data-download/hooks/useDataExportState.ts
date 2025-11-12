@@ -176,7 +176,11 @@ export const useDataExportState = () => {
 
   // Handle tab switching - clear selections to avoid conflicts
   const handleTabChange = useCallback(
-    (tab: TabType) => {
+    (tab: TabType, isOrgFlow = false) => {
+      // Prevent switching to countries or cities tabs in org flow
+      if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
+        return;
+      }
       setActiveTab(tab);
       setSelectedSites([]);
       setSelectedDevices([]);

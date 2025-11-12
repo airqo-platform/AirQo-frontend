@@ -17,6 +17,7 @@ interface DataExportHeaderProps {
   onDownload: () => void;
   onToggleSidebar?: () => void;
   sidebarOpen?: boolean;
+  isOrgFlow?: boolean;
 }
 
 /**
@@ -36,6 +37,7 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
   onDownload,
   onToggleSidebar,
   sidebarOpen = false,
+  isOrgFlow = false,
 }) => {
   const hasSelections =
     selectedSiteIds.length > 0 ||
@@ -76,18 +78,22 @@ export const DataExportHeader: React.FC<DataExportHeaderProps> = ({
           >
             Devices
           </Button>
-          <Button
-            variant={activeTab === 'countries' ? 'filled' : 'outlined'}
-            onClick={() => onTabChange('countries')}
-          >
-            Countries
-          </Button>
-          <Button
-            variant={activeTab === 'cities' ? 'filled' : 'outlined'}
-            onClick={() => onTabChange('cities')}
-          >
-            Cities
-          </Button>
+          {!isOrgFlow && (
+            <>
+              <Button
+                variant={activeTab === 'countries' ? 'filled' : 'outlined'}
+                onClick={() => onTabChange('countries')}
+              >
+                Countries
+              </Button>
+              <Button
+                variant={activeTab === 'cities' ? 'filled' : 'outlined'}
+                onClick={() => onTabChange('cities')}
+              >
+                Cities
+              </Button>
+            </>
+          )}
         </div>
       </div>
 

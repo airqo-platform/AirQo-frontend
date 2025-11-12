@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { DataExportSidebar } from './components/DataExportSidebar';
@@ -12,6 +12,7 @@ import {
   Frequency,
   FileType,
   DeviceCategory,
+  TabType,
 } from './types/dataExportTypes';
 import { getTabConfig } from './utils/tableConfig';
 import { useDataExportState } from './hooks/useDataExportState';
@@ -22,6 +23,9 @@ import AddLocation from '@/modules/location-insights/add-location';
 
 const DataExportPage = () => {
   const pathname = usePathname();
+
+  // Determine if this is org flow based on pathname
+  const isOrgFlow = pathname.includes('/org/');
 
   // State management
   const {
@@ -59,6 +63,24 @@ const DataExportPage = () => {
     handleTabChange,
     handleClearSelections,
   } = useDataExportState();
+
+  // Handle org flow: switch to sites tab if countries or cities is active
+  React.useEffect(() => {
+    if (isOrgFlow && (activeTab === 'countries' || activeTab === 'cities')) {
+      handleTabChange('sites');
+    }
+  }, [isOrgFlow, activeTab, handleTabChange]);
+
+  // Wrap handleTabChange to prevent org flow from accessing countries/cities
+  const wrappedHandleTabChange = useCallback(
+    (tab: TabType) => {
+      if (isOrgFlow && (tab === 'countries' || tab === 'cities')) {
+        return;
+      }
+      handleTabChange(tab);
+    },
+    [isOrgFlow, handleTabChange]
+  );
 
   // Data fetching and processing (initial call with empty array)
   const {
@@ -227,7 +249,6 @@ const DataExportPage = () => {
               pathname={pathname}
             />
 
-            {/* Header with Download Button */}
             <DataExportHeader
               activeTab={activeTab}
               selectedSiteIds={selectedSiteIds}
@@ -235,13 +256,14 @@ const DataExportPage = () => {
               selectedGridIds={selectedGridIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
-              onTabChange={handleTabChange}
+              onTabChange={wrappedHandleTabChange}
               onClearSelections={handleClearSelections}
               onVisualizeData={handleVisualizeData}
               onPreview={() => setPreviewOpen(true)}
               onDownload={handleDownload}
               onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
               sidebarOpen={sidebarOpen}
+              isOrgFlow={isOrgFlow}
             />
 
             <DataExportTable
