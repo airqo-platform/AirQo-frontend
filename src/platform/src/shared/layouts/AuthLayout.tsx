@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import Image from 'next/image';
 import Head from 'next/head';
 import { Toaster } from '@/shared/components/ui';
+import { AqAirQo } from '@airqo/icons-react';
 
 // ============================================================================
 // Types & Interfaces
@@ -34,26 +35,11 @@ const DEFAULT_TESTIMONIAL = {
   organization: 'NEMA',
 };
 
-const LOGO_CONFIG = {
-  src: '/images/airqo_logo.svg',
-  alt: 'AirQo logo',
-  width: 47,
-  height: 32,
-} as const;
-
 // ============================================================================
 // Components
 // ============================================================================
 
-const Logo = () => (
-  <Image
-    src={LOGO_CONFIG.src}
-    alt={LOGO_CONFIG.alt}
-    width={LOGO_CONFIG.width}
-    height={LOGO_CONFIG.height}
-    priority
-  />
-);
+const Logo = () => <AqAirQo className="w-12 h-8" />;
 
 interface TestimonialSectionProps {
   text: string;
