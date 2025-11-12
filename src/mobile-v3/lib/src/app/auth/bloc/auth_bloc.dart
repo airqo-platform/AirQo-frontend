@@ -3,13 +3,15 @@ import 'package:airqo/src/app/auth/repository/auth_repository.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:loggy/loggy.dart';
 
 import '../../shared/repository/secure_storage_repository.dart';
+import '../../shared/services/cache_manager.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
 
-class AuthBloc extends Bloc<AuthEvent, AuthState> {
+class AuthBloc extends Bloc<AuthEvent, AuthState> with UiLoggy {
   final AuthRepository authRepository;
 
   AuthBloc(this.authRepository) : super(AuthInitial()) {
@@ -97,11 +99,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLogoutUser(LogoutUser event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
+      loggy.info('Starting logout process - clearing auth tokens');
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-      emit(GuestUser()); 
+
+      loggy.info('Clearing all cached data on logout');
+      await CacheManager().clearAll();
+
+      emit(GuestUser());
     } catch (e) {
       debugPrint("Logout error: $e");
+      loggy.error("Logout error: $e");
       emit(AuthLoadingError("Failed to log out. Please try again."));
     }
   }
@@ -119,11 +127,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onSessionExpired(SessionExpired event, Emitter<AuthState> emit) async {
     try {
+      loggy.info('Session expired - clearing auth tokens and cached data');
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-      emit(GuestUser()); 
+
+      loggy.info('Clearing all cached data due to session expiration');
+      await CacheManager().clearAll();
+
+      emit(GuestUser());
     } catch (e) {
       debugPrint("Session expiry cleanup error: $e");
+      loggy.error("Session expiry cleanup error: $e");
       emit(GuestUser());
     }
   }
