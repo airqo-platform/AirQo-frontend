@@ -62,7 +62,6 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
       if (isAirQoGroup) {
         const params: GetDevicesSummaryParams = {
           network: activeNetwork?.net_name || "",
-          group: "",
           limit: safeLimit,
           skip,
           ...(search && { search }),
