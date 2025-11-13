@@ -55,15 +55,15 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
 
 export const useGroupCohorts = (groupId?: string, options: { enabled?: boolean } = {}) => {
   const { enabled = true } = options;
-  return useQuery<GroupCohortsResponse, AxiosError<ErrorResponse>, string[]>({
+  return useQuery({
     queryKey: ["groupCohorts", groupId],
     queryFn: async () => {
       if (!groupId) throw new Error("Group ID is required");
-      const res = await cohortsApi.getGroupCohorts(groupId);
-      return res.data;
+      return await cohortsApi.getGroupCohorts(groupId);
     },
     enabled: !!groupId && enabled,
     staleTime: 300_000, // 5 minutes
+    select: (data: GroupCohortsResponse) => data.data,
   });
 };
 
