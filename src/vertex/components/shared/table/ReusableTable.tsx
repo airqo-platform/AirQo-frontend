@@ -529,7 +529,6 @@ interface ReusableTableProps<T extends TableItem> {
   emptyState?: ReactNode;
   className?: string;
   tableId?: string | boolean;
-  maxHeight?: string | number;
 
   // Server-side operation props
   serverSidePagination?: boolean;
@@ -1081,7 +1080,7 @@ const ReusableTable = <T extends TableItem>({
       !isAllSelectedOnPage,
     [finalPaginatedData, selectedItems, isAllSelectedOnPage]
   );
-  
+
   useEffect(() => {
     if (headerCheckboxRef.current) {
       headerCheckboxRef.current.indeterminate = isIndeterminate;
