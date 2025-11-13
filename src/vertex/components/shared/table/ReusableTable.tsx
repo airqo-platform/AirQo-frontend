@@ -353,22 +353,6 @@ const Pagination: React.FC<PaginationProps> = ({
   onPageChange,
   loading = false,
 }) => {
-  if (loading) {
-    return (
-      <div className="px-6 py-1 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20] rounded-b-lg shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
-          <div className="flex items-center space-x-2">
-            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
-            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
-            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
-            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
-            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
-          </div>
-        </div>
-      </div>
-    )
-  }
-  
   const generatePageNumbers = useCallback((): (number | string)[] => {
     const pages: (number | string)[] = [];
     const maxVisible = 5;
@@ -402,6 +386,21 @@ const Pagination: React.FC<PaginationProps> = ({
     }
     return pages;
   }, [totalPages, currentPage]);
+  if (loading) {
+    return (
+      <div className="px-6 py-1 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20] rounded-b-lg shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+          <div className="flex items-center space-x-2">
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="px-6 py-1 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20] rounded-b-lg shadow-sm">
@@ -608,7 +607,6 @@ const ReusableTable = <T extends TableItem>({
   const searchParams = useSearchParams();
 
   const stickyHeaderRef = useRef<HTMLDivElement>(null);
-  const [stickyHeaderHeight, setStickyHeaderHeight] = useState(0);
 
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
@@ -1072,9 +1070,9 @@ const ReusableTable = <T extends TableItem>({
 
   const isAllSelectedOnPage = useMemo(
     () =>
-      finalPaginatedData.length > 0 &&
-      finalPaginatedData.every((item) => selectedItems.some(sel => sel.id === item.id)),
-    [finalPaginatedData, selectedItems]
+      data.length > 0 &&
+      data.every((item) => selectedItems.some(sel => sel.id === item.id)),
+    [data, selectedItems]
   );
 
   const isIndeterminate = useMemo(
@@ -1083,7 +1081,7 @@ const ReusableTable = <T extends TableItem>({
       !isAllSelectedOnPage,
     [finalPaginatedData, selectedItems, isAllSelectedOnPage]
   );
-
+  
   useEffect(() => {
     if (headerCheckboxRef.current) {
       headerCheckboxRef.current.indeterminate = isIndeterminate;
@@ -1110,12 +1108,6 @@ const ReusableTable = <T extends TableItem>({
     setSelectedItems([]);
     onSelectedItemsChange?.([]);
     onSelectedIdsChange?.([]);
-  }, [onSelectedItemsChange, onSelectedIdsChange]);
-
-  useEffect(() => {
-    if (stickyHeader && stickyHeaderRef.current) {
-      setStickyHeaderHeight(stickyHeaderRef.current.offsetHeight);
-    }
   }, [stickyHeader, selectedItems.length]);
 
 
