@@ -1069,9 +1069,9 @@ const ReusableTable = <T extends TableItem>({
 
   const isAllSelectedOnPage = useMemo(
     () =>
-      data.length > 0 &&
-      data.every((item) => selectedItems.some(sel => sel.id === item.id)),
-    [data, selectedItems]
+      finalPaginatedData.length > 0 &&
+      finalPaginatedData.every((item) => selectedItems.some(sel => sel.id === item.id)),
+    [finalPaginatedData, selectedItems]
   );
 
   const isIndeterminate = useMemo(
