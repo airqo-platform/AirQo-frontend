@@ -178,12 +178,12 @@ const CustomFilter: React.FC<CustomFilterProps> = ({
                 key={String(option.value)}
                 onClick={() => handleSelect(option)}
                 className={`px-3 py-2 cursor-pointer text-sm hover:bg-gray-100 dark:hover:bg-gray-700 ${(
-                    isMulti
-                      ? Array.isArray(value) && value.includes(option.value)
-                      : value === option.value
-                  )
-                    ? "bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary"
-                    : "text-gray-900 dark:text-gray-100"
+                  isMulti
+                    ? Array.isArray(value) && value.includes(option.value)
+                    : value === option.value
+                )
+                  ? "bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary"
+                  : "text-gray-900 dark:text-gray-100"
                   }`}
               >
                 {isMulti && (
@@ -235,7 +235,7 @@ const TableHeader = <T extends TableItem>({
   selectedCount,
 }: TableHeaderProps<T>) => {
   return (
-    <div className="px-6 py-4 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20]">
+    <div className="px-6 py-2 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20] rounded-t-lg shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -254,7 +254,7 @@ const TableHeader = <T extends TableItem>({
                 placeholder="Search..."
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 pr-10 py-2 border border-primary/30 dark:border-primary/40 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm w-full sm:w-64 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
+                className="pl-10 pr-10 py-2 border border-primary/30 dark:border-primary/40 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm w-full sm:w-64 h-8 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
               />
               {searchTerm && (
                 <button
@@ -309,12 +309,12 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
   return (
     <div className="px-6 py-3 bg-primary/10 dark:bg-primary/20 border-b border-primary/20 dark:border-primary/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <ReusableButton
-          onClick={onClearSelection}
-          className="text-sm font-medium"
-          variant="text"
-        >
-          Clear selection
-        </ReusableButton>
+        onClick={onClearSelection}
+        className="text-sm font-medium"
+        variant="text"
+      >
+        Clear selection
+      </ReusableButton>
       {actions.length > 0 && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
           <SelectField
@@ -330,7 +330,7 @@ const MultiSelectActionBar: React.FC<MultiSelectActionBarProps> = ({
             ))}
           </SelectField>
           <ReusableButton onClick={onActionSubmit} disabled={!selectedAction} variant="filled" padding="px-3 py-1.5"
-                    className="text-sm font-medium">
+            className="text-sm font-medium">
             Apply
           </ReusableButton>
         </div>
@@ -344,12 +344,14 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  loading?: boolean;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
+  loading = false,
 }) => {
   const generatePageNumbers = useCallback((): (number | string)[] => {
     const pages: (number | string)[] = [];
@@ -384,16 +386,31 @@ const Pagination: React.FC<PaginationProps> = ({
     }
     return pages;
   }, [totalPages, currentPage]);
+  if (loading) {
+    return (
+      <div className="px-6 py-1 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20] rounded-b-lg shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+          <div className="flex items-center space-x-2">
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20]">
+    <div className="px-6 py-1 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20] rounded-b-lg shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
         {totalPages > 1 && (
           <div className="flex items-center space-x-2">
             <button
               onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              className="px-2 py-1 text-xs border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               type="button"
             >
               <AqChevronLeft className="w-3 h-3" />
@@ -405,11 +422,11 @@ const Pagination: React.FC<PaginationProps> = ({
                   key={index}
                   onClick={() => typeof page === "number" && onPageChange(page)}
                   disabled={typeof page !== "number"}
-                  className={`px-3 py-1 text-sm border rounded-md transition-colors ${page === currentPage
-                      ? "bg-primary text-white border-primary"
-                      : typeof page === "number"
-                        ? "border-primary/30 dark:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900"
-                        : "border-transparent cursor-default bg-transparent dark:bg-transparent text-gray-400 dark:text-gray-500"
+                  className={`px-2 py-1 text-xs border rounded-md transition-colors ${page === currentPage
+                    ? "bg-primary text-white border-primary"
+                    : typeof page === "number"
+                      ? "border-primary/30 dark:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900"
+                      : "border-transparent cursor-default bg-transparent dark:bg-transparent text-gray-400 dark:text-gray-500"
                     }`}
                   type="button"
                 >
@@ -422,7 +439,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 onPageChange(Math.min(currentPage + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="px-3 py-1 text-sm border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+              className="px-2 py-1 text-xs border border-primary/30 dark:border-primary/40 rounded-md hover:bg-primary/10 dark:hover:bg-primary/20 hover:border-primary dark:hover:border-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:border-primary/30 dark:disabled:hover:border-primary/40 flex items-center space-x-1 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
               type="button"
             >
               <span className="hidden sm:inline">Next</span>
@@ -520,6 +537,7 @@ interface ReusableTableProps<T extends TableItem> {
   onPaginationChange?: Dispatch<SetStateAction<{ pageIndex: number; pageSize: number }>>;
   sorting?: SortingState;
   onSortingChange?: Dispatch<SetStateAction<SortingState>>;
+  stickyHeader?: boolean;
   onSearchChange?: (searchTerm: string) => void;
   searchTerm?: string;
 }
@@ -581,10 +599,13 @@ const ReusableTable = <T extends TableItem>({
   onSortingChange,
   onSearchChange,
   searchTerm: searchTermProp,
+  stickyHeader = true,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const stickyHeaderRef = useRef<HTMLDivElement>(null);
 
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
@@ -647,8 +668,8 @@ const ReusableTable = <T extends TableItem>({
   const searchTerm = serverSidePagination
     ? searchTermProp ?? ""
     : tableId
-    ? urlState!.searchTerm
-    : localSearchTerm;
+      ? urlState!.searchTerm
+      : localSearchTerm;
   const currentPage = tableId ? urlState!.currentPage : localCurrentPage;
   const currentPageSize = tableId ? urlState!.currentPageSize : pageSize;
   const sortConfig = tableId ? urlState!.sortConfig : localSortConfig;
@@ -1088,6 +1109,7 @@ const ReusableTable = <T extends TableItem>({
     onSelectedIdsChange?.([]);
   }, [onSelectedItemsChange, onSelectedIdsChange]);
 
+
   const displayColumns = useMemo((): TableColumn<T>[] => {
     const cols = [...columns];
     if (multiSelect) {
@@ -1128,147 +1150,196 @@ const ReusableTable = <T extends TableItem>({
     handleSelectItem,
   ]);
 
+  // Add refs for scroll synchronization
+  const theadScrollRef = useRef<HTMLDivElement>(null);
+  const tbodyScrollRef = useRef<HTMLDivElement>(null);
+
+  // Add scroll sync handler
+  const handleScroll = useCallback((source: 'thead' | 'tbody') => {
+    return (e: React.UIEvent<HTMLDivElement>) => {
+      const scrollLeft = e.currentTarget.scrollLeft;
+      if (source === 'tbody' && theadScrollRef.current) {
+        theadScrollRef.current.scrollLeft = scrollLeft;
+      } else if (source === 'thead' && tbodyScrollRef.current) {
+        tbodyScrollRef.current.scrollLeft = scrollLeft;
+      }
+    };
+  }, []);
+
   return (
-    <div
-      className={`overflow-hidden shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] ${className}`}
-    >
-      {/* Header */}
-      <TableHeader
-        title={title}
-        searchable={searchable}
-        searchTerm={searchInput}
-        onSearchChange={setSearchInput}
-        onClearSearch={handleClearSearch}
-        filterable={filterable}
-        filters={filters}
-        filterValues={filterValues}
-        onFilterChange={handleFilterChange}
-        selectedCount={selectedItems.length}
-      />
-
-      {/* Multi-Select Action Bar */}
-      {multiSelect && isAnySelected && (
-        <MultiSelectActionBar
-          actions={actions}
-          selectedAction={selectedAction}
-          onActionChange={handleActionChange}
-          onActionSubmit={handleActionSubmit}
-          onClearSelection={handleClearSelection}
+    <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] flex flex-col ${className}`}>
+      {/* 1. Header Section */}
+      <div
+        ref={stickyHeaderRef}
+        className={`bg-white dark:bg-[#1d1f20] rounded-t-lg shadow-sm ${stickyHeader ? 'sticky top-0 z-20' : ''}`}
+      >
+        <TableHeader
+          title={title}
+          searchable={searchable}
+          searchTerm={searchInput}
+          onSearchChange={setSearchInput}
+          onClearSearch={handleClearSearch}
+          filterable={filterable}
+          filters={filters}
+          filterValues={filterValues}
+          onFilterChange={handleFilterChange}
+          selectedCount={selectedItems.length}
         />
-      )}
 
-      {/* Table or Loading */}
-      <div className="overflow-x-auto">
-        {loading ? (
-          loadingComponent ? (
-            loadingComponent
-          ) : ( 
-            <TableSkeleton columns={displayColumns} pageSize={finalCurrentPageSize} />
-          )
-        ) : (
-          <table className="w-full table-fixed border-collapse">
-            <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
-              <tr>
-                {displayColumns.map((column) => (
-                  <th
-                    key={String(column.key)}
-                    className={`${column.key === "checkbox"
-                        ? "w-4 p-4"
-                        : "w-52 px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider truncate"
-                      } ${column.className || ""} ${sortable &&
-                        column.sortable !== false &&
-                        column.key !== "checkbox"
-                        ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-                        : ""
-                      }`}
-                    onClick={() =>
-                      sortable &&
-                      column.sortable !== false &&
-                      column.key !== "checkbox" &&
-                      handleSort(String(column.key))
-                    }
-                  >
-                    {column.key === "checkbox" ? (
-                      column.label
-                    ) : (
-                      <div className="flex items-center space-x-1">
-                        <span>{column.label}</span>
-                        {sortable &&
-                          column.sortable !== false &&
-                          getSortIcon(String(column.key))}
-                      </div>
-                    )}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
-              {finalPaginatedData.length > 0 ? (
-                finalPaginatedData.map((item, index) => (
-                  <tr
-                    key={item.id ?? index}
-                    onClick={(e) => {
-                      const target = e.target as HTMLElement | null;
-                      if (
-                        (target &&
-                          target.closest(
-                            'input, button, a, [role="button"], [data-no-rowclick]'
-                          )) ||
-                        (target instanceof HTMLInputElement &&
-                          target.type === "checkbox")
-                      ) {
-                        return;
-                      }
-                      if (onRowClick) {
-                        onRowClick(item);
-                      }
-                    }}
-                    className={`${selectedItems.some(sel => sel.id === item.id)
-                        ? "bg-primary/10 dark:bg-primary/20"
-                        : "hover:bg-primary/5 dark:hover:bg-primary/20"
-                      } ${onRowClick ? "cursor-pointer" : ""}`}
-                  >
-                    {displayColumns.map((column) => (
-                      <td
-                        key={String(column.key)}
-                        className={`break-words ${column.key === "checkbox"
-                            ? "w-4 p-3"
-                            : "w-52 truncate px-6 py-3 text-sm text-gray-900 dark:text-gray-100"
-                          } ${column.className || ""}`}
-                      >
-                        {renderCell(item, column)}
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={displayColumns.length}
-                    className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
-                  >
-                    {searchTerm ||
-                      Object.values(filterValues).some(
-                        (v) => v && (Array.isArray(v) ? v.length > 0 : v !== "")
-                      )
-                      ? "No matching results found"
-                      : emptyState}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        {multiSelect && isAnySelected && (
+          <MultiSelectActionBar
+            actions={actions}
+            selectedAction={selectedAction}
+            onActionChange={handleActionChange}
+            onActionSubmit={handleActionSubmit}
+            onClearSelection={handleClearSelection}
+          />
         )}
       </div>
 
+      {/* 2. Scrollable table section with fixed header */}
+      <div className="relative flex-1 overflow-hidden">
+        {/* Table Header (thead) - Sticky within the scrollable area */}
+        {!loading && (
+          <div className="sticky top-0 z-10 bg-white dark:bg-[#1d1f20]">
+            <div
+              ref={theadScrollRef}
+              className="overflow-x-auto overflow-y-hidden scrollbar-hide"
+              onScroll={handleScroll('thead')}
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <table className="w-full table-fixed border-collapse">
+                <thead className="bg-gray-50 border-gray-200 dark:border-gray-600 border-b dark:bg-[#1d1f20]">
+                  <tr>
+                    {displayColumns.map((column) => (
+                      <th
+                        key={String(column.key)}
+                        className={`${column.key === "checkbox"
+                          ? "w-4 py-2 px-6"
+                          : "w-52 px-6 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider truncate"
+                          } ${column.className || ""} ${sortable &&
+                            column.sortable !== false &&
+                            column.key !== "checkbox"
+                            ? "cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                            : ""
+                          }`}
+                        onClick={() =>
+                          sortable &&
+                          column.sortable !== false &&
+                          column.key !== "checkbox" &&
+                          handleSort(String(column.key))
+                        }
+                      >
+                        {column.key === "checkbox" ? (
+                          column.label
+                        ) : (
+                          <div className="flex items-center space-x-1">
+                            <span>{column.label}</span>
+                            {sortable &&
+                              column.sortable !== false &&
+                              getSortIcon(String(column.key))}
+                          </div>
+                        )}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Scrollable Table Body - max-height creates internal scroll */}
+        <div
+          ref={tbodyScrollRef}
+          className="overflow-auto"
+          style={{ maxHeight: 'calc(100vh - 300px)' }}
+          onScroll={handleScroll('tbody')}
+        >
+          {loading ? (
+            loadingComponent ? (
+              loadingComponent
+            ) : (
+              <TableSkeleton columns={displayColumns} pageSize={finalCurrentPageSize} />
+            )
+          ) : (
+            <table className="w-full table-fixed border-collapse">
+              <tbody className="bg-white dark:bg-[#1d1f20] divide-y divide-gray-200 dark:divide-gray-800">
+                {finalPaginatedData.length > 0 ? (
+                  finalPaginatedData.map((item, index) => (
+                    <tr
+                      key={item.id ?? index}
+                      onClick={(e) => {
+                        const target = e.target as HTMLElement | null;
+                        if (
+                          (target &&
+                            target.closest(
+                              'input, button, a, [role="button"], [data-no-rowclick]'
+                            )) ||
+                          (target instanceof HTMLInputElement &&
+                            target.type === "checkbox")
+                        ) {
+                          return;
+                        }
+                        if (onRowClick) {
+                          onRowClick(item);
+                        }
+                      }}
+                      className={`${selectedItems.some(sel => sel.id === item.id)
+                        ? "bg-primary/10 dark:bg-primary/20"
+                        : "hover:bg-primary/5 dark:hover:bg-primary/20"
+                        } ${onRowClick ? "cursor-pointer" : ""}`}
+                    >
+                      {displayColumns.map((column) => (
+                        <td
+                          key={String(column.key)}
+                          className={`break-words ${column.key === "checkbox"
+                            ? "w-4 py-2 px-6"
+                            : "w-52 truncate px-6 py-3 text-sm text-gray-900 dark:text-gray-100"
+                            } ${column.className || ""}`}
+                        >
+                          {renderCell(item, column)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={displayColumns.length}
+                      className="px-6 py-12 text-center text-gray-500 dark:text-gray-400"
+                    >
+                      {searchTerm ||
+                        Object.values(filterValues).some(
+                          (v) => v && (Array.isArray(v) ? v.length > 0 : v !== "")
+                        )
+                        ? "No matching results found"
+                        : emptyState}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
       {/* Pagination */}
-      {!loading && showPagination && finalPaginatedData.length > 0 && (
+      {showPagination && (finalPaginatedData.length > 0 || loading) && (
         <Pagination
           currentPage={finalCurrentPage}
           totalPages={finalTotalPages}
           onPageChange={handlePageChange}
+          loading={loading}
         />
       )}
+
+      {/* Add CSS to hide scrollbar on thead */}
+      <style jsx>{`
+      .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+      }
+    `}</style>
     </div>
   );
 };
@@ -1288,6 +1359,7 @@ ReusableTable.defaultProps = {
   multiSelect: false,
   actions: [],
   tableId: undefined,
+  stickyHeader: true,
 };
 
 export default ReusableTable;

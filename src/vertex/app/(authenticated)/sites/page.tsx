@@ -19,8 +19,8 @@ export default function SitesPage() {
       allowedContexts={['airqo-internal', 'external-org']}
     >
       <div>
-        <div className="flex justify-between items-center mb-6">
-          <div className="space-y-1">
+        <div className="flex justify-between items-center mb-3">
+          <div>
             <h1 className="text-2xl font-semibold">Sites</h1>
             <p className="text-sm text-muted-foreground">
               Manage and organize your monitoring sites
