@@ -31,6 +31,134 @@ import type {
 import { ExtendedSession } from '../utils/secureApiProxyClient';
 import logger from '@/lib/logger';
 
+// Helper to filter groups and networks based on staff status
+function filterGroupsAndNetworks(
+  userInfo: UserDetails
+): { groups: Group[]; networks: Network[] } {
+  const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
+  if (isAirQoStaff) {
+    return {
+      groups: userInfo.groups || [],
+      networks: userInfo.networks || [],
+    };
+  }
+
+  const filteredGroups = (userInfo.groups || []).filter(
+    (group) => group.grp_title.toLowerCase() !== 'airqo'
+  );
+  const filteredNetworks = (userInfo.networks || []).filter(
+    (network) => network.net_name.toLowerCase() !== 'airqo'
+  );
+  
+  logger.debug('[UserDataFetcher] Filtered out AirQo groups/networks for non-AirQo staff', {
+    email: userInfo.email,
+    originalGroupsCount: userInfo.groups?.length || 0,
+    filteredGroupsCount: filteredGroups.length,
+    originalNetworksCount: userInfo.networks?.length || 0,
+    filteredNetworksCount: filteredNetworks.length,
+    filteredGroups: filteredGroups.map((g) => g.grp_title),
+    filteredNetworks: filteredNetworks.map((n) => n.net_name),
+  });
+
+  return { groups: filteredGroups, networks: filteredNetworks };
+}
+
+// Helper to determine initial group, network, and context
+function determineInitialUserSetup(
+  userInfo: UserDetails,
+  filteredGroups: Group[],
+  filteredNetworks: Network[]
+): {
+  defaultNetwork?: Network;
+  defaultGroup?: Group;
+  initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
+} {
+  const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
+  const savedUserContext = localStorage.getItem('userContext') as 'personal' | 'airqo-internal' | 'external-org' | null;
+  const savedActiveGroup = localStorage.getItem('activeGroup');
+  const isManualPersonalMode = savedUserContext === 'personal' && !savedActiveGroup;
+
+  if (isManualPersonalMode) {
+    logger.debug('[UserDataFetcher] Respecting manual personal mode switch from localStorage');
+    return { initialUserContext: 'personal' };
+  }
+
+  let defaultGroup: Group | undefined;
+  let defaultNetwork: Network | undefined;
+
+  if (savedActiveGroup) {
+    try {
+      const parsedSavedGroup = JSON.parse(savedActiveGroup) as Group;
+      if (filteredGroups.some((g) => g._id === parsedSavedGroup._id)) {
+        defaultGroup = parsedSavedGroup;
+        logger.debug('[UserDataFetcher] Using saved activeGroup from localStorage', { groupTitle: defaultGroup.grp_title });
+      }
+    } catch (error) {
+      logger.debug('[UserDataFetcher] Failed to parse saved activeGroup', { error });
+    }
+  }
+
+  if (!defaultGroup) {
+    if (isAirQoStaff) {
+      defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
+    } else {
+      defaultGroup = filteredGroups[0];
+    }
+  }
+
+  if (defaultGroup && filteredNetworks.length > 0) {
+    const groupTitle = defaultGroup.grp_title.toLowerCase();
+    defaultNetwork = filteredNetworks.find((n) => n.net_name.toLowerCase() === groupTitle) || filteredNetworks[0];
+  }
+
+  let initialUserContext: 'personal' | 'airqo-internal' | 'external-org' = 'personal';
+  if (defaultGroup) {
+    initialUserContext = defaultGroup.grp_title.toLowerCase() === 'airqo' && isAirQoStaff ? 'airqo-internal' : 'external-org';
+  }
+
+  return { defaultGroup, defaultNetwork, initialUserContext };
+}
+
+// Custom hook for prefetching data
+function usePrefetchData(
+  userInfo: UserDetails | null,
+  context: 'personal' | 'airqo-internal' | 'external-org' | null,
+  group: Group | null,
+  network: Network | null
+) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!userInfo || !context) return;
+
+    const prefetch = async () => {
+      try {
+        if (context === 'personal') {
+          await queryClient.prefetchQuery({
+            queryKey: ['my-devices', userInfo._id],
+            queryFn: () => devices.getMyDevices(userInfo._id),
+            staleTime: 300_000,
+          });
+        } else if (group && network) {
+          await queryClient.prefetchQuery({
+            queryKey: ['devices', network.net_name, group.grp_title, { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined }],
+            queryFn: () => devices.getDevicesSummaryApi({ network: network.net_name, group: group.grp_title, limit: 100, skip: 0 }),
+            staleTime: 300_000,
+          });
+        }
+      } catch (error) {
+        logger.error('[UserDataFetcher] Failed to prefetch device data', { error });
+        ReusableToast({
+          message: 'Could not load initial device data.',
+          type: 'WARNING',
+        });
+      }
+    };
+
+    prefetch();
+  }, [userInfo, context, group, network, queryClient]);
+}
+
 /**
  * Component that automatically fetches and stores user data when authenticated
  * Optimized to prevent loops, conflicts, and repeated API calls
@@ -39,7 +167,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
-  const { userDetails: user, activeGroup, isInitialized, isContextLoading, userContext } = useAppSelector((state) => state.user);
+  const { userDetails: user, activeGroup, activeNetwork, isInitialized, isContextLoading, userContext } = useAppSelector((state) => state.user);
 
   // Memoize userId to prevent unnecessary re-calculations
   const userId = useMemo(() => {
@@ -156,228 +284,74 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     prevDataRef.current = data;
 
     logger.debug('[UserDataFetcher] Data effect triggered', {
-      hasData: !!data,
       dataChanged: data !== prevData,
-      hasUsers: !!data?.users,
-      usersCount: data?.users?.length || 0,
     });
 
-    // If we have data but it changed and doesn't have users, set loading to false
-    if (data !== prevData && data && (!data.users || data.users.length === 0)) {
-      logger.warn('[UserDataFetcher] Data received but no users found', {
-        hasData: !!data,
-        dataKeys: data ? Object.keys(data) : [],
-        users: data?.users,
-      });
-      dispatch(setContextLoading(false));
-    }
-
-    // Only process data when it actually changes and is valid
-    if (data !== prevData && data?.users && data.users.length > 0) {
-      logger.debug('[UserDataFetcher] Processing user data', {
-        userId: data.users[0]?._id,
-        email: data.users[0]?.email,
-        groupsCount: data.users[0]?.groups?.length || 0,
-        networksCount: data.users[0]?.networks?.length || 0,
-      });
-      const userInfo = data.users[0] as UserDetails;
-
-      if (!userInfo) {
-        logger.warn('[UserDataFetcher] Extended user details not found.');
+    if (data === prevData || !data?.users || data.users.length === 0) {
+      if (data !== prevData) {
+        logger.warn('[UserDataFetcher] Data received but no users found');
         dispatch(setContextLoading(false));
-        return;
       }
-
-      const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
-
-      let filteredGroups: Group[] = userInfo.groups || [];
-      let filteredNetworks: Network[] = userInfo.networks || [];
-
-      if (!isAirQoStaff) {
-        filteredGroups = (userInfo.groups || []).filter(
-          (group) => group.grp_title.toLowerCase() !== 'airqo'
-        );
-        filteredNetworks = (userInfo.networks || []).filter(
-          (network) => network.net_name.toLowerCase() !== 'airqo'
-        );
-
-        logger.debug('[UserDataFetcher] Filtered out AirQo groups/networks for non-AirQo staff', {
-          email: userInfo.email,
-          originalGroupsCount: userInfo.groups?.length || 0,
-          filteredGroupsCount: filteredGroups.length,
-          originalNetworksCount: userInfo.networks?.length || 0,
-          filteredNetworksCount: filteredNetworks.length,
-          filteredGroups: filteredGroups.map((g) => g.grp_title),
-          filteredNetworks: filteredNetworks.map((n) => n.net_name),
-        });
-      }
-
-      const savedUserContext = localStorage.getItem('userContext') as 'personal' | 'airqo-internal' | 'external-org' | null;
-      const savedActiveGroup = localStorage.getItem('activeGroup');
-      const isManualPersonalMode = savedUserContext === 'personal' && !savedActiveGroup;
-
-      dispatch(setUserDetails(userInfo));
-      dispatch(setUserGroups(filteredGroups));
-      dispatch(setAvailableNetworks(filteredNetworks));
-
-      localStorage.setItem('userDetails', JSON.stringify(userInfo));
-      localStorage.setItem('userGroups', JSON.stringify(filteredGroups));
-      localStorage.setItem('availableNetworks', JSON.stringify(filteredNetworks));
-
-      let defaultNetwork: Network | undefined;
-      let defaultGroup: Group | undefined;
-      let initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
-
-      if (isManualPersonalMode) {
-        logger.debug('[UserDataFetcher] Respecting manual personal mode switch from localStorage', {
-          savedUserContext,
-          hasSavedActiveGroup: !!savedActiveGroup,
-        });
-        defaultNetwork = undefined;
-        defaultGroup = undefined;
-        initialUserContext = 'personal';
-        dispatch(setActiveGroup(null));
-        dispatch(setUserContext('personal'));
-        localStorage.removeItem('activeGroup');
-        localStorage.removeItem('activeNetwork');
-        localStorage.setItem('userContext', 'personal');
-      } else {
-        const airqoNetwork = filteredNetworks.find(
-          (network: Network) => network.net_name.toLowerCase() === 'airqo'
-        );
-        const airqoGroup = filteredGroups.find(
-          (group: Group) => group.grp_title.toLowerCase() === 'airqo'
-        );
-
-        if (savedActiveGroup) {
-          try {
-            const parsedSavedGroup = JSON.parse(savedActiveGroup) as Group;
-            // Verify the saved group is still in the user's filtered groups
-            const isValidSavedGroup = filteredGroups.some(
-              (g) => g._id === parsedSavedGroup._id
-            );
-            if (isValidSavedGroup) {
-              defaultGroup = parsedSavedGroup;
-              logger.debug('[UserDataFetcher] Using saved activeGroup from localStorage', {
-                groupTitle: defaultGroup.grp_title,
-              });
-            }
-          } catch (error) {
-            logger.debug('[UserDataFetcher] Failed to parse saved activeGroup', { error });
-          }
-        }
-
-        if (!defaultGroup) {
-          if (isAirQoStaff) {
-            defaultNetwork = airqoNetwork || filteredNetworks[0];
-            defaultGroup = airqoGroup || filteredGroups[0];
-          } else {
-            defaultNetwork = filteredNetworks[0];
-            defaultGroup = filteredGroups[0];
-
-            logger.debug('[UserDataFetcher] Non-AirQo staff group selection', {
-              isAirQoStaff,
-              totalGroups: filteredGroups.length,
-              selectedGroup: defaultGroup?.grp_title,
-              allGroups: filteredGroups.map((g) => g.grp_title),
-              totalNetworks: filteredNetworks.length,
-              selectedNetwork: defaultNetwork?.net_name,
-              allNetworks: filteredNetworks.map((n) => n.net_name),
-            });
-          }
-        }
-        
-        if (defaultGroup) {
-          if (!defaultNetwork && filteredNetworks.length > 0) {
-            const groupTitle = defaultGroup.grp_title.toLowerCase();
-            const matchedNetwork = filteredNetworks.find(
-              (n) => n.net_name.toLowerCase() === groupTitle
-            );
-            defaultNetwork = matchedNetwork || filteredNetworks[0];
-          }
-        }
-
-        if (defaultNetwork) {
-          dispatch(setActiveNetwork(defaultNetwork));
-          localStorage.setItem('activeNetwork', JSON.stringify(defaultNetwork));
-        }
-        if (defaultGroup) {
-          dispatch(setActiveGroup(defaultGroup));
-          localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
-        } else {
-          dispatch(setActiveGroup(null));
-          localStorage.removeItem('activeGroup');
-        }
-
-        // Determine user context
-        if (defaultGroup) {
-          if (defaultGroup.grp_title.toLowerCase() === 'airqo' && isAirQoStaff) {
-            initialUserContext = 'airqo-internal';
-          } else {
-            initialUserContext = 'external-org';
-          }
-        } else {
-          initialUserContext = 'personal';
-        }
-
-        dispatch(setUserContext(initialUserContext));
-        localStorage.setItem('userContext', initialUserContext);
-      }
-
-      logger.debug('[UserDataFetcher] User data processed successfully', {
-        userId: userInfo._id,
-        email: userInfo.email,
-        context: initialUserContext,
-        hasDefaultNetwork: !!defaultNetwork,
-        hasDefaultGroup: !!defaultGroup,
-        defaultGroupTitle: defaultGroup?.grp_title,
-        defaultNetworkName: defaultNetwork?.net_name,
-      });
-      
-      if (!isInitialized) {
-        logger.debug('[UserDataFetcher] Marking app as initialized after user bootstrap');
-        dispatch(setInitialized());
-      }
-      logger.debug('[UserDataFetcher] Setting context loading to false');
-      dispatch(setContextLoading(false));
-
-      // Prefetch initial device data in the background without blocking initialization
-      try {
-        if (initialUserContext === 'personal') {
-          void queryClient.prefetchQuery({
-            queryKey: ['my-devices', userInfo._id],
-            queryFn: () => devices.getMyDevices(userInfo._id),
-            staleTime: 300_000,
-          });
-        } else if (defaultGroup && defaultNetwork) {
-          const resolvedNetworkName = defaultNetwork?.net_name || '';
-          const resolvedGroupName = defaultGroup?.grp_title || '';
-
-          void queryClient.prefetchQuery({
-            queryKey: [
-              'devices',
-              resolvedNetworkName,
-              resolvedGroupName,
-              { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined },
-            ],
-            queryFn: () =>
-              devices.getDevicesSummaryApi({
-                network: resolvedNetworkName,
-                group: resolvedGroupName,
-                limit: 100,
-                skip: 0,
-              }),
-            staleTime: 300_000,
-          });
-        }
-      } catch {
-        ReusableToast({
-          message: 'Could not load initial device data.',
-          type: 'WARNING',
-        });
-      }
+      return;
     }
+
+    const userInfo = data.users[0] as UserDetails;
+    if (!userInfo) {
+      logger.warn('[UserDataFetcher] Extended user details not found.');
+      dispatch(setContextLoading(false));
+      return;
+    }
+
+    // 1. Filter groups and networks
+    const { groups: filteredGroups, networks: filteredNetworks } = filterGroupsAndNetworks(userInfo);
+
+    // 2. Determine initial setup
+    const { defaultGroup, defaultNetwork, initialUserContext } = determineInitialUserSetup(userInfo, filteredGroups, filteredNetworks);
+
+    // 3. Dispatch updates to Redux
+    dispatch(setUserDetails(userInfo));
+    dispatch(setUserGroups(filteredGroups));
+    dispatch(setAvailableNetworks(filteredNetworks));
+
+    if (defaultNetwork) {
+      dispatch(setActiveNetwork(defaultNetwork));
+    }
+    dispatch(setActiveGroup(defaultGroup || null));
+    dispatch(setUserContext(initialUserContext));
+
+    // 4. Synchronize with localStorage
+    localStorage.setItem('userDetails', JSON.stringify(userInfo));
+    localStorage.setItem('userGroups', JSON.stringify(filteredGroups));
+    localStorage.setItem('availableNetworks', JSON.stringify(filteredNetworks));
+    localStorage.setItem('userContext', initialUserContext);
+
+    if (defaultGroup) {
+      localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
+    } else {
+      localStorage.removeItem('activeGroup');
+    }
+
+    if (defaultNetwork) {
+      localStorage.setItem('activeNetwork', JSON.stringify(defaultNetwork));
+    } else {
+      localStorage.removeItem('activeNetwork');
+    }
+
+    logger.debug('[UserDataFetcher] User data processed successfully', {
+      userId: userInfo._id,
+      context: initialUserContext,
+      defaultGroup: defaultGroup?.grp_title,
+      defaultNetwork: defaultNetwork?.net_name,
+    });
+
+    if (!isInitialized) {
+      dispatch(setInitialized());
+    }
+    dispatch(setContextLoading(false));
   }, [data, dispatch, queryClient, isInitialized]);
+
+  // 5. Handle prefetching in a separate hook
+  usePrefetchData(user, userContext, activeGroup, activeNetwork);
 
   const userGroups = useAppSelector((state) => state.user.userGroups);
   useEffect(() => {
