@@ -1,9 +1,10 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode } from 'react';
 import Image from 'next/image';
 import Head from 'next/head';
 import { Toaster } from '@/shared/components/ui';
+import { AqAirQo } from '@airqo/icons-react';
 
 // ============================================================================
 // Types & Interfaces
@@ -13,12 +14,10 @@ interface AuthLayoutProps {
   pageTitle: string;
   children: ReactNode;
   rightText?: string;
-  childrenTop?: string;
   sideBackgroundColor?: string;
   testimonialAuthor?: string;
   testimonialRole?: string;
   testimonialOrganization?: string;
-  // centralized form heading and subtitle to keep auth pages consistent
   heading?: string;
   subtitle?: string;
   headingClassName?: string;
@@ -36,45 +35,11 @@ const DEFAULT_TESTIMONIAL = {
   organization: 'NEMA',
 };
 
-const LOGO_CONFIG = {
-  src: '/images/airqo_logo.svg',
-  alt: 'AirQo logo',
-  width: 47,
-  height: 32,
-} as const;
-
-// ============================================================================
-// Hooks
-// ============================================================================
-
-const useWindowWidth = () => {
-  const [width, setWidth] = useState<number>(0);
-
-  useEffect(() => {
-    // Set initial width
-    const handleResize = () => setWidth(window.innerWidth);
-    handleResize();
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return width;
-};
-
 // ============================================================================
 // Components
 // ============================================================================
 
-const Logo = () => (
-  <Image
-    src={LOGO_CONFIG.src}
-    alt={LOGO_CONFIG.alt}
-    width={LOGO_CONFIG.width}
-    height={LOGO_CONFIG.height}
-    priority
-  />
-);
+const Logo = () => <AqAirQo className="w-12 h-8" />;
 
 interface TestimonialSectionProps {
   text: string;
@@ -92,31 +57,36 @@ const TestimonialSection = ({
   backgroundColor = 'bg-blue-50 dark:bg-[#252627]',
 }: TestimonialSectionProps) => (
   <div
-    className={`hidden lg:flex lg:col-span-6 ${backgroundColor} items-center justify-center w-full h-full overflow-y-auto`}
+    className={`hidden lg:flex lg:col-span-6 ${backgroundColor} w-full h-full overflow-y-auto`}
   >
-    <div className="h-auto max-w-3xl px-12 py-10">
-      <div className="space-y-4">
-        <h3 className="font-medium dark:text-white max-w-[820px]">{text}</h3>
-        <div className="space-y-1">
-          <p className="text-lg font-medium leading-6 dark:text-white">
-            — {author}
-          </p>
-          <p className="text-base font-normal leading-6 text-gray-500 dark:text-gray-400">
-            {role}. {organization}
-          </p>
+    <div className="flex items-center justify-center w-full px-8 py-8 lg:px-10 xl:px-12 2xl:px-16">
+      <div className="w-full max-w-4xl space-y-6 lg:space-y-8">
+        <div className="space-y-4 lg:space-y-6">
+          <h3 className="text-base font-medium leading-relaxed dark:text-white lg:text-lg xl:text-xl">
+            {text}
+          </h3>
+          <div className="space-y-1">
+            <p className="text-sm font-medium leading-6 dark:text-white lg:text-base xl:text-lg">
+              — {author}
+            </p>
+            <p className="text-xs font-normal leading-6 text-gray-500 dark:text-gray-400 lg:text-sm xl:text-base">
+              {role}. {organization}
+            </p>
+          </div>
         </div>
-      </div>
 
-      <div className="flex justify-center w-full mt-6">
-        <div className="w-full max-w-[920px]">
-          <Image
-            src="/images/Account/analyticsImage.webp"
-            alt="Analytics dashboard preview"
-            width={920}
-            height={480}
-            className="object-contain w-full h-auto rounded-lg"
-            priority
-          />
+        <div className="flex justify-center w-full">
+          <div className="w-full">
+            <Image
+              src="/images/Account/analyticsImage.webp"
+              alt="Analytics dashboard preview"
+              width={920}
+              height={480}
+              className="object-contain w-full h-auto max-w-full rounded-lg"
+              priority
+              style={{ maxHeight: '55vh' }}
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -131,21 +101,16 @@ const AuthLayout = ({
   pageTitle,
   children,
   rightText,
-  childrenTop,
   sideBackgroundColor,
   testimonialAuthor = DEFAULT_TESTIMONIAL.author,
   testimonialRole = DEFAULT_TESTIMONIAL.role,
   testimonialOrganization = DEFAULT_TESTIMONIAL.organization,
   heading,
   subtitle,
-  headingClassName,
-  subtitleClassName,
+  headingClassName = 'text-base lg:text-lg xl:text-2xl font-semibold text-gray-900 dark:text-white',
+  subtitleClassName = 'text-sm text-gray-600 dark:text-gray-400',
 }: AuthLayoutProps) => {
-  // Using custom hook instead of inline effect
-  useWindowWidth();
-
   const testimonialText = rightText || DEFAULT_TESTIMONIAL.text;
-  const contentTopMargin = childrenTop ?? '';
 
   return (
     <>
@@ -154,38 +119,33 @@ const AuthLayout = ({
         <meta property="og:title" content={pageTitle} key="title" />
       </Head>
 
-      <div className="min-h-screen lg:h-screen">
-        <div className="grid w-full min-h-screen lg:h-full lg:grid-cols-11">
-          <section className="lg:col-span-5 bg-white dark:bg-[#1b1d1e] py-10 px-6 lg:px-20 min-h-screen lg:h-full flex justify-center items-center overflow-y-auto">
-            <div className="w-full">
-              <div className="mx-auto flex flex-col gap-12 w-full max-w-[360px]">
+      <div className="w-full h-screen overflow-hidden">
+        <div className="grid w-full h-full lg:grid-cols-11">
+          {/* Left Side - Form Section */}
+          <section className="w-full h-full lg:col-span-5 bg-white dark:bg-[#1b1d1e] overflow-y-auto">
+            <div className="flex items-center justify-center min-h-full py-8 px-6 sm:py-12 sm:px-8 lg:py-8 lg:px-8 xl:px-12 2xl:px-16">
+              <div className="w-full max-w-[400px] space-y-6 lg:space-y-8">
                 {/* Logo */}
-                <div className="text-center lg:text-left">
+                <div className="flex justify-center lg:justify-start">
                   <Logo />
                 </div>
 
-                {/* Form Content (centralized heading/subtitle support) */}
-                <div
-                  className={`${contentTopMargin} flex flex-col justify-center items-start w-full`}
-                >
-                  <div className="flex flex-col w-full gap-3">
-                    {/** Render centralized heading/subtitle when provided by pages */}
-                    {typeof heading !== 'undefined' && (
-                      <h1 className={headingClassName || ''}>{heading}</h1>
-                    )}
+                {/* Form Content */}
+                <div className="space-y-4 lg:space-y-6">
+                  {/* Centralized Heading & Subtitle */}
+                  {(heading || subtitle) && (
+                    <div className="space-y-2">
+                      {heading && (
+                        <h1 className={headingClassName}>{heading}</h1>
+                      )}
+                      {subtitle && (
+                        <p className={subtitleClassName}>{subtitle}</p>
+                      )}
+                    </div>
+                  )}
 
-                    {typeof subtitle !== 'undefined' && (
-                      <p
-                        className={
-                          subtitleClassName || 'text-md text-gray-600 mb-6'
-                        }
-                      >
-                        {subtitle}
-                      </p>
-                    )}
-                  </div>
-
-                  {children}
+                  {/* Form Children */}
+                  <div className="w-full">{children}</div>
                 </div>
               </div>
             </div>

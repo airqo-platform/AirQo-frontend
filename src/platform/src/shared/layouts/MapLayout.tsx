@@ -6,6 +6,7 @@ import { cn } from '@/shared/lib/utils';
 import { Header } from '@/shared/components/header';
 import { Sidebar } from '@/shared/components/sidebar';
 import { GlobalSidebar } from '@/shared/components/global-sidebar';
+import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
@@ -79,6 +80,7 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
 
       {/* Global Sidebar */}
       <GlobalSidebar />
+      {showSidebar && <MobileSidebar />}
     </>
   );
 };

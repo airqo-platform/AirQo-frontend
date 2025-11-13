@@ -30,7 +30,9 @@ export interface DataExportState {
   selectedSiteIds: string[];
   selectedDeviceIds: string[];
   selectedGridIds: string[];
-  selectedGridSites: string[];
+  selectedGridSites: Record<string, string[]>;
+  enableSiteSelection: boolean;
+  selectedGridSiteIds: Record<string, string[]>;
   deviceCategory: DeviceCategory;
   dateRange: DateRange | undefined;
   tabStates: Record<TabType, TabState>;
