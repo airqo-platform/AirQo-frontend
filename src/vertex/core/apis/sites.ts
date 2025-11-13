@@ -76,6 +76,33 @@ export const sites = {
     }
   },
 
+  getSitesByCohorts: async (params: {
+    cohort_ids: string[];
+    limit?: number;
+    skip?: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+  }): Promise<SitesSummaryResponse> => {
+    try {
+      const { cohort_ids, ...rest } = params;
+      const queryParams = new URLSearchParams();
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.set(key, String(value));
+        }
+      });
+
+      const response = await createSecureApiClient().post<SitesSummaryResponse>(
+        `/devices/cohorts/sites?${queryParams.toString()}`,
+        { cohort_ids },
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   createSite: async (data: {
     name: string;
     latitude: string;

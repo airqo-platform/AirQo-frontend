@@ -24,6 +24,12 @@ export interface CohortsSummaryResponse {
   cohorts: Cohort[];
 }
 
+export interface GroupCohortsResponse {
+  success: boolean;
+  message: string;
+  data: string[];
+}
+
 interface Grid {
     _id: string;
     visibility: boolean;

@@ -4,7 +4,7 @@ import { useAppSelector } from "../redux/hooks";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { AxiosError } from "axios";
-import { CohortsSummaryResponse } from "@/app/types/cohorts";
+import { CohortsSummaryResponse, GroupCohortsResponse } from "@/app/types/cohorts";
 
 interface ErrorResponse {
   message: string;
@@ -51,6 +51,20 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
     isFetching,
     error: error as Error | null,
   };
+};
+
+export const useGroupCohorts = (groupId?: string, options: { enabled?: boolean } = {}) => {
+  const { enabled = true } = options;
+  return useQuery<GroupCohortsResponse, AxiosError<ErrorResponse>, string[]>({
+    queryKey: ["groupCohorts", groupId],
+    queryFn: async () => {
+      if (!groupId) throw new Error("Group ID is required");
+      const res = await cohortsApi.getGroupCohorts(groupId);
+      return res.data;
+    },
+    enabled: !!groupId && enabled,
+    staleTime: 300_000, // 5 minutes
+  });
 };
 
 type UseCohortDetailsOptions = { enabled?: boolean };
