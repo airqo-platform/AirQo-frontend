@@ -8,7 +8,6 @@ import { Toaster } from '@/shared/components/ui';
 import { ThemeProvider } from '@/modules/themes';
 import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
-import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 
 const inter = Inter({
@@ -36,10 +35,7 @@ export default function RootLayout({
         <ReduxProvider>
           <ErrorBoundary>
             <AuthProvider>
-              <ThemeProvider>
-                {children}
-                <MobileSidebar />
-              </ThemeProvider>
+              <ThemeProvider>{children}</ThemeProvider>
             </AuthProvider>
           </ErrorBoundary>
         </ReduxProvider>
