@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { SearchField } from '@/shared/components/ui/search-field';
+import { usePhotonSearch } from '../../hooks/usePhotonSearch';
 
 interface MapHeaderProps {
   onSearch?: (query: string) => void;
@@ -16,6 +17,8 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
   showSearchHeader = false,
   searchQuery = '',
 }) => {
+  const { isLoading } = usePhotonSearch(searchQuery, searchQuery.length > 0);
+
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     onSearch?.(query);
@@ -45,7 +48,7 @@ export const MapHeader: React.FC<MapHeaderProps> = ({
       {showSearchHeader && (
         <div className="pt-3">
           <p className="text-sm m-0 text-muted-foreground">
-            Results for &ldquo;{searchQuery}&rdquo;
+            {isLoading ? 'Searching...' : `Results for "${searchQuery}"`}
           </p>
         </div>
       )}

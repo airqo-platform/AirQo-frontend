@@ -122,7 +122,7 @@ const MapPage = () => {
         setFlyToLocation({
           longitude: locationData.longitude,
           latitude: locationData.latitude,
-          zoom: 14,
+          zoom: 10, // Reduced zoom level for better overview
         });
 
         if (flyToTimeoutRef.current) {
@@ -140,7 +140,7 @@ const MapPage = () => {
           setFlyToLocation({
             longitude: reading.siteDetails.approximate_longitude,
             latitude: reading.siteDetails.approximate_latitude,
-            zoom: 14,
+            zoom: 10, // Reduced zoom level
           });
 
           if (flyToTimeoutRef.current) {

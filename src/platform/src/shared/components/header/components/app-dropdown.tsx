@@ -118,7 +118,7 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
       </DropdownMenuTrigger>
 
       <DropdownMenuContent
-        className="w-auto border-none shadow-lg"
+        className="w-auto border-none shadow-lg z-[10000]"
         align="end"
         showOverlay={true}
       >

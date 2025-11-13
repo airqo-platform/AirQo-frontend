@@ -43,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="-ml-2 mr-2"
             onClick={() => dispatch(toggleGlobalSidebar())}
           >
-            <AqMenu01 />
+            <AqMenu01 className="text-foreground" />
           </Button>
           {/* Logo */}
           <LogoComponent />
