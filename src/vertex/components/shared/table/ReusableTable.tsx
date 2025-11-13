@@ -1107,7 +1107,7 @@ const ReusableTable = <T extends TableItem>({
     setSelectedItems([]);
     onSelectedItemsChange?.([]);
     onSelectedIdsChange?.([]);
-  }, [stickyHeader, selectedItems.length]);
+  }, [onSelectedItemsChange, onSelectedIdsChange]);
 
 
   const displayColumns = useMemo((): TableColumn<T>[] => {
@@ -1168,8 +1168,11 @@ const ReusableTable = <T extends TableItem>({
 
   return (
     <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] flex flex-col ${className}`}>
-      {/* 1. Static Header Section (not sticky to viewport, but fixed within table) */}
-      <div ref={stickyHeaderRef} className="bg-white dark:bg-[#1d1f20] rounded-t-lg shadow-sm">
+      {/* 1. Header Section */}
+      <div
+        ref={stickyHeaderRef}
+        className={`bg-white dark:bg-[#1d1f20] rounded-t-lg shadow-sm ${stickyHeader ? 'sticky top-0 z-20' : ''}`}
+      >
         <TableHeader
           title={title}
           searchable={searchable}
