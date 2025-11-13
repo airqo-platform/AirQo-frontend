@@ -69,7 +69,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   const displayLocations = React.useMemo(() => {
     if (isSearching && photonResults.length > 0) {
       // Convert Photon results to location format
-      return photonResults.map((result) => ({
+      return photonResults.map(result => ({
         id: result.properties.osm_id
           ? `photon-osm-${result.properties.osm_id}`
           : `photon-coord-${result.geometry.coordinates[0]}-${result.geometry.coordinates[1]}`,
