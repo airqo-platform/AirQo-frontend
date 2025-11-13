@@ -2,11 +2,17 @@ import React, { useMemo, useEffect, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { DataExportSidebar } from './components/DataExportSidebar';
+import { SiteSelectionDialog } from './components/SiteSelectionDialog';
+import { SelectedGridsSummary } from './components/SelectedGridsSummary';
 import { DataExportPreview } from './components/DataExportPreview';
 import { DataExportHeader } from './components/DataExportHeader';
 import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
-import { CohortSitesResponse, CohortDevicesResponse } from '@/shared/types/api';
+import {
+  CohortSitesResponse,
+  CohortDevicesResponse,
+  Grid,
+} from '@/shared/types/api';
 import {
   DataType,
   Frequency,
@@ -43,6 +49,7 @@ const DataExportPage = () => {
     selectedDeviceIds,
     selectedGridIds,
     selectedGridSites,
+    selectedGridSiteIds,
     deviceCategory,
     dateRange,
     tabStates,
@@ -59,12 +66,23 @@ const DataExportPage = () => {
     setSelectedDeviceIds,
     setSelectedGridIds,
     setSelectedGridSites,
+    setSelectedGridSiteIds,
     setDeviceCategory,
     setDateRange,
     updateTabState,
     handleTabChange,
     handleClearSelections,
   } = useDataExportState();
+
+  // Local state for dialogs
+  const [siteSelectionDialogOpen, setSiteSelectionDialogOpen] =
+    React.useState(false);
+  const [siteSelectionDownloading, setSiteSelectionDownloading] =
+    React.useState(false);
+  const [selectedGridForSites, setSelectedGridForSites] = React.useState<{
+    grid: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    gridType: 'countries' | 'cities';
+  } | null>(null);
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -112,6 +130,7 @@ const DataExportPage = () => {
       selectedDeviceIds,
       selectedGridIds,
       selectedGridSites,
+      selectedGridSiteIds,
       selectedPollutants,
       dataType,
       fileType,
@@ -171,7 +190,8 @@ const DataExportPage = () => {
         ? selectedSiteIds.length > 0
         : activeTab === 'devices'
           ? selectedDeviceIds.length > 0
-          : selectedGridIds.length > 0; // countries and cities use grid IDs
+          : Object.keys(selectedGridSiteIds).length > 0 ||
+            Object.keys(selectedGridSites).length > 0; // countries and cities use custom or default site selections
     const hasPollutants = selectedPollutants.length > 0;
 
     return Boolean(hasDateRange && hasSelections && hasPollutants);
@@ -180,7 +200,8 @@ const DataExportPage = () => {
     activeTab,
     selectedSiteIds,
     selectedDeviceIds,
-    selectedGridIds,
+    selectedGridSiteIds,
+    selectedGridSites,
     selectedPollutants,
   ]);
 
@@ -195,26 +216,58 @@ const DataExportPage = () => {
       setSelectedDeviceIds(stringIds);
       // For devices, names are set by the data hook
     } else if (activeTab === 'countries' || activeTab === 'cities') {
-      // For countries/cities, use exact selection (single selection mode)
+      // For countries/cities, select all sites by default
       setSelectedGridIds(stringIds);
-      // Cache the resolved site IDs to avoid issues when search/pagination changes
+      const newSelectedGridSites: Record<string, string[]> = {};
       if (stringIds.length > 0) {
         const gridData =
           activeTab === 'countries'
             ? processedCountriesData
             : processedCitiesData;
-        const grid = gridData.find(item => String(item.id) === stringIds[0]);
-        if (grid?.sites) {
-          const sites = grid.sites as Array<{ _id: string }>;
-          const siteIds = sites.map(site => site._id);
-          setSelectedGridSites(siteIds);
-        } else {
-          setSelectedGridSites([]);
-        }
-      } else {
-        setSelectedGridSites([]);
+        stringIds.forEach(id => {
+          const grid = gridData.find(item => String(item.id) === id);
+          if (grid?.sites) {
+            const sites = grid.sites as Array<{ _id: string }>;
+            const siteIds = sites.map(site => site._id);
+            newSelectedGridSites[id] = siteIds;
+          } else {
+            newSelectedGridSites[id] = [];
+          }
+        });
       }
+      setSelectedGridSites(newSelectedGridSites);
+      setSelectedGridSiteIds({}); // Reset custom selection
     }
+  };
+
+  // Handle site selection dialog
+  const handleSiteSelectionConfirm = async (selectedSiteIds: string[]) => {
+    setSiteSelectionDownloading(true);
+    try {
+      const nextSelectedGridSiteIds = {
+        ...selectedGridSiteIds,
+        [selectedGridForSites!.grid._id]: selectedSiteIds,
+      };
+      setSelectedGridSiteIds(nextSelectedGridSiteIds);
+
+      // Trigger download with the updated selections
+      await handleDownload(nextSelectedGridSiteIds);
+
+      // Close dialog only on successful download
+      setSiteSelectionDialogOpen(false);
+      setSelectedGridForSites(null);
+    } catch (error) {
+      // Error is already handled in handleDownload
+      console.error('Download failed:', error);
+    } finally {
+      setSiteSelectionDownloading(false);
+    }
+  };
+
+  const handleSiteSelectionCancel = () => {
+    setSiteSelectionDialogOpen(false);
+    setSiteSelectionDownloading(false);
+    setSelectedGridForSites(null);
   };
 
   return (
@@ -269,11 +322,31 @@ const DataExportPage = () => {
               pathname={pathname}
             />
 
+            {/* Selected Grids Summary */}
+            {(activeTab === 'countries' || activeTab === 'cities') &&
+              selectedGridIds.length > 0 && (
+                <SelectedGridsSummary
+                  activeTab={activeTab}
+                  selectedGridIds={selectedGridIds}
+                  processedGridsData={
+                    activeTab === 'countries'
+                      ? (processedCountriesData as unknown as Grid[])
+                      : (processedCitiesData as unknown as Grid[])
+                  }
+                  selectedGridSiteIds={selectedGridSiteIds}
+                  onCustomizeSites={(grid: Grid) => {
+                    setSelectedGridForSites({ grid, gridType: activeTab });
+                    setSiteSelectionDialogOpen(true);
+                  }}
+                />
+              )}
+
             <DataExportHeader
               activeTab={activeTab}
               selectedSiteIds={selectedSiteIds}
               selectedDeviceIds={selectedDeviceIds}
               selectedGridIds={selectedGridIds}
+              selectedGridSiteIds={selectedGridSiteIds}
               isDownloadReady={isDownloadReady}
               isDownloading={isDownloading}
               onTabChange={wrappedHandleTabChange}
@@ -333,6 +406,8 @@ const DataExportPage = () => {
         selectedSites={selectedSites}
         selectedDevices={selectedDevices}
         selectedGridIds={selectedGridIds}
+        selectedGridSites={selectedGridSites}
+        selectedGridSiteIds={selectedGridSiteIds}
         deviceCategory={deviceCategory}
       />
 
@@ -347,6 +422,24 @@ const DataExportPage = () => {
 
       {/* Add Location Dialog */}
       <AddLocation />
+
+      {/* Site Selection Dialog */}
+      {selectedGridForSites && (
+        <SiteSelectionDialog
+          isOpen={siteSelectionDialogOpen}
+          onClose={handleSiteSelectionCancel}
+          onConfirm={handleSiteSelectionConfirm}
+          sites={selectedGridForSites.grid.sites}
+          initialSelectedSiteIds={
+            selectedGridSiteIds[selectedGridForSites.grid._id] || []
+          }
+          gridName={selectedGridForSites.grid.name}
+          gridType={
+            selectedGridForSites.gridType === 'countries' ? 'country' : 'city'
+          }
+          isDownloading={siteSelectionDownloading}
+        />
+      )}
     </div>
   );
 };

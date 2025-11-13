@@ -24,7 +24,8 @@ export const useDataExportActions = (
   selectedSiteIds: string[],
   selectedDeviceIds: string[],
   selectedGridIds: string[],
-  selectedGridSites: string[],
+  selectedGridSites: Record<string, string[]>,
+  selectedGridSiteIds: Record<string, string[]>,
   selectedPollutants: string[],
   dataType: string,
   fileType: string,
@@ -40,107 +41,122 @@ export const useDataExportActions = (
   const { downloadData, isDownloading } = useDataDownload();
 
   // Handle data download
-  const handleDownload = useCallback(async () => {
-    if (!dateRange?.from || !dateRange?.to) {
-      toast.error(
-        'Date Range Required',
-        'Please select a date range for data export.'
-      );
-      return;
-    }
+  const handleDownload = useCallback(
+    async (customSelectedGridSiteIds?: Record<string, string[]>) => {
+      if (!dateRange?.from || !dateRange?.to) {
+        toast.error(
+          'Date Range Required',
+          'Please select a date range for data export.'
+        );
+        return;
+      }
 
-    if (activeTab === 'sites' && selectedSiteIds.length === 0) {
-      toast.error(
-        'Site Selection Required',
-        'Please select at least one site for data export.'
-      );
-      return;
-    }
+      if (activeTab === 'sites' && selectedSiteIds.length === 0) {
+        toast.error(
+          'Site Selection Required',
+          'Please select at least one site for data export.'
+        );
+        return;
+      }
 
-    if (activeTab === 'devices' && selectedDeviceIds.length === 0) {
-      toast.error(
-        'Device Selection Required',
-        'Please select at least one device for data export.'
-      );
-      return;
-    }
+      if (activeTab === 'devices' && selectedDeviceIds.length === 0) {
+        toast.error(
+          'Device Selection Required',
+          'Please select at least one device for data export.'
+        );
+        return;
+      }
 
-    if (
-      (activeTab === 'countries' || activeTab === 'cities') &&
-      selectedGridIds.length === 0
-    ) {
-      toast.error(
-        `${activeTab === 'countries' ? 'Country' : 'City'} Selection Required`,
-        `Please select one ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
-      );
-      return;
-    }
+      if (
+        (activeTab === 'countries' || activeTab === 'cities') &&
+        Object.keys(selectedGridSiteIds).length === 0 &&
+        Object.keys(selectedGridSites).length === 0
+      ) {
+        toast.error(
+          `${activeTab === 'countries' ? 'Country' : 'City'} Selection Required`,
+          `Please select a ${activeTab === 'countries' ? 'country' : 'city'} for data export.`
+        );
+        return;
+      }
 
-    if (selectedPollutants.length === 0) {
-      toast.error(
-        'Pollutant Selection Required',
-        'Please select at least one pollutant for data export.'
-      );
-      return;
-    }
+      if (selectedPollutants.length === 0) {
+        toast.error(
+          'Pollutant Selection Required',
+          'Please select at least one pollutant for data export.'
+        );
+        return;
+      }
 
-    // Extract sites for countries/cities
-    let sitesForDownload: string[] = [];
-    if (activeTab === 'countries' || activeTab === 'cities') {
-      // Use cached site IDs to avoid issues when search/pagination changes after selection
-      sitesForDownload = selectedGridSites;
-    }
+      // Extract sites for countries/cities
+      const sitesForDownload: string[] = [];
+      if (activeTab === 'countries' || activeTab === 'cities') {
+        const effectiveSelectedGridSiteIds =
+          customSelectedGridSiteIds || selectedGridSiteIds;
+        // For each selected grid, use custom selection if available, otherwise use default selection
+        selectedGridIds.forEach(gridId => {
+          const customSites = effectiveSelectedGridSiteIds[gridId];
+          const defaultSites = selectedGridSites[gridId];
+          const sites =
+            customSites && customSites.length > 0
+              ? customSites
+              : defaultSites || [];
+          sitesForDownload.push(...sites);
+        });
+      }
 
-    const request: DataDownloadRequest = {
-      datatype: dataType as 'calibrated' | 'raw',
-      downloadType: fileType as 'csv' | 'json',
-      startDateTime: dateRange.from.toISOString(),
-      endDateTime: dateRange.to.toISOString(),
-      frequency: frequency as 'daily',
-      minimum: true,
-      metaDataFields: ['latitude', 'longitude'],
-      weatherFields: ['temperature', 'humidity'],
-      outputFormat: 'airqo-standard',
-      pollutants: selectedPollutants,
-      device_category:
-        activeTab === 'countries' || activeTab === 'cities'
-          ? 'lowcost'
-          : deviceCategory,
-      ...(activeTab === 'sites' && { sites: selectedSites }),
-      ...(activeTab === 'devices' && { device_names: selectedDevices }),
-      ...((activeTab === 'countries' || activeTab === 'cities') && {
-        sites: sitesForDownload,
-      }),
-    };
+      const request: DataDownloadRequest = {
+        datatype: dataType as 'calibrated' | 'raw',
+        downloadType: fileType as 'csv' | 'json',
+        startDateTime: dateRange.from.toISOString(),
+        endDateTime: dateRange.to.toISOString(),
+        frequency: frequency as 'daily',
+        minimum: true,
+        metaDataFields: ['latitude', 'longitude'],
+        weatherFields: ['temperature', 'humidity'],
+        outputFormat: 'airqo-standard',
+        pollutants: selectedPollutants,
+        device_category:
+          activeTab === 'countries' || activeTab === 'cities'
+            ? 'lowcost'
+            : deviceCategory,
+        ...(activeTab === 'sites' && { sites: selectedSites }),
+        ...(activeTab === 'devices' && { device_names: selectedDevices }),
+        ...((activeTab === 'countries' || activeTab === 'cities') && {
+          sites: sitesForDownload,
+        }),
+      };
 
-    try {
-      await downloadData(request, fileTitle || undefined);
-      toast.success(
-        'Download Started',
-        'Your data export has been initiated successfully.'
-      );
-    } catch (error) {
-      console.error('Download failed:', error);
-      const errorMessage = getUserFriendlyErrorMessage(error);
-      toast.error('Download Failed', errorMessage);
-    }
-  }, [
-    dateRange,
-    activeTab,
-    selectedSites,
-    selectedDevices,
-    selectedSiteIds,
-    selectedDeviceIds,
-    selectedGridIds,
-    selectedGridSites,
-    selectedPollutants,
-    dataType,
-    fileType,
-    frequency,
-    deviceCategory,
-    fileTitle,
-    downloadData,
-  ]);
+      try {
+        await downloadData(request, fileTitle || undefined);
+        toast.success(
+          'Download Started',
+          'Your data export has been initiated successfully.'
+        );
+      } catch (error) {
+        console.error('Download failed:', error);
+        const errorMessage = getUserFriendlyErrorMessage(error);
+        toast.error('Download Failed', errorMessage);
+      }
+    },
+    [
+      dateRange,
+      activeTab,
+      selectedSites,
+      selectedDevices,
+      selectedSiteIds,
+      selectedDeviceIds,
+      selectedGridIds,
+      selectedGridSites,
+      selectedGridSiteIds,
+      selectedPollutants,
+      dataType,
+      fileType,
+      frequency,
+      deviceCategory,
+      fileTitle,
+      downloadData,
+    ]
+  );
 
   // Handle visualize data - open more insights dialog
   const handleVisualizeData = useCallback(() => {
