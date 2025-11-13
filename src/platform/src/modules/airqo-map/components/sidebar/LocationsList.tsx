@@ -70,7 +70,7 @@ export const LocationsList: React.FC<LocationsListProps> = ({
     if (isSearching && photonResults.length > 0) {
       // Convert Photon results to location format
       return photonResults.map((result, index) => ({
-        id: result.properties.osm_id 
+        id: result.properties.osm_id
           ? `photon-osm-${result.properties.osm_id}`
           : `photon-coord-${result.geometry.coordinates[0]}-${result.geometry.coordinates[1]}`,
         title: result.properties.name || 'Unknown Location',
