@@ -25,7 +25,7 @@ const OrganizationLoadingState = ({ organizationName }: { organizationName: stri
 
                 {/* Loading text */}
                 <p className="text-sm animate-pulse transition-colors duration-300 text-gray-600">
-                    Loading organization content...
+                    Setting up workspace...
                 </p>
             </div>
         </div>
