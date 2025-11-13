@@ -344,13 +344,31 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  loading?: boolean;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
+  loading = false,
 }) => {
+  if (loading) {
+    return (
+      <div className="px-6 py-1 border-t border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-[#1d1f20] rounded-b-lg shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-4">
+          <div className="flex items-center space-x-2">
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-24 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+            <div className="h-6 w-20 bg-gray-300 dark:bg-gray-700 rounded-md animate-pulse" />
+          </div>
+        </div>
+      </div>
+    )
+  }
+  
   const generatePageNumbers = useCallback((): (number | string)[] => {
     const pages: (number | string)[] = [];
     const maxVisible = 5;
@@ -1313,11 +1331,12 @@ const ReusableTable = <T extends TableItem>({
       </div>
 
       {/* Pagination */}
-      {!loading && showPagination && finalPaginatedData.length > 0 && (
+      {showPagination && (finalPaginatedData.length > 0 || loading) && (
         <Pagination
           currentPage={finalCurrentPage}
           totalPages={finalTotalPages}
           onPageChange={handlePageChange}
+          loading={loading}
         />
       )}
 

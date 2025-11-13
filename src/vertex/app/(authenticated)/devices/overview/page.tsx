@@ -27,7 +27,7 @@ export default function DevicesPage() {
         <div className="flex justify-between items-center mb-3">
           <div>
             <h1 className="text-2xl font-semibold">Devices</h1>
-            <p className="text-sm text-muted-foreground p-0">
+            <p className="text-sm text-muted-foreground">
               Manage and organize your devices.
             </p>
           </div>
