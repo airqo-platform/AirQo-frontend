@@ -54,7 +54,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
-  const queryKey = ["devices", activeNetwork?.net_name, activeGroup?.grp_title, { page, limit, search, sortBy, order }];
+  const queryKey = ["devices", activeNetwork?.net_name, activeGroup?.grp_title, { page, limit, search, sortBy, order }, groupCohortIds];
 
   const devicesQuery = useQuery<DevicesSummaryResponse, AxiosError<ErrorResponse>>({
     queryKey,
