@@ -41,28 +41,11 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
   const { userDetails: user, activeGroup, isInitialized, isContextLoading, userContext } = useAppSelector((state) => state.user);
 
-  logger.debug('[UserDataFetcher] Component rendered', {
-    sessionStatus: status,
-    hasSession: !!session,
-    hasUser: !!user,
-    userId: user?._id,
-    isInitialized,
-    isContextLoading,
-    userContext,
-    activeGroup: activeGroup?.grp_title,
-  });
-
   // Memoize userId to prevent unnecessary re-calculations
   const userId = useMemo(() => {
     const id = session?.user && 'id' in session.user
       ? (session.user as { id: string }).id
       : null;
-    logger.debug('[UserDataFetcher] userId calculated', {
-      userId: id,
-      hasSession: !!session,
-      hasSessionUser: !!session?.user,
-      sessionUserKeys: session?.user ? Object.keys(session.user) : [],
-    });
     return id;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user]);
@@ -71,37 +54,15 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const queryEnabled = !!userId && status === 'authenticated';
   
   // Fetch user details only when userId is available and stable
-  const { data, error, isLoading, isError, isSuccess, isFetching, isPending } = useQuery<UserDetailsResponse, Error>({
+  const { data, error, isLoading } = useQuery<UserDetailsResponse, Error>({
     queryKey: ['userDetails', userId],
     queryFn: () => {
-      logger.debug('[UserDataFetcher] Fetching user details API call started', { userId });
       return users.getUserDetails(userId!);
     },
     enabled: queryEnabled,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-
-  // Log query state changes
-  useEffect(() => {
-    logger.debug('[UserDataFetcher] Query state changed', {
-      isLoading,
-      isPending,
-      isFetching,
-      isError,
-      isSuccess,
-      hasData: !!data,
-      hasError: !!error,
-      userId,
-      status,
-      queryEnabled,
-      dataStructure: data ? {
-        hasUsers: !!data.users,
-        usersLength: data.users?.length,
-        success: data.success,
-      } : null,
-    });
-  }, [isLoading, isPending, isFetching, isError, isSuccess, data, error, userId, status, queryEnabled]);
 
   // Clear user data when userId changes (different user logged in)
   const prevUserIdRef = useRef(userId);
@@ -110,12 +71,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     prevUserIdRef.current = userId;
 
     if (userId !== prevUserId) {
-      logger.debug('[UserDataFetcher] userId changed', {
-        prevUserId,
-        newUserId: userId,
-      });
       if (userId) {
-        logger.debug('[UserDataFetcher] Clearing user data for new user');
         dispatch(logout());
         hasLoggedOutForNoGroupRef.current = false; // Reset for new user
       }
