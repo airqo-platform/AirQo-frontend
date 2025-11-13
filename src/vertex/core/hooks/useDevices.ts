@@ -118,28 +118,33 @@ export const useDeviceCount = (options: { enabled?: boolean } = {}) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const { enabled = true } = options;
+  const isAirQoGroup = activeGroup?.grp_title === "airqo";
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
-    enabled: !!activeGroup?._id && enabled,
+    enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
   });
 
   const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["deviceCount", activeNetwork?.net_name, activeGroup?._id, groupCohortIds],
+    queryKey: ["deviceCount", activeNetwork?.net_name, activeGroup?._id, isAirQoGroup ? null : groupCohortIds],
     queryFn: () => {
+      if (isAirQoGroup) {
+        return devices.getDeviceCountApi({});
+      }
+
       if (!groupCohortIds || groupCohortIds.length === 0) {
         return Promise.reject(new Error("Cohort IDs must be provided."));
       }
       return devices.getDeviceCountApi({ cohort_id: groupCohortIds });
     },
-    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title && !!groupCohortIds && groupCohortIds.length > 0 && enabled,
+    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)) && enabled,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
   });
 
   return {
     ...query,
-    isLoading: query.isLoading || isLoadingCohorts,
-    isFetching: query.isFetching || isLoadingCohorts,
+    isLoading: query.isLoading || (!isAirQoGroup && isLoadingCohorts),
+    isFetching: query.isFetching || (!isAirQoGroup && isLoadingCohorts),
   };
 };
 
