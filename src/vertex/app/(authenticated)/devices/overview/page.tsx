@@ -24,10 +24,10 @@ export default function DevicesPage() {
   return (
     <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
       <div>
-        <div className="flex justify-between items-center mb-6">
-          <div className="space-y-1">
+        <div className="flex justify-between items-center mb-3">
+          <div>
             <h1 className="text-2xl font-semibold">Devices</h1>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground p-0">
               Manage and organize your devices.
             </p>
           </div>
