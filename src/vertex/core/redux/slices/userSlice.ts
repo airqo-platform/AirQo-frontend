@@ -34,6 +34,7 @@ interface UserState {
     switchingTo: string;
   };
   isContextLoading: boolean;
+  isLoggingOut: boolean;
 }
 
 const initialState: UserState = {
@@ -59,6 +60,7 @@ const initialState: UserState = {
     switchingTo: "",
   },
   isContextLoading: true,
+  isLoggingOut: false,
 };
 
 // Helper function to determine user context
@@ -207,6 +209,9 @@ const userSlice = createSlice({
     setContextLoading(state, action: PayloadAction<boolean>) {
       state.isContextLoading = action.payload;
     },
+    setLoggingOut(state, action: PayloadAction<boolean>) {
+      state.isLoggingOut = action.payload;
+    },
   },
 });
 
@@ -223,5 +228,6 @@ export const {
   clearForbiddenState,
   setOrganizationSwitching,
   setContextLoading,
+  setLoggingOut,
 } = userSlice.actions;
 export default userSlice.reducer;

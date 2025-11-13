@@ -19,7 +19,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAppSelector } from "@/core/redux/hooks";
-import { useAuth } from "@/core/hooks/users";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Tooltip,
@@ -31,6 +30,7 @@ import { useRouter } from "next/navigation";
 import OrganizationPicker from "../features/org-picker/organization-picker";
 import Image from "next/image";
 import Card from "../shared/card/CardWrapper";
+import { useLogout } from "@/core/hooks/useLogout";
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -41,7 +41,7 @@ const AirqoLogoRaw = "/images/airqo_logo.svg";
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
   const currentUser = useAppSelector((state) => state.user.userDetails);
-  const { logout } = useAuth();
+  const logout = useLogout();
   const router = useRouter();
 
   useEffect(() => {

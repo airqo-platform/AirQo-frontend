@@ -495,6 +495,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] = useState(false);
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
   const queryClient = useQueryClient();
+  const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
@@ -526,6 +527,8 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     if (isAuthRoute) return;
 
     if (hasHandledUnauthorized) return;
+
+    if (isLoggingOut) return;
 
     try {
       await update();
@@ -581,7 +584,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       setHasHandledUnauthorized(true);
       handleLogout();
     }
-  }, [handleLogout, update, isAuthRoute, hasHandledUnauthorized]);
+  }, [handleLogout, update, isAuthRoute, hasHandledUnauthorized, isLoggingOut]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -618,13 +621,14 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       status === 'unauthenticated' &&
       !isAuthRoute &&
       !hasLoggedOutForExpiration &&
-      !hasHandledUnauthorized
+      !hasHandledUnauthorized &&
+      !isLoggingOut
     ) {
       logger.warn('Status unauthenticated on protected route, logging out');
       setHasLoggedOutForExpiration(true);
       handleLogout();
     }
-  }, [status, isAuthRoute, handleLogout, hasLoggedOutForExpiration, hasHandledUnauthorized]);
+  }, [status, isAuthRoute, handleLogout, hasLoggedOutForExpiration, hasHandledUnauthorized, isLoggingOut]);
 
   if (status === 'loading') {
     logger.debug('[AuthWrapper] Session status is loading, showing loading state');
