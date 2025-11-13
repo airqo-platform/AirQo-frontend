@@ -67,28 +67,17 @@ const OrganizationPicker: React.FC = () => {
     }
 
     try {
-      // Clear queries first
       await queryClient.cancelQueries();
-      queryClient.clear();
+      await queryClient.invalidateQueries();
 
-      // Set the new context/group BEFORE navigation
-      // This ensures localStorage is set before UserDataFetcher processes data
       if (group === "private") {
-        // For personal/private mode, set activeGroup to null
-        // This allows the user to access their personal data without an organization
-        localStorage.removeItem("activeGroup");
-        localStorage.removeItem("activeNetwork");
-        localStorage.setItem("userContext", "personal");
         dispatch(setActiveGroup(null));
         dispatch(setUserContext("personal"));
       } else {
-        localStorage.setItem("activeGroup", JSON.stringify(group));
         if (group.grp_title.toLowerCase() === "airqo") {
-          localStorage.setItem("userContext", "airqo-internal");
           dispatch(setActiveGroup(group));
           dispatch(setUserContext("airqo-internal"));
         } else {
-          localStorage.setItem("userContext", "external-org");
           dispatch(setActiveGroup(group));
           dispatch(setUserContext("external-org"));
         }

@@ -24,6 +24,7 @@ import { useDispatch } from "react-redux";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import logger from "@/lib/logger";
+import { useSelector } from "react-redux";
 
 interface ErrorResponse {
   message: string;
@@ -41,8 +42,8 @@ export interface DeviceListingOptions {
 }
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const activeNetwork = useSelector((state:any) => state.user.activeNetwork);
+  const activeGroup = useSelector((state:any) => state.user.activeGroup);
   const isAirQoGroup = activeGroup?.grp_title === "airqo";
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {

@@ -146,6 +146,7 @@ const userSlice = createSlice({
       if (!action.payload) {
         state.userContext = 'personal';
         state.canSwitchContext = false;
+        // When activeGroup is null, activeNetwork should also be null
         state.activeNetwork = null;
         state.currentRole = null;
         return;

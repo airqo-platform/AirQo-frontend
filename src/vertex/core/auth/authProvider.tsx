@@ -67,34 +67,31 @@ function filterGroupsAndNetworks(
 function determineInitialUserSetup(
   userInfo: UserDetails,
   filteredGroups: Group[],
-  filteredNetworks: Network[]
+  filteredNetworks: Network[],
+  userContext: 'personal' | 'airqo-internal' | 'external-org' | null,
+  activeGroup: Group | null,
 ): {
   defaultNetwork?: Network;
   defaultGroup?: Group;
   initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
 } {
   const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
-  const savedUserContext = localStorage.getItem('userContext') as 'personal' | 'airqo-internal' | 'external-org' | null;
-  const savedActiveGroup = localStorage.getItem('activeGroup');
-  const isManualPersonalMode = savedUserContext === 'personal' && !savedActiveGroup;
+
+  const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {
-    logger.debug('[UserDataFetcher] Respecting manual personal mode switch from localStorage');
-    return { initialUserContext: 'personal' };
+    logger.debug('[UserDataFetcher] Respecting manual personal mode switch from Redux state');
+    return { initialUserContext: 'personal' }; // No default group/network in personal mode
   }
 
   let defaultGroup: Group | undefined;
   let defaultNetwork: Network | undefined;
-
-  if (savedActiveGroup) {
-    try {
-      const parsedSavedGroup = JSON.parse(savedActiveGroup) as Group;
-      if (filteredGroups.some((g) => g._id === parsedSavedGroup._id)) {
-        defaultGroup = parsedSavedGroup;
-        logger.debug('[UserDataFetcher] Using saved activeGroup from localStorage', { groupTitle: defaultGroup.grp_title });
-      }
-    } catch (error) {
-      logger.debug('[UserDataFetcher] Failed to parse saved activeGroup', { error });
+  
+  if (activeGroup) { // Check if there's an active group from persisted Redux state
+    // Verify the persisted active group is still in the user's filtered groups
+    if (filteredGroups.some((g) => g._id === activeGroup._id)) {
+      defaultGroup = activeGroup;
+      logger.debug('[UserDataFetcher] Using saved activeGroup from Redux state', { groupTitle: defaultGroup.grp_title });
     }
   }
 
@@ -168,20 +165,17 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
   const { userDetails: user, activeGroup, activeNetwork, isInitialized, isContextLoading, userContext } = useAppSelector((state) => state.user);
-
-  // Memoize userId to prevent unnecessary re-calculations
+  
   const userId = useMemo(() => {
     const id = session?.user && 'id' in session.user
       ? (session.user as { id: string }).id
       : null;
-    return id;
+    return id; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user]);
 
-  // Determine if query should be enabled
   const queryEnabled = !!userId && status === 'authenticated';
   
-  // Fetch user details only when userId is available and stable
   const { data, error, isLoading } = useQuery<UserDetailsResponse, Error>({
     queryKey: ['userDetails', userId],
     queryFn: () => {
@@ -192,7 +186,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Clear user data when userId changes (different user logged in)
   const prevUserIdRef = useRef(userId);
   useEffect(() => {
     const prevUserId = prevUserIdRef.current;
@@ -201,7 +194,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     if (userId !== prevUserId) {
       if (userId) {
         dispatch(logout());
-        hasLoggedOutForNoGroupRef.current = false; // Reset for new user
+        hasLoggedOutForNoGroupRef.current = false;
       }
     }
   }, [userId, dispatch]);
@@ -278,7 +271,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
   }, [error, dispatch]);
 
-  // Handle successful data fetching
   useEffect(() => {
     const prevData = prevDataRef.current;
     prevDataRef.current = data;
@@ -302,13 +294,10 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    // 1. Filter groups and networks
     const { groups: filteredGroups, networks: filteredNetworks } = filterGroupsAndNetworks(userInfo);
 
-    // 2. Determine initial setup
-    const { defaultGroup, defaultNetwork, initialUserContext } = determineInitialUserSetup(userInfo, filteredGroups, filteredNetworks);
+    const { defaultGroup, defaultNetwork, initialUserContext } = determineInitialUserSetup(userInfo, filteredGroups, filteredNetworks, userContext, activeGroup);
 
-    // 3. Dispatch updates to Redux
     dispatch(setUserDetails(userInfo));
     dispatch(setUserGroups(filteredGroups));
     dispatch(setAvailableNetworks(filteredNetworks));
@@ -318,24 +307,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
     dispatch(setActiveGroup(defaultGroup || null));
     dispatch(setUserContext(initialUserContext));
-
-    // 4. Synchronize with localStorage
-    localStorage.setItem('userDetails', JSON.stringify(userInfo));
-    localStorage.setItem('userGroups', JSON.stringify(filteredGroups));
-    localStorage.setItem('availableNetworks', JSON.stringify(filteredNetworks));
-    localStorage.setItem('userContext', initialUserContext);
-
-    if (defaultGroup) {
-      localStorage.setItem('activeGroup', JSON.stringify(defaultGroup));
-    } else {
-      localStorage.removeItem('activeGroup');
-    }
-
-    if (defaultNetwork) {
-      localStorage.setItem('activeNetwork', JSON.stringify(defaultNetwork));
-    } else {
-      localStorage.removeItem('activeNetwork');
-    }
 
     logger.debug('[UserDataFetcher] User data processed successfully', {
       userId: userInfo._id,
@@ -350,7 +321,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     dispatch(setContextLoading(false));
   }, [data, dispatch, queryClient, isInitialized]);
 
-  // 5. Handle prefetching in a separate hook
   usePrefetchData(user, userContext, activeGroup, activeNetwork);
 
   const userGroups = useAppSelector((state) => state.user.userGroups);
@@ -382,8 +352,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         userGroupsCount: userGroups.length,
       });
       hasLoggedOutForNoGroupRef.current = true;
-      clearSessionData();
-      queryClient.clear();
       signOut({ callbackUrl: '/login' });
     } else if (user && !activeGroup && userGroups.length > 0 && !isLoading && isInitialized) {
       logger.warn('[UserDataFetcher] User has groups but no active group was set', {
@@ -397,7 +365,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         userGroupsCount: userGroups.length,
       });
     } else if (user && !activeGroup && userGroups.length === 0 && userContext === null && isInitialized && !isLoading) {
-      logger.debug('[UserDataFetcher] User has no groups but context is still being determined, waiting...', {
+      logger.debug('[UserDataFetcher] User has no groups but context is still being determined or not set, waiting...', {
         userContext,
         userGroupsCount: userGroups.length,
         isContextLoading,
@@ -422,14 +390,13 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const { activeGroup, isInitialized, isContextLoading, userDetails } = useAppSelector((state) => state.user);
-  const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] = useState(false);
+  const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] = useState(false); // This state is local to AuthWrapper
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
   const queryClient = useQueryClient();
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  // Log AuthWrapper state
   useEffect(() => {
     logger.debug('[AuthWrapper] Component state', {
       sessionStatus: status,
@@ -445,14 +412,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     });
   }, [status, session, pathname, isAuthRoute, activeGroup, isInitialized, isContextLoading, userDetails, hasLoggedOutForExpiration, hasHandledUnauthorized]);
 
-  // Logout function
   const handleLogout = useCallback(() => {
     clearSessionData();
     queryClient.clear();
     signOut({ callbackUrl: '/login' });
   }, [queryClient]);
 
-  // Listen for unauthorized events from API client
   const handleUnauthorized = useCallback(async () => {
     if (isAuthRoute) return;
 
@@ -589,7 +554,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
-interface AuthProviderProps {
+interface AuthProviderProps { // This interface is fine
   children: React.ReactNode;
   session?: ExtendedSession;
 }
