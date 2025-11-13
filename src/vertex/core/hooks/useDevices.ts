@@ -102,29 +102,45 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
   };
 };
 
-export const useMyDevices = (userId: string, organizationId?: string) => {
+export const useMyDevices = (userId: string, organizationId?: string, options: { enabled?: boolean } = {}) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const { enabled = true } = options;
 
   return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
     queryKey: ["myDevices", userId, organizationId || activeGroup?._id],
     queryFn: () => devices.getMyDevices(userId),
-    enabled: !!userId,
+    enabled: !!userId && enabled,
     staleTime: 60000, // 1 minute
   });
 };
 
-export const useDeviceCount = (params: { groupId?: string; cohortId?: string }) => {
-  const { groupId, cohortId } = params;
+export const useDeviceCount = (options: { enabled?: boolean } = {}) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const { enabled = true } = options;
 
-  return useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["deviceCount", activeNetwork?.net_name, groupId, cohortId],
-    queryFn: () => devices.getDeviceCountApi({ groupId, cohortId }),
-    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+  const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
+    enabled: !!activeGroup?._id && enabled,
+  });
+
+  const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["deviceCount", activeNetwork?.net_name, activeGroup?._id, groupCohortIds],
+    queryFn: () => {
+      if (!groupCohortIds || groupCohortIds.length === 0) {
+        return Promise.reject(new Error("Cohort IDs must be provided."));
+      }
+      return devices.getDeviceCountApi({ cohort_id: groupCohortIds });
+    },
+    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title && !!groupCohortIds && groupCohortIds.length > 0 && enabled,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
   });
+
+  return {
+    ...query,
+    isLoading: query.isLoading || isLoadingCohorts,
+    isFetching: query.isFetching || isLoadingCohorts,
+  };
 };
 
 export const useMapReadings = () => {

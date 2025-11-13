@@ -180,24 +180,32 @@ export const devices = {
     }
   },
   getDeviceCountApi: async (params: {
-    groupId?: string;
-    cohortId?: string;
+    cohort_id?: string[];
   }): Promise<DeviceCountResponse> => {
     try {
-      const { groupId, cohortId } = params;
-      const queryParams = new URLSearchParams();
+      const { cohort_id } = params;
 
-      if (groupId) {
-        queryParams.set("group_id", groupId);
-      } else if (cohortId) {
-        queryParams.set("cohort_id", cohortId);
+      if (cohort_id && cohort_id.length > 0) {
+        const response = await jwtApiClient.get<DeviceCountResponse>(
+          `/devices/summary/count?cohort_id=${cohort_id.join(",")}`,
+          { headers: { "X-Auth-Type": "JWT" } }
+        );
+        return response.data;
       }
 
-      const response = await jwtApiClient.get<DeviceCountResponse>(
-        `/devices/summary/count?${queryParams.toString()}`,
-        { headers: { "X-Auth-Type": "JWT" } }
-      );
-      return response.data;
+      // If no cohort_id is provided, return a default empty summary
+      return {
+        success: true,
+        message: "No cohort ID provided.",
+        summary: {
+          deployed: 0,
+          recalled: 0,
+          undeployed: 0,
+          online: 0,
+          offline: 0,
+          maintenance_overdue: 0,
+        },
+      };
     } catch (error) {
       throw error;
     }
