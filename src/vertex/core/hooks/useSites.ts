@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse } from "../apis/sites";
+import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AxiosError } from "axios";
@@ -23,30 +24,47 @@ export interface SiteListingOptions {
 export const useSites = (options: SiteListingOptions = {}) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const isAirQoGroup = activeGroup?.grp_title === "airqo";
+
+  const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
+    enabled: !isAirQoGroup && !!activeGroup?._id,
+  });
 
   const { page = 1, limit = 100, search, sortBy, order } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
-  const sitesQuery = useQuery<
-    SitesSummaryResponse,
-    AxiosError<ErrorResponse>
-  >({
+  const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
     queryKey: ["sites", activeNetwork?.net_name, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
-    queryFn: () => {
-      const params: GetSitesSummaryParams = {
-        network: activeNetwork?.net_name || "",
-        group: activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || ""),
+    queryFn: async () => {
+      if (isAirQoGroup) {
+        const params: GetSitesSummaryParams = {
+          network: activeNetwork?.net_name || "",
+          group: "",
+          limit: safeLimit,
+          skip,
+          ...(search && { search }),
+          ...(sortBy && { sortBy }),
+          ...(order && { order }),
+        };
+        return sites.getSitesSummary(params);
+      }
+
+      if (!groupCohortIds) {
+        throw new Error("Cohort IDs are not available yet.");
+      }
+
+      return sites.getSitesByCohorts({
+        cohort_ids: groupCohortIds,
         limit: safeLimit,
         skip,
         ...(search && { search }),
         ...(sortBy && { sortBy }),
         ...(order && { order }),
-      };
-      return sites.getSitesSummary(params);
+      });
     },
-    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
@@ -55,7 +73,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
     data: sitesQuery.data,
     sites: sitesQuery.data?.sites || [],
     meta: sitesQuery.data?.meta,
-    isLoading: sitesQuery.isLoading,
+    isLoading: sitesQuery.isLoading || isLoadingCohorts,
     isFetching: sitesQuery.isFetching,
     error: sitesQuery.error,
   };

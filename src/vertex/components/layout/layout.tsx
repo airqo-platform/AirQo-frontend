@@ -26,6 +26,7 @@ export default function Layout({ children }: LayoutProps) {
   const isInitialized = useAppSelector(state => state.user.isInitialized);
   const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
   const isContextLoading = useAppSelector(state => state.user.isContextLoading);
+  const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
   useEffect(() => {
     if (
@@ -52,7 +53,7 @@ export default function Layout({ children }: LayoutProps) {
     setIsSecondarySidebarCollapsed(!isSecondarySidebarCollapsed);
   };
 
-  if (!isInitialized || !isAuthenticated || isContextLoading) {
+  if (!isInitialized || !isAuthenticated || isContextLoading || isLoggingOut) {
     return (
       <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
         <SessionLoadingState />
