@@ -11,7 +11,6 @@ import {
 import { useDeviceDetails } from "@/core/hooks/useDevices";
 import React from "react";
 import moment from "moment";
-import { useUserContext } from "@/core/hooks/useUserContext";
 import {
   Tooltip,
   TooltipContent,
@@ -172,9 +171,8 @@ const DateTooltipWrapper: React.FC<{ dateString: string; label: string }> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <span
-                className={`font-medium underline decoration-dotted cursor-help inline-flex items-center gap-1 ${
-                  isFutureError ? "text-purple-600" : "text-red-500"
-                }`}
+                className={`font-medium underline decoration-dotted cursor-help inline-flex items-center gap-1 ${isFutureError ? "text-purple-600" : "text-red-500"
+                  }`}
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>{formattedDate.message}</span>
@@ -219,7 +217,6 @@ const DateTooltipWrapper: React.FC<{ dateString: string; label: string }> = ({
 
 const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
   const { data: deviceResponse, isLoading, error } = useDeviceDetails(deviceId);
-  const { isAirQoInternal } = useUserContext();
   const device = deviceResponse?.data;
 
   if (isLoading) {
@@ -237,141 +234,12 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
     );
   }
 
-  const lastUpdateCheck = device.onlineStatusAccuracy?.lastUpdate
-    ? formatDisplayDate(device.onlineStatusAccuracy.lastUpdate)
-    : null;
   const lastActiveCheck = device.lastActive
     ? formatDisplayDate(device.lastActive)
     : null;
 
-  const internalFutureDateError = lastUpdateCheck?.errorType === "future";
   const externalFutureDateError = lastActiveCheck?.errorType === "future";
 
-  // --- Internal User View ---
-  if (isAirQoInternal) {
-    const lastUpdate = device.onlineStatusAccuracy?.lastUpdate;
-    const successPercentage = device.onlineStatusAccuracy?.successPercentage ?? 0;
-    const detailedExplanation = getDetailedExplanation(device, lastUpdateCheck);
-
-    const transmissionColor = internalFutureDateError
-      ? "text-purple-700"
-      : device.rawOnlineStatus
-      ? "text-green-700"
-      : "text-gray-500";
-    const processedColor = internalFutureDateError
-      ? "text-purple-700"
-      : device.isOnline
-      ? "text-green-700"
-      : "text-yellow-600";
-
-    return (
-      <TooltipProvider>
-        <Card className="w-full rounded-lg overflow-hidden relative">
-          {/* --- Info Icon Tooltip --- */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground">
-                <Info className="w-4 h-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent className="max-w-xs" side="bottom">
-              <p className="text-sm font-medium mb-1">Status Explanation</p>
-              {internalFutureDateError ? (
-                <p className="text-xs">{detailedExplanation}</p>
-              ) : (
-                <>
-                  <p className="text-xs">
-                    This card shows two independent statuses:
-                  </p>
-                  <ul className="list-disc pl-4 text-xs space-y-1 mt-1">
-                    <li>
-                      <strong>Data Transmission:</strong> Whether the device is
-                      sending raw data.
-                    </li>
-                    <li>
-                      <strong>Processed Data:</strong> Whether calibrated data is
-                      ready for use.
-                    </li>
-                  </ul>
-                  <p className="text-xs mt-2">
-                    <strong>Current State:</strong> {detailedExplanation}
-                  </p>
-                </>
-              )}
-            </TooltipContent>
-          </Tooltip>
-          {/* --- End Info Icon --- */}
-
-          <div className="flex flex-col pt-6 px-6 pb-4 space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground">
-              Device Status
-            </h4>
-
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Data Transmission</span>
-              <span
-                className={`flex items-center gap-1.5 font-medium ${transmissionColor}`}
-              >
-                {internalFutureDateError ? (
-                  <AlertTriangle className="w-4 h-4" />
-                ) : device.rawOnlineStatus ? (
-                  <Upload className="w-4 h-4" />
-                ) : (
-                  <XCircle className="w-4 h-4" />
-                )}
-                {internalFutureDateError
-                  ? "Invalid Device Status"
-                  : device.rawOnlineStatus
-                  ? "Transmitting"
-                  : "Not Transmitting"}
-              </span>
-            </div>
-
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Processed Data</span>
-              <span
-                className={`flex items-center gap-1.5 font-medium ${processedColor}`}
-              >
-                {internalFutureDateError ? (
-                  <AlertTriangle className="w-4 h-4" />
-                ) : device.isOnline ? (
-                  <Database className="w-4 h-4" />
-                ) : (
-                  <AlertTriangle className="w-4 h-4" />
-                )}
-                {internalFutureDateError
-                  ? "Invalid Device Status"
-                  : device.isOnline
-                  ? "Data Ready"
-                  : "Processing/No Data"}
-              </span>
-            </div>
-          </div>
-
-          <div className="border-t py-2 px-2">
-            <div className="space-y-1">
-              <div className="flex items-center justify-center text-xs text-muted-foreground gap-1">
-                Accuracy Score is
-                <span>{successPercentage}%</span>
-              </div>
-              {lastUpdate ? (
-                <DateTooltipWrapper
-                  dateString={lastUpdate}
-                  label="Last updated"
-                />
-              ) : (
-                <div className="flex items-center justify-center text-xs text-muted-foreground gap-1">
-                  <span>Last updated: N/A</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-      </TooltipProvider>
-    );
-  }
-
-  // --- External/Personal User View ---
   let status: PrimaryStatus;
   let colors;
   const detailedExplanation = getDetailedExplanation(device, lastActiveCheck);
