@@ -90,11 +90,27 @@ export interface Device {
   site_name?: string; // Optional site name for display purposes
   [key: string]: unknown;
   onlineStatusAccuracy?: {
-    successPercentage: number;
-    failurePercentage: number;
-    lastUpdate: string;
+    accuracyPercentage?: number;
+    correctChecks?: number;
+    failurePercentage?: number;
+    lastCheck?: string;
+    lastCorrectCheck?: string;
+    lastSuccessfulUpdate?: string;
+    lastUpdate?: string;
+    successPercentage?: number;
+    successfulUpdates?: number;
+    totalAttempts?: number;
+    totalChecks?: number;
+    failedUpdates?: number;
+    incorrectChecks?: number;
+    lastFailureReason?: string;
+    lastIncorrectCheck?: string;
+    lastIncorrectReason?: string;
   };
   api_code?: string;
+  lastActive?: string;
+  lastRawData?: string;
+  rawOnlineStatus?: boolean;
 }
 
 export interface PaginationMeta {
