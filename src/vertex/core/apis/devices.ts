@@ -57,44 +57,7 @@ export interface DeviceCountResponse {
 
 export interface DeviceDetailsResponse {
   message: string;
-  data: {
-    id: string;
-    name: string;
-    alias: string;
-    mobility: boolean;
-    network: string;
-    groups: string[];
-    serial_number: string;
-    authRequired: boolean;
-    long_name: string;
-    createdAt: string;
-    visibility?: boolean;
-    isPrimaryInLocation: boolean;
-    nextMaintenance: string;
-    device_number: number;
-    status: string;
-    isActive: boolean;
-    writeKey: string;
-    isOnline: boolean;
-    readKey: string;
-    pictures: unknown[];
-    height: number;
-    device_codes: string[];
-    category: string;
-    cohorts: unknown[];
-    description?: string;
-    phoneNumber?: string;
-    latitude?: string;
-    longitude?: string;
-    generation_version?: string;
-    generation_count?: string;
-    onlineStatusAccuracy?: {
-      successPercentage: number;
-      failurePercentage: number;
-      lastUpdate: string;
-    };
-    maintenance_status?: string;
-  };
+  data: Device;
 }
 
 // Response for device maintenance activities
