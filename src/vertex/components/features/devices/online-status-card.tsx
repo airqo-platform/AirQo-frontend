@@ -45,8 +45,42 @@ interface FormattedDate {
   errorType: "future" | "invalid" | null;
 }
 
+// --- NEW INTELLIGENT THRESHOLDS ---
+/**
+ * Raw data is "recent" if it's within 30 minutes.
+ * This determines if we are *actually* transmitting.
+ */
+const RAW_RECENCY_THRESHOLD_MINUTES = 30;
+
+/**
+ * Calibrated data is "recent" if it's within 120 minutes (2 hours).
+ * This determines if calibrated data is "Available" or "Stale".
+ */
+const CALIBRATED_RECENCY_THRESHOLD_MINUTES = 120;
+// --- END NEW ---
+
+/**
+ * Uses two different timestamps to intelligently determine
+ * the true state of the device.
+ */
 const getPrimaryStatus = (device: Device): PrimaryStatus => {
-  if (device.rawOnlineStatus && device.isOnline) {
+  // 1. Check timestamps as the source of truth
+  const isRawRecent =
+    device.lastRawData &&
+    moment(device.lastRawData).isAfter(
+      moment().subtract(RAW_RECENCY_THRESHOLD_MINUTES, "minutes")
+    );
+
+  const isCalibratedRecent =
+    device.lastActive &&
+    moment(device.lastActive).isAfter(
+      moment().subtract(CALIBRATED_RECENCY_THRESHOLD_MINUTES, "minutes")
+    );
+
+  // 2. Determine status based on timestamps
+
+  // 🟢 OPERATIONAL: Both raw and calibrated data are recent.
+  if (isRawRecent && isCalibratedRecent) {
     return {
       label: "Operational",
       color: "green",
@@ -54,7 +88,11 @@ const getPrimaryStatus = (device: Device): PrimaryStatus => {
       description: "Device transmitting • Data ready for use",
     };
   }
-  if (device.rawOnlineStatus && !device.isOnline) {
+
+  // 🔵 TRANSMITTING: Raw data is recent, but calibrated data is not.
+  // This is the "Processing" state.
+  // (e.g., raw: 28m old, calibrated: 3h old).
+  if (isRawRecent && !isCalibratedRecent) {
     return {
       label: "Transmitting",
       color: "blue",
@@ -62,7 +100,10 @@ const getPrimaryStatus = (device: Device): PrimaryStatus => {
       description: "Receiving data • Processing calibration...",
     };
   }
-  if (!device.rawOnlineStatus && device.isOnline) {
+
+  // 🟡 DATA AVAILABLE: Raw data is old, but calibrated data is still recent.
+  // (e.g., using cache, device just went offline).
+  if (!isRawRecent && isCalibratedRecent) {
     return {
       label: "Data Available",
       color: "yellow",
@@ -70,6 +111,20 @@ const getPrimaryStatus = (device: Device): PrimaryStatus => {
       description: "Using recent data • Not currently transmitting",
     };
   }
+
+  // 🔴 STALE DATA: Both raw and calibrated data are old,
+  // but we still have *some* calibrated data (device.isOnline: true)
+  if (!isRawRecent && !isCalibratedRecent && device.isOnline) {
+    return {
+      label: "Stale Data",
+      color: "red",
+      icon: AlertTriangle,
+      description: "Device data is outdated. Not transmitting.",
+    };
+  }
+
+  // GRAY NOT TRANSMITTING: Both are old, and no calibrated data.
+  // This is the default offline state.
   return {
     label: "Not Transmitting",
     color: "gray",
@@ -85,16 +140,22 @@ const getDetailedExplanation = (
   if (futureDateCheck?.errorType === "future") {
     return `This is a device-level issue. The device reported an invalid future date: ${futureDateCheck.message}. This is likely due to a clock or configuration error.`;
   }
-  if (device.rawOnlineStatus && device.isOnline) {
-    return "Operational: The device is actively transmitting raw data, and the calibrated, processed data is up-to-date and ready for use.";
+
+  const status = getPrimaryStatus(device);
+
+  switch (status.label) {
+    case "Operational":
+      return `Operational: The device is actively sending new raw data (within ${RAW_RECENCY_THRESHOLD_MINUTES} min) and its processed, calibrated data is also up-to-date (within ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} min).`;
+    case "Transmitting":
+      return `Transmitting: The device is sending new raw data (within ${RAW_RECENCY_THRESHOLD_MINUTES} min), but the final calibrated data is still processing or is older than ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} minutes. This is normal during data processing cycles.`;
+    case "Data Available":
+      return `Data Available: The device is not currently sending new raw data (older than ${RAW_RECENCY_THRESHOLD_MINUTES} min), but recently calibrated data (within ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} min) is still available for use.`;
+    case "Stale Data":
+      return `Stale Data: The device is not sending new raw data (older than ${RAW_RECENCY_THRESHOLD_MINUTES} min), and the available calibrated data is also outdated (older than ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} min). This may indicate a device or connectivity issue.`;
+    case "Not Transmitting":
+    default:
+      return "Not Transmitting: The device is not sending new raw data, and no recent calibrated data is available. The device appears to be offline.";
   }
-  if (device.rawOnlineStatus && !device.isOnline) {
-    return "Transmitting: The device is sending raw data, but the calibrated data is still processing. This is normal and data should be ready in 5-15 minutes.";
-  }
-  if (!device.rawOnlineStatus && device.isOnline) {
-    return "Data Available: The device is not currently transmitting raw data, but recent calibrated data is still available for use.";
-  }
-  return "Not Transmitting: The device is not sending raw data, and no recent calibrated data is available. The device appears to be offline.";
 };
 
 const formatDisplayDate = (dateString: string): FormattedDate => {
@@ -237,7 +298,6 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
   const lastActiveCheck = device.lastActive
     ? formatDisplayDate(device.lastActive)
     : null;
-
   const externalFutureDateError = lastActiveCheck?.errorType === "future";
 
   let status: PrimaryStatus;
@@ -297,7 +357,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
           {device.lastActive ? (
             <DateTooltipWrapper
               dateString={device.lastActive}
-              label="Last pushed data"
+              label="Last data"
             />
           ) : (
             <div className="flex items-center justify-center text-xs text-muted-foreground gap-1">

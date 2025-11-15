@@ -18,7 +18,7 @@ export type TableDevice = TableItem<unknown> & Device;
 /*
   Helper types and functions
 */
-type StatusLabel =
+type StatusLabelStrings =
   | "Operational"
   | "Transmitting"
   | "Data Available"
@@ -29,7 +29,7 @@ type StatusLabel =
 type StatusColor = "green" | "blue" | "yellow" | "gray" | "red" | "purple";
 
 interface PrimaryStatus {
-  label: StatusLabel;
+  label: StatusLabelStrings;
   color: StatusColor;
   icon: React.ElementType;
   description: string;
@@ -40,6 +40,20 @@ interface FormattedDate {
   isError: boolean;
   errorType: "future" | "invalid" | null;
 }
+
+// --- NEW INTELLIGENT THRESHOLDS ---
+/**
+ * Raw data is "recent" if it's within 30 minutes.
+ * This determines if we are *actually* transmitting.
+ */
+const RAW_RECENCY_THRESHOLD_MINUTES = 30;
+
+/**
+ * Calibrated data is "recent" if it's within 120 minutes (2 hours).
+ * This determines if calibrated data is "Available" or "Stale".
+ */
+const CALIBRATED_RECENCY_THRESHOLD_MINUTES = 120;
+// --- END NEW ---
 
 /**
  * Formats a date string, handling future date errors.
@@ -66,12 +80,14 @@ const formatDisplayDate = (dateString: string): FormattedDate => {
 };
 
 /**
- * Generates the primary status for Option B (End Users)
+ * Uses the intelligent timestamp-based logic, consistent
+ * with OnlineStatusCard.
  */
 const getPrimaryStatus = (
   device: Device,
   futureDateCheck?: FormattedDate | null
 ): PrimaryStatus => {
+  // 1. Handle future date error first. This is a special UI case.
   if (futureDateCheck?.errorType === "future") {
     return {
       label: "Invalid Date",
@@ -80,7 +96,24 @@ const getPrimaryStatus = (
       description: "Device reporting an invalid future date.",
     };
   }
-  if (device.rawOnlineStatus && device.isOnline) {
+
+  // 2. Check timestamps as the source of truth
+  const isRawRecent =
+    device.lastRawData &&
+    moment(device.lastRawData).isAfter(
+      moment().subtract(RAW_RECENCY_THRESHOLD_MINUTES, "minutes")
+    );
+
+  const isCalibratedRecent =
+    device.lastActive &&
+    moment(device.lastActive).isAfter(
+      moment().subtract(CALIBRATED_RECENCY_THRESHOLD_MINUTES, "minutes")
+    );
+
+  // 3. Determine status based on timestamps
+
+  // 🟢 OPERATIONAL: Both raw and calibrated data are recent.
+  if (isRawRecent && isCalibratedRecent) {
     return {
       label: "Operational",
       color: "green",
@@ -88,7 +121,9 @@ const getPrimaryStatus = (
       description: "Device transmitting • Data ready for use",
     };
   }
-  if (device.rawOnlineStatus && !device.isOnline) {
+
+  // 🔵 TRANSMITTING: Raw data is recent, but calibrated data is not.
+  if (isRawRecent && !isCalibratedRecent) {
     return {
       label: "Transmitting",
       color: "blue",
@@ -96,7 +131,9 @@ const getPrimaryStatus = (
       description: "Receiving data • Processing calibration...",
     };
   }
-  if (!device.rawOnlineStatus && device.isOnline) {
+
+  // 🟡 DATA AVAILABLE: Raw data is old, but calibrated data is still recent.
+  if (!isRawRecent && isCalibratedRecent) {
     return {
       label: "Data Available",
       color: "yellow",
@@ -104,6 +141,20 @@ const getPrimaryStatus = (
       description: "Using recent data • Not currently transmitting",
     };
   }
+
+  // 🔴 STALE DATA: Both are old, but we still have *some* calibrated data (device.isOnline: true)
+  // We check device.isOnline here as a fallback.
+  if (!isRawRecent && !isCalibratedRecent && device.isOnline) {
+    return {
+      label: "Stale Data",
+      color: "red",
+      icon: AlertTriangle,
+      description: "Device data is outdated. Not transmitting.",
+    };
+  }
+
+  // GRAY NOT TRANSMITTING: Both are old, and no calibrated data.
+  // This is the default offline state.
   return {
     label: "Not Transmitting",
     color: "gray",
