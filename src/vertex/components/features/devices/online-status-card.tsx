@@ -165,7 +165,7 @@ const formatDisplayDate = (dateString: string): FormattedDate => {
   }
   const now = moment();
   const formattedDate = date.format("D MMM YYYY, HH:mm A");
-  if (date.isAfter(now.add(5, "minutes"))) {
+  if (date.isAfter(moment(now).add(5, "minutes"))) {
     return {
       message: formattedDate,
       isError: true,
