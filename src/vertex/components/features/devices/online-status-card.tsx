@@ -429,7 +429,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
           {device.lastActive ? (
             <DateTooltipWrapper
               dateString={device.lastActive}
-              label="Last data"
+              label="Last pushed data"
             />
           ) : (
             <div className="flex items-center justify-center text-xs text-muted-foreground gap-1">
