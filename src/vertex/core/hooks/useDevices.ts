@@ -42,7 +42,7 @@ export interface DeviceListingOptions {
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-  const activeGroup = useAppSelector((state:any) => state.user.activeGroup);
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const isAirQoGroup = activeGroup?.grp_title === "airqo";
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
