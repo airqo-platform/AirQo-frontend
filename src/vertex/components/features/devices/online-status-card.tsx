@@ -325,7 +325,7 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
         {/* --- Info Icon Tooltip --- */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground">
+            <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" aria-label="View device status details">
               <Info className="w-4 h-4" />
             </button>
           </TooltipTrigger>
