@@ -65,17 +65,18 @@ const CALIBRATED_RECENCY_THRESHOLD_MINUTES = 120;
  */
 const getPrimaryStatus = (device: Device): PrimaryStatus => {
   // 1. Check timestamps as the source of truth
+  const rawDate = moment(device.lastRawData);
   const isRawRecent =
     device.lastRawData &&
-    moment(device.lastRawData).isAfter(
-      moment().subtract(RAW_RECENCY_THRESHOLD_MINUTES, "minutes")
-    );
+    rawDate.isValid() &&
+    rawDate.isAfter(moment().subtract(RAW_RECENCY_THRESHOLD_MINUTES, "minutes"));
 
+  const calibratedDate = moment(device.lastActive);
   const isCalibratedRecent =
     device.lastActive &&
-    moment(device.lastActive).isAfter(
-      moment().subtract(CALIBRATED_RECENCY_THRESHOLD_MINUTES, "minutes")
-    );
+    calibratedDate.isValid() &&
+    calibratedDate.isAfter(
+      moment().subtract(CALIBRATED_RECENCY_THRESHOLD_MINUTES, "minutes"));
 
   // 2. Determine status based on timestamps
 
