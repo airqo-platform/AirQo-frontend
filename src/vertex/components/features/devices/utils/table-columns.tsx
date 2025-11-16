@@ -23,7 +23,6 @@ type StatusLabelStrings =
   | "Transmitting"
   | "Data Available"
   | "Not Transmitting"
-  | "Stale Data"
   | "Invalid Date";
 
 type StatusColor = "green" | "blue" | "yellow" | "gray" | "red" | "purple";
@@ -41,20 +40,6 @@ interface FormattedDate {
   errorType: "future" | "invalid" | null;
 }
 
-// --- NEW INTELLIGENT THRESHOLDS ---
-/**
- * Raw data is "recent" if it's within 30 minutes.
- * This determines if we are *actually* transmitting.
- */
-const RAW_RECENCY_THRESHOLD_MINUTES = 30;
-
-/**
- * Calibrated data is "recent" if it's within 120 minutes (2 hours).
- * This determines if calibrated data is "Available" or "Stale".
- */
-const CALIBRATED_RECENCY_THRESHOLD_MINUTES = 120;
-// --- END NEW ---
-
 /**
  * Formats a date string, handling future date errors.
  */
@@ -63,9 +48,9 @@ const formatDisplayDate = (dateString: string): FormattedDate => {
   if (!date.isValid()) {
     return { message: "Invalid date", isError: true, errorType: "invalid" };
   }
-  const now = moment();
+  const now = moment.utc();
   const formattedDate = date.format("D MMM YYYY, HH:mm A");
-  if (date.isAfter(now.add(5, "minutes"))) {
+  if (date.isAfter(moment.utc(now).add(5, "minutes"))) {
     return {
       message: formattedDate,
       isError: true,
@@ -79,10 +64,7 @@ const formatDisplayDate = (dateString: string): FormattedDate => {
   };
 };
 
-/**
- * Uses the intelligent timestamp-based logic, consistent
- * with OnlineStatusCard.
- */
+
 const getPrimaryStatus = (
   device: Device,
   futureDateCheck?: FormattedDate | null
@@ -97,23 +79,10 @@ const getPrimaryStatus = (
     };
   }
 
-  // 2. Check timestamps as the source of truth
-  const isRawRecent =
-    device.lastRawData &&
-    moment(device.lastRawData).isAfter(
-      moment().subtract(RAW_RECENCY_THRESHOLD_MINUTES, "minutes")
-    );
+  // 2. Determine status based on the boolean fields
 
-  const isCalibratedRecent =
-    device.lastActive &&
-    moment(device.lastActive).isAfter(
-      moment().subtract(CALIBRATED_RECENCY_THRESHOLD_MINUTES, "minutes")
-    );
-
-  // 3. Determine status based on timestamps
-
-  // 🟢 OPERATIONAL: Both raw and calibrated data are recent.
-  if (isRawRecent && isCalibratedRecent) {
+  // 🟢 OPERATIONAL: Best case: transmitting and data ready
+  if (device.rawOnlineStatus && device.isOnline) {
     return {
       label: "Operational",
       color: "green",
@@ -122,8 +91,8 @@ const getPrimaryStatus = (
     };
   }
 
-  // 🔵 TRANSMITTING: Raw data is recent, but calibrated data is not.
-  if (isRawRecent && !isCalibratedRecent) {
+  // 🔵 TRANSMITTING: Device transmitting but waiting for calibration
+  if (device.rawOnlineStatus && !device.isOnline) {
     return {
       label: "Transmitting",
       color: "blue",
@@ -132,8 +101,8 @@ const getPrimaryStatus = (
     };
   }
 
-  // 🟡 DATA AVAILABLE: Raw data is old, but calibrated data is still recent.
-  if (!isRawRecent && isCalibratedRecent) {
+  // 🟡 DATA AVAILABLE: Has recent calibrated data but not currently transmitting
+  if (!device.rawOnlineStatus && device.isOnline) {
     return {
       label: "Data Available",
       color: "yellow",
@@ -142,19 +111,8 @@ const getPrimaryStatus = (
     };
   }
 
-  // 🔴 STALE DATA: Both are old, but we still have *some* calibrated data (device.isOnline: true)
-  // We check device.isOnline here as a fallback.
-  if (!isRawRecent && !isCalibratedRecent && device.isOnline) {
-    return {
-      label: "Stale Data",
-      color: "red",
-      icon: AlertTriangle,
-      description: "Device data is outdated. Not transmitting.",
-    };
-  }
-
-  // GRAY NOT TRANSMITTING: Both are old, and no calibrated data.
-  // This is the default offline state.
+  // GRAY NOT TRANSMITTING: Not transmitting and no recent data.
+  // This is the default "else" case.
   return {
     label: "Not Transmitting",
     color: "gray",
@@ -247,8 +205,9 @@ export const getColumns = (
         };
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusClasses[value] || "bg-gray-100 text-gray-800"
-              }`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
+              statusClasses[value] || "bg-gray-100 text-gray-800"
+            }`}
           >
             {String(status || "").replace("_", " ")}
           </span>
