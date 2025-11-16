@@ -27,7 +27,6 @@ type StatusLabel =
   | "Transmitting"
   | "Data Available"
   | "Not Transmitting"
-  | "Stale Data"
   | "Invalid Device Status";
 
 type StatusColor = "green" | "blue" | "yellow" | "gray" | "red" | "purple";
@@ -45,43 +44,10 @@ interface FormattedDate {
   errorType: "future" | "invalid" | null;
 }
 
-// --- NEW INTELLIGENT THRESHOLDS ---
-/**
- * Raw data is "recent" if it's within 30 minutes.
- * This determines if we are *actually* transmitting.
- */
-const RAW_RECENCY_THRESHOLD_MINUTES = 30;
 
-/**
- * Calibrated data is "recent" if it's within 120 minutes (2 hours).
- * This determines if calibrated data is "Available" or "Stale".
- */
-const CALIBRATED_RECENCY_THRESHOLD_MINUTES = 120;
-// --- END NEW ---
-
-/**
- * Uses two different timestamps to intelligently determine
- * the true state of the device.
- */
 const getPrimaryStatus = (device: Device): PrimaryStatus => {
-  // 1. Check timestamps as the source of truth
-  const rawDate = moment(device.lastRawData);
-  const isRawRecent =
-    device.lastRawData &&
-    rawDate.isValid() &&
-    rawDate.isAfter(moment().subtract(RAW_RECENCY_THRESHOLD_MINUTES, "minutes"));
-
-  const calibratedDate = moment(device.lastActive);
-  const isCalibratedRecent =
-    device.lastActive &&
-    calibratedDate.isValid() &&
-    calibratedDate.isAfter(
-      moment().subtract(CALIBRATED_RECENCY_THRESHOLD_MINUTES, "minutes"));
-
-  // 2. Determine status based on timestamps
-
-  // 🟢 OPERATIONAL: Both raw and calibrated data are recent.
-  if (isRawRecent && isCalibratedRecent) {
+  // 🟢 Best case: transmitting and data ready
+  if (device.rawOnlineStatus && device.isOnline) {
     return {
       label: "Operational",
       color: "green",
@@ -90,10 +56,8 @@ const getPrimaryStatus = (device: Device): PrimaryStatus => {
     };
   }
 
-  // 🔵 TRANSMITTING: Raw data is recent, but calibrated data is not.
-  // This is the "Processing" state.
-  // (e.g., raw: 28m old, calibrated: 3h old).
-  if (isRawRecent && !isCalibratedRecent) {
+  // 🔵 Device transmitting but waiting for calibration
+  if (device.rawOnlineStatus && !device.isOnline) {
     return {
       label: "Transmitting",
       color: "blue",
@@ -102,9 +66,8 @@ const getPrimaryStatus = (device: Device): PrimaryStatus => {
     };
   }
 
-  // 🟡 DATA AVAILABLE: Raw data is old, but calibrated data is still recent.
-  // (e.g., using cache, device just went offline).
-  if (!isRawRecent && isCalibratedRecent) {
+  // 🟡 Has recent calibrated data but not currently transmitting
+  if (!device.rawOnlineStatus && device.isOnline) {
     return {
       label: "Data Available",
       color: "yellow",
@@ -113,19 +76,8 @@ const getPrimaryStatus = (device: Device): PrimaryStatus => {
     };
   }
 
-  // 🔴 STALE DATA: Both raw and calibrated data are old,
-  // but we still have *some* calibrated data (device.isOnline: true)
-  if (!isRawRecent && !isCalibratedRecent && device.isOnline) {
-    return {
-      label: "Stale Data",
-      color: "red",
-      icon: AlertTriangle,
-      description: "Device data is outdated. Not transmitting.",
-    };
-  }
-
-  // GRAY NOT TRANSMITTING: Both are old, and no calibrated data.
-  // This is the default offline state.
+  // 🔴 Not transmitting and no recent data
+  // This is the default "else" case
   return {
     label: "Not Transmitting",
     color: "gray",
@@ -146,16 +98,14 @@ const getDetailedExplanation = (
 
   switch (status.label) {
     case "Operational":
-      return `Operational: The device is actively sending new raw data (within ${RAW_RECENCY_THRESHOLD_MINUTES} min) and its processed, calibrated data is also up-to-date (within ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} min).`;
+      return `Operational: The device is marked as transmitting (rawOnlineStatus: true) and its processed, calibrated data is also ready (isOnline: true).`;
     case "Transmitting":
-      return `Transmitting: The device is sending new raw data (within ${RAW_RECENCY_THRESHOLD_MINUTES} min), but the final calibrated data is still processing or is older than ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} minutes. This is normal during data processing cycles.`;
+      return `Transmitting: The device is sending new raw data (rawOnlineStatus: true), but the final calibrated data is still processing (isOnline: false). This is normal during data processing cycles.`;
     case "Data Available":
-      return `Data Available: The device is not currently sending new raw data (older than ${RAW_RECENCY_THRESHOLD_MINUTES} min), but recently calibrated data (within ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} min) is still available for use.`;
-    case "Stale Data":
-      return `Stale Data: The device is not sending new raw data (older than ${RAW_RECENCY_THRESHOLD_MINUTES} min), and the available calibrated data is also outdated (older than ${CALIBRATED_RECENCY_THRESHOLD_MINUTES} min). This may indicate a device or connectivity issue.`;
+      return `Data Available: The device is not currently sending new raw data (rawOnlineStatus: false), but recently calibrated data (isOnline: true) is still available for use.`;
     case "Not Transmitting":
     default:
-      return "Not Transmitting: The device is not sending new raw data, and no recent calibrated data is available. The device appears to be offline.";
+      return "Not Transmitting: The device is not sending new raw data (rawOnlineStatus: false), and no recent calibrated data is available (isOnline: false). The device appears to be offline.";
   }
 };
 
@@ -164,9 +114,9 @@ const formatDisplayDate = (dateString: string): FormattedDate => {
   if (!date.isValid()) {
     return { message: "Invalid date", isError: true, errorType: "invalid" };
   }
-  const now = moment();
+  const now = moment.utc();
   const formattedDate = date.format("D MMM YYYY, HH:mm A");
-  if (date.isAfter(moment(now).add(5, "minutes"))) {
+  if (date.isAfter(moment.utc(now).add(5, "minutes"))) {
     return {
       message: formattedDate,
       isError: true,
@@ -189,7 +139,7 @@ const statusColorClasses = {
   blue: {
     bg: "bg-blue-600",
     text: "text-blue-700",
-    border: "border-blue-600",
+    border: "border-blue-6600",
   },
   yellow: {
     bg: "bg-yellow-500",
@@ -233,8 +183,9 @@ const DateTooltipWrapper: React.FC<{ dateString: string; label: string }> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <span
-                className={`font-medium underline decoration-dotted cursor-help inline-flex items-center gap-1 ${isFutureError ? "text-purple-600" : "text-red-500"
-                  }`}
+                className={`font-medium underline decoration-dotted cursor-help inline-flex items-center gap-1 ${
+                  isFutureError ? "text-purple-600" : "text-red-500"
+                }`}
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>{formattedDate.message}</span>
@@ -247,7 +198,9 @@ const DateTooltipWrapper: React.FC<{ dateString: string; label: string }> = ({
                   <p className="text-xs max-w-xs">
                     The device reported an invalid future date:
                     <br />
-                    <strong className="mt-1 block">{formattedDate.message}</strong>
+                    <strong className="mt-1 block">
+                      {formattedDate.message}
+                    </strong>
                     <br />
                     This is likely due to a clock or configuration error.
                   </p>
@@ -326,7 +279,11 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
         {/* --- Info Icon Tooltip --- */}
         <Tooltip>
           <TooltipTrigger asChild>
-            <button className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground" aria-label="View device status details" type="button">
+            <button
+              className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-foreground"
+              aria-label="View device status details"
+              type="button"
+            >
               <Info className="w-4 h-4" />
             </button>
           </TooltipTrigger>
