@@ -355,3 +355,94 @@ class SiteCategory {
 
   Map<String, dynamic> toJson() => _$SiteCategoryToJson(this);
 }
+
+// Historical API response models
+@JsonSerializable(explicitToJson: true)
+class HistoricalAirQualityResponse {
+  final bool? success;
+  final String? message;
+  final List<HistoricalMeasurement>? measurements;
+
+  HistoricalAirQualityResponse({
+    this.success,
+    this.message,
+    this.measurements,
+  });
+
+  factory HistoricalAirQualityResponse.fromJson(Map<String, dynamic> json) => 
+      _$HistoricalAirQualityResponseFromJson(json);
+
+  Map<String, dynamic> toJson() => _$HistoricalAirQualityResponseToJson(this);
+}
+
+@JsonSerializable(explicitToJson: true)
+class HistoricalMeasurement {
+  final String? device;
+  
+  @JsonKey(name: 'device_id')
+  final String? deviceId;
+  
+  @JsonKey(name: 'site_id')
+  final String? siteId;
+  
+  final String? time;
+  
+  @JsonKey(name: 'pm2_5')
+  final Pm25? pm25;
+  
+  final Pm10? pm10;
+  
+  final String? frequency;
+  
+  @JsonKey(name: 'siteDetails')
+  final SiteDetails? siteDetails;
+
+  HistoricalMeasurement({
+    this.device,
+    this.deviceId,
+    this.siteId,
+    this.time,
+    this.pm25,
+    this.pm10,
+    this.frequency,
+    this.siteDetails,
+  });
+
+  factory HistoricalMeasurement.fromJson(Map<String, dynamic> json) => 
+      _$HistoricalMeasurementFromJson(json);
+
+  Map<String, dynamic> toJson() => _$HistoricalMeasurementToJson(this);
+  
+  /// Convert to regular Measurement for compatibility with existing code
+  Measurement toMeasurement() {
+    return Measurement(
+      id: null,
+      siteId: siteId,
+      time: time,
+      pm25: pm25,
+      pm10: pm10,
+      siteDetails: siteDetails,
+      deviceId: deviceId,
+      frequency: frequency,
+      // These fields are not available in historical data
+      aqiCategory: _getAqiCategory(pm25?.value ?? 0.0),
+      aqiColor: _getAqiColor(pm25?.value ?? 0.0),
+    );
+  }
+  
+  String _getAqiCategory(double pm25) {
+    if (pm25 <= 12) return 'Good';
+    if (pm25 <= 35) return 'Moderate';
+    if (pm25 <= 55) return 'Unhealthy for Sensitive Groups';
+    if (pm25 <= 150) return 'Unhealthy';
+    return 'Very Unhealthy';
+  }
+  
+  String _getAqiColor(double pm25) {
+    if (pm25 <= 12) return '#00E400';
+    if (pm25 <= 35) return '#FFFF00';
+    if (pm25 <= 55) return '#FF7E00';
+    if (pm25 <= 150) return '#FF0000';
+    return '#8F3F97';
+  }
+}

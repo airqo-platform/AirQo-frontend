@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/profile/models/location_data_model.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/meta/utils/date_formatters.dart';
 

@@ -341,7 +341,7 @@ class ExposureOverviewCard extends StatelessWidget {
                       ),
                       if (todayExposure != null)
                         Text(
-                          '${todayExposure!.riskLevel.displayName} risk • ${_formatDuration(todayExposure!.totalOutdoorTime)} outdoors',
+                          '${todayExposure!.riskLevel.displayName} risk • ${_formatDuration(todayExposure!.totalOutdoorTime)} exposure time',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
                           ),

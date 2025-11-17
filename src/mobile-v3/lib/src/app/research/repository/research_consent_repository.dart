@@ -7,14 +7,14 @@ import 'package:loggy/loggy.dart';
 
 class ResearchConsentRepository extends BaseRepository with UiLoggy {
   static const String _consentBoxName = 'research_consent';
-  static const String _consentEndpoint = '/api/v2/users/research-consent';
+  static const String _consentEndpoint = '/api/v2/users/research/consent';
 
   Future<bool> saveConsent(ResearchConsent consent) async {
     try {
       await _cacheConsent(consent);
 
       try {
-        final consentData = consent.toJson();
+        final consentData = _formatConsentForAPI(consent);
         final apiResponse = await createPostRequest(
           path: _consentEndpoint,
           data: consentData,
@@ -93,13 +93,12 @@ class ResearchConsentRepository extends BaseRepository with UiLoggy {
       
       try {
         final withdrawalData = {
-          'userId': userId,
-          'reason': reason,
-          'withdrawnAt': DateTime.now().toIso8601String(),
+          'withdrawalReason': reason,
+          'confirmDeletion': true,
         };
 
-        final apiResponse = await createPostRequest(
-          path: '$_consentEndpoint/withdraw',
+        final apiResponse = await createDeleteRequest(
+          path: '$_consentEndpoint/$userId',
           data: withdrawalData,
         );
 
@@ -217,5 +216,30 @@ class ResearchConsentRepository extends BaseRepository with UiLoggy {
     } catch (e) {
       loggy.error('Error caching consent: $e');
     }
+  }
+
+  Map<String, dynamic> _formatConsentForAPI(ResearchConsent consent) {
+    final consentTypesForAPI = <String, String>{};
+    
+    consent.consentTypes.forEach((type, status) {
+      String statusString;
+      switch (status) {
+        case ConsentStatus.granted:
+          statusString = 'granted';
+          break;
+        case ConsentStatus.withdrawn:
+        case ConsentStatus.notProvided:
+          statusString = 'denied';
+          break;
+      }
+      
+      consentTypesForAPI[type.toString().split('.').last] = statusString;
+    });
+
+    return {
+      'consentTypes': consentTypesForAPI,
+      'consentVersion': 'v1.2',
+      'timestamp': consent.lastUpdated.toIso8601String(),
+    };
   }
 }

@@ -2,7 +2,7 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
-import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/profile/models/location_data_model.dart';
 
 /// Represents a data point combining location and air quality at a specific time
 class ExposureDataPoint extends Equatable {
@@ -17,6 +17,7 @@ class ExposureDataPoint extends Equatable {
   final String? aqiColor;
   final double? accuracy;
   final Duration? durationAtLocation;
+  final String? siteName;
 
   const ExposureDataPoint({
     required this.id,
@@ -30,6 +31,7 @@ class ExposureDataPoint extends Equatable {
     this.aqiColor,
     this.accuracy,
     this.durationAtLocation,
+    this.siteName,
   });
 
   @override
@@ -45,6 +47,7 @@ class ExposureDataPoint extends Equatable {
         aqiColor,
         accuracy,
         durationAtLocation,
+        siteName,
       ];
 
   /// Create from location data point and measurement
@@ -53,6 +56,17 @@ class ExposureDataPoint extends Equatable {
     required Measurement measurement,
     Duration? duration,
   }) {
+    // Get the best available site name
+    String? siteName;
+    if (measurement.siteDetails != null) {
+      siteName = measurement.siteDetails!.searchName ??
+                measurement.siteDetails!.locationName ?? 
+                measurement.siteDetails!.name ?? 
+                measurement.siteDetails!.district ??
+                measurement.siteDetails!.subCounty ??
+                measurement.siteDetails!.city;
+    }
+    
     return ExposureDataPoint(
       id: '${locationPoint.id}_${measurement.id ?? "unknown"}',
       timestamp: locationPoint.timestamp,
@@ -65,6 +79,7 @@ class ExposureDataPoint extends Equatable {
       aqiColor: measurement.aqiColor,
       accuracy: locationPoint.accuracy,
       durationAtLocation: duration,
+      siteName: siteName,
     );
   }
 
@@ -113,6 +128,7 @@ class ExposureDataPoint extends Equatable {
       if (aqiColor != null) 'aqiColor': aqiColor,
       if (accuracy != null) 'accuracy': accuracy,
       if (durationAtLocation != null) 'durationAtLocation': durationAtLocation!.inSeconds,
+      if (siteName != null) 'siteName': siteName,
     };
   }
 
@@ -131,6 +147,7 @@ class ExposureDataPoint extends Equatable {
       durationAtLocation: json['durationAtLocation'] != null
           ? Duration(seconds: json['durationAtLocation'])
           : null,
+      siteName: json['siteName'],
     );
   }
 }
@@ -230,8 +247,8 @@ class DailyExposureSummary extends Equatable {
   ExposureRiskLevel get riskLevel {
     if (totalExposureScore >= 50) return ExposureRiskLevel.high;
     if (totalExposureScore >= 20) return ExposureRiskLevel.moderate;
-    if (totalExposureScore >= 5) return ExposureRiskLevel.low;
-    return ExposureRiskLevel.minimal;
+    // Merge minimal and low into single "low" category (0-19 score range)
+    return ExposureRiskLevel.low;
   }
 
   Map<String, dynamic> toJson() {

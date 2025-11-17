@@ -4,7 +4,10 @@ import 'package:loggy/loggy.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/profile/models/location_data_model.dart';
+import 'package:airqo/src/app/profile/repository/privacy_repository.dart';
 import 'package:airqo/src/app/dashboard/services/enhanced_location_service_manager.dart';
+import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 
 class ExposureCalculator with UiLoggy {
@@ -14,8 +17,9 @@ class ExposureCalculator with UiLoggy {
 
   static const String _exposureDataBoxName = 'exposure_data';
   static const String _dailySummariesKey = 'daily_summaries';
-  static const Duration _locationProximityThreshold = Duration(minutes: 10);
-  static const double _proximityRadiusMeters = 1000; // 1km radius for AQ matching
+  static const Duration _locationProximityThreshold = Duration(hours: 2);
+  
+  final PrivacyRepository _privacyRepository = PrivacyRepository();
 
   /// Calculate exposure data points from location history and air quality data
   Future<List<ExposureDataPoint>> calculateExposurePoints({
@@ -151,19 +155,208 @@ class ExposureCalculator with UiLoggy {
     }
   }
 
-  /// Get exposure statistics for today
+  /// Get exposure statistics for today using simplified sensor-based approach
   Future<DailyExposureSummary?> getTodayExposure() async {
-    final today = DateTime.now();
-    final startOfDay = DateTime(today.year, today.month, today.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
+    try {
+      loggy.info('Getting today\'s exposure using simplified sensor-based approach');
+      
+      // Use sensor-based approach instead of location tracking
+      return await _calculateTodayExposureFromSensors();
+    } catch (e) {
+      loggy.error('Error getting today\'s exposure: $e');
+      return null;
+    }
+  }
 
-    final summaries = await calculateDailySummaries(
-      startDate: startOfDay,
-      endDate: endOfDay,
-      useCache: false, // Always fresh for today
-    );
-
-    return summaries.isNotEmpty ? summaries.first : null;
+  /// Calculate today's exposure using historical data
+  Future<DailyExposureSummary?> _calculateTodayExposureFromSensors() async {
+    try {
+      final today = DateTime.now();
+      final todayStart = DateTime(today.year, today.month, today.day);
+      final todayEnd = today.isBefore(todayStart.add(Duration(days: 1))) 
+          ? today 
+          : todayStart.add(Duration(days: 1));
+      
+      loggy.info('Calculating today\'s exposure using historical data from ${todayStart.toIso8601String()} to ${todayEnd.toIso8601String()}');
+      
+      // Use the enhanced historical data approach
+      final historicalMeasurements = await _getAirQualityData(todayStart, todayEnd);
+      
+      if (historicalMeasurements.isEmpty) {
+        loggy.warning('No historical measurements found for today, falling back to sensor estimation');
+        return await _calculateTodayExposureFromSensorsFallback();
+      }
+      
+      // Generate exposure points from actual historical data
+      final exposurePoints = await _generateExposurePointsFromHistoricalData(
+        todayStart, 
+        historicalMeasurements,
+      );
+      
+      if (exposurePoints.isEmpty) {
+        return _generateEmptyExposureSummary(todayStart);
+      }
+      
+      return DailyExposureSummary.fromDataPoints(todayStart, exposurePoints);
+      
+    } catch (e) {
+      loggy.error('Error calculating historical-based exposure: $e');
+      // Fallback to original sensor-based approach
+      return await _calculateTodayExposureFromSensorsFallback();
+    }
+  }
+  
+  /// Fallback method using sensor estimation (original approach)
+  Future<DailyExposureSummary?> _calculateTodayExposureFromSensorsFallback() async {
+    try {
+      final locationService = EnhancedLocationServiceManager();
+      final locationResult = await locationService.getCurrentPosition();
+      
+      if (!locationResult.isSuccess || locationResult.position == null) {
+        loggy.warning('Could not get user location for sensor-based exposure calculation');
+        return null;
+      }
+      
+      final userPosition = locationResult.position!;
+      final nearbySensors = await _getNearbyAirQualitySensors(userPosition);
+      
+      if (nearbySensors.isEmpty) {
+        loggy.info('No nearby sensors found for exposure calculation');
+        return null;
+      }
+      
+      final today = DateTime.now();
+      final todayDate = DateTime(today.year, today.month, today.day);
+      
+      return _generateTodayExposureFromSensors(todayDate, nearbySensors, userPosition);
+      
+    } catch (e) {
+      loggy.error('Error in fallback sensor-based exposure: $e');
+      return null;
+    }
+  }
+  
+  /// Generate exposure points from historical measurements
+  Future<List<ExposureDataPoint>> _generateExposurePointsFromHistoricalData(
+    DateTime todayStart,
+    List<Measurement> historicalMeasurements,
+  ) async {
+    try {
+      // Get user location for exposure point generation
+      final locationService = EnhancedLocationServiceManager();
+      final locationResult = await locationService.getCurrentPosition();
+      
+      if (!locationResult.isSuccess || locationResult.position == null) {
+        loggy.warning('Could not get user location for exposure point generation');
+        return [];
+      }
+      
+      final userPosition = locationResult.position!;
+      
+      // Group measurements by hour and site
+      final measurementsByHour = <int, List<Measurement>>{};
+      
+      for (final measurement in historicalMeasurements) {
+        if (measurement.time == null || measurement.pm25?.value == null) continue;
+        
+        final measurementTime = DateTime.tryParse(measurement.time!);
+        if (measurementTime == null) continue;
+        
+        // Only include measurements from today
+        if (measurementTime.year == todayStart.year &&
+            measurementTime.month == todayStart.month &&
+            measurementTime.day == todayStart.day) {
+          
+          final hour = measurementTime.hour;
+          measurementsByHour.putIfAbsent(hour, () => []).add(measurement);
+        }
+      }
+      
+      // Generate exposure points for each hour with data
+      final exposurePoints = <ExposureDataPoint>[];
+      final now = DateTime.now();
+      
+      for (int hour = 0; hour < 24; hour++) {
+        final hourTime = todayStart.add(Duration(hours: hour));
+        
+        // Only generate points up to current time if it's today
+        if (hourTime.isAfter(now)) break;
+        
+        final hourMeasurements = measurementsByHour[hour] ?? [];
+        
+        if (hourMeasurements.isNotEmpty) {
+          // Use actual measurements for this hour
+          final avgPm25 = hourMeasurements
+              .where((m) => m.pm25?.value != null)
+              .map((m) => m.pm25!.value!)
+              .fold(0.0, (sum, value) => sum + value) / hourMeasurements.length;
+          
+          final closestMeasurement = _findClosestMeasurementToLocation(
+            hourMeasurements, 
+            userPosition,
+          );
+          
+          final exposurePoint = ExposureDataPoint(
+            id: 'historical_$hour',
+            timestamp: hourTime,
+            latitude: userPosition.latitude,
+            longitude: userPosition.longitude,
+            pm25Value: avgPm25,
+            pm10Value: avgPm25 * 1.4, // Estimate PM10 from PM2.5
+            aqiCategory: _getAqiCategory(avgPm25),
+            aqiColor: _getAqiColor(avgPm25),
+            accuracy: 100.0,
+            durationAtLocation: Duration(hours: 1),
+            siteName: closestMeasurement?.siteDetails?.searchName ?? 
+                     closestMeasurement?.siteDetails?.name,
+          );
+          
+          exposurePoints.add(exposurePoint);
+        }
+      }
+      
+      loggy.info('Generated ${exposurePoints.length} exposure points from historical data');
+      return exposurePoints;
+      
+    } catch (e) {
+      loggy.error('Error generating exposure points from historical data: $e');
+      return [];
+    }
+  }
+  
+  /// Find the measurement closest to user location
+  Measurement? _findClosestMeasurementToLocation(
+    List<Measurement> measurements,
+    Position userPosition,
+  ) {
+    if (measurements.isEmpty) return null;
+    
+    Measurement? closest;
+    double closestDistance = double.infinity;
+    
+    for (final measurement in measurements) {
+      final siteDetails = measurement.siteDetails;
+      if (siteDetails == null) continue;
+      
+      double? latitude = siteDetails.approximateLatitude ?? siteDetails.siteCategory?.latitude;
+      double? longitude = siteDetails.approximateLongitude ?? siteDetails.siteCategory?.longitude;
+      
+      if (latitude == null || longitude == null) continue;
+      
+      final distance = Geolocator.distanceBetween(
+        userPosition.latitude,
+        userPosition.longitude,
+        latitude,
+        longitude,
+      );
+      
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closest = measurement;
+      }
+    }
+    
+    return closest;
   }
 
   /// Get current week exposure trend
@@ -189,15 +382,12 @@ class ExposureCalculator with UiLoggy {
 
   Future<List<LocationDataPoint>> _getLocationHistory(DateTime startDate, DateTime endDate) async {
     try {
-      final locationService = EnhancedLocationServiceManager();
+      final response = await _privacyRepository.getLocationData(
+        startDate: startDate,
+        endDate: endDate,
+      );
       
-      // Filter location history by date range
-      final allHistory = locationService.locationHistory;
-      final filteredHistory = allHistory.where((point) {
-        return point.timestamp.isAfter(startDate) && point.timestamp.isBefore(endDate);
-      }).toList();
-
-      return filteredHistory;
+      return response.data;
     } catch (e) {
       loggy.error('Error getting location history: $e');
       return [];
@@ -206,16 +396,132 @@ class ExposureCalculator with UiLoggy {
 
   Future<List<Measurement>> _getAirQualityData(DateTime startDate, DateTime endDate) async {
     try {
-      // This would typically come from the air quality repository
-      // For now, we'll try to get cached data or return empty list
+      final dashboardRepository = DashboardImpl();
       
-      // TODO: Implement proper air quality data retrieval based on the existing repository
-      // The AirQualityRepository would need to be extended to support date range queries
+      // Get nearby sites from current readings first
+      final nearbySites = await _getNearbyAirQualitySites();
+      if (nearbySites.isEmpty) {
+        loggy.warning('No nearby sites found for historical data');
+        return [];
+      }
       
-      loggy.warning('Air quality data retrieval not fully implemented - using mock data');
+      // Fetch historical data for each nearby site
+      final allHistoricalMeasurements = <Measurement>[];
+      
+      for (final siteId in nearbySites) {
+        try {
+          final historicalResponse = await dashboardRepository.fetchHistoricalReadings(
+            siteId: siteId,
+            startTime: startDate,
+            endTime: endDate,
+          );
+          
+          if (historicalResponse.measurements != null) {
+            // Convert historical measurements to regular measurements
+            final measurements = historicalResponse.measurements!
+                .map((hm) => hm.toMeasurement())
+                .toList();
+            allHistoricalMeasurements.addAll(measurements);
+          }
+        } catch (e) {
+          loggy.warning('Failed to fetch historical data for site $siteId: $e');
+          // Continue with other sites
+        }
+      }
+      
+      loggy.info('Retrieved ${allHistoricalMeasurements.length} historical air quality measurements from ${nearbySites.length} sites');
+      
+      // If no historical data retrieved (e.g., due to rate limiting), return empty
+      // This will show partial data based on available measurements only
+      if (allHistoricalMeasurements.isEmpty) {
+        loggy.warning('No historical measurements retrieved due to rate limiting');
+        return [];
+      }
+      
+      return allHistoricalMeasurements;
+      
+    } catch (e) {
+      loggy.error('Error getting historical air quality data: $e');
+      // Fallback to current approach if historical data fails
+      return await _getFallbackAirQualityData(startDate, endDate);
+    }
+  }
+  
+  /// Fallback method using current readings (original approach)
+  Future<List<Measurement>> _getFallbackAirQualityData(DateTime startDate, DateTime endDate) async {
+    try {
+      final DashboardImpl dashboardRepository = DashboardImpl();
+      final AirQualityResponse response = await dashboardRepository.fetchAirQualityReadings(forceRefresh: false);
+      
+      if (response.measurements != null && response.measurements!.isNotEmpty) {
+        final filteredMeasurements = response.measurements!.where((measurement) {
+          if (measurement.time == null) return false;
+          final measurementTime = DateTime.tryParse(measurement.time!);
+          if (measurementTime == null) return false;
+          return measurementTime.isAfter(startDate) && measurementTime.isBefore(endDate);
+        }).toList();
+        
+        loggy.info('Using fallback: Retrieved ${filteredMeasurements.length} recent measurements');
+        return filteredMeasurements;
+      }
       return [];
     } catch (e) {
-      loggy.error('Error getting air quality data: $e');
+      loggy.error('Error in fallback air quality data: $e');
+      return [];
+    }
+  }
+  
+  /// Get nearby site IDs for historical data fetching
+  Future<List<String>> _getNearbyAirQualitySites() async {
+    try {
+      // Get user's current location
+      final locationService = EnhancedLocationServiceManager();
+      final locationResult = await locationService.getCurrentPosition();
+      
+      if (!locationResult.isSuccess || locationResult.position == null) {
+        loggy.warning('Could not get user location for finding nearby sites');
+        return [];
+      }
+      
+      final userPosition = locationResult.position!;
+      
+      // Get current readings to find nearby sites
+      final dashboardRepository = DashboardImpl();
+      final response = await dashboardRepository.fetchAirQualityReadings();
+      
+      if (response.measurements == null || response.measurements!.isEmpty) {
+        return [];
+      }
+      
+      const double maxDistanceKm = 10.0;
+      final nearbySiteIds = <String>{};
+      
+      for (final measurement in response.measurements!) {
+        final siteDetails = measurement.siteDetails;
+        if (siteDetails == null || measurement.siteId == null) continue;
+        
+        double? latitude = siteDetails.approximateLatitude ?? siteDetails.siteCategory?.latitude;
+        double? longitude = siteDetails.approximateLongitude ?? siteDetails.siteCategory?.longitude;
+        
+        if (latitude == null || longitude == null) continue;
+        
+        final distance = Geolocator.distanceBetween(
+          userPosition.latitude,
+          userPosition.longitude,
+          latitude,
+          longitude,
+        ) / 1000; // Convert to km
+        
+        if (distance <= maxDistanceKm) {
+          nearbySiteIds.add(measurement.siteId!);
+        }
+      }
+      
+      loggy.info('Found ${nearbySiteIds.length} nearby sites for historical data');
+      return nearbySiteIds.toList();
+      
+    } catch (e) {
+      loggy.error('Error getting nearby sites: $e');
       return [];
     }
   }
@@ -246,7 +552,6 @@ class ExposureCalculator with UiLoggy {
     if (airQualityData.isEmpty) return null;
 
     Measurement? closest;
-    double closestDistance = double.infinity;
     Duration closestTimeDiff = const Duration(days: 1);
 
     for (final measurement in airQualityData) {
@@ -255,17 +560,6 @@ class ExposureCalculator with UiLoggy {
           measurement.siteDetails?.approximateLongitude == null) {
         continue;
       }
-
-      // Calculate spatial distance
-      final distance = Geolocator.distanceBetween(
-        locationPoint.latitude,
-        locationPoint.longitude,
-        measurement.siteDetails!.approximateLatitude!,
-        measurement.siteDetails!.approximateLongitude!,
-      );
-
-      // Skip if too far away
-      if (distance > _proximityRadiusMeters) continue;
 
       // Calculate temporal distance
       final measurementTime = DateTime.tryParse(measurement.time ?? '');
@@ -276,16 +570,9 @@ class ExposureCalculator with UiLoggy {
       // Skip if measurement is too old
       if (timeDiff > _locationProximityThreshold) continue;
 
-      // Calculate combined score (prioritize temporal proximity)
-      final spatialScore = distance / _proximityRadiusMeters; // 0-1
-      final temporalScore = timeDiff.inMinutes / _locationProximityThreshold.inMinutes; // 0-1
-      final combinedScore = (temporalScore * 0.7) + (spatialScore * 0.3);
-
-      if (closest == null || combinedScore < 
-          ((closestTimeDiff.inMinutes / _locationProximityThreshold.inMinutes * 0.7) + 
-           (closestDistance / _proximityRadiusMeters * 0.3))) {
+      // Use temporal proximity only for closest measurement
+      if (closest == null || timeDiff < closestTimeDiff) {
         closest = measurement;
-        closestDistance = distance;
         closestTimeDiff = timeDiff;
       }
     }
@@ -360,5 +647,247 @@ class ExposureCalculator with UiLoggy {
     } catch (e) {
       loggy.error('Error caching daily summaries: $e');
     }
+  }
+
+  /// Get nearby air quality sensors (reusing logic from dashboard)
+  Future<List<Measurement>> _getNearbyAirQualitySensors(Position userPosition) async {
+    try {
+      final dashboardRepository = DashboardImpl();
+      final response = await dashboardRepository.fetchAirQualityReadings();
+      
+      if (response.measurements == null || response.measurements!.isEmpty) {
+        return [];
+      }
+      
+      const double maxDistanceKm = 10.0; // Same radius as Near You view
+      final nearbySensors = <Measurement>[];
+      
+      for (final measurement in response.measurements!) {
+        // Skip if no location data
+        final siteDetails = measurement.siteDetails;
+        if (siteDetails == null) continue;
+        
+        double? latitude = siteDetails.approximateLatitude ?? siteDetails.siteCategory?.latitude;
+        double? longitude = siteDetails.approximateLongitude ?? siteDetails.siteCategory?.longitude;
+        
+        if (latitude == null || longitude == null) continue;
+        
+        // Calculate distance from user
+        final distance = Geolocator.distanceBetween(
+          userPosition.latitude,
+          userPosition.longitude,
+          latitude,
+          longitude,
+        ) / 1000; // Convert to km
+        
+        // Only include nearby sensors
+        if (distance <= maxDistanceKm) {
+          nearbySensors.add(measurement);
+        }
+      }
+      
+      loggy.info('Found ${nearbySensors.length} nearby air quality sensors');
+      return nearbySensors;
+      
+    } catch (e) {
+      loggy.error('Error getting nearby air quality sensors: $e');
+      return [];
+    }
+  }
+
+  /// Generate today's exposure summary from sensor data
+  DailyExposureSummary _generateTodayExposureFromSensors(
+    DateTime todayDate,
+    List<Measurement> nearbySensors,
+    Position userPosition,
+  ) {
+    // Get the best available sensor readings
+    final validSensors = nearbySensors.where((s) => s.pm25?.value != null).toList();
+    
+    if (validSensors.isEmpty) {
+      return _generateEmptyExposureSummary(todayDate);
+    }
+    
+    // Calculate area air quality statistics
+    final pm25Values = validSensors.map((s) => s.pm25!.value!).toList();
+    final avgPm25 = pm25Values.reduce((a, b) => a + b) / pm25Values.length;
+    final maxPm25 = pm25Values.reduce((a, b) => a > b ? a : b);
+    
+    // Generate realistic hourly exposure points for today
+    final exposurePoints = _generateHourlyExposurePoints(
+      todayDate,
+      avgPm25,
+      maxPm25,
+      validSensors,
+      userPosition,
+    );
+    
+    return DailyExposureSummary.fromDataPoints(todayDate, exposurePoints);
+  }
+  
+  /// Generate empty exposure summary when no sensor data available
+  DailyExposureSummary _generateEmptyExposureSummary(DateTime date) {
+    return DailyExposureSummary(
+      date: date,
+      dataPoints: [],
+      totalExposureScore: 0.0,
+      totalOutdoorTime: Duration.zero,
+      timeByAqiCategory: {},
+      averagePm25: 0.0,
+      maxPm25: 0.0,
+      dominantAqiCategory: 'Unknown',
+    );
+  }
+
+  /// Generate hourly exposure points based on actual sensor timestamp data
+  List<ExposureDataPoint> _generateHourlyExposurePoints(
+    DateTime todayDate,
+    double avgPm25,
+    double maxPm25,
+    List<Measurement> sensors,
+    Position userPosition,
+  ) {
+    final exposurePoints = <ExposureDataPoint>[];
+    final now = DateTime.now();
+    
+    // Generate points for each hour from start of day to current time (24-hour continuous exposure)
+    final startOfDay = DateTime(todayDate.year, todayDate.month, todayDate.day, 0); // Midnight start
+    final currentTime = now.isBefore(startOfDay.add(Duration(hours: 24))) 
+        ? now 
+        : startOfDay.add(Duration(hours: 24)); // Full 24-hour day
+    
+    // Group sensor readings by hour based on their timestamps
+    final readingsByHour = _groupSensorReadingsByHour(sensors, todayDate);
+    
+    int hourCount = 0;
+    for (var time = startOfDay; time.isBefore(currentTime); time = time.add(Duration(hours: 1))) {
+      hourCount++;
+      
+      // Get actual PM2.5 reading for this hour or fall back to average
+      final hourPm25 = _getHourlyPm25FromReadings(time.hour, readingsByHour, avgPm25);
+      final aqiCategory = _getAqiCategory(hourPm25);
+      
+      // Each hour represents 1 hour of continuous exposure
+      final durationAtLocation = Duration(hours: 1);
+      
+      final exposurePoint = ExposureDataPoint(
+        id: 'sensor_based_${time.hour}',
+        timestamp: time,
+        latitude: userPosition.latitude + (hourCount * 0.0001), // Small variation
+        longitude: userPosition.longitude + (hourCount * 0.0001),
+        pm25Value: hourPm25,
+        pm10Value: hourPm25 * 1.4, // Estimate PM10 from PM2.5
+        aqiCategory: aqiCategory,
+        aqiColor: _getAqiColor(hourPm25),
+        accuracy: 100.0, // Area-based estimate
+        durationAtLocation: durationAtLocation,
+        siteName: _getNearestSensorName(sensors, userPosition),
+      );
+      
+      exposurePoints.add(exposurePoint);
+    }
+    
+    return exposurePoints;
+  }
+
+  /// Group sensor readings by hour based on their timestamps
+  Map<int, List<Measurement>> _groupSensorReadingsByHour(List<Measurement> sensors, DateTime targetDate) {
+    final readingsByHour = <int, List<Measurement>>{};
+    
+    for (final sensor in sensors) {
+      if (sensor.time == null || sensor.pm25?.value == null) continue;
+      
+      final readingTime = DateTime.tryParse(sensor.time!);
+      if (readingTime == null) continue;
+      
+      if (readingTime.year == targetDate.year && 
+          readingTime.month == targetDate.month && 
+          readingTime.day == targetDate.day) {
+        final hour = readingTime.hour;
+        readingsByHour.putIfAbsent(hour, () => []).add(sensor);
+      }
+    }
+    
+    return readingsByHour;
+  }
+
+  /// Get PM2.5 reading for specific hour from grouped readings
+  double _getHourlyPm25FromReadings(int hour, Map<int, List<Measurement>> readingsByHour, double fallbackAvg) {
+    final hourReadings = readingsByHour[hour];
+    
+    if (hourReadings == null || hourReadings.isEmpty) {
+      return fallbackAvg;
+    }
+    
+    final pm25Values = hourReadings
+        .where((r) => r.pm25?.value != null)
+        .map((r) => r.pm25!.value!)
+        .toList();
+    
+    if (pm25Values.isEmpty) {
+      return fallbackAvg;
+    }
+    
+    return pm25Values.reduce((a, b) => a + b) / pm25Values.length;
+  }
+
+
+  /// Get the name of the nearest sensor for location context
+  String? _getNearestSensorName(List<Measurement> sensors, Position userPosition) {
+    if (sensors.isEmpty) return null;
+    
+    Measurement? nearest;
+    double nearestDistance = double.infinity;
+    
+    for (final sensor in sensors) {
+      final siteDetails = sensor.siteDetails;
+      if (siteDetails == null) continue;
+      
+      double? latitude = siteDetails.approximateLatitude ?? siteDetails.siteCategory?.latitude;
+      double? longitude = siteDetails.approximateLongitude ?? siteDetails.siteCategory?.longitude;
+      
+      if (latitude == null || longitude == null) continue;
+      
+      final distance = Geolocator.distanceBetween(
+        userPosition.latitude,
+        userPosition.longitude,
+        latitude,
+        longitude,
+      );
+      
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = sensor;
+      }
+    }
+    
+    if (nearest?.siteDetails != null) {
+      return nearest!.siteDetails!.searchName ??
+             nearest.siteDetails!.locationName ?? 
+             nearest.siteDetails!.name ?? 
+             nearest.siteDetails!.district ??
+             nearest.siteDetails!.subCounty ??
+             nearest.siteDetails!.city;
+    }
+    
+    return null;
+  }
+
+  /// Helper method to get AQI category from PM2.5 value
+  String _getAqiCategory(double pm25) {
+    if (pm25 <= 12) return 'Good';
+    if (pm25 <= 35) return 'Moderate';
+    if (pm25 <= 55) return 'Unhealthy for Sensitive Groups';
+    if (pm25 <= 150) return 'Unhealthy';
+    return 'Very Unhealthy';
+  }
+  
+  /// Helper method to get AQI color from PM2.5 value
+  String _getAqiColor(double pm25) {
+    if (pm25 <= 12) return '#00E400';
+    if (pm25 <= 35) return '#FFFF00';
+    if (pm25 <= 55) return '#FF7E00';
+    if (pm25 <= 150) return '#FF0000';
+    return '#8F3F97';
   }
 }

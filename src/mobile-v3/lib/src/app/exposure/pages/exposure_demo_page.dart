@@ -239,7 +239,7 @@ class _ExposureDemoPageState extends State<ExposureDemoPage> {
               const SizedBox(height: 12),
               Text(
                 '📍 ${_todayExposure.dataPoints.length} locations visited\n'
-                '🚶 ${_todayExposure.totalOutdoorTime.inHours}h ${_todayExposure.totalOutdoorTime.inMinutes % 60}m outdoors\n'
+                '🚶 ${_todayExposure.totalOutdoorTime.inHours}h ${_todayExposure.totalOutdoorTime.inMinutes % 60}m exposure time\n'
                 '💨 Average PM2.5: ${_todayExposure.averagePm25.toStringAsFixed(1)} μg/m³\n'
                 '⚠️ Peak PM2.5: ${_todayExposure.maxPm25.toStringAsFixed(1)} μg/m³',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -614,7 +614,7 @@ class _ExposureDashboardDemoState extends State<_ExposureDashboardDemo> {
           const Color(0xFF8FE6A4),
         ),
         _buildStatCard(
-          'Total outdoor',
+          'Total exposure time',
           totalOutdoorHours.toString(),
           'hours',
           AppColors.primaryColor,
