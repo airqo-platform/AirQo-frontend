@@ -30,7 +30,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
-  activeModule: string;
   toggleSidebar: () => void;
 }
 
@@ -117,14 +116,16 @@ const NavItem = ({
 
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
-  activeModule,
   toggleSidebar,
 }) => {
   const { getSidebarConfig, getContextPermissions, isPersonalContext } =
     useUserContext();
+  const pathname = usePathname();
   const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
   const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
+
+  const activeModule = pathname.startsWith("/admin") ? "admin" : "network";
 
   return (
     <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
