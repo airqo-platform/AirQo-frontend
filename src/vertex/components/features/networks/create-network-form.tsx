@@ -4,13 +4,14 @@ import { useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import axios from "axios";
 import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableButton from "@/components/shared/button/ReusableButton";
-import { AqPlus } from "@airqo/icons-react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
-import { useCreateNetwork } from "@/core/hooks/useNetworks";
+import { AqPlus } from "@airqo/icons-react";
+import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 
 const networkFormSchema = z.object({
     net_name: z.string().min(2, "Network name must be at least 2 characters."),
@@ -29,10 +30,7 @@ type NetworkFormValues = z.infer<typeof networkFormSchema>;
 
 export function CreateNetworkForm() {
     const [open, setOpen] = useState(false);
-
-    const { mutate: createNetwork, isPending } = useCreateNetwork({
-        onSuccess: () => handleClose(),
-    });
+    const [isPending, setIsPending] = useState(false);
 
     const form = useForm<NetworkFormValues>({
         resolver: zodResolver(networkFormSchema),
@@ -56,18 +54,23 @@ export function CreateNetworkForm() {
     }, [form]);
 
     const onSubmit = useCallback(
-        (values: NetworkFormValues) => {
-            const admin_secret = process.env.NEXT_PUBLIC_ADMIN_SECRET || "";
-            if (!admin_secret) {
-                ReusableToast({
-                    message: "Admin secret is not configured.",
-                    type: "ERROR",
+        async (values: NetworkFormValues) => {
+            setIsPending(true);
+            try {
+                await axios.post('/api/network', values, {
+                    headers: { 'Content-Type': 'application/json' },
                 });
-                return;
+
+                ReusableToast({ message: 'Network created successfully!', type: 'SUCCESS' });
+                handleClose();
+            } catch (error: unknown) {
+                const errorMessage = getApiErrorMessage(error);
+                ReusableToast({ message: errorMessage, type: 'ERROR' });
+            } finally {
+                setIsPending(false);
             }
-            createNetwork({ ...values, admin_secret });
         },
-        [createNetwork]
+        [handleClose]
     );
 
     return (

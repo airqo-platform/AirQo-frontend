@@ -50,22 +50,19 @@ export default function CohortsPage() {
   const [showAssignToGroup, setShowAssignToGroup] = useState(false);
   const [selectedCohortIds, setSelectedCohortIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   const prefetchDevices = useCallback(() => {
-    const net = activeNetwork?.net_name || "";
     const grp = activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || "");
-    if (!net) return;
 
-    const params: GetDevicesSummaryParams = { network: net, group: grp };
+    const params: GetDevicesSummaryParams = { group: grp };
 
     return queryClient.prefetchQuery({
-      queryKey: ["devices", net, grp, { page: 1, limit: 100, search: '', sortBy: undefined, order: undefined }],
+      queryKey: ["devices", grp, { page: 1, limit: 100, search: '', sortBy: undefined, order: undefined }],
       queryFn: () => devicesApi.getDevicesSummaryApi(params),
       staleTime: 300_000,
     });
-  }, [queryClient, activeNetwork?.net_name, activeGroup?.grp_title]);
+  }, [queryClient, activeGroup?.grp_title]);
 
   useEffect(() => {
     prefetchDevices();
