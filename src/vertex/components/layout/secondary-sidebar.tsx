@@ -249,7 +249,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
               {activeModule === "admin" && (
                 <>
                   <NavItem
-                      href="/networks"
+                      href="/admin/networks"
                       icon={AqHomeSmile}
                       label="Networks"
                       isCollapsed={isCollapsed}

@@ -27,10 +27,6 @@ export default function NetworksPage() {
             isLoading={isFetching}
             error={error}
             itemsPerPage={25}
-            onNetworkClick={(network) => {
-              // Handle network click, e.g., navigate to network details page
-              console.log("Clicked on network:", network);
-            }}
           />
         </div>
       </div>

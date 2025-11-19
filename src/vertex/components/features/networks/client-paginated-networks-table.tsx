@@ -30,7 +30,7 @@ export default function ClientPaginatedNetworksTable({
   const handleNetworkClick = (item: unknown) => {
     const network = item as Network;
     if (onNetworkClick) onNetworkClick(network);
-    else if (network._id) router.push(`/networks/${network._id}`);
+    else if (network._id) router.push(`/admin/networks/${network._id}`);
   };
 
   const handleCopy = async (text: string, event: React.MouseEvent) => {
