@@ -22,7 +22,7 @@ import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 
 import { trackEvent } from '../GoogleAnalytics';
-import NotificationBanner from './NotificationBanner';
+// import NotificationBanner from './NotificationBanner';
 
 // Type definitions
 type MenuItem = {
@@ -184,7 +184,7 @@ const Navbar: React.FC = () => {
       animate={controls}
       className="w-full bg-white sticky top-0 left-0 z-50"
     >
-      <NotificationBanner />
+      {/* <NotificationBanner /> */}
       <nav className="w-full bg-white p-4">
         <div
           className={`flex items-center justify-between ${mainConfig.containerClass}`}
