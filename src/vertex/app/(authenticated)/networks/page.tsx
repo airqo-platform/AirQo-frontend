@@ -1,6 +1,7 @@
 "use client";
 
 import ClientPaginatedNetworksTable from "@/components/features/networks/client-paginated-networks-table";
+import { CreateNetworkForm } from "@/components/features/networks/create-network-form";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { useNetworks } from "@/core/hooks/useNetworks";
 
@@ -17,7 +18,7 @@ export default function NetworksPage() {
               Manage and organize your networks
             </p>
           </div>
-          {/* Add Create Network Button here if needed */}
+          <CreateNetworkForm />
         </div>
 
         <div>
