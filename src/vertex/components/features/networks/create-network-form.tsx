@@ -12,6 +12,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { AqPlus } from "@airqo/icons-react";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 
 const networkFormSchema = z.object({
     net_name: z.string().min(2, "Network name must be at least 2 characters."),
@@ -20,7 +21,9 @@ const networkFormSchema = z.object({
     net_email: z.string().email("Invalid email address."),
     net_website: z.string().url("Invalid URL."),
     net_phoneNumber: z.string().min(10, "Phone number seems too short."),
-    net_category: z.string().min(2, "Category is required."),
+    net_category: z.enum(["business", "research", "policy", "awareness", "school", "others"], {
+        errorMap: () => ({ message: "Please select a valid category" }),
+    }),
     net_description: z.string().min(10, "Description is too short."),
     net_connection_endpoint: z.string().url("Invalid URL."),
     net_connection_string: z.string().url("Invalid URL."),
@@ -108,7 +111,25 @@ export function CreateNetworkForm() {
                             <FormField control={form.control} name="net_email" render={({ field, fieldState }) => <ReusableInputField label="Email" type="email" placeholder="e.g. support@mairqo.net" error={fieldState.error?.message} required {...field} />} />
                             <FormField control={form.control} name="net_website" render={({ field, fieldState }) => <ReusableInputField label="Website" type="url" placeholder="e.g. https://www.mairqo.com" error={fieldState.error?.message} required {...field} />} />
                             <FormField control={form.control} name="net_phoneNumber" render={({ field, fieldState }) => <ReusableInputField label="Phone Number" placeholder="e.g. +25677123456789" error={fieldState.error?.message} required {...field} />} />
-                            <FormField control={form.control} name="net_category" render={({ field, fieldState }) => <ReusableInputField label="Category" placeholder="e.g. business" error={fieldState.error?.message} required {...field} />} />
+                            <FormField 
+                                control={form.control} 
+                                name="net_category" 
+                                render={({ field, fieldState }) => (
+                                    <ReusableSelectInput 
+                                        label="Category" 
+                                        error={fieldState.error?.message} 
+                                        required 
+                                        {...field}
+                                    >
+                                        <option value="business">Business</option>
+                                        <option value="research">Research</option>
+                                        <option value="policy">Policy</option>
+                                        <option value="awareness">Awareness</option>
+                                        <option value="school">School</option>
+                                        <option value="others">Others</option>
+                                    </ReusableSelectInput>
+                                )} 
+                            />
                             <FormField control={form.control} name="net_description" render={({ field, fieldState }) => <ReusableInputField label="Description" placeholder="Enter a brief description" error={fieldState.error?.message} required {...field} />} />
                             <FormField control={form.control} name="net_connection_endpoint" render={({ field, fieldState }) => <ReusableInputField label="Connection Endpoint" type="url" placeholder="e.g. https://device.mairqo.com/v2/" error={fieldState.error?.message} required {...field} />} />
                             <FormField control={form.control} name="net_connection_string" render={({ field, fieldState }) => <ReusableInputField label="Connection String" type="url" placeholder="e.g. https://device.mairqo.com/v2/" error={fieldState.error?.message} required {...field} />} />

@@ -17,7 +17,7 @@ async function getAuthToken(): Promise<string | null> {
     return null;
   }
 
-  const accessToken = (session as any)?.user?.accessToken;
+  const accessToken = (session as unknown as { user?: { accessToken?: string } })?.user?.accessToken;
 
   if (!accessToken) {
     logger.warn(`Session found but no accessToken in session.user. Session keys: ${Object.keys(session).join(', ')}`);
@@ -67,8 +67,9 @@ export async function POST(req: NextRequest) {
     logger.info(`Network created successfully - ID: ${apiResponse.data.created_network?._id}`);
 
     return NextResponse.json(apiResponse.data, { status: 200 });
-  } catch (error: any) {
-    logger.error(`API route error: ${error.message} - Stack: ${error.stack}`);
+  } catch (error: unknown) {
+    const err = error as Error;
+    logger.error(`API route error: ${err.message} - Stack: ${err.stack}`);
     
     if (axios.isAxiosError(error) && error.response) {
       logger.error(`Upstream API error - Status: ${error.response.status} ${error.response.statusText}, Data: ${JSON.stringify(error.response.data)}`);
