@@ -144,3 +144,106 @@ body {
 body {
   -ms-overflow-style: scrollbar;
 }
+
+/* GitHub Ribbon Styles */
+.github-ribbon {
+  position: fixed;
+  top: 0;
+  z-index: 9999;
+  pointer-events: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
+    sans-serif;
+}
+
+.github-ribbon.top-left {
+  left: 0;
+}
+
+.github-ribbon.top-right {
+  right: 0;
+}
+
+.github-ribbon-link {
+  display: inline-block;
+  padding: 8px 28px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  text-align: center;
+  color: #ffffff;
+  background: #0a84ff; /* AirQo primary blue */
+  border: 0;
+  pointer-events: auto;
+  transform-origin: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+  animation: slideInFromCorner 0.6s ease-out;
+}
+
+.github-ribbon.top-left .github-ribbon-link {
+  transform: translate(-35px, 25px) rotate(-45deg);
+}
+
+.github-ribbon.top-right .github-ribbon-link {
+  transform: translate(35px, 25px) rotate(45deg);
+}
+
+.github-ribbon-link:hover {
+  background: #0066cc;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.github-ribbon.top-left .github-ribbon-link:hover {
+  transform: translate(-35px, 25px) rotate(-45deg) scale(1.02);
+}
+
+.github-ribbon.top-right .github-ribbon-link:hover {
+  transform: translate(35px, 25px) rotate(45deg) scale(1.02);
+}
+
+.github-ribbon-link:focus {
+  outline: 2px solid #0a84ff;
+  outline-offset: 2px;
+}
+
+.github-ribbon.top-left .github-ribbon-link:active {
+  transform: translate(-35px, 25px) rotate(-45deg) scale(0.98);
+}
+
+.github-ribbon.top-right .github-ribbon-link:active {
+  transform: translate(35px, 25px) rotate(45deg) scale(0.98);
+}
+
+/* Responsive behavior - hide on mobile */
+@media (max-width: 768px) {
+  .github-ribbon {
+    display: none;
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .github-ribbon-link {
+    animation: none;
+  }
+
+  .github-ribbon-link,
+  .github-ribbon-link:hover,
+  .github-ribbon-link:active {
+    transition: none;
+  }
+}
+
+/* Animation on mount */
+@keyframes slideInFromCorner {
+  from {
+    opacity: 0;
+    transform: translate(-100px, -100px);
+  }
+
+  to {
+    opacity: 1;
+  }
+}
