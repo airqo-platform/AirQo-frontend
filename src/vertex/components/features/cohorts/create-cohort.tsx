@@ -9,8 +9,10 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { useDevices } from "@/core/hooks/useDevices";
 import { useCreateCohortWithDevices } from "@/core/hooks/useCohorts";
+import { useNetworks } from "@/core/hooks/useNetworks";
 import { useAppSelector } from "@/core/redux/hooks";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import {
   Form,
   FormControl,
@@ -34,6 +36,9 @@ const formSchema = z.object({
   name: z.string().min(2, {
     message: "Cohort name must be at least 2 characters.",
   }),
+  network: z.string().min(1, {
+    message: "Please select a network.",
+  }),
   devices: z.array(z.string()).min(1, {
     message: "Please select at least one device.",
   }),
@@ -51,11 +56,13 @@ export function CreateCohortDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
+      network: "",
       devices: preselectedDevices.map((d) => d.value),
     },
   });
 
   const { devices, isLoading, error } = useDevices();
+  const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const deviceOptions = useMemo(() => {
     const allDeviceOptions = (devices || []).map((d) => ({
@@ -70,16 +77,16 @@ export function CreateCohortDialog({
 
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const router = useRouter();
-  const network = activeNetwork?.net_name || "";
 
   useEffect(() => {
     if (open) {
       form.reset({
         name: "",
+        network: activeNetwork?.net_name || "",
         devices: preselectedDevices.map((d) => d.value),
       });
     }
-  }, [open, preselectedDevices, form]);
+  }, [open, preselectedDevices, activeNetwork, form]);
 
   const { mutate: createCohort, isPending } = useCreateCohortWithDevices();
 
@@ -90,7 +97,7 @@ export function CreateCohortDialog({
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     createCohort(
-      { name: values.name, network, deviceIds: values.devices },
+      { name: values.name, network: values.network, deviceIds: values.devices },
       {
         onSuccess: (response) => {
           onSuccess?.(response);
@@ -114,12 +121,11 @@ export function CreateCohortDialog({
       isOpen={open}
       onClose={handleCancel}
       title="Create Cohort"
-      subtitle={network ? `Network: ${network}` : "Network not selected"}
       size="lg"
       primaryAction={{
         label: isPending ? "Creating…" : "Submit",
         onClick: form.handleSubmit(onSubmit),
-        disabled: isPending || !network,
+        disabled: isPending || !form.watch("network"),
       }}
       secondaryAction={{
         label: "Cancel",
@@ -141,6 +147,28 @@ export function CreateCohortDialog({
                 {...field}
                 error={form.formState.errors.name?.message}
               />
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="network"
+            render={({ field }) => (
+              <ReusableSelectInput
+                label="Network"
+                id="network"
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                error={form.formState.errors.network?.message}
+                required
+                placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+                disabled={isLoadingNetworks}
+              >
+                {networks.map((network) => (
+                  <option key={network.net_name} value={network.net_name}>
+                    {network.net_name}
+                  </option>
+                ))}
+              </ReusableSelectInput>
             )}
           />
           <FormField
