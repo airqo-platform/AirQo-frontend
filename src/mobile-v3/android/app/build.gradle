@@ -52,6 +52,13 @@ if (googleMapApiKey == null) {
     throw new GradleException("Google Maps Key not found. Define either google.maps.key in key.properties or MAPS_API_KEY in secrets.properties")
 }
 
+def posthogApiKey = secretsProperties.getProperty('POSTHOG_API_KEY')
+if (posthogApiKey == null) {
+    throw new GradleException("PostHog API Key not found. Define POSTHOG_API_KEY in secrets.properties")
+}
+
+def posthogApiKeyDev = secretsProperties.getProperty('POSTHOG_API_KEY_DEV') ?: posthogApiKey
+
 def googleMapApiKeyDev = appProperties.getProperty('google.maps.key.dev') ?: secrets.getProperty('MAPS_API_KEY_DEV')
 if (googleMapApiKeyDev == null) {
     throw new GradleException("Google Maps Dev Key not found. Define either google.maps.key.dev in key.properties or MAPS_API_KEY_DEV in secrets.properties")
@@ -109,6 +116,7 @@ android {
             dimension "airqo"
             manifestPlaceholders = [
                 googleMapsKey:googleMapApiKey,
+                posthogApiKey: posthogApiKey
                 ]
         }
  
@@ -117,6 +125,7 @@ android {
             applicationIdSuffix ".dev"
             manifestPlaceholders = [
                 googleMapsKey:googleMapApiKeyDev,
+                posthogApiKey: posthogApiKeyDev
                 ]
         }
         

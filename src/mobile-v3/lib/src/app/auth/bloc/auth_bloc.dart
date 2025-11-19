@@ -1,5 +1,7 @@
 import 'package:airqo/src/app/auth/models/input_model.dart';
 import 'package:airqo/src/app/auth/repository/auth_repository.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/cupertino.dart';
@@ -23,7 +25,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<SessionExpired>(_onSessionExpired);
 
-    on<UseAsGuest>((event, emit) => emit(GuestUser()));
+    on<UseAsGuest>((event, emit) async {
+      await AnalyticsService().trackGuestModeAccessed();
+      emit(GuestUser());
+    });
 
     on<VerifyEmailCode>(_onVerifyEmailCode);
   }
@@ -34,6 +39,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final token = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
 
       if (token != null && token.isNotEmpty) {
+        // User is already logged in, identify them in analytics
+        final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+        if (userId != null) {
+          await AnalyticsService().setUserIdentity(userId: userId);
+        }
         emit(AuthLoaded(AuthPurpose.login));
       } else {
         emit(GuestUser());
@@ -50,13 +60,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await authRepository.loginWithEmailAndPassword(
         event.username, event.password);
 
+    await AnalyticsService().trackUserLoggedIn();
+
+    // Identify user in analytics
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    if (userId != null) {
+      await AnalyticsService().setUserIdentity(
+        userId: userId,
+        userProperties: {'email': event.username},
+      );
+    }
+
     emit(AuthLoaded(AuthPurpose.login));
   } catch (e) {
     debugPrint("Login error: $e");
-    
+
     final String errorMsg = e.toString().toLowerCase();
-    if (errorMsg.contains('not verified') || 
-        errorMsg.contains('unverified') || 
+    if (errorMsg.contains('not verified') ||
+        errorMsg.contains('unverified') ||
         errorMsg.contains('verify your email') ||
         errorMsg.contains('verification required')) {
       emit(EmailUnverifiedError(_extractErrorMessage(e), event.username));
@@ -71,6 +92,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       await authRepository.registerWithEmailAndPassword(event.model);
+      await AnalyticsService().trackUserRegistered();
+
+      // Identify user in analytics after registration
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      if (userId != null) {
+        await AnalyticsService().setUserIdentity(
+          userId: userId,
+          userProperties: {'email': event.model.email ?? ''},
+        );
+      }
+
       emit(AuthLoaded(AuthPurpose.register));
     } catch (e) {
       debugPrint("Registration error: $e");
@@ -85,6 +117,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         event.token,
         event.email,
         );
+      await AnalyticsService().trackEmailVerified();
+
+      // Identify user in analytics after email verification
+      final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+      if (userId != null) {
+        await AnalyticsService().setUserIdentity(
+          userId: userId,
+          userProperties: {'email': event.email},
+        );
+      }
+
       emit(AuthVerified());
     } catch (e) {
       debugPrint("Email verification error: $e");
@@ -95,9 +138,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   Future<void> _onLogoutUser(LogoutUser event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
     try {
+      await AnalyticsService().trackUserLoggedOut();
+      await AnalyticsService().resetUser();
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
       await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
-      emit(GuestUser()); 
+      emit(GuestUser());
     } catch (e) {
       debugPrint("Logout error: $e");
       emit(AuthLoadingError("Failed to log out. Please try again."));

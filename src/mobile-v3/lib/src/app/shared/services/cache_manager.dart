@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:loggy/loggy.dart';
 import 'package:battery_plus/battery_plus.dart';
 
 enum CacheBoxName { airQuality, forecast, location, userPreferences }
@@ -118,7 +117,7 @@ class RefreshPolicy {
   );
 }
 
-class CacheManager with UiLoggy {
+class CacheManager {
   static final CacheManager _instance = CacheManager._internal();
   factory CacheManager() => _instance;
   CacheManager._internal();
@@ -139,8 +138,6 @@ class CacheManager with UiLoggy {
   Stream<bool> get batteryChange => _batteryChangeController.stream;
 
   Future<void> initialize() async {
-    loggy.info('Initializing CacheManager');
-
     await _initializeHiveBoxes();
 
     _connectivity.onConnectivityChanged.listen(_updateConnectionType);
@@ -148,8 +145,6 @@ class CacheManager with UiLoggy {
 
     _battery.onBatteryStateChanged.listen(_updateBatteryState);
     _updateBatteryState(await _battery.batteryState);
-
-    loggy.info('CacheManager initialized successfully');
   }
 
   Future<void> _initializeHiveBoxes() async {
@@ -168,10 +163,7 @@ class CacheManager with UiLoggy {
       if (!Hive.isBoxOpen(CacheBoxName.userPreferences.toString())) {
         await Hive.openBox(CacheBoxName.userPreferences.toString());
       }
-
-      loggy.info('Hive boxes initialized');
     } catch (e) {
-      loggy.error('Error initializing Hive boxes: $e');
       rethrow;
     }
   }
@@ -188,7 +180,6 @@ class CacheManager with UiLoggy {
     }
 
     if (prevConnectionType != _connectionType) {
-      loggy.info('Connection type changed: $_connectionType');
       _connectionChangeController.add(_connectionType);
     }
   }
@@ -202,8 +193,6 @@ class CacheManager with UiLoggy {
 
       if (_isLowBattery != newIsLowBattery) {
         _isLowBattery = newIsLowBattery;
-        loggy
-            .info('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
         _batteryChangeController.add(_isLowBattery);
       }
     }
@@ -233,10 +222,8 @@ class CacheManager with UiLoggy {
 
       final jsonData = cachedData.toJson(toJson);
       await box.put(key, json.encode(jsonData));
-
-      loggy.info('Data cached successfully: ${boxName.toString()}/$key');
     } catch (e) {
-      loggy.error('Error caching data: $e');
+      // Silent failure
     }
   }
 
@@ -256,12 +243,8 @@ class CacheManager with UiLoggy {
       final decoded = json.decode(cachedJson);
       final cachedData = CachedData<T>.fromJson(decoded, fromJson);
 
-      loggy.info(
-          'Retrieved from cache: ${boxName.toString()}/$key (${DateTime.now().difference(cachedData.timestamp).inMinutes} minutes old)');
-
       return cachedData;
     } catch (e) {
-      loggy.error('Error retrieving from cache: $e');
       return null;
     }
   }
@@ -292,9 +275,8 @@ class CacheManager with UiLoggy {
     try {
       final box = Hive.box(boxName.toString());
       await box.delete(key);
-      loggy.info('Deleted from cache: ${boxName.toString()}/$key');
     } catch (e) {
-      loggy.error('Error deleting from cache: $e');
+      // Silent failure
     }
   }
 
@@ -302,9 +284,8 @@ class CacheManager with UiLoggy {
     try {
       final box = Hive.box(boxName.toString());
       await box.clear();
-      loggy.info('Cleared cache box: ${boxName.toString()}');
     } catch (e) {
-      loggy.error('Error clearing cache box: $e');
+      // Silent failure
     }
   }
 
@@ -314,9 +295,8 @@ class CacheManager with UiLoggy {
       await clearBox(CacheBoxName.forecast);
       await clearBox(CacheBoxName.location);
       await clearBox(CacheBoxName.userPreferences);
-      loggy.info('Cleared all cache boxes');
     } catch (e) {
-      loggy.error('Error clearing all cache boxes: $e');
+      // Silent failure
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:airqo/src/app/other/theme/repository/theme_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 
@@ -15,8 +16,10 @@ class ThemeBloc extends Bloc<ThemeEvent, ThemeState> {
 
         if (theme == "dark") {
           emit(ThemeDark());
+          await AnalyticsService().trackThemeToggled(theme: 'dark');
         } else {
           emit(ThemeLight());
+          await AnalyticsService().trackThemeToggled(theme: 'light');
         }
       }
     });

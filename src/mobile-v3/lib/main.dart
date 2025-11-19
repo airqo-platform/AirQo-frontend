@@ -33,7 +33,7 @@ import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
+import 'package:posthog_flutter/posthog_flutter.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
@@ -49,12 +49,29 @@ void main() async {
 
         FlutterError.onError = (FlutterErrorDetails details) {
           FlutterError.presentError(details);
-          Object()
-              .logError('Unhandled Flutter error', details.exception, details.stack);
+          Object().logError(
+              'Unhandled Flutter error', details.exception, details.stack);
         };
 
         await dotenv.load(fileName: ".env.prod");
 
+        final apiKey = dotenv.env['POSTHOG_API_KEY'] ?? '';
+        final host = dotenv.env['POSTHOG_HOST'] ?? 'https://us.i.posthog.com';
+
+        final config = PostHogConfig(apiKey);
+        config.host = host;
+        config.debug = true;
+        config.captureApplicationLifecycleEvents = true;
+        config.personProfiles = PostHogPersonProfiles.identifiedOnly;
+        config.maxBatchSize = 1; // Send events immediately instead of batching
+
+        try {
+          await Posthog().setup(config);
+          await Posthog().debug(true);
+          Object().logInfo('PostHog initialized successfully');
+        } catch (e) {
+          Object().logError('Failed to initialize PostHog', e, null);
+        }
 
         Bloc.observer = LoggingBlocObserver();
 
@@ -202,8 +219,7 @@ class Decider extends StatefulWidget {
 }
 
 class _DeciderState extends State<Decider> with WidgetsBindingObserver {
-
-    @override
+  @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
@@ -222,7 +238,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    
+
     if (state == AppLifecycleState.resumed) {
       AutoUpdateService().checkForUpdates(showDialog: true);
     }
@@ -253,7 +269,6 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
                   context.read<UserBloc>().add(LoadUser());
                   return NavPage();
                 }
-
 
                 if (authState is AuthLoadingError) {
                   return Scaffold(

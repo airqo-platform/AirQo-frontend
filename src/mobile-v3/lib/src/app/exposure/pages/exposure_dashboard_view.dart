@@ -12,6 +12,7 @@ import 'package:airqo/src/app/exposure/models/exposure_models.dart';
 import 'package:airqo/src/app/exposure/services/mock_exposure_data.dart';
 import 'package:airqo/src/app/exposure/services/exposure_calculator.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:loggy/loggy.dart';
 import 'package:geolocator/geolocator.dart';
 
@@ -209,11 +210,13 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         // We have permission, initialize and start tracking
         await _locationService.initialize();
         await _locationService.startLocationTracking();
-        
+
         setState(() {
           _hasLocationPermission = true;
         });
-        
+
+        await AnalyticsService().trackExposureTrackingEnabled();
+
         // Load exposure data
         await _loadExposureData();
       } else {
@@ -221,6 +224,7 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
         setState(() {
           _hasLocationPermission = false;
         });
+        await AnalyticsService().trackExposureTrackingDisabled();
       }
     } catch (e) {
       // Handle silently - user will see permission request UI
@@ -257,17 +261,27 @@ class _ExposureDashboardViewState extends State<ExposureDashboardView> with UiLo
             _isLoadingData = false;
             _errorMessage = null;
           });
+
+          await AnalyticsService().trackExposureDataLoaded();
+          await AnalyticsService().trackExposureLevelViewed(
+            level: todayData.riskLevel.name,
+          );
         } else {
           // Fall back to mock data if no real data available
           final mockTodayData = MockExposureData.generateTodayExposure();
           final mockWeeklyData = MockExposureData.generateWeeklyData();
-          
+
           setState(() {
             _todayExposure = mockTodayData;
             _weeklyData = mockWeeklyData;
             _isLoadingData = false;
             _errorMessage = null;
           });
+
+          await AnalyticsService().trackExposureDataLoaded();
+          await AnalyticsService().trackExposureLevelViewed(
+            level: mockTodayData.riskLevel.name,
+          );
         }
       }
     } catch (e) {

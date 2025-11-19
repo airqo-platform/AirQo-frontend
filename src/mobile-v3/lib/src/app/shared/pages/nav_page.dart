@@ -3,6 +3,7 @@ import 'package:airqo/src/app/exposure/pages/exposure_dashboard_view.dart';
 import 'package:airqo/src/app/learn/pages/kya_page.dart';
 import 'package:airqo/src/app/map/pages/map_page.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -36,10 +37,21 @@ class _NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
       _showAuthRequiredDialog();
       return;
     }
-    
+
     setState(() {
       currentIndex = index;
     });
+
+    // Track navigation
+    _trackNavigation(index);
+  }
+
+  Future<void> _trackNavigation(int tabIndex) async {
+    final tabNames = ['dashboard', 'map', 'exposure', 'learn'];
+    await AnalyticsService().trackNavigationChanged(
+      tabIndex: tabIndex,
+      tabName: tabNames[tabIndex],
+    );
   }
 
   void _showAuthRequiredDialog() {

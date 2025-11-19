@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/map/repository/map_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
@@ -26,6 +27,7 @@ class MapBloc extends Bloc<MapEvent, MapState> with UiLoggy {
       );
 
       emit(MapLoaded(response));
+      await AnalyticsService().trackMapViewed();
     } catch (e) {
       loggy.error('Error loading map: $e');
       

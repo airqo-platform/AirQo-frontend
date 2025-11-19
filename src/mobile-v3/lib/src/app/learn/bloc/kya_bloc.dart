@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/learn/repository/kya_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
@@ -22,6 +23,8 @@ class KyaBloc extends Bloc<KyaEvent, KyaState> with UiLoggy {
           await repository.fetchLessons(forceRefresh: event.forceRefresh);
 
       emit(LessonsLoaded(model));
+
+      await AnalyticsService().trackLearnSectionViewed();
     } catch (e) {
       loggy.error('Error loading lessons: $e');
 

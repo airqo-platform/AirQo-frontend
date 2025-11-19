@@ -4,6 +4,7 @@ import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
@@ -115,11 +116,13 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
 
       // Emit loaded state with fresh or cached data
       emit(DashboardLoaded(
-        response, 
+        response,
         userPreferences: preferences,
         isOffline: !_cacheManager.isConnected,
         lastUpdated: DateTime.now(),
       ));
+
+      await AnalyticsService().trackDashboardViewed();
 
       if (preferences == null) {
         loggy.info('Preferences not loaded initially, retrying as separate event');
@@ -163,14 +166,16 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       ));
       
       final response = await repository.fetchAirQualityReadings(forceRefresh: true);
-      
+
       emit(DashboardLoaded(
         response,
         userPreferences: currentState.userPreferences,
         isOffline: !_cacheManager.isConnected,
         lastUpdated: DateTime.now(),
       ));
-      
+
+      await AnalyticsService().trackDashboardRefreshed();
+
       add(LoadUserPreferences());
     } catch (e) {
       loggy.error('Error refreshing dashboard: $e');

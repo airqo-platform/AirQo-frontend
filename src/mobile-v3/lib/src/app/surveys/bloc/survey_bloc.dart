@@ -5,6 +5,7 @@ import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 
 part 'survey_event.dart';
 part 'survey_state.dart';
@@ -33,9 +34,14 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     try {
       final surveys = await repository.getSurveys(forceRefresh: event.forceRefresh);
       final userResponses = await repository.getSurveyResponses();
-      
+
       emit(SurveysLoaded(surveys, userResponses: userResponses));
       loggy.info('Loaded ${surveys.length} surveys');
+
+      // Track each survey presented to user
+      for (final survey in surveys) {
+        await AnalyticsService().trackSurveyPresented(surveyId: survey.id);
+      }
     } catch (e) {
       loggy.error('Error loading surveys: $e');
       emit(SurveyError('Failed to load surveys', error: e));
@@ -62,7 +68,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
     try {
       final responseId = DateTime.now().millisecondsSinceEpoch.toString();
       final startTime = DateTime.now();
-      
+
       // Get current user ID from auth token
       final userId = await AuthHelper.getCurrentUserId() ?? '';
 
@@ -85,6 +91,7 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         contextData: event.contextData,
       ));
 
+      await AnalyticsService().trackSurveyStarted(surveyId: event.survey.id);
       loggy.info('Started survey: ${event.survey.title}');
     } catch (e) {
       loggy.error('Error starting survey: $e');
@@ -126,6 +133,10 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         currentResponse: updatedResponse,
       ));
 
+      await AnalyticsService().trackSurveyQuestionAnswered(
+        surveyId: currentState.survey.id,
+        questionId: event.questionId,
+      );
       loggy.info('Answered question: $event.questionId');
     }
   }
@@ -183,10 +194,10 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
       }
 
       emit(SurveySubmissionLoading(currentState.currentResponse));
-      
+
       try {
         final completedAt = DateTime.now();
-        final completionTime = currentState.currentResponse.startedAt != null 
+        final completionTime = currentState.currentResponse.startedAt != null
             ? completedAt.difference(currentState.currentResponse.startedAt!)
             : Duration.zero;
 
@@ -197,9 +208,14 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         );
 
         final success = await repository.submitSurveyResponse(finalResponse);
-        
+
         emit(SurveySubmitted(finalResponse, submittedSuccessfully: success));
-        
+
+        await AnalyticsService().trackSurveyCompleted(
+          surveyId: currentState.survey.id,
+          responseTime: completionTime.inSeconds,
+        );
+
         if (success) {
           loggy.info('Successfully submitted survey: ${currentState.survey.title}');
         } else {
@@ -207,6 +223,10 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
         }
       } catch (e) {
         loggy.error('Error submitting survey: $e');
+        await AnalyticsService().trackSurveySubmissionFailed(
+          surveyId: currentState.survey.id,
+          error: e.toString(),
+        );
         emit(SurveyError('Failed to submit survey', error: e));
       }
     }

@@ -32,14 +32,18 @@ class LanguageBloc extends Bloc<LanguageEvent, LanguageState> {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('languageCode', event.languageCode);
-      
+
       final languageName = _getLanguageName(event.languageCode);
-      
+
       emit(LanguageLoaded(
         languageCode: event.languageCode,
         languageName: languageName,
         locale: Locale(event.languageCode),
       ));
+
+      // await AnalyticsService().trackLanguageChanged(
+      //   language: event.languageCode,
+      // );
     } catch (e) {
       emit(LanguageError('Failed to change language'));
     }

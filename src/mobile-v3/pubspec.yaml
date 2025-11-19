@@ -80,6 +80,7 @@ dependencies:
   collection: ^1.19.1
   share_plus: ^11.0.0
   fl_chart: ^1.0.0
+  posthog_flutter: ^5.9.0
 
 
 dev_dependencies:

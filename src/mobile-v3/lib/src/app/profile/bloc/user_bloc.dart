@@ -1,5 +1,6 @@
 import 'package:airqo/src/app/profile/models/profile_response_model.dart';
 import 'package:airqo/src/app/profile/repository/user_repository.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:loggy/loggy.dart';
@@ -25,6 +26,7 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
     try {
       ProfileResponseModel model = await repository.loadUserProfile();
       emit(UserLoaded(model));
+      await AnalyticsService().trackProfileOpened();
     } catch (e) {
       String errorType;
       String specificError = e.toString();
@@ -113,8 +115,17 @@ class UserBloc extends Bloc<UserEvent, UserState> with UiLoggy {
         email: event.email,
         profilePicture: event.profilePicture,
       );
-      
+
       emit(UserUpdateSuccess(model));
+
+      // Track fields that were updated
+      final fieldsChanged = <String>[];
+      if (event.firstName != null) fieldsChanged.add('firstName');
+      if (event.lastName != null) fieldsChanged.add('lastName');
+      if (event.email != null) fieldsChanged.add('email');
+      if (event.profilePicture != null) fieldsChanged.add('profilePicture');
+
+      await AnalyticsService().trackProfileEdited(fieldsChanged: fieldsChanged);
 
       emit(UserLoaded(model));
     } catch (e) {
