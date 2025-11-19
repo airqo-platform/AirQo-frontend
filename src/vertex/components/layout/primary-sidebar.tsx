@@ -8,33 +8,12 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/core/redux/store";
+import { NavItem } from "./NavItem";
 
 interface PrimarySidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const NavItem = ({
-    icon: Icon,
-    label,
-    isActive,
-    onClick,
-}: {
-    icon: React.ElementType;
-    label: string;
-    isActive: boolean;
-    onClick: () => void;
-}) => (
-    <button
-        onClick={onClick}
-        className={`flex items-center w-full gap-3 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-3 rounded-md transition-all duration-200 ${
-            isActive ? "bg-accent text-accent-foreground" : ""
-        }`}
-    >
-        <Icon size={20} />
-        <span>{label}</span>
-    </button>
-);
 
 
 const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose }) => {
@@ -78,20 +57,24 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose }) => {
                 </div>
                 
                 <nav className="flex flex-col gap-2">
-                    <NavItem 
-                        icon={LayoutGrid} 
-                        label="Network Management"
-                        isActive={activeModule === 'network'}
-                        onClick={() => handleModuleChange('network')}
-                    />
+                    <NavItem
+                        item={{
+                            href: '/home',
+                            icon: LayoutGrid,
+                            label: "Network Management",
+                            activeOverride: activeModule === 'network'
+                        }}
+                        onClick={() => handleModuleChange('network')} />
                     {isAirQoInternalUser && (
                         <>
                         <NavItem
-                                icon={ShieldCheck}
-                                label="Platform Administration"
-                                isActive={activeModule === 'admin'}
-                                onClick={() => handleModuleChange('admin')}
-                            />
+                                item={{
+                                    href: '/admin/networks',
+                                    icon: ShieldCheck,
+                                    label: "Platform Administration",
+                                    activeOverride: activeModule === 'admin'
+                                }}
+                                onClick={() => handleModuleChange('admin')} />
                         </>
                     )}
                 </nav>
