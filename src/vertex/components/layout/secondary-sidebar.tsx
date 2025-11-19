@@ -15,7 +15,6 @@ import {
   AqCollocation,
 } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
-import { usePathname } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import Card from "../shared/card/CardWrapper";
 import { useAppSelector } from "@/core/redux/hooks";
@@ -25,6 +24,7 @@ import { NavItem } from "./NavItem";
 interface SecondarySidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
+  activeModule: string;
 }
 
 const styles = {
@@ -47,15 +47,13 @@ const SidebarSectionHeading = ({
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
   toggleSidebar,
+  activeModule,
 }) => {
   const { getSidebarConfig, getContextPermissions, isPersonalContext } =
     useUserContext();
-  const pathname = usePathname();
   const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
   const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
-
-  const activeModule = pathname.startsWith("/admin") ? "admin" : "network";
 
   return (
     <aside className="hidden lg:block fixed left-0 top-[60px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
