@@ -61,7 +61,9 @@ export const useUserContext = (): UserContextState => {
   const canViewSites = usePermission(PERMISSIONS.SITE.VIEW);
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
-  const canViewNetworks = usePermission(PERMISSIONS.SYSTEM.SUPER_ADMIN || PERMISSIONS.SYSTEM.SYSTEM_ADMIN);
+  const isSuperAdmin = usePermission(PERMISSIONS.SYSTEM.SUPER_ADMIN);
+  const isSystemAdmin = usePermission(PERMISSIONS.SYSTEM.SYSTEM_ADMIN);
+  const canViewNetworks = isSuperAdmin || isSystemAdmin;
 
   // Determine loading states
   const isLoading = useMemo(() => {
