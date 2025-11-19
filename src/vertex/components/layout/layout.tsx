@@ -43,7 +43,7 @@ export default function Layout({ children }: LayoutProps) {
     setActiveModule(module);
     setIsPrimarySidebarOpen(false);
     if (module === "admin") {
-      router.push("/user-management");
+      router.push("/networks");
     } else {
       router.push("/home");
     }

@@ -16,6 +16,7 @@ export interface SidebarConfig {
   showDeviceOverview: boolean;
   showClaimDevice: boolean;
   showDeployDevice: boolean;
+  showNetworks: boolean;
 }
 
 export interface UserContextState {
@@ -60,6 +61,7 @@ export const useUserContext = (): UserContextState => {
   const canViewSites = usePermission(PERMISSIONS.SITE.VIEW);
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
+  const canViewNetworks = usePermission(PERMISSIONS.SYSTEM.SUPER_ADMIN || PERMISSIONS.SYSTEM.SYSTEM_ADMIN);
 
   // Determine loading states
   const isLoading = useMemo(() => {
@@ -134,6 +136,7 @@ export const useUserContext = (): UserContextState => {
         showDeviceOverview: false,
         showClaimDevice: true,
         showDeployDevice: true,
+        showNetworks: false,
       };
     }
 
@@ -152,6 +155,7 @@ export const useUserContext = (): UserContextState => {
           showDeviceOverview: false,
           showClaimDevice: true,
           showDeployDevice: true,
+          showNetworks: false,
         };
 
       case 'airqo-internal':
@@ -168,6 +172,7 @@ export const useUserContext = (): UserContextState => {
           showDeviceOverview: canViewDevices,
           showClaimDevice: true,
           showDeployDevice: true,
+          showNetworks: canViewNetworks,
         };
 
       case 'external-org':
@@ -184,6 +189,7 @@ export const useUserContext = (): UserContextState => {
           showDeviceOverview: canViewDevices,
           showClaimDevice: true,
           showDeployDevice: true,
+          showNetworks: false,
         };
 
       default:
@@ -200,6 +206,7 @@ export const useUserContext = (): UserContextState => {
           showDeviceOverview: false,
           showClaimDevice: true,
           showDeployDevice: true,
+          showNetworks: false,
         };
     }
   };
@@ -212,6 +219,7 @@ export const useUserContext = (): UserContextState => {
         canViewUserManagement: false,
         canViewAccessControl: false,
         canViewOrganizations: false,
+        canViewNetworks: false,
       };
     }
 
@@ -220,6 +228,7 @@ export const useUserContext = (): UserContextState => {
       canViewSites,
       canViewUserManagement,
       canViewAccessControl,
+      canViewNetworks,
     };
   };
 

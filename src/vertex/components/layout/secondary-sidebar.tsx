@@ -3,10 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import {
-  Users,
   ChevronRight,
   ChevronLeft,
-  Shield,
 } from "lucide-react";
 import {
   AqHomeSmile,
@@ -250,26 +248,14 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
               {activeModule === "admin" && (
                 <>
-                  {sidebarConfig.showUserManagement && (
-                    <NavItem
-                      href="/user-management"
-                      icon={Users}
-                      label="User Management"
+                  <NavItem
+                      href="/networks"
+                      icon={AqHomeSmile}
+                      label="Networks"
                       isCollapsed={isCollapsed}
-                      disabled={!contextPermissions.canViewUserManagement}
-                      tooltip="You do not have permission to view user management."
+                      disabled={!contextPermissions.canViewNetworks}
+                      tooltip="You do not have permission to view networks."
                     />
-                  )}
-                  {sidebarConfig.showAccessControl && (
-                    <NavItem
-                      href="/access-control"
-                      icon={Shield}
-                      label="Access Control"
-                      isCollapsed={isCollapsed}
-                      disabled={!contextPermissions.canViewAccessControl}
-                      tooltip="You do not have permission to view access control."
-                    />
-                  )}
                 </>
               )}
             </>
