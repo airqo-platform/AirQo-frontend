@@ -69,10 +69,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(apiResponse.data, { status: 200 });
   } catch (error: unknown) {
     const err = error as Error;
-    logger.error(`API route error: ${err.message} - Stack: ${err.stack}`);
+    logger.error(`API route error: ${err.message}`);
     
     if (axios.isAxiosError(error) && error.response) {
-      logger.error(`Upstream API error - Status: ${error.response.status} ${error.response.statusText}, Data: ${JSON.stringify(error.response.data)}`);
+      const errorMessage = error.response.data?.message || error.response.data?.errors?.[0]?.message || 'Unknown error';
+      logger.error(`Upstream API error - Status: ${error.response.status} ${error.response.statusText}, Message: ${errorMessage}`);
       
       return NextResponse.json(
         error.response.data || { message: "An error occurred" },
