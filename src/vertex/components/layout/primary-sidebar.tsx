@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { X, LayoutGrid, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
@@ -13,24 +12,14 @@ import { NavItem } from "./NavItem";
 interface PrimarySidebarProps {
   isOpen: boolean;
   onClose: () => void;
+  activeModule: string;
+  onModuleChange: (module: string) => void;
 }
 
 
-const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose }) => {
+const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose, activeModule, onModuleChange: handleModuleChange }) => {
     const { userDetails } = useSelector((state: RootState) => state.user);
     const isAirQoInternalUser = userDetails?.email?.endsWith('@airqo.net') || false;
-    const pathname = usePathname();
-    const router = useRouter();
-
-    const activeModule = pathname.startsWith('/admin') ? 'admin' : 'network';
-
-    const handleModuleChange = (module: string) => {
-        if (module === 'admin') {
-            router.push('/admin/networks');
-        } else {
-            router.push('/home');
-        }
-    };
 
     return (
         <>
