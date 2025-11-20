@@ -26,11 +26,16 @@ export const useNetworks = () => {
     refetchOnWindowFocus: false,
   });
 
-  // Sort networks to ensure 'airqo' is always first
+  // Sort networks to ensure 'airqo' is always first, then alphabetically
   const networks = [...networksData].sort((a, b) => {
-    if (a.net_name?.toLowerCase() === 'airqo') return -1;
-    if (b.net_name?.toLowerCase() === 'airqo') return 1;
-    return 0;
+    const aIsAirqo = a.net_name?.toLowerCase() === 'airqo';
+    const bIsAirqo = b.net_name?.toLowerCase() === 'airqo';
+    
+    if (aIsAirqo) return -1;
+    if (bIsAirqo) return 1;
+    
+    // Alphabetical sort for non-airqo networks
+    return (a.net_name || '').localeCompare(b.net_name || '');
   });
 
   return { networks, isLoading, isFetching, error: error as Error | null };
