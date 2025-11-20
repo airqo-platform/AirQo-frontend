@@ -319,7 +319,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       dispatch(setInitialized());
     }
     dispatch(setContextLoading(false));
-  }, [data, dispatch, queryClient, isInitialized]);
+  }, [data, dispatch, queryClient, isInitialized, userContext, activeGroup]);
 
   usePrefetchData(user, userContext, activeGroup, activeNetwork);
 

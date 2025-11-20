@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse } from "../apis/sites";
+import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse, CreateSiteResponse } from "../apis/sites";
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
@@ -19,10 +19,10 @@ export interface SiteListingOptions {
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
+  network?: string;
 }
 
 export const useSites = (options: SiteListingOptions = {}) => {
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const isAirQoGroup = activeGroup?.grp_title === "airqo";
 
@@ -30,17 +30,17 @@ export const useSites = (options: SiteListingOptions = {}) => {
     enabled: !isAirQoGroup && !!activeGroup?._id,
   });
 
-  const { page = 1, limit = 100, search, sortBy, order } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
   const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["sites", activeNetwork?.net_name, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
+    queryKey: ["sites", network, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
     queryFn: async () => {
       if (isAirQoGroup) {
         const params: GetSitesSummaryParams = {
-          network: activeNetwork?.net_name || "",
+          network: network || "",
           group: "",
           limit: safeLimit,
           skip,
@@ -62,9 +62,10 @@ export const useSites = (options: SiteListingOptions = {}) => {
         ...(search && { search }),
         ...(sortBy && { sortBy }),
         ...(order && { order }),
+        ...(network && { network }),
       });
     },
-    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
+    enabled: !!network && !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
@@ -172,7 +173,7 @@ export const useCreateSite = () => {
   const queryClient = useQueryClient();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
-  return useMutation<any, AxiosError<ErrorResponse>, CreateSiteRequest>({
+  return useMutation<CreateSiteResponse, AxiosError<ErrorResponse>, CreateSiteRequest>({
     mutationFn: async (data: CreateSiteRequest) => {
       const createdSite = await sites.createSite(data);
       const siteId = createdSite?.site?._id;

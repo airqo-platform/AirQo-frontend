@@ -83,7 +83,7 @@ export const cohorts = {
       throw error;
     }
   },
-  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[] }) => {
+  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[]; network?: string }) => {
     try {
       const response = await createSecureApiClient().post(
         `/devices/cohorts/from-cohorts`,

@@ -64,11 +64,11 @@ export function CreateCohortDialog({
   const selectedNetwork = form.watch("network");
   const [deviceSearch, setDeviceSearch] = useState("");
 
-  const { devices, isLoading, error } = useDevices({ 
+  const { devices, isLoading, error } = useDevices({
     network: selectedNetwork,
-    search: deviceSearch 
+    search: deviceSearch
   });
-  
+
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const deviceOptions = useMemo(() => {
@@ -90,7 +90,7 @@ export function CreateCohortDialog({
     if (open) {
       form.reset({
         name: "",
-        network: activeNetwork?.net_name || "",
+        network: "",
         devices: preselectedDevices.map((d) => d.value),
       });
       setDeviceSearch("");
@@ -201,8 +201,8 @@ export function CreateCohortDialog({
                     onSearchChange={setDeviceSearch}
                     searchValue={deviceSearch}
                     emptyMessage={
-                      selectedNetwork 
-                        ? "No devices found for this network." 
+                      selectedNetwork
+                        ? "No devices found for this network."
                         : "Please select a network first."
                     }
                   />

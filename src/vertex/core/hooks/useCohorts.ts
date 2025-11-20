@@ -136,8 +136,8 @@ export const useCreateCohortFromCohorts = () => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   return useMutation({
-    mutationFn: ({ name, description, cohort_ids }: { name: string; description?: string; cohort_ids: string[] }) =>
-      cohortsApi.createCohortFromCohorts({ name, description, cohort_ids }),
+    mutationFn: ({ name, description, cohort_ids, network }: { name: string; description?: string; cohort_ids: string[]; network?: string }) =>
+      cohortsApi.createCohortFromCohorts({ name, description, cohort_ids, network }),
     onSuccess: (data, variables) => {
       ReusableToast({
         message: `Cohort '${variables.name}' created successfully.`,

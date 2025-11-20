@@ -52,6 +52,12 @@ interface UpdateSiteRequest {
   location_name?: string;
 }
 
+export interface CreateSiteResponse {
+  success: boolean;
+  message: string;
+  site: Site;
+}
+
 export const sites = {
   getSitesSummary: async (params: GetSitesSummaryParams): Promise<SitesSummaryResponse> => {
     try {
@@ -83,6 +89,7 @@ export const sites = {
     search?: string;
     sortBy?: string;
     order?: "asc" | "desc";
+    network?: string;
   }): Promise<SitesSummaryResponse> => {
     try {
       const { cohort_ids, ...rest } = params;
@@ -108,9 +115,9 @@ export const sites = {
     latitude: string;
     longitude: string;
     network: string;
-  }) => {
+  }): Promise<CreateSiteResponse> => {
     try {
-      const response = await createSecureApiClient().post(`/devices/sites`, data, {
+      const response = await createSecureApiClient().post<CreateSiteResponse>(`/devices/sites`, data, {
         headers: { "X-Auth-Type": "JWT" },
       });
       return response.data;

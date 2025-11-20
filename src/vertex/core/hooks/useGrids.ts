@@ -8,7 +8,6 @@ import { GetGridsSummaryParams, grids } from "../apis/grids";
 import { CreateGrid, Grid, GridsSummaryResponse } from "@/app/types/grids";
 import { setError, setGrids } from "../redux/slices/gridsSlice";
 import { useDispatch } from "react-redux";
-import { useAppSelector } from "../redux/hooks";
 import React from "react";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
@@ -26,23 +25,23 @@ export interface GridListingOptions {
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
+  network?: string;
 }
 
 // Hook to get the grid summary
 export const useGrids = (options: GridListingOptions = {}) => {
   const dispatch = useDispatch();
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
-  const { page = 1, limit = 100, search, sortBy, order } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
   const { data, isLoading, isFetching, error } = useQuery({
-    queryKey: ["grids", activeNetwork?.net_name, { page, limit, search, sortBy, order }] as const,
+    queryKey: ["grids", network, { page, limit, search, sortBy, order }] as const,
     queryFn: () => {
       const params: GetGridsSummaryParams = {
-        network: activeNetwork?.net_name || "",
+        network: network || "",
         limit: safeLimit,
         skip,
         ...(search && { search }),
@@ -51,7 +50,7 @@ export const useGrids = (options: GridListingOptions = {}) => {
       };
       return grids.getGridsApi(params);
     },
-    enabled: !!activeNetwork?.net_name,
+    enabled: !!network,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
