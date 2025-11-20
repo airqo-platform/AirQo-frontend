@@ -129,7 +129,16 @@ export function shouldShowConsentBanner(): boolean {
   // Check if banner was dismissed (but not acted upon)
   try {
     const dismissed = localStorage.getItem(CONSENT_BANNER_DISMISSED_KEY);
-    return !dismissed;
+    if (!dismissed) return true;
+
+    // Check if dismissal has expired
+    const dismissInfo = JSON.parse(dismissed);
+    const now = Date.now();
+    if (now > dismissInfo.expiresAt) {
+      localStorage.removeItem(CONSENT_BANNER_DISMISSED_KEY);
+      return true;
+    }
+    return false;
   } catch {
     return true;
   }
