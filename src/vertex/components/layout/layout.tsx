@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppSelector } from "@/core/redux/hooks";
 import Topbar from "./topbar";
@@ -18,32 +18,55 @@ export default function Layout({ children }: LayoutProps) {
   const [isPrimarySidebarOpen, setIsPrimarySidebarOpen] = useState(false);
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] = useState(false);
   const [activeModule, setActiveModule] = useState("network");
+  const [isPageLoading, setIsPageLoading] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const { isSwitching, switchingTo } = useAppSelector((state) => state.user.organizationSwitching);
-  
+
   const isInitialized = useAppSelector(state => state.user.isInitialized);
   const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
   const isContextLoading = useAppSelector(state => state.user.isContextLoading);
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
   useEffect(() => {
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = null;
+    }
     if (
-      pathname.startsWith("/user-management") ||
-      pathname.startsWith("/access-control")
+      pathname.startsWith("/admin/")
     ) {
       setActiveModule("admin");
     } else {
       setActiveModule("network");
     }
+    setIsPageLoading(false);
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
   }, [pathname]);
 
   const handleModuleChange = (module: string) => {
+    if (module === activeModule) {
+      setIsPrimarySidebarOpen(false);
+      return;
+    }
+    setIsPageLoading(true);
     setActiveModule(module);
     setIsPrimarySidebarOpen(false);
+
+    loadingTimeoutRef.current = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 5000);
+
     if (module === "admin") {
-      router.push("/user-management");
+      router.push("/admin/networks");
     } else {
       router.push("/home");
     }
@@ -89,7 +112,13 @@ export default function Layout({ children }: LayoutProps) {
       >
         <div className={`flex-1 w-full bg-background max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-2 lg:py-6 lg:px-6`}>
           <ErrorBoundary>
-            {children}
+            {isPageLoading ? (
+              <div className="flex justify-center items-center h-full min-h-[60vh]">
+                <SessionLoadingState />
+              </div>
+            ) : (
+              children
+            )}
           </ErrorBoundary>
         </div>
       </main>

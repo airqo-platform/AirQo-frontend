@@ -5,8 +5,9 @@ import { X, LayoutGrid, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { PermissionGuard } from "@/components/layout/accessConfig/permission-guard";
-import { PERMISSIONS } from "@/core/permissions/constants";
+import { useSelector } from "react-redux";
+import { RootState } from "@/core/redux/store";
+import { NavItem } from "./NavItem";
 
 interface PrimarySidebarProps {
   isOpen: boolean;
@@ -15,30 +16,11 @@ interface PrimarySidebarProps {
   onModuleChange: (module: string) => void;
 }
 
-const NavItem = ({
-    icon: Icon,
-    label,
-    isActive,
-    onClick,
-}: {
-    icon: React.ElementType;
-    label: string;
-    isActive: boolean;
-    onClick: () => void;
-}) => (
-    <button
-        onClick={onClick}
-        className={`flex items-center w-full gap-3 text-sm text-foreground hover:bg-accent hover:text-accent-foreground p-3 rounded-md transition-all duration-200 ${
-            isActive ? "bg-accent text-accent-foreground" : ""
-        }`}
-    >
-        <Icon size={20} />
-        <span>{label}</span>
-    </button>
-);
 
+const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose, activeModule, onModuleChange: handleModuleChange }) => {
+    const { userDetails } = useSelector((state: RootState) => state.user);
+    const isAirQoInternalUser = userDetails?.email?.endsWith('@airqo.net') || false;
 
-const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose, activeModule, onModuleChange }) => {
     return (
         <>
             {isOpen && <div className="fixed inset-0 bg-black/60 z-[999]" onClick={onClose} />}
@@ -64,20 +46,26 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({ isOpen, onClose, active
                 </div>
                 
                 <nav className="flex flex-col gap-2">
-                    <NavItem 
-                        icon={LayoutGrid} 
-                        label="Network Management"
-                        isActive={activeModule === 'network'}
-                        onClick={() => onModuleChange('network')}
-                    />
-                    <PermissionGuard permission={PERMISSIONS.USER.MANAGEMENT}>
+                    <NavItem
+                        item={{
+                            href: '/home',
+                            icon: LayoutGrid,
+                            label: "Network Management",
+                            activeOverride: activeModule === 'network'
+                        }}
+                        onClick={() => handleModuleChange('network')} />
+                    {isAirQoInternalUser && (
+                        <>
                         <NavItem
-                            icon={ShieldCheck}
-                            label="Platform Administration"
-                            isActive={activeModule === 'admin'}
-                            onClick={() => onModuleChange('admin')}
-                        />
-                    </PermissionGuard>
+                                item={{
+                                    href: '/admin/networks',
+                                    icon: ShieldCheck,
+                                    label: "Platform Administration",
+                                    activeOverride: activeModule === 'admin'
+                                }}
+                                onClick={() => handleModuleChange('admin')} />
+                        </>
+                    )}
                 </nav>
             </motion.aside>
         </>

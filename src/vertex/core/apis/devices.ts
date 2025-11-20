@@ -82,7 +82,7 @@ export interface MaintenanceActivitiesResponse {
 }
 
 export interface GetDevicesSummaryParams {
-  network: string;
+  network?: string;
   group?: string;
   limit?: number;
   skip?: number;
@@ -167,22 +167,6 @@ export const devices = {
       const response = await tokenApiClient.get<DevicesSummaryResponse>(
         `/devices/readings/map`,
         { headers: { 'X-Auth-Type': 'API_TOKEN' } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getDevicesApi: async (networkId: string, limit?: number) => {
-    try {
-      const queryParams = new URLSearchParams({ network: networkId });
-      if (limit) {
-        queryParams.set("limit", String(limit));
-      }
-      const response = await jwtApiClient.get<DevicesSummaryResponse>(
-        `/devices/summary?${queryParams.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -385,8 +369,7 @@ export const devices = {
 
   updateDeviceLocal: async (deviceId: string, deviceData: Partial<Device>) => {
     try {
-      // Remove network field if present
-      const { network, ...updateData } = deviceData;
+      const { ...updateData } = deviceData;
       const response = await jwtApiClient.put(
         `/devices?id=${deviceId}`,
         updateData,
@@ -400,8 +383,7 @@ export const devices = {
 
   updateDeviceGlobal: async (deviceId: string, deviceData: Partial<Device>) => {
     try {
-      // Remove network field if present
-      const { network, ...updateData } = deviceData;
+      const { ...updateData } = deviceData;
       const response = await jwtApiClient.put(
         `/devices/soft?id=${deviceId}`,
         updateData,

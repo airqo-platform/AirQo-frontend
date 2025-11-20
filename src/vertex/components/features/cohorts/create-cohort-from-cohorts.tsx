@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { useCreateCohortFromCohorts } from "@/core/hooks/useCohorts";
+import { useNetworks } from "@/core/hooks/useNetworks";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 
 interface CreateCohortFromSelectionDialogProps {
   open: boolean;
@@ -22,14 +24,17 @@ export function CreateCohortFromSelectionDialog({
   andNavigate = true,
 }: CreateCohortFromSelectionDialogProps) {
   const [name, setName] = useState("");
+  const [network, setNetwork] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
   const { mutate: createFromCohorts, isPending } = useCreateCohortFromCohorts();
+  const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   useEffect(() => {
     if (!open) {
       setName("");
+      setNetwork("");
       setDescription("");
       setError("");
     }
@@ -44,6 +49,10 @@ export function CreateCohortFromSelectionDialog({
       setError("Cohort name must be at least 2 characters.");
       return;
     }
+    if (!network) {
+      setError("Please select a network.");
+      return;
+    }
     setError("");
 
     createFromCohorts(
@@ -51,6 +60,7 @@ export function CreateCohortFromSelectionDialog({
         name: name.trim(),
         description: description.trim() || undefined,
         cohort_ids: selectedCohortIds,
+        network,
       },
       {
         onSuccess: (response) => {
@@ -75,7 +85,7 @@ export function CreateCohortFromSelectionDialog({
       primaryAction={{
         label: isPending ? "Creating..." : "Create",
         onClick: handleSubmit,
-        disabled: isPending || name.trim().length < 2 || selectedCohortIds.length === 0,
+        disabled: isPending || name.trim().length < 2 || selectedCohortIds.length === 0 || !network,
       }}
       secondaryAction={{
         label: "Cancel",
@@ -86,6 +96,21 @@ export function CreateCohortFromSelectionDialog({
     >
       <div className="space-y-4">
         <ReusableInputField label="New Cohort Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter a name for the new cohort" required error={error} />
+        <ReusableSelectInput
+          label="Network"
+          id="network"
+          value={network}
+          onChange={(e) => setNetwork(e.target.value)}
+          required
+          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+          disabled={isLoadingNetworks}
+        >
+          {networks.map((network) => (
+            <option key={network.net_name} value={network.net_name}>
+              {network.net_name}
+            </option>
+          ))}
+        </ReusableSelectInput>
         <ReusableInputField as="textarea" label="Description (Optional)" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe this combined cohort" rows={3} />
       </div>
     </ReusableDialog>

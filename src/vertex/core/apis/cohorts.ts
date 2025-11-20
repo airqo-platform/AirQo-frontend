@@ -2,7 +2,7 @@ import { Cohort, CohortsSummaryResponse, GroupCohortsResponse } from "@/app/type
 import createSecureApiClient from "../utils/secureApiProxyClient";
 
 export interface GetCohortsSummaryParams {
-  network: string;
+  network?: string;
   limit?: number;
   skip?: number;
   search?: string;
@@ -83,7 +83,7 @@ export const cohorts = {
       throw error;
     }
   },
-  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[] }) => {
+  createCohortFromCohorts: async (payload: { name: string; description?: string; cohort_ids: string[]; network?: string }) => {
     try {
       const response = await createSecureApiClient().post(
         `/devices/cohorts/from-cohorts`,

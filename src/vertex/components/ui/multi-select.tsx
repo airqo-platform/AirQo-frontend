@@ -30,6 +30,9 @@ interface MultiSelectComboboxProps {
   value: string[];
   onValueChange: (values: string[]) => void;
   allowCreate?: boolean;
+  searchValue?: string;
+  onSearchChange?: (value: string) => void;
+  emptyMessage?: string;
 }
 
 export function MultiSelectCombobox({
@@ -38,10 +41,23 @@ export function MultiSelectCombobox({
   value,
   onValueChange,
   allowCreate = true,
+  searchValue: controlledSearchValue,
+  onSearchChange,
 }: MultiSelectComboboxProps) {
   const [open, setOpen] = React.useState(false);
-  const [inputValue, setInputValue] = React.useState("");
+  const [internalInputValue, setInternalInputValue] = React.useState("");
   const inputRef = React.useRef<HTMLInputElement | null>(null);
+
+  const isControlled = controlledSearchValue !== undefined && onSearchChange !== undefined;
+  const inputValue = isControlled ? controlledSearchValue : internalInputValue;
+
+  const handleInputChange = (newValue: string) => {
+    if (isControlled) {
+      onSearchChange(newValue);
+    } else {
+      setInternalInputValue(newValue);
+    }
+  };
 
   const selectedValues = new Set(value);
 
@@ -53,7 +69,7 @@ export function MultiSelectCombobox({
       newSet.add(itemValue);
     }
     onValueChange(Array.from(newSet).sort());
-    setInputValue("");
+    handleInputChange("");
   };
 
   const handleRemove = (itemValue: string) => {
@@ -69,15 +85,19 @@ export function MultiSelectCombobox({
     const newSet = new Set(value);
     newSet.add(normalized);
     onValueChange(Array.from(newSet).sort());
-    setInputValue("");
+    handleInputChange("");
     setOpen(false);
   };
 
-  const filteredOptions = options.filter(
-    (option) =>
-      option.label.toLowerCase().includes(inputValue.toLowerCase()) &&
-      !selectedValues.has(option.value)
-  );
+  // Filter options client-side only if NOT using server-side search
+  // If controlled (server-side search), show all options returned from server
+  const filteredOptions = isControlled 
+    ? options.filter((option) => !selectedValues.has(option.value))
+    : options.filter(
+        (option) =>
+          option.label.toLowerCase().includes(inputValue.toLowerCase()) &&
+          !selectedValues.has(option.value)
+      );
 
   const canCreateNew =
     allowCreate && inputValue.trim() !== "" &&
@@ -140,7 +160,7 @@ export function MultiSelectCombobox({
             ref={inputRef}
             placeholder="Search or add new tag..."
             value={inputValue}
-            onValueChange={(value) => setInputValue(value)}
+            onValueChange={handleInputChange}
             onKeyDown={(e) => {
               if (e.key === "Enter" && canCreateNew) {
                 e.preventDefault();
