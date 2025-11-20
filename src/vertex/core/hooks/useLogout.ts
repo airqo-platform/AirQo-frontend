@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { clearSessionData } from '../utils/sessionManager';
+import { clearTokenCache } from '../utils/secureApiProxyClient';
 import logger from '@/lib/logger';
 import { useAppSelector, useAppDispatch } from '../redux/hooks';
 
@@ -31,6 +32,7 @@ export const useLogout = (callbackUrl?: string) => {
       dispatch(clearUser());
 
       clearSessionData();
+      clearTokenCache();
 
       queryClient.clear();
 
