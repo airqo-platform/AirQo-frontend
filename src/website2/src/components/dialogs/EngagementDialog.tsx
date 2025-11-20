@@ -127,6 +127,17 @@ const EngagementDialog = () => {
     termsAccepted: false,
   });
 
+  // Check if dialog was permanently dismissed
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const dismissed = localStorage.getItem('engagement_dialog_dismissed');
+      if (dismissed) {
+        // If it was dismissed, close the modal
+        dispatch(closeModal());
+      }
+    }
+  }, [dispatch]);
+
   const handleClose = () => {
     dispatch(closeModal());
     setActiveSection(null);
@@ -138,6 +149,18 @@ const EngagementDialog = () => {
     });
     setSubmissionSuccess(false); // Reset success message
     setSubmissionError(null); // Reset error message
+
+    // Mark as dismissed so it won't show again for 30 days
+    if (typeof window !== 'undefined') {
+      const dismissalData = {
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
+      };
+      localStorage.setItem(
+        'engagement_dialog_dismissed',
+        JSON.stringify(dismissalData),
+      );
+    }
   };
 
   const handleItemClick = (title: string, category: string) => {
