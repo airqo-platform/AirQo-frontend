@@ -12,7 +12,7 @@ import {
   setAvailableNetworks,
   setUserGroups,
   setInitialized,
-  logout,
+  logout as logoutAction,
   setUserContext,
   setContextLoading,
 } from '@/core/redux/slices/userSlice';
@@ -28,10 +28,11 @@ import type {
   UserDetailsResponse,
   UserDetails,
 } from '@/app/types/users';
-import { ExtendedSession } from '../utils/secureApiProxyClient';
+import { ExtendedSession, clearTokenCache } from '../utils/secureApiProxyClient';
 import logger from '@/lib/logger';
 
-// Helper to filter groups and networks based on staff status
+// --- Helper Functions ---
+
 function filterGroupsAndNetworks(
   userInfo: UserDetails
 ): { groups: Group[]; networks: Network[] } {
@@ -50,20 +51,9 @@ function filterGroupsAndNetworks(
     (network) => network.net_name.toLowerCase() !== 'airqo'
   );
 
-  logger.debug('[UserDataFetcher] Filtered out AirQo groups/networks for non-AirQo staff', {
-    email: userInfo.email,
-    originalGroupsCount: userInfo.groups?.length || 0,
-    filteredGroupsCount: filteredGroups.length,
-    originalNetworksCount: userInfo.networks?.length || 0,
-    filteredNetworksCount: filteredNetworks.length,
-    filteredGroups: filteredGroups.map((g) => g.grp_title),
-    filteredNetworks: filteredNetworks.map((n) => n.net_name),
-  });
-
   return { groups: filteredGroups, networks: filteredNetworks };
 }
 
-// Helper to determine initial group, network, and context
 function determineInitialUserSetup(
   userInfo: UserDetails,
   filteredGroups: Group[],
@@ -76,22 +66,18 @@ function determineInitialUserSetup(
   initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
 } {
   const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
-
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {
-    logger.debug('[UserDataFetcher] Respecting manual personal mode switch from Redux state');
-    return { initialUserContext: 'personal' }; // No default group/network in personal mode
+    return { initialUserContext: 'personal' };
   }
 
   let defaultGroup: Group | undefined;
   let defaultNetwork: Network | undefined;
 
-  if (activeGroup) { // Check if there's an active group from persisted Redux state
-    // Verify the persisted active group is still in the user's filtered groups
+  if (activeGroup) {
     if (filteredGroups.some((g) => g._id === activeGroup._id)) {
       defaultGroup = activeGroup;
-      logger.debug('[UserDataFetcher] Using saved activeGroup from Redux state', { groupTitle: defaultGroup.grp_title });
     }
   }
 
@@ -116,7 +102,31 @@ function determineInitialUserSetup(
   return { defaultGroup, defaultNetwork, initialUserContext };
 }
 
-// Custom hook for prefetching data
+// --- Custom Hooks ---
+
+function useUserDetails(userId: string | null) {
+  return useQuery<UserDetailsResponse, Error>({
+    queryKey: ['userDetails', userId],
+    queryFn: () => users.getUserDetails(userId!),
+    enabled: !!userId,
+    retry: 1,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+function useLogout() {
+  const dispatch = useAppDispatch();
+  const queryClient = useQueryClient();
+
+  return useCallback(() => {
+    clearSessionData();
+    clearTokenCache();
+    queryClient.clear();
+    dispatch(logoutAction());
+    signOut({ callbackUrl: '/login' });
+  }, [dispatch, queryClient]);
+}
+
 function usePrefetchData(
   userInfo: UserDetails | null,
   context: 'personal' | 'airqo-internal' | 'external-org' | null,
@@ -138,17 +148,13 @@ function usePrefetchData(
           });
         } else if (group && network) {
           await queryClient.prefetchQuery({
-            queryKey: ['devices', network.net_name, group.grp_title, { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined }],
-            queryFn: () => devices.getDevicesSummaryApi({ network: network.net_name, group: group.grp_title, limit: 100, skip: 0 }),
+            queryKey: ['devices', group.grp_title, { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined }],
+            queryFn: () => devices.getDevicesSummaryApi({ group: group.grp_title, limit: 100, skip: 0 }),
             staleTime: 300_000,
           });
         }
       } catch (error) {
         logger.error('[UserDataFetcher] Failed to prefetch device data', { error });
-        ReusableToast({
-          message: 'Could not load initial device data.',
-          type: 'WARNING',
-        });
       }
     };
 
@@ -156,128 +162,109 @@ function usePrefetchData(
   }, [userInfo, context, group, network, queryClient]);
 }
 
-/**
- * Component that automatically fetches and stores user data when authenticated
- * Optimized to prevent loops, conflicts, and repeated API calls
- */
+// --- Components ---
+
+const authRoutes = ['/login', '/forgot-password'];
+
+function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { status } = useSession();
+  const { activeGroup, isInitialized } = useAppSelector((state) => state.user);
+
+  const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
+
+  useEffect(() => {
+    if (status === 'authenticated' && isAuthRoute && activeGroup && isInitialized) {
+      logger.debug('[ActiveGroupGuard] Redirecting to /home');
+      router.push('/home');
+    }
+  }, [status, isAuthRoute, activeGroup, isInitialized, router]);
+
+  return <>{children}</>;
+}
+
 function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const dispatch = useAppDispatch();
-  const queryClient = useQueryClient();
-  const { userDetails: user, activeGroup, activeNetwork, isInitialized, isContextLoading, userContext } = useAppSelector((state) => state.user);
+  const { activeGroup, isInitialized, userContext, userDetails: user } = useAppSelector((state) => state.user);
+  const logout = useLogout();
+  const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
+  // Memoize userId
   const userId = useMemo(() => {
-    const id = session?.user && 'id' in session.user
+    return session?.user && 'id' in session.user
       ? (session.user as { id: string }).id
       : null;
-    return id;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user]);
 
-  const queryEnabled = !!userId && status === 'authenticated';
+  // Fetch user details
+  const { data, error, isLoading } = useUserDetails(userId);
 
-  const { data, error, isLoading } = useQuery<UserDetailsResponse, Error>({
-    queryKey: ['userDetails', userId],
-    queryFn: () => {
-      return users.getUserDetails(userId!);
-    },
-    enabled: queryEnabled,
-    retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
+  // Clear user data when userId changes
   const prevUserIdRef = useRef(userId);
   useEffect(() => {
     const prevUserId = prevUserIdRef.current;
     prevUserIdRef.current = userId;
 
-    if (userId !== prevUserId) {
-      if (userId) {
-        dispatch(logout());
-        hasLoggedOutForNoGroupRef.current = false;
-      }
+    if (userId !== prevUserId && userId) {
+      dispatch(logoutAction());
+      hasLoggedOutForNoGroupRef.current = false;
     }
   }, [userId, dispatch]);
 
-  // Use refs to track previous values and prevent unnecessary dispatches
+  // Track previous values
   const prevStatusRef = useRef(status);
   const prevDataRef = useRef(data);
   const prevErrorRef = useRef(error);
   const prevIsLoadingRef = useRef(isLoading);
   const hasLoggedOutForNoGroupRef = useRef(false);
 
-  // Handle authentication status changes
+  // Handle status changes
   useEffect(() => {
     const prevStatus = prevStatusRef.current;
     prevStatusRef.current = status;
 
-    // Only dispatch when status actually changes
     if (status !== prevStatus) {
-      logger.debug('[UserDataFetcher] Session status changed', {
-        prevStatus,
-        newStatus: status,
-        isInitialized,
-      });
-      if (status === 'unauthenticated') {
-        logger.debug('[UserDataFetcher] User unauthenticated, dispatching logout');
-        dispatch(logout());
+      if (status === 'unauthenticated' && !isLoggingOut) {
+        dispatch(logoutAction());
       } else if (status === 'authenticated' && !isInitialized) {
-        logger.debug('[UserDataFetcher] User authenticated, setting initialized');
         dispatch(setInitialized());
       }
     }
-  }, [status, dispatch, isInitialized]);
+  }, [status, dispatch, isLoggingOut, isInitialized]);
 
-  // Handle loading state changes
+  // Handle loading state
   useEffect(() => {
     const prevIsLoading = prevIsLoadingRef.current;
     prevIsLoadingRef.current = isLoading;
 
-    // Only dispatch when loading state actually changes
     if (isLoading !== prevIsLoading) {
-      logger.debug('[UserDataFetcher] Loading state changed', {
-        prevIsLoading,
-        newIsLoading: isLoading,
-        isContextLoading,
-        queryEnabled,
-      });
       dispatch(setContextLoading(isLoading));
     }
+  }, [isLoading, dispatch]);
 
-    // If query is not enabled, ensure loading is false
-    if (!queryEnabled && isLoading === false && isContextLoading) {
-      logger.debug('[UserDataFetcher] Query not enabled but context still loading, setting to false');
-      dispatch(setContextLoading(false));
-    }
-  }, [isLoading, dispatch, isContextLoading, queryEnabled]);
-
-  // Handle error changes
+  // Handle errors
   useEffect(() => {
     const prevError = prevErrorRef.current;
     prevErrorRef.current = error;
 
-    // Only dispatch when error actually changes
     if (error !== prevError && error) {
       logger.error('[UserDataFetcher] Error fetching user details', {
         error: getApiErrorMessage(error),
-        errorObject: error,
       });
       ReusableToast({
         message: `Could not load organization details: ${getApiErrorMessage(error)}`,
         type: 'WARNING',
       });
-      logger.debug('[UserDataFetcher] Setting context loading to false due to error');
       dispatch(setContextLoading(false));
     }
   }, [error, dispatch]);
 
+  // Handle successful data fetching
   useEffect(() => {
     const prevData = prevDataRef.current;
     prevDataRef.current = data;
-
-    logger.debug('[UserDataFetcher] Data effect triggered', {
-      dataChanged: data !== prevData,
-    });
 
     if (data === prevData || !data?.users || data.users.length === 0) {
       if (data !== prevData) {
@@ -289,15 +276,20 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
 
     const userInfo = data.users[0] as UserDetails;
     if (!userInfo) {
-      logger.warn('[UserDataFetcher] Extended user details not found.');
       dispatch(setContextLoading(false));
       return;
     }
 
     const { groups: filteredGroups, networks: filteredNetworks } = filterGroupsAndNetworks(userInfo);
+    const { defaultGroup, defaultNetwork, initialUserContext } = determineInitialUserSetup(
+      userInfo,
+      filteredGroups,
+      filteredNetworks,
+      userContext,
+      activeGroup
+    );
 
-    const { defaultGroup, defaultNetwork, initialUserContext } = determineInitialUserSetup(userInfo, filteredGroups, filteredNetworks, userContext, activeGroup);
-
+    // Batch updates where possible (Redux handles batching, but logical grouping helps)
     dispatch(setUserDetails(userInfo));
     dispatch(setUserGroups(filteredGroups));
     dispatch(setAvailableNetworks(filteredNetworks));
@@ -308,202 +300,129 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     dispatch(setActiveGroup(defaultGroup || null));
     dispatch(setUserContext(initialUserContext));
 
-    logger.debug('[UserDataFetcher] User data processed successfully', {
-      userId: userInfo._id,
-      context: initialUserContext,
-      defaultGroup: defaultGroup?.grp_title,
-      defaultNetwork: defaultNetwork?.net_name,
-    });
-
     if (!isInitialized) {
       dispatch(setInitialized());
     }
     dispatch(setContextLoading(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, dispatch, queryClient, isInitialized]);
+  }, [data, dispatch, isInitialized, userContext, activeGroup]);
 
-  usePrefetchData(user, userContext, activeGroup, activeNetwork);
-
-  const userGroups = useAppSelector((state) => state.user.userGroups);
+  // Check if user has no active group after data is loaded
   useEffect(() => {
-    logger.debug('[UserDataFetcher] Checking active group', {
-      hasUser: !!user,
-      hasActiveGroup: !!activeGroup,
-      hasUserGroups: userGroups.length > 0,
-      userGroupsCount: userGroups.length,
-      userContext,
-      isPersonalContext: userContext === 'personal',
-      isLoading,
-      hasLoggedOutForNoGroup: hasLoggedOutForNoGroupRef.current,
-      isInitialized,
-    });
-
     if (
       user &&
       !activeGroup &&
-      userGroups.length === 0 &&
-      userContext !== null &&
-      userContext !== 'personal' &&
       !isLoading &&
       !hasLoggedOutForNoGroupRef.current &&
-      isInitialized
+      isInitialized &&
+      userContext !== 'personal' &&
+      userContext !== null
     ) {
-      logger.warn('[UserDataFetcher] User has no groups and is not in personal mode, logging out to prevent issues', {
-        userContext,
-        userGroupsCount: userGroups.length,
-      });
-      hasLoggedOutForNoGroupRef.current = true;
-      signOut({ callbackUrl: '/login' });
-    } else if (user && !activeGroup && userGroups.length > 0 && !isLoading && isInitialized) {
-      logger.warn('[UserDataFetcher] User has groups but no active group was set', {
-        userGroupsCount: userGroups.length,
-        userGroups: userGroups.map((g) => g.grp_title),
-        userContext,
-      });
-    } else if (user && !activeGroup && userGroups.length === 0 && userContext === 'personal' && isInitialized) {
-      logger.debug('[UserDataFetcher] User is in personal mode with no groups - this is valid and allowed', {
-        userContext,
-        userGroupsCount: userGroups.length,
-      });
-    } else if (user && !activeGroup && userGroups.length === 0 && userContext === null && isInitialized && !isLoading) {
-      logger.debug('[UserDataFetcher] User has no groups but context is still being determined or not set, waiting...', {
-        userContext,
-        userGroupsCount: userGroups.length,
-        isContextLoading,
-      });
+      // Only logout if we are sure we should have a group but don't
+      // If userContext is personal, no group is expected.
+      // If userContext is null, we might still be loading.
+      const userGroups = user.groups || [];
+      if (userGroups.length === 0) {
+        logger.warn('[UserDataFetcher] User has no groups and is not in personal mode, logging out', { userContext });
+        hasLoggedOutForNoGroupRef.current = true;
+        logout();
+      }
     }
-  }, [activeGroup, user, userGroups, userContext, isLoading, isInitialized, isContextLoading, queryClient]);
+  }, [activeGroup, user, logout, isLoading, isInitialized, userContext]);
 
-  useEffect(() => {
-    if (status === 'authenticated' && !isInitialized) {
-      logger.debug('[UserDataFetcher] Guard initializing app (authenticated with no prior status change)');
-      dispatch(setInitialized());
-    }
-  }, [status, isInitialized, dispatch]);
+  usePrefetchData(user, userContext, activeGroup, useAppSelector(state => state.user.activeNetwork));
 
-  return <>{children}</>;
+  return <ActiveGroupGuard>{children}</ActiveGroupGuard>;
 }
-
-const authRoutes = ['/login', '/forgot-password'];
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { data: session, status, update } = useSession();
-  const router = useRouter();
   const pathname = usePathname();
-  const { activeGroup, isInitialized, isContextLoading, userDetails } = useAppSelector((state) => state.user);
-  const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] = useState(false); // This state is local to AuthWrapper
-  const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
-  const queryClient = useQueryClient();
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
+  const logout = useLogout();
+  const [hasLoggedOutForExpiration, setHasLoggedOutForExpiration] = useState(false);
+  const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
 
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
 
-  useEffect(() => {
-    logger.debug('[AuthWrapper] Component state', {
-      sessionStatus: status,
-      hasSession: !!session,
-      pathname,
-      isAuthRoute,
-      hasActiveGroup: !!activeGroup,
-      isInitialized,
-      isContextLoading,
-      hasUserDetails: !!userDetails,
-      hasLoggedOutForExpiration,
-      hasHandledUnauthorized,
-    });
-  }, [status, session, pathname, isAuthRoute, activeGroup, isInitialized, isContextLoading, userDetails, hasLoggedOutForExpiration, hasHandledUnauthorized]);
-
-  const handleLogout = useCallback(() => {
-    clearSessionData();
-    queryClient.clear();
-    signOut({ callbackUrl: '/login' });
-  }, [queryClient]);
-
   const handleUnauthorized = useCallback(async () => {
     if (isAuthRoute) return;
-
     if (hasHandledUnauthorized) return;
-
     if (isLoggingOut) return;
+
+    // Check for account deletion flag
+    if (typeof window !== 'undefined') {
+      const accountDeleted = localStorage.getItem('account_deleted');
+      const deletionTimestamp = localStorage.getItem('account_deleted_timestamp');
+
+      if (accountDeleted === 'true') {
+        setHasHandledUnauthorized(true);
+        try {
+          localStorage.removeItem('account_deleted');
+          localStorage.removeItem('account_deleted_timestamp');
+        } catch (e) { /* ignore */ }
+
+        ReusableToast({
+          message: 'Your account has been deleted. You have been logged out.',
+          type: 'ERROR',
+        });
+        logout();
+        return;
+      }
+
+      if (deletionTimestamp) {
+        const timestamp = parseInt(deletionTimestamp, 10);
+        if (Date.now() - timestamp > 5 * 60 * 1000) {
+          localStorage.removeItem('account_deleted');
+          localStorage.removeItem('account_deleted_timestamp');
+        }
+      }
+    }
 
     try {
       await update();
-
       const freshSession = await getSession();
+
       if (freshSession && freshSession.user) {
-        logger.warn(
-          '401 received but session is valid - likely permissions issue or account deleted'
-        );
-        const unauthorizedCount = parseInt(
-          localStorage.getItem('unauthorized_count') || '0',
-          10
-        );
-        const lastUnauthorized = parseInt(
-          localStorage.getItem('last_unauthorized') || '0',
-          10
-        );
+        const unauthorizedCount = parseInt(localStorage.getItem('unauthorized_count') || '0', 10);
+        const lastUnauthorized = parseInt(localStorage.getItem('last_unauthorized') || '0', 10);
         const now = Date.now();
 
         if (now - lastUnauthorized < 30000 && unauthorizedCount >= 2) {
-          // 30 seconds, 3+ calls
-          logger.warn(
-            'Multiple 401s with valid session - possible account deletion, logging out...'
-          );
+          logger.warn('Multiple 401s with valid session - possible account deletion, logging out...');
           setHasHandledUnauthorized(true);
           ReusableToast({
             message: 'Your access has been revoked. Please log in again.',
             type: 'ERROR',
           });
-          handleLogout();
+          logout();
           return;
         }
 
-        // Update counters
         localStorage.setItem('unauthorized_count', (unauthorizedCount + 1).toString());
         localStorage.setItem('last_unauthorized', now.toString());
-
         return;
       }
 
-      // Session is expired, logout
       logger.warn('Session expired, logging out...');
       setHasHandledUnauthorized(true);
       ReusableToast({
         message: 'Your session has expired. Please log in again.',
         type: 'ERROR',
       });
-      handleLogout();
+      logout();
     } catch (error) {
-      logger.error('Error handling unauthorized event:', {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error('Error handling unauthorized event:', { error });
       setHasHandledUnauthorized(true);
-      handleLogout();
+      logout();
     }
-  }, [handleLogout, update, isAuthRoute, hasHandledUnauthorized, isLoggingOut]);
+  }, [logout, update, isAuthRoute, hasHandledUnauthorized, isLoggingOut]);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       window.addEventListener('auth-token-expired', handleUnauthorized as EventListener);
-      return () =>
-        window.removeEventListener('auth-token-expired', handleUnauthorized as EventListener);
+      return () => window.removeEventListener('auth-token-expired', handleUnauthorized as EventListener);
     }
   }, [handleUnauthorized]);
-
-  // If authenticated and on an auth page, redirect to home
-  useEffect(() => {
-    logger.debug('[AuthWrapper] Checking redirect conditions', {
-      status,
-      isAuthRoute,
-      hasActiveGroup: !!activeGroup,
-      isInitialized,
-      shouldRedirect: status === 'authenticated' && isAuthRoute && activeGroup && isInitialized,
-    });
-    if (status === 'authenticated' && isAuthRoute && activeGroup && isInitialized) {
-      logger.debug('[AuthWrapper] Redirecting to /home');
-      router.push('/home');
-    }
-  }, [status, isAuthRoute, activeGroup, isInitialized, router]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -517,56 +436,31 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       status === 'unauthenticated' &&
       !isAuthRoute &&
       !hasLoggedOutForExpiration &&
-      !hasHandledUnauthorized &&
-      !isLoggingOut
+      !isLoggingOut &&
+      !hasHandledUnauthorized
     ) {
       logger.warn('Status unauthenticated on protected route, logging out');
       setHasLoggedOutForExpiration(true);
-      handleLogout();
+      logout();
     }
-  }, [status, isAuthRoute, handleLogout, hasLoggedOutForExpiration, hasHandledUnauthorized, isLoggingOut]);
+  }, [status, isAuthRoute, logout, hasLoggedOutForExpiration, isLoggingOut, hasHandledUnauthorized]);
 
   if (status === 'loading') {
-    logger.debug('[AuthWrapper] Session status is loading, showing loading state');
     return <SessionLoadingState />;
   }
 
   if (isAuthRoute) {
-    logger.debug('[AuthWrapper] Auth route detected, rendering children without UserDataFetcher');
     return <>{children}</>;
   }
 
   if (!session) {
-    logger.debug('[AuthWrapper] No session on protected route, showing loading state');
     return <SessionLoadingState />;
   }
 
-  logger.debug('[AuthWrapper] Rendering UserDataFetcher with children', {
-    hasSession: !!session,
-    status,
-    isInitialized,
-    isContextLoading,
-  });
-
-  return (
-    <UserDataFetcher>
-      {children}
-    </UserDataFetcher>
-  );
+  return <UserDataFetcher>{children}</UserDataFetcher>;
 }
 
-interface AuthProviderProps { // This interface is fine
-  children: React.ReactNode;
-  session?: ExtendedSession;
-}
-
-export function AuthProvider({ children, session }: AuthProviderProps) {
-  useEffect(() => {
-    logger.debug('[AuthProvider] AuthProvider mounted', {
-      hasSession: !!session,
-    });
-  }, [session]);
-
+export function AuthProvider({ children, session }: { children: React.ReactNode; session?: ExtendedSession }) {
   return (
     <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>
       <AuthWrapper>{children}</AuthWrapper>
