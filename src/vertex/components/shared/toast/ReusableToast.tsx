@@ -242,13 +242,13 @@ export const TOAST_TYPES = {
   INFO: "info",
 } as const;
 
-type LegacyToastType = keyof typeof TOAST_TYPES;
+// Legacy `type` values are the *values* of TOAST_TYPES (e.g. "success")
+type LegacyToastType = (typeof TOAST_TYPES)[keyof typeof TOAST_TYPES];
 
 interface CustomToastOptions {
   message?: string;
   type?: LegacyToastType;
   duration?: number;
-  style?: React.CSSProperties;
 }
 
 /**
@@ -256,17 +256,17 @@ interface CustomToastOptions {
  */
 const ReusableToast = ({
   message = "",
-  type = "SUCCESS",
-  duration = 5000,
+  type = TOAST_TYPES.SUCCESS,
+  duration = DEFAULT_DURATION,
 }: CustomToastOptions = {}) => {
-  const variantMap: Record<string, ToastVariant> = {
-    SUCCESS: 'success',
-    ERROR: 'error',
-    WARNING: 'warning',
-    INFO: 'info',
+  const variantMap: Record<LegacyToastType, ToastVariant> = {
+    success: 'success',
+    error: 'error',
+    warning: 'warning',
+    info: 'info',
   };
 
-  const variant = variantMap[type] || 'success';
+  const variant = variantMap[type] ?? 'success';
 
   // Map legacy message to title
   return showToast({
