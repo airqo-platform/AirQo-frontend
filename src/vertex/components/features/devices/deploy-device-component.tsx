@@ -25,10 +25,10 @@ import { cn } from "@/lib/utils";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
-import { useAppSelector } from "@/core/redux/hooks";
 import { Device } from "@/app/types/devices";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
+import { useNetworks } from "@/core/hooks/useNetworks";
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
 
 interface MountTypeOption {
@@ -116,6 +116,8 @@ const DeviceDetailsStep = ({
   isLoadingDevices,
   isDevicePrefilled,
 }: DeviceDetailsStepProps) => {
+  const { networks } = useNetworks();
+
   return (
     <div className="space-y-4">
       <div className="grid gap-2">
@@ -136,6 +138,22 @@ const DeviceDetailsStep = ({
           customActionLabel={!isDevicePrefilled ? "Device not listed? Claim a new device" : undefined}
           className="w-full"
         />
+      </div>
+      <div className="grid gap-2">
+        <ReusableSelectInput
+          label="Network"
+          id="network"
+          value={deviceData.network}
+          onChange={(e) => onSelectChange("network")(e.target.value)}
+          placeholder="Select a network"
+          disabled={true}
+        >
+          {networks.map((network) => (
+            <option key={network.net_name} value={network.net_name}>
+              {network.net_name}
+            </option>
+          ))}
+        </ReusableSelectInput>
       </div>
       <div className="grid gap-2">
         <Label>Deployment Date</Label>
@@ -343,7 +361,6 @@ const DeployDeviceComponent = ({
   onDeploymentSuccess,
   onDeploymentError
 }: DeployDeviceComponentProps) => {
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const queryClient = useQueryClient();
   const { isPersonalContext, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices();
@@ -360,7 +377,7 @@ const DeployDeviceComponent = ({
     latitude: prefilledDevice?.latitude?.toString() || "",
     longitude: prefilledDevice?.longitude?.toString() || "",
     siteName: prefilledDevice?.site_name || "",
-    network: activeNetwork?.net_name || "airqo",
+    network: prefilledDevice?.network || "airqo",
   });
 
   // Use external availableDevices if provided, otherwise use internal filtering
@@ -421,7 +438,12 @@ const DeployDeviceComponent = ({
   };
 
   const handleDeviceSelect = (deviceName: string) => {
-    setDeviceData((prev) => ({ ...prev, deviceName }));
+    const selectedDevice = devicesForSelection.find((d: Device) => d.name === deviceName);
+    setDeviceData((prev) => ({
+      ...prev,
+      deviceName,
+      network: selectedDevice?.network || prev.network || "airqo",
+    }));
   };
 
   const handleClaimDevice = () => {
@@ -499,7 +521,7 @@ const DeployDeviceComponent = ({
         latitude: deviceData.latitude,
         longitude: deviceData.longitude,
         site_name: deviceData.siteName || `${deviceData.deviceName} Site`,
-        network: activeNetwork?.net_name || "airqo",
+        network: deviceData.network || "airqo",
         user_id: userDetails._id,
       },
       {
@@ -519,7 +541,7 @@ const DeployDeviceComponent = ({
             latitude: "",
             longitude: "",
             siteName: "",
-            network: activeNetwork?.net_name || "-",
+            network: "-",
           });
 
           setCurrentStep(0);
