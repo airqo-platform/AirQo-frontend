@@ -541,7 +541,7 @@ const DeployDeviceComponent = ({
             latitude: "",
             longitude: "",
             siteName: "",
-            network: "-",
+            network: "airqo",
           });
 
           setCurrentStep(0);
