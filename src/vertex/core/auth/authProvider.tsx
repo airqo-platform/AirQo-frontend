@@ -280,7 +280,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
   }, [activeGroup, user, logout, isLoading, isInitialized, userContext]);
 
-  return <ActiveGroupGuard>{children}</ActiveGroupGuard>;
+  return <>{children}</>;
 }
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
@@ -399,7 +399,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }
 
   if (isAuthRoute) {
-    return <>{children}</>;
+    return <ActiveGroupGuard>{children}</ActiveGroupGuard>;
   }
 
   if (!session) {
