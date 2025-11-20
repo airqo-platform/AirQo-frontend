@@ -28,7 +28,8 @@ import type {
   UserDetailsResponse,
   UserDetails,
 } from '@/app/types/users';
-import { ExtendedSession, clearTokenCache } from '../utils/secureApiProxyClient';
+import { ExtendedSession } from '../utils/secureApiProxyClient';
+import { useLogout } from '@/core/hooks/useLogout';
 import logger from '@/lib/logger';
 
 // --- Helper Functions ---
@@ -114,18 +115,7 @@ function useUserDetails(userId: string | null) {
   });
 }
 
-function useLogout() {
-  const dispatch = useAppDispatch();
-  const queryClient = useQueryClient();
 
-  return useCallback(() => {
-    clearSessionData();
-    clearTokenCache();
-    queryClient.clear();
-    dispatch(logoutAction());
-    signOut({ callbackUrl: '/login' });
-  }, [dispatch, queryClient]);
-}
 
 function usePrefetchData(
   userInfo: UserDetails | null,
