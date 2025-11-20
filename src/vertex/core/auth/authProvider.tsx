@@ -49,7 +49,7 @@ function filterGroupsAndNetworks(
   const filteredNetworks = (userInfo.networks || []).filter(
     (network) => network.net_name.toLowerCase() !== 'airqo'
   );
-  
+
   logger.debug('[UserDataFetcher] Filtered out AirQo groups/networks for non-AirQo staff', {
     email: userInfo.email,
     originalGroupsCount: userInfo.groups?.length || 0,
@@ -86,7 +86,7 @@ function determineInitialUserSetup(
 
   let defaultGroup: Group | undefined;
   let defaultNetwork: Network | undefined;
-  
+
   if (activeGroup) { // Check if there's an active group from persisted Redux state
     // Verify the persisted active group is still in the user's filtered groups
     if (filteredGroups.some((g) => g._id === activeGroup._id)) {
@@ -165,17 +165,17 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
   const { userDetails: user, activeGroup, activeNetwork, isInitialized, isContextLoading, userContext } = useAppSelector((state) => state.user);
-  
+
   const userId = useMemo(() => {
     const id = session?.user && 'id' in session.user
       ? (session.user as { id: string }).id
       : null;
-    return id; 
+    return id;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.user]);
 
   const queryEnabled = !!userId && status === 'authenticated';
-  
+
   const { data, error, isLoading } = useQuery<UserDetailsResponse, Error>({
     queryKey: ['userDetails', userId],
     queryFn: () => {
@@ -319,7 +319,8 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       dispatch(setInitialized());
     }
     dispatch(setContextLoading(false));
-  }, [data, dispatch, queryClient, isInitialized, userContext, activeGroup]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, dispatch, queryClient, isInitialized]);
 
   usePrefetchData(user, userContext, activeGroup, activeNetwork);
 
@@ -336,7 +337,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       hasLoggedOutForNoGroup: hasLoggedOutForNoGroupRef.current,
       isInitialized,
     });
-    
+
     if (
       user &&
       !activeGroup &&
