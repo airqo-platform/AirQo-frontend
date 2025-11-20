@@ -34,7 +34,7 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
         </div>
         <div>
           <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Network</div>
-          <div className="text-base font-normal break-all lowercase">{device.network}</div>
+          <div className="text-base font-normal break-all">{device.network || 'N/A'}</div>
         </div>
       </div>
       <div className="border-t px-2 flex justify-end">
