@@ -116,7 +116,7 @@ const DeviceDetailsStep = ({
   isLoadingDevices,
   isDevicePrefilled,
 }: DeviceDetailsStepProps) => {
-  const { networks } = useNetworks();
+  const { networks, isLoading: isLoadingNetworks, error: networksError } = useNetworks();
 
   return (
     <div className="space-y-4">
@@ -145,8 +145,9 @@ const DeviceDetailsStep = ({
           id="network"
           value={deviceData.network}
           onChange={(e) => onSelectChange("network")(e.target.value)}
-          placeholder="Select a network"
+          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
           disabled={true}
+          error={networksError ? "Failed to load networks" : undefined}
         >
           {networks.map((network) => (
             <option key={network.net_name} value={network.net_name}>
