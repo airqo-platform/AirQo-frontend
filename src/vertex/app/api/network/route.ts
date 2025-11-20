@@ -4,6 +4,7 @@ import { options } from "../auth/[...nextauth]/options";
 import logger from "@/lib/logger";
 import { CreateNetworkPayload, CreateNetworkResponse } from "@/core/apis/networks";
 import axios from "axios";
+import { networkFormSchema } from "@/components/features/networks/create-network-form";
 
 /**
  * Retrieves the access token from the server-side session.
@@ -30,7 +31,18 @@ export async function POST(req: NextRequest) {
   try {
     logger.info("Network creation request received");
     
-    const networkData = await req.json();
+    const body = await req.json();
+    const validationResult = networkFormSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      logger.warn(`Invalid payload: ${JSON.stringify(validationResult.error.issues)}`);
+      return NextResponse.json(
+        { message: "Invalid payload", errors: validationResult.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const networkData = validationResult.data;
     logger.debug(`Network data parsed - fields: ${Object.keys(networkData).join(', ')}, net_name: ${networkData.net_name}`);
 
     const token = await getAuthToken();
