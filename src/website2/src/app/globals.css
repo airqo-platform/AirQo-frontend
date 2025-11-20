@@ -165,8 +165,8 @@ body {
 
 .github-ribbon-link {
   display: inline-block;
-  padding: 8px 28px;
-  font-size: 13px;
+  padding: 8px 35px;
+  font-size: 12px;
   font-weight: 600;
   text-decoration: none;
   text-align: center;
@@ -183,11 +183,11 @@ body {
 }
 
 .github-ribbon.top-left .github-ribbon-link {
-  transform: translate(-35px, 25px) rotate(-45deg);
+  transform: translate(-36px, 25px) rotate(-40deg);
 }
 
 .github-ribbon.top-right .github-ribbon-link {
-  transform: translate(35px, 25px) rotate(45deg);
+  transform: translate(36px, 25px) rotate(40deg);
 }
 
 .github-ribbon-link:hover {
