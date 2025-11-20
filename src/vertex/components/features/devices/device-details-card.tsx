@@ -32,6 +32,10 @@ const DeviceDetailsCard: React.FC<DeviceDetailsCardProps> = ({ deviceId, onShowD
           <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Deployment Status</div>
           <span className={`inline-block text-base font-mono break-all capitalize px-2 py-1 rounded-md ${device.status === "deployed" ? "text-green-600 bg-green-100" : "text-red-600 bg-red-100"}`}>{device.status}</span>
         </div>
+        <div>
+          <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Network</div>
+          <div className="text-base font-normal break-all lowercase">{device.network}</div>
+        </div>
       </div>
       <div className="border-t px-2 flex justify-end">
         <ReusableButton variant="text" className="p-1 text-xs m-1" onClick={onShowDetailsModal}>
