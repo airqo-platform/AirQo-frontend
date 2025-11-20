@@ -65,7 +65,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
         ...(network && { network }),
       });
     },
-    enabled: !!network && !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
+    enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });

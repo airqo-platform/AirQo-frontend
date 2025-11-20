@@ -50,7 +50,7 @@ export const useGrids = (options: GridListingOptions = {}) => {
       };
       return grids.getGridsApi(params);
     },
-    enabled: !!network,
+    enabled: true,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
