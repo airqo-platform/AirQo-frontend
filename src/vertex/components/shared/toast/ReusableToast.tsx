@@ -249,7 +249,6 @@ interface CustomToastOptions {
   type?: LegacyToastType;
   duration?: number;
   style?: React.CSSProperties;
-  onDismiss?: () => void;
 }
 
 /**
@@ -259,7 +258,6 @@ const ReusableToast = ({
   message = "",
   type = "SUCCESS",
   duration = 5000,
-  onDismiss,
 }: CustomToastOptions = {}) => {
   const variantMap: Record<string, ToastVariant> = {
     SUCCESS: 'success',
