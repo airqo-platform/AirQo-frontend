@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppSelector } from "@/core/redux/hooks";
 import Topbar from "./topbar";
@@ -21,6 +21,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isPageLoading, setIsPageLoading] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isSwitching, switchingTo } = useAppSelector((state) => state.user.organizationSwitching);
 
@@ -30,6 +31,10 @@ export default function Layout({ children }: LayoutProps) {
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
   useEffect(() => {
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = null;
+    }
     if (
       pathname.startsWith("/admin/")
     ) {
@@ -48,6 +53,11 @@ export default function Layout({ children }: LayoutProps) {
     setIsPageLoading(true);
     setActiveModule(module);
     setIsPrimarySidebarOpen(false);
+
+    loadingTimeoutRef.current = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 5000);
+
     if (module === "admin") {
       router.push("/admin/networks");
     } else {
