@@ -43,6 +43,13 @@ export default function Layout({ children }: LayoutProps) {
       setActiveModule("network");
     }
     setIsPageLoading(false);
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
+    };
   }, [pathname]);
 
   const handleModuleChange = (module: string) => {
