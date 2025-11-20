@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
-import { useSession, SessionProvider, getSession, signOut } from 'next-auth/react';
+import { useSession, SessionProvider, getSession } from 'next-auth/react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAppSelector, useAppDispatch } from '@/core/redux/hooks';
 import {
   setUserDetails,
@@ -17,8 +17,6 @@ import {
   setContextLoading,
 } from '@/core/redux/slices/userSlice';
 import { users } from '@/core/apis/users';
-import { devices } from '@/core/apis/devices';
-import { clearSessionData } from '@/core/utils/sessionManager';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
@@ -113,43 +111,6 @@ function useUserDetails(userId: string | null) {
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
-}
-
-
-
-function usePrefetchData(
-  userInfo: UserDetails | null,
-  context: 'personal' | 'airqo-internal' | 'external-org' | null,
-  group: Group | null,
-  network: Network | null
-) {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (!userInfo || !context) return;
-
-    const prefetch = async () => {
-      try {
-        if (context === 'personal') {
-          await queryClient.prefetchQuery({
-            queryKey: ['my-devices', userInfo._id],
-            queryFn: () => devices.getMyDevices(userInfo._id),
-            staleTime: 300_000,
-          });
-        } else if (group && network) {
-          await queryClient.prefetchQuery({
-            queryKey: ['devices', group.grp_title, { page: 1, limit: 100, search: undefined, sortBy: undefined, order: undefined }],
-            queryFn: () => devices.getDevicesSummaryApi({ group: group.grp_title, limit: 100, skip: 0 }),
-            staleTime: 300_000,
-          });
-        }
-      } catch (error) {
-        logger.error('[UserDataFetcher] Failed to prefetch device data', { error });
-      }
-    };
-
-    prefetch();
-  }, [userInfo, context, group, network, queryClient]);
 }
 
 // --- Components ---
@@ -318,8 +279,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       }
     }
   }, [activeGroup, user, logout, isLoading, isInitialized, userContext]);
-
-  usePrefetchData(user, userContext, activeGroup, useAppSelector(state => state.user.activeNetwork));
 
   return <ActiveGroupGuard>{children}</ActiveGroupGuard>;
 }
