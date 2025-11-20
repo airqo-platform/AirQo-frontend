@@ -15,7 +15,7 @@ interface ErrorResponse {
 
 export const useNetworks = () => {
   const {
-    data: networks = [],
+    data: networksData = [],
     isLoading,
     isFetching,
     error,
@@ -24,6 +24,13 @@ export const useNetworks = () => {
     queryFn: networksApi.getNetworksApi,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
+  });
+
+  // Sort networks to ensure 'airqo' is always first
+  const networks = [...networksData].sort((a, b) => {
+    if (a.net_name?.toLowerCase() === 'airqo') return -1;
+    if (b.net_name?.toLowerCase() === 'airqo') return 1;
+    return 0;
   });
 
   return { networks, isLoading, isFetching, error: error as Error | null };
