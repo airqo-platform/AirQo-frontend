@@ -16,10 +16,15 @@ import { AqPlus } from "@airqo/icons-react";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
 import MiniMap from "@/components/features/mini-map/mini-map";
 import { Label } from "@/components/ui/label";
+import { useNetworks } from "@/core/hooks/useNetworks";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {
     message: "Site name must be at least 2 characters.",
+  }),
+  network: z.string().min(1, {
+    message: "Please select a network.",
   }),
   latitude: z.string().refine(
     (val) => {
@@ -50,16 +55,17 @@ interface CreateSiteFormProps {
 export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const [inputMode, setInputMode] = useState<"siteName" | "coordinates">("siteName");
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const [inputMode, setInputMode] = useState<"siteName" | "coordinates">("coordinates");
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const { getApproximateCoordinates, isPending: isOptimizing } = useApproximateCoordinates();
   const { mutate: createSite, isPending: isCreating } = useCreateSite();
+  const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const form = useForm<SiteFormValues>({
     resolver: zodResolver(siteFormSchema),
     defaultValues: {
       name: "",
+      network: "",
       latitude: "",
       longitude: "",
     },
@@ -72,22 +78,22 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
   }, [form]);
 
   const onSubmit = useCallback((values: SiteFormValues) => {
-      createSite(
-        {
-          ...values,
-          network: activeNetwork?.net_name || "",
-          group: activeGroup?.grp_title || "",
+    createSite(
+      {
+        ...values,
+        network: values.network,
+        group: activeGroup?.grp_title || "",
+      },
+      {
+        onSuccess: (data) => {
+          handleClose();
+          if (data?.site?._id) {
+            router.push(`/sites/${data.site._id}`);
+          }
         },
-        {
-          onSuccess: (data) => {
-            handleClose();
-            if (data?.site?._id) {
-              router.push(`/sites/${data.site._id}`);
-            }
-          },
-        }
-      );
-    }, [createSite, activeNetwork?.net_name, activeGroup?.grp_title, handleClose, router]);
+      }
+    );
+  }, [createSite, activeGroup?.grp_title, handleClose, router]);
 
   const handleCoordinateChange = useCallback((lat: string, lng: string) => {
     form.setValue("latitude", lat, { shouldValidate: true });
@@ -128,8 +134,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
         isOpen={open}
         onClose={handleClose}
         title="Create Site"
-        subtitle={`Network: ${activeNetwork?.net_name || "No active network"}`}
-        size="4xl"
+        size="5xl"
         primaryAction={{
           label: isCreating ? "Creating..." : "Create Site",
           onClick: form.handleSubmit(onSubmit),
@@ -146,8 +151,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-6">
               <div>
-                <div className="flex justify-between items-center">
-                  <h3 className="font-medium">Location Details</h3>
+                <div className="flex justify-end items-center">
                   <ReusableButton
                     onClick={toggleInputMode}
                     variant="text"
@@ -161,9 +165,11 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
                   <FormField
                     control={form.control}
                     name="name"
-                    render={({ field }) => (
+                    render={({ field, fieldState }) => (
                       <div className="grid gap-2">
-                        <Label htmlFor="siteName">Site Name</Label>
+                        <Label htmlFor="siteName" aria-required>Site Name <span style={{ color: "hsl(var(--primary))" }} className="ml-1">
+                          *
+                        </span></Label>
                         <LocationAutocomplete
                           value={field.value}
                           onChange={field.onChange}
@@ -175,6 +181,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
                             );
                           }}
                           placeholder="Search for a location"
+                          error={fieldState.error?.message}
                         />
                         <p className="text-xs text-muted-foreground">
                           Search and select a location to automatically set coordinates.
@@ -227,10 +234,9 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
                     </div>
                   </div>
                 )}
-
                 <ReusableButton
                   type="button"
-                  className="text-sm p-1 mt-1"
+                  className="text-sm p-1 my-2"
                   variant="outlined"
                   onClick={handleOptimizeCoordinates}
                   disabled={!form.watch("latitude") || !form.watch("longitude") || isOptimizing}
@@ -238,6 +244,29 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
                 >
                   {isOptimizing ? "Optimizing..." : "⭐ Optimize Coordinates"}
                 </ReusableButton>
+
+                <FormField
+                  control={form.control}
+                  name="network"
+                  render={({ field }) => (
+                    <ReusableSelectInput
+                      label="Network"
+                      id="network"
+                      value={field.value}
+                      onChange={(e) => field.onChange(e.target.value)}
+                      error={form.formState.errors.network?.message}
+                      required
+                      placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+                      disabled={isLoadingNetworks}
+                    >
+                      {networks.map((network) => (
+                        <option key={network.net_name} value={network.net_name}>
+                          {network.net_name}
+                        </option>
+                      ))}
+                    </ReusableSelectInput>
+                  )}
+                />
               </div>
 
               <div className="space-y-2">
@@ -262,4 +291,3 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
     </>
   );
 }
-                  

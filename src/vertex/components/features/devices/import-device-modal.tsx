@@ -6,8 +6,8 @@ import ReusableInputField from "@/components/shared/inputfield/ReusableInputFiel
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice } from "@/core/hooks/useDevices";
-import { useAppSelector } from "@/core/redux/hooks";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
+import { useNetworks } from "@/core/hooks/useNetworks";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -20,6 +20,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     long_name: "",
+    network: "",
     category: DEVICE_CATEGORIES[0].value,
     serial_number: "",
     description: "",
@@ -30,14 +31,17 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
   const [showMore, setShowMore] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const importDevice = useImportDevice();
+  const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
     if (!formData.long_name.trim()) {
       newErrors.long_name = "Device name is required";
+    }
+    if (!formData.network) {
+      newErrors.network = "Network is required";
     }
 
     if (!formData.serial_number.trim()) {
@@ -53,11 +57,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       return;
     }
 
-    if (!activeNetwork?.net_name) {
-      setErrors({ general: "No active network found" });
-      return;
-    }
-
     const deviceDataToSend = { ...formData };
 
     // Remove fields with empty values
@@ -70,7 +69,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     importDevice.mutate(
       {
         ...deviceDataToSend,
-        network: activeNetwork.net_name,
       },
       { onSuccess: () => onOpenChange(false) }
     );
@@ -99,6 +97,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     if (!open) {
       setFormData({
         long_name: "",
+        network: "",
         category: DEVICE_CATEGORIES[0].value,
         serial_number: "",
         description: "",
@@ -116,7 +115,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       isOpen={open}
       onClose={handleClose}
       title="Import Device"
-      subtitle={`Network: ${activeNetwork?.net_name || "No active network"}`}
       size="md"
       primaryAction={{
         label: importDevice.isPending ? "Importing..." : "Import Device",
@@ -147,6 +145,23 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           error={errors.long_name}
           required
         />
+
+        <ReusableSelectInput
+          label="Network"
+          id="network"
+          value={formData.network}
+          onChange={(e) => handleInputChange("network", e.target.value)}
+          error={errors.network}
+          required
+          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+          disabled={isLoadingNetworks}
+        >
+          {networks.map((network) => (
+            <option key={network.net_name} value={network.net_name}>
+              {network.net_name}
+            </option>
+          ))}
+        </ReusableSelectInput>
 
         <ReusableSelectInput
           label="Category"
