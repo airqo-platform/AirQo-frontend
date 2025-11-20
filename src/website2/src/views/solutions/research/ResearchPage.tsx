@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { BarChart3, Shield, Users, Zap } from 'lucide-react';
+import { LuBarChart3, LuShield, LuUsers, LuZap } from 'react-icons/lu';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
@@ -52,28 +52,28 @@ const CONTENT = {
       title: 'Enhanced Data Accessibility',
       description:
         'Remote access to high-quality air quality data for improved decision making and research.',
-      icon: BarChart3,
+      icon: LuBarChart3,
       color: 'bg-blue-50 text-blue-600',
     },
     {
       title: 'Cost Efficiency',
       description:
         'Lower operational costs for sustainable air quality monitoring in African cities through innovative solutions.',
-      icon: Zap,
+      icon: LuZap,
       color: 'bg-green-50 text-green-600',
     },
     {
       title: 'Capacity Building',
       description:
         'Knowledge sharing and research collaboration to strengthen air quality management capabilities.',
-      icon: Users,
+      icon: LuUsers,
       color: 'bg-purple-50 text-purple-600',
     },
     {
       title: 'Scalable Solutions',
       description:
         'Adaptable solutions for various regulatory-grade monitors applicable across multiple African cities.',
-      icon: Shield,
+      icon: LuShield,
       color: 'bg-orange-50 text-orange-600',
     },
   ],
