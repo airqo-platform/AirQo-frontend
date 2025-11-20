@@ -196,11 +196,11 @@ body {
 }
 
 .github-ribbon.top-left .github-ribbon-link:hover {
-  transform: translate(-35px, 25px) rotate(-45deg) scale(1.02);
+  /* Removed transform effects, keeping only color change */
 }
 
 .github-ribbon.top-right .github-ribbon-link:hover {
-  transform: translate(35px, 25px) rotate(45deg) scale(1.02);
+  /* Removed transform effects, keeping only color change */
 }
 
 .github-ribbon-link:focus {

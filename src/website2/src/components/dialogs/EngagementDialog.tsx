@@ -141,7 +141,7 @@ const EngagementDialog = () => {
             // Clean up expired dismissal
             localStorage.removeItem('engagement_dialog_dismissed');
           }
-        } catch (e) {
+        } catch {
           // Invalid data, remove it
           localStorage.removeItem('engagement_dialog_dismissed');
         }
