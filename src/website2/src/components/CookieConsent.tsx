@@ -79,10 +79,9 @@ export default function CookieConsent() {
                   id="cookie-consent-description"
                   className="text-sm text-gray-600 leading-relaxed"
                 >
-                  This website uses cookies to enhance your browsing experience,
-                  serve personalized content, and analyze our traffic. By
-                  selecting &quot;Accept All&quot;, you consent to our use of
-                  cookies.{' '}
+                  AirQo uses cookies to improve your browsing experience and
+                  perform analytics and research. By selecting &quot;Accept
+                  All&quot;, you consent to our use of cookies on your device.{' '}
                   <Link
                     href="/legal/privacy-policy"
                     className="text-blue-600 hover:text-blue-700 underline font-medium"
