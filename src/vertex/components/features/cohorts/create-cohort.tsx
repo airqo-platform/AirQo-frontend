@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -61,22 +61,30 @@ export function CreateCohortDialog({
     },
   });
 
-  const { devices, isLoading, error } = useDevices();
+  const selectedNetwork = form.watch("network");
+  const [deviceSearch, setDeviceSearch] = useState("");
+
+  const { devices, isLoading, error } = useDevices({ 
+    network: selectedNetwork,
+    search: deviceSearch 
+  });
+  
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const deviceOptions = useMemo(() => {
-    const allDeviceOptions = (devices || []).map((d) => ({
+    return (devices || []).map((d) => ({
       value: d._id || "",
       label: d.long_name || d.name || `Device ${d._id}`,
     }));
-
-    const combinedOptions = [...preselectedDevices, ...allDeviceOptions];
-    const uniqueOptions = Array.from(new Map(combinedOptions.map((opt) => [opt.value, opt])).values());
-    return uniqueOptions.filter((opt) => opt.value);
-  }, [devices, preselectedDevices]);
+  }, [devices]);
 
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const router = useRouter();
+
+  useEffect(() => {
+    form.setValue("devices", []);
+    setDeviceSearch("");
+  }, [selectedNetwork, form]);
 
   useEffect(() => {
     if (open) {
@@ -85,13 +93,16 @@ export function CreateCohortDialog({
         network: activeNetwork?.net_name || "",
         devices: preselectedDevices.map((d) => d.value),
       });
+      setDeviceSearch("");
     }
-  }, [open, preselectedDevices, activeNetwork, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, activeNetwork]);
 
   const { mutate: createCohort, isPending } = useCreateCohortWithDevices();
 
   const handleCancel = () => {
     form.reset();
+    setDeviceSearch("");
     onOpenChange(false);
   };
 
@@ -102,6 +113,7 @@ export function CreateCohortDialog({
         onSuccess: (response) => {
           onSuccess?.(response);
           form.reset();
+          setDeviceSearch("");
 
           if (andNavigate && response?.cohort?._id) {
             router.push(`/cohorts/${response.cohort._id}`);
@@ -125,7 +137,7 @@ export function CreateCohortDialog({
       primaryAction={{
         label: isPending ? "Creating…" : "Submit",
         onClick: form.handleSubmit(onSubmit),
-        disabled: isPending || !form.watch("network"),
+        disabled: isPending || !selectedNetwork,
       }}
       secondaryAction={{
         label: "Cancel",
@@ -184,8 +196,15 @@ export function CreateCohortDialog({
                     options={deviceOptions}
                     placeholder="Select or add devices..."
                     onValueChange={field.onChange}
-                    value={field.value}
+                    value={field.value || []}
                     allowCreate={false}
+                    onSearchChange={setDeviceSearch}
+                    searchValue={deviceSearch}
+                    emptyMessage={
+                      selectedNetwork 
+                        ? "No devices found for this network." 
+                        : "Please select a network first."
+                    }
                   />
                 </FormControl>
                 {isLoading && <p className="text-xs text-muted-foreground">Loading devices…</p>}

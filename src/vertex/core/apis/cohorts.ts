@@ -2,7 +2,7 @@ import { Cohort, CohortsSummaryResponse, GroupCohortsResponse } from "@/app/type
 import createSecureApiClient from "../utils/secureApiProxyClient";
 
 export interface GetCohortsSummaryParams {
-  network: string;
+  network?: string;
   limit?: number;
   skip?: number;
   search?: string;

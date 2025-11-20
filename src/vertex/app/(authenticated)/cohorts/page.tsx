@@ -7,11 +7,8 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
 import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import moment from "moment";
-import { useQueryClient } from "@tanstack/react-query";
-import { useAppSelector } from "@/core/redux/hooks";
-import { GetDevicesSummaryParams, devices as devicesApi } from "@/core/apis/devices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqPlus } from "@airqo/icons-react";
 import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/create-cohort-from-cohorts";
@@ -49,24 +46,6 @@ export default function CohortsPage() {
   const [showCreateFromCohorts, setShowCreateFromCohorts] = useState(false);
   const [showAssignToGroup, setShowAssignToGroup] = useState(false);
   const [selectedCohortIds, setSelectedCohortIds] = useState<string[]>([]);
-  const queryClient = useQueryClient();
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
-
-  const prefetchDevices = useCallback(() => {
-    const grp = activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || "");
-
-    const params: GetDevicesSummaryParams = { group: grp };
-
-    return queryClient.prefetchQuery({
-      queryKey: ["devices", grp, { page: 1, limit: 100, search: '', sortBy: undefined, order: undefined }],
-      queryFn: () => devicesApi.getDevicesSummaryApi(params),
-      staleTime: 300_000,
-    });
-  }, [queryClient, activeGroup?.grp_title]);
-
-  useEffect(() => {
-    prefetchDevices();
-  }, [prefetchDevices]);
 
   useEffect(() => {
     if (tableRef.current) {
@@ -143,10 +122,7 @@ export default function CohortsPage() {
           </div>
           <ReusableButton
             variant="filled"
-            onMouseEnter={prefetchDevices}
-            onFocus={prefetchDevices}
             onClick={() => {
-              prefetchDevices();
               setShowCreateCohortModal(true);
             }}
             Icon={AqPlus}

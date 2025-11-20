@@ -38,6 +38,7 @@ export interface DeviceListingOptions {
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
+  network?: string;
 }
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
@@ -48,12 +49,12 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     enabled: !isAirQoGroup && !!activeGroup?._id,
   });
 
-  const { page = 1, limit = 100, search, sortBy, order } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
-  const queryKey = ["devices", activeGroup?.grp_title, { page, limit, search, sortBy, order }, groupCohortIds];
+  const queryKey = ["devices", activeGroup?.grp_title, { page, limit, search, sortBy, order, network }, groupCohortIds];
 
   const devicesQuery = useQuery<DevicesSummaryResponse, AxiosError<ErrorResponse>>({
     queryKey,
@@ -65,6 +66,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
           ...(search && { search }),
           ...(sortBy && { sortBy }),
           ...(order && { order }),
+          ...(network && { network }),
         };
         return devices.getDevicesSummaryApi(params);
       }
@@ -78,9 +80,10 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
         cohort_ids: groupCohortIds,
         limit: safeLimit,
         skip,
-        ...(search && { search }),
+        ...(search && { search }),  
         ...(sortBy && { sortBy }),
         ...(order && { order }),
+        ...(network && { network }),
       });
     },
     enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
