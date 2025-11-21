@@ -188,7 +188,7 @@ const MonitorCoveragePage = () => {
                 <p className="text-3xl font-bold text-gray-900 mt-2">
                   {isLoading && currentSkip === 0
                     ? '...'
-                    : statistics.totalSites}
+                    : `${statistics.totalSites}+`}
                 </p>
               </div>
               <AqMonitor03 className="w-10 h-10 text-blue-500" />
