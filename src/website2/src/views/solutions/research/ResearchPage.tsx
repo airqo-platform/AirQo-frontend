@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import React from 'react';
-import { LuBarChart3, LuShield, LuUsers, LuZap } from 'react-icons/lu';
+import { LuChartBar, LuShield, LuUsers, LuZap } from 'react-icons/lu';
 
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
 import HeroSection from '@/components/sections/solutions/HeroSection';
@@ -52,7 +52,7 @@ const CONTENT = {
       title: 'Enhanced Data Accessibility',
       description:
         'Remote access to high-quality air quality data for improved decision making and research.',
-      icon: LuBarChart3,
+      icon: LuChartBar,
       color: 'bg-blue-50 text-blue-600',
     },
     {

@@ -5,6 +5,13 @@ import { FiMaximize2, FiMinus, FiPlus } from 'react-icons/fi';
 
 import { Site } from '@/types';
 
+// Helper function to escape HTML and prevent XSS
+const escapeHtml = (text: string): string => {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+};
+
 interface MapContainerProps {
   sites: Site[];
   selectedSiteId?: string;
@@ -29,6 +36,9 @@ const MapContainer: React.FC<MapContainerProps> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   const markersRef = useRef<any[]>([]);
   const popupsRef = useRef<any[]>([]);
+  const listenersRef = useRef<{ element: HTMLElement; handler: () => void }[]>(
+    [],
+  );
 
   // Initialize map
   useEffect(() => {
@@ -98,6 +108,16 @@ const MapContainer: React.FC<MapContainerProps> = ({
       }
     });
     popupsRef.current = [];
+
+    // Clean up event listeners
+    listenersRef.current.forEach(({ element, handler }) => {
+      try {
+        element.removeEventListener('click', handler);
+      } catch (error) {
+        console.error('Error removing event listener:', error);
+      }
+    });
+    listenersRef.current = [];
   }, []);
 
   // Update markers when sites or selection changes
@@ -140,23 +160,38 @@ const MapContainer: React.FC<MapContainerProps> = ({
       try {
         const isSelected = site._id === selectedSiteId;
 
-        // Create marker element
+        // Create marker element using DOM methods to prevent XSS
         const el = document.createElement('div');
         el.className = 'custom-marker';
         el.style.zIndex = isSelected ? '1000' : '1';
 
-        el.innerHTML = `
-          <div class="relative cursor-pointer transition-transform hover:scale-110 ${isSelected ? 'scale-125 z-[1000]' : ''}">
-            <div class="w-4 h-4 rounded-full border-2 border-white bg-blue-500 ${isSelected ? 'ring-4 ring-blue-700 w-6 h-6' : 'shadow-md'}"></div>
-            ${
-              isSelected
-                ? '<div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-700"></div>'
-                : ''
-            }
-          </div>
-        `;
+        // Create marker container
+        const markerDiv = document.createElement('div');
+        markerDiv.className = `relative cursor-pointer transition-transform hover:scale-110 ${isSelected ? 'scale-125 z-[1000]' : ''}`;
 
-        // Create popup
+        // Create inner circle
+        const innerDiv = document.createElement('div');
+        innerDiv.className = `w-4 h-4 rounded-full border-2 border-white bg-blue-500 ${isSelected ? 'ring-4 ring-blue-700 w-6 h-6' : 'shadow-md'}`;
+        markerDiv.appendChild(innerDiv);
+
+        // Add arrow for selected markers
+        if (isSelected) {
+          const arrow = document.createElement('div');
+          arrow.className =
+            'absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-700';
+          markerDiv.appendChild(arrow);
+        }
+
+        el.appendChild(markerDiv);
+
+        // Create popup with escaped HTML to prevent XSS
+        const siteName = escapeHtml(
+          site.name || site.formatted_name || 'Unnamed Location',
+        );
+        const siteLocation = escapeHtml(
+          site.city || site.location_name || 'Unknown',
+        );
+
         const popup = new mapboxgl.Popup({
           offset: 25,
           closeButton: true,
@@ -164,8 +199,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
           maxWidth: '250px',
         }).setHTML(`
           <div class="p-2">
-            <h3 class="font-semibold text-sm">${site.name || site.formatted_name || 'Unnamed Location'}</h3>
-            <p class="text-xs text-gray-600">${site.city || site.location_name || 'Unknown'}</p>
+            <h3 class="font-semibold text-sm">${siteName}</h3>
+            <p class="text-xs text-gray-600">${siteLocation}</p>
           </div>
         `);
 
@@ -184,9 +219,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
 
         el.addEventListener('click', clickHandler);
 
-        // Store marker and popup for cleanup
+        // Store marker, popup, and listener for cleanup
         markersRef.current.push(marker);
         popupsRef.current.push(popup);
+        listenersRef.current.push({ element: el, handler: clickHandler });
 
         // Extend bounds
         bounds.extend([site.approximate_longitude, site.approximate_latitude]);

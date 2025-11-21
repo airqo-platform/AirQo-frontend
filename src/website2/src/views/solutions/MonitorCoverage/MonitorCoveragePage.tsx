@@ -68,13 +68,16 @@ const MonitorCoveragePage = () => {
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setCurrentSkip(0); // Reset pagination when search changes
-      setAllGrids([]); // Clear accumulated data
+      // Only update if the debounced value is different
+      if (searchQuery !== debouncedSearch) {
+        setDebouncedSearch(searchQuery);
+        setCurrentSkip(0); // Reset pagination when search changes
+        setAllGrids([]); // Clear accumulated data
+      }
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [searchQuery]);
+  }, [searchQuery, debouncedSearch]);
 
   // Fetch grids data using the new v2 hook
   const { data, error, isLoading } = useGridsSummaryV2({
@@ -423,11 +426,11 @@ const MonitorCoveragePage = () => {
                 Extensive Coverage Across Africa
               </h3>
               <p className="text-gray-700">
-                AirQo operates one of Africa's largest air quality monitoring
-                networks with over 300+ monitors deployed across 16+ countries.
-                Our network provides real-time air quality data to millions of
-                people, helping communities, researchers, and policymakers make
-                informed decisions about air quality.
+                AirQo operates one of Africa&apos;s largest air quality
+                monitoring networks with over 300+ monitors deployed across 16+
+                countries. Our network provides real-time air quality data to
+                millions of people, helping communities, researchers, and
+                policymakers make informed decisions about air quality.
               </p>
             </div>
 
@@ -447,7 +450,7 @@ const MonitorCoveragePage = () => {
               <h3 className="text-xl font-semibold mb-3">Expanding Coverage</h3>
               <p className="text-gray-700">
                 We continuously work to expand our network to provide better
-                coverage and more granular air quality data. If you're
+                coverage and more granular air quality data. If you&apos;re
                 interested in hosting a monitor or partnering with us to expand
                 coverage in your area, please get in touch.
               </p>

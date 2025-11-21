@@ -33,42 +33,52 @@ const MapLoader: React.FC<MapLoaderProps> = ({ children }) => {
       return;
     }
 
-    // Load Mapbox GL JS CSS
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css';
-    document.head.appendChild(link);
+    // Load Mapbox GL JS CSS - check if already exists
+    let link = document.querySelector(
+      'link[href*="mapbox-gl.css"]',
+    ) as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.css';
+      document.head.appendChild(link);
+    }
 
-    // Load Mapbox GL JS
-    const script = document.createElement('script');
-    script.src = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js';
-    script.async = true;
+    // Load Mapbox GL JS - check if already exists
+    let script = document.querySelector(
+      'script[src*="mapbox-gl.js"]',
+    ) as HTMLScriptElement;
+    if (!script) {
+      script = document.createElement('script');
+      script.src = 'https://api.mapbox.com/mapbox-gl-js/v3.0.1/mapbox-gl.js';
+      script.async = true;
+      document.head.appendChild(script);
+    }
 
-    script.onload = () => {
-      if (window.mapboxgl) {
-        window.mapboxgl.accessToken = MAPBOX_TOKEN;
-        setIsLoaded(true);
-      } else {
-        setError('Failed to load Mapbox GL JS');
-      }
-    };
+    // If script is already loaded, set token immediately
+    if (window.mapboxgl) {
+      window.mapboxgl.accessToken = MAPBOX_TOKEN;
+      setIsLoaded(true);
+    } else {
+      // Set up event handlers for newly created script
+      script.onload = () => {
+        if (window.mapboxgl) {
+          window.mapboxgl.accessToken = MAPBOX_TOKEN;
+          setIsLoaded(true);
+        } else {
+          setError('Failed to load Mapbox GL JS');
+        }
+      };
 
-    script.onerror = () => {
-      setError('Failed to load Mapbox GL JS library');
-    };
+      script.onerror = () => {
+        setError('Failed to load Mapbox GL JS library');
+      };
+    }
 
-    document.head.appendChild(script);
-
+    // No cleanup needed - Mapbox GL is a global resource
+    // that should persist for the lifetime of the page
     return () => {
-      // Cleanup on unmount
-      const existingScript = document.querySelector(
-        'script[src*="mapbox-gl.js"]',
-      );
-      const existingLink = document.querySelector(
-        'link[href*="mapbox-gl.css"]',
-      );
-      if (existingScript) existingScript.remove();
-      if (existingLink) existingLink.remove();
+      // Cleanup removed - global resources should persist
     };
   }, []);
 
