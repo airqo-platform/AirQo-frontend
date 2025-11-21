@@ -424,7 +424,7 @@ const MonitorCoveragePage = () => {
               </h3>
               <p className="text-gray-700">
                 AirQo operates one of Africa's largest air quality monitoring
-                networks with over 200 monitors deployed across 16+ countries.
+                networks with over 300+ monitors deployed across 16+ countries.
                 Our network provides real-time air quality data to millions of
                 people, helping communities, researchers, and policymakers make
                 informed decisions about air quality.
