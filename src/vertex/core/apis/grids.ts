@@ -4,7 +4,7 @@ import { CreateGrid, GridsSummaryResponse } from "@/app/types/grids";
 const jwtApiClient = createSecureApiClient();
 
 export interface GetGridsSummaryParams {
-  network: string;
+  network?: string;
   limit?: number;
   skip?: number;
   search?: string;

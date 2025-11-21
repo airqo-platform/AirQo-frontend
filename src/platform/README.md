@@ -1,178 +1,30 @@
-# Platform beta.
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-[![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/graph/badge.svg?token=LsBcFL42rz)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
+## Getting Started
 
-[![AirQo next platform](https://img.shields.io/endpoint?url=https://dashboard.cypress.io/badge/simple/ap5jjk/staging&style=flat&logo=cypress)](https://dashboard.cypress.io/projects/ap5jjk/runs) [![codecov](https://codecov.io/gh/airqo-platform/AirQo-frontend/branch/staging/graph/badge.svg)](https://codecov.io/gh/airqo-platform/AirQo-frontend)
-
-## The table of contents
-
-- [Platform beta.](#platform-beta)
-  - [The table of contents](#the-table-of-contents)
-  - [Prerequisites.](#prerequisites)
-  - [Getting started here](#getting-started-here)
-  - [Running the application](#running-the-application)
-    - [Cypress tests](#cypress-tests)
-    - [The linter](#the-linter)
-    - [The server](#the-server)
-    - [Docker / docker-compose](#docker--docker-compose)
-  - [Folder Structure](#folder-structure)
-    - [src folder](#src-folder)
-    - [public folder](#public-folder)
-    - [cypress folder](#cypress-folder)
-    - [Top-level configuration](#top-level-configuration)
-
-## Prerequisites.
-
-- [Git](https://gist.github.com/derhuerst/1b15ff4652a867391f03)
-- [NodeJs](https://nodejs.org/en/) v16 or later
-- [Yarn](https://classic.yarnpkg.com/lang/en/)
-
-## Getting started here
-
-a) In order to get started here, you start by cloning the repository accordingly
-
-    git clone https://github.com/airqo-platform/AirQo-frontend.git
-
-b) Once the repo is cloned, `cd` into the platform folder within the `AirQo-frontend` directory.
-
-    cd src/platform
-
-c) Create `../.env` (relative to `src/platform`, i.e., in the repository root) and fill it with the needed information. You can find the needed information in the `.env.example` file if one exists in this repository; if not, copy the existing `.env` file from a trusted environment or ask a teammate for the required variables. Do NOT commit secrets to the repo.
-
-d) Install the dependencies
-
-    yarn install
-
-## Running the application
-
-Run the following commands to start corresponding services
-
-### Cypress tests
-
-    yarn cypress:open
-
-A new browser screen opens you from which you can manaully run the tests
-
-### The linter
-
-    yarn lint
-
-To lint all the JavaScript source code, and
-
-    yarn lint-staged
-
-To lint only the staged files
-
-### The server
-
-    yarn dev
-
-To start the development server. The application can be accessed from [http://localhost:3000](http://localhost:3000)
-
-    yarn start
-
-To start the production server.
-
-    yarn build
-
-To build the application for production environments
-
-### Docker / docker-compose
-
-If you prefer to run the app inside containers you can use the provided `docker-compose.yml`. There are two common ways to run it:
-
-- Run the compose file from the `src/platform` directory (recommended for local development examples in this README):
-
-  - Production (builds the optimized production image and runs it):
-
-    ```bash
-    # when you are in src/platform
-    docker compose up --build -d
-    ```
-
-  - Development (mounts the working directory, uses container node_modules and runs the dev server):
-
-    ```bash
-    # when you are in src/platform
-    docker compose --profile dev up --build
-    ```
-
-- Or run from the repository root and point to the compose file with `-f`:
-
-  ```bash
-  # from the repo root
-  docker compose -f src/platform/docker-compose.yml up --build -d
-
-  # development profile from the repo root
-  docker compose -f src/platform/docker-compose.yml --profile dev up --build
-  ```
-
-Notes and best practices:
-
-- The compose file, as written, references `../.env` relative to the `src/platform` directory (i.e., the repository root). Create that `.env` file in the repository root from `.env.example` (if present) and keep secrets out of source control. If you run Docker Compose from the repository root using `-f src/platform/docker-compose.yml`, ensure the `.env` file is available at the same path the compose file expects or update the paths in the compose file accordingly.
-- In development we mount the project directory into the container but keep `node_modules` inside the container to avoid host/OS binary mismatches.
-- Use the `app` service for production testing and `app-dev` (profile `dev`) for an iterative development workflow.
-- Stop and remove containers when finished:
+First, run the development server:
 
 ```bash
-docker compose down
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Folder Structure
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### src folder
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-The src folder is meant to separate application level code from the top-level configuration. The src folder is split into four main folders ie **core**, **lib**, **common** and **pages**.
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-    ├── common
-    │   ├── components
-    │   │   ├── Footer
-    │   │   │   └── index.js
-    │   │   │   └── Footer.module.scss
-    │   │   ├── SideBar
-    │   │   │   └── index.js
-    │   │   │   └── SideBar.module.scss
-    │   │   │   └── components
-    │   │   │   │   └── Profile
-    │   │   │   │   │   └── index.js
-    │   │   │   │   │   └── Profile.module.scss
-    │   ├── styles
-    │   │   ├── global.scss
-    ├── pages
-    │   ├── app.js
-    │   ├── Dashboard.js
-    ├── lib
-    ├── core
+## Learn More
 
-**Core**: This is where we place everything unrelated to the domain like API functions, DB functions including firebase/firestore connections, Authentication utilities, provider to send emails.
+To learn more about Next.js, take a look at the following resources:
 
-The nature of this folder is that you cannot import stuff from the lib, pages and components folders.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-**Lib**: This is where we place utilities that will be mostly used by our components and partly in the pages. Utilities like;
-
-- Custom hooks
-- Prop functions eg getInitialProps, getServerSideProps
-- Redux
-
-This folder is also not supposed to import stuff from the pages and components folders.
-
-**Common**: This is where we place the reusable UI components and the global css styles ie components and styles.
-Under components, we can for example a SideBar component. What if our SideBar component had components within it that aren’t used elsewhere in the application eg Profile? We create a components folder within the SideBar component folder and add those components with their styles. The styles folder is where we place the global css styles.
-
-### public folder
-
-The public folder is meant for adding application public assets like images, gifs, and video clips
-
-### cypress folder
-
-This is an auto-generated folder structure for writing in Cypress tests [according to this documentation](https://docs.cypress.io/guides/core-concepts/writing-and-organizing-tests).
-
-### Top-level configuration
-
-Below are the configuration files at the project top level
-
-- [next.config.js](https://nextjs.org/docs/api-reference/next.config.js/introduction)
-- [cypress.config.js](https://docs.cypress.io/guides/references/configuration#Configuration-File)
-- [.eslintrc.json](https://eslint.org/docs/latest/user-guide/configuring/configuration-files#configuration-file-formats)
-- [prettier.config.js](https://prettier.io/docs/en/configuration.html)
-- [.babelrc.js](https://babeljs.io/docs/en/config-files)
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!

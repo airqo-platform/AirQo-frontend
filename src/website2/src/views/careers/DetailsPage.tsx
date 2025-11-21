@@ -6,7 +6,7 @@ import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useCareerDetail } from '@/services/hooks/endpoints';
+import { useCareerDetail } from '@/hooks/useApiHooks';
 
 const DetailsPage: React.FC<{ id: string }> = ({ id }) => {
   const { data: careerDetails, isLoading, error } = useCareerDetail(id);

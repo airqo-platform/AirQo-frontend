@@ -6,6 +6,7 @@ import localFont from 'next/font/local';
 import Script from 'next/script';
 import { ReactNode, Suspense } from 'react';
 
+import CookieConsent from '@/components/CookieConsent';
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
 import Loading from '@/components/loading';
@@ -206,7 +207,8 @@ export default async function RootLayout({
           {JSON.stringify(structuredData)}
         </Script>
 
-        {/* GA snippet is gated and loaded only when ENABLE_GA is true */}
+        {/* GA snippet is conditionally loaded based on user consent */}
+        {/* Actual loading is handled by GoogleAnalytics component in body */}
         {ENABLE_GA && (
           <>
             <Script
@@ -218,7 +220,7 @@ export default async function RootLayout({
                 window.dataLayer = window.dataLayer || [];
                 function gtag(){ dataLayer.push(arguments); }
                 gtag('js', new Date());
-                gtag('config', '${GA_ID}', { page_path: window.location.pathname });
+                // GA config is called by GoogleAnalytics component after consent
               `}
             </Script>
           </>
@@ -236,6 +238,7 @@ export default async function RootLayout({
             </SwrProvider>
           </ReduxDataProvider>
         </ErrorBoundary>
+        <CookieConsent />
       </body>
     </html>
   );

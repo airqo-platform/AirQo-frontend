@@ -7,7 +7,7 @@ import { FiArrowLeft } from 'react-icons/fi';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch, useSelector } from '@/hooks';
-import { postContactUs } from '@/services/externalService';
+import { externalService } from '@/services/apiService';
 import { closeModal } from '@/store/slices/modalSlice';
 
 import { trackEvent } from '../GoogleAnalytics';
@@ -127,6 +127,28 @@ const EngagementDialog = () => {
     termsAccepted: false,
   });
 
+  // Check if dialog was permanently dismissed
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const dismissalData = localStorage.getItem('engagement_dialog_dismissed');
+      if (dismissalData) {
+        try {
+          const parsed = JSON.parse(dismissalData);
+          // Check if the dismissal has expired
+          if (parsed.expiresAt && Date.now() < parsed.expiresAt) {
+            dispatch(closeModal());
+          } else {
+            // Clean up expired dismissal
+            localStorage.removeItem('engagement_dialog_dismissed');
+          }
+        } catch {
+          // Invalid data, remove it
+          localStorage.removeItem('engagement_dialog_dismissed');
+        }
+      }
+    }
+  }, [dispatch]);
+
   const handleClose = () => {
     dispatch(closeModal());
     setActiveSection(null);
@@ -138,6 +160,18 @@ const EngagementDialog = () => {
     });
     setSubmissionSuccess(false); // Reset success message
     setSubmissionError(null); // Reset error message
+
+    // Mark as dismissed so it won't show again for 30 days
+    if (typeof window !== 'undefined') {
+      const dismissalData = {
+        timestamp: Date.now(),
+        expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
+      };
+      localStorage.setItem(
+        'engagement_dialog_dismissed',
+        JSON.stringify(dismissalData),
+      );
+    }
   };
 
   const handleItemClick = (title: string, category: string) => {
@@ -170,7 +204,7 @@ const EngagementDialog = () => {
       };
 
       try {
-        const res = await postContactUs(requestBody);
+        const res = await externalService.postContactUs(requestBody);
         if (res.success) {
           setSubmissionSuccess(true);
 

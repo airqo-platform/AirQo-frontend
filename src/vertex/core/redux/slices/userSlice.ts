@@ -34,6 +34,7 @@ interface UserState {
     switchingTo: string;
   };
   isContextLoading: boolean;
+  isLoggingOut: boolean;
 }
 
 const initialState: UserState = {
@@ -59,6 +60,7 @@ const initialState: UserState = {
     switchingTo: "",
   },
   isContextLoading: true,
+  isLoggingOut: false,
 };
 
 // Helper function to determine user context
@@ -67,13 +69,16 @@ const determineUserContext = (
   activeGroup: Group | null,
   userGroups: Group[] | null | undefined
 ): { context: UserContext; isAirQoStaff: boolean; canSwitchContext: boolean } => {
+  
+  const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
+  const hasMultipleOrgs = Array.isArray(userGroups) && userGroups.length > 1;
+  const canSwitchContext = isAirQoStaff && hasMultipleOrgs;
+
   if (!userDetails || !activeGroup) {
-    return { context: 'personal', isAirQoStaff: false, canSwitchContext: false };
+    return { context: 'personal', isAirQoStaff, canSwitchContext };
   }
 
-  const isAirQoStaff = userDetails.email?.endsWith('@airqo.net') || false;
   const isAirQoOrg = activeGroup.grp_title?.toLowerCase() === 'airqo';
-  const hasMultipleOrgs = Array.isArray(userGroups) && userGroups.length > 1;
 
   let context: UserContext;
   if (isAirQoOrg) {
@@ -81,8 +86,6 @@ const determineUserContext = (
   } else {
     context = 'external-org';
   }
-
-  const canSwitchContext = isAirQoStaff && hasMultipleOrgs;
 
   return { context, isAirQoStaff, canSwitchContext };
 };
@@ -137,10 +140,18 @@ const userSlice = createSlice({
     setInitialized(state) {
       state.isInitialized = true;
     },
-    setActiveGroup(state, action: PayloadAction<Group>) {
+    setActiveGroup(state, action: PayloadAction<Group | null>) {
       state.activeGroup = action.payload;
       
-      // Update context when active group changes
+      if (!action.payload) {
+        state.userContext = 'personal';
+        state.canSwitchContext = false;
+        // When activeGroup is null, activeNetwork should also be null
+        state.activeNetwork = null;
+        state.currentRole = null;
+        return;
+      }
+      
       const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
         state.userDetails,
         action.payload,
@@ -199,6 +210,9 @@ const userSlice = createSlice({
     setContextLoading(state, action: PayloadAction<boolean>) {
       state.isContextLoading = action.payload;
     },
+    setLoggingOut(state, action: PayloadAction<boolean>) {
+      state.isLoggingOut = action.payload;
+    },
   },
 });
 
@@ -215,5 +229,6 @@ export const {
   clearForbiddenState,
   setOrganizationSwitching,
   setContextLoading,
+  setLoggingOut,
 } = userSlice.actions;
 export default userSlice.reducer;

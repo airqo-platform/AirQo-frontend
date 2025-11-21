@@ -1,5 +1,6 @@
 import { useQuery, UseQueryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { DeviceDetailsResponse, devices, type MaintenanceActivitiesResponse, GetDevicesSummaryParams, DeviceCountResponse } from "../apis/devices";
+import { useGroupCohorts } from "./useCohorts";
 import { setError } from "@/core/redux/slices/devicesSlice";
 import { useAppSelector } from "../redux/hooks";
 import type {
@@ -14,12 +15,15 @@ import type {
   DeviceCreationResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
+  DecryptionRequest,
+  DecryptionResponse,
   MyDevicesResponse,
 } from "@/app/types/devices";
 import { AxiosError } from "axios";
 import { useDispatch } from "react-redux";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
+import logger from "@/lib/logger";
 
 interface ErrorResponse {
   message: string;
@@ -34,72 +38,113 @@ export interface DeviceListingOptions {
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
+  network?: string;
 }
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const isAirQoGroup = activeGroup?.grp_title === "airqo";
 
-  const { page = 1, limit = 100, search, sortBy, order } = options;
+  const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
+    enabled: !isAirQoGroup && !!activeGroup?._id,
+  });
+
+  const { page = 1, limit = 100, search, sortBy, order, network } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
-  const devicesQuery = useQuery<
-    DevicesSummaryResponse,
-    AxiosError<ErrorResponse>
-  >({
-    queryKey: ["devices", activeNetwork?.net_name, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
-    queryFn: () => {
-      const params: GetDevicesSummaryParams = {
-        network: activeNetwork?.net_name || "",
-        group: activeGroup?.grp_title === "airqo" ? "" : (activeGroup?.grp_title || ""),
+  const queryKey = ["devices", activeGroup?.grp_title, { page, limit, search, sortBy, order, network }, groupCohortIds];
+
+  const devicesQuery = useQuery<DevicesSummaryResponse, AxiosError<ErrorResponse>>({
+    queryKey,
+    queryFn: async () => {
+      if (isAirQoGroup) {
+        const params: GetDevicesSummaryParams = {
+          limit: safeLimit,
+          skip,
+          ...(search && { search }),
+          ...(sortBy && { sortBy }),
+          ...(order && { order }),
+          ...(network && { network }),
+        };
+        return devices.getDevicesSummaryApi(params);
+      }
+
+      if (!groupCohortIds) {
+        // This will be handled by the `enabled` option, but as a safeguard:
+        throw new Error("Cohort IDs are not available yet.");
+      }
+
+      return devices.getDevicesByCohorts({
+        cohort_ids: groupCohortIds,
         limit: safeLimit,
         skip,
-        ...(search && { search }),
+        ...(search && { search }),  
         ...(sortBy && { sortBy }),
         ...(order && { order }),
-      };
-      return devices.getDevicesSummaryApi(params);
+        ...(network && { network }),
+      });
     },
-    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+    enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
+
 
   return {
     data: devicesQuery.data,
     devices: devicesQuery.data?.devices || [],
     meta: devicesQuery.data?.meta,
-    isLoading: devicesQuery.isLoading,
+    isLoading: devicesQuery.isLoading || isLoadingCohorts,
     isFetching: devicesQuery.isFetching,
     error: devicesQuery.error,
   };
 };
 
-export const useMyDevices = (userId: string, organizationId?: string) => {
+export const useMyDevices = (userId: string, organizationId?: string, options: { enabled?: boolean } = {}) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const { enabled = true } = options;
 
   return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
     queryKey: ["myDevices", userId, organizationId || activeGroup?._id],
     queryFn: () => devices.getMyDevices(userId),
-    enabled: !!userId,
+    enabled: !!userId && enabled,
     staleTime: 60000, // 1 minute
   });
 };
 
-export const useDeviceCount = (params: { groupId?: string; cohortId?: string }) => {
-  const { groupId, cohortId } = params;
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+export const useDeviceCount = (options: { enabled?: boolean } = {}) => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const { enabled = true } = options;
+  const isAirQoGroup = activeGroup?.grp_title === "airqo";
 
-  return useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["deviceCount", activeNetwork?.net_name, groupId, cohortId],
-    queryFn: () => devices.getDeviceCountApi({ groupId, cohortId }),
-    enabled: !!activeNetwork?.net_name && !!activeGroup?.grp_title,
+  const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(activeGroup?._id, {
+    enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
+  });
+
+  const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
+    queryKey: ["deviceCount", activeGroup?._id, isAirQoGroup ? null : groupCohortIds],
+    queryFn: () => {
+      if (isAirQoGroup) {
+        return devices.getDeviceCountApi({});
+      }
+
+      if (!groupCohortIds || groupCohortIds.length === 0) {
+        return Promise.reject(new Error("Cohort IDs must be provided."));
+      }
+      return devices.getDeviceCountApi({ cohort_id: groupCohortIds });
+    },
+    enabled: !!activeGroup?.grp_title && (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)) && enabled,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
   });
+
+  return {
+    ...query,
+    isLoading: query.isLoading || (!isAirQoGroup && isLoadingCohorts),
+    isFetching: query.isFetching || (!isAirQoGroup && isLoadingCohorts),
+  };
 };
 
 export const useMapReadings = () => {
@@ -459,5 +504,24 @@ export const useDeviceMaintenanceLogs = (deviceName: string) => {
     queryFn: () => devices.getDeviceMaintenanceLogs(deviceName),
     enabled: !!deviceName,
     staleTime: 60_000,
+  });
+};
+
+export const useDecryptDeviceKeys = () => {
+  return useMutation<
+    DecryptionResponse,
+    AxiosError<ErrorResponse>,
+    DecryptionRequest[]
+  >({
+    mutationFn: devices.decryptDeviceKeys,
+    onSuccess: () => {
+      logger.info("Keys decrypted successfully!");
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Decryption Failed: ${getApiErrorMessage(error)}`,
+        type: "ERROR",
+      });
+    },
   });
 };

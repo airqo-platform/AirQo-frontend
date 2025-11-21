@@ -13,7 +13,7 @@ import {
 
 import { Accordion, CustomButton, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useApiData } from '@/services/hooks/useApiData';
+import { useEventDetails } from '@/hooks/useApiHooks';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
 const SingleEvent: React.FC<{ id: string }> = ({ id }) => {
@@ -21,8 +21,7 @@ const SingleEvent: React.FC<{ id: string }> = ({ id }) => {
 
   // Fetch event detail via v2 API. The endpoint may return a paginated response
   // or a single object. Normalize to a single object.
-  const endpoint = id ? `events/${id}` : null;
-  const { data, isLoading, error: isError } = useApiData<any>(endpoint as any);
+  const { data, isLoading, error: isError } = useEventDetails(id);
 
   const eventDetails = useMemo(() => {
     if (!data) return null;

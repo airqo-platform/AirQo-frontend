@@ -128,11 +128,15 @@ class UserImpl extends UserRepository with UiLoggy {
       if (responseBody.containsKey('user') && responseBody['user'] != null) {
         loggy.debug("User object keys: ${(responseBody['user'] as Map).keys}");
       }
-
-      return await loadUserProfile();
     } catch (e) {
       loggy.warning("Error parsing update response");
-      throw Exception("Failed to update profile");
     }
+
+    http.Response profileResponse =
+        await createAuthenticatedGetRequest("/api/v2/users/$userId", {});
+
+    ProfileResponseModel model =
+        profileResponseModelFromJson(profileResponse.body);
+    return model;
   }
 }

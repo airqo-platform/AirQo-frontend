@@ -10,25 +10,22 @@ abstract class UserPreferencesRepository {
 }
 
 class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
-  final String apiBaseUrl = 'https://api.airqo.net/api/v2';
+  final String apiBaseUrl = '${dotenv.env["AIRQO_API_URL"]}/api/v2';
   final String preferencesEndpoint = '/users/preferences';
 
   Future<Map<String, String>> _getHeaders() async {
-    // Try to get user token first
     final userToken = await HiveRepository.getData('token', HiveBoxNames.authBox);
 
-    // Base headers
     final headers = {
       "Accept": "application/json",
       "Content-Type": "application/json"
     };
 
-    // Add authorization - prefer user token if available, fall back to env token
     if (userToken != null && userToken.isNotEmpty) {
       loggy.info('Using user authentication token');
       headers["Authorization"] = userToken;
     } else {
-      // Fallback to the application token
+
       loggy.info('Using application token from environment');
       final appToken = dotenv.env["AIRQO_MOBILE_TOKEN"];
       if (appToken != null && appToken.isNotEmpty) {
@@ -58,7 +55,6 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       loggy.info('Response status code: ${response.statusCode}');
 
-      // Handle 401 Unauthorized explicitly
       if (response.statusCode == 401) {
         loggy.warning('Authentication error (401): Token might be expired or invalid');
         return {

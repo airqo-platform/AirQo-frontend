@@ -37,7 +37,7 @@ export default function SitesTable({
     limit: pagination.pageSize,
     search: searchTerm,
     sortBy: sorting[0]?.id,
-    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined
   });
 
   // Scroll to top of table when page changes
@@ -125,9 +125,8 @@ export default function SitesTable({
         const status = Boolean(isOnline);
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-            }`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+              }`}
           >
             {status ? "Online" : "Offline"}
           </span>
@@ -160,7 +159,7 @@ export default function SitesTable({
           {
             label: "Export Selected",
             value: "export",
-            handler: () => {},
+            handler: () => { },
           },
         ] : []}
         emptyState={
