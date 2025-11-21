@@ -33,6 +33,20 @@ const itemVariants = {
   },
 };
 
+const GridSkeleton = () => (
+  <div className="space-y-2">
+    {[...Array(5)].map((_, index) => (
+      <div
+        key={index}
+        className="w-full p-3 rounded-md border border-gray-200 bg-gray-50 animate-pulse"
+      >
+        <div className="h-4 bg-gray-300 rounded mb-1 w-3/4"></div>
+        <div className="h-3 bg-gray-300 rounded w-1/2"></div>
+      </div>
+    ))}
+  </div>
+);
+
 const MonitorCoveragePage = () => {
   const [gridsData, setGridsData] = useState<Grid[]>([]);
   const [loading, setLoading] = useState(true);
@@ -51,7 +65,7 @@ const MonitorCoveragePage = () => {
         setError(null);
 
         const response = await externalService.getGridsSummary({
-          limit: 80,
+          limit: 20,
           skip: skip,
           tenant: 'airqo',
           detailLevel: 'summary',
@@ -65,7 +79,7 @@ const MonitorCoveragePage = () => {
           }
 
           setCurrentSkip(skip);
-          setHasMoreData(response.grids.length === 80);
+          setHasMoreData(response.grids.length === 20);
 
           // Auto-select first grid if none selected
           if (!selectedGrid && response.grids.length > 0) {
@@ -95,7 +109,7 @@ const MonitorCoveragePage = () => {
   // Load more data function
   const handleLoadMore = useCallback(() => {
     if (hasMoreData && !loading) {
-      fetchGridsData(currentSkip + 80, true);
+      fetchGridsData(currentSkip + 20, true);
     }
   }, [currentSkip, hasMoreData, loading, fetchGridsData]);
 
@@ -182,7 +196,7 @@ const MonitorCoveragePage = () => {
       >
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div
-            className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500"
+            className="bg-white rounded-md shadow-md p-6 border border-gray-200"
             variants={itemVariants}
           >
             <div className="flex items-center justify-between">
@@ -199,7 +213,7 @@ const MonitorCoveragePage = () => {
           </motion.div>
 
           <motion.div
-            className="bg-white rounded-lg shadow-md p-6 border-l-4 border-purple-500"
+            className="bg-white rounded-md shadow-md p-6 border border-gray-200"
             variants={itemVariants}
           >
             <div className="flex items-center justify-between">
@@ -214,7 +228,7 @@ const MonitorCoveragePage = () => {
           </motion.div>
 
           <motion.div
-            className="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500"
+            className="bg-white rounded-md shadow-md p-6 border border-gray-200"
             variants={itemVariants}
           >
             <div className="flex items-center justify-between">
@@ -268,12 +282,7 @@ const MonitorCoveragePage = () => {
 
                 <div className="flex-1 overflow-y-auto space-y-2 pr-1">
                   {loading && currentSkip === 0 ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                      <p className="text-gray-600 mt-2 text-sm">
-                        Loading locations...
-                      </p>
-                    </div>
+                    <GridSkeleton />
                   ) : error ? (
                     <div className="text-center py-8">
                       <FiAlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
