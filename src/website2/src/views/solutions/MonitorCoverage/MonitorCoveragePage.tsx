@@ -3,7 +3,7 @@
 import { AqGlobe02, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import { motion } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiAlertCircle } from 'react-icons/fi';
+import { FiAlertCircle, FiX } from 'react-icons/fi';
 
 import { MapContainer, MapLoader } from '@/components/map';
 import HeroSection from '@/components/sections/solutions/HeroSection';
@@ -235,13 +235,24 @@ const MonitorCoveragePage = () => {
             <div className="lg:col-span-1 space-y-4">
               <div className="bg-white rounded-md shadow-sm border border-gray-200 p-4 h-[400px] flex flex-col">
                 <div className="mb-4">
-                  <input
-                    type="text"
-                    placeholder="Search locations in Africa..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search locations in Africa..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                    />
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery('')}
+                        className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        aria-label="Clear search"
+                      >
+                        <FiX className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {selectedGrid && (
