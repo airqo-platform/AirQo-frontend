@@ -55,8 +55,8 @@ const MapContainer: React.FC<MapContainerProps> = ({
       map.current = new mapboxgl.Map({
         container: mapContainer.current!,
         style: 'mapbox://styles/mapbox/streets-v12',
-        center: center,
-        zoom: zoom,
+        center: [0, 20], // Default center, will be updated by separate effect
+        zoom: 3, // Default zoom, will be updated by separate effect
         attributionControl: false,
       });
 
@@ -88,6 +88,14 @@ const MapContainer: React.FC<MapContainerProps> = ({
       }
     };
   }, []); // Only run once on mount
+
+  // Update map center and zoom when props change
+  useEffect(() => {
+    if (map.current && mapLoaded) {
+      map.current.setCenter(center);
+      map.current.setZoom(zoom);
+    }
+  }, [center, zoom, mapLoaded]);
 
   // Clear all markers and popups
   const clearMarkers = useCallback(() => {

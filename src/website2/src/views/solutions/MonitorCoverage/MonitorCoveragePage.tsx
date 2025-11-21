@@ -102,7 +102,7 @@ const MonitorCoveragePage = () => {
         setAllGrids((prev) => [...prev, ...data.grids]);
       }
     }
-  }, [data, currentSkip, debouncedSearch]);
+  }, [data, currentSkip, debouncedSearch, selectedGrid]);
 
   // Calculate if there's more data to load
   const hasMoreData = useMemo(() => {
