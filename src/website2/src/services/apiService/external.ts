@@ -58,11 +58,35 @@ class ExternalService extends BaseApiService {
   }
 
   /**
-   * Fetch grids summary data
+   * Fetch grids summary data with pagination support
+   * @param params - Query parameters for pagination and filtering
+   * @param params.limit - Number of items per page (default: 30)
+   * @param params.skip - Number of items to skip (default: 0)
+   * @param params.page - Page number (optional, alternative to skip)
+   * @param params.tenant - Tenant identifier (default: 'airqo')
+   * @param params.detailLevel - Level of detail in response (default: 'summary')
    */
-  async getGridsSummary(options: ServiceOptions = {}): Promise<any | null> {
+  async getGridsSummary(
+    params: {
+      limit?: number;
+      skip?: number;
+      page?: number;
+      tenant?: string;
+      detailLevel?: string;
+    } = {},
+    options: ServiceOptions = {},
+  ): Promise<any | null> {
+    const queryParams = {
+      limit: params.limit || 30,
+      skip: params.skip || 0,
+      tenant: params.tenant || 'airqo',
+      detailLevel: params.detailLevel || 'summary',
+      ...params,
+    };
+
     const response = await this.get<any>(EXTERNAL_ENDPOINTS.GRIDS_SUMMARY, {
       ...options,
+      params: queryParams,
       throwOnError: false,
     });
 

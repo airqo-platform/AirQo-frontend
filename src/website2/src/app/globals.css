@@ -151,8 +151,8 @@ body {
   top: 0;
   z-index: 9999;
   pointer-events: none;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial,
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
 }
 
 .github-ribbon.top-left {
@@ -246,4 +246,19 @@ body {
   to {
     opacity: 1;
   }
+}
+
+/* Map custom marker styles */
+.custom-marker {
+  cursor: pointer;
+}
+
+.mapboxgl-popup-content {
+  padding: 0;
+  border-radius: 8px;
+}
+
+.mapboxgl-popup-close-button {
+  font-size: 20px;
+  padding: 4px 8px;
 }
