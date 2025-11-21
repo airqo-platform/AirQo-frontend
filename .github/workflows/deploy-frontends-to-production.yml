@@ -227,6 +227,7 @@ jobs:
           echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_PROD_SLACK_WEBHOOK_URL }}" >> .env.yaml
           echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_PROD_SLACK_CHANNEL }}" >> .env.yaml
           echo "  DEBUG: False" >> .env.yaml
+          echo "  NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env.yaml
 
