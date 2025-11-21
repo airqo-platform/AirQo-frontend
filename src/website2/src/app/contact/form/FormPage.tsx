@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
@@ -10,11 +10,9 @@ import { externalService } from '@/services/apiService';
 
 const FormPage: React.FC = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [category, setCategory] = useState<string | null>(null);
 
   // Map URL categories to API categories
-  const mapCategoryToApi = (urlCategory: string | null): string => {
+  const mapCategoryToApi = (): string => {
     // Always use 'general' category for all inquiries
     return 'general';
   };
@@ -28,11 +26,6 @@ const FormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const categoryFromUrl = searchParams.get('category');
-    setCategory(categoryFromUrl);
-  }, [searchParams]);
 
   // Handle form input changes
   const handleInputChange = (
@@ -52,7 +45,7 @@ const FormPage: React.FC = () => {
 
     const body = {
       ...formData,
-      category: mapCategoryToApi(category),
+      category: mapCategoryToApi(),
     };
 
     try {
