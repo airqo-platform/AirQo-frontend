@@ -64,6 +64,7 @@ const MonitorCoveragePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [allGrids, setAllGrids] = useState<Grid[]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Debounce search query
   useEffect(() => {
@@ -91,18 +92,36 @@ const MonitorCoveragePage = () => {
   useEffect(() => {
     if (data?.grids) {
       if (currentSkip === 0) {
+        // Sort grids to put Uganda first
+        const sortedGrids = [...data.grids].sort((a, b) => {
+          const aIsUganda = (a.long_name || a.name || '')
+            .toLowerCase()
+            .includes('uganda');
+          const bIsUganda = (b.long_name || b.name || '')
+            .toLowerCase()
+            .includes('uganda');
+          if (aIsUganda && !bIsUganda) return -1;
+          if (!aIsUganda && bIsUganda) return 1;
+          return 0;
+        });
         // Replace data on first load or after search
-        setAllGrids(data.grids);
-        // Auto-select first grid if none selected and not searching
-        if (!selectedGrid && data.grids.length > 0 && !debouncedSearch) {
-          setSelectedGrid(data.grids[0]);
+        setAllGrids(sortedGrids);
+        // Auto-select Uganda only on initial load (not after user clicks "View All")
+        if (isInitialLoad && sortedGrids.length > 0 && !debouncedSearch) {
+          const ugandaGrid = sortedGrids.find((grid) =>
+            (grid.long_name || grid.name || '')
+              .toLowerCase()
+              .includes('uganda'),
+          );
+          setSelectedGrid(ugandaGrid || sortedGrids[0]);
+          setIsInitialLoad(false);
         }
       } else {
         // Append data when loading more
         setAllGrids((prev) => [...prev, ...data.grids]);
       }
     }
-  }, [data, currentSkip, debouncedSearch, selectedGrid]);
+  }, [data, currentSkip, debouncedSearch, isInitialLoad]);
 
   // Calculate if there's more data to load
   const hasMoreData = useMemo(() => {
@@ -377,7 +396,12 @@ const MonitorCoveragePage = () => {
                           Last Updated:
                         </span>
                         <p className="text-gray-900 text-xs">
-                          {new Date(selectedSite.lastRawData).toLocaleString()}
+                          {(() => {
+                            const date = new Date(selectedSite.lastRawData);
+                            return isNaN(date.getTime())
+                              ? 'N/A'
+                              : date.toLocaleString();
+                          })()}
                         </p>
                       </div>
                     )}
