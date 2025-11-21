@@ -95,10 +95,29 @@ const MapLoader: React.FC<MapLoaderProps> = ({ children }) => {
 
   if (!isLoaded) {
     return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-100 rounded-lg">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading map...</p>
+      <div className="w-full h-[400px] bg-gray-100 rounded-lg animate-pulse">
+        {/* Map-like skeleton */}
+        <div className="w-full h-full bg-gray-200 rounded-lg relative overflow-hidden">
+          {/* Simulated map background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-300 to-gray-400"></div>
+
+          {/* Simulated roads/streets */}
+          <div className="absolute top-1/4 left-0 right-0 h-1 bg-gray-400 opacity-60"></div>
+          <div className="absolute top-1/2 left-1/4 right-0 h-0.5 bg-gray-400 opacity-50"></div>
+          <div className="absolute top-3/4 left-0 right-1/3 h-1 bg-gray-400 opacity-60"></div>
+          <div className="absolute left-1/3 top-0 bottom-0 w-0.5 bg-gray-400 opacity-50"></div>
+          <div className="absolute left-2/3 top-1/3 bottom-1/3 w-1 bg-gray-400 opacity-60"></div>
+
+          {/* Simulated buildings/blocks */}
+          <div className="absolute top-1/6 left-1/6 w-8 h-6 bg-gray-300 rounded opacity-70"></div>
+          <div className="absolute top-1/3 right-1/4 w-6 h-8 bg-gray-300 rounded opacity-70"></div>
+          <div className="absolute bottom-1/4 left-1/2 w-10 h-5 bg-gray-300 rounded opacity-70"></div>
+          <div className="absolute bottom-1/3 right-1/6 w-7 h-7 bg-gray-300 rounded opacity-70"></div>
+
+          {/* Loading text */}
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="h-4 bg-gray-300 rounded w-24"></div>
+          </div>
         </div>
       </div>
     );
