@@ -1,15 +1,30 @@
 'use client';
 
+import {
+  AqGlobe02,
+  AqGlobe05,
+  AqMarkerPin01,
+  AqMonitor03,
+} from '@airqo/icons-react';
 import { motion } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiMapPin, FiActivity, FiGlobe, FiAlertCircle } from 'react-icons/fi';
+import { FiAlertCircle } from 'react-icons/fi';
 
 import { MapContainer, MapLoader } from '@/components/map';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import externalService from '@/services/apiService/external';
-import { Grid, GridsSummaryResponse, Site, SiteStatistics } from '@/types';
+import { useGridsSummary } from '@/hooks';
+import { Grid, Site, SiteStatistics } from '@/types';
+
+// Utility function to format text
+const formatText = (text: string): string => {
+  return text
+    .replace(/[_-]/g, ' ')
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
 
 // Define motion variants for animations
 const containerVariants = {
@@ -48,74 +63,68 @@ const GridSkeleton = () => (
 );
 
 const MonitorCoveragePage = () => {
-  const [gridsData, setGridsData] = useState<Grid[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedGrid, setSelectedGrid] = useState<Grid | null>(null);
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [currentSkip, setCurrentSkip] = useState(0);
-  const [hasMoreData, setHasMoreData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [allGrids, setAllGrids] = useState<Grid[]>([]);
 
-  // Fetch grids data with updated pagination logic
-  const fetchGridsData = useCallback(
-    async (skip: number = 0, isLoadMore: boolean = false) => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        const response = await externalService.getGridsSummary({
-          limit: 20,
-          skip: skip,
-          tenant: 'airqo',
-          detailLevel: 'summary',
-        });
-
-        if (response && response.grids) {
-          if (isLoadMore) {
-            setGridsData((prev) => [...prev, ...response.grids]);
-          } else {
-            setGridsData(response.grids);
-          }
-
-          setCurrentSkip(skip);
-          setHasMoreData(response.grids.length === 20);
-
-          // Auto-select first grid if none selected
-          if (!selectedGrid && response.grids.length > 0) {
-            setSelectedGrid(response.grids[0]);
-          }
-        } else {
-          setError('No data available');
-          setHasMoreData(false);
-        }
-      } catch (err) {
-        console.error('Error fetching grids data:', err);
-        setError(
-          'Failed to load monitor coverage data. Please try again later.',
-        );
-        setHasMoreData(false);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [selectedGrid],
-  );
-
+  // Debounce search query
   useEffect(() => {
-    fetchGridsData(0, false);
-  }, [fetchGridsData]);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentSkip(0); // Reset pagination when search changes
+      setAllGrids([]); // Clear accumulated data
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Fetch grids data using the hook
+  const { data, error, isLoading } = useGridsSummary({
+    limit: 80,
+    skip: currentSkip,
+    tenant: 'airqo',
+    detailLevel: 'summary',
+    admin_level: 'country',
+    ...(debouncedSearch && { search: debouncedSearch }),
+  });
+
+  // Accumulate grids data for pagination
+  useEffect(() => {
+    if (data?.grids) {
+      if (currentSkip === 0) {
+        // Replace data on first load or after search
+        setAllGrids(data.grids);
+        // Auto-select first grid if none selected and not searching
+        if (!selectedGrid && data.grids.length > 0 && !debouncedSearch) {
+          setSelectedGrid(data.grids[0]);
+        }
+      } else {
+        // Append data when loading more
+        setAllGrids((prev) => [...prev, ...data.grids]);
+      }
+    }
+  }, [data, currentSkip, debouncedSearch]);
+
+  // Calculate if there's more data to load
+  const hasMoreData = useMemo(() => {
+    if (!data?.meta) return false;
+    const { total, skip, limit } = data.meta;
+    return skip + limit < total;
+  }, [data]);
 
   // Load more data function
   const handleLoadMore = useCallback(() => {
-    if (hasMoreData && !loading) {
-      fetchGridsData(currentSkip + 20, true);
+    if (hasMoreData && !isLoading) {
+      setCurrentSkip((prev) => prev + 80);
     }
-  }, [currentSkip, hasMoreData, loading, fetchGridsData]);
+  }, [hasMoreData, isLoading]);
 
   // Calculate statistics
   const statistics = useMemo<SiteStatistics>(() => {
-    const allSites = gridsData.flatMap((grid) => grid.sites || []);
+    const allSites = allGrids.flatMap((grid) => grid.sites || []);
     const onlineSites = allSites.filter(
       (site) => site.isOnline || site.rawOnlineStatus,
     );
@@ -133,46 +142,29 @@ const MonitorCoveragePage = () => {
       countries: uniqueCountries as string[],
       cities: uniqueCities as string[],
     };
-  }, [gridsData]);
+  }, [allGrids]);
 
   // Get sites for the map
   const mapSites = useMemo(() => {
     if (selectedGrid) {
       return selectedGrid.sites || [];
     }
-    return gridsData.flatMap((grid) => grid.sites || []);
-  }, [selectedGrid, gridsData]);
+    return allGrids.flatMap((grid) => grid.sites || []);
+  }, [selectedGrid, allGrids]);
 
-  // Filter grids based on search
-  const filteredGrids = useMemo(() => {
-    if (!searchQuery.trim()) return gridsData;
-    const query = searchQuery.toLowerCase();
-    return gridsData.filter(
-      (grid) =>
-        grid.name.toLowerCase().includes(query) ||
-        grid.long_name.toLowerCase().includes(query) ||
-        grid.sites.some(
-          (site) =>
-            site.city?.toLowerCase().includes(query) ||
-            site.country?.toLowerCase().includes(query) ||
-            site.name?.toLowerCase().includes(query),
-        ),
-    );
-  }, [gridsData, searchQuery]);
-
-  const handleGridSelect = (grid: Grid) => {
+  const handleGridSelect = useCallback((grid: Grid) => {
     setSelectedGrid(grid);
     setSelectedSite(null);
-  };
+  }, []);
 
-  const handleSiteClick = (site: Site) => {
+  const handleSiteClick = useCallback((site: Site) => {
     setSelectedSite(site);
-  };
+  }, []);
 
-  const handleViewAllSites = () => {
+  const handleViewAllSites = useCallback(() => {
     setSelectedGrid(null);
     setSelectedSite(null);
-  };
+  }, []);
 
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
@@ -205,10 +197,12 @@ const MonitorCoveragePage = () => {
                   Total Monitors
                 </p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {loading ? '...' : statistics.totalSites}
+                  {isLoading && currentSkip === 0
+                    ? '...'
+                    : statistics.totalSites}
                 </p>
               </div>
-              <FiMapPin className="w-10 h-10 text-blue-500" />
+              <AqMonitor03 className="w-10 h-10 text-blue-500" />
             </div>
           </motion.div>
 
@@ -220,10 +214,12 @@ const MonitorCoveragePage = () => {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Countries</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {loading ? '...' : statistics.countries.length}
+                  {isLoading && currentSkip === 0
+                    ? '...'
+                    : statistics.countries.length}
                 </p>
               </div>
-              <FiGlobe className="w-10 h-10 text-purple-500" />
+              <AqGlobe02 className="w-10 h-10 text-purple-500" />
             </div>
           </motion.div>
 
@@ -235,10 +231,12 @@ const MonitorCoveragePage = () => {
               <div>
                 <p className="text-gray-600 text-sm font-medium">Cities</p>
                 <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {loading ? '...' : statistics.cities.length}
+                  {isLoading && currentSkip === 0
+                    ? '...'
+                    : statistics.cities.length}
                 </p>
               </div>
-              <FiActivity className="w-10 h-10 text-orange-500" />
+              <AqGlobe05 className="w-10 h-10 text-orange-500" />
             </div>
           </motion.div>
         </div>
@@ -280,15 +278,17 @@ const MonitorCoveragePage = () => {
                   </button>
                 )}
 
-                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
-                  {loading && currentSkip === 0 ? (
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 min-h-0">
+                  {isLoading && currentSkip === 0 ? (
                     <GridSkeleton />
                   ) : error ? (
                     <div className="text-center py-8">
                       <FiAlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                      <p className="text-red-600 text-sm">{error}</p>
+                      <p className="text-red-600 text-sm">
+                        Failed to load data. Please try again.
+                      </p>
                     </div>
-                  ) : filteredGrids.length === 0 ? (
+                  ) : allGrids.length === 0 ? (
                     <div className="text-center py-8">
                       <p className="text-gray-600 text-sm">
                         No locations found
@@ -296,42 +296,53 @@ const MonitorCoveragePage = () => {
                     </div>
                   ) : (
                     <>
-                      {filteredGrids.map((grid) => (
+                      {allGrids.map((grid) => (
                         <button
                           key={grid._id}
                           onClick={() => handleGridSelect(grid)}
-                          className={`w-full text-left p-3 rounded-md transition-all border ${
+                          className={`w-full text-left p-3 rounded-md transition-all border flex items-start gap-3 ${
                             selectedGrid?._id === grid._id
                               ? 'bg-blue-50 border-blue-300 shadow-sm'
                               : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
                           }`}
                         >
-                          <h3 className="font-medium text-sm text-gray-900 leading-tight">
-                            {grid.long_name || grid.name}
-                          </h3>
-                          <p className="text-xs text-gray-500 mt-1">
-                            {grid.numberOfSites} monitor
-                            {grid.numberOfSites !== 1 ? 's' : ''} •{' '}
-                            {grid.admin_level}
-                          </p>
+                          <AqMarkerPin01
+                            className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
+                              selectedGrid?._id === grid._id
+                                ? 'text-blue-600'
+                                : 'text-gray-500'
+                            }`}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium text-sm text-gray-900 leading-tight capitalize">
+                              {formatText(grid.long_name || grid.name)}
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {grid.numberOfSites} monitor
+                              {grid.numberOfSites !== 1 ? 's' : ''} •{' '}
+                              <span className="capitalize">
+                                {formatText(grid.admin_level)}
+                              </span>
+                            </p>
+                          </div>
                         </button>
                       ))}
-
-                      {/* Load More Button */}
-                      {hasMoreData && (
-                        <div className="pt-2">
-                          <button
-                            onClick={handleLoadMore}
-                            disabled={loading}
-                            className="w-full px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 transition-colors"
-                          >
-                            {loading ? 'Loading...' : 'Load More Locations'}
-                          </button>
-                        </div>
-                      )}
                     </>
                   )}
                 </div>
+
+                {/* Load More Button - Always visible at bottom */}
+                {hasMoreData && !error && (
+                  <div className="mt-3 pt-2 border-t border-gray-200">
+                    <button
+                      onClick={handleLoadMore}
+                      disabled={isLoading}
+                      className="w-full px-3 py-2 text-sm font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 transition-colors"
+                    >
+                      {isLoading ? 'Loading...' : 'Load More Locations'}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -343,6 +354,7 @@ const MonitorCoveragePage = () => {
                     sites={mapSites}
                     selectedSiteId={selectedSite?._id}
                     onSiteClick={handleSiteClick}
+                    isAllSites={!selectedGrid}
                     className="h-[400px]"
                   />
                 </MapLoader>

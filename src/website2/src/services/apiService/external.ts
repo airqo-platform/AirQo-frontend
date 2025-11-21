@@ -58,13 +58,15 @@ class ExternalService extends BaseApiService {
   }
 
   /**
-   * Fetch grids summary data with pagination support
+   * Fetch grids summary data with pagination and filtering support
    * @param params - Query parameters for pagination and filtering
-   * @param params.limit - Number of items per page (default: 30)
-   * @param params.skip - Number of items to skip (default: 0)
+   * @param params.limit - Number of items per page (optional)
+   * @param params.skip - Number of items to skip (optional)
    * @param params.page - Page number (optional, alternative to skip)
-   * @param params.tenant - Tenant identifier (default: 'airqo')
-   * @param params.detailLevel - Level of detail in response (default: 'summary')
+   * @param params.tenant - Tenant identifier (optional)
+   * @param params.detailLevel - Level of detail in response (optional)
+   * @param params.search - Search query for filtering grids (optional)
+   * @param params.admin_level - Filter by administrative level like 'country', 'city', etc. (optional)
    */
   async getGridsSummary(
     params: {
@@ -73,16 +75,21 @@ class ExternalService extends BaseApiService {
       page?: number;
       tenant?: string;
       detailLevel?: string;
+      search?: string;
+      admin_level?: string;
     } = {},
     options: ServiceOptions = {},
   ): Promise<any | null> {
-    const queryParams = {
-      limit: params.limit || 30,
-      skip: params.skip || 0,
-      tenant: params.tenant || 'airqo',
-      detailLevel: params.detailLevel || 'summary',
-      ...params,
-    };
+    // Build query params only with provided values
+    const queryParams: Record<string, any> = {};
+
+    if (params.limit !== undefined) queryParams.limit = params.limit;
+    if (params.skip !== undefined) queryParams.skip = params.skip;
+    if (params.page !== undefined) queryParams.page = params.page;
+    if (params.tenant) queryParams.tenant = params.tenant;
+    if (params.detailLevel) queryParams.detailLevel = params.detailLevel;
+    if (params.search) queryParams.search = params.search;
+    if (params.admin_level) queryParams.admin_level = params.admin_level;
 
     const response = await this.get<any>(EXTERNAL_ENDPOINTS.GRIDS_SUMMARY, {
       ...options,

@@ -12,6 +12,7 @@ interface MapContainerProps {
   center?: [number, number];
   zoom?: number;
   className?: string;
+  isAllSites?: boolean;
 }
 
 const MapContainer: React.FC<MapContainerProps> = ({
@@ -21,6 +22,7 @@ const MapContainer: React.FC<MapContainerProps> = ({
   center = [0, 20],
   zoom = 3,
   className = '',
+  isAllSites = false,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
@@ -141,10 +143,11 @@ const MapContainer: React.FC<MapContainerProps> = ({
         // Create marker element
         const el = document.createElement('div');
         el.className = 'custom-marker';
+        el.style.zIndex = isSelected ? '1000' : '1';
 
         el.innerHTML = `
-          <div class="relative cursor-pointer transition-transform hover:scale-110 ${isSelected ? 'scale-125' : ''}">
-            <div class="w-6 h-6 rounded-full border-2 border-white shadow-lg bg-blue-500 ${isSelected ? 'ring-4 ring-blue-700' : ''}"></div>
+          <div class="relative cursor-pointer transition-transform hover:scale-110 ${isSelected ? 'scale-125 z-[1000]' : ''}">
+            <div class="w-4 h-4 rounded-full border-2 border-white bg-blue-500 ${isSelected ? 'ring-4 ring-blue-700 w-6 h-6' : 'shadow-md'}"></div>
             ${
               isSelected
                 ? '<div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-700"></div>'
@@ -193,16 +196,26 @@ const MapContainer: React.FC<MapContainerProps> = ({
       }
     });
 
-    // Fit map to bounds if we have valid sites
-    if (validSitesCount > 0 && !bounds.isEmpty()) {
+    // Adjust map view based on sites
+    if (validSitesCount > 0) {
       try {
-        map.current.fitBounds(bounds, {
-          padding: { top: 50, bottom: 50, left: 50, right: 50 },
-          maxZoom: 12,
-          duration: 1000,
-        });
+        if (isAllSites && !bounds.isEmpty()) {
+          // For all sites, fit all markers into view
+          map.current.fitBounds(bounds, {
+            padding: { top: 80, bottom: 80, left: 80, right: 80 },
+            maxZoom: 6, // Lower max zoom for overview
+            duration: 1000,
+          });
+        } else if (!bounds.isEmpty()) {
+          // For specific grid, fit to bounds with higher zoom
+          map.current.fitBounds(bounds, {
+            padding: { top: 50, bottom: 50, left: 50, right: 50 },
+            maxZoom: 12,
+            duration: 1000,
+          });
+        }
       } catch (error) {
-        console.error('Error fitting bounds:', error);
+        console.error('Error adjusting map view:', error);
       }
     }
 
@@ -210,7 +223,16 @@ const MapContainer: React.FC<MapContainerProps> = ({
     return () => {
       clearMarkers();
     };
-  }, [sites, selectedSiteId, mapLoaded, onSiteClick, clearMarkers]);
+  }, [
+    sites,
+    selectedSiteId,
+    mapLoaded,
+    onSiteClick,
+    clearMarkers,
+    isAllSites,
+    center,
+    zoom,
+  ]);
 
   // Map control handlers
   const handleZoomIn = useCallback(() => {

@@ -255,8 +255,23 @@ export const useFAQs = (params?: { page?: number; page_size?: number }) =>
   );
 
 // External Services (for user interactions)
-export const useGridsSummary = () =>
-  useServiceData(() => externalService.getGridsSummary(), 'gridsSummary');
+export const useGridsSummary = (
+  params?: {
+    limit?: number;
+    skip?: number;
+    page?: number;
+    tenant?: string;
+    detailLevel?: string;
+    search?: string;
+    admin_level?: string;
+  },
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    () => externalService.getGridsSummary(params || {}),
+    params ? `gridsSummary-${JSON.stringify(params)}` : 'gridsSummary',
+    swrOptions,
+  );
 
 export const useCountriesData = () =>
   useServiceData(() => externalService.getCountriesData(), 'countriesData');

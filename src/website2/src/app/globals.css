@@ -251,6 +251,12 @@ body {
 /* Map custom marker styles */
 .custom-marker {
   cursor: pointer;
+  position: relative;
+  transition: transform 0.2s ease-in-out;
+}
+
+.custom-marker:hover {
+  z-index: 999 !important;
 }
 
 .mapboxgl-popup-content {
