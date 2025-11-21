@@ -426,7 +426,6 @@ jobs:
           docker build . \
           --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
           --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
-          --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }}
 

@@ -15,14 +15,12 @@ ARG API_URL
 # Build args for client-side environment variables (build time only)
 # Public (NEXT_PUBLIC_) variables may be embedded in the client bundle.
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
-ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
 # Set environment variables for build (server-side variables)
 # Only set non-sensitive values. Do not store secrets in ENV here.
 # Provide secrets at runtime instead.
 ENV API_URL=$API_URL \
-    NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
-    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 # Install dependencies and build
 COPY package*.json ./
@@ -40,13 +38,11 @@ WORKDIR /app
 # via your orchestrator/secret manager. Do NOT bake them into the image.
 ARG API_URL
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID
-ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
 # Set environment variables for runtime (server-side variables)
 # Only set non-sensitive defaults here. Supply sensitive values at runtime.
 ENV API_URL=$API_URL \
-    NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
-    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=$NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+    NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
