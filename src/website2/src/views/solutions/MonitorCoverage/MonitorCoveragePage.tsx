@@ -14,10 +14,16 @@ import { Grid, Site, SiteStatistics } from '@/types';
 
 // Utility function to format text
 const formatText = (text: string): string => {
+  if (text == null) return '';
+  text = String(text).trim();
+  if (!text) return '';
   return text
     .replace(/[_-]/g, ' ')
-    .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .split(/\s+/)
+    .filter((word) => word.length > 0)
+    .map((word) =>
+      word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : '',
+    )
     .join(' ');
 };
 
