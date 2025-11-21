@@ -65,7 +65,6 @@ export interface SiteStatistics {
   onlineSites: number;
   offlineSites: number;
   countries: string[];
-  cities: string[];
 }
 
 export interface GridSummary {

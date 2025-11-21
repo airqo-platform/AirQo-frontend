@@ -1,11 +1,6 @@
 'use client';
 
-import {
-  AqGlobe02,
-  AqGlobe05,
-  AqMarkerPin01,
-  AqMonitor03,
-} from '@airqo/icons-react';
+import { AqGlobe02, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import { motion } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiAlertCircle } from 'react-icons/fi';
@@ -131,16 +126,12 @@ const MonitorCoveragePage = () => {
     const uniqueCountries = Array.from(
       new Set(allSites.map((site) => site.country).filter(Boolean)),
     );
-    const uniqueCities = Array.from(
-      new Set(allSites.map((site) => site.city).filter(Boolean)),
-    );
 
     return {
       totalSites: allSites.length,
       onlineSites: onlineSites.length,
       offlineSites: allSites.length - onlineSites.length,
       countries: uniqueCountries as string[],
-      cities: uniqueCities as string[],
     };
   }, [allGrids]);
 
@@ -186,7 +177,7 @@ const MonitorCoveragePage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <motion.div
             className="bg-white rounded-md shadow-md p-6 border border-gray-200"
             variants={itemVariants}
@@ -220,23 +211,6 @@ const MonitorCoveragePage = () => {
                 </p>
               </div>
               <AqGlobe02 className="w-10 h-10 text-purple-500" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="bg-white rounded-md shadow-md p-6 border border-gray-200"
-            variants={itemVariants}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Cities</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {isLoading && currentSkip === 0
-                    ? '...'
-                    : statistics.cities.length}
-                </p>
-              </div>
-              <AqGlobe05 className="w-10 h-10 text-orange-500" />
             </div>
           </motion.div>
         </div>
