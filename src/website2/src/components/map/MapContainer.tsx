@@ -137,7 +137,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
 
       try {
         const isSelected = site._id === selectedSiteId;
-        const isOnline = site.isOnline || site.rawOnlineStatus;
 
         // Create marker element
         const el = document.createElement('div');
@@ -145,12 +144,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
 
         el.innerHTML = `
           <div class="relative cursor-pointer transition-transform hover:scale-110 ${isSelected ? 'scale-125' : ''}">
-            <div class="w-6 h-6 rounded-full border-2 border-white shadow-lg ${
-              isOnline ? 'bg-green-500' : 'bg-gray-400'
-            } ${isSelected ? 'ring-4 ring-blue-500' : ''}"></div>
+            <div class="w-6 h-6 rounded-full border-2 border-white shadow-lg bg-blue-500 ${isSelected ? 'ring-4 ring-blue-700' : ''}"></div>
             ${
               isSelected
-                ? '<div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-500"></div>'
+                ? '<div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-blue-700"></div>'
                 : ''
             }
           </div>
@@ -166,9 +163,6 @@ const MapContainer: React.FC<MapContainerProps> = ({
           <div class="p-2">
             <h3 class="font-semibold text-sm">${site.name || site.formatted_name || 'Unnamed Location'}</h3>
             <p class="text-xs text-gray-600">${site.city || site.location_name || 'Unknown'}</p>
-            <p class="text-xs ${isOnline ? 'text-green-600' : 'text-gray-500'} mt-1">
-              ${isOnline ? '● Online' : '○ Offline'}
-            </p>
           </div>
         `);
 
@@ -316,16 +310,10 @@ const MapContainer: React.FC<MapContainerProps> = ({
       {/* Legend */}
       {mapLoaded && (
         <div className="absolute bottom-4 left-4 bg-white rounded-lg shadow-lg p-3 z-10">
-          <h4 className="text-sm font-semibold mb-2">Monitor Status</h4>
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-500"></div>
-              <span className="text-xs">Online</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gray-400"></div>
-              <span className="text-xs">Offline</span>
-            </div>
+          <h4 className="text-sm font-semibold mb-2">Monitor Locations</h4>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span className="text-xs">Active Monitors</span>
           </div>
         </div>
       )}

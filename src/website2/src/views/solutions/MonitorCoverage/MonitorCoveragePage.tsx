@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiMapPin, FiActivity, FiGlobe, FiAlertCircle } from 'react-icons/fi';
-import { HiOutlineStatusOnline, HiOutlineStatusOffline } from 'react-icons/hi';
 
 import { MapContainer, MapLoader } from '@/components/map';
 import HeroSection from '@/components/sections/solutions/HeroSection';
@@ -40,28 +39,33 @@ const MonitorCoveragePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedGrid, setSelectedGrid] = useState<Grid | null>(null);
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [currentSkip, setCurrentSkip] = useState(0);
+  const [hasMoreData, setHasMoreData] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch grids data with pagination
+  // Fetch grids data with updated pagination logic
   const fetchGridsData = useCallback(
-    async (page: number = 1) => {
+    async (skip: number = 0, isLoadMore: boolean = false) => {
       try {
         setLoading(true);
         setError(null);
 
         const response = await externalService.getGridsSummary({
-          limit: 30,
-          page: page,
+          limit: 80,
+          skip: skip,
           tenant: 'airqo',
           detailLevel: 'summary',
         });
 
         if (response && response.grids) {
-          setGridsData(response.grids);
-          setTotalPages(response.meta?.totalPages || 1);
-          setCurrentPage(page);
+          if (isLoadMore) {
+            setGridsData((prev) => [...prev, ...response.grids]);
+          } else {
+            setGridsData(response.grids);
+          }
+
+          setCurrentSkip(skip);
+          setHasMoreData(response.grids.length === 80);
 
           // Auto-select first grid if none selected
           if (!selectedGrid && response.grids.length > 0) {
@@ -69,12 +73,14 @@ const MonitorCoveragePage = () => {
           }
         } else {
           setError('No data available');
+          setHasMoreData(false);
         }
       } catch (err) {
         console.error('Error fetching grids data:', err);
         setError(
           'Failed to load monitor coverage data. Please try again later.',
         );
+        setHasMoreData(false);
       } finally {
         setLoading(false);
       }
@@ -83,8 +89,15 @@ const MonitorCoveragePage = () => {
   );
 
   useEffect(() => {
-    fetchGridsData(1);
-  }, []);
+    fetchGridsData(0, false);
+  }, [fetchGridsData]);
+
+  // Load more data function
+  const handleLoadMore = useCallback(() => {
+    if (hasMoreData && !loading) {
+      fetchGridsData(currentSkip + 80, true);
+    }
+  }, [currentSkip, hasMoreData, loading, fetchGridsData]);
 
   // Calculate statistics
   const statistics = useMemo<SiteStatistics>(() => {
@@ -167,7 +180,7 @@ const MonitorCoveragePage = () => {
         viewport={{ once: true, amount: 0.2 }}
         variants={containerVariants}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div
             className="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500"
             variants={itemVariants}
@@ -182,23 +195,6 @@ const MonitorCoveragePage = () => {
                 </p>
               </div>
               <FiMapPin className="w-10 h-10 text-blue-500" />
-            </div>
-          </motion.div>
-
-          <motion.div
-            className="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500"
-            variants={itemVariants}
-          >
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">
-                  Online Monitors
-                </p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">
-                  {loading ? '...' : statistics.onlineSites}
-                </p>
-              </div>
-              <HiOutlineStatusOnline className="w-10 h-10 text-green-500" />
             </div>
           </motion.div>
 
@@ -247,40 +243,40 @@ const MonitorCoveragePage = () => {
         <motion.div variants={itemVariants}>
           <h2 className="text-3xl font-semibold mb-6">Coverage Map</h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Sidebar - Grid Selection */}
             <div className="lg:col-span-1 space-y-4">
-              <div className="bg-white rounded-lg shadow-md p-4">
+              <div className="bg-white rounded-md shadow-sm border border-gray-200 p-4 h-[400px] flex flex-col">
                 <div className="mb-4">
                   <input
                     type="text"
                     placeholder="Search locations..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   />
                 </div>
 
                 {selectedGrid && (
                   <button
                     onClick={handleViewAllSites}
-                    className="w-full mb-4 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                    className="w-full mb-3 px-3 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors text-sm font-medium border border-blue-200"
                   >
                     View All Locations
                   </button>
                 )}
 
-                <div className="max-h-[600px] overflow-y-auto space-y-2">
-                  {loading ? (
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                  {loading && currentSkip === 0 ? (
                     <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
                       <p className="text-gray-600 mt-2 text-sm">
                         Loading locations...
                       </p>
                     </div>
                   ) : error ? (
                     <div className="text-center py-8">
-                      <FiAlertCircle className="w-12 h-12 text-red-500 mx-auto mb-2" />
+                      <FiAlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
                       <p className="text-red-600 text-sm">{error}</p>
                     </div>
                   ) : filteredGrids.length === 0 ? (
@@ -290,152 +286,129 @@ const MonitorCoveragePage = () => {
                       </p>
                     </div>
                   ) : (
-                    filteredGrids.map((grid) => (
-                      <button
-                        key={grid._id}
-                        onClick={() => handleGridSelect(grid)}
-                        className={`w-full text-left p-3 rounded-lg transition-all ${
-                          selectedGrid?._id === grid._id
-                            ? 'bg-blue-50 border-2 border-blue-500'
-                            : 'bg-gray-50 border-2 border-transparent hover:bg-gray-100'
-                        }`}
-                      >
-                        <h3 className="font-semibold text-sm text-gray-900">
-                          {grid.long_name || grid.name}
-                        </h3>
-                        <p className="text-xs text-gray-600 mt-1">
-                          {grid.numberOfSites} monitor
-                          {grid.numberOfSites !== 1 ? 's' : ''} •{' '}
-                          {grid.admin_level}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                            <span className="text-xs text-gray-600">
-                              {
-                                grid.sites.filter(
-                                  (s) => s.isOnline || s.rawOnlineStatus,
-                                ).length
-                              }{' '}
-                              online
-                            </span>
-                          </div>
+                    <>
+                      {filteredGrids.map((grid) => (
+                        <button
+                          key={grid._id}
+                          onClick={() => handleGridSelect(grid)}
+                          className={`w-full text-left p-3 rounded-md transition-all border ${
+                            selectedGrid?._id === grid._id
+                              ? 'bg-blue-50 border-blue-300 shadow-sm'
+                              : 'bg-white border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                          }`}
+                        >
+                          <h3 className="font-medium text-sm text-gray-900 leading-tight">
+                            {grid.long_name || grid.name}
+                          </h3>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {grid.numberOfSites} monitor
+                            {grid.numberOfSites !== 1 ? 's' : ''} •{' '}
+                            {grid.admin_level}
+                          </p>
+                        </button>
+                      ))}
+
+                      {/* Load More Button */}
+                      {hasMoreData && (
+                        <div className="pt-2">
+                          <button
+                            onClick={handleLoadMore}
+                            disabled={loading}
+                            className="w-full px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 transition-colors"
+                          >
+                            {loading ? 'Loading...' : 'Load More Locations'}
+                          </button>
                         </div>
-                      </button>
-                    ))
+                      )}
+                    </>
                   )}
                 </div>
-
-                {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="mt-4 flex items-center justify-between border-t pt-4">
-                    <button
-                      onClick={() => fetchGridsData(currentPage - 1)}
-                      disabled={currentPage === 1 || loading}
-                      className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Previous
-                    </button>
-                    <span className="text-sm text-gray-600">
-                      Page {currentPage} of {totalPages}
-                    </span>
-                    <button
-                      onClick={() => fetchGridsData(currentPage + 1)}
-                      disabled={currentPage === totalPages || loading}
-                      className="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                  </div>
-                )}
               </div>
+            </div>
 
-              {/* Selected Site Details */}
-              {selectedSite && (
-                <div className="bg-white rounded-lg shadow-md p-4">
-                  <h3 className="font-semibold text-gray-900 mb-3">
-                    Monitor Details
+            {/* Map Container */}
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-md shadow-sm border border-gray-200 overflow-hidden">
+                <MapLoader>
+                  <MapContainer
+                    sites={mapSites}
+                    selectedSiteId={selectedSite?._id}
+                    onSiteClick={handleSiteClick}
+                    className="h-[400px]"
+                  />
+                </MapLoader>
+              </div>
+            </div>
+          </div>
+
+          {/* Selected Site Details Banner */}
+          {selectedSite && (
+            <div className="mt-6 bg-white rounded-md shadow-sm border border-gray-200 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="font-semibold text-gray-900 text-lg mb-2">
+                    {selectedSite.name || selectedSite.formatted_name}
                   </h3>
-                  <div className="space-y-2 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-600">Location:</span>
-                      <p className="font-medium">
-                        {selectedSite.name || selectedSite.formatted_name}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">City:</span>
-                      <p className="font-medium">
+                      <span className="text-gray-500 font-medium">City:</span>
+                      <p className="text-gray-900">
                         {selectedSite.city || 'N/A'}
                       </p>
                     </div>
                     <div>
-                      <span className="text-gray-600">Country:</span>
-                      <p className="font-medium">
+                      <span className="text-gray-500 font-medium">
+                        Country:
+                      </span>
+                      <p className="text-gray-900">
                         {selectedSite.country || 'N/A'}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-gray-600">Status:</span>
-                      <p
-                        className={`font-medium ${
-                          selectedSite.isOnline || selectedSite.rawOnlineStatus
-                            ? 'text-green-600'
-                            : 'text-gray-500'
-                        }`}
-                      >
-                        {selectedSite.isOnline || selectedSite.rawOnlineStatus
-                          ? '● Online'
-                          : '○ Offline'}
                       </p>
                     </div>
                     {selectedSite.lastRawData && (
                       <div>
-                        <span className="text-gray-600">Last Updated:</span>
-                        <p className="font-medium text-xs">
+                        <span className="text-gray-500 font-medium">
+                          Last Updated:
+                        </span>
+                        <p className="text-gray-900 text-xs">
                           {new Date(selectedSite.lastRawData).toLocaleString()}
                         </p>
                       </div>
                     )}
                     <div>
-                      <span className="text-gray-600">Coordinates:</span>
-                      <p className="font-medium text-xs">
+                      <span className="text-gray-500 font-medium">
+                        Coordinates:
+                      </span>
+                      <p className="text-gray-900 text-xs font-mono">
                         {selectedSite.approximate_latitude.toFixed(6)},{' '}
                         {selectedSite.approximate_longitude.toFixed(6)}
                       </p>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-
-            {/* Map Container */}
-            <div className="lg:col-span-2">
-              <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <MapLoader>
-                  <MapContainer
-                    sites={mapSites}
-                    selectedSiteId={selectedSite?._id}
-                    onSiteClick={handleSiteClick}
-                    className="h-[700px]"
-                  />
-                </MapLoader>
-              </div>
-
-              {selectedGrid && (
-                <div className="mt-4 bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-2">
-                    Viewing: {selectedGrid.long_name || selectedGrid.name}
-                  </h4>
-                  <p className="text-sm text-gray-600">
-                    Showing {selectedGrid.numberOfSites} monitoring stations in
-                    this region. Click on markers to view details or select
-                    another location from the list.
-                  </p>
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={() => setSelectedSite(null)}
+                    className="px-3 py-1 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+                  >
+                    Close
+                  </button>
                 </div>
-              )}
+              </div>
             </div>
-          </div>
+          )}
+
+          {selectedGrid && (
+            <div className="mt-4 bg-blue-50 rounded-md p-4 border border-blue-200">
+              <h4 className="font-semibold text-gray-900 mb-2">
+                Viewing: {selectedGrid.long_name || selectedGrid.name}
+              </h4>
+              <p className="text-sm text-gray-600">
+                Showing {selectedGrid.numberOfSites} monitoring stations in this
+                region. Click on markers to view details or select another
+                location from the list.
+              </p>
+            </div>
+          )}
         </motion.div>
       </motion.section>
 
