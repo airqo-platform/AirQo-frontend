@@ -17,7 +17,8 @@ const TOSPage = () => {
         <ol>
           <li>
             Some cities already have programs for air quality monitoring, so we
-            collaborate with them on how to increase their coverage network.{' '}
+            collaborate with them on how to increase their coverage
+            network.{' '}
           </li>
           <li>
             By using our platform, you accept these terms and conditions in
