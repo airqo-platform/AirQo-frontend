@@ -4,8 +4,134 @@ import {
   TableItem,
 } from "@/components/shared/table/ReusableTable";
 import moment from "moment";
+import {
+  AlertTriangle,
+  CheckCircle,
+  Database,
+  Upload,
+  XCircle,
+} from "lucide-react";
+import React from "react";
 
 export type TableDevice = TableItem<unknown> & Device;
+
+/*
+  Helper types and functions
+*/
+type StatusLabelStrings =
+  | "Operational"
+  | "Transmitting"
+  | "Data Available"
+  | "Not Transmitting"
+  | "Invalid Date";
+
+type StatusColor = "green" | "blue" | "yellow" | "gray" | "red" | "purple";
+
+interface PrimaryStatus {
+  label: StatusLabelStrings;
+  color: StatusColor;
+  icon: React.ElementType;
+  description: string;
+}
+
+interface FormattedDate {
+  message: string;
+  isError: boolean;
+  errorType: "future" | "invalid" | null;
+}
+
+/**
+ * Formats a date string, handling future date errors.
+ */
+const formatDisplayDate = (dateString: string): FormattedDate => {
+  const date = moment(dateString);
+  if (!date.isValid()) {
+    return { message: "Invalid date", isError: true, errorType: "invalid" };
+  }
+  const now = moment.utc();
+  const formattedDate = date.format("D MMM YYYY, HH:mm A");
+  if (date.isAfter(moment.utc(now).add(5, "minutes"))) {
+    return {
+      message: formattedDate,
+      isError: true,
+      errorType: "future",
+    };
+  }
+  return {
+    message: formattedDate,
+    isError: false,
+    errorType: null,
+  };
+};
+
+
+const getPrimaryStatus = (
+  device: Device,
+  futureDateCheck?: FormattedDate | null
+): PrimaryStatus => {
+  // 1. Handle future date error first. This is a special UI case.
+  if (futureDateCheck?.errorType === "future") {
+    return {
+      label: "Invalid Date",
+      color: "purple",
+      icon: AlertTriangle,
+      description: "Device reporting an invalid future date.",
+    };
+  }
+
+  // 2. Determine status based on the boolean fields
+
+  // 🟢 OPERATIONAL: Best case: transmitting and data ready
+  if (device.rawOnlineStatus && device.isOnline) {
+    return {
+      label: "Operational",
+      color: "green",
+      icon: CheckCircle,
+      description: "Device transmitting • Data ready for use",
+    };
+  }
+
+  // 🔵 TRANSMITTING: Device transmitting but waiting for calibration
+  if (device.rawOnlineStatus && !device.isOnline) {
+    return {
+      label: "Transmitting",
+      color: "blue",
+      icon: Upload,
+      description: "Receiving data • Processing calibration...",
+    };
+  }
+
+  // 🟡 DATA AVAILABLE: Has recent calibrated data but not currently transmitting
+  if (!device.rawOnlineStatus && device.isOnline) {
+    return {
+      label: "Data Available",
+      color: "yellow",
+      icon: Database,
+      description: "Using recent data • Not currently transmitting",
+    };
+  }
+
+  // GRAY NOT TRANSMITTING: Not transmitting and no recent data.
+  // This is the default "else" case.
+  return {
+    label: "Not Transmitting",
+    color: "gray",
+    icon: XCircle,
+    description: "No recent data from device",
+  };
+};
+
+/**
+ * Light-background color classes for table badges
+ */
+const badgeColorClasses: Record<StatusColor, string> = {
+  green: "bg-green-100 text-green-800",
+  blue: "bg-blue-100 text-blue-800",
+  yellow: "bg-yellow-100 text-yellow-800",
+  gray: "bg-gray-100 text-gray-800",
+  red: "bg-red-100 text-red-800",
+  purple: "bg-purple-100 text-purple-800",
+};
 
 export const getColumns = (
   isInternalView: boolean
@@ -27,16 +153,21 @@ export const getColumns = (
     },
     {
       key: "isOnline",
-      label: "Online Status",
-      render: (isOnline) => {
-        const status = Boolean(isOnline);
+      label: "Device Status",
+      render: (isOnline, item) => {
+        const lastActiveCheck = item.lastActive
+          ? formatDisplayDate(item.lastActive)
+          : null;
+        const status = getPrimaryStatus(item, lastActiveCheck);
+        const colors = badgeColorClasses[status.color];
+        const Icon = status.icon;
+
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-            }`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
           >
-            {status ? "Online" : "Offline"}
+            <Icon className="w-4 h-4 mr-1" />
+            {status.label}
           </span>
         );
       },

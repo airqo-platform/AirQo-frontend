@@ -1,6 +1,8 @@
 'use client';
 import React from 'react';
 
+import GitHubRibbon from '@/components/GitHubRibbon';
+
 import ActionButtons from './ActionButtons';
 import Footer from './Footer';
 import Highlight from './Highlight';
@@ -16,6 +18,9 @@ interface MainLayoutProps {
 const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
   return (
     <div className="min-h-screen w-full flex flex-col overflow-x-hidden">
+      {/* GitHub Ribbon */}
+      <GitHubRibbon />
+
       {/* Navbar */}
       <header className="sticky top-0 z-50 bg-white">
         <Navbar />

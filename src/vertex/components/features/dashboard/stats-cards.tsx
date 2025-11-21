@@ -99,18 +99,16 @@ export const DashboardStatsCards = () => {
     (state) => state.user
   );
 
-  // Context-aware hook selection
   const isPersonalContext = userContext === "personal";
 
   // Use useMyDevices for personal context
-  const myDevicesQuery = useMyDevices(userDetails?._id || "", activeGroup?._id);
+  const myDevicesQuery = useMyDevices(userDetails?._id || "", activeGroup?._id, {
+    enabled: isPersonalContext,
+  });
 
   // Use useDeviceCount for airqo-internal and external-org contexts
   const deviceCountQuery = useDeviceCount({
-    groupId:
-      activeGroup?.grp_title && activeGroup.grp_title !== "airqo"
-        ? activeGroup.grp_title
-        : undefined,
+    enabled: !isPersonalContext,
   });
 
   const calculateDeviceStats = useCallback((devices: Device[]) => {
@@ -136,7 +134,8 @@ export const DashboardStatsCards = () => {
   }, []);
 
   const isLoading = isPersonalContext
-    ? myDevicesQuery.isLoading : deviceCountQuery.isLoading;
+    ? myDevicesQuery.isLoading
+    : deviceCountQuery.isLoading;
 
   const metrics = useMemo(() => {
     let totalMonitors = 0;

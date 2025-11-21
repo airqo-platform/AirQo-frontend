@@ -16,6 +16,7 @@ interface LocationAutocompleteProps {
   onLocationSelect: (location: { name: string; latitude: number; longitude: number }) => void;
   placeholder?: string;
   disabled?: boolean;
+  error?: string;
 }
 
 const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
@@ -24,11 +25,12 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   onLocationSelect,
   placeholder = "Enter location name",
   disabled = false,
+  error,
 }) => {
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -38,7 +40,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        dropdownRef.current && 
+        dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node) &&
         !inputRef.current?.contains(event.target as Node)
       ) {
@@ -63,7 +65,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
     }
 
     setIsLoading(true);
-    setError(null);
+    setFetchError(null);
 
     try {
       const response = await fetch(
@@ -81,7 +83,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
       setIsOpen(true);
     } catch (err) {
       logger.error('Error fetching location suggestions:', { error: err instanceof Error ? err.message : String(err) });
-      setError('Failed to load suggestions');
+      setFetchError('Failed to load suggestions');
       setSuggestions([]);
       setIsOpen(true);
     } finally {
@@ -92,7 +94,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     onChange(newValue);
-    
+
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
     }
@@ -115,7 +117,7 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
   };
 
   const handleInputFocus = () => {
-    if (value.trim() && (suggestions.length > 0 || error)) {
+    if (value.trim() && (suggestions.length > 0 || fetchError)) {
       setIsOpen(true);
     }
   };
@@ -131,7 +133,8 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
           onFocus={handleInputFocus}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full rounded-xl px-3 py-2 pr-10 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+          className={`w-full rounded-xl px-3 py-2 pr-10 border focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed ${error ? "border-red-500 focus:ring-red-500" : "border-gray-300"
+            }`}
         />
         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
           {isLoading ? (
@@ -142,14 +145,14 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
         </div>
       </div>
 
-      {isOpen && (suggestions.length > 0 || error) && (
+      {isOpen && (suggestions.length > 0 || fetchError) && (
         <div
           ref={dropdownRef}
           className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
         >
-          {error ? (
+          {fetchError ? (
             <div className="px-4 py-2 text-sm text-red-600">
-              {error}
+              {fetchError}
             </div>
           ) : (
             suggestions.map((suggestion) => (
@@ -172,6 +175,18 @@ const LocationAutocomplete: React.FC<LocationAutocompleteProps> = ({
               </button>
             ))
           )}
+        </div>
+      )}
+      {error && (
+        <div className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
+          <svg className="w-4 h-4 mr-1 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-4 4a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {error}
         </div>
       )}
     </div>

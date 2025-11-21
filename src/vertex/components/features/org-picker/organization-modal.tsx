@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AqPlus, AqSearchMd, AqUser02 } from '@airqo/icons-react';
 import type { Group } from "@/app/types/users";
+import logger from "@/lib/logger";
 import { UserContext } from "@/core/redux/slices/userSlice";
 
 interface OrganizationModalProps {
@@ -48,13 +49,15 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     const storedRecents = localStorage.getItem("recentOrganizations");
     let recentIds: string[] = storedRecents ? JSON.parse(storedRecents) : [];
 
+    const allUserGroups = userGroups || [];
+
     if (activeGroup) {
       recentIds = recentIds.filter(id => id !== activeGroup._id);
       recentIds.unshift(activeGroup._id);
     }
 
-    const groupMap = new Map((userGroups || []).map(g => [g._id, g]));
-    
+    const groupMap = new Map(allUserGroups.map(g => [g._id, g]));
+
     const recents = recentIds
       .map(id => groupMap.get(id))
       .filter((g): g is Group => g !== undefined);
@@ -63,6 +66,12 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     const filteredRecents = isAirQoStaff 
       ? recents 
       : recents.filter(group => group.grp_title.toLowerCase() !== 'airqo');
+    
+    logger.debug('[OrgModal:useEffect] Setting final recent groups', { 
+      count: filteredRecents.length, 
+      groups: filteredRecents.map(g => g.grp_title),
+      isAirQoStaff,
+    });
 
     setRecentGroups(filteredRecents);
   }, [userGroups, isOpen, activeGroup, isAirQoStaff]);
@@ -80,7 +89,9 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   }
 
   const filteredGroups = useMemo(() => {
-    if (!Array.isArray(userGroups)) return [];
+    if (!Array.isArray(userGroups)) {
+      return [];
+    }
     
     let groups = userGroups.filter((group) =>
         group.grp_title && 
@@ -95,6 +106,10 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
       );
     }
 
+    logger.debug('[OrgModal:useMemo] Final filtered groups', { 
+      count: groups.length, 
+      groups: groups.map(g => g.grp_title) 
+    });
     return groups;
   }, [userGroups, searchTerm, isAirQoStaff]);
 

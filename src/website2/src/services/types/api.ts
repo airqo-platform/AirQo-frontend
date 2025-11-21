@@ -86,6 +86,7 @@ export interface EventV2 extends Event {
   public_identifier?: string;
   api_url?: string;
   event_tag?: string;
+  tags?: string[];
   title_subtext?: string;
   start_time?: string; // e.g. '09:00:00'
   end_time?: string; // e.g. '17:00:00'
@@ -190,16 +191,15 @@ export interface CleanAirResource {
 }
 
 export interface ImpactNumber {
-  id: string;
-  metric: string;
-  value: number;
-  unit: string;
-  description: string;
-  icon?: string;
-  order?: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  id: number;
+  african_cities: number;
+  champions: number;
+  deployed_monitors: number;
+  data_records: number;
+  research_papers: number;
+  partners: number;
+  created: string;
+  modified: string;
 }
 
 export interface ForumEvent {

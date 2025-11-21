@@ -11,6 +11,8 @@ import type {
   DeviceCreationResponse,
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
+  DecryptionRequest,
+  DecryptionResponse
 } from "@/app/types/devices";
 
 // Create secure API clients that use the proxy
@@ -55,44 +57,7 @@ export interface DeviceCountResponse {
 
 export interface DeviceDetailsResponse {
   message: string;
-  data: {
-    id: string;
-    name: string;
-    alias: string;
-    mobility: boolean;
-    network: string;
-    groups: string[];
-    serial_number: string;
-    authRequired: boolean;
-    long_name: string;
-    createdAt: string;
-    visibility?: boolean;
-    isPrimaryInLocation: boolean;
-    nextMaintenance: string;
-    device_number: number;
-    status: string;
-    isActive: boolean;
-    writeKey: string;
-    isOnline: boolean;
-    readKey: string;
-    pictures: unknown[];
-    height: number;
-    device_codes: string[];
-    category: string;
-    cohorts: unknown[];
-    description?: string;
-    phoneNumber?: string;
-    latitude?: string;
-    longitude?: string;
-    generation_version?: string;
-    generation_count?: string;
-    onlineStatusAccuracy?: {
-      successPercentage: number;
-      failurePercentage: number;
-      lastUpdate: string;
-    };
-    maintenance_status?: string;
-  };
+  data: Device;
 }
 
 // Response for device maintenance activities
@@ -117,7 +82,7 @@ export interface MaintenanceActivitiesResponse {
 }
 
 export interface GetDevicesSummaryParams {
-  network: string;
+  network?: string;
   group?: string;
   limit?: number;
   skip?: number;
@@ -149,18 +114,43 @@ export const devices = {
       throw error;
     }
   },
+
+  getDevicesByCohorts: async (params: {
+    cohort_ids: string[];
+    limit?: number;
+    skip?: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+  }) => {
+    try {
+      const { cohort_ids, ...rest } = params;
+      const queryParams = new URLSearchParams();
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.set(key, String(value));
+        }
+      });
+
+      const response = await jwtApiClient.post<DevicesSummaryResponse>(
+        `/devices/cohorts/devices?${queryParams.toString()}`,
+        { cohort_ids },
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   getDeviceCountApi: async (params: {
-    groupId?: string;
-    cohortId?: string;
+    cohort_id?: string[];
   }): Promise<DeviceCountResponse> => {
     try {
-      const { groupId, cohortId } = params;
+      const { cohort_id } = params;
       const queryParams = new URLSearchParams();
 
-      if (groupId) {
-        queryParams.set("group_id", groupId);
-      } else if (cohortId) {
-        queryParams.set("cohort_id", cohortId);
+      if (cohort_id && cohort_id.length > 0) {
+        queryParams.set("cohort_id", cohort_id.join(","));
       }
 
       const response = await jwtApiClient.get<DeviceCountResponse>(
@@ -177,22 +167,6 @@ export const devices = {
       const response = await tokenApiClient.get<DevicesSummaryResponse>(
         `/devices/readings/map`,
         { headers: { 'X-Auth-Type': 'API_TOKEN' } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getDevicesApi: async (networkId: string, limit?: number) => {
-    try {
-      const queryParams = new URLSearchParams({ network: networkId });
-      if (limit) {
-        queryParams.set("limit", String(limit));
-      }
-      const response = await jwtApiClient.get<DevicesSummaryResponse>(
-        `/devices/summary?${queryParams.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -395,8 +369,7 @@ export const devices = {
 
   updateDeviceLocal: async (deviceId: string, deviceData: Partial<Device>) => {
     try {
-      // Remove network field if present
-      const { network, ...updateData } = deviceData;
+      const { ...updateData } = deviceData;
       const response = await jwtApiClient.put(
         `/devices?id=${deviceId}`,
         updateData,
@@ -410,8 +383,7 @@ export const devices = {
 
   updateDeviceGlobal: async (deviceId: string, deviceData: Partial<Device>) => {
     try {
-      // Remove network field if present
-      const { network, ...updateData } = deviceData;
+      const { ...updateData } = deviceData;
       const response = await jwtApiClient.put(
         `/devices/soft?id=${deviceId}`,
         updateData,
@@ -469,6 +441,21 @@ export const devices = {
         `/devices/bulk`,
         requestBody,
         { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  decryptDeviceKeys: async (
+    requestBody: DecryptionRequest[]
+  ): Promise<DecryptionResponse> => {
+    try {
+      const response = await jwtApiClient.post<DecryptionResponse>(
+        `/devices/decrypt/bulk`,
+        requestBody,
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {

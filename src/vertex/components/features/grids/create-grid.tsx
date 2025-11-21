@@ -13,6 +13,8 @@ import { Position } from "@/core/redux/slices/gridsSlice";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
+import { useNetworks } from "@/core/hooks/useNetworks";
+import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 
 const gridFormSchema = z.object({
   name: z.string().min(2, {
@@ -20,6 +22,9 @@ const gridFormSchema = z.object({
   }),
   administrativeLevel: z.string().min(2, {
     message: "Administrative level is required.",
+  }),
+  network: z.string().min(1, {
+    message: "Please select a network.",
   }),
   shapefile: z.string().refine((val) => {
     try {
@@ -43,8 +48,8 @@ type GridFormValues = z.infer<typeof gridFormSchema>;
 export function CreateGridForm() {
   const [open, setOpen] = useState(false);
   const polygon = useAppSelector((state) => state.grids.polygon);
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const { createGrid, isLoading } = useCreateGrid();
+  const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
   const form = useForm<GridFormValues>({
     resolver: zodResolver(gridFormSchema),
@@ -52,6 +57,7 @@ export function CreateGridForm() {
       name: "",
       administrativeLevel: "",
       shapefile: '{"type":"","coordinates":[]}',
+      network: "",
     },
   });
 
@@ -73,7 +79,7 @@ export function CreateGridForm() {
       name: data.name,
       admin_level: data.administrativeLevel,
       shape: JSON.parse(data.shapefile) as { type: "MultiPolygon" | "Polygon"; coordinates: Position[][] | Position[][][] },
-      network: activeNetwork?.net_name || "",
+      network: data.network,
     };
 
     createGrid(gridData, {
@@ -119,6 +125,28 @@ export function CreateGridForm() {
                     required
                     {...field}
                   />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="network"
+                render={({ field }) => (
+                  <ReusableSelectInput
+                    label="Network"
+                    id="network"
+                    value={field.value as string}
+                    onChange={(e) => field.onChange(e.target.value)}
+                    error={form.formState.errors.network?.message}
+                    required
+                    placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+                    disabled={isLoadingNetworks}
+                  >
+                    {networks.map((network) => (
+                      <option key={network.net_name} value={network.net_name}>
+                        {network.net_name}
+                      </option>
+                    ))}
+                  </ReusableSelectInput>
                 )}
               />
               <FormField

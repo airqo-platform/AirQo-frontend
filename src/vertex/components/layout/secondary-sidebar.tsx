@@ -1,9 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import {
-  Users,
   ChevronRight,
   ChevronLeft,
   Shield,
@@ -21,13 +19,6 @@ import {
   AqCollocation,
 } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { usePathname } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import Card from "../shared/card/CardWrapper";
 import { useAppSelector } from "@/core/redux/hooks";
@@ -37,7 +28,6 @@ import { useAuth } from '@/core/hooks/users';
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
-  activeModule: string;
   toggleSidebar: () => void;
   isTabletOpen?: boolean;
   handleMobileClose?: () => void;
@@ -130,7 +120,6 @@ const NavItem = ({
 
 const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isCollapsed,
-  activeModule,
   toggleSidebar,
   isTabletOpen = false,
   handleMobileClose,
@@ -183,13 +172,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
             <>
               {activeModule === "network" && (
                 <>
-                  <NavItem
-                    href="/home"
-                    icon={AqHomeSmile}
-                    label="Home"
-                    isCollapsed={isCollapsed}
-                    disabled={false}
-                  />
+                  <NavItem item={{
+                      href: "/home",
+                      icon: AqHomeSmile,
+                      label: "Home",
+                      disabled: false,
+                    }} isCollapsed={isCollapsed} />
 
                   {/* Network Section Heading */}
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
@@ -200,92 +188,71 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                   {contextPermissions.canViewDevices &&
                     (isPersonalContext ? (
                       sidebarConfig.showMyDevices && (
-                        <NavItem
-                          href="/devices/my-devices"
-                          icon={AqMonitor}
-                          label="My Devices"
-                          isCollapsed={isCollapsed}
-                          disabled={!contextPermissions.canViewDevices}
-                          tooltip="You do not have permission to view devices."
-                        />
+                        <NavItem item={{
+                            href: "/devices/my-devices",
+                            icon: AqMonitor,
+                            label: "My Devices",
+                            disabled: !contextPermissions.canViewDevices,
+                          }} isCollapsed={isCollapsed} />
                       )
                     ) : (
                       sidebarConfig.showDeviceOverview && (
-                        <NavItem
-                          href="/devices/overview"
-                          icon={AqMonitor}
-                          label="Devices"
-                          isCollapsed={isCollapsed}
-                          disabled={!contextPermissions.canViewDevices}
-                          tooltip="You do not have permission to view devices."
-                        />
+                        <NavItem item={{
+                            href: "/devices/overview",
+                            icon: AqMonitor,
+                            label: "Devices",
+                            disabled: !contextPermissions.canViewDevices,
+                          }} isCollapsed={isCollapsed} />
                       )
                     ))}
 
                   {sidebarConfig.showClaimDevice && (
-                    <NavItem
-                      href="/devices/claim"
-                      icon={AqPackagePlus}
-                      label="Claim Device"
-                      isCollapsed={isCollapsed}
-                    />
+                    <NavItem item={{
+                        href: "/devices/claim",
+                        icon: AqPackagePlus,
+                        label: "Claim Device",
+                      }} isCollapsed={isCollapsed} />
                   )}
 
                   {/* Sites - only for non-personal contexts */}
                   {sidebarConfig.showSites && contextPermissions.canViewSites && (
-                    <NavItem
-                      href="/sites"
-                      icon={AqMarkerPin01}
-                      label="Sites"
-                      isCollapsed={isCollapsed}
-                      disabled={false}
-                    />
+                    <NavItem item={{
+                        href: "/sites",
+                        icon: AqMarkerPin01,
+                        label: "Sites",
+                        disabled: false,
+                      }} isCollapsed={isCollapsed} />
                   )}
 
                   {sidebarConfig.showGrids && contextPermissions.canViewSites && (
-                  <NavItem
-                    href="/grids"
-                    icon={AqAirQlouds}
-                    label="Grids"
-                    isCollapsed={isCollapsed}
-                    disabled={false}
-                  />
+                  <NavItem item={{
+                      href: "/grids",
+                      icon: AqAirQlouds,
+                      label: "Grids",
+                      disabled: false,
+                    }} isCollapsed={isCollapsed} />
                 )}
 
                 {sidebarConfig.showCohorts && contextPermissions.canViewDevices && (
-                  <NavItem
-                    href="/cohorts"
-                    icon={AqCollocation}
-                    label="Cohorts"
-                    isCollapsed={isCollapsed}
-                    disabled={false}
-                  />
+                  <NavItem item={{
+                      href: "/cohorts",
+                      icon: AqCollocation,
+                      label: "Cohorts",
+                      disabled: false,
+                    }} isCollapsed={isCollapsed} />
                 )}
                 </>
               )}
 
               {activeModule === "admin" && (
                 <>
-                  {sidebarConfig.showUserManagement && (
-                    <NavItem
-                      href="/user-management"
-                      icon={Users}
-                      label="User Management"
-                      isCollapsed={isCollapsed}
-                      disabled={!contextPermissions.canViewUserManagement}
-                      tooltip="You do not have permission to view user management."
-                    />
-                  )}
-                  {sidebarConfig.showAccessControl && (
-                    <NavItem
-                      href="/access-control"
-                      icon={Shield}
-                      label="Access Control"
-                      isCollapsed={isCollapsed}
-                      disabled={!contextPermissions.canViewAccessControl}
-                      tooltip="You do not have permission to view access control."
-                    />
-                  )}
+                  <NavItem
+                      item={{
+                        href: "/admin/networks",
+                        icon: AqHomeSmile,
+                        label: "Networks",
+                        disabled: !contextPermissions.canViewNetworks,
+                      }} isCollapsed={isCollapsed} />
                 </>
               )}
             </>
@@ -302,12 +269,11 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
               <Skeleton className="h-10 w-full" />
             </div>
           ) : (
-                <NavItem
-                  href="/profile"
-                  icon={AqUser03}
-                  label="Profile"
-                  isCollapsed={isCollapsed}
-                />
+                <NavItem item={{
+                    href: "/profile",
+                    icon: AqUser03,
+                    label: "Profile",
+                  }} isCollapsed={isCollapsed} />
           )}
         </div>
       </div>

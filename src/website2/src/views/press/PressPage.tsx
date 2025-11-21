@@ -2,25 +2,18 @@
 
 import { format } from 'date-fns';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React from 'react';
 
 import { CustomButton, NoData, Pagination } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { usePress } from '@/services/hooks/endpoints';
+import { usePressArticles } from '@/hooks/useApiHooks';
 
 const PressPage: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  // page_size we're requesting from API
-  const pageSize = 8;
-
-  const { data, error, isLoading } = usePress({
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const { data, error, isLoading } = usePressArticles({
     page: currentPage,
-    page_size: pageSize,
+    page_size: 6,
   });
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
 
   const formatDate = (date: string) => {
     return format(new Date(date), 'MMMM d, yyyy');
@@ -40,7 +33,6 @@ const PressPage: React.FC = () => {
   );
 
   const articles = data?.results ?? [];
-  const totalPages = data?.total_pages ?? 1;
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -69,9 +61,11 @@ const PressPage: React.FC = () => {
         ) : articles.length > 0 ? (
           <div className="w-full px-4 lg:px-0 grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             {articles.map((article: any) => {
-              const articleLink = article.has_slug
-                ? `/press/${article.public_identifier}`
-                : article.api_url;
+              const articleLink = article.article_link
+                ? article.article_link
+                : article.has_slug
+                  ? `/press/${article.public_identifier}`
+                  : article.api_url;
 
               return (
                 <div
@@ -114,17 +108,19 @@ const PressPage: React.FC = () => {
         ) : (
           <NoData />
         )}
-      </section>
 
-      {/* Pagination Section */}
-      {totalPages > 1 && (
-        <Pagination
-          totalPages={totalPages}
-          currentPage={currentPage}
-          onPageChange={handlePageChange}
-          scrollToTop={true}
-        />
-      )}
+        {/* Pagination */}
+        {!error && data && data.total_pages > 1 && articles.length > 0 && (
+          <div className="w-full px-4 lg:px-0 mt-8 mb-8">
+            <Pagination
+              totalPages={data.total_pages}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+              scrollToTop={true}
+            />
+          </div>
+        )}
+      </section>
     </div>
   );
 };

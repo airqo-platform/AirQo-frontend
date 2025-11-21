@@ -1,12 +1,33 @@
 import { Card } from "@/components/ui/card";
-import { Loader2, RotateCw } from "lucide-react";
+import { Loader2, RotateCw, AlertTriangle } from "lucide-react"; // Added AlertTriangle
 import { useDeviceStatusFeed } from "@/core/hooks/useDevices";
 import React from "react";
+import moment from "moment";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface RunDeviceTestCardProps {
   deviceNumber: number;
   getElapsedDurationMapper: (dateTimeStr: string) => [number, { [key: string]: number }];
 }
+
+/**
+ * Helper function to check for future dates.
+ */
+const isDateInFuture = (dateString: string | null | undefined): boolean => {
+  if (!dateString) return false;
+
+  const date = moment(dateString);
+  const now = moment();
+
+  if (!date.isValid()) return false;
+
+  return date.isAfter(now.add(5, "minutes"));
+};
 
 const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, getElapsedDurationMapper }) => {
   const statusFeed = useDeviceStatusFeed(deviceNumber);
@@ -37,8 +58,42 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
         <>
           <div className="text-sm text-muted-foreground mb-1 px-3 py-2">
             {(() => {
-              if (!statusFeed.data.created_at) return null;
-              const [, elapsedUntyped] = getElapsedDurationMapper(statusFeed.data.created_at);
+              const createdAt = statusFeed.data.created_at;
+              if (!createdAt) return null;
+
+              // --- Future Date Check ---
+              if (isDateInFuture(createdAt)) {
+                const formattedDate = moment(createdAt).format(
+                  "D MMM YYYY, HH:mm A"
+                );
+                return (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <div className="flex items-center gap-1.5 text-purple-600 font-bold underline decoration-dotted cursor-help">
+                          <AlertTriangle className="w-4 h-4" />
+                          <span>Invalid Date: {formattedDate}</span>
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs max-w-xs">
+                          <strong>Device Level Issue</strong>
+                          <br />
+                          The device reported an invalid future date:
+                          <br />
+                          <strong className="mt-1 block">{formattedDate}</strong>
+                          <br />
+                          This is likely due to a clock or configuration error
+                          on the device itself.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                );
+              }
+              // --- END: Future Date Check ---
+
+              const [, elapsedUntyped] = getElapsedDurationMapper(createdAt);
               const elapsed = elapsedUntyped as Record<string, number>;
               const units = [
                 ["year", "years"],
@@ -70,7 +125,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
               } else if (totalHoursOffline < 24) {
                 colorClass = "text-yellow-600";
               } else if (totalHoursOffline < 7 * 24) {
-                colorClass = "text-orange-600"; 
+                colorClass = "text-orange-600";
               } else {
                 colorClass = "text-red-600";
               }
@@ -87,13 +142,25 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
           </div>
           <div className="px-3">
             {Object.entries(statusFeed.data)
-              .filter(([key]) => !["created_at", "isCache", "satellites", "DeviceType", "undefined"].includes(key))
+              .filter(
+                ([key]) =>
+                  !["created_at", "isCache", "satellites", "DeviceType", "undefined"].includes(
+                    key
+                  )
+              )
               .map(([key, value]) => {
                 const displayKey = key.length > 20 ? key.slice(0, 20) + "..." : key;
                 return (
                   <div key={key} className="flex gap-4 items-center justify-between">
-                    <span className="text-xs text-muted-foreground uppercase font-medium tracking-wide" title={key}>{displayKey}</span>
-                    <span className="text-base font-normal break-all">{String(value)}</span>
+                    <span
+                      className="text-xs text-muted-foreground uppercase font-medium tracking-wide"
+                      title={key}
+                    >
+                      {displayKey}
+                    </span>
+                    <span className="text-base font-normal break-all">
+                      {String(value)}
+                    </span>
                   </div>
                 );
               })}
@@ -106,4 +173,4 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
   );
 };
 
-export default RunDeviceTestCard; 
+export default RunDeviceTestCard;

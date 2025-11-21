@@ -2,7 +2,9 @@
 
 import { usePathname, useSearchParams } from 'next/navigation';
 import Script from 'next/script';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
+import { hasAnalyticsConsent } from '@/utils/cookieConsent';
 
 declare global {
   interface Window {
@@ -18,19 +20,35 @@ interface GoogleAnalyticsProps {
 /**
  * Single component to initialize Google Analytics and
  * track page views on route changes using the Next.js App Router.
+ * Only loads after user consent is granted.
  */
 export default function GoogleAnalytics({
   measurementId,
 }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [hasConsent, setHasConsent] = useState(false);
 
-  console.info('gta', measurementId);
+  // Check for consent on mount and when consent changes
+  useEffect(() => {
+    const checkConsent = () => {
+      setHasConsent(hasAnalyticsConsent());
+    };
+
+    checkConsent();
+
+    // Listen for consent changes
+    window.addEventListener('cookieConsentChanged', checkConsent);
+    return () => {
+      window.removeEventListener('cookieConsentChanged', checkConsent);
+    };
+  }, []);
 
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
       !measurementId ||
+      !hasConsent ||
       typeof window.gtag === 'undefined'
     ) {
       return;
@@ -44,9 +62,9 @@ export default function GoogleAnalytics({
     window.gtag('config', measurementId, {
       page_path: pagePath,
     });
-  }, [measurementId, pathname, searchParams]);
+  }, [measurementId, pathname, searchParams, hasConsent]);
 
-  if (!measurementId) {
+  if (!measurementId || !hasConsent) {
     return null;
   }
 

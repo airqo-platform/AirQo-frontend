@@ -208,7 +208,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       }
 
       // Update user details on the server
-      var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
+      var uri = Uri.parse('${dotenv.env["AIRQO_API_URL"]}/api/v2/users/$userId');
       final authToken = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
       if (authToken == null) {
         throw Exception("Authentication token not found");
@@ -263,6 +263,18 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
 
     if (!_validateForm()) return;
 
+    final isExpired = await AuthHelper.isTokenExpired();
+    if (isExpired && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Please log in again to continue.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      Navigator.of(context).pop();
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
@@ -272,7 +284,7 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         _resetLoadingState();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Update request timed out. Please try again.'),
+            content: Text('This is taking longer than expected. Please try again.'),
             backgroundColor: Colors.red,
           ),
         );
@@ -317,18 +329,31 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         _selectedProfileImage = null;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error uploading/updating profile image: $e'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 4),
-          action: SnackBarAction(
-            label: 'Retry',
-            textColor: Colors.white,
-            onPressed: () => _updateProfile(),
+      String userFriendlyMessage = 'Unable to update profile. Please try again.';
+      
+      final errorString = e.toString().toLowerCase();
+      if (errorString.contains('unauthorized') || errorString.contains('session has expired') || errorString.contains('please log in again to continue')) {
+        userFriendlyMessage = 'Please log in again to continue.';
+      } else if (errorString.contains('network') || errorString.contains('timeout')) {
+        userFriendlyMessage = 'Check your internet connection and try again.';
+      } else if (errorString.contains('server') || errorString.contains('500')) {
+        userFriendlyMessage = 'Something went wrong. Please try again later.';
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(userFriendlyMessage),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: Colors.white,
+              onPressed: () => _updateProfile(),
+            ),
           ),
-        ),
-      );
+        );
+      }
     }
   }
 
@@ -447,7 +472,6 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
             _formChanged = false;
           });
 
-          context.read<UserBloc>().add(LoadUser());
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -461,9 +485,20 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         } else if (state is UserUpdateError) {
           _resetLoadingState();
 
+          String userFriendlyMessage = 'Unable to update profile. Please try again.';
+          
+          final errorString = state.message.toLowerCase();
+          if (errorString.contains('unauthorized') || errorString.contains('session has expired') || errorString.contains('please log in again to continue')) {
+            userFriendlyMessage = 'Please log in again to continue.';
+          } else if (errorString.contains('network') || errorString.contains('timeout')) {
+            userFriendlyMessage = 'Check your internet connection and try again.';
+          } else if (errorString.contains('server') || errorString.contains('500')) {
+            userFriendlyMessage = 'Something went wrong. Please try again later.';
+          }
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Error updating profile: ${state.message}'),
+              content: Text(userFriendlyMessage),
               backgroundColor: Colors.red,
               duration: Duration(seconds: 4),
               action: SnackBarAction(

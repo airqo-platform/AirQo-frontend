@@ -4,7 +4,7 @@ import { useAppSelector } from "../redux/hooks";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
 import { AxiosError } from "axios";
-import { CohortsSummaryResponse } from "@/app/types/cohorts";
+import { CohortsSummaryResponse, GroupCohortsResponse } from "@/app/types/cohorts";
 
 interface ErrorResponse {
   message: string;
@@ -19,18 +19,15 @@ export interface CohortListingOptions {
 }
 
 export const useCohorts = (options: CohortListingOptions = {}) => {
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
-
   const { page = 1, limit = 25, search, sortBy, order } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
   const { data, isLoading, isFetching, error } = useQuery<CohortsSummaryResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["cohorts", activeNetwork?.net_name, { page, limit, search, sortBy, order }],
+    queryKey: ["cohorts", { page, limit, search, sortBy, order }],
     queryFn: () => {
       const params: GetCohortsSummaryParams = {
-        network: activeNetwork?.net_name || "",
         limit: safeLimit,
         skip,
         ...(search && { search }),
@@ -39,7 +36,6 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
       };
       return cohortsApi.getCohortsSummary(params);
     },
-    enabled: !!activeNetwork?.net_name,
     staleTime: 300_000,
     refetchOnWindowFocus: false,
   });
@@ -51,6 +47,20 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
     isFetching,
     error: error as Error | null,
   };
+};
+
+export const useGroupCohorts = (groupId?: string, options: { enabled?: boolean } = {}) => {
+  const { enabled = true } = options;
+  return useQuery({
+    queryKey: ["groupCohorts", groupId],
+    queryFn: async () => {
+      if (!groupId) throw new Error("Group ID is required");
+      return await cohortsApi.getGroupCohorts(groupId);
+    },
+    enabled: !!groupId && enabled,
+    staleTime: 300_000, // 5 minutes
+    select: (data: GroupCohortsResponse) => data.data,
+  });
 };
 
 type UseCohortDetailsOptions = { enabled?: boolean };
@@ -110,7 +120,7 @@ export const useCreateCohortWithDevices = () => {
         message: `${variables.name} created${variables.deviceIds?.length ? " and devices assigned" : ""}.`,
         type: "SUCCESS",
       });
-      queryClient.invalidateQueries({ queryKey: ["cohorts", activeNetwork?.net_name] });
+      queryClient.invalidateQueries({ queryKey: ["cohorts"] });
     },
     onError: (error) => {
       ReusableToast({
@@ -126,8 +136,8 @@ export const useCreateCohortFromCohorts = () => {
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
 
   return useMutation({
-    mutationFn: ({ name, description, cohort_ids }: { name: string; description?: string; cohort_ids: string[] }) =>
-      cohortsApi.createCohortFromCohorts({ name, description, cohort_ids }),
+    mutationFn: ({ name, description, cohort_ids, network }: { name: string; description?: string; cohort_ids: string[]; network?: string }) =>
+      cohortsApi.createCohortFromCohorts({ name, description, cohort_ids, network }),
     onSuccess: (data, variables) => {
       ReusableToast({
         message: `Cohort '${variables.name}' created successfully.`,

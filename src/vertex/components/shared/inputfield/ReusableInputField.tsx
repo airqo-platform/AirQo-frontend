@@ -17,6 +17,9 @@ interface CommonProps {
   disabled?: boolean
   readOnly?: boolean
   showCopyButton?: boolean
+  customActionIcon?: React.ComponentType<{ className?: string }>
+  onCustomAction?: () => void
+  customActionLabel?: string
 }
 
 type InputProps = CommonProps &
@@ -42,6 +45,9 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
   description,
   readOnly,
   showCopyButton,
+  customActionIcon: CustomActionIcon,
+  onCustomAction,
+  customActionLabel,
   ...props
 }) => {
   const [showPassword, setShowPassword] = useState(false)
@@ -70,7 +76,18 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
 
   const isPasswordInput = props.as !== "textarea" && (inputProps as React.InputHTMLAttributes<HTMLInputElement>).type === "password"
   const canShowCopyButton = showCopyButton && readOnly
-  const showPasswordToggle = isPasswordInput && !readOnly
+  const showPasswordToggle = isPasswordInput && !readOnly && !showCopyButton
+  const showCustomActionButton = CustomActionIcon && onCustomAction
+
+  const paddingRightClass = (() => {
+    const count = [canShowCopyButton, showPasswordToggle, showCustomActionButton].filter(Boolean).length;
+    switch (count) {
+      case 1: return "pr-10";
+      case 2: return "pr-18";
+      case 3: return "pr-26";
+      default: return "";
+    }
+  })();
 
   return (
     <div className={`flex flex-col ${containerClassName}`}>
@@ -87,7 +104,7 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
       <div className="relative w-full">
         <Component
           id={inputId}
-          className={cn(commonClasses, (canShowCopyButton || showPasswordToggle) && "pr-10", className)}
+          className={cn(commonClasses, paddingRightClass, className)}
           style={
             primaryColor
               ? {
@@ -108,30 +125,42 @@ const ReusableInputField: React.FC<ReusableInputFieldProps> = ({
             React.TextareaHTMLAttributes<HTMLTextAreaElement>)}
           type={isPasswordInput ? (showPassword ? "text" : "password") : (inputProps as React.InputHTMLAttributes<HTMLInputElement>).type}
         />
-        {canShowCopyButton && (
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-primary focus:outline-none"
-            aria-label="Copy to clipboard"
-          >
-            <AqCopy01 className="h-4 w-4" />
-          </button>
-        )}
-        {showPasswordToggle && (
-          <button
-            type="button"
-            onClick={() => setShowPassword((prev) => !prev)}
-            className="absolute inset-y-0 right-0 top-2 flex items-center pr-3 text-gray-500 hover:text-primary focus:outline-none"
-            aria-label={showPassword ? "Hide password" : "Show password"}
-          >
-            {showPassword ? (
-              <AqEyeOff className="h-4 w-4" />
-            ) : (
-              <AqEye className="h-4 w-4" />
-            )}
-          </button>
-        )}
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3 space-x-1">
+          {showCustomActionButton && (
+            <button
+              type="button"
+              onClick={onCustomAction}
+              className="text-gray-500 hover:text-primary bg-gray-100 border border-gray-200 p-1.5 rounded-md focus:outline-none"
+              aria-label={customActionLabel || "Custom action"}
+            >
+              <CustomActionIcon className="h-4 w-4" />
+            </button>
+          )}
+          {canShowCopyButton && (
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="text-gray-500 hover:text-primary bg-gray-100 border border-gray-200 p-1.5 rounded-md focus:outline-none"
+              aria-label="Copy to clipboard"
+            >
+              <AqCopy01 className="h-4 w-4" />
+            </button>
+          )}
+          {showPasswordToggle && (
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="text-gray-500 hover:text-primary focus:outline-none"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? (
+                <AqEyeOff className="h-4 w-4" />
+              ) : (
+                <AqEye className="h-4 w-4" />
+              )}
+            </button>
+          )}
+        </div>
       </div>
       {error && !readOnly && (
         <div id={errorId} className="mt-1.5 flex items-center text-xs text-red-600 dark:text-red-400">
