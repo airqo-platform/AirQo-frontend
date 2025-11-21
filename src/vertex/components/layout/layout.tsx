@@ -63,7 +63,7 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleMenuClick = useCallback(() => {
-        if (windowSize.width < 1024 && windowSize.width >= 768) {
+        if (windowSize.width < 1024) {
                 setIsTabletOpen((prev) => !prev);
                 return;
         }else{

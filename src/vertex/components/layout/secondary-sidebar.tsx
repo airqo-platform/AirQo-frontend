@@ -135,7 +135,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   isTabletOpen = false,
   handleMobileClose,
 }) => {
-  const { getSidebarConfig, getContextPermissions, isPersonalContext } =
+  const { getSidebarConfig, getContextPermissions, isPersonalContext,userContext } =
     useUserContext();
   const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
