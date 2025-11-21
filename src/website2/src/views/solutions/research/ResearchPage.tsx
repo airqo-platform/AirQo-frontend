@@ -1,9 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { LuBarChart3, LuShield, LuUsers, LuZap } from 'react-icons/lu';
 import { useRouter } from 'next/navigation';
 import React from 'react';
+import { LuBarChart3, LuShield, LuUsers, LuZap } from 'react-icons/lu';
 
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
 import HeroSection from '@/components/sections/solutions/HeroSection';
