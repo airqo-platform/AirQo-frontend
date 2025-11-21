@@ -30,7 +30,7 @@ interface GitHubRibbonProps {
  */
 const GitHubRibbon: React.FC<GitHubRibbonProps> = ({
   href = 'https://github.com/airqo-platform',
-  text = 'View on GitHub',
+  text = 'Fork me on GitHub',
   position = 'top-right',
   visible = true,
 }) => {
@@ -44,7 +44,7 @@ const GitHubRibbon: React.FC<GitHubRibbonProps> = ({
         target="_blank"
         rel="noopener noreferrer"
         aria-label={`${text} - Opens AirQo's GitHub repository in a new window`}
-        title={`${text} - Explore AirQo's Open Source Platform`}
+        title={`${text} - Fork and contribute to AirQo's Open Source Platform`}
       >
         {text}
       </a>

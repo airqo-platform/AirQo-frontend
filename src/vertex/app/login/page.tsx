@@ -54,7 +54,7 @@ export default function LoginPage() {
 
       if (result?.ok) {
         router.replace("/home");
-        ReusableToast({ message: "Login successful", type: "SUCCESS" });
+        ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {

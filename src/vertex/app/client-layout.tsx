@@ -2,8 +2,8 @@
 
 import type React from 'react';
 
-import { Toaster } from '@/components/ui/sonner';
-import Providers from './providers';
+import { Toaster } from "@/components/shared/toast/ReusableToast"
+import Providers from "./providers"
 
 export default function ClientLayout({
   children,
@@ -11,9 +11,11 @@ export default function ClientLayout({
   children: React.ReactNode;
 }) {
   return (
-    <body className="min-h-screen bg-background antialiased">
+    <body
+      className="min-h-screen bg-background antialiased"
+    >
       <Providers>{children}</Providers>
       <Toaster />
     </body>
-  );
+  )
 }
