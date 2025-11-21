@@ -273,5 +273,22 @@ export const useGridsSummary = (
     swrOptions,
   );
 
+// New enhanced grids summary hook with v2 endpoint
+export const useGridsSummaryV2 = (
+  params?: {
+    limit?: number;
+    skip?: number;
+    page?: number;
+    search?: string;
+    admin_level?: string;
+  },
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    () => externalService.getGridsSummaryV2(params || {}),
+    params ? `gridsSummaryV2-${JSON.stringify(params)}` : 'gridsSummaryV2',
+    swrOptions,
+  );
+
 export const useCountriesData = () =>
   useServiceData(() => externalService.getCountriesData(), 'countriesData');

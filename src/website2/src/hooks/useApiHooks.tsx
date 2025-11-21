@@ -17,6 +17,7 @@ export {
   useForumEvents,
   useForumEventTitles,
   useGridsSummary,
+  useGridsSummaryV2,
   useHighlights,
   useImpactNumbers,
   usePartnerDetails,

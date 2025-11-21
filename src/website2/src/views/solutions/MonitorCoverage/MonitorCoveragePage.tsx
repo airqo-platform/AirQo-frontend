@@ -9,7 +9,7 @@ import { MapContainer, MapLoader } from '@/components/map';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useGridsSummary } from '@/hooks';
+import { useGridsSummaryV2 } from '@/hooks';
 import { Grid, Site, SiteStatistics } from '@/types';
 
 // Utility function to format text
@@ -76,12 +76,10 @@ const MonitorCoveragePage = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch grids data using the hook
-  const { data, error, isLoading } = useGridsSummary({
+  // Fetch grids data using the new v2 hook
+  const { data, error, isLoading } = useGridsSummaryV2({
     limit: 80,
     skip: currentSkip,
-    tenant: 'airqo',
-    detailLevel: 'summary',
     admin_level: 'country',
     ...(debouncedSearch && { search: debouncedSearch }),
   });
