@@ -500,7 +500,7 @@ const NetworkCoveragePage = () => {
           <div className="flex flex-wrap gap-4">
             <button
               onClick={downloadCSV}
-              disabled={isDownloadingCSV}
+              disabled={isDownloadingCSV || isLoading}
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
             >
               {isDownloadingCSV ? (
@@ -508,11 +508,15 @@ const NetworkCoveragePage = () => {
               ) : (
                 <FiDownload className="w-4 h-4" />
               )}
-              {isDownloadingCSV ? 'Generating CSV...' : 'Download CSV'}
+              {isDownloadingCSV
+                ? 'Generating CSV...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download CSV'}
             </button>
             <button
               onClick={downloadPDF}
-              disabled={isDownloadingPDF}
+              disabled={isDownloadingPDF || isLoading}
               className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
             >
               {isDownloadingPDF ? (
@@ -520,7 +524,11 @@ const NetworkCoveragePage = () => {
               ) : (
                 <FiDownload className="w-4 h-4" />
               )}
-              {isDownloadingPDF ? 'Generating PDF...' : 'Download PDF'}
+              {isDownloadingPDF
+                ? 'Generating PDF...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download PDF'}
             </button>
           </div>
         </motion.div>
