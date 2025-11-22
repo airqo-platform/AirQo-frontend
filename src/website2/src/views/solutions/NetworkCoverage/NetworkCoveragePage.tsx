@@ -2,9 +2,9 @@
 
 import { AqGlobe02, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import { motion } from 'framer-motion';
+import jsPDF from 'jspdf';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiAlertCircle, FiDownload, FiX } from 'react-icons/fi';
-import jsPDF from 'jspdf';
 
 import { MapContainer, MapLoader } from '@/components/map';
 import HeroSection from '@/components/sections/solutions/HeroSection';
@@ -72,6 +72,8 @@ const NetworkCoveragePage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [allGrids, setAllGrids] = useState<Grid[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isDownloadingCSV, setIsDownloadingCSV] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   // Debounce search query
   useEffect(() => {
@@ -185,85 +187,211 @@ const NetworkCoveragePage = () => {
   }, []);
 
   // Download functions
-  const downloadCSV = useCallback(() => {
-    const sites = allGrids.flatMap((grid) => grid.sites || []);
-    if (sites.length === 0) return;
+  const downloadCSV = useCallback(async () => {
+    setIsDownloadingCSV(true);
+    try {
+      const sites = allGrids.flatMap((grid) => grid.sites || []);
+      if (sites.length === 0) return;
 
-    const headers = [
-      'Name',
-      'City',
-      'Country',
-      'Latitude',
-      'Longitude',
-      'Is Online',
-      'Last Updated',
-    ];
-    const csvContent = [
-      headers.join(','),
-      ...sites.map((site) => [
-        `"${site.name || site.formatted_name || ''}"`,
-        `"${site.city || ''}"`,
-        `"${site.country || ''}"`,
-        site.approximate_latitude || '',
-        site.approximate_longitude || '',
-        site.isOnline || site.rawOnlineStatus ? 'Yes' : 'No',
-        site.lastRawData
-          ? new Date(site.lastRawData).toISOString()
-          : '',
-      ].join(',')),
-    ].join('\n');
+      const headers = [
+        'Name',
+        'City',
+        'Country',
+        'Latitude',
+        'Longitude',
+        'Is Online',
+        'Last Updated',
+      ];
+      const csvContent = [
+        headers.join(','),
+        ...sites.map((site) =>
+          [
+            `"${site.name || site.formatted_name || ''}"`,
+            `"${site.city || ''}"`,
+            `"${site.country || ''}"`,
+            site.approximate_latitude || '',
+            site.approximate_longitude || '',
+            site.isOnline || site.rawOnlineStatus ? 'Yes' : 'No',
+            site.lastRawData ? new Date(site.lastRawData).toISOString() : '',
+          ].join(','),
+        ),
+      ].join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'airqo-network-coverage.csv');
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `airqo-network-coverage-${new Date().toISOString().split('T')[0]}.csv`,
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsDownloadingCSV(false);
+    }
   }, [allGrids]);
 
-  const downloadPDF = useCallback(() => {
-    const sites = allGrids.flatMap((grid) => grid.sites || []);
-    if (sites.length === 0) return;
+  const downloadPDF = useCallback(async () => {
+    setIsDownloadingPDF(true);
+    try {
+      const sites = allGrids.flatMap((grid) => grid.sites || []);
+      if (sites.length === 0) return;
 
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text('AirQo Network Coverage Report', 20, 20);
-    doc.setFontSize(12);
-    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 20, 30);
-    doc.text(`Total Monitors: ${sites.length}`, 20, 40);
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-    let yPosition = 60;
-    const pageHeight = doc.internal.pageSize.height;
-
-    sites.forEach((site, index) => {
-      if (yPosition > pageHeight - 20) {
-        doc.addPage();
-        yPosition = 20;
+      // Preload logo
+      let logoImg: HTMLImageElement | null = null;
+      try {
+        logoImg = new Image();
+        logoImg.src = '/assets/icons/airqo.png';
+        await new Promise((resolve, reject) => {
+          if (logoImg) {
+            logoImg.onload = resolve;
+            logoImg.onerror = reject;
+          } else {
+            reject(new Error('Failed to create image'));
+          }
+        });
+      } catch (error) {
+        console.warn('Could not load logo for PDF:', error);
+        logoImg = null;
       }
+
+      // Function to add logo to page
+      const addLogoToPage = (pageY: number = 10) => {
+        if (logoImg) {
+          const logoWidth = 30;
+          const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
+          doc.addImage(
+            logoImg,
+            'PNG',
+            pageWidth - logoWidth - 20,
+            pageY,
+            logoWidth,
+            logoHeight,
+          );
+        }
+      };
+
+      // Add logo to first page
+      addLogoToPage();
+
+      // Header
+      doc.setFontSize(20);
+      doc.setFont('helvetica', 'bold');
+      doc.text('AirQo Network Coverage Report', 20, 25);
+
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `Generated on ${new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}`,
+        20,
+        35,
+      );
+
+      doc.text(`Total Monitoring Stations: ${sites.length}`, 20, 45);
+      doc.text(`Countries Covered: ${statistics.countries.length}`, 20, 55);
+
+      // Summary statistics
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Network Summary', 20, 75);
 
       doc.setFontSize(10);
-      doc.text(`${index + 1}. ${site.name || site.formatted_name || 'Unknown'}`, 20, yPosition);
-      yPosition += 10;
-      doc.text(`   City: ${site.city || 'N/A'}`, 20, yPosition);
-      yPosition += 10;
-      doc.text(`   Country: ${site.country || 'N/A'}`, 20, yPosition);
-      yPosition += 10;
-      doc.text(`   Coordinates: ${site.approximate_latitude?.toFixed(6) || 'N/A'}, ${site.approximate_longitude?.toFixed(6) || 'N/A'}`, 20, yPosition);
-      yPosition += 10;
-      doc.text(`   Online: ${site.isOnline || site.rawOnlineStatus ? 'Yes' : 'No'}`, 20, yPosition);
-      yPosition += 10;
-      if (site.lastRawData) {
-        doc.text(`   Last Updated: ${new Date(site.lastRawData).toLocaleString()}`, 20, yPosition);
-        yPosition += 10;
-      }
-      yPosition += 5; // Extra space between entries
-    });
+      doc.setFont('helvetica', 'normal');
+      const onlineSites = sites.filter(
+        (site) => site.isOnline || site.rawOnlineStatus,
+      ).length;
+      const offlineSites = sites.length - onlineSites;
 
-    doc.save('airqo-network-coverage.pdf');
-  }, [allGrids]);
+      doc.text(`• Online Stations: ${onlineSites}`, 25, 85);
+      doc.text(`• Offline Stations: ${offlineSites}`, 25, 95);
+      doc.text(`• Coverage Areas: ${allGrids.length} regions`, 25, 105);
+
+      let yPosition = 125;
+
+      // Group sites by country
+      const sitesByCountry = sites.reduce(
+        (acc, site) => {
+          const country = site.country || 'Unknown';
+          if (!acc[country]) acc[country] = [];
+          acc[country].push(site);
+          return acc;
+        },
+        {} as Record<string, typeof sites>,
+      );
+
+      Object.entries(sitesByCountry).forEach(([country, countrySites]) => {
+        if (yPosition > pageHeight - 60) {
+          doc.addPage();
+          addLogoToPage();
+          yPosition = 20;
+        }
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${country} (${countrySites.length} stations)`, 20, yPosition);
+        yPosition += 10;
+
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+
+        countrySites.forEach((site) => {
+          if (yPosition > pageHeight - 20) {
+            doc.addPage();
+            addLogoToPage();
+            yPosition = 20;
+          }
+
+          const status =
+            site.isOnline || site.rawOnlineStatus ? '● Online' : '○ Offline';
+          doc.text(
+            `${site.name || site.formatted_name || 'Unknown'} - ${site.city || 'N/A'}`,
+            25,
+            yPosition,
+          );
+          yPosition += 6;
+          doc.setFontSize(8);
+          doc.text(
+            `${status} | Lat: ${site.approximate_latitude?.toFixed(4) || 'N/A'}, Lon: ${site.approximate_longitude?.toFixed(4) || 'N/A'}`,
+            30,
+            yPosition,
+          );
+          yPosition += 8;
+        });
+
+        yPosition += 5;
+      });
+
+      // Footer
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, {
+          align: 'center',
+        });
+        doc.text('© 2025 AirQo. All rights reserved.', 20, pageHeight - 10);
+      }
+
+      doc.save(
+        `airqo-network-coverage-${new Date().toISOString().split('T')[0]}.pdf`,
+      );
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  }, [allGrids, statistics.countries.length]);
 
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
@@ -333,24 +461,37 @@ const NetworkCoveragePage = () => {
         variants={containerVariants}
       >
         <motion.div variants={itemVariants}>
-          <h2 className="text-2xl font-semibold mb-4">Download Coverage Data</h2>
+          <h2 className="text-2xl font-semibold mb-4">
+            Download Coverage Data
+          </h2>
           <p className="text-gray-600 mb-6">
-            Export our network coverage data for offline use or further analysis.
+            Export our network coverage data for offline use or further
+            analysis.
           </p>
           <div className="flex flex-wrap gap-4">
             <button
               onClick={downloadCSV}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+              disabled={isDownloadingCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
             >
-              <FiDownload className="w-4 h-4" />
-              Download CSV
+              {isDownloadingCSV ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingCSV ? 'Generating CSV...' : 'Download CSV'}
             </button>
             <button
               onClick={downloadPDF}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+              disabled={isDownloadingPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
             >
-              <FiDownload className="w-4 h-4" />
-              Download PDF
+              {isDownloadingPDF ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingPDF ? 'Generating PDF...' : 'Download PDF'}
             </button>
           </div>
         </motion.div>
