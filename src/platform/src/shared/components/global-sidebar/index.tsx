@@ -23,7 +23,7 @@ export const GlobalSidebar: React.FC = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
   const { activeGroup } = useUserActions();
-  const { hasRole } = useRBAC();
+  const { hasRole, hasPermission } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
 
   // Helper function to determine if current group is AirQo
@@ -102,23 +102,31 @@ export const GlobalSidebar: React.FC = () => {
       targetPath = '/dashboard';
     }
     return config.flatMap(group =>
-      group.items.map(item => {
-        let href = item.href;
-        // Change Administrative Panel href based on permissions
-        if (item.id === 'admin-panel') {
-          href = hasRole('AIRQO_SUPER_ADMIN')
-            ? '/admin/org-requests'
-            : '/admin/members';
-        } else {
-          href = href.replace('/data-access', `${basePath}${targetPath}`);
-        }
-        return {
-          ...item,
-          href,
-        };
-      })
+      group.items
+        .filter(item => {
+          // Only show admin-panel if user has GROUP_MANAGEMENT permission
+          if (item.id === 'admin-panel') {
+            return hasPermission('GROUP_MANAGEMENT');
+          }
+          return true;
+        })
+        .map(item => {
+          let href = item.href;
+          // Change Administrative Panel href based on permissions
+          if (item.id === 'admin-panel') {
+            href = hasRole('AIRQO_SUPER_ADMIN')
+              ? '/admin/org-requests'
+              : '/admin/members';
+          } else {
+            href = href.replace('/data-access', `${basePath}${targetPath}`);
+          }
+          return {
+            ...item,
+            href,
+          };
+        })
     );
-  }, [flow, orgSlug, hasRole]);
+  }, [flow, orgSlug, hasRole, hasPermission]);
 
   // Focus management
   useEffect(() => {
