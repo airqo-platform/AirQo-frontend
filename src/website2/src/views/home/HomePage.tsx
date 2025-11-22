@@ -95,6 +95,26 @@ const HomePage = () => {
         />
       </MotionSection>
 
+      {/* Network Coverage */}
+      <MotionSection>
+        <ReversibleContentSection
+          title="Discover Our Network Coverage"
+          subtitle="Network Coverage"
+          description={
+            <div>
+              Explore the locations of our air quality monitoring stations
+              deployed across major cities and regions in Africa.
+            </div>
+          }
+          buttonText="View Network Coverage"
+          buttonLink="/solutions/network-coverage"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png"
+          backgroundColor="bg-transparent"
+          reverse={true}
+          imageClassName="object-cover rounded-xl"
+        />
+      </MotionSection>
+
       {/* The clean air Forum */}
       <MotionSection>
         <ReversibleContentSection
@@ -118,56 +138,13 @@ const HomePage = () => {
             </>
           }
           buttonText="Explore the Forum"
-          buttonLink="/clean-air-forum/about"
+          buttonLink="/clean-air-forum"
           imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg"
           reverse={false}
           backgroundColor="bg-[#EDF3FF]"
           subtitleColor="text-black"
           subtitleBgColor="bg-white"
           imageClassName="object-cover object-center rounded-xl"
-        />
-      </MotionSection>
-
-      {/* The clean air network */}
-      <MotionSection>
-        <ReversibleContentSection
-          title="Africa Clean Air Network"
-          subtitle="CLEAN-Air Network"
-          description={
-            <div>
-              The Africa Clean Air Network (AfriCAN) unites partners across
-              disciplines, sectors and borders to support clean air efforts
-              across Africa. The network&apos;s mission is to build
-              cross-border, cross-sector, multi-skilled partnerships that
-              deliver scalable, evidence-driven and open-access clean air
-              solutions for African cities. Launched in 2023 under the
-              leadership of AirQo at Makerere University (Uganda), the network
-              is building a shared framework for action on clean air.
-            </div>
-          }
-          buttonText="Join the Network"
-          buttonLink="https://cleanairafrica.org/"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp"
-          backgroundColor="bg-transparent"
-          reverse={true}
-          imageClassName="object-cover rounded-xl"
-        />
-      </MotionSection>
-
-      {/* Reversible Content Section 3 */}
-      <MotionSection>
-        <ReversibleContentSection
-          title="Live air quality insights across Africa"
-          subtitle="Air Quality Map"
-          description="Visualize hourly air quality information with a single click, over our growing network across African cities"
-          buttonText="View more"
-          buttonLink="https://analytics.airqo.net/map"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png"
-          reverse={false}
-          backgroundColor="bg-[#EDF3FF]"
-          subtitleColor="text-black"
-          subtitleBgColor="bg-white"
-          imageClassName="object-cover rounded-xl"
         />
       </MotionSection>
 

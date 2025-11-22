@@ -11,7 +11,6 @@ import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useGridsSummaryV2 } from '@/hooks';
-import { externalService } from '@/services/apiService';
 import { Grid, Site, SiteStatistics } from '@/types';
 
 // Utility function to format text
@@ -498,59 +497,6 @@ const NetworkCoveragePage = () => {
         </div>
       </motion.section>
 
-      {/* Download Section */}
-      <motion.section
-        className={`${mainConfig.containerClass} px-4`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <motion.div variants={itemVariants}>
-          <h2 className="text-2xl font-semibold mb-4">
-            Download Coverage Data
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Export our network coverage data for offline use or further
-            analysis.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={downloadCSV}
-              disabled={isDownloadingCSV || isLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isDownloadingCSV ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <FiDownload className="w-4 h-4" />
-              )}
-              {isDownloadingCSV
-                ? 'Generating CSV...'
-                : isLoading
-                  ? 'Loading data...'
-                  : 'Download CSV'}
-            </button>
-            <button
-              onClick={downloadPDF}
-              disabled={isDownloadingPDF || isLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isDownloadingPDF ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <FiDownload className="w-4 h-4" />
-              )}
-              {isDownloadingPDF
-                ? 'Generating PDF...'
-                : isLoading
-                  ? 'Loading data...'
-                  : 'Download PDF'}
-            </button>
-          </div>
-        </motion.div>
-      </motion.section>
-
       <Divider />
 
       {/* Map and Filters Section */}
@@ -755,6 +701,59 @@ const NetworkCoveragePage = () => {
               </p>
             </div>
           )}
+        </motion.div>
+      </motion.section>
+
+      {/* Download Section */}
+      <motion.section
+        className={`${mainConfig.containerClass} px-4`}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <h2 className="text-2xl font-semibold mb-4">
+            Download Coverage Data
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Export our network coverage data for offline use or further
+            analysis.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={downloadCSV}
+              disabled={isDownloadingCSV || isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloadingCSV ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingCSV
+                ? 'Generating CSV...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download CSV'}
+            </button>
+            <button
+              onClick={downloadPDF}
+              disabled={isDownloadingPDF || isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloadingPDF ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingPDF
+                ? 'Generating PDF...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download PDF'}
+            </button>
+          </div>
         </motion.div>
       </motion.section>
 
