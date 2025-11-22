@@ -2,8 +2,9 @@
 
 import { AqGlobe02, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import { motion } from 'framer-motion';
+import jsPDF from 'jspdf';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiAlertCircle, FiX } from 'react-icons/fi';
+import { FiAlertCircle, FiDownload, FiX } from 'react-icons/fi';
 
 import { MapContainer, MapLoader } from '@/components/map';
 import HeroSection from '@/components/sections/solutions/HeroSection';
@@ -63,7 +64,7 @@ const GridSkeleton = () => (
   </div>
 );
 
-const MonitorCoveragePage = () => {
+const NetworkCoveragePage = () => {
   const [selectedGrid, setSelectedGrid] = useState<Grid | null>(null);
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [currentSkip, setCurrentSkip] = useState(0);
@@ -71,6 +72,8 @@ const MonitorCoveragePage = () => {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [allGrids, setAllGrids] = useState<Grid[]>([]);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isDownloadingCSV, setIsDownloadingCSV] = useState(false);
+  const [isDownloadingPDF, setIsDownloadingPDF] = useState(false);
 
   // Debounce search query
   useEffect(() => {
@@ -183,13 +186,249 @@ const MonitorCoveragePage = () => {
     setSelectedSite(null);
   }, []);
 
+  // Download functions
+  const downloadCSV = useCallback(async () => {
+    setIsDownloadingCSV(true);
+    try {
+      const sites = allGrids.flatMap((grid) => grid.sites || []);
+      if (sites.length === 0) return;
+
+      const headers = [
+        'Station Name',
+        'City',
+        'Country',
+        'Latitude',
+        'Longitude',
+        'Last Updated',
+      ];
+      const csvContent = [
+        headers.join(','),
+        ...sites.map((site) =>
+          [
+            `"${site.name || site.formatted_name || ''}"`,
+            `"${site.city || ''}"`,
+            `"${site.country || ''}"`,
+            site.approximate_latitude || '',
+            site.approximate_longitude || '',
+            site.lastRawData ? new Date(site.lastRawData).toISOString() : '',
+          ].join(','),
+        ),
+      ].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute(
+        'download',
+        `airqo-network-coverage-${new Date().toISOString().split('T')[0]}.csv`,
+      );
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } finally {
+      setIsDownloadingCSV(false);
+    }
+  }, [allGrids]);
+
+  const downloadPDF = useCallback(async () => {
+    setIsDownloadingPDF(true);
+    try {
+      const sites = allGrids.flatMap((grid) => grid.sites || []);
+      if (sites.length === 0) return;
+
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
+      // Function to add watermark to page
+      const addWatermark = () => {
+        doc.setTextColor(240, 240, 240);
+        doc.setFontSize(60);
+        doc.setFont('helvetica', 'bold');
+        doc.text('AirQo', pageWidth / 2, pageHeight / 2, {
+          align: 'center',
+          angle: 45,
+        });
+        doc.setTextColor(0, 0, 0);
+      };
+
+      // Add watermark to first page
+      addWatermark();
+
+      // Header
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('AirQo Network Coverage Report', pageWidth / 2, 30, {
+        align: 'center',
+      });
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text(
+        `Generated: ${new Date().toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+        })}`,
+        pageWidth / 2,
+        40,
+        { align: 'center' },
+      );
+
+      // Draw line separator
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 45, pageWidth - 20, 45);
+
+      // Summary Box
+      doc.setFillColor(245, 247, 250);
+      doc.rect(20, 55, pageWidth - 40, 25, 'F');
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Coverage Summary', 25, 65);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Total Monitoring Stations: ${sites.length}`, 25, 72);
+      doc.text(
+        `Countries Covered: ${statistics.countries.length}`,
+        pageWidth / 2 + 10,
+        72,
+      );
+
+      let yPosition = 95;
+
+      // Group sites by country
+      const sitesByCountry = sites.reduce(
+        (acc, site) => {
+          const country = site.country || 'Unknown';
+          if (!acc[country]) acc[country] = [];
+          acc[country].push(site);
+          return acc;
+        },
+        {} as Record<string, typeof sites>,
+      );
+
+      // Table header styling
+      const drawTableHeader = (startY: number) => {
+        doc.setFillColor(66, 135, 245);
+        doc.rect(20, startY, pageWidth - 40, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Station Name', 22, startY + 5.5);
+        doc.text('City', pageWidth / 2 - 20, startY + 5.5);
+        doc.text('Coordinates', pageWidth - 70, startY + 5.5);
+        doc.setTextColor(0, 0, 0);
+        return startY + 10;
+      };
+
+      Object.entries(sitesByCountry).forEach(([country, countrySites]) => {
+        // Check if we need a new page for country header
+        if (yPosition > pageHeight - 80) {
+          doc.addPage();
+          addWatermark();
+          yPosition = 20;
+        }
+
+        // Country header
+        doc.setFillColor(240, 242, 245);
+        doc.rect(20, yPosition, pageWidth - 40, 10, 'F');
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(
+          `${country} (${countrySites.length} ${countrySites.length === 1 ? 'station' : 'stations'})`,
+          25,
+          yPosition + 7,
+        );
+        yPosition += 12;
+
+        // Draw table header
+        yPosition = drawTableHeader(yPosition);
+
+        // Table rows
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'normal');
+
+        countrySites.forEach((site, index) => {
+          // Check if we need a new page
+          if (yPosition > pageHeight - 20) {
+            doc.addPage();
+            addWatermark();
+            yPosition = 20;
+            yPosition = drawTableHeader(yPosition);
+          }
+
+          // Alternate row colors
+          if (index % 2 === 0) {
+            doc.setFillColor(250, 250, 250);
+            doc.rect(20, yPosition - 1, pageWidth - 40, 7, 'F');
+          }
+
+          const stationName = site.name || site.formatted_name || 'Unknown';
+          const cityName = site.city || 'N/A';
+          const coordinates = `${site.approximate_latitude?.toFixed(4) || 'N/A'}, ${site.approximate_longitude?.toFixed(4) || 'N/A'}`;
+
+          // Truncate long names
+          const maxNameLength = 35;
+          const truncatedName =
+            stationName.length > maxNameLength
+              ? stationName.substring(0, maxNameLength) + '...'
+              : stationName;
+
+          doc.text(truncatedName, 22, yPosition + 4);
+          doc.text(cityName, pageWidth / 2 - 20, yPosition + 4);
+          doc.setFontSize(8);
+          doc.text(coordinates, pageWidth - 70, yPosition + 4);
+          doc.setFontSize(9);
+
+          yPosition += 7;
+        });
+
+        yPosition += 5;
+      });
+
+      // Footer on all pages
+      const totalPages = doc.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        doc.setPage(i);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, pageHeight - 15, pageWidth - 20, pageHeight - 15);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(100, 100, 100);
+        doc.text(
+          `© ${new Date().getFullYear()} AirQo. All rights reserved.`,
+          20,
+          pageHeight - 10,
+        );
+        doc.text(
+          `Page ${i} of ${totalPages}`,
+          pageWidth - 20,
+          pageHeight - 10,
+          { align: 'right' },
+        );
+        doc.setTextColor(0, 0, 0);
+      }
+
+      doc.save(
+        `airqo-network-coverage-${new Date().toISOString().split('T')[0]}.pdf`,
+      );
+    } finally {
+      setIsDownloadingPDF(false);
+    }
+  }, [allGrids, statistics.countries.length]);
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
       {/* Hero Section */}
       <HeroSection
         bgColor="bg-blue-50"
-        breadcrumbText="Solutions > Monitor Coverage"
-        title="Monitor Coverage Network"
+        breadcrumbText="Solutions > Network Coverage"
+        title="Network Coverage"
         description="Explore our extensive air quality monitoring network across Africa. Discover where we measure air pollution and track real-time data from hundreds of monitoring stations."
         containerVariants={containerVariants}
         itemVariants={itemVariants}
@@ -240,6 +479,59 @@ const MonitorCoveragePage = () => {
             </div>
           </motion.div>
         </div>
+      </motion.section>
+
+      {/* Download Section */}
+      <motion.section
+        className={`${mainConfig.containerClass} px-4`}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <h2 className="text-2xl font-semibold mb-4">
+            Download Coverage Data
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Export our network coverage data for offline use or further
+            analysis.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={downloadCSV}
+              disabled={isDownloadingCSV || isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloadingCSV ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingCSV
+                ? 'Generating CSV...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download CSV'}
+            </button>
+            <button
+              onClick={downloadPDF}
+              disabled={isDownloadingPDF || isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloadingPDF ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingPDF
+                ? 'Generating PDF...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download PDF'}
+            </button>
+          </div>
+        </motion.div>
       </motion.section>
 
       <Divider />
@@ -512,4 +804,4 @@ const MonitorCoveragePage = () => {
   );
 };
 
-export default MonitorCoveragePage;
+export default NetworkCoveragePage;

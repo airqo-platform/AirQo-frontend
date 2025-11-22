@@ -144,10 +144,10 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  href="/solutions/monitor-coverage"
+                  href="/solutions/network-coverage"
                   className="text-gray-600 hover:underline"
                 >
-                  Monitor Coverage
+                  Network Coverage
                 </Link>
               </li>
             </ul>

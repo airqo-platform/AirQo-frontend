@@ -81,9 +81,9 @@ const menuItems: MenuItems = {
       href: '/solutions/research',
     },
     {
-      title: 'Monitor Coverage',
+      title: 'Network Coverage',
       description: 'Explore our air quality monitoring network across Africa',
-      href: '/solutions/monitor-coverage',
+      href: '/solutions/network-coverage',
     },
   ],
   About: [
