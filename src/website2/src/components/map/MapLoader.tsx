@@ -26,7 +26,9 @@ const MapLoader: React.FC<MapLoaderProps> = ({ children }) => {
     const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
     if (!MAPBOX_TOKEN) {
-      setError('Mapbox access token is not configured');
+      setError(
+        'Unable to load the map. Please check your internet connection and try again.',
+      );
       console.error(
         'NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN is not set in environment variables',
       );
@@ -66,12 +68,16 @@ const MapLoader: React.FC<MapLoaderProps> = ({ children }) => {
           window.mapboxgl.accessToken = MAPBOX_TOKEN;
           setIsLoaded(true);
         } else {
-          setError('Failed to load Mapbox GL JS');
+          setError(
+            'Unable to load the map. Please check your internet connection and try again.',
+          );
         }
       };
 
       script.onerror = () => {
-        setError('Failed to load Mapbox GL JS library');
+        setError(
+          'Unable to load the map. Please check your internet connection and try again.',
+        );
       };
     }
 

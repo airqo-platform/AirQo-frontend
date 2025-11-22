@@ -63,7 +63,7 @@ const GridSkeleton = () => (
   </div>
 );
 
-const MonitorCoveragePage = () => {
+const NetworkCoveragePage = () => {
   const [selectedGrid, setSelectedGrid] = useState<Grid | null>(null);
   const [selectedSite, setSelectedSite] = useState<Site | null>(null);
   const [currentSkip, setCurrentSkip] = useState(0);
@@ -188,8 +188,8 @@ const MonitorCoveragePage = () => {
       {/* Hero Section */}
       <HeroSection
         bgColor="bg-blue-50"
-        breadcrumbText="Solutions > Monitor Coverage"
-        title="Monitor Coverage Network"
+        breadcrumbText="Solutions > Network Coverage"
+        title="Network Coverage"
         description="Explore our extensive air quality monitoring network across Africa. Discover where we measure air pollution and track real-time data from hundreds of monitoring stations."
         containerVariants={containerVariants}
         itemVariants={itemVariants}
@@ -512,4 +512,4 @@ const MonitorCoveragePage = () => {
   );
 };
 
-export default MonitorCoveragePage;
+export default NetworkCoveragePage;
