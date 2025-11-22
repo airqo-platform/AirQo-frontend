@@ -11,6 +11,7 @@ import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useGridsSummaryV2 } from '@/hooks';
+import { externalService } from '@/services/apiService';
 import { Grid, Site, SiteStatistics } from '@/types';
 
 // Utility function to format text
@@ -190,6 +191,11 @@ const NetworkCoveragePage = () => {
   const downloadCSV = useCallback(async () => {
     setIsDownloadingCSV(true);
     try {
+      if (hasMoreData) {
+        alert(
+          'Warning: Only currently loaded data will be exported. Please load all data before downloading for a complete export.',
+        );
+      }
       const sites = allGrids.flatMap((grid) => grid.sites || []);
       if (sites.length === 0) return;
 
@@ -208,9 +214,15 @@ const NetworkCoveragePage = () => {
             `"${site.name || site.formatted_name || ''}"`,
             `"${site.city || ''}"`,
             `"${site.country || ''}"`,
-            site.approximate_latitude || '',
-            site.approximate_longitude || '',
-            site.lastRawData ? new Date(site.lastRawData).toISOString() : '',
+            site.approximate_latitude ?? '',
+            site.approximate_longitude ?? '',
+            (() => {
+              if (site.lastRawData) {
+                const date = new Date(site.lastRawData);
+                return !isNaN(date.getTime()) ? date.toISOString() : '';
+              }
+              return '';
+            })(),
           ].join(','),
         ),
       ].join('\n');
@@ -231,11 +243,16 @@ const NetworkCoveragePage = () => {
     } finally {
       setIsDownloadingCSV(false);
     }
-  }, [allGrids]);
+  }, [allGrids, hasMoreData]);
 
   const downloadPDF = useCallback(async () => {
     setIsDownloadingPDF(true);
     try {
+      if (hasMoreData) {
+        alert(
+          'Warning: Only currently loaded data will be exported. Please load all data before downloading for a complete export.',
+        );
+      }
       const sites = allGrids.flatMap((grid) => grid.sites || []);
       if (sites.length === 0) return;
 
@@ -370,7 +387,7 @@ const NetworkCoveragePage = () => {
 
           const stationName = site.name || site.formatted_name || 'Unknown';
           const cityName = site.city || 'N/A';
-          const coordinates = `${site.approximate_latitude?.toFixed(4) || 'N/A'}, ${site.approximate_longitude?.toFixed(4) || 'N/A'}`;
+          const coordinates = `${site.approximate_latitude?.toFixed(4) ?? 'N/A'}, ${site.approximate_longitude?.toFixed(4) ?? 'N/A'}`;
 
           // Truncate long names
           const maxNameLength = 35;
@@ -420,7 +437,7 @@ const NetworkCoveragePage = () => {
     } finally {
       setIsDownloadingPDF(false);
     }
-  }, [allGrids, statistics.countries.length]);
+  }, [allGrids, statistics.countries.length, hasMoreData]);
 
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
