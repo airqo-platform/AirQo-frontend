@@ -3,7 +3,8 @@
 import { AqGlobe02, AqMarkerPin01, AqMonitor03 } from '@airqo/icons-react';
 import { motion } from 'framer-motion';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiAlertCircle, FiX } from 'react-icons/fi';
+import { FiAlertCircle, FiDownload, FiX } from 'react-icons/fi';
+import jsPDF from 'jspdf';
 
 import { MapContainer, MapLoader } from '@/components/map';
 import HeroSection from '@/components/sections/solutions/HeroSection';
@@ -183,6 +184,87 @@ const NetworkCoveragePage = () => {
     setSelectedSite(null);
   }, []);
 
+  // Download functions
+  const downloadCSV = useCallback(() => {
+    const sites = allGrids.flatMap((grid) => grid.sites || []);
+    if (sites.length === 0) return;
+
+    const headers = [
+      'Name',
+      'City',
+      'Country',
+      'Latitude',
+      'Longitude',
+      'Is Online',
+      'Last Updated',
+    ];
+    const csvContent = [
+      headers.join(','),
+      ...sites.map((site) => [
+        `"${site.name || site.formatted_name || ''}"`,
+        `"${site.city || ''}"`,
+        `"${site.country || ''}"`,
+        site.approximate_latitude || '',
+        site.approximate_longitude || '',
+        site.isOnline || site.rawOnlineStatus ? 'Yes' : 'No',
+        site.lastRawData
+          ? new Date(site.lastRawData).toISOString()
+          : '',
+      ].join(',')),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'airqo-network-coverage.csv');
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [allGrids]);
+
+  const downloadPDF = useCallback(() => {
+    const sites = allGrids.flatMap((grid) => grid.sites || []);
+    if (sites.length === 0) return;
+
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text('AirQo Network Coverage Report', 20, 20);
+    doc.setFontSize(12);
+    doc.text(`Generated on ${new Date().toLocaleDateString()}`, 20, 30);
+    doc.text(`Total Monitors: ${sites.length}`, 20, 40);
+
+    let yPosition = 60;
+    const pageHeight = doc.internal.pageSize.height;
+
+    sites.forEach((site, index) => {
+      if (yPosition > pageHeight - 20) {
+        doc.addPage();
+        yPosition = 20;
+      }
+
+      doc.setFontSize(10);
+      doc.text(`${index + 1}. ${site.name || site.formatted_name || 'Unknown'}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`   City: ${site.city || 'N/A'}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`   Country: ${site.country || 'N/A'}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`   Coordinates: ${site.approximate_latitude?.toFixed(6) || 'N/A'}, ${site.approximate_longitude?.toFixed(6) || 'N/A'}`, 20, yPosition);
+      yPosition += 10;
+      doc.text(`   Online: ${site.isOnline || site.rawOnlineStatus ? 'Yes' : 'No'}`, 20, yPosition);
+      yPosition += 10;
+      if (site.lastRawData) {
+        doc.text(`   Last Updated: ${new Date(site.lastRawData).toLocaleString()}`, 20, yPosition);
+        yPosition += 10;
+      }
+      yPosition += 5; // Extra space between entries
+    });
+
+    doc.save('airqo-network-coverage.pdf');
+  }, [allGrids]);
+
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
       {/* Hero Section */}
@@ -240,6 +322,38 @@ const NetworkCoveragePage = () => {
             </div>
           </motion.div>
         </div>
+      </motion.section>
+
+      {/* Download Section */}
+      <motion.section
+        className={`${mainConfig.containerClass} px-4`}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <h2 className="text-2xl font-semibold mb-4">Download Coverage Data</h2>
+          <p className="text-gray-600 mb-6">
+            Export our network coverage data for offline use or further analysis.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={downloadCSV}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+            >
+              <FiDownload className="w-4 h-4" />
+              Download CSV
+            </button>
+            <button
+              onClick={downloadPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+            >
+              <FiDownload className="w-4 h-4" />
+              Download PDF
+            </button>
+          </div>
+        </motion.div>
       </motion.section>
 
       <Divider />
