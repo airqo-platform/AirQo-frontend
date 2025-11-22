@@ -7,6 +7,7 @@ const EXTERNAL_ENDPOINTS = {
   NEWSLETTER_SUBSCRIBE: '/api/v2/users/newsletter/subscribe',
   CONTACT_US: '/api/v2/users/inquiries/register',
   GRIDS_SUMMARY: '/api/v2/devices/grids/summary',
+  GRIDS_SUMMARY_V2: '/api/v2/devices/grids/summary',
   COUNTRIES_DATA: '/api/v2/devices/grids/countries',
 } as const;
 
@@ -58,13 +59,47 @@ class ExternalService extends BaseApiService {
   }
 
   /**
-   * Fetch grids summary data
+   * Fetch grids summary data with pagination and filtering support
+   * @param params - Query parameters for pagination and filtering
+   * @param params.limit - Number of items per page (optional)
+   * @param params.skip - Number of items to skip (optional)
+   * @param params.page - Page number (optional, alternative to skip)
+   * @param params.tenant - Tenant identifier (optional)
+   * @param params.detailLevel - Level of detail in response (optional)
+   * @param params.search - Search query for filtering grids (optional)
+   * @param params.admin_level - Filter by administrative level like 'country', 'city', etc. (optional)
    */
-  async getGridsSummary(options: ServiceOptions = {}): Promise<any | null> {
-    const response = await this.get<any>(EXTERNAL_ENDPOINTS.GRIDS_SUMMARY, {
-      ...options,
-      throwOnError: false,
-    });
+  async getGridsSummary(
+    params: {
+      limit?: number;
+      skip?: number;
+      page?: number;
+      tenant?: string;
+      detailLevel?: string;
+      search?: string;
+      admin_level?: string;
+    } = {},
+    options: ServiceOptions = {},
+  ): Promise<any | null> {
+    // Build query params only with provided values
+    const queryParams: Record<string, any> = {};
+
+    if (params.limit !== undefined) queryParams.limit = params.limit;
+    if (params.skip !== undefined) queryParams.skip = params.skip;
+    if (params.page !== undefined) queryParams.page = params.page;
+    if (params.tenant) queryParams.tenant = params.tenant;
+    if (params.detailLevel) queryParams.detailLevel = params.detailLevel;
+    if (params.search) queryParams.search = params.search;
+    if (params.admin_level) queryParams.admin_level = params.admin_level;
+
+    const response = await this.get<any>(
+      EXTERNAL_ENDPOINTS.GRIDS_SUMMARY,
+      queryParams,
+      {
+        ...options,
+        throwOnError: false,
+      },
+    );
 
     if (response.success) {
       return response.data;
@@ -74,13 +109,59 @@ class ExternalService extends BaseApiService {
   }
 
   /**
-   * Fetch countries data
+   * Fetch grids summary data v2 with enhanced pagination and filtering support
+   * @param params - Query parameters for pagination and filtering
+   * @param params.limit - Number of items per page (default: 80)
+   * @param params.skip - Number of items to skip (default: 0)
+   * @param params.page - Page number (optional, alternative to skip)
+   * @param params.search - Search query for filtering grids (optional)
+   * @param params.admin_level - Filter by administrative level like 'country', 'city', etc. (optional)
    */
+  async getGridsSummaryV2(
+    params: {
+      limit?: number;
+      skip?: number;
+      page?: number;
+      search?: string;
+      admin_level?: string;
+    } = {},
+    options: ServiceOptions = {},
+  ): Promise<any | null> {
+    // Build query params with defaults
+    const queryParams: Record<string, any> = {
+      limit: params.limit || 80,
+      skip: params.skip || 0,
+    };
+
+    // Add optional parameters only if provided
+    if (params.page !== undefined) queryParams.page = params.page;
+    if (params.search) queryParams.search = params.search;
+    if (params.admin_level) queryParams.admin_level = params.admin_level;
+
+    const response = await this.get<any>(
+      EXTERNAL_ENDPOINTS.GRIDS_SUMMARY_V2,
+      queryParams,
+      {
+        ...options,
+        throwOnError: false,
+      },
+    );
+
+    if (response.success) {
+      return response.data;
+    }
+
+    return null;
+  }
   async getCountriesData(options: ServiceOptions = {}): Promise<any | null> {
-    const response = await this.get<any>(EXTERNAL_ENDPOINTS.COUNTRIES_DATA, {
-      ...options,
-      throwOnError: false,
-    });
+    const response = await this.get<any>(
+      EXTERNAL_ENDPOINTS.COUNTRIES_DATA,
+      undefined,
+      {
+        ...options,
+        throwOnError: false,
+      },
+    );
 
     if (response.success) {
       return response.data;

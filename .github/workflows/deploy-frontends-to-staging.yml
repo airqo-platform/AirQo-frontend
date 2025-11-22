@@ -91,7 +91,7 @@ jobs:
             if [[ $file == src/beacon/* ]]; then
               echo "run_beacon=true" >>$GITHUB_OUTPUT
             fi
-    
+
 
             if [[ $file == workflow-trigger ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
@@ -269,6 +269,7 @@ jobs:
           echo "  API_TOKEN: ${{ secrets.WEBSITE_STAGE_API_TOKEN }}" >> .env.yaml
           echo "  SLACK_WEBHOOK_URL: ${{ secrets.WEBSITE_STAGE_SLACK_WEBHOOK_URL }}" >> .env.yaml
           echo "  SLACK_CHANNEL: ${{ secrets.WEBSITE_STAGE_SLACK_CHANNEL }}" >> .env.yaml
+          echo "  NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }}" >> .env.yaml
           echo "  GOOGLE_APPLICATION_CREDENTIALS: /app/google_application_credentials.json" >> .env.yaml
           echo "  NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }}" >> .env.yaml
 
@@ -278,6 +279,7 @@ jobs:
           docker build . \
           --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
           --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
+          --build-arg NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN }} \
           --tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
           docker push ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }}
           docker tag ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-stage-website2:latest
@@ -451,7 +453,6 @@ jobs:
         run: |
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/platform/.env env-next-platform-staging | kubectl replace -f - -n staging
-
 
   ### build and push reports image ###
   reports:

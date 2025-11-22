@@ -80,6 +80,11 @@ const menuItems: MenuItems = {
       description: 'Advancing knowledge and evidence on air quality issues',
       href: '/solutions/research',
     },
+    {
+      title: 'Network Coverage',
+      description: 'Explore our air quality monitoring network across Africa',
+      href: '/solutions/network-coverage',
+    },
   ],
   About: [
     { title: 'About Us', href: '/about-us' },

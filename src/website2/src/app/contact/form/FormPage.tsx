@@ -1,8 +1,8 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
 import { CustomButton } from '@/components/ui';
@@ -10,8 +10,12 @@ import { externalService } from '@/services/apiService';
 
 const FormPage: React.FC = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [category, setCategory] = useState<string | null>(null);
+
+  // Map URL categories to API categories
+  const mapCategoryToApi = (): string => {
+    // Always use 'general' category for all inquiries
+    return 'general';
+  };
 
   // State for form data, loading, error, and success messages
   const [formData, setFormData] = useState({
@@ -22,11 +26,6 @@ const FormPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const categoryFromUrl = searchParams.get('category');
-    setCategory(categoryFromUrl);
-  }, [searchParams]);
 
   // Handle form input changes
   const handleInputChange = (
@@ -46,7 +45,7 @@ const FormPage: React.FC = () => {
 
     const body = {
       ...formData,
-      category: category || 'general',
+      category: mapCategoryToApi(),
     };
 
     try {
@@ -82,24 +81,52 @@ const FormPage: React.FC = () => {
 
   if (success) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-          className="bg-green-100 p-6 rounded-lg"
-        >
-          <h2 className="text-2xl font-bold text-green-600">Success!</h2>
-          <p className="text-gray-600">
-            Your message has been sent successfully.
-          </p>
-          <CustomButton
-            onClick={() => router.push('/')}
-            className="mt-4 bg-blue-600 text-white px-6 py-4 hover:bg-blue-700 transition-colors"
+      <div
+        className="flex flex-col lg:flex-row w-full bg-[#F9FAFB]"
+        style={{ height: 'calc(100vh - 132px)' }}
+      >
+        {/* Contact Information Section */}
+        <section className="flex-1 flex items-center justify-center bg-yellow-50 p-8 mb-8 lg:mb-0 lg:h-auto h-full">
+          <div className="max-w-md">
+            <h2 className="text-3xl font-bold mb-4">Get in touch</h2>
+            <p className="text-lg font-semibold mb-4">Makerere University</p>
+            <p className="text-gray-600 mb-2">
+              Software Systems Centre, Block B, Level 3, College of Computing
+              and Information Sciences, Plot 56 University Pool Road, Kampala,
+              Uganda
+            </p>
+            <p className="text-lg mt-4">
+              E:{' '}
+              <a
+                href="mailto:info@airqo.net"
+                className="text-blue-600 underline"
+              >
+                info@airqo.net
+              </a>
+            </p>
+          </div>
+        </section>
+
+        {/* Success Message Section */}
+        <section className="flex-1 w-full flex flex-col justify-center p-8 bg-white">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+            className="bg-green-100 p-6 rounded-lg"
           >
-            Go to Homepage
-          </CustomButton>
-        </motion.div>
+            <h2 className="text-2xl font-bold text-green-600">Success!</h2>
+            <p className="text-gray-600">
+              Your message has been sent successfully.
+            </p>
+            <CustomButton
+              onClick={() => setSuccess(false)}
+              className="mt-4 bg-blue-600 text-white px-6 py-4 hover:bg-blue-700 transition-colors"
+            >
+              Close
+            </CustomButton>
+          </motion.div>
+        </section>
       </div>
     );
   }
