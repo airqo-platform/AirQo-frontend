@@ -30,7 +30,6 @@ export default function Layout({ children }: LayoutProps) {
 
   const isInitialized = useAppSelector(state => state.user.isInitialized);
   const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
-  const isContextLoading = useAppSelector(state => state.user.isContextLoading);
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
 
   useEffect(() => {
@@ -62,9 +61,10 @@ export default function Layout({ children }: LayoutProps) {
     setActiveModule(module);
     setIsPrimarySidebarOpen(false);
 
+    // Safety timeout in case navigation fails or is cancelled
     loadingTimeoutRef.current = setTimeout(() => {
       setIsPageLoading(false);
-    }, 5000);
+    }, 3000);
 
     if (module === 'admin') {
       router.push('/admin/networks');
@@ -77,7 +77,7 @@ export default function Layout({ children }: LayoutProps) {
     setIsSecondarySidebarCollapsed(!isSecondarySidebarCollapsed);
   };
 
-  if (!isInitialized || !isAuthenticated || isContextLoading || isLoggingOut) {
+  if (!isInitialized || !isAuthenticated || isLoggingOut) {
     return (
       <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
         <SessionLoadingState />

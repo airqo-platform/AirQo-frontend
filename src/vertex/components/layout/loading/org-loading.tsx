@@ -8,13 +8,7 @@ const OrganizationLoadingState = ({ organizationName }: { organizationName: stri
         <div className="flex flex-col items-center space-y-6 max-w-md mx-auto px-6">
             {/* Spinner */}
             <div className="relative">
-                <div className="border-blue-600 rounded-full animate-spin" style={{
-                    background: "radial-gradient(farthest-side, var(--color-primary) 94%, #0000) top/8px 8px no-repeat, conic-gradient(#0000 30%, var(--color-primary))",
-                    WebkitMask: "radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0)",
-                    width: "50px",
-                    aspectRatio: "1",
-                    borderRadius: "50%",
-                }}></div>
+            <div className="SecondaryMainloader" aria-label="Loading"></div>
             </div>
 
             <div className="text-center space-y-2">

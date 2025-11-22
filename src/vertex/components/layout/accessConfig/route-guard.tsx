@@ -8,7 +8,7 @@ import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Lock } from "lucide-react";
-import { useUserContext } from "@/core/hooks/useUserContext"; 
+import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
 import SessionLoadingState from "../loading/session-loading";
 
@@ -35,7 +35,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   resourceContext,
 }) => {
   const router = useRouter();
-  const { userContext, isContextLoading } = useUserContext(); 
+  const { userContext, isLoading } = useUserContext();
   const hasPermission = usePermission(permission, { resourceContext });
   const permissionCheck = usePermissionCheck(permission, { resourceContext });
 
@@ -43,22 +43,22 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const hasAccess = hasPermission && hasValidContext;
 
   useEffect(() => {
-    if (isContextLoading) {
+    if (isLoading) {
       return;
     }
 
     if (!hasAccess && !showError) {
       router.push(redirectTo);
     }
-  }, [hasAccess, isContextLoading, router, redirectTo, showError]);
+  }, [hasAccess, isLoading, router, redirectTo, showError]);
 
-  if (isContextLoading) {
+  if (isLoading) {
     return <SessionLoadingState />;
   }
 
   if (!hasAccess) {
     if (showError) {
-    return (
+      return (
         <div className="container mx-auto p-6 max-w-2xl">
           <Card>
             <CardHeader>
@@ -67,7 +67,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                 Access Denied
               </CardTitle>
               <CardDescription>
-                {!hasValidContext 
+                {!hasValidContext
                   ? "This page is not available in your current context"
                   : "You don't have permission to access this page"
                 }
@@ -76,7 +76,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
             <CardContent>
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
+                <AlertDescription>
                   <div className="space-y-2">
                     {!hasValidContext && (
                       <div>
@@ -106,9 +106,9 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                       </div>
                     )}
                   </div>
-          </AlertDescription>
-        </Alert>
-              
+                </AlertDescription>
+              </Alert>
+
               <div className="mt-4 p-4 bg-muted rounded-lg">
                 <h4 className="font-medium mb-2">What you can do:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
@@ -129,8 +129,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
               </div>
             </CardContent>
           </Card>
-      </div>
-    );
+        </div>
+      );
     }
 
     return null;

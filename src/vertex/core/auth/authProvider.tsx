@@ -308,7 +308,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         try {
           localStorage.removeItem('account_deleted');
           localStorage.removeItem('account_deleted_timestamp');
-        } catch (e) { /* ignore */ }
+        } catch { /* ignore */ }
 
         ReusableToast({
           message: 'Your account has been deleted. You have been logged out.',
