@@ -6,6 +6,12 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   Search,
   Filter,
   MapPin,
@@ -23,32 +29,66 @@ import {
   ChevronRight,
   Map,
   Activity,
-  Package
+  Package,
+  List
 } from "lucide-react"
 import Link from "next/link"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
+import { Pagination } from "@/components/ui/pagination"
+import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
 import { config } from "@/lib/config"
-import { getDeviceStatsForUI, getDevicesForUI } from "@/services/device-api.service"
+import { getDeviceStatsForUI, getDevicesForUIPaginated } from "@/services/device-api.service"
 import type { UIDeviceCounts, UIDevice } from "@/types/api.types"
+import DynamicImportWrapper from "@/components/dynamic-import-wrapper"
+import UpdateDeviceDialog from "@/components/dashboard/UpdateDeviceDialog"
 
-// Dynamically import the map component to avoid SSR issues
-const AfricaMap = dynamic(() => import("./africa-map"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[700px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
-      <div className="text-center">
-        <MapPin className="h-10 w-10 text-gray-400 mx-auto mb-2" />
-        <p className="text-gray-500">Loading map...</p>
+// Dynamically import the map component to avoid SSR issues with better error handling
+const AfricaMap = dynamic(
+  () => import("./africa-map").catch((error) => {
+    console.error('Failed to load AfricaMap:', error)
+    // Return a fallback component
+    return {
+      default: () => (
+        <div className="h-[700px] w-full flex items-center justify-center bg-red-50 rounded-lg border-2 border-red-200">
+          <div className="text-center">
+            <MapPin className="h-10 w-10 text-red-400 mx-auto mb-2" />
+            <p className="text-red-600 text-sm">Africa map failed to load</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      )
+    }
+  }),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[700px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
+        <div className="text-center">
+          <MapPin className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+          <p className="text-gray-500">Loading map...</p>
+        </div>
       </div>
-    </div>
-  ),
-})
+    ),
+  }
+)
 
 export default function DevicesPage() {
+  const { toast } = useToast()
+  
   // State for device data
   const [devices, setDevices] = useState<UIDevice[]>([])
+  const [totalDevices, setTotalDevices] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [hasNext, setHasNext] = useState(false)
+  const [hasPrevious, setHasPrevious] = useState(false)
   const [deviceCounts, setDeviceCounts] = useState<UIDeviceCounts>({
     total_devices: 0,
     active_devices: 0,
@@ -67,10 +107,13 @@ export default function DevicesPage() {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [showMap, setShowMap] = useState(false)
+  const [viewMode, setViewMode] = useState<"list" | "map">("list") // New state for view toggle
+  const [firmwareDialogOpen, setFirmwareDialogOpen] = useState(false)
+  const [selectedFirmwareDevice, setSelectedFirmwareDevice] = useState<UIDevice | null>(null)
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage, setItemsPerPage] = useState(10)
+  const [itemsPerPage, setItemsPerPage] = useState(25)
   
   // Fetch device counts
   const fetchDeviceCounts = async () => {
@@ -83,18 +126,47 @@ export default function DevicesPage() {
     }
   }
   
-  // Fetch devices list
+  // Fetch devices list with pagination
   const fetchDevices = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      // Fetch from the /devices endpoint
-      const data = await getDevicesForUI()
+      // Calculate skip based on current page
+      const skip = (currentPage - 1) * itemsPerPage
       
-      // Handle both array response and object with devices array
-      const deviceList = Array.isArray(data) ? data : (data.devices || [])
-      setDevices(deviceList)
+      // Prepare query params
+      const params: any = {
+        skip,
+        limit: itemsPerPage
+      }
+      
+      // Add search term if provided (backend search)
+      if (searchTerm && searchTerm.trim()) {
+        params.search = searchTerm.trim()
+      }
+      
+      // Always filter by airqo network
+      params.network = "airqo"
+      
+      // Add filters if they are set (currently commented out in UI)
+      // if (networkFilter !== "all") {
+      //   params.network = networkFilter
+      // }
+      // if (statusFilter !== "all") {
+      //   params.status = statusFilter
+      // }
+      
+      // Fetch from the /devices endpoint with pagination
+      const data = await getDevicesForUIPaginated(params)
+      
+      setDevices(data.devices)
+      setTotalDevices(data.pagination.total)
+      setTotalPages(data.pagination.pages)
+      setHasNext(data.pagination.has_next)
+      setHasPrevious(data.pagination.has_previous)
+      
+      console.log('Pagination metadata:', data.pagination)
     } catch (err) {
       console.error("Error fetching devices:", err)
       setError("Failed to load device data")
@@ -116,6 +188,16 @@ export default function DevicesPage() {
     return () => clearTimeout(timer)
   }, [])
   
+  // Refetch devices when pagination or search changes
+  useEffect(() => {
+    // Debounce search to avoid too many API calls
+    const searchDebounce = setTimeout(() => {
+      fetchDevices()
+    }, 500) // Wait 500ms after user stops typing
+    
+    return () => clearTimeout(searchDebounce)
+  }, [currentPage, itemsPerPage, searchTerm]) // Added searchTerm
+  
   // Refresh all data
   const refreshData = () => {
     setIsRefreshing(true)
@@ -123,7 +205,7 @@ export default function DevicesPage() {
   }
   
   // Calculate percentages for the progress bars
-  const calculatePercentage = useCallback((value) => {
+  const calculatePercentage = useCallback((value: number) => {
     return deviceCounts.total_devices > 0 
       ? Math.round((value / deviceCounts.total_devices) * 100) 
       : 0
@@ -139,32 +221,10 @@ export default function DevicesPage() {
     return Array.from(networks)
   }, [devices])
   
-  // Filter devices based on search term, status filter, and network filter
-  const filteredDevices = useMemo(() => {
-    return devices.filter((device) => {
-      const matchesSearch =
-        device.device_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        device.device_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        device.location_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        device.city?.toLowerCase().includes(searchTerm.toLowerCase())
-        
-      const matchesStatus = statusFilter === "all" || 
-        (statusFilter === "online" && device.is_online === true) ||
-        (statusFilter === "offline" && device.is_online === false) ||
-        (statusFilter === "deployed" && device.status === "deployed") ||
-        (statusFilter === "not_deployed" && device.status === "not deployed") ||
-        (statusFilter === "recalled" && device.status === "recalled")
-        
-      const matchesNetwork = networkFilter === "all" || device.network === networkFilter
-        
-      return matchesSearch && matchesStatus && matchesNetwork
-    })
-  }, [devices, searchTerm, statusFilter, networkFilter])
-  
-  
+  // No client-side filtering needed - backend handles search
   // Sort devices - online devices first, then by name
   const sortedDevices = useMemo(() => {
-    return [...filteredDevices].sort((a, b) => {
+    return [...devices].sort((a, b) => {
       // First sort by online status
       if (a.is_online && !b.is_online) return -1;
       if (!a.is_online && b.is_online) return 1;
@@ -176,18 +236,13 @@ export default function DevicesPage() {
       // Then sort by name
       return (a.device_name || "").localeCompare(b.device_name || "");
     });
-  }, [filteredDevices]);
+  }, [devices]);
   
-  // Get current page items
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = sortedDevices.slice(indexOfFirstItem, indexOfLastItem);
-  
-  // Calculate total pages
-  const totalPages = Math.ceil(sortedDevices.length / itemsPerPage);
+  // Display current items (no need for slicing since backend handles pagination)
+  const currentItems = sortedDevices;
   
   // Get status badge variant
-  const getStatusBadge = useCallback((device) => {
+  const getStatusBadge = useCallback((device: UIDevice) => {
     if (device.is_online) {
       return { variant: "default", className: "bg-green-500 hover:bg-green-600", icon: Wifi, text: "Online" }
     }
@@ -195,35 +250,95 @@ export default function DevicesPage() {
   }, [])
   
   // Get deployment status badge
-  const getDeploymentBadge = useCallback((status) => {
+  const getDeploymentBadge = useCallback((status: string | undefined) => {
     switch(status) {
       case "deployed":
-        return { variant: "default", className: "bg-blue-500 hover:bg-blue-600", text: "Deployed" }
+        return { variant: "default", className: "bg-green-100 text-green-700 hover:bg-green-200", text: "Deployed" }
       case "not deployed":
-        return { variant: "secondary", className: "bg-yellow-500 hover:bg-yellow-600", text: "Not Deployed" }
+        return { variant: "secondary", className: "bg-gray-100 text-gray-700 hover:bg-gray-200", text: "Not Deployed" }
       case "recalled":
-        return { variant: "destructive", className: "bg-red-500 hover:bg-red-600", text: "Recalled" }
+        return { variant: "destructive", className: "bg-red-100 text-red-700 hover:bg-red-200", text: "Recalled" }
       default:
         return { variant: "outline", className: "", text: status || "Unknown" }
     }
   }, [])
   
   // Get network badge color
-  const getNetworkBadge = useCallback((network) => {
-    const networkColors = {
+  const getNetworkBadge = useCallback((network: string | undefined) => {
+    const networkColors: { [key: string]: string } = {
       airbeam: "bg-purple-100 text-purple-800",
       airqo: "bg-blue-100 text-blue-800",
       lowcost: "bg-green-100 text-green-800",
       default: "bg-gray-100 text-gray-800"
     }
-    return networkColors[network?.toLowerCase()] || networkColors.default
+    return networkColors[network?.toLowerCase() || 'default'] || networkColors.default
+  }, [])
+  
+  // Get firmware badge info
+  const getFirmwareBadge = useCallback((currentFirmware: string | undefined, targetFirmware: string | undefined, downloadState: string | undefined) => {
+    // Both current and target are null - not set
+    if (!currentFirmware && !targetFirmware) {
+      return {
+        color: "bg-gray-100 text-gray-700 hover:bg-gray-200",
+        text: "Not Set",
+        tooltip: "Firmware not set"
+      }
+    }
+    
+    // Target is null - has updated firmware
+    if (!targetFirmware) {
+      return {
+        color: "bg-green-100 text-green-700 hover:bg-green-200",
+        text: currentFirmware || "Updated",
+        tooltip: "Firmware is up to date"
+      }
+    }
+    
+    // Current firmware matches target - green
+    if (currentFirmware === targetFirmware) {
+      return {
+        color: "bg-green-100 text-green-700 hover:bg-green-200",
+        text: currentFirmware,
+        tooltip: "Firmware is up to date"
+      }
+    }
+    
+    // Current firmware differs from target - orange (pending update)
+    return {
+      color: "bg-orange-100 text-orange-700 hover:bg-orange-200",
+      text: currentFirmware || "Pending",
+      tooltip: `${downloadState === 'pending' ? 'Pending' : downloadState === 'failed' ? 'Failed' : 'Updating'} to ${targetFirmware}`
+    }
   }, [])
   
   // Handle device selection on map
-  const handleDeviceSelect = useCallback((id) => {
+  const handleDeviceSelect = useCallback((id: string) => {
     setSelectedDeviceId(id)
   }, [])
   
+  // Handle firmware badge click
+  const handleFirmwareClick = useCallback((device: UIDevice, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent row click
+    setSelectedFirmwareDevice(device)
+    setFirmwareDialogOpen(true)
+  }, [])
+  
+  // Handle network ID click
+  const handleNetworkIdClick = useCallback((device: UIDevice, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent row click
+    setSelectedFirmwareDevice(device)
+    setFirmwareDialogOpen(true)
+  }, [])
+  
+  // Handle successful device update
+  const handleUpdateSuccess = useCallback(() => {
+    refreshData()
+  }, [])
+
+  // Handle row click to navigate to device details
+  const handleRowClick = useCallback((deviceId: string) => {
+    window.location.href = `/dashboard/devices/${deviceId}`
+  }, [])
 
 
   return (
@@ -241,9 +356,9 @@ export default function DevicesPage() {
             <RefreshCw className={`mr-2 h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} /> 
             {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
           </Button>
-          <Button className="bg-primary hover:bg-primary/90">
+          {/* <Button className="bg-primary hover:bg-primary/90">
             <Plus className="mr-2 h-4 w-4" /> Add Device
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -326,20 +441,281 @@ export default function DevicesPage() {
         </Card>
       </div>
 
-      {showMap && (
-        <Card className="hover:shadow-md transition-shadow overflow-hidden">
-          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center">
-                <MapPin className="mr-2 h-5 w-5 text-primary" />
-                Device Locations
-              </div>
-              <Badge variant="outline" className="ml-2">
-                Device Locations
-              </Badge>
+      {/* Device List and Map Section with Toggle */}
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center">
+              {viewMode === "list" ? (
+                <>
+                  <BarChart3 className="mr-2 h-5 w-5 text-primary" />
+                  Device List
+                </>
+              ) : (
+                <>
+                  <MapPin className="mr-2 h-5 w-5 text-primary" />
+                  Device Locations
+                </>
+              )}
             </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
+            
+            {/* View Toggle Buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant={viewMode === "list" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="flex items-center"
+              >
+                <List className="mr-2 h-4 w-4" />
+                List View
+              </Button>
+              <Button
+                variant={viewMode === "map" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("map")}
+                className="flex items-center"
+              >
+                <Map className="mr-2 h-4 w-4" />
+                Map View
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent className="p-4">
+          {/* List View */}
+          {viewMode === "list" && (
+            <>
+              {/* Search Input - Backend Search Enabled */}
+              <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mb-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search by device name, ID, location, city, or country..."
+                    className="pl-8"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value)
+                      setCurrentPage(1) // Reset to first page when searching
+                    }}
+                  />
+                  {searchTerm && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1.5 h-7 w-7 p-0"
+                      onClick={() => {
+                        setSearchTerm("")
+                        setCurrentPage(1)
+                      }}
+                    >
+                      <span className="sr-only">Clear search</span>
+                      ✕
+                    </Button>
+                  )}
+                </div>
+                {searchTerm && (
+                  <div className="text-sm text-muted-foreground">
+                    Searching devices...
+                  </div>
+                )}
+              </div>
+              
+              {/* Filters - Temporarily Commented Out */}
+              {/* <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-muted-foreground" />
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    setStatusFilter(value)
+                    setCurrentPage(1) // Reset to first page when filter changes
+                  }}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="online">Online</SelectItem>
+                    <SelectItem value="offline">Offline</SelectItem>
+                    <SelectItem value="deployed">Deployed</SelectItem>
+                    <SelectItem value="not_deployed">Not Deployed</SelectItem>
+                    <SelectItem value="recalled">Recalled</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                {uniqueNetworks.length > 0 && (
+                  <Select
+                    value={networkFilter}
+                    onValueChange={(value) => {
+                      setNetworkFilter(value)
+                      setCurrentPage(1) // Reset to first page when filter changes
+                    }}
+                  >
+                    <SelectTrigger className="w-[150px]">
+                      <SelectValue placeholder="Network" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Networks</SelectItem>
+                      {uniqueNetworks.map(network => (
+                        <SelectItem key={network} value={network}>
+                          {network}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div> */}
+
+              {loading ? (
+                <div className="py-8 flex justify-center items-center">
+                  <RefreshCw className="h-10 w-10 text-primary animate-spin" />
+                  <span className="ml-4 text-lg">Loading devices...</span>
+                </div>
+              ) : sortedDevices.length === 0 ? (
+                <div className="py-8 text-center text-gray-500">
+                  <AlertCircle className="h-10 w-10 mx-auto mb-4 text-gray-400" />
+                  <p>No devices found matching your criteria.</p>
+                  <p className="text-sm mt-2">Try changing your search or filter settings.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Device Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Channel ID</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Network ID</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Firmware</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {currentItems.map((device) => {
+                        const statusInfo = getStatusBadge(device)
+                        const deploymentInfo = getDeploymentBadge(device.status)
+                        const StatusIcon = statusInfo.icon
+                        const firmwareInfo = getFirmwareBadge(
+                          device.current_firmware, 
+                          device.target_firmware,
+                          device.firmware_download_state
+                        )
+                        
+                        return (
+                          <tr 
+                            key={device.device_id} 
+                            className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                            onClick={() => handleRowClick(device.device_id)}
+                          >
+                            <td className="py-3 px-4">
+                              <div className="flex items-center gap-2" title={statusInfo.text}>
+                                <StatusIcon 
+                                  className={`h-4 w-4 ${device.is_online ? 'text-green-500' : 'text-gray-400'}`}
+                                />
+                                <span className="font-medium">{device.device_name || "Unnamed"}</span>
+                              </div>
+                            </td>
+                            <td className="py-3 px-4">
+                              <Badge className={`${deploymentInfo.className}`}>
+                                {deploymentInfo.text}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-sm text-gray-600">
+                                {device.category || "-"}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <span className="text-sm text-gray-600">
+                                {device.channel_id || "-"}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4" onClick={(e) => handleNetworkIdClick(device, e)}>
+                              <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 cursor-pointer transition-colors">
+                                {device.network_id || "Not Set"}
+                              </Badge>
+                            </td>
+                            <td className="py-3 px-4" onClick={(e) => handleFirmwareClick(device, e)}>
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Badge className={`${firmwareInfo.color} cursor-pointer transition-colors`}>
+                                      {firmwareInfo.text}
+                                    </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{firmwareInfo.tooltip}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </td>
+                            <td className="py-3 px-4">
+                              {device.location_name || device.city || device.country ? (
+                                <div className="flex flex-col">
+                                  <span className="text-sm font-medium">
+                                    {device.location_name || "Unknown"}
+                                  </span>
+                                  {(device.city || device.country) && (
+                                    <span className="text-xs text-gray-500">
+                                      {[device.city, device.country].filter(Boolean).join(", ")}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-sm">No location</span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                  
+                  {/* Pagination */}
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">Items per page:</span>
+                        <Select 
+                          value={itemsPerPage.toString()} 
+                          onValueChange={(value) => {
+                            setItemsPerPage(Number(value));
+                            setCurrentPage(1);
+                          }}
+                        >
+                          <SelectTrigger className="w-[100px]">
+                            <SelectValue placeholder="Per page" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="5">5</SelectItem>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="25">25</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages || 1}
+                        onPageChange={setCurrentPage}
+                        showInfo={true}
+                        totalItems={totalDevices}
+                        itemsPerPage={itemsPerPage}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+          
+          {/* Map View */}
+          {viewMode === "map" && showMap && (
             <div className="h-[700px] w-full">
               <AfricaMap
                 devices={[]}
@@ -347,216 +723,26 @@ export default function DevicesPage() {
                 selectedDeviceId={selectedDeviceId || undefined}
               />
             </div>
-          </CardContent>
-        </Card>
-      )}
-
-      <Card className="hover:shadow-md transition-shadow">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-          <CardTitle className="flex items-center">
-            <BarChart3 className="mr-2 h-5 w-5 text-primary" />
-            Device List
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-4">
-          <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search by ID, name, or location..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-muted-foreground" />
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => setStatusFilter(value)}
-              >
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="online">Online</SelectItem>
-                  <SelectItem value="offline">Offline</SelectItem>
-                  <SelectItem value="deployed">Deployed</SelectItem>
-                  <SelectItem value="not_deployed">Not Deployed</SelectItem>
-                  <SelectItem value="recalled">Recalled</SelectItem>
-                </SelectContent>
-              </Select>
-              
-              {uniqueNetworks.length > 0 && (
-                <Select
-                  value={networkFilter}
-                  onValueChange={(value) => setNetworkFilter(value)}
-                >
-                  <SelectTrigger className="w-[150px]">
-                    <SelectValue placeholder="Network" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Networks</SelectItem>
-                    {uniqueNetworks.map(network => (
-                      <SelectItem key={network} value={network}>
-                        {network}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="py-8 flex justify-center items-center">
-              <RefreshCw className="h-10 w-10 text-primary animate-spin" />
-              <span className="ml-4 text-lg">Loading devices...</span>
-            </div>
-          ) : sortedDevices.length === 0 ? (
-            <div className="py-8 text-center text-gray-500">
-              <AlertCircle className="h-10 w-10 mx-auto mb-4 text-gray-400" />
-              <p>No devices found matching your criteria.</p>
-              <p className="text-sm mt-2">Try changing your search or filter settings.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Device ID</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Name</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Deployment</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Network</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Category</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Location</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {currentItems.map((device) => {
-                    const statusInfo = getStatusBadge(device)
-                    const deploymentInfo = getDeploymentBadge(device.status)
-                    const StatusIcon = statusInfo.icon
-                    
-                    return (
-                      <tr key={device.device_id} className="border-b hover:bg-gray-50 transition-colors">
-                        <td className="py-3 px-4">
-                          <span className="font-mono text-sm">{device.device_id}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="font-medium">{device.device_name || "Unnamed"}</span>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Badge className={`flex items-center w-fit ${statusInfo.className}`}>
-                            <StatusIcon className="mr-1 h-3 w-3" />
-                            {statusInfo.text}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          <Badge className={`${deploymentInfo.className}`}>
-                            {deploymentInfo.text}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-4">
-                          {device.network && (
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getNetworkBadge(device.network)}`}>
-                              {device.network}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="text-sm text-gray-600">
-                            {device.category || "-"}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4">
-                          {device.location_name || device.city || device.country ? (
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">
-                                {device.location_name || "Unknown"}
-                              </span>
-                              {(device.city || device.country) && (
-                                <span className="text-xs text-gray-500">
-                                  {[device.city, device.country].filter(Boolean).join(", ")}
-                                </span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 text-sm">No location</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4">
-                          <Link
-                            href={`/dashboard/devices/${device.device_id}`}
-                            className="flex items-center text-primary hover:underline text-sm"
-                          >
-                            View <ArrowRight className="ml-1 h-3 w-3" />
-                          </Link>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-              
-              {/* Pagination */}
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-sm text-gray-500">
-                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, sortedDevices.length)} of {sortedDevices.length} devices
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Select 
-                    value={itemsPerPage.toString()} 
-                    onValueChange={(value) => {
-                      setItemsPerPage(Number(value));
-                      setCurrentPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-[100px]">
-                      <SelectValue placeholder="Per page" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="5">5 per page</SelectItem>
-                      <SelectItem value="10">10 per page</SelectItem>
-                      <SelectItem value="25">25 per page</SelectItem>
-                      <SelectItem value="50">50 per page</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <div className="flex items-center">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="h-8 w-8"
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="mx-2 text-sm">
-                      Page {currentPage} of {totalPages || 1}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages || totalPages === 0}
-                      className="h-8 w-8"
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
+          )}
+          
+          {viewMode === "map" && !showMap && (
+            <div className="h-[700px] w-full flex items-center justify-center bg-gray-100 rounded-lg">
+              <div className="text-center">
+                <MapPin className="h-10 w-10 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-500">Loading map...</p>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+      
+      {/* Update Device Dialog */}
+      <UpdateDeviceDialog
+        open={firmwareDialogOpen}
+        onOpenChange={setFirmwareDialogOpen}
+        device={selectedFirmwareDevice}
+        onUpdateSuccess={handleUpdateSuccess}
+      />
     </div>
   )
 }
