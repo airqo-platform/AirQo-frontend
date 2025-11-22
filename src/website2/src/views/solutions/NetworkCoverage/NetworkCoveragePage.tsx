@@ -190,6 +190,11 @@ const NetworkCoveragePage = () => {
   const downloadCSV = useCallback(async () => {
     setIsDownloadingCSV(true);
     try {
+      if (hasMoreData) {
+        alert(
+          'Warning: Only currently loaded data will be exported. Please load all data before downloading for a complete export.',
+        );
+      }
       const sites = allGrids.flatMap((grid) => grid.sites || []);
       if (sites.length === 0) return;
 
@@ -208,9 +213,15 @@ const NetworkCoveragePage = () => {
             `"${site.name || site.formatted_name || ''}"`,
             `"${site.city || ''}"`,
             `"${site.country || ''}"`,
-            site.approximate_latitude || '',
-            site.approximate_longitude || '',
-            site.lastRawData ? new Date(site.lastRawData).toISOString() : '',
+            site.approximate_latitude ?? '',
+            site.approximate_longitude ?? '',
+            (() => {
+              if (site.lastRawData) {
+                const date = new Date(site.lastRawData);
+                return !isNaN(date.getTime()) ? date.toISOString() : '';
+              }
+              return '';
+            })(),
           ].join(','),
         ),
       ].join('\n');
@@ -231,11 +242,16 @@ const NetworkCoveragePage = () => {
     } finally {
       setIsDownloadingCSV(false);
     }
-  }, [allGrids]);
+  }, [allGrids, hasMoreData]);
 
   const downloadPDF = useCallback(async () => {
     setIsDownloadingPDF(true);
     try {
+      if (hasMoreData) {
+        alert(
+          'Warning: Only currently loaded data will be exported. Please load all data before downloading for a complete export.',
+        );
+      }
       const sites = allGrids.flatMap((grid) => grid.sites || []);
       if (sites.length === 0) return;
 
@@ -370,7 +386,7 @@ const NetworkCoveragePage = () => {
 
           const stationName = site.name || site.formatted_name || 'Unknown';
           const cityName = site.city || 'N/A';
-          const coordinates = `${site.approximate_latitude?.toFixed(4) || 'N/A'}, ${site.approximate_longitude?.toFixed(4) || 'N/A'}`;
+          const coordinates = `${site.approximate_latitude?.toFixed(4) ?? 'N/A'}, ${site.approximate_longitude?.toFixed(4) ?? 'N/A'}`;
 
           // Truncate long names
           const maxNameLength = 35;
@@ -420,7 +436,7 @@ const NetworkCoveragePage = () => {
     } finally {
       setIsDownloadingPDF(false);
     }
-  }, [allGrids, statistics.countries.length]);
+  }, [allGrids, statistics.countries.length, hasMoreData]);
 
   return (
     <div className="pb-16 flex flex-col w-full space-y-20">
@@ -479,59 +495,6 @@ const NetworkCoveragePage = () => {
             </div>
           </motion.div>
         </div>
-      </motion.section>
-
-      {/* Download Section */}
-      <motion.section
-        className={`${mainConfig.containerClass} px-4`}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-        variants={containerVariants}
-      >
-        <motion.div variants={itemVariants}>
-          <h2 className="text-2xl font-semibold mb-4">
-            Download Coverage Data
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Export our network coverage data for offline use or further
-            analysis.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <button
-              onClick={downloadCSV}
-              disabled={isDownloadingCSV || isLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isDownloadingCSV ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <FiDownload className="w-4 h-4" />
-              )}
-              {isDownloadingCSV
-                ? 'Generating CSV...'
-                : isLoading
-                  ? 'Loading data...'
-                  : 'Download CSV'}
-            </button>
-            <button
-              onClick={downloadPDF}
-              disabled={isDownloadingPDF || isLoading}
-              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {isDownloadingPDF ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              ) : (
-                <FiDownload className="w-4 h-4" />
-              )}
-              {isDownloadingPDF
-                ? 'Generating PDF...'
-                : isLoading
-                  ? 'Loading data...'
-                  : 'Download PDF'}
-            </button>
-          </div>
-        </motion.div>
       </motion.section>
 
       <Divider />
@@ -738,6 +701,59 @@ const NetworkCoveragePage = () => {
               </p>
             </div>
           )}
+        </motion.div>
+      </motion.section>
+
+      {/* Download Section */}
+      <motion.section
+        className={`${mainConfig.containerClass} px-4`}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <h2 className="text-2xl font-semibold mb-4">
+            Download Coverage Data
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Export our network coverage data for offline use or further
+            analysis.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <button
+              onClick={downloadCSV}
+              disabled={isDownloadingCSV || isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloadingCSV ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingCSV
+                ? 'Generating CSV...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download CSV'}
+            </button>
+            <button
+              onClick={downloadPDF}
+              disabled={isDownloadingPDF || isLoading}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed transition-colors"
+            >
+              {isDownloadingPDF ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <FiDownload className="w-4 h-4" />
+              )}
+              {isDownloadingPDF
+                ? 'Generating PDF...'
+                : isLoading
+                  ? 'Loading data...'
+                  : 'Download PDF'}
+            </button>
+          </div>
         </motion.div>
       </motion.section>
 
