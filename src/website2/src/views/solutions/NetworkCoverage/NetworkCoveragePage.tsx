@@ -194,12 +194,11 @@ const NetworkCoveragePage = () => {
       if (sites.length === 0) return;
 
       const headers = [
-        'Name',
+        'Station Name',
         'City',
         'Country',
         'Latitude',
         'Longitude',
-        'Is Online',
         'Last Updated',
       ];
       const csvContent = [
@@ -211,7 +210,6 @@ const NetworkCoveragePage = () => {
             `"${site.country || ''}"`,
             site.approximate_latitude || '',
             site.approximate_longitude || '',
-            site.isOnline || site.rawOnlineStatus ? 'Yes' : 'No',
             site.lastRawData ? new Date(site.lastRawData).toISOString() : '',
           ].join(','),
         ),
@@ -245,80 +243,63 @@ const NetworkCoveragePage = () => {
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
 
-      // Preload logo
-      let logoImg: HTMLImageElement | null = null;
-      try {
-        logoImg = new Image();
-        logoImg.src = '/assets/icons/airqo.png';
-        await new Promise((resolve, reject) => {
-          if (logoImg) {
-            logoImg.onload = resolve;
-            logoImg.onerror = reject;
-          } else {
-            reject(new Error('Failed to create image'));
-          }
+      // Function to add watermark to page
+      const addWatermark = () => {
+        doc.setTextColor(240, 240, 240);
+        doc.setFontSize(60);
+        doc.setFont('helvetica', 'bold');
+        doc.text('AirQo', pageWidth / 2, pageHeight / 2, {
+          align: 'center',
+          angle: 45,
         });
-      } catch (error) {
-        console.warn('Could not load logo for PDF:', error);
-        logoImg = null;
-      }
-
-      // Function to add logo to page
-      const addLogoToPage = (pageY: number = 10) => {
-        if (logoImg) {
-          const logoWidth = 30;
-          const logoHeight = (logoImg.height / logoImg.width) * logoWidth;
-          doc.addImage(
-            logoImg,
-            'PNG',
-            pageWidth - logoWidth - 20,
-            pageY,
-            logoWidth,
-            logoHeight,
-          );
-        }
+        doc.setTextColor(0, 0, 0);
       };
 
-      // Add logo to first page
-      addLogoToPage();
+      // Add watermark to first page
+      addWatermark();
 
       // Header
-      doc.setFontSize(20);
+      doc.setFontSize(22);
       doc.setFont('helvetica', 'bold');
-      doc.text('AirQo Network Coverage Report', 20, 25);
+      doc.text('AirQo Network Coverage Report', pageWidth / 2, 30, {
+        align: 'center',
+      });
 
-      doc.setFontSize(12);
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'normal');
       doc.text(
-        `Generated on ${new Date().toLocaleDateString('en-US', {
+        `Generated: ${new Date().toLocaleDateString('en-US', {
           year: 'numeric',
           month: 'long',
           day: 'numeric',
         })}`,
-        20,
-        35,
+        pageWidth / 2,
+        40,
+        { align: 'center' },
       );
 
-      doc.text(`Total Monitoring Stations: ${sites.length}`, 20, 45);
-      doc.text(`Countries Covered: ${statistics.countries.length}`, 20, 55);
+      // Draw line separator
+      doc.setDrawColor(200, 200, 200);
+      doc.line(20, 45, pageWidth - 20, 45);
 
-      // Summary statistics
-      doc.setFontSize(14);
+      // Summary Box
+      doc.setFillColor(245, 247, 250);
+      doc.rect(20, 55, pageWidth - 40, 25, 'F');
+
+      doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
-      doc.text('Network Summary', 20, 75);
+      doc.text('Coverage Summary', 25, 65);
 
       doc.setFontSize(10);
       doc.setFont('helvetica', 'normal');
-      const onlineSites = sites.filter(
-        (site) => site.isOnline || site.rawOnlineStatus,
-      ).length;
-      const offlineSites = sites.length - onlineSites;
+      doc.text(`Total Monitoring Stations: ${sites.length}`, 25, 72);
+      doc.text(
+        `Countries Covered: ${statistics.countries.length}`,
+        pageWidth / 2 + 10,
+        72,
+      );
 
-      doc.text(`• Online Stations: ${onlineSites}`, 25, 85);
-      doc.text(`• Offline Stations: ${offlineSites}`, 25, 95);
-      doc.text(`• Coverage Areas: ${allGrids.length} regions`, 25, 105);
-
-      let yPosition = 125;
+      let yPosition = 95;
 
       // Group sites by country
       const sitesByCountry = sites.reduce(
@@ -331,58 +312,106 @@ const NetworkCoveragePage = () => {
         {} as Record<string, typeof sites>,
       );
 
+      // Table header styling
+      const drawTableHeader = (startY: number) => {
+        doc.setFillColor(66, 135, 245);
+        doc.rect(20, startY, pageWidth - 40, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Station Name', 22, startY + 5.5);
+        doc.text('City', pageWidth / 2 - 20, startY + 5.5);
+        doc.text('Coordinates', pageWidth - 70, startY + 5.5);
+        doc.setTextColor(0, 0, 0);
+        return startY + 10;
+      };
+
       Object.entries(sitesByCountry).forEach(([country, countrySites]) => {
-        if (yPosition > pageHeight - 60) {
+        // Check if we need a new page for country header
+        if (yPosition > pageHeight - 80) {
           doc.addPage();
-          addLogoToPage();
+          addWatermark();
           yPosition = 20;
         }
 
+        // Country header
+        doc.setFillColor(240, 242, 245);
+        doc.rect(20, yPosition, pageWidth - 40, 10, 'F');
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text(`${country} (${countrySites.length} stations)`, 20, yPosition);
-        yPosition += 10;
+        doc.text(
+          `${country} (${countrySites.length} ${countrySites.length === 1 ? 'station' : 'stations'})`,
+          25,
+          yPosition + 7,
+        );
+        yPosition += 12;
 
+        // Draw table header
+        yPosition = drawTableHeader(yPosition);
+
+        // Table rows
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
 
-        countrySites.forEach((site) => {
+        countrySites.forEach((site, index) => {
+          // Check if we need a new page
           if (yPosition > pageHeight - 20) {
             doc.addPage();
-            addLogoToPage();
+            addWatermark();
             yPosition = 20;
+            yPosition = drawTableHeader(yPosition);
           }
 
-          const status =
-            site.isOnline || site.rawOnlineStatus ? '● Online' : '○ Offline';
-          doc.text(
-            `${site.name || site.formatted_name || 'Unknown'} - ${site.city || 'N/A'}`,
-            25,
-            yPosition,
-          );
-          yPosition += 6;
+          // Alternate row colors
+          if (index % 2 === 0) {
+            doc.setFillColor(250, 250, 250);
+            doc.rect(20, yPosition - 1, pageWidth - 40, 7, 'F');
+          }
+
+          const stationName = site.name || site.formatted_name || 'Unknown';
+          const cityName = site.city || 'N/A';
+          const coordinates = `${site.approximate_latitude?.toFixed(4) || 'N/A'}, ${site.approximate_longitude?.toFixed(4) || 'N/A'}`;
+
+          // Truncate long names
+          const maxNameLength = 35;
+          const truncatedName =
+            stationName.length > maxNameLength
+              ? stationName.substring(0, maxNameLength) + '...'
+              : stationName;
+
+          doc.text(truncatedName, 22, yPosition + 4);
+          doc.text(cityName, pageWidth / 2 - 20, yPosition + 4);
           doc.setFontSize(8);
-          doc.text(
-            `${status} | Lat: ${site.approximate_latitude?.toFixed(4) || 'N/A'}, Lon: ${site.approximate_longitude?.toFixed(4) || 'N/A'}`,
-            30,
-            yPosition,
-          );
-          yPosition += 8;
+          doc.text(coordinates, pageWidth - 70, yPosition + 4);
+          doc.setFontSize(9);
+
+          yPosition += 7;
         });
 
         yPosition += 5;
       });
 
-      // Footer
+      // Footer on all pages
       const totalPages = doc.getNumberOfPages();
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, pageHeight - 15, pageWidth - 20, pageHeight - 15);
         doc.setFontSize(8);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Page ${i} of ${totalPages}`, pageWidth / 2, pageHeight - 10, {
-          align: 'center',
-        });
-        doc.text('© 2025 AirQo. All rights reserved.', 20, pageHeight - 10);
+        doc.setTextColor(100, 100, 100);
+        doc.text(
+          `© ${new Date().getFullYear()} AirQo. All rights reserved.`,
+          20,
+          pageHeight - 10,
+        );
+        doc.text(
+          `Page ${i} of ${totalPages}`,
+          pageWidth - 20,
+          pageHeight - 10,
+          { align: 'right' },
+        );
+        doc.setTextColor(0, 0, 0);
       }
 
       doc.save(
