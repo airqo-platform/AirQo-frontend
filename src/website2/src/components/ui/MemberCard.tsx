@@ -68,7 +68,7 @@ const MemberCard: React.FC<MemberCardProps> = ({
   // Fetch biography only when dialog is open and not board
   const memberId = member.api_url
     ? (member.api_url.split('/').filter(Boolean).pop() as string | undefined)
-    : (member.public_identifier || member.id || undefined);
+    : member.public_identifier || member.id || undefined;
   const { data: biography, isLoading: bioLoading } =
     type !== 'board' && type === 'external'
       ? useExternalTeamBiography(isDialogOpen && memberId ? memberId : null)
