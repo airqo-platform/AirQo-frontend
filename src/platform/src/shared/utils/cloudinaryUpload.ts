@@ -179,8 +179,54 @@ export function getOptimizedImageUrl(
   return `${baseUrl}/${publicId}`;
 }
 
-// Export constants
-export const CLOUDINARY_CONSTANTS = {
-  MAX_FILE_SIZE,
-  ALLOWED_FORMATS,
-} as const;
+/**
+ * Delete image from Cloudinary
+ */
+export async function deleteFromCloudinary(
+  publicId: string
+): Promise<{ result: string }> {
+  try {
+    const response = await fetch('/api/cloudinary/delete', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ publicId }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Delete failed');
+    }
+
+    return result;
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Delete failed');
+  }
+}
+
+/**
+ * Extract public ID from Cloudinary URL
+ */
+export function extractPublicIdFromUrl(url: string): string | null {
+  if (!url) return null;
+
+  try {
+    const urlObj = new URL(url);
+    const pathParts = urlObj.pathname.split('/');
+    // Path structure: /cloud_name/image/upload/version/public_id.ext
+    // We want everything after 'upload/version/'
+    const uploadIndex = pathParts.indexOf('upload');
+    if (uploadIndex === -1) return null;
+
+    // Skip 'upload' and version (next part)
+    const relevantParts = pathParts.slice(uploadIndex + 2);
+    return relevantParts.join('/').replace(/\.[^/.]+$/, ''); // Remove extension
+  } catch {
+    return null;
+  }
+}
