@@ -15,10 +15,6 @@ import {
   DialogTrigger,
   Divider,
 } from '@/components/ui';
-import {
-  useExternalTeamBiography,
-  useTeamBiography,
-} from '@/hooks/useApiHooks';
 import { cn } from '@/lib/utils';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
 
@@ -64,17 +60,6 @@ const MemberCard: React.FC<MemberCardProps> = ({
   const [imageError, setImageError] = useState(false);
   const [dialogImageError, setDialogImageError] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // Fetch biography only when dialog is open and not board
-  const memberId = member.api_url
-    ? (member.api_url.split('/').filter(Boolean).pop() as string | undefined)
-    : member.public_identifier || member.id || undefined;
-  const { data: biography, isLoading: bioLoading } =
-    type !== 'board' && type === 'external'
-      ? useExternalTeamBiography(isDialogOpen && memberId ? memberId : null)
-      : type !== 'board'
-        ? useTeamBiography(isDialogOpen && memberId ? memberId : null)
-        : { data: null, isLoading: false };
 
   const renderContent = (content?: string) => {
     if (!content) return '';
@@ -157,15 +142,13 @@ const MemberCard: React.FC<MemberCardProps> = ({
           {/* Read Bio Button */}
           {btnText && (
             <span className="text-sm text-blue-500 hover:underline self-start">
-              {type === 'board'
-                ? member.bio ||
-                  member.about ||
-                  member.bio_description ||
-                  member.description ||
-                  member.descriptions?.length
-                  ? btnText
-                  : 'View Profile'
-                : btnText}
+              {member.descriptions?.length ||
+              member.bio ||
+              member.about ||
+              member.bio_description ||
+              member.description
+                ? btnText
+                : 'View Profile'}
             </span>
           )}
 
@@ -264,56 +247,32 @@ const MemberCard: React.FC<MemberCardProps> = ({
             {/* Description with scroll if content is long */}
             <div className="flex-1 max-h-[40vh] sm:max-h-[45vh] lg:max-h-[50vh] overflow-y-auto pr-2">
               <DialogDescription className="leading-relaxed">
-                {type === 'board' ? (
-                  <>
-                    {member.descriptions?.length
-                      ? member.descriptions.map((desc: any, idx: number) => (
-                          <p key={idx} className="mb-2">
-                            {desc.description}
-                          </p>
-                        ))
-                      : null}
+                {member.descriptions?.length ? (
+                  member.descriptions.map((desc: any, idx: number) => (
+                    <p key={idx} className="mb-2">
+                      {desc.description}
+                    </p>
+                  ))
+                ) : (
+                  <p className="text-gray-500">Bio is not available.</p>
+                )}
 
-                    {/* Check multiple possible bio fields */}
-                    {(member.bio ||
-                      member.about ||
-                      member.bio_description ||
-                      member.description) && (
-                      <div
-                        className="mb-2"
-                        dangerouslySetInnerHTML={{
-                          __html: renderContent(
-                            member.bio ||
-                              member.about ||
-                              member.bio_description ||
-                              member.description,
-                          ),
-                        }}
-                      />
-                    )}
-
-                    {/* If no bio content found */}
-                    {!(
-                      member.bio ||
-                      member.about ||
-                      member.bio_description ||
-                      member.description
-                    ) &&
-                      (!member.descriptions ||
-                        member.descriptions.length === 0) && (
-                        <p className="text-gray-500">Bio is not available.</p>
-                      )}
-                  </>
-                ) : bioLoading ? (
-                  <p className="text-gray-500">Loading biography...</p>
-                ) : biography?.description ? (
+                {/* Check multiple possible bio fields as fallback */}
+                {(member.bio ||
+                  member.about ||
+                  member.bio_description ||
+                  member.description) && (
                   <div
+                    className="mb-2"
                     dangerouslySetInnerHTML={{
-                      __html: renderContent(biography.description),
+                      __html: renderContent(
+                        member.bio ||
+                          member.about ||
+                          member.bio_description ||
+                          member.description,
+                      ),
                     }}
                   />
-                ) : (
-                  <p className="text-gray-500">Biography is not available.</p>
                 )}
               </DialogDescription>
             </div>
