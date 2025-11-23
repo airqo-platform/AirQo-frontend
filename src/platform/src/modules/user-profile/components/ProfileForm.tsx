@@ -150,12 +150,14 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
     try {
       let finalPictureUrl = data.profilePicture;
 
-      // Handle profile picture changes - only delete when explicitly clearing
+      // Handle profile picture changes - delete old image when clearing or uploading new
       const currentUser = userDetails?.users?.[0];
       const oldPictureUrl = currentUser?.profilePicture;
 
-      // Only delete from Cloudinary when the user explicitly clears the profile picture
-      if (oldPictureUrl && finalPictureUrl === '') {
+      // Delete old picture when clearing OR when uploading a new one
+      const shouldDeleteOld =
+        oldPictureUrl && (finalPictureUrl === '' || pendingImage);
+      if (shouldDeleteOld) {
         const oldPublicId = extractPublicIdFromUrl(oldPictureUrl);
         if (oldPublicId) {
           try {
