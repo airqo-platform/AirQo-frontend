@@ -921,10 +921,12 @@ export interface GetUserThemeResponse {
 }
 
 export interface UpdateOrganizationGroupThemeRequest {
-  primaryColor: string;
-  mode: 'light' | 'dark' | 'system';
-  interfaceStyle: 'default' | 'bordered';
-  contentLayout: 'compact' | 'wide';
+  theme: {
+    primaryColor: string;
+    mode: 'light' | 'dark' | 'system';
+    interfaceStyle: 'default' | 'bordered';
+    contentLayout: 'compact' | 'wide';
+  };
 }
 
 export interface UpdateOrganizationGroupThemeResponse {
