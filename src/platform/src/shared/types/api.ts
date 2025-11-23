@@ -842,7 +842,7 @@ export interface Site {
 
 export interface Theme {
   primaryColor: string;
-  mode: 'light' | 'dark';
+  mode: 'light' | 'dark' | 'system';
   interfaceStyle: 'default' | 'bordered';
   contentLayout: 'compact' | 'wide';
 }

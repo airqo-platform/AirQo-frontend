@@ -1,17 +1,63 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/shared/lib/auth';
 
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_NAME}/image/destroy`;
+const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+
+if (!CLOUDINARY_NAME) {
+  throw new Error(
+    'NEXT_PUBLIC_CLOUDINARY_NAME environment variable is not set'
+  );
+}
+
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/destroy`;
+
+// Validate publicId format (Cloudinary public IDs can contain alphanumeric, _, -, .)
+const isValidPublicId = (publicId: string): boolean => {
+  const publicIdRegex = /^[a-zA-Z0-9_\-\.]+$/;
+  return (
+    publicIdRegex.test(publicId) &&
+    publicId.length > 0 &&
+    publicId.length <= 255
+  );
+};
 
 export async function DELETE(request: NextRequest) {
   try {
-    const { publicId } = await request.json();
+    // Check authentication
+    const session = (await getServerSession(authOptions)) as any;
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-    if (!publicId) {
+    // Parse and validate JSON
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+    }
+
+    const { publicId } = body;
+
+    if (!publicId || typeof publicId !== 'string') {
       return NextResponse.json(
-        { error: 'No publicId provided' },
+        { error: 'No publicId provided or invalid type' },
         { status: 400 }
       );
     }
+
+    // Validate publicId format
+    if (!isValidPublicId(publicId)) {
+      return NextResponse.json(
+        { error: 'Invalid publicId format' },
+        { status: 400 }
+      );
+    }
+
+    // TODO: Add ownership/permission check for the publicId
+    // This should verify that the authenticated user owns or has permission to delete this image
+    // For now, allowing authenticated users to delete any image
 
     const timestamp = Math.floor(Date.now() / 1000);
     const apiSecret = process.env.CLOUDINARY_API_SECRET;

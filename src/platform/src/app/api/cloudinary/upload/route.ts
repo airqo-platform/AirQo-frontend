@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_NAME}/image/upload`;
+const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+
+if (!CLOUDINARY_NAME) {
+  throw new Error(
+    'NEXT_PUBLIC_CLOUDINARY_NAME environment variable is not set'
+  );
+}
+
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/upload`;
 
 export async function POST(request: NextRequest) {
   try {
