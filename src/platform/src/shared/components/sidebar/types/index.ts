@@ -12,6 +12,14 @@ export interface SidebarContentProps {
   className?: string;
 }
 
+export interface SubRoute {
+  id: string;
+  label: string;
+  href: string;
+  description?: string;
+  disabled?: boolean;
+}
+
 export interface NavItemProps {
   item: {
     id: string;
@@ -21,8 +29,10 @@ export interface NavItemProps {
     group?: string;
     badge?: string | number;
     disabled?: boolean;
+    subroutes?: SubRoute[];
   };
   isCollapsed?: boolean;
   onClick?: () => void;
   className?: string;
+  enableSubroutes?: boolean;
 }

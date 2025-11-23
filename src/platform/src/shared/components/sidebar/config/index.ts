@@ -24,6 +24,15 @@ export interface NavItem {
   group?: string;
   badge?: string | number;
   disabled?: boolean;
+  subroutes?: SubRoute[];
+}
+
+export interface SubRoute {
+  id: string;
+  label: string;
+  href: string;
+  description?: string;
+  disabled?: boolean;
 }
 
 export interface NavGroup {
@@ -175,6 +184,38 @@ const globalSidebarConfig: NavGroup[] = [
         label: 'Administrative Panel',
         href: '/admin/org-requests',
         icon: AqFolderShield,
+        subroutes: [
+          {
+            id: 'admin-org-requests',
+            label: 'Organization Requests',
+            href: '/admin/org-requests',
+            description: 'Manage organization requests',
+          },
+          {
+            id: 'admin-members',
+            label: 'Members',
+            href: '/admin/members',
+            description: 'View and manage members',
+          },
+          {
+            id: 'admin-member-requests',
+            label: 'Member Requests',
+            href: '/admin/member-requests',
+            description: 'Review member requests',
+          },
+          {
+            id: 'admin-roles',
+            label: 'Roles & Permissions',
+            href: '/admin/roles',
+            description: 'Manage roles and permissions',
+          },
+          {
+            id: 'admin-org-settings',
+            label: 'Organization Settings',
+            href: '/admin/organization-settings',
+            description: 'Configure organization settings',
+          },
+        ],
       },
       {
         id: 'data-access',

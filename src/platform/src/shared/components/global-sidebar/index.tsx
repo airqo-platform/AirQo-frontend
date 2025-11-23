@@ -41,7 +41,13 @@ export const GlobalSidebar: React.FC = () => {
     );
   }, [activeGroup]);
 
+  // Close handler
   const handleClose = useCallback(() => {
+    dispatch(toggleGlobalSidebar());
+  }, [dispatch]);
+
+  // Handle navigation item clicks - always close the global sidebar
+  const handleNavItemClick = useCallback(() => {
     dispatch(toggleGlobalSidebar());
   }, [dispatch]);
 
@@ -187,7 +193,7 @@ export const GlobalSidebar: React.FC = () => {
           >
             <Card
               ref={sidebarRef}
-              className="h-full p-4"
+              className="h-full p-4 overflow-visible"
               role="dialog"
               aria-modal="true"
               aria-label="Global sidebar"
@@ -216,12 +222,17 @@ export const GlobalSidebar: React.FC = () => {
                   onClick={handleClose}
                   aria-label="Close sidebar"
                 >
-                  <AqXClose />
+                  <AqXClose className="text-foreground" />
                 </Button>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 relative overflow-visible">
                 {globalNavItems.map(item => (
-                  <NavItem key={item.id} item={item} onClick={handleClose} />
+                  <NavItem
+                    key={item.id}
+                    item={item}
+                    onClick={handleNavItemClick}
+                    enableSubroutes={item.id === 'admin-panel'}
+                  />
                 ))}
               </div>
             </Card>
