@@ -67,8 +67,11 @@ const MemberCard: React.FC<MemberCardProps> = ({
     }
 
     // Fallback to plain text if conversion returns empty
-    const raw = content.trim();
-    return raw ? DOMPurify.sanitize(`<p>${raw}</p>`) : '';
+    if (typeof content === 'string') {
+      const raw = content.trim();
+      return raw ? DOMPurify.sanitize(`<p>${raw}</p>`) : '';
+    }
+    return '';
   };
 
   return (
@@ -238,9 +241,14 @@ const MemberCard: React.FC<MemberCardProps> = ({
                       {desc.description}
                     </p>
                   ))
-                ) : (
+                ) : !(
+                    member.bio ||
+                    member.about ||
+                    member.bio_description ||
+                    member.description
+                  ) ? (
                   <p className="text-gray-500">Bio is not available.</p>
-                )}
+                ) : null}
 
                 {/* Check multiple possible bio fields as fallback */}
                 {(member.bio ||
