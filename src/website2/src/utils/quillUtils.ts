@@ -44,6 +44,11 @@ export const convertDeltaToHtml = (deltaInput: string | object): string => {
       return '';
     }
 
+    // If it doesn't look like JSON, treat as plain text
+    if (!trimmedInput.startsWith('{') && !trimmedInput.startsWith('[')) {
+      return `<p>${trimmedInput.replace(/\n/g, '<br>')}</p>`;
+    }
+
     try {
       delta = JSON.parse(trimmedInput);
     } catch (error) {
@@ -56,7 +61,8 @@ export const convertDeltaToHtml = (deltaInput: string | object): string => {
           inputLength: trimmedInput.length,
         },
       );
-      return ''; // Return an empty string if the input is not valid JSON
+      // If JSON parse fails, treat as plain text
+      return `<p>${trimmedInput.replace(/\n/g, '<br>')}</p>`;
     }
   } else if (typeof deltaInput === 'object') {
     delta = deltaInput; // If the input is already an object, use it directly
