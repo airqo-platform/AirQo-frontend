@@ -77,7 +77,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 <div className="flex-grow">
                   <div
                     className={cn(
-                      'container px-4 py-6 mx-auto md:px-6 lg:px-8',
+                      'container px-1 py-6 mx-auto md:px-6 lg:px-8',
                       theme.contentLayout === 'compact'
                         ? 'max-w-5xl'
                         : 'max-w-7xl'
