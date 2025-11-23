@@ -17,7 +17,11 @@ import { toast } from '@/shared/components/ui';
 import { useSession } from 'next-auth/react';
 import { useUpdateUserDetails, useUserDetails } from '@/shared/hooks';
 import { useChecklistIntegration } from '@/modules/user-checklist';
-import { uploadProfileImage } from '@/shared/utils/cloudinaryUpload';
+import {
+  uploadProfileImage,
+  deleteFromCloudinary,
+  extractPublicIdFromUrl,
+} from '@/shared/utils/cloudinaryUpload';
 import { profileSchema, type ProfileFormData } from '@/shared/lib/validators';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { ProfileFormData as ProfileFormType } from '../types';
@@ -119,6 +123,17 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
         shouldDirty: true,
       });
     reader.readAsDataURL(file);
+    toast.info(
+      'Profile picture selected. Click "Save Changes" to upload and update your profile.'
+    );
+  };
+
+  /**
+   * Handle clearing profile picture
+   */
+  const handleClearProfilePicture = () => {
+    setPendingImage(null);
+    setValue('profilePicture', '', { shouldDirty: true });
   };
 
   /**
@@ -134,6 +149,28 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
 
     try {
       let finalPictureUrl = data.profilePicture;
+
+      // Handle profile picture changes - delete old image when clearing or uploading new
+      const currentUser = userDetails?.users?.[0];
+      const oldPictureUrl = currentUser?.profilePicture;
+
+      // Delete old picture when clearing OR when uploading a new one
+      const shouldDeleteOld =
+        oldPictureUrl && (finalPictureUrl === '' || pendingImage);
+      if (shouldDeleteOld) {
+        const oldPublicId = extractPublicIdFromUrl(oldPictureUrl);
+        if (oldPublicId) {
+          try {
+            await deleteFromCloudinary(oldPublicId);
+          } catch (deleteError) {
+            console.warn(
+              'Failed to delete old profile picture from Cloudinary:',
+              deleteError
+            );
+            // Don't block the update if deletion fails
+          }
+        }
+      }
 
       // Upload only when user pressed Save
       if (pendingImage) {
@@ -218,33 +255,60 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
               className="w-24 h-24"
               size="xl"
             />
-            <label className="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/80 transition-colors shadow-lg">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleImageSelect}
-                className="hidden"
-                disabled={loading}
-              />
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            <div className="absolute bottom-0 right-0 flex space-x-1">
+              <label className="bg-primary text-white p-2 rounded-full cursor-pointer hover:bg-primary/80 transition-colors shadow-lg">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageSelect}
+                  className="hidden"
+                  disabled={loading}
                 />
-              </svg>
-            </label>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+              </label>
+              {watch('profilePicture') && (
+                <button
+                  type="button"
+                  onClick={handleClearProfilePicture}
+                  disabled={loading}
+                  className="bg-red-500 text-white p-2 rounded-full cursor-pointer hover:bg-red-600 transition-colors shadow-lg"
+                  title="Remove profile picture"
+                >
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-medium ">Profile Picture</h3>
             <p className="text-sm text-gray-600 mt-1">
-              Upload a new profile picture. JPG, PNG or GIF (max 5MB)
+              Upload a new profile picture (JPG, PNG or GIF, max 5MB) or click
+              the X button to remove it. Click &quot;Save Changes&quot; to apply
+              your updates.
             </p>
           </div>
         </div>

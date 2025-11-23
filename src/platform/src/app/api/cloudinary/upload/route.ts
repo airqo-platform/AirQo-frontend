@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_NAME}/image/upload`;
+const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
 
 export async function POST(request: NextRequest) {
   try {
+    if (!CLOUDINARY_NAME) {
+      return NextResponse.json(
+        { error: 'Cloudinary configuration is missing' },
+        { status: 500 }
+      );
+    }
+
+    const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/upload`;
+
     const formData = await request.formData();
 
     // Validate required fields
