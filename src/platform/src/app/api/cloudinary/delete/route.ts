@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '@/shared/lib/auth';
+import type { Session } from 'next-auth';
 
 const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
 
@@ -25,7 +26,7 @@ const isValidPublicId = (publicId: string): boolean => {
 export async function DELETE(request: NextRequest) {
   try {
     // Check authentication
-    const session = (await getServerSession(authOptions)) as any;
+    const session = (await getServerSession(authOptions)) as Session | null;
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -34,7 +35,7 @@ export async function DELETE(request: NextRequest) {
     let body;
     try {
       body = await request.json();
-    } catch (error) {
+    } catch {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
     }
 
