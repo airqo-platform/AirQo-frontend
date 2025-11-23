@@ -6,6 +6,8 @@ import BaseApiService, { ServiceOptions } from '../base';
 const TEAM_ENDPOINTS = {
   TEAM: '/website/api/v2/team-members/',
   EXTERNAL_TEAM: '/website/api/v2/external-team-members/',
+  TEAM_BIOGRAPHIES: '/website/api/v2/team-biographies/',
+  EXTERNAL_TEAM_BIOGRAPHIES: '/website/api/v2/external-team-biographies/',
 } as const;
 
 class TeamService extends BaseApiService {
@@ -65,6 +67,52 @@ class TeamService extends BaseApiService {
       page_size: params.page_size || 10,
       current_page: 1,
     };
+  }
+
+  /**
+   * Get team member biography by member ID
+   */
+  async getTeamBiography(
+    memberId: string | number,
+    options: ServiceOptions = {},
+  ): Promise<any> {
+    const response = await this.get<any>(
+      `${TEAM_ENDPOINTS.TEAM_BIOGRAPHIES}${memberId}/`,
+      {},
+      {
+        ...options,
+        throwOnError: false,
+      },
+    );
+
+    if (response.success) {
+      return response.data;
+    }
+
+    return null;
+  }
+
+  /**
+   * Get external team member biography by member ID
+   */
+  async getExternalTeamBiography(
+    memberId: string | number,
+    options: ServiceOptions = {},
+  ): Promise<any> {
+    const response = await this.get<any>(
+      `${TEAM_ENDPOINTS.EXTERNAL_TEAM_BIOGRAPHIES}${memberId}/`,
+      {},
+      {
+        ...options,
+        throwOnError: false,
+      },
+    );
+
+    if (response.success) {
+      return response.data;
+    }
+
+    return null;
   }
 }
 

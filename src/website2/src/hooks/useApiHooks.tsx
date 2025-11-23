@@ -11,6 +11,7 @@ export {
   useCountriesData,
   useDepartments,
   useEventDetails,
+  useExternalTeamBiography,
   useExternalTeamMembers,
   useFAQs,
   useForumEventDetails,
@@ -25,6 +26,7 @@ export {
   usePastEvents,
   usePressArticles,
   usePublications,
+  useTeamBiography,
   useTeamMembers,
   useUpcomingEvents,
 } from '@/services/hooks/endpointsNew';

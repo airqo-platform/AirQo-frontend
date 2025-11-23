@@ -43,7 +43,7 @@ const Highlight = () => {
           everyone.
         </p>
         <Link
-          href="https://www.google.org/leaders-to-watch/#engineer-bainomugisha"
+          href="https://www.google.org/leaders-to-watch-2022/#engineer-bainomugisha"
           target="_blank"
           className="inline-flex items-center py-3 text-lg text-black dark:text-gray-100 rounded-full transition-all hover:underline focus:outline-none"
         >

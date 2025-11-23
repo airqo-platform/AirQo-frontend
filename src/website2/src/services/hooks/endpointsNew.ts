@@ -176,6 +176,18 @@ export const useExternalTeamMembers = (params?: {
     `externalTeamMembers-${JSON.stringify(params || {})}`,
   );
 
+export const useTeamBiography = (memberId: string | number | null) =>
+  useServiceData(
+    memberId ? () => teamService.getTeamBiography(memberId) : null,
+    memberId ? `teamBiography/${memberId}` : null,
+  );
+
+export const useExternalTeamBiography = (memberId: string | number | null) =>
+  useServiceData(
+    memberId ? () => teamService.getExternalTeamBiography(memberId) : null,
+    memberId ? `externalTeamBiography/${memberId}` : null,
+  );
+
 // Partners
 export const usePartners = (params?: {
   page?: number;
