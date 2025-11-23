@@ -100,10 +100,16 @@ const mockAssignCohortToGroup = async (data: { groupId: string; cohortIds: strin
 // END MOCK CONFIG
 // ============================================================
 
-interface ClaimDeviceModalProps {
+export interface ClaimedDeviceInfo {
+    deviceId: string;
+    deviceName: string;
+    cohortId: string;
+}
+
+export interface ClaimDeviceModalProps {
     isOpen: boolean;
     onClose: () => void;
-    onSuccess?: () => void;
+    onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
     redirectOnSuccess?: boolean;
 }
 
@@ -192,7 +198,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
         if (success) {
             setStep('success');
-            onSuccess?.();
+            onSuccess?.({
+                deviceId: pendingCohortId!,
+                deviceName: claimedDeviceId,
+                cohortId: pendingCohortId!,
+            });
             if (redirectOnSuccess) {
                 setTimeout(() => {
                     handleClose();
@@ -245,7 +255,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
             if (assignSuccess) {
                 setStep('success');
-                onSuccess?.();
+                onSuccess?.({
+                    deviceId: cohortId,
+                    deviceName: deviceId,
+                    cohortId: cohortId,
+                });
                 if (redirectOnSuccess) {
                     setTimeout(() => {
                         handleClose();
