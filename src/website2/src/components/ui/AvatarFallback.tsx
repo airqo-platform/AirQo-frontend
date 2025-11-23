@@ -9,6 +9,7 @@ const AvatarFallback: React.FC<AvatarFallbackProps> = ({ name, className }) => {
   const initials = name
     ? name
         .split(' ')
+        .filter((word) => word.length > 0)
         .map((word) => word[0])
         .join('')
         .slice(0, 2)

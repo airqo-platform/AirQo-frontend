@@ -47,47 +47,32 @@ interface MemberCardProps {
   member: Member;
   btnText?: string;
   cardClassName?: string;
-  type?: 'team' | 'external' | 'board';
 }
 
 const MemberCard: React.FC<MemberCardProps> = ({
   member,
   btnText = 'Read Bio',
   cardClassName,
-  type = 'team',
 }) => {
   // Use the member data directly (no additional fetching needed)
   const [imageError, setImageError] = useState(false);
   const [dialogImageError, setDialogImageError] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const renderContent = (content?: string) => {
     if (!content) return '';
 
+    const html = convertDeltaToHtml(content);
+    if (html && html.trim()) {
+      return DOMPurify.sanitize(html);
+    }
+
+    // Fallback to plain text if conversion returns empty
     const raw = content.trim();
-    if (!raw) return '';
-
-    // If it's already HTML, sanitize and return
-    if (raw.startsWith('<')) {
-      return DOMPurify.sanitize(raw);
-    }
-
-    // Try to convert Delta to HTML
-    try {
-      const html = convertDeltaToHtml(raw);
-      if (html && html.trim()) {
-        return DOMPurify.sanitize(html);
-      }
-    } catch (error) {
-      console.warn('Error converting content to HTML:', error);
-    }
-
-    // If conversion fails, treat as plain text
-    return DOMPurify.sanitize(`<p>${raw}</p>`);
+    return raw ? DOMPurify.sanitize(`<p>${raw}</p>`) : '';
   };
 
   return (
-    <Dialog onOpenChange={setIsDialogOpen}>
+    <Dialog>
       {/* TRIGGER (Card) */}
       <DialogTrigger asChild>
         <div
