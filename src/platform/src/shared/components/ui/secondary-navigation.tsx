@@ -34,7 +34,7 @@ export const SecondaryNavigation: React.FC<SecondaryNavigationProps> = ({
             className="ml-2"
             aria-label="Toggle sidebar"
           >
-            <AqMenu02 className="text-foreground" />
+            <AqMenu02 className="h-4 w-4 text-foreground" />
           </Button>
         </div>
       </Card>

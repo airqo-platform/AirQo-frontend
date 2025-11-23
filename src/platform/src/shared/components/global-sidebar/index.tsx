@@ -222,7 +222,7 @@ export const GlobalSidebar: React.FC = () => {
                   onClick={handleClose}
                   aria-label="Close sidebar"
                 >
-                  <AqXClose />
+                  <AqXClose className="text-foreground" />
                 </Button>
               </div>
               <div className="space-y-1 relative overflow-visible">

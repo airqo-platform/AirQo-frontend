@@ -104,7 +104,7 @@ const ThemeSettings: React.FC = () => {
     try {
       await updateTheme({
         groupId: activeGroup.id,
-        data: { theme: draftTheme },
+        data: draftTheme,
       });
       // Reset draft after successful save
       setDraftTheme(null);

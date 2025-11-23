@@ -157,14 +157,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ userId }) => {
       // Only delete from Cloudinary when the user explicitly clears the profile picture
       if (oldPictureUrl && finalPictureUrl === '') {
         const oldPublicId = extractPublicIdFromUrl(oldPictureUrl);
-        console.log('Attempting to delete old picture:', {
-          oldPictureUrl,
-          oldPublicId,
-        });
         if (oldPublicId) {
           try {
-            const deleteResult = await deleteFromCloudinary(oldPublicId);
-            console.log('Delete result:', deleteResult);
+            await deleteFromCloudinary(oldPublicId);
           } catch (deleteError) {
             console.warn(
               'Failed to delete old profile picture from Cloudinary:',
