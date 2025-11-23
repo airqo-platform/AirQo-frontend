@@ -77,14 +77,14 @@ async function handleRequest(
   try {
     // Build the external API URL
     const path = slug.join('/');
-    
+
     // For Django endpoints starting with 'website/', add trailing slash if not present
     // Django REST framework typically expects trailing slashes for list endpoints
     let finalPath = path;
     if (path.startsWith('website/') && !path.endsWith('/')) {
       finalPath = `${path}/`;
     }
-    
+
     // The client passes the full API path starting with /website/api/v2/
     const externalUrl = `${API_BASE_URL}/${finalPath}`;
 
