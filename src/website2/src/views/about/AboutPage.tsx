@@ -197,7 +197,7 @@ const AboutPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
             {members.map((member: any, idx: any) => (
               <MemberCard
-                key={member.public_identifier || member.id || idx}
+                key={member.id || member.public_identifier || idx}
                 member={member}
               />
             ))}
