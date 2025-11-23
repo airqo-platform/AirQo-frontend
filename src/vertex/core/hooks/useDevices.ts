@@ -29,6 +29,8 @@ import type {
   DecryptionRequest,
   DecryptionResponse,
   MyDevicesResponse,
+  DeviceOnboardResponse,
+  DeviceOnboardRequest,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
 import { useDispatch } from 'react-redux';
@@ -235,6 +237,29 @@ export const useClaimDevice = () => {
     onError: error => {
       ReusableToast({
         message: `Claim Failed: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const useOnboardDevice = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    DeviceOnboardResponse,
+    AxiosError<ErrorResponse>,
+    DeviceOnboardRequest
+  >({
+    mutationFn: devices.onboardDevice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+    },
+    onError: error => {
+      ReusableToast({
+        message: `Onboard Failed: ${getApiErrorMessage(error)}`,
         type: 'ERROR',
       });
     },

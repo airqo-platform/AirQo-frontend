@@ -309,3 +309,37 @@ export const useAssignCohortsToGroup = () => {
     },
   });
 };
+
+export const useAssignCohortsToUser = () => {
+  const queryClient = useQueryClient();
+  const activeNetwork = useAppSelector(state => state.user.activeNetwork);
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      cohortIds,
+    }: {
+      userId: string;
+      cohortIds: string[];
+    }) => {
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+      if (!cohortIds?.length) {
+        throw new Error('At least one cohort ID is required');
+      }
+      return cohortsApi.assignCohortsToUser(userId, cohortIds);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['cohorts', activeNetwork?.net_name],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['my-devices'],
+      });
+    },
+    onError: error => {
+      console.error('Failed to assign cohorts to user:', error);
+    },
+  });
+};

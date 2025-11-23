@@ -113,6 +113,7 @@ html {
     line-height: var(--heading-line-height);
     letter-spacing: var(--heading-letter-spacing);
     margin: 0;
+    padding: 0;
   }
 
   /* Individual heading sizes */
@@ -149,12 +150,11 @@ html {
     line-height: 1.5;
   }
 
-  /* Body text */
+  /* Body text
   p {
     color: rgb(var(--foreground));
     line-height: 1.6;
-    margin-bottom: 1rem;
-  }
+  } */
 
   /* Links */
   a {

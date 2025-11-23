@@ -12,7 +12,9 @@ import type {
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
   DecryptionRequest,
-  DecryptionResponse
+  DecryptionResponse,
+  DeviceOnboardRequest,
+  DeviceOnboardResponse
 } from "@/app/types/devices";
 
 // Create secure API clients that use the proxy
@@ -198,6 +200,19 @@ export const devices = {
       throw error;
     }
   },
+
+  onboardDevice: async (data: DeviceOnboardRequest): Promise<DeviceOnboardResponse> => {
+  try {
+    const response = await jwtApiClient.post<DeviceOnboardResponse>(
+      `/devices/onboard`,
+      data,
+      { headers: { 'X-Auth-Type': 'JWT' } }
+    );
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+},
 
   getMyDevices: async (userId: string): Promise<MyDevicesResponse> => {
     try {

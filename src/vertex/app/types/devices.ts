@@ -277,3 +277,24 @@ export interface DecryptionResponse {
   message: string;
   decrypted_keys: DecryptedKeyResult[];
 }
+
+export interface DeviceOnboardRequest {
+  device_name: string;
+  claim_token?: string;
+  owner_type: 'user' | 'organization';
+  owner_id: string;
+}
+
+export interface DeviceOnboardResponse {
+  success: boolean;
+  message: string;
+  cohort_id: string;
+  device: {
+    _id: string;
+    name: string;
+    long_name: string;
+    status: string;
+    claim_status: 'claimed';
+    claimed_at: string;
+  };
+}
