@@ -1,4 +1,5 @@
 export { default as Accordion } from './Accordion';
+export { default as AvatarFallback } from './AvatarFallback';
 export { Button, buttonVariants } from './button';
 export {
   Card,

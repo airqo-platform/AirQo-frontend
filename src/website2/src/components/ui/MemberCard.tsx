@@ -3,7 +3,7 @@
 import PlaceholderImage from '@public/assets/images/placeholder.webp';
 import DOMPurify from 'dompurify';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
 import { FaLinkedinIn, FaTwitter } from 'react-icons/fa';
 
 import {
@@ -15,8 +15,14 @@ import {
   DialogTrigger,
   Divider,
 } from '@/components/ui';
+import {
+  useExternalTeamBiography,
+  useTeamBiography,
+} from '@/hooks/useApiHooks';
 import { cn } from '@/lib/utils';
 import { convertDeltaToHtml } from '@/utils/quillUtils';
+
+import AvatarFallback from './AvatarFallback';
 
 // Define types for member data
 interface Member {
@@ -25,38 +31,78 @@ interface Member {
   public_identifier?: string;
   api_url?: string;
   name?: string;
-  title?: string;
+  title?: string; // Generic title field
+  role?: string; // Team members might use this
+  position?: string; // Board members use this
   picture_url?: string;
   picture?: string;
+  image?: string; // Another common field name
   bio?: string;
   about?: string;
+  bio_description?: string;
+  description?: string;
   descriptions?: { id?: number; description?: string }[];
   twitter?: string | null;
   linked_in?: string | null;
+  linkedin?: string | null; // Alternative field name
 }
 
 interface MemberCardProps {
   member: Member;
   btnText?: string;
   cardClassName?: string;
+  type?: 'team' | 'external' | 'board';
 }
 
 const MemberCard: React.FC<MemberCardProps> = ({
   member,
   btnText = 'Read Bio',
   cardClassName,
+  type = 'team',
 }) => {
   // Use the member data directly (no additional fetching needed)
+  const [imageError, setImageError] = useState(false);
+  const [dialogImageError, setDialogImageError] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Fetch biography only when dialog is open and not board
+  const memberId = member.api_url
+    ? (member.api_url.split('/').filter(Boolean).pop() as string | undefined)
+    : (member.public_identifier || member.id || undefined);
+  const { data: biography, isLoading: bioLoading } =
+    type !== 'board' && type === 'external'
+      ? useExternalTeamBiography(isDialogOpen && memberId ? memberId : null)
+      : type !== 'board'
+        ? useTeamBiography(isDialogOpen && memberId ? memberId : null)
+        : { data: null, isLoading: false };
 
   const renderContent = (content?: string) => {
-    const raw = (content || '').trim();
-    const isHtml = raw.startsWith('<');
-    const html = isHtml ? raw : convertDeltaToHtml(raw);
-    return DOMPurify.sanitize(html);
+    if (!content) return '';
+
+    const raw = content.trim();
+    if (!raw) return '';
+
+    // If it's already HTML, sanitize and return
+    if (raw.startsWith('<')) {
+      return DOMPurify.sanitize(raw);
+    }
+
+    // Try to convert Delta to HTML
+    try {
+      const html = convertDeltaToHtml(raw);
+      if (html && html.trim()) {
+        return DOMPurify.sanitize(html);
+      }
+    } catch (error) {
+      console.warn('Error converting content to HTML:', error);
+    }
+
+    // If conversion fails, treat as plain text
+    return DOMPurify.sanitize(`<p>${raw}</p>`);
   };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={setIsDialogOpen}>
       {/* TRIGGER (Card) */}
       <DialogTrigger asChild>
         <div
@@ -70,13 +116,26 @@ const MemberCard: React.FC<MemberCardProps> = ({
             Also applying 'mt-[-20px]' to push the container up slightly.
           */}
           <div className="relative w-full h-[350px] rounded-xl overflow-hidden mt-[-20px]">
-            <Image
-              src={member.picture_url || member.picture || PlaceholderImage}
-              alt={member.name || ''}
-              fill
-              sizes="(max-width: 640px) 100vw, 300px"
-              className="object-cover transition-transform duration-300 ease-in-out hover:scale-105"
-            />
+            {imageError ? (
+              <AvatarFallback
+                name={member.name}
+                className="w-full h-full text-4xl"
+              />
+            ) : (
+              <Image
+                src={
+                  member.picture_url ||
+                  member.picture ||
+                  member.image ||
+                  PlaceholderImage
+                }
+                alt={member.name || 'Team member'}
+                fill
+                sizes="(max-width: 640px) 100vw, 300px"
+                className="object-cover transition-transform duration-300 ease-in-out hover:scale-105"
+                onError={() => setImageError(true)}
+              />
+            )}
           </div>
 
           {/* Name and Title */}
@@ -89,16 +148,24 @@ const MemberCard: React.FC<MemberCardProps> = ({
             </h3>
             <p
               className="text-gray-600 text-sm leading-snug truncate"
-              title={member.title || ''}
+              title={member.title || member.role || member.position || ''}
             >
-              {member.title}
+              {member.title || member.role || member.position}
             </p>
           </div>
 
           {/* Read Bio Button */}
           {btnText && (
             <span className="text-sm text-blue-500 hover:underline self-start">
-              {btnText}
+              {type === 'board'
+                ? member.bio ||
+                  member.about ||
+                  member.bio_description ||
+                  member.description ||
+                  member.descriptions?.length
+                  ? btnText
+                  : 'View Profile'
+                : btnText}
             </span>
           )}
 
@@ -114,9 +181,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
                 <FaTwitter size={20} />
               </a>
             )}
-            {member.linked_in && (
+            {(member.linked_in || member.linkedin) && (
               <a
-                href={member.linked_in}
+                href={member.linked_in || member.linkedin || ''}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-500 hover:text-blue-600 transition"
@@ -129,14 +196,16 @@ const MemberCard: React.FC<MemberCardProps> = ({
       </DialogTrigger>
 
       {/* DIALOG CONTENT */}
-      <DialogContent className="sm:max-w-[1024px] w-full p-4 md:p-6 overflow-hidden">
-        <div className="flex flex-col gap-2">
+      <DialogContent className="w-[95vw] sm:w-full sm:max-w-[600px] lg:max-w-[900px] xl:max-w-[1024px] p-3 sm:p-4 md:p-6 overflow-hidden">
+        <div className="flex flex-col gap-2 h-full">
           {/* Header Section */}
-          <DialogHeader className="p-0">
-            <DialogTitle className="text-2xl font-semibold">
+          <DialogHeader className="p-0 flex-shrink-0">
+            <DialogTitle className="text-xl sm:text-2xl font-semibold">
               {member.name}
             </DialogTitle>
-            <p className="text-base text-gray-500">{member.title}</p>
+            <p className="text-sm sm:text-base text-gray-500">
+              {member.title || member.role || member.position}
+            </p>
 
             {/* Optional Social Media Icons in the dialog header */}
             <div className="flex items-center space-x-2">
@@ -150,9 +219,9 @@ const MemberCard: React.FC<MemberCardProps> = ({
                   <FaTwitter size={24} />
                 </a>
               )}
-              {member.linked_in && (
+              {(member.linked_in || member.linkedin) && (
                 <a
-                  href={member.linked_in}
+                  href={member.linked_in || member.linkedin || ''}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:text-blue-600 transition"
@@ -166,47 +235,86 @@ const MemberCard: React.FC<MemberCardProps> = ({
           <Divider className="my-2" />
 
           {/* Main Content: Image + Bio */}
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex flex-col sm:flex-col lg:flex-row gap-4 sm:gap-6 flex-1 min-h-0">
             {/* Dialog Image */}
-            <div className="flex-shrink-0 w-full lg:w-[300px] h-[300px] lg:h-auto overflow-hidden rounded-lg">
-              <Image
-                src={member.picture_url || member.picture || PlaceholderImage}
-                alt={member.name || ''}
-                width={300}
-                height={300}
-                className="w-full h-full object-cover"
-                placeholder="blur"
-                blurDataURL="/placeholder-image.jpg"
-                loading="eager"
-              />
+            <div className="flex-shrink-0 w-full sm:w-full lg:w-[280px] h-[200px] sm:h-[250px] lg:h-[280px] mx-auto lg:mx-0 overflow-hidden rounded-lg">
+              {dialogImageError ? (
+                <AvatarFallback
+                  name={member.name}
+                  className="w-full h-full text-6xl"
+                />
+              ) : (
+                <Image
+                  src={
+                    member.picture_url ||
+                    member.picture ||
+                    member.image ||
+                    PlaceholderImage
+                  }
+                  alt={member.name || 'Team member'}
+                  width={300}
+                  height={300}
+                  className="w-full h-full object-cover"
+                  loading="eager"
+                  onError={() => setDialogImageError(true)}
+                />
+              )}
             </div>
 
             {/* Description with scroll if content is long */}
-            <div className="flex-1 max-h-[50vh] md:max-h-[60vh] overflow-y-auto pr-2">
+            <div className="flex-1 max-h-[40vh] sm:max-h-[45vh] lg:max-h-[50vh] overflow-y-auto pr-2">
               <DialogDescription className="leading-relaxed">
-                {member.descriptions?.length
-                  ? member.descriptions.map((desc: any, idx: number) => (
-                      <p key={idx} className="mb-2">
-                        {desc.description}
-                      </p>
-                    ))
-                  : null}
+                {type === 'board' ? (
+                  <>
+                    {member.descriptions?.length
+                      ? member.descriptions.map((desc: any, idx: number) => (
+                          <p key={idx} className="mb-2">
+                            {desc.description}
+                          </p>
+                        ))
+                      : null}
 
-                {member.bio && (
+                    {/* Check multiple possible bio fields */}
+                    {(member.bio ||
+                      member.about ||
+                      member.bio_description ||
+                      member.description) && (
+                      <div
+                        className="mb-2"
+                        dangerouslySetInnerHTML={{
+                          __html: renderContent(
+                            member.bio ||
+                              member.about ||
+                              member.bio_description ||
+                              member.description,
+                          ),
+                        }}
+                      />
+                    )}
+
+                    {/* If no bio content found */}
+                    {!(
+                      member.bio ||
+                      member.about ||
+                      member.bio_description ||
+                      member.description
+                    ) &&
+                      (!member.descriptions ||
+                        member.descriptions.length === 0) && (
+                        <p className="text-gray-500">Bio is not available.</p>
+                      )}
+                  </>
+                ) : bioLoading ? (
+                  <p className="text-gray-500">Loading biography...</p>
+                ) : biography?.description ? (
                   <div
-                    className="mb-2"
                     dangerouslySetInnerHTML={{
-                      __html: renderContent(member.bio),
+                      __html: renderContent(biography.description),
                     }}
                   />
+                ) : (
+                  <p className="text-gray-500">Biography is not available.</p>
                 )}
-
-                {/* If no descriptions and no bio */}
-                {!member.bio &&
-                  (!member.descriptions ||
-                    member.descriptions.length === 0) && (
-                    <p className="text-gray-500">Bio is not available.</p>
-                  )}
               </DialogDescription>
             </div>
           </div>

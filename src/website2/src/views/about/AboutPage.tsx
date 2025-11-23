@@ -128,6 +128,7 @@ const AboutPage: React.FC = () => {
     currentPage: number,
     totalPages: number,
     onPageChange: (page: number) => void,
+    type: 'team' | 'external' | 'board' = 'team',
   ) => {
     if (loading) {
       // Display Skeleton Loaders
@@ -197,8 +198,9 @@ const AboutPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-5xl mx-auto px-4">
             {members.map((member: any, idx: any) => (
               <MemberCard
-                key={member.public_identifier || member.id || idx}
+                key={member.id || member.public_identifier || idx}
                 member={member}
+                type={type}
               />
             ))}
           </div>
@@ -436,6 +438,7 @@ const AboutPage: React.FC = () => {
           teamPage,
           teamTotalPages,
           setTeamPage,
+          'team',
         )}
 
         {/* External Team Section */}
@@ -447,6 +450,7 @@ const AboutPage: React.FC = () => {
           externalPage,
           externalTotalPages,
           setExternalPage,
+          'external',
         )}
 
         {/* Board Section */}
@@ -458,6 +462,7 @@ const AboutPage: React.FC = () => {
           boardPage,
           boardTotalPages,
           setBoardPage,
+          'board',
         )}
 
         {/* Partners Section */}
