@@ -37,6 +37,10 @@ function removeTokenFromUrl(url: string): string {
   }
 }
 
+// Add dynamic force for better production debugging
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { slug: string[] } },
@@ -71,7 +75,11 @@ async function handleRequest(
   method: string,
 ) {
   if (!API_TOKEN) {
-    throw new Error('API_TOKEN environment variable is required');
+    console.error('API_TOKEN environment variable is required but not found');
+    return NextResponse.json(
+      { error: 'Server configuration error' },
+      { status: 500 },
+    );
   }
 
   try {
@@ -92,15 +100,12 @@ async function handleRequest(
     const url = new URL(request.url);
     const searchParams = url.searchParams;
 
-    // Build the final URL with query parameters and token
+    // Build the final URL with query parameters
     const final = new URL(externalUrl);
-    // carry over incoming query params, but strip token
+    // carry over incoming query params, but strip any existing token
     searchParams.forEach((v, k) => {
       if (k !== 'token') final.searchParams.append(k, v);
     });
-    // ensure exactly one token param
-    final.searchParams.set('token', API_TOKEN!);
-    const finalUrl = final.toString();
 
     // Prepare headers for the external API request
     const headers = new Headers();
@@ -113,13 +118,19 @@ async function handleRequest(
     }
     headers.set('Accept', 'application/json');
 
+    // Handle authentication - use query parameter method for all endpoints
+    // Add the API token as a query parameter for authentication
+    final.searchParams.set('token', API_TOKEN);
+
+    const finalUrl = final.toString();
+
     // Get request body if it exists
     let body: string | undefined;
-    if (method === 'POST' || method === 'PUT') {
+    if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
       try {
         body = await request.text();
       } catch {
-        // Body might not be JSON, ignore
+        // Body might not be valid, ignore
       }
     }
 
@@ -146,9 +157,14 @@ async function handleRequest(
       },
     });
   } catch (_error) {
-    console.error('API proxy error:', _error);
+    const error = _error as Error;
+    console.error('API proxy error:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
 
-    if (_error instanceof Error && _error.name === 'AbortError') {
+    if (error instanceof Error && error.name === 'AbortError') {
       return NextResponse.json({ error: 'Request timeout' }, { status: 408 });
     }
 
