@@ -300,7 +300,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               );
 
             case DashboardView.nearYou:
-              return NearbyView();
+              return NearbyView(
+                onNavigateToFavorites: () => setView(DashboardView.favorites),
+              );
 
             case DashboardView.country:
               final countryMeasurements = state.response.measurements!

@@ -12,7 +12,9 @@ import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
 
 class NearbyView extends StatefulWidget {
-  const NearbyView({super.key});
+  final VoidCallback? onNavigateToFavorites;
+
+  const NearbyView({super.key, this.onNavigateToFavorites});
 
   @override
   State<NearbyView> createState() => _NearbyViewState();
@@ -491,7 +493,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "There are no air quality monitoring stations within ${_defaultSearchRadius.toInt()} km of your location.",
+                        "But you can add your favorite location from areas where we have presence",
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 16,
@@ -500,9 +502,9 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
-                        onPressed: _retry,
-                        icon: const Icon(Icons.refresh, color: Colors.white),
-                        label: const Text("Refresh"),
+                        onPressed: widget.onNavigateToFavorites ?? _retry,
+                        icon: const Icon(Icons.favorite, color: Colors.white),
+                        label: const Text("Add Favorite Location"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
                           foregroundColor: Colors.white,
