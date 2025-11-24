@@ -503,7 +503,7 @@ class _NearbyViewState extends State<NearbyView> with UiLoggy {
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
                         onPressed: widget.onNavigateToFavorites ?? _retry,
-                        icon: const Icon(Icons.favorite, color: Colors.white),
+                        // icon: const Icon(Icons.favorite, color: Colors.white),
                         label: const Text("Add Favorite Location"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryColor,
