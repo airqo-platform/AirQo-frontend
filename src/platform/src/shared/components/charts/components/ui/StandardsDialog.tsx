@@ -64,7 +64,6 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   const [showReferenceLine, setShowReferenceLine] = useState(
     currentStandards?.showReferenceLine ?? true
   );
-  const [viewMode, setViewMode] = useState<'annual' | '24hour'>('annual');
 
   // Convert pollutant format from filter to display format
   const displayPollutant: 'PM2.5' | 'PM10' =
@@ -287,24 +286,6 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
                   : 'NEMA Kenya standards (Legal Notice 180/2024)'}{' '}
               for {displayPollutant}
             </span>
-          </div>
-
-          {/* View Mode Selector */}
-          <div className="flex gap-1 p-1 bg-muted rounded-lg">
-            {(['annual', '24hour'] as const).map(mode => (
-              <button
-                key={mode}
-                onClick={() => setViewMode(mode)}
-                className={cn(
-                  'flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors',
-                  viewMode === mode
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground'
-                )}
-              >
-                {mode === 'annual' ? 'Annual Guidelines' : '24-Hour Guidelines'}
-              </button>
-            ))}
           </div>
 
           {/* Enhanced Standards Display */}
