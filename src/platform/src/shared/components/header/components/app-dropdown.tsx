@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { QRCodeSVG as QRCode } from 'qrcode.react';
+import Image from 'next/image';
 import {
   AqDotsGrid,
   AqCalibration,
@@ -162,10 +162,12 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
             </div>
 
             <div className="flex justify-center mb-6">
-              <div className="w-56 h-56 bg-white rounded-2xl border-2 border-primary shadow-sm flex items-center justify-center">
-                <QRCode
-                  value="https://play.google.com/store/apps/details?id=com.airqo.app"
-                  size={200}
+              <div className="w-56 h-56 bg-white overflow-hidden rounded-2xl border-2 border-primary shadow-sm flex items-center justify-center relative">
+                <Image
+                  src="/images/QR/AQR.jpeg"
+                  alt="AirQo Mobile App QR Code"
+                  fill
+                  className="object-contain"
                 />
               </div>
             </div>

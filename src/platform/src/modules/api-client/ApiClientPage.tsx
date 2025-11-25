@@ -12,7 +12,7 @@ import InactiveClientDialog from './components/InactiveClientDialog';
 import CreateClientDialog from './components/CreateClientDialog';
 import EditClientDialog from './components/EditClientDialog';
 import TokenDisplay from './components/TokenDisplay';
-import type { Client } from './types';
+import type { Client } from '@/shared/types/api';
 
 type TableClient = Client & { id: string };
 
@@ -38,7 +38,11 @@ const ApiClientPage: React.FC = () => {
   });
 
   const userId = (session?.user as { _id?: string })?._id;
-  const { data: clientsResponse, isLoading } = useClientsByUserId(userId || '');
+  const {
+    data: clientsResponse,
+    isLoading,
+    mutate,
+  } = useClientsByUserId(userId || '');
   const { trigger: generateToken, isMutating: isGeneratingToken } =
     useGenerateToken();
 
@@ -279,7 +283,11 @@ const ApiClientPage: React.FC = () => {
       <CreateClientDialog
         isOpen={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        userId={userId || ''}
+        onSuccess={() => {
+          setCreateDialogOpen(false);
+          mutate();
+        }}
+        userId={userId}
       />
 
       {/* Edit Client Dialog */}
