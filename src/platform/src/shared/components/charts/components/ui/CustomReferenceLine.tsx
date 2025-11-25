@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { ReferenceLine } from 'recharts';
-import { PollutantType } from '../../types';
+import { PollutantType, StandardsType } from '../../types';
 import { REFERENCE_LINES } from '../../constants';
 
 interface CustomReferenceLineProps {
   pollutant: PollutantType;
-  standards: 'WHO' | 'NEMA';
+  standards: StandardsType;
   showReferenceLine?: boolean;
 }
 
@@ -81,7 +81,7 @@ export const CustomReferenceLine: React.FC<CustomReferenceLineProps> = ({
 
   const getReferenceLineValue = (
     rawPollutant: string,
-    rawStandards: 'WHO' | 'NEMA'
+    rawStandards: StandardsType
   ) => {
     const pollutantKey = normalizePollutant(rawPollutant as string);
     const standardsKey = rawStandards || 'WHO';
@@ -89,17 +89,17 @@ export const CustomReferenceLine: React.FC<CustomReferenceLineProps> = ({
 
     if (!referenceLine) return null;
 
-    // Try to find the most appropriate key (prefer 24HR/8HR where applicable, fall back to ANNUAL)
+    // Try to find the most appropriate key (prefer ANNUAL where applicable, fall back to 24HR/8HR)
     const candidateKeys: string[] = [];
     switch (pollutantKey) {
       case 'pm2_5':
-        candidateKeys.push('PM25_24HR', 'PM25_ANNUAL');
+        candidateKeys.push('PM25_ANNUAL', 'PM25_24HR');
         break;
       case 'pm10':
-        candidateKeys.push('PM10_24HR', 'PM10_ANNUAL');
+        candidateKeys.push('PM10_ANNUAL', 'PM10_24HR');
         break;
       case 'no2':
-        candidateKeys.push('NO2_24HR', 'NO2_ANNUAL');
+        candidateKeys.push('NO2_ANNUAL', 'NO2_24HR');
         break;
       case 'co':
         candidateKeys.push('CO_8HR');
@@ -129,7 +129,14 @@ export const CustomReferenceLine: React.FC<CustomReferenceLineProps> = ({
   const referenceValue = getReferenceLineValue(pollutant as string, standards);
   if (!referenceValue) return null;
 
-  const standardsLabel = standards === 'WHO' ? 'WHO' : 'NEMA(UG)';
+  const standardsLabel =
+    standards === 'WHO'
+      ? 'WHO'
+      : standards === 'NEMA_UGANDA'
+        ? 'NEMA(UG)'
+        : standards === 'NEMA_KENYA'
+          ? 'NEMA(KE)'
+          : 'WHO';
   const lineColor = '#DC2626'; // Consistent red color for all standards
 
   return (

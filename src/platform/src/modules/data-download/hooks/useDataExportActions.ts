@@ -12,6 +12,14 @@ import {
   createSitesFromDevicesForVisualization,
   createSitesFromGridsForVisualization,
 } from '../utils/dataExportUtils';
+import type { AxiosError } from 'axios';
+
+interface ApiErrorResponse {
+  status?: string;
+  message?: string;
+  data?: unknown;
+  metadata?: unknown;
+}
 
 /**
  * Custom hook for data export actions and event handlers
@@ -134,8 +142,22 @@ export const useDataExportActions = (
         );
       } catch (error) {
         console.error('Download failed:', error);
-        const errorMessage = getUserFriendlyErrorMessage(error);
-        toast.error('Download Failed', errorMessage);
+
+        // Check for "No data found" error specifically
+        let userFriendlyMessage = getUserFriendlyErrorMessage(error);
+
+        // If it's an Axios error with "No data found" message, provide custom message
+        const axiosError = error as AxiosError;
+        if (
+          axiosError?.response?.data &&
+          (axiosError.response.data as ApiErrorResponse).message ===
+            'No data found'
+        ) {
+          userFriendlyMessage =
+            'No data is available for the selected criteria. Please try adjusting your date range, site/device selections, or pollutant choices.';
+        }
+
+        toast.error('Download Failed', userFriendlyMessage);
       }
     },
     [

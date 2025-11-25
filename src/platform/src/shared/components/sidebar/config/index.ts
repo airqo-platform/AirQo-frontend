@@ -11,6 +11,7 @@ import {
   AqShield02,
   AqSettings01,
   AqData,
+  AqKey01,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -141,6 +142,12 @@ const adminSidebarConfig: NavGroup[] = [
         icon: AqFileQuestion02,
       },
       {
+        id: 'admin-clients',
+        label: 'API Clients',
+        href: '/admin/clients',
+        icon: AqKey01,
+      },
+      {
         id: 'admin-members',
         label: 'Members',
         href: '/admin/members',
@@ -190,6 +197,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Organization Requests',
             href: '/admin/org-requests',
             description: 'Manage organization requests',
+          },
+          {
+            id: 'admin-clients',
+            label: 'API Clients',
+            href: '/admin/clients',
+            description: 'Manage API clients',
           },
           {
             id: 'admin-members',
