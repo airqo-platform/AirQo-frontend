@@ -171,10 +171,13 @@ export function ServerSideTable<T extends TableItem>({
         showPagination={true} // Enable built-in pagination for client-side operations
         sortable={true}
         headerComponent={customHeader}
+        {...(searchTerm !== undefined && onSearchChange !== undefined
+          ? { searchTerm, onSearchChange }
+          : {})}
       />
 
-      {/* Only show custom footer if not using MultiSelectTable's pagination */}
-      {/* {customFooter} */}
+      {/* Only show custom footer if pagination props are provided */}
+      {customFooter}
     </div>
   );
 }
