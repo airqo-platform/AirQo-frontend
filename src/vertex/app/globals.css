@@ -190,6 +190,21 @@ html {
     padding-left: 0;
   }
 
+  /* Toasts and alerts - remove list styles */
+  [role='alert'],
+  [role='status'],
+  [aria-live='polite'],
+  [aria-live='assertive'] {
+    list-style: none !important;
+  }
+
+  [role='alert'] *,
+  [role='status'] *,
+  [aria-live='polite'] *,
+  [aria-live='assertive'] * {
+    list-style: none !important;
+  }
+
   /* Blockquotes */
   blockquote {
     border-left: 4px solid rgb(var(--border));
