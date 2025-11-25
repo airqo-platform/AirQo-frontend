@@ -131,8 +131,9 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   };
 
   // Typed standards organization for child props
-  const currentStandardsOrg: 'WHO' | 'NEMA' =
-    (currentStandards?.organization as 'WHO' | 'NEMA') || 'WHO';
+  const currentStandardsOrg: 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' =
+    (currentStandards?.organization as 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA') ||
+    'WHO';
 
   return (
     <Card className={cn('w-full', className)}>
