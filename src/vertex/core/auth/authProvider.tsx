@@ -110,6 +110,9 @@ function useUserDetails(userId: string | null) {
     enabled: !!userId,
     retry: 1,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
   });
 }
 
@@ -150,7 +153,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   }, [session?.user]);
 
   // Fetch user details
-  const { data, error, isLoading } = useUserDetails(userId);
+  const { data, error, isLoading, isFetching } = useUserDetails(userId);
 
   // Clear user data when userId changes
   const prevUserIdRef = useRef(userId);
@@ -193,11 +196,11 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     prevIsLoadingRef.current = isLoading;
 
     if (isLoading !== prevIsLoading) {
-      if (isLoading && userId) {
+      if (isLoading && userId && !user) {
         dispatch(setContextLoading(true));
       }
     }
-  }, [isLoading, userId, dispatch]);
+  }, [isLoading, userId, user, dispatch]);
 
   // Handle errors
   useEffect(() => {
@@ -217,11 +220,14 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   }, [error, dispatch]);
 
   // Handle successful data fetching
+  // This runs both for initial load and background refetches
   useEffect(() => {
     const prevData = prevDataRef.current;
     prevDataRef.current = data;
 
-    if (data === prevData || isLoading) {
+    // Skip if data hasn't changed or query is still loading
+    // But allow updates from background refetches (isFetching but not isLoading)
+    if (data === prevData || (isLoading && !user)) {
       return;
     }
 
@@ -260,7 +266,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       dispatch(setInitialized());
     }
     dispatch(setContextLoading(false));
-  }, [data, dispatch, isInitialized, userContext, activeGroup, isLoading]);
+  }, [data, dispatch, isInitialized, userContext, activeGroup, isLoading, user]);
 
   // Check if user has no active group after data is loaded
   useEffect(() => {

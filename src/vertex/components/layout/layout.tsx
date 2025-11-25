@@ -30,6 +30,7 @@ export default function Layout({ children }: LayoutProps) {
   const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
   const isContextLoading = useAppSelector(state => state.user.isContextLoading);
+  const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
     if (pathname.startsWith('/admin/')) {
@@ -60,12 +61,14 @@ export default function Layout({ children }: LayoutProps) {
 
   // Show loading state when:
   // 1. Not initialized, not authenticated, or logging out
-  // 2. Authenticated and initialized but context is still loading
+  // 2. Authenticated and initialized but context is still loading AND we don't have persisted user data
+  // This prevents showing loading screen when user returns after inactivity,
+  // as we have persisted data and can render immediately while background refetch happens
   const shouldShowInitialLoading = 
     !isInitialized || 
     !isAuthenticated || 
     isLoggingOut ||
-    (isAuthenticated && isInitialized && isContextLoading);
+    (isAuthenticated && isInitialized && isContextLoading && !userDetails);
 
   if (shouldShowInitialLoading) {
     return (
