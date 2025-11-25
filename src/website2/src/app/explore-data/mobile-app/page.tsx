@@ -2,7 +2,6 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
-import { QRCodeSVG } from 'qrcode.react';
 
 const AppPromo = () => {
   return (
@@ -69,10 +68,7 @@ const AppPromo = () => {
         >
           {/* QR Code - Larger size for better visibility */}
           <div className="border border-gray-300 rounded-lg p-4">
-            <QRCodeSVG
-              value="https://play.google.com/store/apps/details?id=com.airqo.app"
-              size={220}
-            />
+            <Image src="/QR/AQR.jpeg" alt="QR Code" width={220} height={220} />
           </div>
 
           {/* Download buttons */}

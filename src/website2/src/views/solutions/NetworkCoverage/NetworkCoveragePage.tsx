@@ -101,17 +101,11 @@ const NetworkCoveragePage = () => {
   useEffect(() => {
     if (data?.grids) {
       if (currentSkip === 0) {
-        // Sort grids to put Uganda first
+        // Sort grids alphabetically
         const sortedGrids = [...data.grids].sort((a, b) => {
-          const aIsUganda = (a.long_name || a.name || '')
-            .toLowerCase()
-            .includes('uganda');
-          const bIsUganda = (b.long_name || b.name || '')
-            .toLowerCase()
-            .includes('uganda');
-          if (aIsUganda && !bIsUganda) return -1;
-          if (!aIsUganda && bIsUganda) return 1;
-          return 0;
+          const aName = formatText(a.long_name || a.name || '');
+          const bName = formatText(b.long_name || b.name || '');
+          return aName.localeCompare(bName);
         });
         // Replace data on first load or after search
         setAllGrids(sortedGrids);
@@ -518,7 +512,7 @@ const NetworkCoveragePage = () => {
                   <div className="relative">
                     <input
                       type="text"
-                      placeholder="Search locations in Africa..."
+                      placeholder="Search country in Africa..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 text-sm"
@@ -630,7 +624,7 @@ const NetworkCoveragePage = () => {
 
           {/* Selected Site Details Banner */}
           {selectedSite && (
-            <div className="mt-6 bg-white rounded-md shadow-sm border border-gray-200 p-4">
+            <div className="mt-6 bg-yellow-50 rounded-md shadow-sm border border-yellow-200 p-4">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900 text-lg mb-2">
@@ -776,7 +770,7 @@ const NetworkCoveragePage = () => {
               </h3>
               <p className="text-gray-700">
                 AirQo operates one of Africa&apos;s largest air quality
-                monitoring networks with over 300+ monitors deployed across 16+
+                monitoring networks with over 300+ monitors deployed across 14+
                 countries. Our network provides real-time air quality data to
                 millions of people, helping communities, researchers, and
                 policymakers make informed decisions about air quality.
@@ -789,9 +783,9 @@ const NetworkCoveragePage = () => {
               </h3>
               <p className="text-gray-700">
                 Each monitor in our network measures key air quality parameters
-                including PM2.5, PM10, and NO2. Data is transmitted in
-                real-time, providing up-to-date information about air quality
-                conditions across the region.
+                including PM2.5 and PM10. Data is transmitted in real-time,
+                providing up-to-date information about air quality conditions
+                across the region.
               </p>
             </div>
 
