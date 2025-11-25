@@ -33,7 +33,7 @@ class QRScannerErrorBoundary extends Component<QRScannerErrorBoundaryProps, QRSc
         return { hasError: true };
     }
 
-    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    componentDidCatch(error: Error) {
         if (process.env.NODE_ENV === 'development') {
             logger.warn('QR Scanner error caught by boundary:', error);
         }
@@ -157,44 +157,13 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     }, [isPending, step]);
 
     useEffect(() => {
-        if (!isOpen || step !== 'qr-scan') {
-            try {
-                const allVideos = document.querySelectorAll('video');
-                allVideos.forEach(video => {
-                    if (video.srcObject) {
-                        const stream = video.srcObject as MediaStream;
-                        stream.getTracks().forEach(track => {
-                            if (track.kind === 'video' && track.readyState === 'live') {
-                                track.stop();
-                            }
-                        });
-                        video.srcObject = null;
-                    }
-                });
-            } catch (err) {
-                if (process.env.NODE_ENV === 'development') {
-                    logger.warn('Error stopping camera tracks:', {
-                        error: err instanceof Error ? err.message : String(err),
-                        stack: err instanceof Error ? err.stack : undefined,
-                    });
-                }
-            }
-        }
-    }, [isOpen, step]);
-
-    useEffect(() => {
         if (isOpen) {
             setStep(initialStep);
             setError(null);
             if (initialStep !== 'method-select') {
                 formMethods.reset();
             }
-        } else {
-            if (step === 'qr-scan') {
-                setStep('method-select');
-            }
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, initialStep, formMethods]);
 
     const handleClaimDevice = (deviceId: string, claimToken: string) => {
@@ -211,27 +180,22 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const parseQRCode = (qrData: string): { deviceId: string; claimToken: string } | null => {
-        // Try parsing as URL (from QR code)
         try {
             const url = new URL(qrData);
             const deviceId = url.searchParams.get('id');
             const claimToken = url.searchParams.get('token');
-
-            if (deviceId && claimToken) {
-                return { deviceId, claimToken };
-            }
+            if (deviceId && claimToken) return { deviceId, claimToken };
         } catch {
-            // Not a URL, try JSON
+            // Not a URL
         }
 
-        // Try parsing as JSON
         try {
             const parsed = JSON.parse(qrData);
             if (parsed.device_id && parsed.token) {
                 return { deviceId: parsed.device_id, claimToken: parsed.token };
             }
         } catch {
-            // Not JSON either
+            // Not JSON
         }
 
         return null;
@@ -260,57 +224,25 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
         switch (step) {
             case 'method-select':
-                return {
-                    ...baseConfig,
-                    showFooter: false,
-                };
-
+                return { ...baseConfig, showFooter: false };
             case 'qr-scan':
                 return {
                     ...baseConfig,
                     title: 'Scan QR Code',
                     showFooter: true,
-                    secondaryAction: {
-                        label: 'Back',
-                        onClick: () => setStep('method-select'),
-                        variant: 'outline' as const,
-                    },
+                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
                 };
-
             case 'manual-input':
                 return {
                     ...baseConfig,
                     showFooter: true,
-                    primaryAction: {
-                        label: isPending ? 'Claiming...' : 'Claim Device',
-                        onClick: formMethods.handleSubmit(onManualSubmit),
-                        disabled: isPending,
-                    },
-                    secondaryAction: {
-                        label: 'Back',
-                        onClick: () => setStep('method-select'),
-                        variant: 'outline' as const,
-                    },
+                    primaryAction: { label: isPending ? 'Claiming...' : 'Claim Device', onClick: formMethods.handleSubmit(onManualSubmit), disabled: isPending },
+                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
                 };
-
             case 'claiming':
-                return {
-                    ...baseConfig,
-                    title: 'Claiming Device...',
-                    showCloseButton: false,
-                    preventBackdropClose: true,
-                    showFooter: false,
-                };
-
+                return { ...baseConfig, title: 'Claiming Device...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
             case 'success':
-                return {
-                    ...baseConfig,
-                    title: 'Success!',
-                    showCloseButton: false,
-                    preventBackdropClose: true,
-                    showFooter: false,
-                };
-
+                return { ...baseConfig, title: 'Success!', showCloseButton: false, preventBackdropClose: true, showFooter: false };
             default:
                 return baseConfig;
         }
@@ -330,40 +262,24 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             secondaryAction={dialogConfig.secondaryAction}
         >
             <div className="space-y-6 py-2">
-                {/* Method Selection Step */}
                 {step === 'method-select' && (
                     <div className="space-y-6">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Choose how you would like to add your device.
-                        </p>
-
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Choose how you would like to add your device.</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button
-                                onClick={() => setStep('qr-scan')}
-                                className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                            >
+                            <button onClick={() => setStep('qr-scan')} className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                                 <QrCode className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-3" />
                                 <span className="font-medium text-gray-900 dark:text-white">Scan QR Code</span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Fast & automatic
-                                </span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fast & automatic</span>
                             </button>
-
-                            <button
-                                onClick={() => setStep('manual-input')}
-                                className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                            >
+                            <button onClick={() => setStep('manual-input')} className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
                                 <Keyboard className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-3" />
                                 <span className="font-medium text-gray-900 dark:text-white">Enter Manually</span>
-                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    Type device details
-                                </span>
+                                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Type device details</span>
                             </button>
                         </div>
                     </div>
                 )}
 
-                {/* QR Scan Step */}
                 {step === 'qr-scan' && isOpen && (
                     <QRScannerErrorBoundary
                         onError={() => {
@@ -372,28 +288,18 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         }}
                     >
                         <div className="space-y-4">
-                            <QRScanner
-                                onScan={handleQRScan}
-                            />
-
-                            <button
-                                onClick={() => setStep('manual-input')}
-                                className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                            >
+                            <QRScanner onScan={handleQRScan} />
+                            <button onClick={() => setStep('manual-input')} className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline">
                                 Having trouble? Enter details manually
                             </button>
                         </div>
                     </QRScannerErrorBoundary>
                 )}
 
-                {/* Manual Input Step */}
                 {step === 'manual-input' && (
                     <Form {...formMethods}>
                         <div className="space-y-6">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                                Enter the device details found on the shipping label.
-                            </p>
-
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Enter the device details found on the shipping label.</p>
                             <div className="space-y-4">
                                 <FormField
                                     control={formMethods.control}
@@ -408,7 +314,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                         />
                                     )}
                                 />
-
                                 <FormField
                                     control={formMethods.control}
                                     name="claim_token"
@@ -423,7 +328,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     )}
                                 />
                             </div>
-
                             {error && (
                                 <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
                                     <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -434,48 +338,33 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     </Form>
                 )}
 
-                {/* Loading Step */}
                 {step === 'claiming' && (
                     <div className="flex flex-col items-center justify-center py-8 space-y-4">
                         <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
                         <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Claiming Your Device
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                Please wait while we set up your device...
-                            </p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Claiming Your Device</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Please wait while we set up your device...</p>
                         </div>
                     </div>
                 )}
 
-                {/* Success Step */}
                 {step === 'success' && claimData?.device && (
                     <div className="flex flex-col items-center justify-center py-8 space-y-4">
                         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                             <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
                         </div>
                         <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                                Device Claimed Successfully!
-                            </h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                {redirectOnSuccess ? 'Redirecting you to your devices...' : 'You can now close this dialog.'}
-                            </p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Device Claimed Successfully!</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{redirectOnSuccess ? 'Redirecting you to your devices...' : 'You can now close this dialog.'}</p>
                         </div>
-
                         <div className="w-full space-y-3 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-600 dark:text-gray-400">Device Name:</span>
-                                <span className="font-medium text-gray-900 dark:text-white">
-                                    {claimData.device.long_name}
-                                </span>
+                                <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-600 dark:text-gray-400">Device ID:</span>
-                                <span className="font-mono text-xs text-gray-900 dark:text-white">
-                                    {claimData.device.name}
-                                </span>
+                                <span className="font-mono text-xs text-gray-900 dark:text-white">{claimData.device.name}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-600 dark:text-gray-400">Status:</span>
@@ -485,7 +374,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 </span>
                             </div>
                         </div>
-
                         <div className="w-full space-y-2 mt-2">
                             <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
                                 <CheckCircle2 className="w-4 h-4" />
