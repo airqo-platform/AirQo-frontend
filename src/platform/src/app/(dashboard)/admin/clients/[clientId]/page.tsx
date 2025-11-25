@@ -37,8 +37,13 @@ const ClientDetailsPage: React.FC = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [refreshSecretDialogOpen, setRefreshSecretDialogOpen] = useState(false);
+  const [activateDialogState, setActivateDialogState] = useState({
+    isOpen: false,
+    activate: true,
+  });
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshingSecret, setIsRefreshingSecret] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
   const [showFullSecret, setShowFullSecret] = useState(false);
   const [showFullToken, setShowFullToken] = useState(false);
 
@@ -89,6 +94,35 @@ const ClientDetailsPage: React.FC = () => {
       console.error('Refresh secret error:', error);
     } finally {
       setIsRefreshingSecret(false);
+    }
+  };
+
+  const handleActivateClientClick = (activate: boolean) => {
+    setActivateDialogState({
+      isOpen: true,
+      activate,
+    });
+  };
+
+  const handleActivateClient = async () => {
+    setIsActivating(true);
+    try {
+      await clientService.activateClient(clientId, {
+        isActive: activateDialogState.activate,
+      });
+      toast.success(
+        `Client ${activateDialogState.activate ? 'activated' : 'deactivated'} successfully`
+      );
+      setActivateDialogState({
+        isOpen: false,
+        activate: true,
+      });
+      mutate();
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error('Activate client error:', error);
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -179,6 +213,20 @@ const ClientDetailsPage: React.FC = () => {
                 Refresh Secret
               </Button>
             )}
+            <Button
+              variant={client.isActive ? 'outlined' : 'filled'}
+              onClick={() => handleActivateClientClick(!client.isActive)}
+              disabled={isActivating}
+              className={
+                client.isActive
+                  ? ''
+                  : 'bg-green-600 hover:bg-green-700 text-white'
+              }
+              Icon={client.isActive ? AqShield01 : AqShieldTick}
+              iconPosition="start"
+            >
+              {client.isActive ? 'Deactivate' : 'Activate'}
+            </Button>
             <Button
               variant="filled"
               onClick={() => setDeleteDialogOpen(true)}
@@ -498,6 +546,60 @@ const ClientDetailsPage: React.FC = () => {
                 disabled={isRefreshingSecret}
               >
                 {isRefreshingSecret ? 'Refreshing...' : 'Refresh Secret'}
+              </Button>
+            </div>
+          </div>
+        </Dialog>
+
+        {/* Activate/Deactivate Confirmation Dialog */}
+        <Dialog
+          isOpen={activateDialogState.isOpen}
+          onClose={() =>
+            setActivateDialogState({
+              isOpen: false,
+              activate: true,
+            })
+          }
+          title={`${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
+          size="md"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              Are you sure you want to{' '}
+              {activateDialogState.activate ? 'activate' : 'deactivate'} the
+              client <span className="font-semibold">{client.name}</span>? This
+              will{' '}
+              {activateDialogState.activate
+                ? 'enable the client to access the API'
+                : 'prevent the client from accessing the API'}
+              .
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  setActivateDialogState({
+                    isOpen: false,
+                    activate: true,
+                  })
+                }
+                disabled={isActivating}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="filled"
+                onClick={handleActivateClient}
+                loading={isActivating}
+                className={
+                  activateDialogState.activate
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-yellow-600 hover:bg-yellow-700'
+                }
+              >
+                {isActivating
+                  ? `${activateDialogState.activate ? 'Activating' : 'Deactivating'}...`
+                  : `${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
               </Button>
             </div>
           </div>

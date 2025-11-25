@@ -12,6 +12,8 @@ import {
   AqTrash01,
   AqRefreshCw05,
   AqEye,
+  AqShieldTick,
+  AqShield01,
 } from '@airqo/icons-react';
 import { Tooltip } from 'flowbite-react';
 import { useRouter } from 'next/navigation';
@@ -64,8 +66,21 @@ const ClientsAdminPage: React.FC = () => {
     clientName: '',
   });
 
+  const [activateDialogState, setActivateDialogState] = useState<{
+    isOpen: boolean;
+    clientId: string;
+    clientName: string;
+    activate: boolean;
+  }>({
+    isOpen: false,
+    clientId: '',
+    clientName: '',
+    activate: true,
+  });
+
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshingSecret, setIsRefreshingSecret] = useState(false);
+  const [isActivating, setIsActivating] = useState(false);
 
   // Fetch all clients
   const {
@@ -170,6 +185,42 @@ const ClientsAdminPage: React.FC = () => {
       console.error('Refresh secret error:', error);
     } finally {
       setIsRefreshingSecret(false);
+    }
+  };
+
+  const handleActivateClientClick = useCallback(
+    (client: TableClient, activate: boolean) => {
+      setActivateDialogState({
+        isOpen: true,
+        clientId: client.id,
+        clientName: client.name,
+        activate,
+      });
+    },
+    []
+  );
+
+  const handleActivateClient = async () => {
+    setIsActivating(true);
+    try {
+      await clientService.activateClient(activateDialogState.clientId, {
+        isActive: activateDialogState.activate,
+      });
+      toast.success(
+        `Client ${activateDialogState.activate ? 'activated' : 'deactivated'} successfully`
+      );
+      setActivateDialogState({
+        isOpen: false,
+        clientId: '',
+        clientName: '',
+        activate: true,
+      });
+      mutate();
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error('Activate client error:', error);
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -299,6 +350,23 @@ const ClientsAdminPage: React.FC = () => {
                 </Button>
               </Tooltip>
             )}
+            <Tooltip
+              content={item.isActive ? 'Deactivate client' : 'Activate client'}
+            >
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleActivateClientClick(item, !item.isActive)}
+                disabled={isActivating}
+                className="p-1 h-8 w-8"
+              >
+                {item.isActive ? (
+                  <AqShield01 className="w-4 h-4 text-orange-600" />
+                ) : (
+                  <AqShieldTick className="w-4 h-4 text-green-600" />
+                )}
+              </Button>
+            </Tooltip>
             <Tooltip content="Delete client">
               <Button
                 size="sm"
@@ -322,8 +390,10 @@ const ClientsAdminPage: React.FC = () => {
       handleViewClient,
       handleDeleteClick,
       handleRefreshSecretClick,
+      handleActivateClientClick,
       hasAnyPermission,
       router,
+      isActivating,
     ]
   );
 
@@ -504,6 +574,67 @@ const ClientsAdminPage: React.FC = () => {
                 disabled={isRefreshingSecret}
               >
                 {isRefreshingSecret ? 'Refreshing...' : 'Refresh Secret'}
+              </Button>
+            </div>
+          </div>
+        </Dialog>
+
+        {/* Activate/Deactivate Confirmation Dialog */}
+        <Dialog
+          isOpen={activateDialogState.isOpen}
+          onClose={() =>
+            setActivateDialogState({
+              isOpen: false,
+              clientId: '',
+              clientName: '',
+              activate: true,
+            })
+          }
+          title={`${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
+          size="md"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              Are you sure you want to{' '}
+              {activateDialogState.activate ? 'activate' : 'deactivate'} the
+              client{' '}
+              <span className="font-semibold">
+                {activateDialogState.clientName}
+              </span>
+              ? This will{' '}
+              {activateDialogState.activate
+                ? 'enable the client to access the API'
+                : 'prevent the client from accessing the API'}
+              .
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outlined"
+                onClick={() =>
+                  setActivateDialogState({
+                    isOpen: false,
+                    clientId: '',
+                    clientName: '',
+                    activate: true,
+                  })
+                }
+                disabled={isActivating}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="filled"
+                onClick={handleActivateClient}
+                loading={isActivating}
+                className={
+                  activateDialogState.activate
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : 'bg-yellow-600 hover:bg-yellow-700'
+                }
+              >
+                {isActivating
+                  ? `${activateDialogState.activate ? 'Activating' : 'Deactivating'}...`
+                  : `${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
               </Button>
             </div>
           </div>
