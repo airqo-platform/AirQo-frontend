@@ -400,7 +400,10 @@ const ClientsAdminPage: React.FC = () => {
   return (
     <PermissionGuard
       requiredRoles={['AIRQO_SUPER_ADMIN']}
-      customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
+      customCheck={() => {
+        const email = user?.email?.toLowerCase();
+        return !!email && email.endsWith('@airqo.net');
+      }}
       accessDeniedTitle="Access Restricted"
       accessDeniedMessage="You do not have the required permissions to access this page."
     >

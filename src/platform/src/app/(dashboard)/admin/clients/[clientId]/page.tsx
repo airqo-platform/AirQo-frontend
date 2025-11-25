@@ -380,7 +380,7 @@ const ClientDetailsPage: React.FC = () => {
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <code className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded font-mono break-all">
-                {showFullSecret
+                {showFullSecret || client.client_secret.length <= 40
                   ? client.client_secret
                   : `${client.client_secret.slice(0, 20)}...${client.client_secret.slice(-20)}`}
               </code>
@@ -467,7 +467,7 @@ const ClientDetailsPage: React.FC = () => {
                 </label>
                 <div className="mt-2 flex items-center gap-2">
                   <code className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded font-mono break-all">
-                    {showFullToken
+                    {showFullToken || client.access_token.token.length <= 16
                       ? client.access_token.token
                       : `${client.access_token.token.slice(0, 8)}...${client.access_token.token.slice(-8)}`}
                   </code>
