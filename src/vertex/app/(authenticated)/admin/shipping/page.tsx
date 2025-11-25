@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from 'react';
-import { usePrepareDeviceForShipping, usePrepareBulkDevicesForShipping, useGenerateShippingLabels, useShippingStatus } from '@/core/hooks/useDevices';
+import { usePrepareBulkDevicesForShipping, useGenerateShippingLabels, useShippingStatus } from '@/core/hooks/useDevices';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import CardWrapper from '@/components/shared/card/CardWrapper';
@@ -19,57 +19,15 @@ const ShippingPage = () => {
             </div>
 
             <div className="flex space-x-4 border-b border-gray-200 dark:border-gray-700">
-                <button className={`py-2 px-4 font-medium ${activeTab === 'single' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setActiveTab('single')}>Prepare Single Device</button>
                 <button className={`py-2 px-4 font-medium ${activeTab === 'bulk' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setActiveTab('bulk')}>Prepare Bulk Devices</button>
                 <button className={`py-2 px-4 font-medium ${activeTab === 'status' ? 'text-primary border-b-2 border-primary' : 'text-gray-500 hover:text-gray-700'}`} onClick={() => setActiveTab('status')}>Status & Labels</button>
             </div>
 
             <div className="mt-6">
-                {activeTab === 'single' && <PrepareSingleDevice />}
                 {activeTab === 'bulk' && <PrepareBulkDevices />}
                 {activeTab === 'status' && <ShippingStatus />}
             </div>
         </div>
-    );
-};
-
-const PrepareSingleDevice = () => {
-    const [deviceName, setDeviceName] = useState('');
-    const [tokenType, setTokenType] = useState<'hex' | 'readable'>('hex');
-    const { mutate: prepareDevice, isPending, data } = usePrepareDeviceForShipping();
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!deviceName) return;
-        prepareDevice({ deviceName, tokenType });
-    };
-
-    return (
-        <CardWrapper className="max-w-2xl">
-            <h2 className="text-xl font-semibold mb-4">Prepare Single Device</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <ReusableInputField label="Device Name" value={deviceName} onChange={(e) => setDeviceName(e.target.value)} placeholder="e.g. airqo_g5241" required />
-                <div className="flex flex-col space-y-2">
-                    <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Token Type</label>
-                    <div className="flex space-x-4">
-                        <label className="inline-flex items-center"><input type="radio" className="form-radio text-primary" name="tokenType" value="hex" checked={tokenType === 'hex'} onChange={() => setTokenType('hex')} /><span className="ml-2">Hex (e.g. A1B2C3D4)</span></label>
-                        <label className="inline-flex items-center"><input type="radio" className="form-radio text-primary" name="tokenType" value="readable" checked={tokenType === 'readable'} onChange={() => setTokenType('readable')} /><span className="ml-2">Readable (e.g. AIR123)</span></label>
-                    </div>
-                </div>
-                <ReusableButton type="submit" disabled={isPending} loading={isPending}>Prepare Device</ReusableButton>
-            </form>
-            {data && data.success && (
-                <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <h3 className="text-lg font-medium text-green-800 dark:text-green-300 mb-2">Device Prepared Successfully</h3>
-                    <div className="space-y-2 text-sm">
-                        <p><strong>Device:</strong> {data.device_preparation.device_name}</p>
-                        <p><strong>Claim Token:</strong> {data.device_preparation.claim_token}</p>
-                        <p><strong>Token Type:</strong> {data.device_preparation.token_type}</p>
-                        <div className="mt-4"><p className="font-medium mb-2">QR Code:</p><img src={data.device_preparation.qr_code_image} alt="QR Code" className="w-32 h-32 border p-1 bg-white" /></div>
-                    </div>
-                </div>
-            )}
-        </CardWrapper>
     );
 };
 
