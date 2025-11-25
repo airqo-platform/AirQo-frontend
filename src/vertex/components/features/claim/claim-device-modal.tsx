@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, Component, ReactNode } from 'react';
 import { CheckCircle2, Loader2, AlertCircle, QrCode, Keyboard } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,6 +12,45 @@ import { useAppSelector } from '@/core/redux/hooks';
 import { useRouter } from 'next/navigation';
 import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice } from '@/core/hooks/useDevices';
+import logger from '@/lib/logger';
+
+interface QRScannerErrorBoundaryProps {
+    children: ReactNode;
+    onError?: () => void;
+}
+
+interface QRScannerErrorBoundaryState {
+    hasError: boolean;
+}
+
+class QRScannerErrorBoundary extends Component<QRScannerErrorBoundaryProps, QRScannerErrorBoundaryState> {
+    constructor(props: QRScannerErrorBoundaryProps) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(): QRScannerErrorBoundaryState {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        if (process.env.NODE_ENV === 'development') {
+            logger.warn('QR Scanner error caught by boundary:', error);
+        }
+
+        if (this.props.onError) {
+            this.props.onError();
+        }
+    }
+
+    render(): ReactNode {
+        if (this.state.hasError) {
+            return null;
+        }
+
+        return this.props.children;
+    }
+}
 
 // ============================================================
 // FORM SCHEMA
@@ -46,6 +85,7 @@ export interface ClaimDeviceModalProps {
     onClose: () => void;
     onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
     redirectOnSuccess?: boolean;
+    initialStep?: FlowStep;
 }
 
 const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
@@ -53,14 +93,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     onClose,
     onSuccess,
     redirectOnSuccess = true,
+    initialStep = 'method-select',
 }) => {
     const router = useRouter();
     const user = useAppSelector(state => state.user.userDetails);
-    
-    // Use the existing claim device hook
+
     const { mutate: claimDevice, isPending, isSuccess, data: claimData, error: claimError } = useClaimDevice();
 
-    const [step, setStep] = useState<FlowStep>('method-select');
+    const [step, setStep] = useState<FlowStep>(initialStep);
     const [error, setError] = useState<string | null>(null);
 
     const formMethods = useForm<ClaimDeviceFormData>({
@@ -70,35 +110,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             claim_token: '',
         },
     });
-
-    // Handle success response from the hook
-    useEffect(() => {
-        if (isSuccess && claimData) {
-            setStep('success');
-
-            if (redirectOnSuccess) {
-                setTimeout(() => {
-                    handleClose();
-                    router.push('/devices/my-devices');
-                }, 2000);
-            }
-        }
-    }, [isSuccess, claimData, onSuccess, redirectOnSuccess, router]);
-
-    // Handle error from the hook
-    useEffect(() => {
-        if (claimError) {
-            setError(claimError.message || 'Failed to claim device. Please try again.');
-            setStep('manual-input');
-        }
-    }, [claimError]);
-
-    // Handle pending state
-    useEffect(() => {
-        if (isPending && step !== 'claiming') {
-            setStep('claiming');
-        }
-    }, [isPending, step]);
 
     const resetState = useCallback(() => {
         formMethods.reset();
@@ -110,6 +121,81 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         resetState();
         onClose();
     }, [resetState, onClose]);
+
+    useEffect(() => {
+        if (isSuccess && claimData) {
+            setStep('success');
+
+            if (onSuccess && claimData.device) {
+                onSuccess({
+                    deviceId: claimData.device.name,
+                    deviceName: claimData.device.long_name || claimData.device.name,
+                    cohortId: '',
+                });
+            }
+
+            if (redirectOnSuccess) {
+                setTimeout(() => {
+                    handleClose();
+                    router.push('/devices/my-devices');
+                }, 2000);
+            }
+        }
+    }, [isSuccess, claimData, redirectOnSuccess, router, handleClose, onSuccess]);
+
+    useEffect(() => {
+        if (claimError) {
+            setError(claimError.message || 'Failed to claim device. Please try again.');
+            setStep('manual-input');
+        }
+    }, [claimError]);
+
+    useEffect(() => {
+        if (isPending && step !== 'claiming') {
+            setStep('claiming');
+        }
+    }, [isPending, step]);
+
+    useEffect(() => {
+        if (!isOpen || step !== 'qr-scan') {
+            try {
+                const allVideos = document.querySelectorAll('video');
+                allVideos.forEach(video => {
+                    if (video.srcObject) {
+                        const stream = video.srcObject as MediaStream;
+                        stream.getTracks().forEach(track => {
+                            if (track.kind === 'video' && track.readyState === 'live') {
+                                track.stop();
+                            }
+                        });
+                        video.srcObject = null;
+                    }
+                });
+            } catch (err) {
+                if (process.env.NODE_ENV === 'development') {
+                    logger.warn('Error stopping camera tracks:', {
+                        error: err instanceof Error ? err.message : String(err),
+                        stack: err instanceof Error ? err.stack : undefined,
+                    });
+                }
+            }
+        }
+    }, [isOpen, step]);
+
+    useEffect(() => {
+        if (isOpen) {
+            setStep(initialStep);
+            setError(null);
+            if (initialStep !== 'method-select') {
+                formMethods.reset();
+            }
+        } else {
+            if (step === 'qr-scan') {
+                setStep('method-select');
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, initialStep, formMethods]);
 
     const handleClaimDevice = (deviceId: string, claimToken: string) => {
         setError(null);
@@ -130,7 +216,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             const url = new URL(qrData);
             const deviceId = url.searchParams.get('id');
             const claimToken = url.searchParams.get('token');
-            
+
             if (deviceId && claimToken) {
                 return { deviceId, claimToken };
             }
@@ -153,7 +239,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
     const handleQRScan = async (result: string) => {
         const parsed = parseQRCode(result);
-        
+
         if (parsed) {
             handleClaimDevice(parsed.deviceId, parsed.claimToken);
         } else {
@@ -248,7 +334,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 {step === 'method-select' && (
                     <div className="space-y-6">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Choose how you'd like to add your device.
+                            Choose how you would like to add your device.
                         </p>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -278,21 +364,26 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 )}
 
                 {/* QR Scan Step */}
-                {step === 'qr-scan' && (
-                    <div className="space-y-4">
-                        <QRScanner
-                            onScan={handleQRScan}
-                            onClose={() => setStep('method-select')}
-                            showCloseButton={false}
-                        />
-                        
-                        <button
-                            onClick={() => setStep('manual-input')}
-                            className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                        >
-                            Having trouble? Enter details manually
-                        </button>
-                    </div>
+                {step === 'qr-scan' && isOpen && (
+                    <QRScannerErrorBoundary
+                        onError={() => {
+                            setStep('manual-input');
+                            setError('QR scanner encountered an issue. Please enter details manually.');
+                        }}
+                    >
+                        <div className="space-y-4">
+                            <QRScanner
+                                onScan={handleQRScan}
+                            />
+
+                            <button
+                                onClick={() => setStep('manual-input')}
+                                className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                                Having trouble? Enter details manually
+                            </button>
+                        </div>
+                    </QRScannerErrorBoundary>
                 )}
 
                 {/* Manual Input Step */}

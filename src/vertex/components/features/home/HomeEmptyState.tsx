@@ -11,7 +11,7 @@ const HomeEmptyState = () => {
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
     return (
-        <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm mt-8">
+        <div className="flex flex-col items-center justify-center py-16 px-4 text-center mt-8">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-8 rounded-full mb-6">
                 <AqCollocation className="w-10 h-10 text-blue-600 dark:text-blue-400" />
             </div>

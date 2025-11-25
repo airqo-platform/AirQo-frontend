@@ -2,44 +2,129 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Html5QrcodeScanner, Html5QrcodeScanType } from 'html5-qrcode';
-import { Camera, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { RefreshCw, AlertCircle } from 'lucide-react';
 
 interface QRScannerProps {
     onScan: (result: string) => void;
-    onClose: () => void;
-    /**
-     * Optional: Instructions to display below the scanner
-     */
     instructions?: string;
-    /**
-     * Optional: Whether to show the close button in the header
-     */
-    showCloseButton?: boolean;
 }
 
 const QRScanner: React.FC<QRScannerProps> = ({
     onScan,
-    onClose,
     instructions = 'Point your camera at the QR code on your device label',
-    showCloseButton = true,
 }) => {
     const scannerRef = useRef<Html5QrcodeScanner | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const isMountedRef = useRef(true);
+    const isCleaningUpRef = useRef(false);
     const [isInitializing, setIsInitializing] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [hasPermission, setHasPermission] = useState<boolean | null>(null);
     const scannerId = useRef(`qr-reader-${Date.now()}`);
 
+    // Helper function to stop all active video tracks (camera streams)
+    const stopAllVideoTracks = useCallback(() => {
+        try {
+            // Stop all video tracks from video elements in the scanner container
+            const scannerElement = document.getElementById(scannerId.current);
+            if (scannerElement) {
+                const videoElements = scannerElement.querySelectorAll('video');
+                videoElements.forEach(video => {
+                    if (video.srcObject) {
+                        const stream = video.srcObject as MediaStream;
+                        stream.getTracks().forEach(track => {
+                            if (track.kind === 'video') {
+                                track.stop();
+                            }
+                        });
+                        video.srcObject = null;
+                    }
+                });
+            }
+
+            // Also check for any other video elements that might be from the scanner
+            // This is a safety measure in case the scanner creates video elements outside its container
+            const allVideos = document.querySelectorAll('video');
+            allVideos.forEach(video => {
+                if (video.srcObject) {
+                    const stream = video.srcObject as MediaStream;
+                    const tracks = stream.getTracks();
+                    // Only stop tracks that are from camera (video input)
+                    tracks.forEach(track => {
+                        if (track.kind === 'video' && track.readyState === 'live') {
+                            // Check if this track is likely from our scanner by checking constraints
+                            const settings = track.getSettings();
+                            if (settings && (settings.deviceId || settings.facingMode)) {
+                                track.stop();
+                            }
+                        }
+                    });
+                    // Clear srcObject if all tracks are stopped
+                    if (tracks.every(t => t.readyState === 'ended')) {
+                        video.srcObject = null;
+                    }
+                }
+            });
+        } catch (err) {
+            // Silently ignore errors when stopping video tracks
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('Error stopping video tracks:', err);
+            }
+        }
+    }, []);
+
+    // Safe cleanup function that handles errors gracefully
+    const safeCleanup = useCallback(async () => {
+        if (isCleaningUpRef.current || !scannerRef.current) {
+            // Even if cleanup is in progress, ensure video tracks are stopped
+            stopAllVideoTracks();
+            return;
+        }
+
+        isCleaningUpRef.current = true;
+        const scanner = scannerRef.current;
+
+        try {
+            // First, stop all video tracks immediately to stop camera
+            stopAllVideoTracks();
+
+            // Check if the DOM element still exists before attempting to clear
+            const element = document.getElementById(scannerId.current);
+            if (element && element.parentNode) {
+                await scanner.clear();
+            }
+        } catch (err) {
+            // Silently handle errors during cleanup - DOM might already be removed
+            // Only log in development
+            if (process.env.NODE_ENV === 'development') {
+                console.warn('QR Scanner cleanup warning:', err);
+            }
+        } finally {
+            scannerRef.current = null;
+            isCleaningUpRef.current = false;
+            // Ensure video tracks are stopped even if cleanup fails
+            stopAllVideoTracks();
+        }
+    }, [stopAllVideoTracks]);
+
     const handleScanSuccess = useCallback((decodedText: string) => {
         // Prevent multiple scans
-        if (scannerRef.current) {
-            scannerRef.current.clear().catch(console.error);
-            scannerRef.current = null;
+        if (scannerRef.current && isMountedRef.current) {
+            safeCleanup().catch(() => {
+                // Ignore cleanup errors
+            });
         }
-        onScan(decodedText);
-    }, [onScan]);
+        if (isMountedRef.current) {
+            onScan(decodedText);
+        }
+    }, [onScan, safeCleanup]);
 
     const handleScanError = useCallback((errorMessage: string) => {
+        // Don't update state if component is unmounted or cleaning up
+        if (!isMountedRef.current || isCleaningUpRef.current) {
+            return;
+        }
+
         // Ignore "not found" errors - these are normal during scanning
         if (
             errorMessage.includes('No QR code found') ||
@@ -49,30 +134,48 @@ const QRScanner: React.FC<QRScannerProps> = ({
             return;
         }
 
+        // Ignore errors related to DOM manipulation during cleanup
+        if (
+            errorMessage.includes('Cannot set properties of null') ||
+            errorMessage.includes('innerText') ||
+            errorMessage.includes('innerHTML')
+        ) {
+            return;
+        }
+
         // Handle permission errors
         if (
             errorMessage.includes('NotAllowedError') ||
             errorMessage.includes('Permission')
         ) {
-            setHasPermission(false);
-            setError('Camera access denied. Please allow camera access and try again.');
+            if (isMountedRef.current) {
+                setHasPermission(false);
+                setError('Camera access denied. Please allow camera access and try again.');
+            }
             return;
         }
 
         // Handle device not found
         if (errorMessage.includes('NotFoundError')) {
-            setError('No camera found on this device.');
+            if (isMountedRef.current) {
+                setError('No camera found on this device.');
+            }
             return;
         }
 
-        console.warn('QR Scanner warning:', errorMessage);
+        // Only log warnings if component is still mounted
+        if (isMountedRef.current && process.env.NODE_ENV === 'development') {
+            console.warn('QR Scanner warning:', errorMessage);
+        }
     }, []);
 
     const initializeScanner = useCallback(() => {
-        if (scannerRef.current || !containerRef.current) return;
+        if (scannerRef.current || !containerRef.current || !isMountedRef.current) return;
 
-        setIsInitializing(true);
-        setError(null);
+        if (isMountedRef.current) {
+            setIsInitializing(true);
+            setError(null);
+        }
 
         try {
             const scanner = new Html5QrcodeScanner(
@@ -91,44 +194,60 @@ const QRScanner: React.FC<QRScannerProps> = ({
 
             scanner.render(handleScanSuccess, handleScanError);
             scannerRef.current = scanner;
-            setHasPermission(true);
-            setIsInitializing(false);
+
+            if (isMountedRef.current) {
+                setHasPermission(true);
+                setIsInitializing(false);
+            }
         } catch (err) {
-            console.error('Failed to initialize scanner:', err);
-            setError('Failed to initialize camera. Please refresh and try again.');
-            setIsInitializing(false);
+            if (isMountedRef.current) {
+                console.error('Failed to initialize scanner:', err);
+                setError('Failed to initialize camera. Please refresh and try again.');
+                setIsInitializing(false);
+            }
         }
     }, [handleScanSuccess, handleScanError]);
 
     useEffect(() => {
+        isMountedRef.current = true;
+        isCleaningUpRef.current = false;
+
         // Small delay to ensure DOM is ready
-        const timer = setTimeout(initializeScanner, 100);
+        const timer = setTimeout(() => {
+            if (isMountedRef.current) {
+                initializeScanner();
+            }
+        }, 100);
 
         return () => {
+            isMountedRef.current = false;
             clearTimeout(timer);
+
+            // Perform cleanup - this will stop the camera and notify parent
+            stopAllVideoTracks();
             if (scannerRef.current) {
-                scannerRef.current.clear().catch(console.error);
-                scannerRef.current = null;
+                safeCleanup().catch(() => {
+                    // Ignore cleanup errors during unmount
+                });
             }
         };
-    }, [initializeScanner]);
+    }, [initializeScanner, safeCleanup, stopAllVideoTracks]);
 
     const handleRetry = () => {
         if (scannerRef.current) {
-            scannerRef.current.clear().catch(console.error);
-            scannerRef.current = null;
+            safeCleanup().catch(() => {
+                // Ignore cleanup errors
+            });
         }
-        setError(null);
-        setHasPermission(null);
-        setTimeout(initializeScanner, 100);
-    };
-
-    const handleClose = () => {
-        if (scannerRef.current) {
-            scannerRef.current.clear().catch(console.error);
-            scannerRef.current = null;
+        if (isMountedRef.current) {
+            setError(null);
+            setHasPermission(null);
+            setTimeout(() => {
+                if (isMountedRef.current) {
+                    initializeScanner();
+                }
+            }, 100);
         }
-        onClose();
     };
 
     return (
