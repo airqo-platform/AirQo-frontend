@@ -11,7 +11,6 @@ type ClaimMethod = 'qr-scan' | 'manual-input' | null;
 
 const DeviceClaimingPage = () => {
   const router = useRouter();
-  const [showInfo, setShowInfo] = useState(true);
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState<ClaimMethod>(null);
   const [lastClaimedDevice, setLastClaimedDevice] = useState<ClaimedDeviceInfo | null>(null);
@@ -42,36 +41,11 @@ const DeviceClaimingPage = () => {
 
   return (
     <div>
-      {/* Dismissible Info Section */}
-      {showInfo && (
-        <div className="relative flex items-center bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg px-6 py-4 mb-6 shadow-sm">
-          <div className="flex items-center gap-3">
-            <QrCode className="h-7 w-7 text-blue-500" />
-            <div>
-              <h3 className="font-semibold text-base mb-0.5 text-gray-900 dark:text-white">
-                Claim your new device
-              </h3>
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                Claiming a device links it to your account, enabling you to manage and deploy it within your organization.
-              </p>
-            </div>
-          </div>
-          <button
-            className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-            onClick={() => setShowInfo(false)}
-            aria-label="Dismiss"
-            type="button"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-      )}
-
       <Card>
         <CardHeader>
-          <CardTitle>Device Claiming</CardTitle>
+          <CardTitle>Claim your new device</CardTitle>
           <CardDescription>
-            Add your AirQo devices by scanning a QR code or entering device details manually
+            Claiming a device links it to your account, enabling you to manage and deploy it within your organization.
           </CardDescription>
         </CardHeader>
         <CardContent>
