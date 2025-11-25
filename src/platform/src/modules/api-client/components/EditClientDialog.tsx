@@ -3,28 +3,28 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Input, Dialog } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
-import { useUpdateClient } from '@/shared/hooks/useClient';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { isValidIpAddress } from '@/shared/lib/validators';
-import type { Client, UpdateClientData } from '../types';
+import { clientService } from '@/shared/services/clientService';
+import type { Client } from '@/shared/types/api';
 
 interface EditClientDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  client: Client;
+  client: Client | null;
+  onSuccess?: () => void;
 }
 
 const EditClientDialog: React.FC<EditClientDialogProps> = ({
   isOpen,
   onClose,
   client,
+  onSuccess,
 }) => {
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState<string[]>(['']);
   const [ipErrors, setIpErrors] = useState<string[]>(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { trigger: updateClient } = useUpdateClient();
 
   useEffect(() => {
     if (isOpen && client) {
@@ -64,7 +64,7 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!clientName.trim()) {
+    if (!clientName.trim() || !client) {
       toast.error('Client name is required');
       return;
     }
@@ -92,16 +92,16 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
         return;
       }
 
-      const clientData: UpdateClientData = {
+      const clientData = {
         name: clientName.trim(),
         ...(filteredIpAddresses.length > 0 && {
           ip_addresses: filteredIpAddresses,
         }),
       };
 
-      await updateClient({ clientId: client._id, clientData });
+      await clientService.updateClient(client._id, clientData);
       toast.success('Client updated successfully');
-      onClose();
+      onSuccess?.();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
       console.error('Client update error:', error);

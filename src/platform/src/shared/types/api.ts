@@ -818,6 +818,23 @@ export interface GenerateTokenResponse {
   };
 }
 
+export interface DeleteClientResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface RefreshClientSecretResponse {
+  success: boolean;
+  message: string;
+  client: Client;
+}
+
+export interface GetClientByIdResponse {
+  success: boolean;
+  message: string;
+  clients: Client[];
+}
+
 // Preferences types
 export interface Site {
   isFeatured?: boolean;
