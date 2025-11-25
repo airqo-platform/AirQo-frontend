@@ -134,14 +134,30 @@ export const useMyDevices = (
   organizationId?: string,
   options: { enabled?: boolean } = {}
 ) => {
-  const activeGroup = useAppSelector(state => state.user.activeGroup);
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const userDetails = useAppSelector((state) => state.user.userDetails);
   const { enabled = true } = options;
 
+  // The user profile is fetched from Redux state
+  // We use optional chaining and fallbacks to ensure safety
+  const groupIds = userDetails?.groups
+    ? userDetails.groups
+        .filter((g: any) => g.grp_title?.toLowerCase() !== "airqo")
+        .map((g: any) => g._id)
+    : userDetails?.group_ids || [];
+  const cohortIds = userDetails?.cohort_ids || [];
+
   return useQuery<MyDevicesResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['myDevices', userId, organizationId || activeGroup?._id],
-    queryFn: () => devices.getMyDevices(userId),
-    enabled: !!userId && enabled,
-    staleTime: 60000, // 1 minute
+    queryKey: [
+      "myDevices",
+      userId,
+      organizationId || activeGroup?._id,
+      groupIds,
+      cohortIds,
+    ],
+    queryFn: () => devices.getMyDevices(userId, groupIds, cohortIds),
+    enabled: !!userId && enabled && !!userDetails,
+    staleTime: 60_000, // 1 minute
   });
 };
 

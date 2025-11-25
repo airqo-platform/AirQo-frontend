@@ -203,13 +203,25 @@ export const devices = {
     }
   },
 
-  getMyDevices: async (userId: string): Promise<MyDevicesResponse> => {
+  getMyDevices: async (
+    userId: string,
+    groupIds?: string[],
+    cohortIds?: string[]
+  ): Promise<MyDevicesResponse> => {
     try {
       const params = new URLSearchParams({ user_id: userId });
 
+      if (groupIds && groupIds.length > 0) {
+        params.append("group_ids", groupIds.join(","));
+      }
+
+      if (cohortIds && cohortIds.length > 0) {
+        params.append("cohort_ids", cohortIds.join(","));
+      }
+
       const response = await jwtApiClient.get<MyDevicesResponse>(
         `/devices/my-devices?${params.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
