@@ -29,8 +29,10 @@ import type {
   DecryptionRequest,
   DecryptionResponse,
   MyDevicesResponse,
-  DeviceOnboardResponse,
-  DeviceOnboardRequest,
+  PrepareDeviceResponse,
+  BulkPrepareResponse,
+  GenerateLabelsResponse,
+  ShippingStatusResponse,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
 import { useDispatch } from 'react-redux';
@@ -237,29 +239,6 @@ export const useClaimDevice = () => {
     onError: error => {
       ReusableToast({
         message: `Claim Failed: ${getApiErrorMessage(error)}`,
-        type: 'ERROR',
-      });
-    },
-  });
-};
-
-export const useOnboardDevice = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation<
-    DeviceOnboardResponse,
-    AxiosError<ErrorResponse>,
-    DeviceOnboardRequest
-  >({
-    mutationFn: devices.onboardDevice,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
-      queryClient.invalidateQueries({ queryKey: ['devices'] });
-      queryClient.invalidateQueries({ queryKey: ['cohorts'] });
-    },
-    onError: error => {
-      ReusableToast({
-        message: `Onboard Failed: ${getApiErrorMessage(error)}`,
         type: 'ERROR',
       });
     },
@@ -621,5 +600,81 @@ export const useDecryptDeviceKeys = () => {
         type: 'ERROR',
       });
     },
+  });
+};
+
+export const usePrepareDeviceForShipping = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    PrepareDeviceResponse,
+    AxiosError<ErrorResponse>,
+    { deviceName: string; tokenType?: 'hex' | 'readable' }
+  >({
+    mutationFn: ({ deviceName, tokenType }) =>
+      devices.prepareDeviceForShipping(deviceName, tokenType),
+    onSuccess: (data) => {
+      ReusableToast({
+        message: data.message,
+        type: 'SUCCESS',
+      });
+      queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Preparation Failed: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const usePrepareBulkDevicesForShipping = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    BulkPrepareResponse,
+    AxiosError<ErrorResponse>,
+    { deviceNames: string[]; tokenType?: 'hex' | 'readable' }
+  >({
+    mutationFn: ({ deviceNames, tokenType }) =>
+      devices.prepareBulkDevicesForShipping(deviceNames, tokenType),
+    onSuccess: (data) => {
+      ReusableToast({
+        message: data.message,
+        type: 'SUCCESS',
+      });
+      queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
+    },
+    onError: (error) => {
+      ReusableToast({
+        message: `Bulk Preparation Failed: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const useGenerateShippingLabels = () => {
+  return useMutation<
+    GenerateLabelsResponse,
+    AxiosError<ErrorResponse>,
+    string[]
+  >({
+    mutationFn: (deviceNames) => devices.generateShippingLabels(deviceNames),
+    onError: (error) => {
+      ReusableToast({
+        message: `Label Generation Failed: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const useShippingStatus = (deviceNames?: string[]) => {
+  return useQuery<ShippingStatusResponse, AxiosError<ErrorResponse>>({
+    queryKey: ['shippingStatus', deviceNames],
+    queryFn: () => devices.getShippingStatus(deviceNames),
+    staleTime: 60000,
   });
 };

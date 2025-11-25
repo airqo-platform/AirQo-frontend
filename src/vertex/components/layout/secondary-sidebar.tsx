@@ -110,27 +110,27 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                   {contextPermissions.canViewDevices &&
                     (isPersonalContext
                       ? sidebarConfig.showMyDevices && (
-                          <NavItem
-                            item={{
-                              href: '/devices/my-devices',
-                              icon: AqMonitor,
-                              label: 'My Devices',
-                              disabled: !contextPermissions.canViewDevices,
-                            }}
-                            isCollapsed={isCollapsed}
-                          />
-                        )
+                        <NavItem
+                          item={{
+                            href: '/devices/my-devices',
+                            icon: AqMonitor,
+                            label: 'My Devices',
+                            disabled: !contextPermissions.canViewDevices,
+                          }}
+                          isCollapsed={isCollapsed}
+                        />
+                      )
                       : sidebarConfig.showDeviceOverview && (
-                          <NavItem
-                            item={{
-                              href: '/devices/overview',
-                              icon: AqMonitor,
-                              label: 'Devices',
-                              disabled: !contextPermissions.canViewDevices,
-                            }}
-                            isCollapsed={isCollapsed}
-                          />
-                        ))}
+                        <NavItem
+                          item={{
+                            href: '/devices/overview',
+                            icon: AqMonitor,
+                            label: 'Devices',
+                            disabled: !contextPermissions.canViewDevices,
+                          }}
+                          isCollapsed={isCollapsed}
+                        />
+                      ))}
 
                   {sidebarConfig.showClaimDevice && (
                     <NavItem
@@ -193,6 +193,15 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       icon: AqHomeSmile,
                       label: 'Networks',
                       disabled: !contextPermissions.canViewNetworks,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+                  <NavItem
+                    item={{
+                      href: '/admin/shipping',
+                      icon: AqPackagePlus,
+                      label: 'Shipping',
+                      disabled: false,
                     }}
                     isCollapsed={isCollapsed}
                   />
