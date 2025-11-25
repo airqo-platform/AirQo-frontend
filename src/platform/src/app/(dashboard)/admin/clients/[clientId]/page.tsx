@@ -41,9 +41,11 @@ const ClientDetailsPage: React.FC = () => {
     isOpen: false,
     activate: true,
   });
+  const [generateTokenDialogOpen, setGenerateTokenDialogOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRefreshingSecret, setIsRefreshingSecret] = useState(false);
   const [isActivating, setIsActivating] = useState(false);
+  const [isGeneratingToken, setIsGeneratingToken] = useState(false);
   const [showFullSecret, setShowFullSecret] = useState(false);
   const [showFullToken, setShowFullToken] = useState(false);
 
@@ -123,6 +125,29 @@ const ClientDetailsPage: React.FC = () => {
       console.error('Activate client error:', error);
     } finally {
       setIsActivating(false);
+    }
+  };
+
+  const handleGenerateToken = async (tokenName: string) => {
+    if (!hasAnyPermission(['TOKEN_MANAGE', 'TOKEN_GENERATE'])) {
+      toast.error('You do not have permission to generate tokens');
+      return;
+    }
+
+    setIsGeneratingToken(true);
+    try {
+      await clientService.generateToken({
+        name: tokenName,
+        client_id: clientId,
+      });
+      toast.success('Token generated successfully');
+      setGenerateTokenDialogOpen(false);
+      mutate();
+    } catch (error) {
+      toast.error(getUserFriendlyErrorMessage(error));
+      console.error('Generate token error:', error);
+    } finally {
+      setIsGeneratingToken(false);
     }
   };
 
@@ -402,7 +427,36 @@ const ClientDetailsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Access Token */}
+        {/* Token Management - Only show if no access token exists */}
+        {!client.access_token && (
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Token Management</h3>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Generate a new access token for API access
+                  </p>
+                  {!client.isActive && (
+                    <p className="mt-1 text-xs text-red-500">
+                      Client must be active to generate tokens
+                    </p>
+                  )}
+                </div>
+                <Button
+                  variant="outlined"
+                  onClick={() => setGenerateTokenDialogOpen(true)}
+                  disabled={!client.isActive}
+                  className="ml-4"
+                >
+                  Generate New Token
+                </Button>
+              </div>
+            </div>
+          </Card>
+        )}
+
+        {/* Access Token - Only show if access token exists */}
         {client.access_token && (
           <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">Access Token</h3>
@@ -600,6 +654,38 @@ const ClientDetailsPage: React.FC = () => {
                 {isActivating
                   ? `${activateDialogState.activate ? 'Activating' : 'Deactivating'}...`
                   : `${activateDialogState.activate ? 'Activate' : 'Deactivate'} Client`}
+              </Button>
+            </div>
+          </div>
+        </Dialog>
+
+        {/* Generate Token Dialog */}
+        <Dialog
+          isOpen={generateTokenDialogOpen}
+          onClose={() => setGenerateTokenDialogOpen(false)}
+          title="Generate New Token"
+          size="md"
+        >
+          <div className="space-y-4">
+            <p className="text-gray-700 dark:text-gray-300">
+              Generate a new access token for the client{' '}
+              <span className="font-semibold">{client.name}</span>. This will
+              create a new token that can be used to access the API.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                variant="outlined"
+                onClick={() => setGenerateTokenDialogOpen(false)}
+                disabled={isGeneratingToken}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="filled"
+                onClick={() => handleGenerateToken(`Token for ${client.name}`)}
+                loading={isGeneratingToken}
+              >
+                {isGeneratingToken ? 'Generating...' : 'Generate Token'}
               </Button>
             </div>
           </div>
