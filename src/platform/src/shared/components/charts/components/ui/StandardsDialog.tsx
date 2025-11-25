@@ -75,7 +75,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
     if (currentStandards?.showReferenceLine !== undefined) {
       setShowReferenceLine(currentStandards.showReferenceLine);
     }
-  }, [currentStandards, effectivePollutant]);
+  }, [currentStandards]);
 
   // Get the appropriate icon for air quality level
   const getAirQualityIcon = (level: string) => {

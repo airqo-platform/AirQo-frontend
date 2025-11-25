@@ -64,7 +64,11 @@ const EditClientDialog: React.FC<EditClientDialogProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!clientName.trim() || !client) {
+    if (!client) {
+      toast.error('Client data is missing');
+      return;
+    }
+    if (!clientName.trim()) {
       toast.error('Client name is required');
       return;
     }
