@@ -160,7 +160,10 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
 
     if (userId !== prevUserId && userId) {
       dispatch(logoutAction());
+      dispatch(setContextLoading(true));
       hasLoggedOutForNoGroupRef.current = false;
+    } else if (!userId) {
+      dispatch(setContextLoading(false));
     }
   }, [userId, dispatch]);
 
@@ -185,15 +188,16 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
   }, [status, dispatch, isLoggingOut, isInitialized]);
 
-  // Handle loading state
   useEffect(() => {
     const prevIsLoading = prevIsLoadingRef.current;
     prevIsLoadingRef.current = isLoading;
 
     if (isLoading !== prevIsLoading) {
-      dispatch(setContextLoading(isLoading));
+      if (isLoading && userId) {
+        dispatch(setContextLoading(true));
+      }
     }
-  }, [isLoading, dispatch]);
+  }, [isLoading, userId, dispatch]);
 
   // Handle errors
   useEffect(() => {
@@ -217,11 +221,13 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     const prevData = prevDataRef.current;
     prevDataRef.current = data;
 
-    if (data === prevData || !data?.users || data.users.length === 0) {
-      if (data !== prevData) {
-        logger.warn('[UserDataFetcher] Data received but no users found');
-        dispatch(setContextLoading(false));
-      }
+    if (data === prevData || isLoading) {
+      return;
+    }
+
+    if (!data?.users || data.users.length === 0) {
+      logger.warn('[UserDataFetcher] Data received but no users found');
+      dispatch(setContextLoading(false));
       return;
     }
 
@@ -240,7 +246,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       activeGroup
     );
 
-    // Batch updates where possible (Redux handles batching, but logical grouping helps)
     dispatch(setUserDetails(userInfo));
     dispatch(setUserGroups(filteredGroups));
     dispatch(setAvailableNetworks(filteredNetworks));
@@ -255,7 +260,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       dispatch(setInitialized());
     }
     dispatch(setContextLoading(false));
-  }, [data, dispatch, isInitialized, userContext, activeGroup]);
+  }, [data, dispatch, isInitialized, userContext, activeGroup, isLoading]);
 
   // Check if user has no active group after data is loaded
   useEffect(() => {
@@ -268,9 +273,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       userContext !== 'personal' &&
       userContext !== null
     ) {
-      // Only logout if we are sure we should have a group but don't
-      // If userContext is personal, no group is expected.
-      // If userContext is null, we might still be loading.
       const userGroups = user.groups || [];
       if (userGroups.length === 0) {
         logger.warn('[UserDataFetcher] User has no groups and is not in personal mode, logging out', { userContext });

@@ -10,7 +10,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Lock } from "lucide-react";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
-import SessionLoadingState from "../loading/session-loading";
 
 interface RouteGuardProps {
   permission: Permission;
@@ -53,7 +52,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   }, [hasAccess, isLoading, router, redirectTo, showError]);
 
   if (isLoading) {
-    return <SessionLoadingState />;
+    return null;
   }
 
   if (!hasAccess) {

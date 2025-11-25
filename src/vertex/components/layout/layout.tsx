@@ -19,10 +19,8 @@ export default function Layout({ children }: LayoutProps) {
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] =
     useState(false);
   const [activeModule, setActiveModule] = useState('network');
-  const [isPageLoading, setIsPageLoading] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
-  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { isSwitching, switchingTo } = useAppSelector(
     state => state.user.organizationSwitching
@@ -31,25 +29,14 @@ export default function Layout({ children }: LayoutProps) {
   const isInitialized = useAppSelector(state => state.user.isInitialized);
   const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
+  const isContextLoading = useAppSelector(state => state.user.isContextLoading);
 
   useEffect(() => {
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
     if (pathname.startsWith('/admin/')) {
       setActiveModule('admin');
     } else {
       setActiveModule('network');
     }
-    setIsPageLoading(false);
-
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-    };
   }, [pathname]);
 
   const handleModuleChange = (module: string) => {
@@ -57,14 +44,8 @@ export default function Layout({ children }: LayoutProps) {
       setIsPrimarySidebarOpen(false);
       return;
     }
-    setIsPageLoading(true);
     setActiveModule(module);
     setIsPrimarySidebarOpen(false);
-
-    // Safety timeout in case navigation fails or is cancelled
-    loadingTimeoutRef.current = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 3000);
 
     if (module === 'admin') {
       router.push('/admin/networks');
@@ -77,7 +58,16 @@ export default function Layout({ children }: LayoutProps) {
     setIsSecondarySidebarCollapsed(!isSecondarySidebarCollapsed);
   };
 
-  if (!isInitialized || !isAuthenticated || isLoggingOut) {
+  // Show loading state when:
+  // 1. Not initialized, not authenticated, or logging out
+  // 2. Authenticated and initialized but context is still loading
+  const shouldShowInitialLoading = 
+    !isInitialized || 
+    !isAuthenticated || 
+    isLoggingOut ||
+    (isAuthenticated && isInitialized && isContextLoading);
+
+  if (shouldShowInitialLoading) {
     return (
       <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
         <SessionLoadingState />
@@ -115,13 +105,7 @@ export default function Layout({ children }: LayoutProps) {
           className={`flex-1 w-full bg-background max-w-7xl mx-auto flex flex-col gap-4 md:gap-8 px-3 py-3 md:px-2 lg:py-6 lg:px-6`}
         >
           <ErrorBoundary>
-            {isPageLoading ? (
-              <div className="flex justify-center items-center h-full min-h-[60vh]">
-                <SessionLoadingState />
-              </div>
-            ) : (
-              children
-            )}
+            {children}
           </ErrorBoundary>
         </div>
       </main>
