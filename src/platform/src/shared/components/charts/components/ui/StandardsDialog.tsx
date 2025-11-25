@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import type { RootState } from '@/shared/store';
 import Dialog from '@/shared/components/ui/dialog';
@@ -32,8 +32,6 @@ export const colors = {
   GoodAir: '#34C759',
   undefined: '#C6D1DB',
 };
-
-import { cn } from '@/shared/lib/utils';
 
 interface StandardsDialogProps {
   open: boolean;
@@ -108,7 +106,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
     return colorMap[level] || colors.GoodAir;
   };
 
-  const getStandardsData = () => {
+  const getStandardsData = useCallback(() => {
     switch (`${selectedOrg}_${displayPollutant}`) {
       case 'WHO_PM2.5':
         return WHO_PM25_STANDARDS;
@@ -125,9 +123,9 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
       default:
         return WHO_PM25_STANDARDS;
     }
-  };
+  }, [selectedOrg, displayPollutant]);
 
-  const getReferenceLine = () => {
+  const getReferenceLine = useCallback(() => {
     if (selectedOrg === 'WHO') {
       switch (displayPollutant) {
         case 'PM2.5':
@@ -157,7 +155,7 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
           return REFERENCE_LINES.NEMA_KENYA.PM25_ANNUAL;
       }
     }
-  };
+  }, [selectedOrg, displayPollutant]);
 
   const handleApply = () => {
     onApplyStandards({
@@ -171,11 +169,11 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   // Memoize standards data and reference line to ensure they update when pollutant or org changes
   const standards = useMemo(
     () => getStandardsData(),
-    [selectedOrg, displayPollutant]
+    [getStandardsData]
   );
   const referenceLine = useMemo(
     () => getReferenceLine(),
-    [selectedOrg, displayPollutant]
+    [getReferenceLine]
   );
 
   if (!open) return null;
