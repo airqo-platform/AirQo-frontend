@@ -167,14 +167,8 @@ export const StandardsDialog: React.FC<StandardsDialogProps> = ({
   };
 
   // Memoize standards data and reference line to ensure they update when pollutant or org changes
-  const standards = useMemo(
-    () => getStandardsData(),
-    [getStandardsData]
-  );
-  const referenceLine = useMemo(
-    () => getReferenceLine(),
-    [getReferenceLine]
-  );
+  const standards = useMemo(() => getStandardsData(), [getStandardsData]);
+  const referenceLine = useMemo(() => getReferenceLine(), [getReferenceLine]);
 
   if (!open) return null;
 
