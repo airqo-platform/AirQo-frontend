@@ -99,7 +99,7 @@ export const CustomReferenceLine: React.FC<CustomReferenceLineProps> = ({
         candidateKeys.push('PM10_ANNUAL', 'PM10_24HR');
         break;
       case 'no2':
-        candidateKeys.push('NO2_24HR', 'NO2_ANNUAL');
+        candidateKeys.push('NO2_ANNUAL', 'NO2_24HR');
         break;
       case 'co':
         candidateKeys.push('CO_8HR');
