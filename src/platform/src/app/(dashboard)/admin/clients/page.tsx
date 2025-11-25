@@ -332,7 +332,7 @@ const ClientsAdminPage: React.FC = () => {
       requiredRoles={['AIRQO_SUPER_ADMIN']}
       customCheck={() => !!user?.email?.toLowerCase().endsWith('@airqo.net')}
       accessDeniedTitle="Access Restricted"
-      accessDeniedMessage="You need super admin privileges and a valid AirQo email to access API client management."
+      accessDeniedMessage="You do not have the required permissions to access this page."
     >
       <div className="space-y-6">
         <PageHeading
