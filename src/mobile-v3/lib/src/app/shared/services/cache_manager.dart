@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:battery_plus/battery_plus.dart';
+import 'package:loggy/loggy.dart';
 
 enum CacheBoxName { airQuality, forecast, location, userPreferences }
 
@@ -147,7 +148,7 @@ class CacheManager {
       _battery.onBatteryStateChanged.listen(_updateBatteryState);
       _updateBatteryState(await _battery.batteryState);
     } catch (e) {
-      loggy.warning('Battery info disabled: $e');
+      Object().logWarning('Battery info disabled: $e');
       _isLowBattery = false;
     }
   }
@@ -203,7 +204,7 @@ class CacheManager {
     }
 
     if (prevConnectionType != _connectionType) {
-      loggy.info('Connection type changed from $prevConnectionType to $_connectionType (results: $connectivityResults)');
+      Object().logInfo('Connection type changed from $prevConnectionType to $_connectionType (results: $connectivityResults)');
       _connectionChangeController.add(_connectionType);
     }
   }
@@ -218,13 +219,12 @@ class CacheManager {
 
         if (_isLowBattery != newIsLowBattery) {
           _isLowBattery = newIsLowBattery;
-          loggy
-              .info('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
+          Object().logInfo('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
           _batteryChangeController.add(_isLowBattery);
         }
       }
     } catch (e) {
-      loggy.warning('Battery level check failed: $e');
+      Object().logWarning('Battery level check failed: $e');
       _isLowBattery = false;
     }
   }
