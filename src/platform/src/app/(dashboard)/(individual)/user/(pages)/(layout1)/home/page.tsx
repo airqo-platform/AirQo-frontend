@@ -7,12 +7,42 @@ import { Card } from '@/shared/components/ui/card';
 import { Checklist } from '@/modules/user-checklist';
 import { AqDownloadCloud01, AqStar06, AqBuilding07 } from '@airqo/icons-react';
 import PlayIcon from '@/shared/components/ui/play-icon';
+import logger from '@/shared/lib/logger';
+
+const isDev = process.env.NODE_ENV === 'development';
 
 export default function HomePage() {
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [testingSlack, setTestingSlack] = useState(false);
 
   const handleModal = () => setIsModalOpen(!isModalOpen);
+
+  // Dev-only function to test Slack integration
+  const testSlackNotification = async () => {
+    setTestingSlack(true);
+    try {
+      const testError = new Error(
+        'Test error from Analytics Platform - Slack integration test'
+      );
+      testError.name = 'TestError';
+
+      logger.critical('Testing Slack notification from home page', testError, {
+        testMode: true,
+        triggeredBy: 'dev-test-button',
+        user: session?.user?.email || 'unknown',
+      });
+
+      alert(
+        'Test error sent! Check your Slack channel: #notifs-airqo-analytics-web'
+      );
+    } catch (error) {
+      logger.error('Failed to send test notification', error as Error);
+      alert('Failed to send test notification. Check console for details.');
+    } finally {
+      setTestingSlack(false);
+    }
+  };
 
   const firstName =
     (session?.user as { firstName?: string })?.firstName || 'User';
@@ -53,6 +83,19 @@ export default function HomePage() {
           >
             Request New Organization
           </Button>
+
+          {/* Dev-only Slack test button */}
+          {isDev && (
+            <Button
+              variant="outlined"
+              size="md"
+              onClick={testSlackNotification}
+              disabled={testingSlack}
+              className="border-orange-500 text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
+            >
+              {testingSlack ? 'Sending...' : '🔧 Test Slack'}
+            </Button>
+          )}
         </div>
       </div>
 
