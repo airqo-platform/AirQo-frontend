@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       },
       {
         type: 'mrkdwn',
-        text: `*Time:*\n${new Date(timestamp).toLocaleString()}`,
+        text: `*Time:*\n${new Date(timestamp || Date.now()).toLocaleString()}`,
       },
     ];
 
@@ -116,19 +116,23 @@ export async function POST(request: NextRequest) {
     });
 
     // Send to Slack with timeout
+    const timeoutMs = parseInt(process.env.SLACK_TIMEOUT_MS || '5000', 10);
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ blocks }),
-    });
-
-    clearTimeout(timeoutId);
+    let response;
+    try {
+      response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ blocks }),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -139,6 +143,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to send Slack notification:', error);
+
+    if (error instanceof Error && error.name === 'AbortError') {
+      return NextResponse.json(
+        {
+          error: 'Request timeout',
+          details: 'Slack webhook request timed out',
+        },
+        { status: 408 }
+      );
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to send notification',
