@@ -324,7 +324,7 @@ _buildConsentToggleRow('Location Tracking', ConsentType.locationTracking, isDark
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'View your surveys and research contribution progress',
+                      'Surveys are now available in the Learn tab. Tap below to view your surveys and research contribution progress.',
                       style: TextStyle(
                         fontSize: 12,
                         color: isDarkMode ? Colors.grey[300] : AppColors.boldHeadlineColor,
@@ -356,7 +356,7 @@ _buildConsentToggleRow('Location Tracking', ConsentType.locationTracking, isDark
                 ),
               ),
               child: const Text(
-                'View Surveys & Research Impact',
+                'View Surveys in Learn Tab',
                 style: TextStyle(
                   fontWeight: FontWeight.w500,
                 ),

@@ -33,6 +33,8 @@ import 'core/utils/app_loggy_setup.dart';
 import 'package:airqo/src/app/other/language/bloc/language_bloc.dart';
 import 'package:airqo/src/app/other/language/services/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
+import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -143,6 +145,9 @@ class AirqoMobile extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => LanguageBloc()..add(LoadLanguage()),
+        ),
+        BlocProvider(
+          create: (context) => SurveyBloc(SurveyRepository()),
         ),
       ],
       child: BlocBuilder<LanguageBloc, LanguageState>(

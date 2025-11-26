@@ -398,31 +398,39 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
     return TextField(
       controller: _textController,
       maxLines: widget.question.type == QuestionType.text ? 4 : 1,
+      style: theme.textTheme.bodyMedium?.copyWith(fontSize: 16),
       decoration: InputDecoration(
         hintText: widget.question.placeholder ?? 'Enter your answer...',
         hintStyle: theme.textTheme.bodyMedium?.copyWith(
-          color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+          color: isDarkMode ? Colors.grey[400] : const Color(0xFF667085),
+          fontSize: 14,
         ),
         filled: true,
-        fillColor: theme.highlightColor,
+        fillColor: isDarkMode ? Colors.transparent : Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: isDarkMode ? Colors.grey[700]! : const Color(0xFFD0D5DD),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primaryColor, width: 2),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: AppColors.primaryColor,
+            width: 1,
+          ),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: theme.dividerColor),
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(
+            color: isDarkMode ? Colors.grey[700]! : const Color(0xFFD0D5DD),
+          ),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
+          horizontal: 14,
+          vertical: 10,
         ),
       ),
-      style: theme.textTheme.bodyMedium,
     );
   }
 }

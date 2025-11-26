@@ -18,6 +18,7 @@ import '../widgets/measurements_list.dart';
 import '../widgets/my_places_view.dart';
 import '../widgets/nearby_view.dart';
 import '../widgets/view_selector.dart';
+import '../../surveys/widgets/new_survey_banner.dart';
 import 'package:loggy/loggy.dart';
 
 class DashboardPage extends StatefulWidget {

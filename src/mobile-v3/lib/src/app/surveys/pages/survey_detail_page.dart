@@ -118,12 +118,12 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: theme.highlightColor,
+              color: theme.cardColor,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 8,
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
               ],
@@ -430,9 +430,11 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
                   context.read<SurveyBloc>().add(const PreviousQuestion());
                 },
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: AppColors.boldHeadlineColor,
-                  side: BorderSide(color: AppColors.boldHeadlineColor),
+                  foregroundColor: theme.brightness == Brightness.dark ? Colors.white : const Color(0xFF344054),
+                  side: BorderSide(color: theme.brightness == Brightness.dark ? Colors.white70 : const Color(0xFFD0D5DD)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: theme.brightness == Brightness.dark ? Colors.transparent : Colors.white,
                 ),
                 child: const Text('Previous'),
               ),
@@ -457,6 +459,7 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
                 foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
@@ -496,6 +499,10 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).brightness == Brightness.dark 
+            ? Theme.of(context).cardColor 
+            : Colors.white,
+        surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         content: SurveyCompletionIndicator(
           title: state.submittedSuccessfully 

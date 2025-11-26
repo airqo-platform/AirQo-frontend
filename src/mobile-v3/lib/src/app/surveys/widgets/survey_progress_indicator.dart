@@ -155,29 +155,51 @@ class SurveyCompletionIndicator extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Success/Error Icon
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 500),
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: (isSuccess ? Colors.green : Colors.red).withOpacity(0.1),
+          if (isSuccess)
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFD1FADF),
+                border: Border.all(
+                  color: const Color(0xFFECFDF3),
+                  width: 8,
+                ),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.check,
+                  size: 20,
+                  color: const Color(0xFF039855),
+                ),
+              ),
+            )
+          else
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 500),
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.red.withOpacity(0.1),
+              ),
+              child: Icon(
+                Icons.error,
+                size: 24,
+                color: Colors.red,
+              ),
             ),
-            child: Icon(
-              isSuccess ? Icons.check_circle : Icons.error,
-              size: 48,
-              color: isSuccess ? Colors.green : Colors.red,
-            ),
-          ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           
           // Title
           Text(
             title,
             style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor,
+              fontWeight: FontWeight.w500,
+              fontSize: 18,
+              color: isDarkMode ? Colors.white : const Color(0xFF101828),
             ),
             textAlign: TextAlign.center,
           ),
@@ -188,8 +210,9 @@ class SurveyCompletionIndicator extends StatelessWidget {
           Text(
             subtitle,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+              color: isDarkMode ? Colors.grey[400] : const Color(0xFF667085),
               height: 1.4,
+              fontSize: 14,
             ),
             textAlign: TextAlign.center,
           ),
@@ -209,13 +232,14 @@ class SurveyCompletionIndicator extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 child: Text(
                   'Continue',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
+                    fontSize: 16,
                   ),
                 ),
               ),
