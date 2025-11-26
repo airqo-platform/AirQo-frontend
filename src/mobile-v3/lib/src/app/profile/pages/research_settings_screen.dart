@@ -7,10 +7,6 @@ import 'package:airqo/src/app/research/repository/research_consent_repository.da
 import 'package:airqo/src/app/research/models/research_consent_model.dart';
 import 'package:airqo/src/app/research/pages/research_participation_screen.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
-import 'package:airqo/src/app/surveys/pages/survey_list_page.dart';
-import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 
 class ResearchSettingsScreen extends StatefulWidget {
   const ResearchSettingsScreen({super.key});
@@ -106,8 +102,6 @@ class _ResearchSettingsScreenState extends State<ResearchSettingsScreen> {
                 children: [
                   _buildResearchConsentSection(),
                   SizedBox(height: screenHeight * 0.02),
-                  _buildSurveyAccessSection(),
-                  SizedBox(height: screenHeight * 0.02),
                   _buildResearchContributionSection(),
                   SizedBox(height: screenHeight * 0.02),
                   _buildStudyProgressSection(),
@@ -186,8 +180,6 @@ class _ResearchSettingsScreenState extends State<ResearchSettingsScreen> {
           const SizedBox(height: 16),
           if (_researchConsent != null) ...[
 _buildConsentToggleRow('Location Tracking', ConsentType.locationTracking, isDarkMode),
-            const SizedBox(height: 8),
-            _buildConsentToggleRow('Survey Participation', ConsentType.surveyParticipation, isDarkMode),
             const SizedBox(height: 8),
             _buildConsentToggleRow('Data Sharing', ConsentType.dataSharing, isDarkMode),
             const SizedBox(height: 8),
@@ -271,104 +263,7 @@ _buildConsentToggleRow('Location Tracking', ConsentType.locationTracking, isDark
     );
   }
 
-  Widget _buildSurveyAccessSection() {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
-    
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: Theme.of(context).highlightColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDarkMode
-              ? AppColors.dividerColordark
-              : AppColors.dividerColorlight,
-          width: 0.5,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).highlightColor,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: AppColors.primaryColor.withValues(alpha: 0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Icon(
-                  Icons.quiz_outlined,
-                  color: AppColors.primaryColor,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Research Surveys',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDarkMode ? Colors.white : AppColors.boldHeadlineColor4,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Surveys are now available in the Learn tab. Tap below to view your surveys and research contribution progress.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDarkMode ? Colors.grey[300] : AppColors.boldHeadlineColor,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const _SurveyListPageWrapper(),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text(
-                'View Surveys in Learn Tab',
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResearchContributionSection() {
+Widget _buildResearchContributionSection() {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final totalResponses = _responseStats['totalResponses'] ?? 0;
@@ -1045,16 +940,4 @@ _buildConsentToggleRow('Location Tracking', ConsentType.locationTracking, isDark
     );
   }
 
-}
-
-class _SurveyListPageWrapper extends StatelessWidget {
-  const _SurveyListPageWrapper();
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => SurveyBloc(SurveyRepository()),
-      child: const SurveyListPage(),
-    );
-  }
 }
