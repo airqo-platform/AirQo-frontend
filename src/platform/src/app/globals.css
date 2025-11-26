@@ -416,3 +416,33 @@ html {
 .tooltip-arrow:before {
   background-color: inherit !important;
 }
+
+/* ==========================================================================
+   TABLE RESPONSIVE STYLES
+   ========================================================================== */
+
+/* Ensure tables fit within their containers */
+table {
+  table-layout: auto;
+  width: 100%;
+}
+
+/* Prevent table from expanding beyond container */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Table cell content wrapping */
+table td {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+/* Ensure table headers don't grow too large */
+table th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}

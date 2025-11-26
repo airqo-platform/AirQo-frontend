@@ -255,7 +255,7 @@ export const NavItem = React.memo<NavItemProps>(
                 exit={{ opacity: 0, x: -10 }}
                 transition={{ duration: 0.15 }}
                 className={cn(
-                  'absolute z-[10002] w-80 bg-white border border-gray-200 rounded-lg shadow-lg',
+                  'absolute z-[10002] w-80 bg-background border border-border rounded-lg shadow-lg',
                   `${popupPositionClass} top-0`
                 )}
                 style={{

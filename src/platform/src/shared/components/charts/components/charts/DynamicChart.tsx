@@ -199,6 +199,7 @@ export const DynamicChart: React.FC<DynamicChartProps> = ({
     return (
       <Tooltip
         content={<CustomTooltip pollutant={pollutant} frequency={frequency} />}
+        wrapperStyle={{ zIndex: 9999 }}
       />
     );
   };
