@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:battery_plus/battery_plus.dart';
-import 'package:loggy/loggy.dart';
+import 'package:airqo/core/utils/app_loggy_setup.dart';
 
 enum CacheBoxName { airQuality, forecast, location, userPreferences }
 
