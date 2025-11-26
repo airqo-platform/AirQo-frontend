@@ -33,4 +33,4 @@ The combination of these two fields determines the device's primary status:
 
 | Status | Color | Logic |
 |--------|-------|-------|
-| **Invalid Device Status** | Purple | This status appears if the device reports a `lastActive` timestamp that is more than 5 minutes in the future. This indicates a device-level clock or configuration error and overrides the logic above. |
+| **Invalid Date** | Purple | This status appears if the device reports a `lastActive` timestamp that is more than 5 minutes in the future. This indicates a device-level clock or configuration error and overrides the logic above. |
