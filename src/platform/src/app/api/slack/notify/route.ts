@@ -15,11 +15,19 @@ export async function POST(request: NextRequest) {
     const { error, errorInfo, timestamp, userAgent, url, additionalData } =
       body;
 
+    // Validate required fields
+    if (!error || typeof error !== 'object') {
+      return NextResponse.json(
+        { error: 'Invalid request: error object is required' },
+        { status: 400 }
+      );
+    }
+
     // Build fields for the Slack message
     const fields = [
       {
         type: 'mrkdwn',
-        text: `*Error Type:*\n${error.name || 'Error'}`,
+        text: `*Error Type:*\n${error.name ?? 'Error'}`,
       },
       {
         type: 'mrkdwn',
@@ -107,14 +115,20 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    // Send to Slack
+    // Send to Slack with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     const response = await fetch(webhookUrl, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ blocks }),
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorText = await response.text();

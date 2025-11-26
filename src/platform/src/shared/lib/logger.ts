@@ -21,7 +21,7 @@ const cleanErrorCache = () => {
   keysToDelete.forEach(key => errorCache.delete(key));
 };
 
-// Rate limiting
+// Rate limiting - only checks, doesn't increment
 const shouldSendToSlack = (): boolean => {
   const now = Date.now();
 
@@ -37,13 +37,20 @@ const shouldSendToSlack = (): boolean => {
     return false;
   }
 
-  errorCount++;
   return true;
+};
+
+// Increment the rate limit counter after all checks pass
+const incrementErrorCount = (): void => {
+  errorCount++;
 };
 
 // Generate error signature for deduplication
 const getErrorSignature = (error: Error): string => {
-  return `${error.name}:${error.message}:${error.stack?.split('\n')[1] || ''}`;
+  // Take first 2 lines of stack to better distinguish errors at same location
+  // This is more robust across browsers and minification
+  const stackLines = error.stack?.split('\n').slice(0, 2).join('|') || '';
+  return `${error.name}:${error.message}:${stackLines}`;
 };
 
 // Check if error was recently sent
@@ -84,6 +91,12 @@ const sendToSlack = async (
     additionalData?: Record<string, unknown>;
   }
 ): Promise<void> => {
+  // Validate input
+  if (!error || !(error instanceof Error)) {
+    log.warn('sendToSlack called with invalid error object');
+    return;
+  }
+
   // Check if Slack notifications are enabled
   if (!isSlackEnabled()) {
     log.debug(
@@ -103,9 +116,16 @@ const sendToSlack = async (
     return;
   }
 
+  // Increment counter only after all checks pass
+  incrementErrorCount();
+
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5s timeout
+
     const response = await fetch('/api/slack/notify', {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -126,12 +146,23 @@ const sendToSlack = async (
       }),
     });
 
+    clearTimeout(timeoutId);
+
     if (!response.ok) {
-      const errorData = await response.json();
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = { message: 'Non-JSON error response' };
+      }
       log.error('Failed to send error to Slack:', errorData);
     }
   } catch (slackError) {
-    log.error('Failed to send error to Slack:', slackError);
+    if (slackError instanceof Error && slackError.name === 'AbortError') {
+      log.error('Slack notification timed out');
+    } else {
+      log.error('Failed to send error to Slack:', slackError);
+    }
   }
 };
 

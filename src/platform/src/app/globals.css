@@ -442,4 +442,7 @@ table td {
 /* Ensure table headers don't grow too large */
 table th {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }

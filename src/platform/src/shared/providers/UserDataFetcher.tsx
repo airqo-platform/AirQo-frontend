@@ -119,6 +119,9 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
         dispatch(setGroups(normalizedGroups));
         dispatch(setError(null));
       } else {
+        // Avoid keeping stale user data when backend responds with an invalid shape
+        dispatch(clearUser());
+        dispatch(setGroups([]));
         dispatch(setError('Invalid user data received from API'));
       }
     }
