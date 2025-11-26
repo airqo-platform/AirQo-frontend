@@ -6,6 +6,7 @@ import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_question_widgets.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_progress_indicator.dart';
 import 'package:airqo/src/app/shared/widgets/airqo_button.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 
@@ -61,40 +62,56 @@ class SurveyDetailView extends StatefulWidget {
 
 class _SurveyDetailViewState extends State<SurveyDetailView> {
   @override
+  void initState() {
+    super.initState();
+    // Track survey detail page view
+    AnalyticsService().trackSurveyDetailViewed(surveyId: widget.survey.id);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          widget.survey.title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            fontSize: 16,
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          // Track survey skipped when user navigates back
+          _trackSurveySkipped(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        appBar: AppBar(
+          title: Text(
+            widget.survey.title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
           ),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          scrolledUnderElevation: 0,
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-      ),
-      body: BlocConsumer<SurveyBloc, SurveyState>(
-        listener: (context, state) {
-          if (state is SurveySubmitted) {
-            _showSubmissionDialog(context, state);
-          } else if (state is SurveyError) {
-            _showErrorSnackBar(context, state.message);
-          }
-        },
-        builder: (context, state) {
-          if (state is SurveyInProgress) {
-            return _buildSurveyInProgress(context, state);
-          } else if (state is SurveySubmissionLoading) {
-            return _buildSubmissionLoading(context);
-          } else {
-            return _buildSurveyOverview(context);
-          }
-        },
+        body: BlocConsumer<SurveyBloc, SurveyState>(
+          listener: (context, state) {
+            if (state is SurveySubmitted) {
+              _showSubmissionDialog(context, state);
+            } else if (state is SurveyError) {
+              _showErrorSnackBar(context, state.message);
+            }
+          },
+          builder: (context, state) {
+            if (state is SurveyInProgress) {
+              return _buildSurveyInProgress(context, state);
+            } else if (state is SurveySubmissionLoading) {
+              return _buildSubmissionLoading(context);
+            } else {
+              return _buildSurveyOverview(context);
+            }
+          },
+        ),
       ),
     );
   }
@@ -488,9 +505,28 @@ class _SurveyDetailViewState extends State<SurveyDetailView> {
   }
 
   void _viewResults(BuildContext context) {
+    // Track survey results viewed
+    AnalyticsService().trackSurveyResultsViewed(surveyId: widget.survey.id);
+
     // TODO: Navigate to results page
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Results view coming soon!')),
+    );
+  }
+
+  void _trackSurveySkipped(BuildContext context) {
+    // Get current survey state to know which question the user was on
+    final state = context.read<SurveyBloc>().state;
+    int? currentQuestionNumber;
+
+    if (state is SurveyInProgress) {
+      currentQuestionNumber = state.currentQuestionIndex + 1;
+    }
+
+    // Track survey skipped event
+    AnalyticsService().trackSurveySkipped(
+      surveyId: widget.survey.id,
+      questionNumber: currentQuestionNumber,
     );
   }
 

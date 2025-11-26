@@ -178,6 +178,53 @@ class AnalyticsService with UiLoggy {
         if (error != null) 'error': error,
       });
 
+  Future<void> trackSurveyListViewed() => trackEvent('survey_list_viewed');
+
+  Future<void> trackSurveyDetailViewed({
+    String? surveyId,
+  }) =>
+      trackEvent('survey_detail_viewed', properties: {
+        if (surveyId != null) 'survey_id': surveyId,
+      });
+
+  Future<void> trackSurveySkipped({
+    String? surveyId,
+    int? questionNumber,
+  }) =>
+      trackEvent('survey_skipped', properties: {
+        if (surveyId != null) 'survey_id': surveyId,
+        if (questionNumber != null) 'question_number': questionNumber,
+      });
+
+  Future<void> trackSurveyQuestionViewed({
+    String? surveyId,
+    String? questionId,
+    int? questionNumber,
+  }) =>
+      trackEvent('survey_question_viewed', properties: {
+        if (surveyId != null) 'survey_id': surveyId,
+        if (questionId != null) 'question_id': questionId,
+        if (questionNumber != null) 'question_number': questionNumber,
+      });
+
+  Future<void> trackSurveyQuestionTimeSpent({
+    String? surveyId,
+    String? questionId,
+    int? timeSpentSeconds,
+  }) =>
+      trackEvent('survey_question_time_spent', properties: {
+        if (surveyId != null) 'survey_id': surveyId,
+        if (questionId != null) 'question_id': questionId,
+        if (timeSpentSeconds != null) 'time_spent_seconds': timeSpentSeconds,
+      });
+
+  Future<void> trackSurveyResultsViewed({
+    String? surveyId,
+  }) =>
+      trackEvent('survey_results_viewed', properties: {
+        if (surveyId != null) 'survey_id': surveyId,
+      });
+
   /// Track profile and settings events
   Future<void> trackProfileOpened() => trackEvent('profile_opened');
 

@@ -6,6 +6,7 @@ import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_card.dart';
 import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
+import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class SurveyListPage extends StatefulWidget {
@@ -20,6 +21,8 @@ class _SurveyListPageState extends State<SurveyListPage> {
   void initState() {
     super.initState();
     context.read<SurveyBloc>().add(const LoadSurveys());
+    // Track survey list page view
+    AnalyticsService().trackSurveyListViewed();
   }
 
   @override

@@ -92,6 +92,17 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
       ));
 
       await AnalyticsService().trackSurveyStarted(surveyId: event.survey.id);
+
+      // Track first question viewed
+      if (event.survey.questions.isNotEmpty) {
+        final firstQuestion = event.survey.questions[0];
+        await AnalyticsService().trackSurveyQuestionViewed(
+          surveyId: event.survey.id,
+          questionId: firstQuestion.id,
+          questionNumber: 1,
+        );
+      }
+
       loggy.info('Started survey: ${event.survey.title}');
     } catch (e) {
       loggy.error('Error starting survey: $e');
@@ -144,12 +155,23 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
   Future<void> _onNextQuestion(NextQuestion event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
-      
+
       if (!currentState.isLastQuestion) {
+        final nextQuestionIndex = currentState.currentQuestionIndex + 1;
+        final nextQuestion = currentState.survey.questions[nextQuestionIndex];
+
         emit(currentState.copyWith(
-          currentQuestionIndex: currentState.currentQuestionIndex + 1,
+          currentQuestionIndex: nextQuestionIndex,
         ));
-        loggy.info('Moved to next question: ${currentState.currentQuestionIndex + 1}');
+
+        // Track question viewed
+        await AnalyticsService().trackSurveyQuestionViewed(
+          surveyId: currentState.survey.id,
+          questionId: nextQuestion.id,
+          questionNumber: nextQuestionIndex + 1,
+        );
+
+        loggy.info('Moved to next question: ${nextQuestionIndex + 1}');
       }
     }
   }
@@ -157,12 +179,23 @@ class SurveyBloc extends Bloc<SurveyEvent, SurveyState> with UiLoggy {
   Future<void> _onPreviousQuestion(PreviousQuestion event, Emitter<SurveyState> emit) async {
     if (state is SurveyInProgress) {
       final currentState = state as SurveyInProgress;
-      
+
       if (!currentState.isFirstQuestion) {
+        final previousQuestionIndex = currentState.currentQuestionIndex - 1;
+        final previousQuestion = currentState.survey.questions[previousQuestionIndex];
+
         emit(currentState.copyWith(
-          currentQuestionIndex: currentState.currentQuestionIndex - 1,
+          currentQuestionIndex: previousQuestionIndex,
         ));
-        loggy.info('Moved to previous question: ${currentState.currentQuestionIndex - 1}');
+
+        // Track question viewed when navigating backwards
+        await AnalyticsService().trackSurveyQuestionViewed(
+          surveyId: currentState.survey.id,
+          questionId: previousQuestion.id,
+          questionNumber: previousQuestionIndex + 1,
+        );
+
+        loggy.info('Moved to previous question: ${previousQuestionIndex + 1}');
       }
     }
   }
