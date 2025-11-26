@@ -26,10 +26,20 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>AirQo needs camera access to let you take profile pictures and capture images for feedback.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>AirQo needs location access to provide personalized air quality data, timely alerts, and help you find nearby monitoring stations even when the app is in the background.</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>This app needs access to location when in the background to monitor air quality near you.</string>
+	<string>AirQo needs background location access to provide timely air quality alerts and updates for your current location.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs access to location when open to show air quality data near you.</string>
+	<string>AirQo needs access to your location to show relevant air quality data for your area and help you find nearby air quality monitoring stations.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>AirQo needs photo library access to let you select profile pictures and attach images for feedback.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	<key>GMSApiKey</key>
+	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

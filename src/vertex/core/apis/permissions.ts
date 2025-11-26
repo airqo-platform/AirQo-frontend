@@ -1,8 +1,5 @@
-import createAxiosInstance from "./axiosConfig";
-import { USERS_MGT_URL } from "../urls";
+import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosError } from "axios";
-
-const axiosInstance = createAxiosInstance();
 
 interface ErrorResponse {
   message: string;
@@ -11,14 +8,15 @@ interface ErrorResponse {
 export const permissions = {
   getPermissionsApi: async () => {
     try {
-      const response = await axiosInstance.get(
-        `${USERS_MGT_URL}/permissions`
+      const response = await createSecureApiClient().get(
+        `/users/permissions`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       throw new Error(
-        axiosError.response?.data?.message || "Failed to fetch grids summary"
+        axiosError.response?.data?.message || "Failed to fetch permissions summary"
       );
     }
   },

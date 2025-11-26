@@ -166,8 +166,9 @@ class LocationListView extends StatelessWidget with UiLoggy {
                             ),
                             subtitle: Text(
                               measurement.siteDetails?.searchName ??
+                                  measurement.siteDetails?.name ??
                                   measurement.siteDetails?.formattedName ??
-                                  "",
+                                  "---",
                               style: TextStyle(
                                   color: Theme.of(context)
                                       .textTheme
@@ -189,7 +190,9 @@ class LocationListView extends StatelessWidget with UiLoggy {
                               ),
                               checkColor: Colors.white,
                               side: BorderSide(
-                                  color: Theme.of(context).dividerColor),
+                                  color: Theme.of(context).brightness == Brightness.dark 
+                                      ? Theme.of(context).dividerColor 
+                                      : Colors.grey[600]!),
                             ),
                             onTap: () =>
                                 onViewDetails(measurement: measurement),
@@ -409,8 +412,9 @@ class LocationListView extends StatelessWidget with UiLoggy {
             ),
             subtitle: Text(
               measurement.siteDetails?.searchName ??
+                  measurement.siteDetails?.name ??
                   measurement.siteDetails?.formattedName ??
-                  "",
+                  "---",
               style: TextStyle(
                   color: Theme.of(context)
                       .textTheme
@@ -441,7 +445,10 @@ class LocationListView extends StatelessWidget with UiLoggy {
                         : Colors.transparent,
                   ),
                   checkColor: Colors.white,
-                  side: BorderSide(color: Theme.of(context).dividerColor),
+                  side: BorderSide(
+                      color: Theme.of(context).brightness == Brightness.dark 
+                          ? Theme.of(context).dividerColor 
+                          : Colors.grey[600]!),
                 ),
               ],
             ),

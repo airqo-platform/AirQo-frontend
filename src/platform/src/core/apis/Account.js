@@ -15,25 +15,36 @@ import {
   MAINTENANCE_STATUS_URL,
   getUserThemeUrl,
   updateUserThemeUrl,
+  getGroupSlugUrl,
+  getUserUrl,
+  GROUP_ROLES_URL,
 } from '../urls/authentication';
 import { secureApiProxy, AUTH_TYPES } from '../utils/secureApiProxyClient';
+import { openApiMethods } from '../utils/openApiClient';
+import logger from '@/lib/logger';
+
+// Get Users
+export const getUsersApi = () =>
+  secureApiProxy
+    .get(USERS_URL, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
+
+// Get User analytics
+export const getUsersAnalyticsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/stats`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data);
 
 // Password Management
 export const forgotPasswordApi = (data) =>
-  secureApiProxy
-    .post(FORGOT_PWD_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(FORGOT_PWD_URL, data);
 
 export const resetPasswordApi = (data) =>
-  secureApiProxy
-    .put(RESET_PWD_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.put(RESET_PWD_URL, data);
 
 // Authentication
 export const postUserCreationDetails = (data) =>
-  secureApiProxy
-    .post(AUTH_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(AUTH_URL, data);
 
 export const getGoogleAuthDetails = () =>
   secureApiProxy
@@ -41,20 +52,98 @@ export const getGoogleAuthDetails = () =>
     .then((response) => response.data);
 
 export const postUserLoginDetails = (data) =>
-  secureApiProxy
-    .post(LOGIN_URL, data, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+  openApiMethods.post(LOGIN_URL, data);
 
 // User Management
-export const getUserDetails = (userID) =>
-  secureApiProxy
-    .get(`${USERS_URL}/${userID}`, { authType: AUTH_TYPES.JWT })
-    .then((response) => response.data);
+export const getUserDetails = (userID) => {
+  if (!userID) {
+    return Promise.reject(new Error('User ID is required'));
+  }
+
+  return secureApiProxy
+    .get(`${USERS_URL}/${userID}`, {
+      authType: AUTH_TYPES.JWT,
+      timeout: 8000,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      // Enhanced error handling with better messages
+      if (error.response) {
+        const status = error.response.status;
+        const message =
+          error.response.data?.message || 'Failed to fetch user details';
+
+        switch (status) {
+          case 404:
+            throw new Error('User not found');
+          case 403:
+            throw new Error('Access denied');
+          case 401:
+            throw new Error('Authentication required');
+          case 500:
+            throw new Error('Server error occurred');
+          case 408:
+          case 504:
+            throw new Error('Request timeout - server is slow');
+          default:
+            throw new Error(message);
+        }
+      } else if (error.request) {
+        throw new Error('Network error - please check your connection');
+      } else if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timeout - server response too slow');
+      } else {
+        throw new Error(error.message || 'Failed to fetch user details');
+      }
+    });
+};
+
+// New: Get single user by id (convenience wrapper using getUserUrl)
+export const getUserByIdApi = (userId) => {
+  if (!userId || typeof userId !== 'string') {
+    return Promise.reject(new Error('Valid user ID is required'));
+  }
+
+  return secureApiProxy
+    .get(getUserUrl(userId), {
+      authType: AUTH_TYPES.JWT,
+      timeout: 15000,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      if (error.response) {
+        const status = error.response.status;
+        switch (status) {
+          case 404:
+            throw new Error('User not found');
+          case 403:
+            throw new Error('Access denied');
+          case 401:
+            throw new Error('Authentication required');
+          default: {
+            const msg = error.response.data?.message || 'Failed to fetch user';
+            throw new Error(msg);
+          }
+        }
+      } else if (error.request) {
+        throw new Error('Network error - please check your connection');
+      } else {
+        throw new Error(error.message || 'Failed to fetch user');
+      }
+    });
+};
 
 export const updateUserCreationDetails = (data, identifier) =>
   secureApiProxy
     .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data, {
       authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+export const updateUserCreationDetailsWithToken = (data, identifier) =>
+  secureApiProxy
+    .put(`${UPDATE_USER_DETAILS_URL}/${identifier}`, data, {
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data);
 
@@ -66,13 +155,19 @@ export const getAssignedGroupMembers = (groupID) =>
     })
     .then((response) => response.data);
 
-export const inviteUserToGroupTeam = (groupID, userEmails) =>
+// Accepts groupID and a body object (e.g., { emails: [...] })
+export const inviteUserToGroupTeam = (groupID, body) =>
   secureApiProxy
-    .post(
-      `${USERS_URL}/requests/emails/groups/${groupID}`,
-      { emails: userEmails },
-      { authType: AUTH_TYPES.JWT },
-    )
+    .post(`${USERS_URL}/requests/emails/groups/${groupID}`, body, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+export const removeUserFromGroup = (groupID, userID) =>
+  secureApiProxy
+    .delete(`${GROUPS_URL}/${groupID}/users/${userID}`, {
+      authType: AUTH_TYPES.JWT,
+    })
     .then((response) => response.data);
 
 export const acceptGroupTeamInvite = (body) =>
@@ -107,7 +202,7 @@ export const updateGroupDetailsApi = (groupID, data) =>
 export const createOrganisationRequestApi = (data) =>
   secureApiProxy
     .post(`${USERS_URL}/org-requests`, data, {
-      authType: AUTH_TYPES.JWT,
+      authType: AUTH_TYPES.NONE,
     })
     .then((response) => response.data);
 
@@ -141,6 +236,14 @@ export const rejectOrganisationRequestApi = (requestId, feedback) =>
 export const getOrganisationSlugAvailabilityApi = (slug) =>
   secureApiProxy
     .get(`${USERS_URL}/org-requests/slug-availability/${slug}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+// Group Slug Management
+export const updateGroupSlugApi = (groupId, data) =>
+  secureApiProxy
+    .put(getGroupSlugUrl(groupId), data, {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data);
@@ -186,6 +289,11 @@ export const postUserPreferencesApi = (data) =>
     .post(`${USER_PREFERENCES_URL}`, data, { authType: AUTH_TYPES.JWT })
     .then((response) => response.data);
 
+export const postUserPreferencesApiWithToken = (data) =>
+  secureApiProxy
+    .post(`${USER_PREFERENCES_URL}`, data, { authType: AUTH_TYPES.API_TOKEN })
+    .then((response) => response.data);
+
 export const updateUserPreferencesApi = (data) =>
   secureApiProxy
     .post(`${USER_PREFERENCES_URL}/upsert`, data, {
@@ -207,6 +315,13 @@ export const patchUserPreferencesApi = (data) =>
   secureApiProxy
     .patch(`${USER_PREFERENCES_URL}/replace`, data, {
       authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data);
+
+export const patchUserPreferencesApiWithToken = (data) =>
+  secureApiProxy
+    .patch(`${USER_PREFERENCES_URL}/replace`, data, {
+      authType: AUTH_TYPES.API_TOKEN,
     })
     .then((response) => response.data);
 
@@ -242,47 +357,63 @@ export const getMaintenanceStatus = () =>
 /**
  * Get user theme preferences
  * @param {string} userId - MongoDB ObjectId of the user
- * @param {string} tenant - Tenant identifier (defaults to 'airqo')
+ * @param {string} groupId - MongoDB ObjectId of the group
  * @returns {Promise} - Promise resolving to theme preferences
  */
-export const getUserThemeApi = (userId, tenant = 'airqo') => {
-  // Validate user ID
+export const getUserThemeApi = (userId, groupId) => {
+  // Validate user ID and group ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
   }
-  const params = { tenant };
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
+  }
 
   return secureApiProxy
-    .get(getUserThemeUrl(userId), {
-      params,
+    .get(getUserThemeUrl(userId, groupId), {
       authType: AUTH_TYPES.JWT,
+      timeout: 60000,
     })
     .then((response) => response.data)
     .catch((error) => {
-      // Enhanced error handling
-      const errorMessage =
-        error.response?.data?.message || 'Failed to fetch user theme';
-      throw new Error(errorMessage);
+      // Enhanced error handling with fallback (use info for expected cases)
+      if (error.response) {
+        const status = error.response.status;
+        switch (status) {
+          case 404:
+            // Theme not set for this user/group; treat as normal
+            logger.info('User theme not found; applying defaults');
+            return { theme: null };
+          case 403:
+          case 401:
+            // Session/permission issue; allow defaults silently
+            logger.info('Auth issue when fetching theme; applying defaults');
+            return { theme: null };
+          default:
+            logger.error('Theme API error:', error);
+            return { theme: null };
+        }
+      }
+      logger.error('Network error fetching theme:', error);
+      return { theme: null };
     });
 };
 
 /**
  * Update user theme preferences (sends all theme properties)
  * @param {string} userId - MongoDB ObjectId of the user
+ * @param {string} groupId - MongoDB ObjectId of the group
  * @param {Object} currentTheme - Current theme state
  * @param {Object} newTheme - New theme settings object
- * @param {string} tenant - Tenant identifier (defaults to 'airqo')
  * @returns {Promise} - Promise resolving to updated theme preferences
  */
-export const updateUserThemeApi = (
-  userId,
-  currentTheme,
-  newTheme,
-  tenant = 'airqo',
-) => {
-  // Validate user ID
+export const updateUserThemeApi = (userId, groupId, currentTheme, newTheme) => {
+  // Validate user ID and group ID
   if (!userId || typeof userId !== 'string') {
     return Promise.reject(new Error('Valid user ID is required'));
+  }
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
   }
 
   // Validate theme data
@@ -363,11 +494,8 @@ export const updateUserThemeApi = (
     theme: completeTheme,
   };
 
-  const params = { tenant };
-
   return secureApiProxy
-    .put(updateUserThemeUrl(userId), requestBody, {
-      params,
+    .put(updateUserThemeUrl(userId, groupId), requestBody, {
       authType: AUTH_TYPES.JWT,
     })
     .then((response) => response.data)
@@ -375,6 +503,213 @@ export const updateUserThemeApi = (
       // Enhanced error handling
       const errorMessage =
         error.response?.data?.message || 'Failed to update user theme';
+      throw new Error(errorMessage);
+    });
+};
+
+// Group Roles
+/**
+ * Get roles for a group or all roles when no groupId is provided
+ * @param {string} [groupId] - Optional group ID to fetch roles for. When omitted, attempts to fetch all roles.
+ * @returns {Promise} - Promise resolving to group roles
+ */
+export const getGroupRolesApi = (groupId) => {
+  const options = { authType: AUTH_TYPES.JWT };
+  if (groupId && typeof groupId === 'string') {
+    options.params = { group_id: groupId };
+  }
+
+  return secureApiProxy
+    .get(GROUP_ROLES_URL, options)
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch group roles';
+      throw new Error(errorMessage);
+    });
+};
+
+// Create a new role for a group POST REQUEST
+export const createGroupRoleApi = (data) => {
+  if (!data || typeof data !== 'object') {
+    return Promise.reject(new Error('Valid role data is required'));
+  }
+  if (!data.role_name || typeof data.role_name !== 'string') {
+    return Promise.reject(new Error('Role name is required'));
+  }
+  if (!data.group_id || typeof data.group_id !== 'string') {
+    return Promise.reject(new Error('Group ID is required'));
+  }
+
+  return secureApiProxy
+    .post(GROUP_ROLES_URL, data, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to create group role';
+      throw new Error(errorMessage);
+    });
+};
+
+// Update an existing role for a group PUT REQUEST
+export const updateGroupRoleApi = (roleId, data) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!data || typeof data !== 'object') {
+    return Promise.reject(new Error('Valid role data is required'));
+  }
+  if (!data.role_name || typeof data.role_name !== 'string') {
+    return Promise.reject(new Error('Role name is required'));
+  }
+
+  return secureApiProxy
+    .put(`${GROUP_ROLES_URL}/${roleId}`, data, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to update group role';
+      throw new Error(errorMessage);
+    });
+};
+
+// Delete a role for a group DELETE REQUEST
+export const deleteGroupRoleApi = (roleId) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+
+  return secureApiProxy
+    .delete(`${GROUP_ROLES_URL}/${roleId}`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to delete group role';
+      throw new Error(errorMessage);
+    });
+};
+
+// Update role permissions
+export const updateRolePermissionsApi = (roleId, body) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!body || typeof body !== 'object') {
+    return Promise.reject(new Error('Valid permissions data is required'));
+  }
+
+  return secureApiProxy
+    .put(`${GROUP_ROLES_URL}/${roleId}/permissions`, body, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to update role permissions';
+      throw new Error(errorMessage);
+    });
+};
+
+// get all permissions list
+export const getAllPermissionsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/permissions`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch permissions';
+      throw new Error(errorMessage);
+    });
+
+// Get role details by ID
+export const getRoleDetailsApi = (roleId) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+
+  return secureApiProxy
+    .get(`${GROUP_ROLES_URL}/${roleId}`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch role details';
+      throw new Error(errorMessage);
+    });
+};
+
+// Assign a role to a user POST REQUEST
+export const assignRoleToUserApi = (roleId, body) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!body || typeof body !== 'object') {
+    return Promise.reject(new Error('Valid user data is required'));
+  }
+  if (!body.user || typeof body.user !== 'string') {
+    return Promise.reject(new Error('User ID is required'));
+  }
+
+  return secureApiProxy
+    .post(`${GROUP_ROLES_URL}/${roleId}/user`, body, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to assign role to user';
+      throw new Error(errorMessage);
+    });
+};
+
+// Unassign a role from a user
+export const unassignRoleFromUserApi = (roleId, userId) => {
+  if (!roleId || typeof roleId !== 'string') {
+    return Promise.reject(new Error('Valid role ID is required'));
+  }
+  if (!userId || typeof userId !== 'string') {
+    return Promise.reject(new Error('Valid user ID is required'));
+  }
+
+  return secureApiProxy
+    .delete(`${GROUP_ROLES_URL}/${roleId}/user/${userId}`, {
+      authType: AUTH_TYPES.JWT,
+    })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to unassign role from user';
+      throw new Error(errorMessage);
+    });
+};
+
+// Get user's permissions for different groups
+export const getUserGroupPermissionsApi = () =>
+  secureApiProxy
+    .get(`${USERS_URL}/roles/me/roles-simplified`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        'Failed to fetch user group permissions';
+      throw new Error(errorMessage);
+    });
+
+// Get analytics for a group
+/**
+ * Fetch analytics for a specific group
+ * @param {string} groupId - The group ID
+ * @returns {Promise} - Promise resolving to group analytics data
+ */
+export const getGroupAnalyticsApi = (groupId) => {
+  if (!groupId || typeof groupId !== 'string') {
+    return Promise.reject(new Error('Valid group ID is required'));
+  }
+  return secureApiProxy
+    .get(`${GROUPS_URL}/${groupId}/analytics`, { authType: AUTH_TYPES.JWT })
+    .then((response) => response.data)
+    .catch((error) => {
+      const errorMessage =
+        error.response?.data?.message || 'Failed to fetch group analytics';
       throw new Error(errorMessage);
     });
 };

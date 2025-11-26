@@ -1,12 +1,12 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import LongArrowLeft from '@/icons/Analytics/longArrowLeft';
-import LocationIcon from '@/icons/Analytics/LocationIcon';
+
+import { AqArrowNarrowLeft, AqMarkerPin01 } from '@airqo/icons-react';
 import DataTable from '../components/DataTable';
 import Footer from '../components/Footer';
 import LocationCard from '../components/LocationCard';
 import { setOpenModal, setModalType } from '@/lib/store/services/downloadModal';
-import { useGetActiveGroup } from '@/core/hooks/useGetActiveGroupId';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * Header component for the Add Location modal.
@@ -26,7 +26,7 @@ const SelectMoreHeader = () => {
       id="modal-title"
     >
       <button type="button" onClick={handleOpenModal}>
-        <LongArrowLeft className="mr-2" />
+        <AqArrowNarrowLeft className="mr-2" />
       </button>
       More insights {'>'} Add Location
     </h3>
@@ -100,6 +100,14 @@ const SelectMore = ({ onClose }) => {
     });
   }, []);
 
+  const handleOpenModal = useCallback(
+    (type, ids = [], data = null) => {
+      dispatch(setModalType({ type, ids, data }));
+      dispatch(setOpenModal(true));
+    },
+    [dispatch],
+  );
+
   /**
    * Handles the submission of selected sites.
    * Dispatches the replaceUserPreferences action with the formatted payload.
@@ -116,12 +124,12 @@ const SelectMore = ({ onClose }) => {
     }
 
     const selectedSitesData = selectedSites.map((site) => {
-      const { grids, devices, airqlouds, ...rest } = site;
+      const { ...rest } = site;
       return rest;
     });
 
-    handleOpenModal('inSights', null, selectedSitesData);
-  }, [selectedSites, userID, dispatch, onClose]);
+    handleOpenModal('inSights', [], selectedSitesData);
+  }, [selectedSites, userID, handleOpenModal]);
 
   /**
    * Generates the content for the selected sites panel.
@@ -147,7 +155,7 @@ const SelectMore = ({ onClose }) => {
       return (
         <div className="text-gray-500 w-full text-sm h-full flex flex-col justify-center items-center">
           <span className="p-2 rounded-full bg-[#F6F6F7] mb-2">
-            <LocationIcon width={20} height={20} fill="#9EA3AA" />
+            <AqMarkerPin01 size={20} color="#9EA3AA" />
           </span>
           No locations selected
         </div>
@@ -163,14 +171,7 @@ const SelectMore = ({ onClose }) => {
         isSelected={true}
       />
     ));
-  }, [selectedSites, handleToggleSite, loading]);
-
-  const handleOpenModal = useCallback(
-    (type, ids = null, data = null) => {
-      dispatch(setModalType({ type, ids, data }));
-    },
-    [dispatch],
-  );
+  }, [selectedSites, loading, handleToggleSite]);
 
   return (
     <>

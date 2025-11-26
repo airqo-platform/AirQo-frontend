@@ -143,8 +143,13 @@ class CacheManager {
     _connectivity.onConnectivityChanged.listen(_updateConnectionType);
     _updateConnectionType(await _connectivity.checkConnectivity());
 
-    _battery.onBatteryStateChanged.listen(_updateBatteryState);
-    _updateBatteryState(await _battery.batteryState);
+    try {
+      _battery.onBatteryStateChanged.listen(_updateBatteryState);
+      _updateBatteryState(await _battery.batteryState);
+    } catch (e) {
+      loggy.warning('Battery info disabled: $e');
+      _isLowBattery = false;
+    }
   }
 
   Future<void> _initializeHiveBoxes() async {
@@ -171,30 +176,56 @@ class CacheManager {
   void _updateConnectionType(List<ConnectivityResult> connectivityResults) {
     ConnectionType prevConnectionType = _connectionType;
 
-    if (connectivityResults.contains(ConnectivityResult.wifi)) {
-      _connectionType = ConnectionType.wifi;
-    } else if (connectivityResults.contains(ConnectivityResult.mobile)) {
-      _connectionType = ConnectionType.mobile;
-    } else {
+    // Handle both single result and list of results properly
+    bool hasConnection = false;
+    
+    for (var result in connectivityResults) {
+      if (result == ConnectivityResult.wifi) {
+        _connectionType = ConnectionType.wifi;
+        hasConnection = true;
+        break;
+      } else if (result == ConnectivityResult.mobile) {
+        _connectionType = ConnectionType.mobile;
+        hasConnection = true;
+        break;
+      } else if (result == ConnectivityResult.ethernet || 
+                 result == ConnectivityResult.vpn ||
+                 result == ConnectivityResult.other) {
+        // Treat other connection types as available connectivity
+        _connectionType = ConnectionType.wifi; // Treat as wifi-level for caching purposes
+        hasConnection = true;
+        break;
+      }
+    }
+    
+    if (!hasConnection) {
       _connectionType = ConnectionType.none;
     }
 
     if (prevConnectionType != _connectionType) {
+      loggy.info('Connection type changed from $prevConnectionType to $_connectionType (results: $connectivityResults)');
       _connectionChangeController.add(_connectionType);
     }
   }
 
   void _updateBatteryState(BatteryState batteryState) async {
-    if (batteryState == BatteryState.charging) {
-      _isLowBattery = false;
-    } else {
-      int batteryLevel = await _battery.batteryLevel;
-      bool newIsLowBattery = batteryLevel <= 20;
+    try {
+      if (batteryState == BatteryState.charging) {
+        _isLowBattery = false;
+      } else {
+        int batteryLevel = await _battery.batteryLevel;
+        bool newIsLowBattery = batteryLevel <= 20;
 
-      if (_isLowBattery != newIsLowBattery) {
-        _isLowBattery = newIsLowBattery;
-        _batteryChangeController.add(_isLowBattery);
+        if (_isLowBattery != newIsLowBattery) {
+          _isLowBattery = newIsLowBattery;
+          loggy
+              .info('Battery state changed: ${_isLowBattery ? "Low" : "Normal"}');
+          _batteryChangeController.add(_isLowBattery);
+        }
       }
+    } catch (e) {
+      loggy.warning('Battery level check failed: $e');
+      _isLowBattery = false;
     }
   }
 

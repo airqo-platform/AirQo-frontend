@@ -47,7 +47,7 @@ class User {
         required this.id,
         required this.firstName,
         required this.lastName,
-        required this.profilePicture,
+        this.profilePicture,
         required this.lastLogin,
         required this.isActive,
         required this.loginCount,

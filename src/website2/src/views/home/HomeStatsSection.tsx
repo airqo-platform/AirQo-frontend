@@ -6,13 +6,15 @@ import { useState } from 'react';
 
 import { CustomButton } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
-import { useImpactNumbers } from '@/hooks/useApiHooks';
+import { useImpactNumbers } from '@/services/hooks/endpoints';
 
 import { Accordion } from './Accordion';
 import { accordionItems, partnerLogos, statItems } from './data';
 
 const HomeStatsSection: React.FC = () => {
-  const { data: impactNumbers } = useImpactNumbers();
+  const { data: impactNumbersResponse } = useImpactNumbers();
+  // v2 endpoints return a paginated response: { results: [ ... ] }
+  const impactNumbers = impactNumbersResponse?.results?.[0] ?? null;
   const [activeTab, setActiveTab] = useState<'cities' | 'communities'>(
     'cities',
   );
@@ -131,27 +133,31 @@ const StatisticsSection: React.FC<{ impactNumbers: any }> = ({
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-      {statItems.map((stat, index) => (
-        <div
-          key={index}
-          className="h-[240px] p-6 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
-        >
-          <div className="text-left flex flex-col items-start">
-            <p className="text-3xl font-bold">
-              {formatStatValue(stat.key, impactNumbers?.[stat.key] ?? 0)}
-            </p>
-            <p className="text-gray-600">{stat.label}</p>
+      {statItems.map((stat, index) => {
+        const IconComponent = stat.icon;
+        const value = impactNumbers ? (impactNumbers[stat.key] ?? 0) : 0;
+        return (
+          <div
+            key={index}
+            className="h-[240px] p-6 bg-[#DFE8F9] rounded-lg flex flex-col justify-between items-start space-y-4"
+          >
+            <div className="text-left flex flex-col items-start">
+              <p className="text-3xl font-bold">
+                {formatStatValue(stat.key, value)}
+              </p>
+              <p className="text-gray-600">{stat.label}</p>
+            </div>
+            <div className="flex items-center justify-center w-12 h-12 bg-white rounded-full">
+              <IconComponent
+                size={20}
+                color={stat.color}
+                className=""
+                aria-label={stat.label}
+              />
+            </div>
           </div>
-          <div className="flex items-center justify-center w-12 h-12 bg-white rounded-full">
-            <Image
-              src={stat.icon || '/placeholder.svg'}
-              alt={stat.label}
-              width={30}
-              height={30}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 };

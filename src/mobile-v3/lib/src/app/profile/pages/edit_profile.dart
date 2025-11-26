@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:airqo/src/app/profile/bloc/user_bloc.dart';
 import 'package:airqo/src/app/profile/pages/widgets/profile_picture_selector.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
-import 'package:airqo/src/app/shared/repository/hive_repository.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/shared/repository/secure_storage_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -201,16 +202,14 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
         _currentProfilePicture = imageUrl;
       });
 
-      final userId =
-          await HiveRepository.getData("userId", HiveBoxNames.authBox);
+      final userId = await AuthHelper.getCurrentUserId();
       if (userId == null) {
-        throw Exception("No valid user ID found in Hive");
+        throw Exception("No valid user ID found - user may not be authenticated");
       }
 
       // Update user details on the server
       var uri = Uri.parse('https://api.airqo.net/api/v2/users/$userId');
-      final authToken =
-          await HiveRepository.getData("token", HiveBoxNames.authBox);
+      final authToken = await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
       if (authToken == null) {
         throw Exception("Authentication token not found");
       }
@@ -238,20 +237,11 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
       if (response.statusCode == 200 || response.statusCode == 201) {
         var jsonResponse = json.decode(response.body);
         if (jsonResponse['success'] == true) {
-          final updatedData = {
-            'userId': userId,
-            'firstName': _firstNameController.text.trim(),
-            'lastName': _lastNameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'profilePicture': imageUrl,
-          };
-          await HiveRepository.saveData(
-              "loggedUser", json.encode(updatedData), HiveBoxNames.authBox);
           context.read<UserBloc>().add(UpdateUser(
-                firstName: updatedData['firstName'] ?? '',
-                lastName: updatedData['lastName'] ?? '',
-                email: updatedData['email'] ?? '',
-                profilePicture: updatedData['profilePicture'],
+                firstName: _firstNameController.text.trim(),
+                lastName: _lastNameController.text.trim(),
+                email: _emailController.text.trim(),
+                profilePicture: imageUrl,
               ));
 
           return jsonResponse['user']?['profilePicture'] ?? "PROFILE_UPDATED";
@@ -343,11 +333,9 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
   }
 
   void _onFieldChanged() {
-    if (!_formChanged) {
-      setState(() {
-        _formChanged = true;
-      });
-    }
+    setState(() {
+      _formChanged = true;
+    });
   }
 
   Widget _buildProfilePictureWidget() {
@@ -603,6 +591,8 @@ class _EditProfileState extends State<EditProfile> with UiLoggy {
                       children: [
                         ProfilePictureSelector(
                           currentProfilePicture: _currentProfilePicture,
+                          firstName: _firstNameController.text,
+                          lastName: _lastNameController.text,
                           onImageSelected: (file) {
                             setState(() {
                               _selectedProfileImage = file;

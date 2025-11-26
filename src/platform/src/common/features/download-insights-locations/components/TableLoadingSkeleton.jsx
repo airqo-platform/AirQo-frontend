@@ -1,5 +1,6 @@
 import React from 'react';
-import Skeleton from '@/common/components/Skeleton';
+
+const shimmer = 'animate-pulse bg-gray-200 dark:bg-gray-700 rounded';
 
 const TableLoadingSkeleton = ({ rows = 7 }) => {
   return (
@@ -8,19 +9,19 @@ const TableLoadingSkeleton = ({ rows = 7 }) => {
         <thead className="text-xs font-normal border-b capitalize bg-[#f9fafb] dark:bg-transparent dark:border-b dark:border-gray-700 dark:text-white">
           <tr>
             <th scope="col" className="p-4">
-              <Skeleton width="w-4" height="h-4" />
+              <div className={`w-4 h-4 ${shimmer}`}></div>
             </th>
             <th scope="col" className="py-3">
-              <Skeleton width="w-32" height="h-4" />
+              <div className={`w-32 h-4 ${shimmer}`}></div>
             </th>
             <th scope="col" className="px-3 py-3">
-              <Skeleton width="w-24" height="h-4" />
+              <div className={`w-24 h-4 ${shimmer}`}></div>
             </th>
             <th scope="col" className="px-3 py-3">
-              <Skeleton width="w-24" height="h-4" />
+              <div className={`w-24 h-4 ${shimmer}`}></div>
             </th>
             <th scope="col" className="px-3 py-3">
-              <Skeleton width="w-24" height="h-4" />
+              <div className={`w-24 h-4 ${shimmer}`}></div>
             </th>
           </tr>
         </thead>
@@ -31,22 +32,22 @@ const TableLoadingSkeleton = ({ rows = 7 }) => {
               className="bg-white dark:bg-transparent border-b dark:border-gray-700 hover:dark:bg-gray-800"
             >
               <td className="w-4 p-4">
-                <Skeleton width="w-4" height="h-4" />
+                <div className={`w-4 h-4 ${shimmer}`}></div>
               </td>
               <td className="py-2">
                 <div className="flex items-center">
-                  <Skeleton className="mr-3 w-8 h-8" variant="circular" />
-                  <Skeleton width="w-32" height="h-4" />
+                  <div className={`mr-3 w-8 h-8 rounded-full ${shimmer}`}></div>
+                  <div className={`w-32 h-4 ${shimmer}`}></div>
                 </div>
               </td>
               <td className="px-3 py-2">
-                <Skeleton width="w-24" height="h-4" />
+                <div className={`w-24 h-4 ${shimmer}`}></div>
               </td>
               <td className="px-3 py-2">
-                <Skeleton width="w-24" height="h-4" />
+                <div className={`w-24 h-4 ${shimmer}`}></div>
               </td>
               <td className="px-3 py-2">
-                <Skeleton width="w-24" height="h-4" />
+                <div className={`w-24 h-4 ${shimmer}`}></div>
               </td>
             </tr>
           ))}

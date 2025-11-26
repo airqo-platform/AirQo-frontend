@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import AccountPageLayout from '@/components/Account/Layout';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import { useDispatch, useSelector } from 'react-redux';
 import { createUser } from '@/lib/store/services/account/CreationSlice';
-import Toast from '@/components/Toast';
-import { withUserAuthRoute } from '@/core/HOC';
+import Toast from '@/common/components/Toast';
 
 const VerifyUserEmail = () => {
   const dispatch = useDispatch();
@@ -76,4 +75,4 @@ const VerifyUserEmail = () => {
   );
 };
 
-export default withUserAuthRoute(VerifyUserEmail);
+export default VerifyUserEmail;

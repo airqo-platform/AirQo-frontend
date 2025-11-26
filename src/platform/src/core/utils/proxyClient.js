@@ -7,31 +7,127 @@ import { getApiBaseUrl, getApiToken } from '@/lib/envConstants';
 // For App Router compatibility
 /* global Response */
 
-// Simple cache for session data to avoid repeated NextAuth calls
-const sessionCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+// Optimized cache implementation with memory management
+class SessionCache {
+  constructor() {
+    this.cache = new Map();
+    this.ttl = 5 * 60 * 1000; // 5 minutes
+    this.maxSize = 50; // Limit cache size
+    this.cleanupInterval = null;
+    this.initialized = false;
+  }
+
+  init() {
+    if (this.initialized) return;
+    this.initialized = true;
+
+    // Setup periodic cleanup
+    this.cleanupInterval = setInterval(() => {
+      this.cleanup();
+    }, 60000); // Every minute
+
+    // Cleanup on process exit
+    // Register process listeners only once per Node process to avoid
+    // accumulating listeners when this module is hot-reloaded or initialized
+    // multiple times (e.g., in dev with HMR / Next.js server restarts).
+    if (typeof process !== 'undefined') {
+      try {
+        // Use a process-global key to mark registration and keep references
+        // to the bound handlers so they can be removed if needed.
+        const key = '__airqo_session_cache_listeners_registered__';
+        if (!process[key]) {
+          // Bind handlers so we can later remove them if required
+          this._boundClear = this.clear.bind(this);
+          process.on('exit', this._boundClear);
+          process.on('SIGINT', this._boundClear);
+          process.on('SIGTERM', this._boundClear);
+
+          // Mark as registered and keep a reference to the handlers
+          process[key] = true;
+        }
+      } catch (err) {
+        // Best-effort: if process is not available or binding fails, ignore
+        // to avoid crashing the server.
+        // eslint-disable-next-line no-console
+        console.warn('SessionCache: failed to register process listeners', err);
+      }
+    }
+  }
+
+  cleanup() {
+    const now = Date.now();
+    const keysToDelete = [];
+
+    for (const [key, value] of this.cache.entries()) {
+      if (now - value.timestamp > this.ttl) {
+        keysToDelete.push(key);
+      }
+    }
+
+    keysToDelete.forEach((key) => this.cache.delete(key));
+
+    // If cache is still too large, remove oldest entries
+    if (this.cache.size > this.maxSize) {
+      const entries = Array.from(this.cache.entries());
+      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+      const toRemove = entries.slice(0, this.cache.size - this.maxSize);
+      toRemove.forEach(([key]) => this.cache.delete(key));
+    }
+  }
+
+  get(key) {
+    const entry = this.cache.get(key);
+    if (!entry) return null;
+
+    const now = Date.now();
+    if (now - entry.timestamp > this.ttl) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return entry.session;
+  }
+
+  set(key, session) {
+    this.cache.set(key, {
+      session,
+      timestamp: Date.now(),
+    });
+  }
+
+  clear() {
+    this.cache.clear();
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+  }
+}
+
+// Global session cache instance
+const sessionCache = new SessionCache();
 
 const getCachedSession = async () => {
-  const now = Date.now();
+  sessionCache.init();
+
   const cacheKey = 'nextauth_session';
 
-  // Check if we have valid cached session
-  if (sessionCache.has(cacheKey)) {
-    const { session, timestamp } = sessionCache.get(cacheKey);
-    if (now - timestamp < CACHE_TTL) {
-      return session;
-    }
-    // Cache expired, remove it
-    sessionCache.delete(cacheKey);
+  // Check cache first
+  const cachedSession = sessionCache.get(cacheKey);
+  if (cachedSession) {
+    return cachedSession;
   }
 
   // Get fresh session
   try {
     const session = await getServerSession(authOptions);
-    sessionCache.set(cacheKey, { session, timestamp: now });
+    if (session) {
+      sessionCache.set(cacheKey, session);
+    }
     return session;
-  } catch {
-    // If session retrieval fails, return null
+  } catch (error) {
+    logger.warn('Failed to get server session:', error);
     return null;
   }
 };
@@ -71,8 +167,10 @@ export const createProxyHandler = (options = {}) => {
       res = context;
       const extracted = req.query;
       path = extracted.path;
-      const { path: _, ...otherParams } = extracted;
-      queryParams = otherParams;
+      // Extract query params excluding path
+      queryParams = Object.fromEntries(
+        Object.entries(extracted).filter(([key]) => key !== 'path'),
+      );
     }
 
     const targetPath = Array.isArray(path) ? path.join('/') : path;
@@ -179,7 +277,11 @@ export const createProxyHandler = (options = {}) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        timeout: 30000, // 30 second timeout to prevent hanging requests
+        timeout: 60000, // Increased to 60 seconds for heavy endpoints like map readings
+        // Add connection pooling and retry configurations
+        maxRedirects: 3,
+        // Better error handling for timeouts and connection issues
+        validateStatus: (status) => status < 500,
       };
 
       // Handle request body for POST, PUT, PATCH
@@ -235,10 +337,7 @@ export const createProxyHandler = (options = {}) => {
 
         if (authHeader) {
           // Ensure the token starts with "JWT " for API compatibility
-          if (
-            !authHeader.startsWith('JWT ') &&
-            !authHeader.startsWith('Bearer ')
-          ) {
+          if (!authHeader.startsWith('JWT ')) {
             authHeader = `JWT ${authHeader}`;
           }
           config.headers.Authorization = authHeader;
@@ -260,12 +359,55 @@ export const createProxyHandler = (options = {}) => {
         return res.status(response.status).json(response.data);
       }
     } catch (error) {
-      // Forward error status code and message or fallback to generic error
-      const statusCode = error.response?.status || 500;
-      const errorMessage = error.response?.data || {
+      // Enhanced error handling with better logging and categorization
+      let statusCode = error.response?.status || 500;
+      let errorMessage = error.response?.data || {
         success: false,
         message: 'An error occurred while processing the request',
       };
+
+      // Handle specific error types
+      if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        statusCode = 408; // Request Timeout
+        errorMessage = {
+          success: false,
+          message: 'Request timeout - the server took too long to respond',
+          error: 'TIMEOUT',
+        };
+        logger.warn('Proxy request timeout:', {
+          url: `${targetPath}`,
+          timeout: error.config?.timeout ?? 60000,
+          method: req.method,
+        });
+      } else if (error.code === 'ECONNRESET' || error.code === 'ENOTFOUND') {
+        statusCode = 503; // Service Unavailable
+        errorMessage = {
+          success: false,
+          message: 'Service temporarily unavailable - connection issue',
+          error: 'CONNECTION_ERROR',
+        };
+        logger.error('Proxy connection error:', {
+          url: `${targetPath}`,
+          code: error.code,
+          message: error.message,
+        });
+      } else if (error.name === 'AbortError') {
+        statusCode = 499; // Client Closed Request
+        errorMessage = {
+          success: false,
+          message: 'Request was cancelled',
+          error: 'ABORTED',
+        };
+      } else {
+        // Log unexpected errors
+        logger.error('Proxy request error:', {
+          url: `${targetPath}`,
+          method: req.method,
+          status: error.response?.status,
+          message: error.message,
+          code: error.code,
+        });
+      }
 
       if (context && context.params) {
         // App Router - return Response object

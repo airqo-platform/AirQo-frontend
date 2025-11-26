@@ -18,6 +18,10 @@ const initialState = {
   selectedWeeklyPrediction: null,
   mapReadingsData: [],
   waqData: [],
+  // Add nodeType with default as 'Emoji'
+  nodeType: 'Emoji',
+  // Add mapStyle persistence
+  mapStyle: 'Streets',
 };
 
 export const mapSlice = createSlice({
@@ -29,6 +33,16 @@ export const mapSlice = createSlice({
     },
     setSelectedNode: (state, action) => {
       state.selectedNode = action.payload;
+    },
+    setNodeType: (state, action) => {
+      if (typeof action.payload === 'string' && action.payload.trim()) {
+        state.nodeType = action.payload;
+      }
+    },
+    setMapStyle: (state, action) => {
+      if (typeof action.payload === 'string' && action.payload.trim()) {
+        state.mapStyle = action.payload;
+      }
     },
     setCenter: (state, action) => {
       const { latitude, longitude } = action.payload || {};
@@ -89,6 +103,8 @@ export const {
   setMapLoading,
   addSuggestedSites,
   setSelectedNode,
+  setNodeType,
+  setMapStyle,
   reSetMap,
   setSelectedWeeklyPrediction,
   setMapReadingsData,

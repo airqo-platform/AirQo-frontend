@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import AccountPageLayout from '@/components/Account/Layout';
-import CustomToast from '@/components/Toast/CustomToast';
+import AccountPageLayout from '@/common/components/Account/Layout';
+import CustomToast from '@/common/components/Toast/CustomToast';
 import InputField from '@/common/components/InputField';
 import { cloudinaryImageUpload } from '@/core/apis/Cloudinary';
 import {
@@ -11,7 +11,6 @@ import {
   getOrganisationSlugAvailabilityApi,
 } from '@/core/apis/Account';
 import logger from '@/lib/logger';
-import { withUserAuthRoute } from '@/core/HOC';
 
 const OrgRequestAccessPage = () => {
   const router = useRouter();
@@ -59,7 +58,7 @@ const OrgRequestAccessPage = () => {
         organizationSlug: generatedSlug,
       }));
     }
-  }, [formData.organizationName, currentStep]);
+  }, [formData.organizationName, formData.organizationSlug, currentStep]);
 
   const orgSlug = formData.organizationSlug;
 
@@ -84,9 +83,9 @@ const OrgRequestAccessPage = () => {
         clearTimeout(slugCheckTimeoutRef.current);
       }
     };
-  }, [orgSlug]);
+  }, [orgSlug, checkSlugAvailability]);
 
-  const checkSlugAvailability = async (slug) => {
+  const checkSlugAvailability = useCallback(async (slug) => {
     if (!slug) return;
 
     try {
@@ -109,7 +108,7 @@ const OrgRequestAccessPage = () => {
     } finally {
       setIsCheckingSlug(false);
     }
-  };
+  }, []);
 
   const handleSuggestionClick = (suggestion) => {
     setFormData({
@@ -976,4 +975,4 @@ const OrgRequestAccessPage = () => {
   );
 };
 
-export default withUserAuthRoute(OrgRequestAccessPage);
+export default OrgRequestAccessPage;

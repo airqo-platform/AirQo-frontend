@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
-import { HelpCircle, TrendingUp, TrendingDown, Wind, Thermometer } from "lucide-react"
+import { HelpCircle, TrendingUp, TrendingDown, Wind, Thermometer, Zap, Building2, Users, MapPinned } from "lucide-react"
 import {
   BarChart,
   Bar,
@@ -37,6 +37,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
 
 
 
@@ -64,25 +65,49 @@ export default function SiteAnalyticsPage() {
   const [locations, setLocations] = useState([])
   const [selectedLocation, setSelectedLocation] = useState("")
   const [locationData, setLocationData] = useState(null)
+  const [siteStats, setSiteStats] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  // Fetch locations list on component mount
+  // Fetch locations list and site statistics on component mount
   useEffect(() => {
-    const fetchLocations = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch(`${config.apiUrl}/site-analytics/locations`)
-        if (!response.ok) {
+        
+        // Fetch locations and statistics in parallel
+        const [locationsResponse, statsResponse] = await Promise.all([
+          fetch(`${config.apiUrl}/api/v1/beacon/sites`, {
+            headers: {
+              'Authorization': authService.getToken() || '',
+              'Content-Type': 'application/json'
+            }
+          }),
+          fetch(`${config.apiUrl}/api/v1/beacon/sites/statistics`, {
+            headers: {
+              'Authorization': authService.getToken() || '',
+              'Content-Type': 'application/json'
+            }
+          })
+        ])
+        
+        if (!locationsResponse.ok) {
           throw new Error('Failed to fetch locations')
         }
-        const data = await response.json()
+        if (!statsResponse.ok) {
+          throw new Error('Failed to fetch site statistics')
+        }
+        
+        const [locationsData, statsData] = await Promise.all([
+          locationsResponse.json(),
+          statsResponse.json()
+        ])
         
         // Filter to unique location_ids by creating a Map
         // This ensures each location_id only appears once in the dropdown
         const uniqueLocationsMap = new Map();
         
-        data.forEach(location => {
+        locationsData.forEach(location => {
           // If we haven't seen this location_id before, or want to replace with a better entry
           if (!uniqueLocationsMap.has(location.location_id)) {
             uniqueLocationsMap.set(location.location_id, location);
@@ -93,19 +118,20 @@ export default function SiteAnalyticsPage() {
         const uniqueLocations = Array.from(uniqueLocationsMap.values());
         
         setLocations(uniqueLocations)
+        setSiteStats(statsData)
         
         // Set the first location as default if available
         if (uniqueLocations.length > 0 && !selectedLocation) {
           setSelectedLocation(uniqueLocations[0].location_id)
         }
       } catch (err) {
-        setError('Error loading locations: ' + err.message)
+        setError('Error loading data: ' + err.message)
       } finally {
         setIsLoading(false)
       }
     }
 
-    fetchLocations()
+    fetchData()
   }, [])
 
   // Fetch location data when selectedLocation or timeRange changes
@@ -118,7 +144,12 @@ export default function SiteAnalyticsPage() {
       
       try {
         // Make sure to include both the location ID and time range in the request
-        const response = await fetch(`${config.apiUrl}/site-analytics/location/${selectedLocation}?time_range=${timeRange}`)
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/sites/${selectedLocation}/performance?days=${timeRange}`, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
         if (!response.ok) {
           throw new Error('Failed to fetch location data')
         }
@@ -142,7 +173,12 @@ export default function SiteAnalyticsPage() {
         setError(null)
         
         try {
-          const response = await fetch(`${config.apiUrl}/site-analytics/locations/${selectedLocation}?time_range=${timeRange}`)
+          const response = await fetch(`${config.apiUrl}/api/v1/beacon/sites/${selectedLocation}/performance?days=${timeRange}`, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
           if (!response.ok) {
             throw new Error('Failed to fetch location data')
           }
@@ -240,7 +276,103 @@ export default function SiteAnalyticsPage() {
 
       {locationData && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Distribution Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <Card className="border-2 hover:shadow-lg transition-all duration-300">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Urban Commercial</CardTitle>
+                  <Building2 className="h-4 w-4 text-blue-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-bold">
+                      {locationData.sites?.filter(s => s.site_type === "urban_commercial").length || 0}
+                    </span>
+                    <span className="text-xs text-muted-foreground">sites</span>
+                  </div>
+                  <Progress 
+                    value={(locationData.sites?.filter(s => s.site_type === "urban_commercial").length || 0) / (locationData.sites?.length || 1) * 100} 
+                    className="h-1.5" 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:shadow-lg transition-all duration-300">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Urban Background</CardTitle>
+                  <MapPinned className="h-4 w-4 text-green-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-bold">
+                      {locationData.sites?.filter(s => s.site_type === "urban_background").length || 0}
+                    </span>
+                    <span className="text-xs text-muted-foreground">sites</span>
+                  </div>
+                  <Progress 
+                    value={(locationData.sites?.filter(s => s.site_type === "urban_background").length || 0) / (locationData.sites?.length || 1) * 100} 
+                    className="h-1.5" 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:shadow-lg transition-all duration-300">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Roadside</CardTitle>
+                  <Wind className="h-4 w-4 text-orange-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-bold">
+                      {locationData.sites?.filter(s => s.site_type === "roadside").length || 0}
+                    </span>
+                    <span className="text-xs text-muted-foreground">sites</span>
+                  </div>
+                  <Progress 
+                    value={(locationData.sites?.filter(s => s.site_type === "roadside").length || 0) / (locationData.sites?.length || 1) * 100} 
+                    className="h-1.5" 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-2 hover:shadow-lg transition-all duration-300">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Community</CardTitle>
+                  <Users className="h-4 w-4 text-purple-500" />
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-2xl font-bold">
+                      {locationData.sites?.filter(s => s.site_type === "community").length || 0}
+                    </span>
+                    <span className="text-xs text-muted-foreground">sites</span>
+                  </div>
+                  <Progress 
+                    value={(locationData.sites?.filter(s => s.site_type === "community").length || 0) / (locationData.sites?.length || 1) * 100} 
+                    className="h-1.5" 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <Card className="overflow-hidden">
               <CardHeader className="pb-2 bg-gradient-to-r from-primary/10 to-transparent">
                 <CardTitle className="text-sm font-medium">Location</CardTitle>
@@ -253,11 +385,31 @@ export default function SiteAnalyticsPage() {
 
             <Card className="overflow-hidden">
               <CardHeader className="pb-2 bg-gradient-to-r from-primary/10 to-transparent">
-                <CardTitle className="text-sm font-medium">Sites</CardTitle>
+                <CardTitle className="text-sm font-medium">Total Sites</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
-                <div className="text-2xl font-bold">{locationData.metrics.total_sites || 0}</div>
-                <div className="text-sm text-muted-foreground">Monitoring sites in this location</div>
+                <div className="text-2xl font-bold">{siteStats?.summary?.total || locationData?.metrics?.total_sites || 0}</div>
+                <div className="text-sm text-muted-foreground">Total monitoring sites</div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2 bg-gradient-to-r from-green-500/10 to-transparent">
+                <CardTitle className="text-sm font-medium">Active Sites</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="text-2xl font-bold">{siteStats?.summary?.active || locationData?.time_series?.[locationData.time_series.length - 1]?.active_sites || 0}</div>
+                <div className="text-sm text-muted-foreground">Currently active sites</div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-2 bg-gradient-to-r from-red-500/10 to-transparent">
+                <CardTitle className="text-sm font-medium">Inactive Sites</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="text-2xl font-bold">{siteStats?.summary?.inactive || 0}</div>
+                <div className="text-sm text-muted-foreground">Currently inactive sites</div>
               </CardContent>
             </Card>
 
@@ -266,13 +418,57 @@ export default function SiteAnalyticsPage() {
                 <CardTitle className="text-sm font-medium">Data Completeness</CardTitle>
               </CardHeader>
               <CardContent className="pt-4">
-                <div className="text-2xl font-bold">{locationData.metrics.avg_data_completeness ? Math.round(locationData.metrics.avg_data_completeness) + '%' : 'N/A'}</div>
+                <div className="text-2xl font-bold">{locationData?.metrics?.avg_data_completeness ? Math.round(locationData.metrics.avg_data_completeness) + '%' : 'N/A'}</div>
                 <div className="text-sm text-muted-foreground">Average data completeness</div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Average PM2.5 and PM10 Cards */}
+          {/* Site Statistics Cards */}
+          {siteStats && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center">
+                    <Settings className="mr-2 h-5 w-5 text-primary" />
+                    Sites with Devices
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{siteStats.summary.with_devices}</div>
+                  <p className="text-xs text-muted-foreground">Sites that have monitoring devices</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center">
+                    <Activity className="mr-2 h-5 w-5 text-primary" />
+                    Device Coverage Rate
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{siteStats.percentages.coverage_rate.toFixed(1)}%</div>
+                  <p className="text-xs text-muted-foreground">Percentage of sites with device coverage</p>
+                </CardContent>
+              </Card>
+              
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center">
+                    <Activity className="mr-2 h-5 w-5 text-primary" />
+                    Avg Devices/Site
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{siteStats.device_distribution.average_devices_per_site.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground">Average devices per monitoring site</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Site Performance Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="pb-2">
@@ -339,6 +535,106 @@ export default function SiteAnalyticsPage() {
                     : 'N/A'}
                 </div>
                 <p className="text-xs text-muted-foreground">Average uptime for all devices</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Enhanced Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card className="border-l-4 border-l-blue-500">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Device Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Online Devices</span>
+                    <span className="font-semibold">
+                      {locationData.metrics?.online_devices || 0}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={(locationData.metrics?.online_devices || 0) / ((locationData.metrics?.online_devices || 0) + (locationData.metrics?.offline_devices || 0)) * 100} 
+                    className="h-2" 
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Offline Devices</span>
+                    <span className="font-semibold text-red-500">
+                      {locationData.metrics?.offline_devices || 0}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-green-500">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Performance Metrics</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Avg Uptime</span>
+                    <span className="font-semibold">
+                      {locationData.time_series && locationData.time_series.length > 0 
+                        ? `${Math.round(locationData.time_series[locationData.time_series.length - 1].uptime || 0)}%`
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <Progress 
+                    value={locationData.time_series && locationData.time_series.length > 0 
+                      ? locationData.time_series[locationData.time_series.length - 1].uptime || 0
+                      : 0} 
+                    className="h-2" 
+                  />
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Data Completeness</span>
+                    <span className="font-semibold">
+                      {locationData?.metrics?.avg_data_completeness ? Math.round(locationData.metrics.avg_data_completeness) + '%' : 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-l-4 border-l-orange-500">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium">Air Quality Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Avg PM2.5</span>
+                    <span className="font-semibold">
+                      {locationData.metrics.avg_pm25 
+                        ? `${locationData.metrics.avg_pm25.toFixed(1)} μg/m³` 
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Avg PM10</span>
+                    <span className="font-semibold">
+                      {locationData.metrics.avg_pm10
+                        ? `${locationData.metrics.avg_pm10.toFixed(1)} μg/m³`
+                        : 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Predominant AQI</span>
+                    {locationData.aqi_distribution && Object.keys(locationData.aqi_distribution).length > 0 ? (
+                      <Badge 
+                        style={{ 
+                          backgroundColor: aqiColors[getPredominantAqiCategory(locationData.aqi_distribution).toLowerCase()] || "#888",
+                          color: "#fff" 
+                        }}
+                      >
+                        {getPredominantAqiCategory(locationData.aqi_distribution)}
+                      </Badge>
+                    ) : (
+                      <span>N/A</span>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -433,13 +729,17 @@ export default function SiteAnalyticsPage() {
         <div className="space-y-4">
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Total Sites</span>
-            <span className="font-bold">{locationData.metrics.total_sites || 0}</span>
+            <span className="font-bold">{siteStats?.summary?.total || locationData?.metrics?.total_sites || 0}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Active Sites</span>
-            <span className="font-bold">{locationData.time_series && locationData.time_series.length > 0 
-              ? locationData.time_series[locationData.time_series.length - 1].active_sites || 0
-              : 0}</span>
+            <span className="font-bold">{siteStats?.summary?.active || (locationData?.time_series && locationData.time_series.length > 0 
+              ? locationData.time_series[locationData.time_series.length - 1]?.active_sites || 0
+              : 0)}</span>
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-medium">Inactive Sites</span>
+            <span className="font-bold">{siteStats?.summary?.inactive || 0}</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-sm font-medium">Data Completeness</span>
@@ -515,47 +815,100 @@ export default function SiteAnalyticsPage() {
     </Card>
   </div>
 
-  <Card>
-    <CardHeader>
-      <CardTitle className="flex items-center">
-        <TrendingUp className="mr-2 h-5 w-5 text-primary" />
-        PM2.5 Trends
-      </CardTitle>
-      <CardDescription>Average PM2.5 readings over time</CardDescription>
-    </CardHeader>
-    <CardContent>
-      <div className="h-80">
-        {locationData.time_series && locationData.time_series.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={locationData.time_series}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis 
-                dataKey="reading_date" 
-                tickFormatter={(value) => new Date(value).toLocaleDateString()} 
-              />
-              <YAxis />
-              <Tooltip 
-                labelFormatter={(value) => new Date(value).toLocaleDateString()}
-                formatter={(value) => [`${value.toFixed(1)} μg/m³`, "Avg PM2.5"]}
-              />
-              <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="avg_pm25" 
-                name="Average PM2.5" 
-                stroke="#8884d8" 
-                activeDot={{ r: 8 }} 
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-muted-foreground">No PM2.5 trend data available</p>
-          </div>
-        )}
-      </div>
-    </CardContent>
-  </Card>
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <TrendingUp className="mr-2 h-5 w-5 text-primary" />
+          PM2.5 Trends
+        </CardTitle>
+        <CardDescription>Average PM2.5 readings over time</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="h-80">
+          {locationData.time_series && locationData.time_series.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={locationData.time_series}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="reading_date" 
+                  tickFormatter={(value) => new Date(value).toLocaleDateString()} 
+                />
+                <YAxis />
+                <Tooltip 
+                  labelFormatter={(value) => new Date(value).toLocaleDateString()}
+                  formatter={(value) => [`${value.toFixed(1)} μg/m³`, "Avg PM2.5"]}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="avg_pm25" 
+                  name="Average PM2.5" 
+                  stroke="#8884d8" 
+                  strokeWidth={2}
+                  activeDot={{ r: 6 }} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">No PM2.5 trend data available</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Activity className="mr-2 h-5 w-5 text-primary" />
+          Site Type Distribution
+        </CardTitle>
+        <CardDescription>Distribution of sites by type</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="h-80">
+          {locationData.sites && locationData.sites.length > 0 ? (
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={[
+                    { name: "Urban Commercial", value: locationData.sites?.filter(s => s.site_type === "urban_commercial").length || 0, color: "#3b82f6" },
+                    { name: "Urban Background", value: locationData.sites?.filter(s => s.site_type === "urban_background").length || 0, color: "#10b981" },
+                    { name: "Roadside", value: locationData.sites?.filter(s => s.site_type === "roadside").length || 0, color: "#f97316" },
+                    { name: "Community", value: locationData.sites?.filter(s => s.site_type === "community").length || 0, color: "#a855f7" },
+                  ].filter(item => item.value > 0)}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                >
+                  {[
+                    { name: "Urban Commercial", value: locationData.sites?.filter(s => s.site_type === "urban_commercial").length || 0, color: "#3b82f6" },
+                    { name: "Urban Background", value: locationData.sites?.filter(s => s.site_type === "urban_background").length || 0, color: "#10b981" },
+                    { name: "Roadside", value: locationData.sites?.filter(s => s.site_type === "roadside").length || 0, color: "#f97316" },
+                    { name: "Community", value: locationData.sites?.filter(s => s.site_type === "community").length || 0, color: "#a855f7" },
+                  ].filter(item => item.value > 0).map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => [`${value} sites`, "Count"]} />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-muted-foreground">No site type data available</p>
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  </div>
 
  
 </TabsContent>

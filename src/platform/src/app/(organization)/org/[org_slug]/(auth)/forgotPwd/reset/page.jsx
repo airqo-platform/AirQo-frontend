@@ -1,20 +1,25 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import Button from '@/common/components/Button';
 import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import * as Yup from 'yup';
 import Link from 'next/link';
 import ReCAPTCHA from 'react-google-recaptcha';
 
-import { useOrganization } from '@/app/providers/OrganizationProvider';
+import { useOrganization } from '@/app/providers/UnifiedGroupProvider';
 import AuthLayout from '@/common/components/Organization/AuthLayout';
 import { resetPasswordApi } from '@/core/apis/Organizations';
-import Spinner from '@/components/Spinner';
-import Toast from '@/components/Toast';
-import InputField from '@/common/components/InputField';
+import Toast from '@/common/components/Toast';
+import PasswordInputWithToggle from '@/common/components/PasswordInputWithToggle';
+import {
+  useMultiplePasswordVisibility,
+  useLoadingState,
+} from '@/core/hooks/useCommonStates';
 import logger from '@/lib/logger';
-import { withOrgAuthRoute } from '@/core/HOC';
 import { NEXT_PUBLIC_RECAPTCHA_SITE_KEY } from '@/lib/envConstants';
+
+import { formatOrgSlug } from '@/core/utils/strings';
 
 const ResetPasswordSchema = Yup.object().shape({
   password: Yup.string()
@@ -30,7 +35,12 @@ const OrganizationResetPassword = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { loading, startLoading, stopLoading } = useLoadingState(false);
+  const { passwordVisibility, togglePasswordVisibility } =
+    useMultiplePasswordVisibility({
+      password: false,
+      confirmPassword: false,
+    });
   const [recaptchaToken, setRecaptchaToken] = useState(null);
   const recaptchaRef = useRef(null);
 
@@ -43,7 +53,7 @@ const OrganizationResetPassword = () => {
   const orgSlug = params?.org_slug || 'airqo';
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    startLoading();
     setError('');
 
     try {
@@ -55,14 +65,14 @@ const OrganizationResetPassword = () => {
 
       if (!token) {
         setError('Invalid or missing reset token');
-        setLoading(false);
+        stopLoading();
         return;
       }
 
       // Validate reCAPTCHA
       if (!recaptchaToken) {
         setError('Please complete the reCAPTCHA verification');
-        setLoading(false);
+        stopLoading();
         return;
       }
 
@@ -93,7 +103,7 @@ const OrganizationResetPassword = () => {
         setError(err.message || 'An error occurred. Please try again.');
       }
     } finally {
-      setLoading(false);
+      stopLoading();
       // Reset reCAPTCHA
       if (recaptchaRef.current) {
         recaptchaRef.current.reset();
@@ -130,8 +140,9 @@ const OrganizationResetPassword = () => {
             Password Reset Successfully
           </h2>
           <p className="text-gray-600 mb-6">
-            Your password has been reset successfully for {getDisplayName()}.
-            You will be redirected to the login page shortly.
+            Your password has been reset successfully for{' '}
+            {formatOrgSlug(getDisplayName())}. You will be redirected to the
+            login page shortly.
           </p>
           <Link
             href={`/org/${orgSlug}/login`}
@@ -152,7 +163,7 @@ const OrganizationResetPassword = () => {
           Reset your password
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          for {getDisplayName()}
+          for {formatOrgSlug(getDisplayName())}
         </p>
       </div>
 
@@ -161,24 +172,26 @@ const OrganizationResetPassword = () => {
           {error && <Toast message={error} type="error" />}
 
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <InputField
+            <PasswordInputWithToggle
               id="password"
-              name="password"
-              type="password"
               label="New Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              showPassword={passwordVisibility.password}
+              onToggleVisibility={() => togglePasswordVisibility('password')}
               required
               placeholder="Enter your new password"
             />
 
-            <InputField
+            <PasswordInputWithToggle
               id="confirmPassword"
-              name="confirmPassword"
-              type="password"
               label="Confirm New Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              showPassword={passwordVisibility.confirmPassword}
+              onToggleVisibility={() =>
+                togglePasswordVisibility('confirmPassword')
+              }
               required
               placeholder="Confirm your new password"
             />
@@ -194,17 +207,21 @@ const OrganizationResetPassword = () => {
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
+                loading={loading}
                 disabled={loading}
                 className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{
-                  backgroundColor: primaryColor || '#135DFF',
+                  backgroundColor: loading
+                    ? '#e5e7eb'
+                    : primaryColor || '#135DFF',
+                  color: loading ? '#222' : undefined,
                   focusRingColor: primaryColor || '#135DFF',
                 }}
               >
-                {loading ? <Spinner size="sm" /> : 'Reset Password'}
-              </button>
+                {loading ? 'Resetting...' : 'Reset Password'}
+              </Button>
             </div>
           </form>
 
@@ -225,4 +242,4 @@ const OrganizationResetPassword = () => {
   );
 };
 
-export default withOrgAuthRoute(OrganizationResetPassword);
+export default OrganizationResetPassword;

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getMaintenanceStatus } from '../apis/Account';
+import logger from '@/lib/logger';
 
 const POLLING_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
@@ -19,7 +20,7 @@ const useMaintenanceStatus = () => {
       setError(null);
     } catch (err) {
       setError(err);
-      console.error('Error fetching maintenance status:', err);
+      logger.error('Error fetching maintenance status:', err);
     } finally {
       setLoading(false);
     }

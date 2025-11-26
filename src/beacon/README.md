@@ -1,4 +1,7 @@
-# AirQo Device Health Monitoring Frontend
+# AirQo Device Health Monitoring Frontend.
+
+## Node.js Version Requirement
+This project requires **Node.js v22.x**. Please ensure you are using Node.js 22 for development and production environments.
 
 ## Overview
 Frontend microservice for AirQo's device health monitoring system. Provides an interactive web interface for monitoring and analyzing air quality sensors across Africa in real-time.
@@ -43,7 +46,7 @@ AirQo GSM Sensors → ThingSpeak → Backend APIs → Frontend Dashboard
 ### Environment Variables
 ```bash
 # Required
-BACKEND_API_URL=http://srv828289.hstgr.cloud:8000
+BACKEND_API_URL=http://localhost:8000
 NEXT_PUBLIC_API_URL=/api
 
 # Optional
@@ -74,7 +77,7 @@ docker logs airqo-frontend-microservice
 
 **Backend connection issues?**
 ```bash
-curl http://srv828289.hstgr.cloud:8000/health
+curl http://localhost:8000/health
 ```
 
 **Dashboard not loading data?**
@@ -83,7 +86,7 @@ curl http://srv828289.hstgr.cloud:8000/health
 curl http://localhost:3000/api/health
 
 # Verify backend services
-curl http://srv828289.hstgr.cloud:8000/api/devices
+curl http://localhost:8000/api/devices
 ```
 
 ## 📖 Documentation
@@ -93,4 +96,4 @@ curl http://srv828289.hstgr.cloud:8000/api/devices
 
 ---
 
-**Tech Stack**: Next.js 15.1.0, Node.js 18+, Docker
+**Tech Stack**: Next.js 15.1.0, Node.js 22, Docker

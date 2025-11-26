@@ -1,4 +1,4 @@
-// components/DistrictAnalysis.jsx
+// components/DistrictAnalysis.tsx
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
@@ -37,6 +37,94 @@ import {
   ArrowLeft,
 } from "lucide-react"
 import { config } from "@/lib/config"
+import authService from "@/services/api-service"
+
+// TypeScript interfaces
+interface Device {
+  id: string;
+  name: string;
+  status: number | string;
+  pm25: number;
+  pm10: number;
+}
+
+interface Region {
+  region: string;
+}
+
+interface Country {
+  country: string;
+  data?: {
+    region: string;
+  };
+}
+
+interface District {
+  district: string;
+  data?: {
+    country: string;
+  };
+}
+
+interface Location {
+  name: string;
+  devices?: number;
+  onlineDevices?: number;
+  offlineDevices?: number;
+  pm25?: number;
+  pm10?: number;
+  dataCompleteness?: number;
+  dataTransmissionRate?: number;
+}
+
+interface DistrictData {
+  onlineDevices: number;
+  offlineDevices: number;
+  devices: number;
+  dataTransmissionRate: number;
+  pm25: number;
+  pm10: number;
+  dataCompleteness: number;
+  aqiGood: number;
+  aqiModerate: number;
+  aqiUhfsg: number;
+  aqiUnhealthy: number;
+  aqiVeryUnhealthy: number;
+  aqiHazardous: number;
+  devicesList: Device[];
+  locations?: Location[];
+  locationNames?: string[];
+}
+
+interface DistrictResponse {
+  data: DistrictData;
+}
+
+interface AirQualityDataPoint {
+  date: string;
+  pm25: string;
+  pm10: string;
+}
+
+interface AqiDistributionItem {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface PaginatedDeviceTableProps {
+  devices: Device[];
+  searchTerm: string;
+  statusFilter: string;
+}
+
+interface DistrictAnalysisProps {
+  timeRange?: string;
+}
+
+interface ApiCallRef {
+  cancelled: boolean;
+}
 
 // AQI color mapping
 const aqiColors = {
@@ -49,12 +137,16 @@ const aqiColors = {
 }
 
 // Paginated Device Table Component
-const PaginatedDeviceTable = ({ devices = [], searchTerm = "", statusFilter = "all" }) => {
+const PaginatedDeviceTable: React.FC<PaginatedDeviceTableProps> = ({ 
+  devices = [], 
+  searchTerm = "", 
+  statusFilter = "all" 
+}) => {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
 
   // Filter devices based on search term and status filter
-  const filteredDevices = devices.filter((device) => {
+  const filteredDevices = devices.filter((device: Device) => {
     const matchesSearch = 
       device.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       device.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -75,7 +167,7 @@ const PaginatedDeviceTable = ({ devices = [], searchTerm = "", statusFilter = "a
   const paginatedDevices = filteredDevices.slice(startIndex, startIndex + itemsPerPage)
   
   // Handle page change
-  const handlePageChange = (page) => {
+  const handlePageChange = (page: number) => {
     setCurrentPage(page)
   }
 
@@ -95,7 +187,7 @@ const PaginatedDeviceTable = ({ devices = [], searchTerm = "", statusFilter = "a
           </thead>
           <tbody>
             {paginatedDevices.length > 0 ? (
-              paginatedDevices.map((device) => {
+              paginatedDevices.map((device: Device) => {
                 // Handle both numeric (0/1) and string status values
                 const isOnline = typeof device.status === 'number' 
                   ? device.status === 1 
@@ -223,25 +315,25 @@ const PaginatedDeviceTable = ({ devices = [], searchTerm = "", statusFilter = "a
   )
 }
 
-export default function DistrictAnalysis({ timeRange }) {
+export default function DistrictAnalysis({ timeRange }: DistrictAnalysisProps) {
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [regions, setRegions] = useState([])
+  const [error, setError] = useState<string | null>(null)
+  const [regions, setRegions] = useState<Region[]>([])
   const [selectedRegion, setSelectedRegion] = useState("")
-  const [countries, setCountries] = useState([])
+  const [countries, setCountries] = useState<Country[]>([])
   const [selectedCountry, setSelectedCountry] = useState("")
-  const [districts, setDistricts] = useState([])
+  const [districts, setDistricts] = useState<District[]>([])
   const [selectedDistrict, setSelectedDistrict] = useState("")
-  const [currentDistrict, setCurrentDistrict] = useState(null)
+  const [currentDistrict, setCurrentDistrict] = useState<DistrictResponse | null>(null)
   
   const [selectedLocation, setSelectedLocation] = useState("")
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [airQualityData, setAirQualityData] = useState([])
+  const [airQualityData, setAirQualityData] = useState<AirQualityDataPoint[]>([])
 
   // Add refs to track current API calls and prevent race conditions
-  const currentDistrictCall = useRef(null)
-  const currentTimeSeriesCall = useRef(null)
+  const currentDistrictCall = useRef<ApiCallRef | null>(null)
+  const currentTimeSeriesCall = useRef<ApiCallRef | null>(null)
 
   // Reset dependent states when parent selections change
   const resetCountryDependentStates = useCallback(() => {
@@ -261,7 +353,7 @@ export default function DistrictAnalysis({ timeRange }) {
   }, [])
 
   // Fetch time series data with proper cleanup
-  const fetchTimeSeriesData = useCallback(async (district, country) => {
+  const fetchTimeSeriesData = useCallback(async (district: string, country: string) => {
     if (!district || !country) return
 
     // Cancel previous call
@@ -269,12 +361,18 @@ export default function DistrictAnalysis({ timeRange }) {
       currentTimeSeriesCall.current.cancelled = true
     }
 
-    const callRef = { cancelled: false }
+    const callRef: ApiCallRef = { cancelled: false }
     currentTimeSeriesCall.current = callRef
 
     try {
       const response = await fetch(
-        `${config.apiUrl}/network-analysis/districts/${encodeURIComponent(district)}?country=${encodeURIComponent(country)}`
+        `${config.apiUrl}/api/v1/beacon/sites/districts/list?district=${encodeURIComponent(district)}&region=${encodeURIComponent(country)}`,
+        {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        }
       )
       
       // Check if this call was cancelled
@@ -287,7 +385,7 @@ export default function DistrictAnalysis({ timeRange }) {
 
         if (districtData.data && districtData.data.devicesList) {
           const today = new Date()
-          const timeSeriesData = []
+          const timeSeriesData: AirQualityDataPoint[] = []
           
           for (let i = 6; i >= 0; i--) {
             const date = new Date(today)
@@ -317,7 +415,7 @@ export default function DistrictAnalysis({ timeRange }) {
   }, [])
 
   // Fetch district data with proper cleanup and validation
-  const fetchDistrictData = useCallback(async (district, country) => {
+  const fetchDistrictData = useCallback(async (district: string, country: string) => {
     if (!district || !country) {
       setCurrentDistrict(null)
       return
@@ -328,7 +426,7 @@ export default function DistrictAnalysis({ timeRange }) {
       currentDistrictCall.current.cancelled = true
     }
 
-    const callRef = { cancelled: false }
+    const callRef: ApiCallRef = { cancelled: false }
     currentDistrictCall.current = callRef
 
     try {
@@ -338,7 +436,13 @@ export default function DistrictAnalysis({ timeRange }) {
       console.log(`Fetching district data: ${district} in ${country}`)
       
       const response = await fetch(
-        `${config.apiUrl}/network-analysis/districts/${encodeURIComponent(district)}?country=${encodeURIComponent(country)}`
+        `${config.apiUrl}/api/v1/beacon/sites/districts/list?district=${encodeURIComponent(district)}&region=${encodeURIComponent(country)}`,
+        {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        }
       )
 
       // Check if this call was cancelled
@@ -375,7 +479,7 @@ export default function DistrictAnalysis({ timeRange }) {
     const fetchRegions = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${config.apiUrl}/network-analysis/regional`)
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/analytics/regional-analysis`)
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
@@ -410,13 +514,18 @@ export default function DistrictAnalysis({ timeRange }) {
     const fetchCountriesInRegion = async () => {
       try {
         setLoading(true)
-        const response = await fetch(`${config.apiUrl}/network-analysis/countries`)
+        const response = await fetch(`${config.apiUrl}/api/v1/beacon/sites/regions/list`, {
+          headers: {
+            'Authorization': authService.getToken() || '',
+            'Content-Type': 'application/json'
+          }
+        })
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
         }
         
         const data = await response.json()
-        const countriesInRegion = data.countries.filter(country => {
+        const countriesInRegion = data.countries.filter((country: Country) => {
           return country.data && country.data.region === selectedRegion
         })
         
@@ -451,7 +560,13 @@ export default function DistrictAnalysis({ timeRange }) {
       try {
         setLoading(true)
         const response = await fetch(
-          `${config.apiUrl}/network-analysis/districts?country=${encodeURIComponent(selectedCountry)}`
+          `${config.apiUrl}/api/v1/beacon/sites/districts/list?region=${encodeURIComponent(selectedCountry)}`,
+          {
+            headers: {
+              'Authorization': authService.getToken() || '',
+              'Content-Type': 'application/json'
+            }
+          }
         )
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`)
@@ -494,17 +609,17 @@ export default function DistrictAnalysis({ timeRange }) {
   }, [selectedDistrict, selectedCountry, fetchDistrictData])
 
   // Custom selection handlers to ensure clean state transitions
-  const handleRegionChange = useCallback((newRegion) => {
+  const handleRegionChange = useCallback((newRegion: string) => {
     console.log(`Changing region to: ${newRegion}`)
     setSelectedRegion(newRegion)
   }, [])
 
-  const handleCountryChange = useCallback((newCountry) => {
+  const handleCountryChange = useCallback((newCountry: string) => {
     console.log(`Changing country to: ${newCountry}`)
     setSelectedCountry(newCountry)
   }, [])
 
-  const handleDistrictChange = useCallback((newDistrict) => {
+  const handleDistrictChange = useCallback((newDistrict: string) => {
     console.log(`Changing district to: ${newDistrict}`)
     setSelectedDistrict(newDistrict)
   }, [])
@@ -522,7 +637,7 @@ export default function DistrictAnalysis({ timeRange }) {
   }, [])
 
   // Prepare AQI distribution data for pie chart
-  const getAqiDistributionData = () => {
+  const getAqiDistributionData = (): AqiDistributionItem[] => {
     if (!currentDistrict || !currentDistrict.data) return []
     
     const aqiData = currentDistrict.data
@@ -537,7 +652,7 @@ export default function DistrictAnalysis({ timeRange }) {
   }
 
   // Extract locations data from district data if available
-  const getLocationsInDistrict = () => {
+  const getLocationsInDistrict = (): Location[] => {
     if (!currentDistrict || !currentDistrict.data) return []
     
     const districtData = currentDistrict.data
@@ -554,9 +669,10 @@ export default function DistrictAnalysis({ timeRange }) {
   }
 
   // Get specific location data if available
-  const getLocationData = () => {
+  const getLocationData = (): Location => {
     if (!selectedLocation || !currentDistrict || !currentDistrict.data) {
       return {
+        name: "",
         devices: 0,
         onlineDevices: 0,
         offlineDevices: 0,
@@ -575,6 +691,7 @@ export default function DistrictAnalysis({ timeRange }) {
     }
     
     return {
+      name: selectedLocation,
       devices: 0,
       onlineDevices: 0,
       offlineDevices: 0,
@@ -586,7 +703,7 @@ export default function DistrictAnalysis({ timeRange }) {
   }
 
   // Get devices list
-  const getDevicesList = () => {
+  const getDevicesList = (): Device[] => {
     if (!currentDistrict || !currentDistrict.data || !currentDistrict.data.devicesList) {
       return []
     }
@@ -610,7 +727,7 @@ export default function DistrictAnalysis({ timeRange }) {
     )
   }
 
-  const districtData = currentDistrict?.data || {}
+  const districtData = currentDistrict?.data || {} as DistrictData
   const districtAqiData = getAqiDistributionData()
   const locationsInDistrict = getLocationsInDistrict()
   const currentLocation = getLocationData()
@@ -975,4 +1092,3 @@ export default function DistrictAnalysis({ timeRange }) {
     </div>
   )
 }
-          

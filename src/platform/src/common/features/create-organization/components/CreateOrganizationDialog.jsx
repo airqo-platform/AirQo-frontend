@@ -1,11 +1,11 @@
-import React, { useState, Fragment, useRef, useEffect } from 'react';
+import { useState, Fragment, useRef, useEffect } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import PropTypes from 'prop-types';
 import Button from '@/common/components/Button';
 import InputField from '@/common/components/InputField';
 import TextInputField from '@/common/components/TextInputField';
 import SelectField from '@/common/components/SelectField';
-import CustomToast from '@/common/components/Toast/CustomToast';
+import NotificationService from '@/core/utils/notificationService';
 import {
   validateStep1,
   validateStep2,
@@ -56,7 +56,7 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
         organizationSlug: generatedSlug,
       }));
     }
-  }, [formData.organizationName, currentStep]);
+  }, [formData.organizationName, formData.organizationSlug, currentStep]);
   // Check slug availability with debouncing
   useEffect(() => {
     if (
@@ -70,7 +70,7 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [formData.organizationSlug]); // Removed checkSlugAvailability from dependencies
+  }, [formData.organizationSlug, checkSlugAvailability]); // Removed checkSlugAvailability from dependencies
 
   const handleInputChange = (e) => {
     utilHandleInputChange(e, setFormData, setErrors, errors);
@@ -186,12 +186,12 @@ const CreateOrganizationDialog = ({ isOpen, onClose, onSubmit }) => {
         onClose();
       }
     } catch (error) {
-      CustomToast({
-        message:
-          error.message ||
+      const statusCode = error?.response?.status || error?.status || 500;
+      NotificationService.error(
+        statusCode,
+        error.message ||
           'Failed to submit organization request. Please try again.',
-        type: 'error',
-      });
+      );
     }
   };
 

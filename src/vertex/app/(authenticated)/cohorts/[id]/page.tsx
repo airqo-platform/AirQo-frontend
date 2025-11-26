@@ -1,263 +1,158 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { ChevronLeft, Copy, Search, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { AddDevicesDialog } from "@/components/cohorts/assign-cohort-devices";
+import { useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { AqArrowLeft, AqMinusCircle, AqPlus } from "@airqo/icons-react";
+import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import { useCohortDetails } from "@/core/hooks/useCohorts";
+import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
+import CohortDetailsCard from "@/components/features/cohorts/cohort-detail-card";
+import CohortDetailsModal from "@/components/features/cohorts/edit-cohort-details-modal";
+import { usePermission } from "@/core/hooks/usePermissions";
+import { PERMISSIONS } from "@/core/permissions/constants";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
 
-// Sample cohort data
-const cohortData = {
-  name: "victoria_sugar",
-  id: "675bd462c06188001333d4d5",
-  visibility: "true",
-};
-
-// Sample devices data
-const devices = [
-  {
-    name: "Aq_29",
-    description: "AIRQO UNIT with PMS5003 Victoria S",
-    site: "N/A",
-    deploymentStatus: "Deployed",
-    dateCreated: "2019-03-02T00:00:00.000Z",
-  },
-  {
-    name: "Aq_34",
-    description: "AIRQO UNIT with PMS5003 Victoria S",
-    site: "N/A",
-    deploymentStatus: "Deployed",
-    dateCreated: "2019-03-14T00:00:00.000Z",
-  },
-  {
-    name: "Aq_35",
-    description: "AIRQO UNIT with PMS5003 Victoria S",
-    site: "N/A",
-    deploymentStatus: "Deployed",
-    dateCreated: "2019-03-28T00:00:00.000Z",
-  },
-];
+// Loading skeleton for content grid
+const ContentGridSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
+    {[...Array(4)].map((_, i) => (
+      <div key={i} className="h-48 bg-gray-200 rounded-lg animate-pulse" />
+    ))}
+  </div>
+);
 
 export default function CohortDetailsPage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [cohortDetails, setCohortDetails] = useState(cohortData);
+  const params = useParams();
+  const cohortId = params?.id as string;
 
-  const handleCopyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const { data: cohort, isLoading, error } = useCohortDetails(cohortId);
+  const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
+  const [cohortDetails, setCohortDetails] = useState<{
+    name: string;
+    id: string;
+    visibility: boolean;
+  }>({
+    name: "",
+    id: "",
+    visibility: true,
+  });
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showAssignDialog, setShowAssignDialog] = useState(false);
+  const [showUnassignDialog, setShowUnassignDialog] = useState(false);
+
+  const handleOpenDetails = () => setShowDetailsModal(true);
+  const handleCloseDetails = () => setShowDetailsModal(false);
+
+  useEffect(() => {
+    if (cohort) {
+      setCohortDetails({
+        name: cohort.name,
+        id: cohort._id,
+        visibility: cohort.visibility,
+      });
+    }
+  }, [cohort]);
+
+  const devices = useMemo(() => cohort?.devices || [], [cohort]);
+
+  const handleAssignSuccess = () => {
+    setShowAssignDialog(false);
   };
 
-  const handleReset = () => {
-    setCohortDetails(cohortData);
-  };
-
-  const handleSave = () => {
-    console.log("Saving changes:", cohortDetails);
-  };
-
-  const filteredDevices = devices.filter((device) =>
-    Object.values(device).some((value) =>
-      String(value).toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  );
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString("en-US", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    });
+  const handleUnassignSuccess = () => {
+    setShowUnassignDialog(false);
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <Button variant="ghost" className="gap-2" onClick={() => router.back()}>
-          <ChevronLeft className="h-4 w-4" />
-          Cohort Details
-        </Button>
-        <AddDevicesDialog />
-      </div>
+    <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
+      <div>
+        <div className="flex">
+          <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
+            Back
+          </ReusableButton>
+          
+        </div>
+        <AssignCohortDevicesDialog
+          open={showAssignDialog}
+          onOpenChange={setShowAssignDialog}
+          onSuccess={handleAssignSuccess}
+          cohortId={cohortId}
+        />
+        <UnassignCohortDevicesDialog
+          open={showUnassignDialog}
+          onOpenChange={setShowUnassignDialog}
+          cohortDevices={devices}
+          onSuccess={handleUnassignSuccess}
+          cohortId={cohortId}
+        />
 
-      <div className="grid gap-6">
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="cohortName">Cohort name *</Label>
-            <Input
-              id="cohortName"
-              value={cohortDetails.name}
-              onChange={(e) =>
-                setCohortDetails({ ...cohortDetails, name: e.target.value })
-              }
+        {isLoading ? (
+          <ContentGridSkeleton />
+        ) : error ? (
+          <div className="mt-6 text-sm text-muted-foreground">
+            Unable to load cohort details:{" "}
+            {String((error as Error)?.message || "Unknown error")}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-6">
+            {/* Cohort basic info card */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 items-start">
+              <CohortDetailsCard
+                name={cohort?.name || ""}
+                id={cohort?._id || ""}
+                visibility={Boolean(cohort?.visibility)}
+                onShowDetailsModal={handleOpenDetails}
+                loading={isLoading}
+              />
+            </div>
+
+            {/* Devices list */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold">Cohort devices</h2>
+                <div className="flex gap-2">
+                  <ReusableButton
+                    variant="filled"
+                    onClick={() => setShowAssignDialog(true)}
+                    disabled={!canUpdateDevice}
+                    permission={PERMISSIONS.DEVICE.UPDATE}
+                    Icon={AqPlus}
+                    padding="px-3 py-1.5"
+                    className="text-sm font-medium"
+                  >
+                    Add Devices
+                  </ReusableButton>
+                  <ReusableButton
+                    variant="outlined"
+                    onClick={() => setShowUnassignDialog(true)}
+                    disabled={!canUpdateDevice}
+                    permission={PERMISSIONS.DEVICE.UPDATE}
+                    Icon={AqMinusCircle}
+                    padding="px-3 py-1.5"
+                    className="border-red-700 hover:bg-red-700 text-red-700 text-sm font-medium"
+                  >
+                    Remove Devices
+                  </ReusableButton>
+                </div>
+              </div>
+              <ClientPaginatedDevicesTable
+                devices={devices}
+                isLoading={isLoading}
+                error={error}
+                hiddenColumns={["site", "groups"]}
+              />
+            </div>
+            <CohortDetailsModal
+              open={showDetailsModal}
+              cohortDetails={cohortDetails}
+              onClose={handleCloseDetails}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="cohortId">Cohort ID *</Label>
-            <div className="flex gap-2">
-              <Input id="cohortId" value={cohortDetails.id} readOnly />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleCopyToClipboard(cohortDetails.id)}
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="visibility">Visibility *</Label>
-          <Select
-            value={cohortDetails.visibility}
-            onValueChange={(value) =>
-              setCohortDetails({ ...cohortDetails, visibility: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select visibility" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="true">True</SelectItem>
-              <SelectItem value="false">False</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Recent Measurements API</Label>
-            <div className="flex gap-2">
-              <Input
-                value="https://api.airqo.net/api/v2/devices/measurements"
-                readOnly
-                className="font-mono text-sm"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  handleCopyToClipboard(
-                    "https://api.airqo.net/api/v2/devices/measurements"
-                  )
-                }
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Historical Measurements API</Label>
-            <div className="flex gap-2">
-              <Input
-                value="https://api.airqo.net/api/v2/devices/measurements"
-                readOnly
-                className="font-mono text-sm"
-              />
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() =>
-                  handleCopyToClipboard(
-                    "https://api.airqo.net/api/v2/devices/measurements"
-                  )
-                }
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={handleReset}>
-            Reset
-          </Button>
-          <Button onClick={handleSave}>Save Changes</Button>
-        </div>
-
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Cohort devices</h2>
-          <div className="flex items-center justify-between">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search devices..."
-                className="pl-8"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="border rounded-lg">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Device Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Site</TableHead>
-                  <TableHead>Deployment status</TableHead>
-                  <TableHead>Date created</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDevices.map((device) => (
-                  <TableRow key={device.name}>
-                    <TableCell className="font-medium">{device.name}</TableCell>
-                    <TableCell>{device.description}</TableCell>
-                    <TableCell>{device.site}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          device.deploymentStatus === "Deployed"
-                            ? "default"
-                            : "secondary"
-                        }
-                      >
-                        {device.deploymentStatus}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{formatDate(device.dateCreated)}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        </div>
+        )}
       </div>
-    </div>
+    </RouteGuard>
   );
 }

@@ -1,7 +1,7 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import Link from 'next/link';
 import Card from '@/components/CardWrapper';
-import CheckIcon from '@/icons/tickIcon';
+import { AqCheck } from '@airqo/icons-react';
 
 const ChecklistStepCard = memo(({ stepItem, onClick }) => {
   if (!stepItem) return null;
@@ -24,7 +24,7 @@ const ChecklistStepCard = memo(({ stepItem, onClick }) => {
   const StepIcon = () =>
     isCompleted ? (
       <div className="w-12 h-12 flex justify-center items-center rounded-full bg-primary">
-        <CheckIcon fill="#FFFFFF" />
+        <AqCheck color="#FFFFFF" />
       </div>
     ) : (
       <div className="w-12 h-12 text-lg font-medium flex text-primary justify-center items-center rounded-full bg-primary/10">

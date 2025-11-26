@@ -1,19 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import CardWrapper from '@/common/components/CardWrapper';
 
 export default function OrganizationNotFound({ orgSlug }) {
-  const router = useRouter();
-
-  const handleGoBack = () => {
-    router.back();
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#1b1d1e] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <CardWrapper className="overflow-hidden" padding="py-8 px-4 sm:px-10">
           <div className="flex flex-col items-center">
             {/* AirQo Logo */}
             <div className="mb-6">
@@ -57,6 +51,10 @@ export default function OrganizationNotFound({ orgSlug }) {
                     <li>Check the URL for typos</li>
                     <li>Contact your organization admin for the correct URL</li>
                     <li>Use the main AirQo login page instead</li>
+                    <li>
+                      If you&apos;re seeing this due to too many requests,
+                      please check back in 15 minutes
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -67,14 +65,14 @@ export default function OrganizationNotFound({ orgSlug }) {
                 href="/user/login"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
-                AirQo Main Login
+                Main Login
               </Link>
 
               <button
-                onClick={handleGoBack}
+                onClick={() => window.location.reload()}
                 className="w-full flex justify-center py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
               >
-                Go Back
+                Reload Page
               </button>
             </div>
 
@@ -90,7 +88,7 @@ export default function OrganizationNotFound({ orgSlug }) {
               </p>
             </div>
           </div>
-        </div>
+        </CardWrapper>
       </div>
     </div>
   );

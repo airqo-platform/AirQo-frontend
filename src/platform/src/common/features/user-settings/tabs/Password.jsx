@@ -2,11 +2,15 @@ import { useState } from 'react';
 import * as Yup from 'yup';
 import { updateUserPasswordApi } from '@/core/apis/Settings';
 import { useSession } from 'next-auth/react';
-import AlertBox from '@/components/AlertBox';
-import Spinner from '@/components/Spinner';
-import Card from '@/components/CardWrapper';
-import Button from '@/components/Button';
-import InputField from '@/common/components/InputField';
+import AlertBox from '@/common/components/AlertBox';
+import Spinner from '@/common/components/Spinner';
+import Card from '@/common/components/CardWrapper';
+import Button from '@/common/components/Button';
+import PasswordInputWithToggle from '@/common/components/PasswordInputWithToggle';
+import {
+  useMultiplePasswordVisibility,
+  useLoadingState,
+} from '@/core/hooks/useCommonStates';
 
 // Define the password complexity regex
 const passwordRegex =
@@ -31,7 +35,15 @@ const passwordSchema = Yup.object().shape({
 
 const Password = () => {
   const { data: session } = useSession();
-  const [isDisabled, setIsDisabled] = useState(false);
+  const { loading, startLoading, stopLoading } = useLoadingState(false);
+  const { passwordVisibility, togglePasswordVisibility } =
+    useMultiplePasswordVisibility({
+      currentPassword: false,
+      newPassword: false,
+      confirmNewPassword: false,
+    });
+
+  const [isDirty, setIsDirty] = useState(false);
   const [errorState, setErrorState] = useState({
     isError: false,
     message: '',
@@ -48,7 +60,16 @@ const Password = () => {
   // Handle change for InputField components
   const handleChange = (e) => {
     const { id, value } = e.target;
-    setPasswords({ ...passwords, [id]: value });
+    setPasswords((prev) => {
+      const updated = { ...prev, [id]: value };
+      // Mark as dirty if any field is changed from initial state
+      setIsDirty(
+        updated.currentPassword !== '' ||
+          updated.newPassword !== '' ||
+          updated.confirmNewPassword !== '',
+      );
+      return updated;
+    });
     // Clear individual field error if present
     if (fieldErrors[id]) {
       setFieldErrors({ ...fieldErrors, [id]: '' });
@@ -75,7 +96,7 @@ const Password = () => {
     const pwdData = { password: newPassword, old_password: currentPassword };
 
     try {
-      setIsDisabled(true);
+      startLoading();
       const response = await updateUserPasswordApi(
         session.user.id,
         session.user.organization,
@@ -87,6 +108,7 @@ const Password = () => {
           newPassword: '',
           confirmNewPassword: '',
         });
+        setIsDirty(false);
         setErrorState({
           isError: true,
           message: 'Password updated successfully.',
@@ -103,7 +125,7 @@ const Password = () => {
         type: 'error',
       });
     } finally {
-      setIsDisabled(false);
+      stopLoading();
     }
   };
 
@@ -114,6 +136,7 @@ const Password = () => {
       confirmNewPassword: '',
     });
     setFieldErrors({});
+    setIsDirty(false);
   };
 
   return (
@@ -140,34 +163,43 @@ const Password = () => {
               onSubmit={handleSubmit}
               data-testid="form-box"
             >
-              <InputField
+              <PasswordInputWithToggle
                 id="currentPassword"
-                type="password"
                 value={passwords.currentPassword}
                 onChange={handleChange}
                 label="Current Password"
                 placeholder="•••••••••"
                 error={fieldErrors.currentPassword}
+                showPassword={passwordVisibility.currentPassword}
+                onToggleVisibility={() =>
+                  togglePasswordVisibility('currentPassword')
+                }
                 required
               />
-              <InputField
+              <PasswordInputWithToggle
                 id="newPassword"
-                type="password"
                 value={passwords.newPassword}
                 onChange={handleChange}
                 label="New Password"
                 placeholder="•••••••••"
                 error={fieldErrors.newPassword}
+                showPassword={passwordVisibility.newPassword}
+                onToggleVisibility={() =>
+                  togglePasswordVisibility('newPassword')
+                }
                 required
               />
-              <InputField
+              <PasswordInputWithToggle
                 id="confirmNewPassword"
-                type="password"
                 value={passwords.confirmNewPassword}
                 onChange={handleChange}
                 label="Confirm New Password"
                 placeholder="•••••••••"
                 error={fieldErrors.confirmNewPassword}
+                showPassword={passwordVisibility.confirmNewPassword}
+                onToggleVisibility={() =>
+                  togglePasswordVisibility('confirmNewPassword')
+                }
                 required
               />
             </form>
@@ -175,7 +207,8 @@ const Password = () => {
               <Button
                 onClick={handleReset}
                 type="button"
-                variant="outlined"
+                disabled={loading || !isDirty}
+                variant={loading || !isDirty ? 'disabled' : 'outlined'}
                 className="py-3 px-4 text-sm dark:bg-transparent"
               >
                 Cancel
@@ -183,13 +216,13 @@ const Password = () => {
               <Button
                 onClick={handleSubmit}
                 type="button"
-                disabled={isDisabled}
-                variant={isDisabled ? 'disabled' : 'filled'}
+                disabled={loading || !isDirty}
+                variant={loading || !isDirty ? 'disabled' : 'filled'}
                 className="py-3 px-4 text-sm rounded"
               >
-                {isDisabled ? (
+                {loading ? (
                   <div className="flex items-center gap-1">
-                    <Spinner width={16} height={16} />
+                    <Spinner size={16} />
                     <span>Saving...</span>
                   </div>
                 ) : (

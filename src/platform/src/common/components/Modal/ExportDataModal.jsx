@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { exportDataApi } from '@/core/apis/Analytics';
 import Papa from 'papaparse';
 import { roundToEndOfDay, roundToStartOfDay } from '@/core/utils/dateTime';
@@ -8,11 +8,14 @@ import { useSelector } from 'react-redux';
 import ExportModalWrapper from './ExportModalWrapper';
 
 const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
-  const exportFormats = [
-    'csv',
-    'json',
-    // 'pdf'
-  ];
+  const exportFormats = useMemo(
+    () => [
+      'csv',
+      'json',
+      // 'pdf'
+    ],
+    [],
+  );
   const [selectedFormat, setSelectedFormat] = useState(exportFormats[0]);
   const [loading, setLoading] = useState(false);
   const [alert, setAlert] = useState({ type: '', message: '', show: false });
@@ -31,10 +34,10 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
    * Handle cancel button click
    * @returns {void}
    * */
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setSelectedFormat(exportFormats[0]);
     onClose();
-  };
+  }, [onClose, exportFormats]);
 
   /**
    * Export data
@@ -97,7 +100,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
         setLoading(false);
       }
     },
-    [selectedFormat],
+    [selectedFormat, handleCancel, handleExportPDF],
   );
 
   /**
@@ -117,7 +120,7 @@ const ConfirmExportModal = ({ open, onClose, handleExportPDF, data }) => {
       outputFormat: 'airqo-standard',
     };
     downloadDataFunc(body);
-  }, [startDate, endDate, downloadDataFunc]);
+  }, [startDate, endDate, downloadDataFunc, data?.sites]);
 
   return (
     <div>

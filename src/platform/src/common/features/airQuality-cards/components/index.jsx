@@ -1,9 +1,9 @@
-import React, { memo, useRef, useState, useCallback } from 'react';
+import { memo, useRef, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { Tooltip } from 'flowbite-react';
 import { useResizeObserver } from '@/core/hooks/useResizeObserver';
 import { AQI_CATEGORY_MAP, IconMap } from '../constants';
-import { FiArrowUp, FiArrowDown } from 'react-icons/fi';
+import { AqArrowNarrowDown, AqArrowNarrowUp } from '@airqo/icons-react';
 import Card from '@/components/CardWrapper';
 
 const CARD_HEIGHT = 'h-44';
@@ -16,11 +16,12 @@ const getMeasurementValue = (measurement, pollutantType) =>
 
 /** Trend arrow with tooltip */
 const TrendIndicator = memo(({ trendData }) => {
-  const Icon = trendData?.isIncreasing ? FiArrowUp : FiArrowDown;
+  const Icon = trendData?.isIncreasing ? AqArrowNarrowUp : AqArrowNarrowDown;
+  // If trend has worsened (isIncreasing), use bg-primary/10 for background
   const bgClass = trendData
     ? trendData.isIncreasing
-      ? 'bg-gray-100 dark:bg-gray-100/10'
-      : 'bg-primary/10'
+      ? 'bg-primary/10'
+      : 'bg-gray-100 dark:bg-gray-100/10'
     : 'bg-gray-100 dark:bg-gray-700';
   const colorClass = trendData
     ? trendData.isIncreasing
@@ -76,16 +77,17 @@ const SiteCard = memo(
     useResizeObserver(countryRef, checkTruncation);
 
     // AQI data
-    const aqiCategory = measurement?.aqi_category ?? 'Unknown';
-    const statusKey = AQI_CATEGORY_MAP[aqiCategory] ?? 'unknown';
+    const aqiCategory = measurement?.aqi_category ?? '--';
+    const statusKey = AQI_CATEGORY_MAP[aqiCategory] ?? '--';
     const AirQualityIcon = IconMap[statusKey] ?? IconMap.unknown;
     const pctDiff = measurement?.averages?.percentageDifference;
     const trendData =
       pctDiff != null
         ? {
-            trendTooltip: `${Math.abs(pctDiff)}% ${
-              pctDiff > 0 ? 'worsened' : 'improved'
-            } compared to last week.`,
+            trendTooltip:
+              pctDiff > 0
+                ? `Air quality worsened by ${Math.abs(pctDiff).toFixed(2)}% compared to last week.`
+                : `Air quality improved by ${Math.abs(pctDiff).toFixed(2)}% compared to last week.`,
             isIncreasing: pctDiff > 0,
           }
         : null;
@@ -96,7 +98,7 @@ const SiteCard = memo(
 
     // Enhanced site name formatting to handle IDs gracefully
     const formatSiteName = (name) => {
-      if (!name || name === '---') return 'Unknown Site';
+      if (!name || name === '---') return '--';
 
       // If the name looks like an ObjectId (24 hex characters), format it nicely
       if (/^[0-9a-fA-F]{24}$/.test(name)) {
@@ -111,9 +113,8 @@ const SiteCard = memo(
       return name;
     };
 
-    const siteName = formatSiteName(site.name);
-    const siteCountry =
-      site.country || site.city || site.region || 'Unknown Location';
+    const siteName = formatSiteName(site.search_name || site.name || '--');
+    const siteCountry = site.country || site.city || site.region || '--';
 
     const handleClick = useCallback(() => {
       onOpenModal('inSights', [], site);
@@ -180,6 +181,7 @@ SiteCard.propTypes = {
   site: PropTypes.shape({
     _id: PropTypes.string.isRequired,
     name: PropTypes.string,
+    search_name: PropTypes.string,
     country: PropTypes.string,
   }).isRequired,
   measurement: PropTypes.shape({

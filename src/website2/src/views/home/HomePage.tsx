@@ -58,7 +58,7 @@ const HomePage = () => {
           description="We deploy a high-resolution air quality monitoring network in target urban areas across Africa to increase awareness and understanding of air quality management, provide actionable information, and derive actions against air pollution."
           buttonText="Learn more"
           buttonLink="/products/monitor"
-          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175985/website/photos/monitorHome_dmmrsk.png"
+          imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1757020397/website/photos/monitorHome_dmmrsk_tof2wo.webp"
           reverse={false}
           backgroundColor="bg-transparent"
         />
@@ -131,20 +131,22 @@ const HomePage = () => {
       {/* The clean air network */}
       <MotionSection>
         <ReversibleContentSection
-          title="The CLEAN-Air Network"
-          subtitle="Air Quality Network"
+          title="Africa Clean Air Network"
+          subtitle="CLEAN-Air Network"
           description={
             <div>
-              <span className="text-blue-700 font-medium">
-                An African-led, multi-regional network
-              </span>
-              <br />
-              bringing together a community of practice for air quality
-              solutions and air quality management across Africa.
+              The Africa Clean Air Network (AfriCAN) unites partners across
+              disciplines, sectors and borders to support clean air efforts
+              across Africa. The network&apos;s mission is to build
+              cross-border, cross-sector, multi-skilled partnerships that
+              deliver scalable, evidence-driven and open-access clean air
+              solutions for African cities. Launched in 2023 under the
+              leadership of AirQo at Makerere University (Uganda), the network
+              is building a shared framework for action on clean air.
             </div>
           }
           buttonText="Join the Network"
-          buttonLink="/clean-air-network/about"
+          buttonLink="https://cleanairafrica.org/"
           imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132390/website/cleanAirForum/images/section1_usfuoj.webp"
           backgroundColor="bg-transparent"
           reverse={true}

@@ -32,6 +32,7 @@ export interface ForumEvent {
   engagement?: any;
   programs?: any[];
   persons?: any[];
+  supports?: any[]; // Added for v2 API support
 }
 
 export interface ForumTitlesResponse {

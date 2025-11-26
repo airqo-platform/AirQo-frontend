@@ -1,13 +1,14 @@
-import { Metadata } from 'next';
+import {
+  generateMetadata as createMetadata,
+  generateViewport,
+  METADATA_CONFIGS,
+} from '@/lib/metadata';
 
 import HomePage from './home/page';
 
-// Define metadata with additional SEO properties
-export const metadata: Metadata = {
-  title: 'Home | AirQo',
-  description: 'Explore the air quality monitoring data and tools by AirQo.',
-  keywords: 'air quality, pollution, monitoring, AirQo, environment',
-};
+// Generate metadata using the centralized utility
+export const metadata = createMetadata(METADATA_CONFIGS.home);
+export const viewport = generateViewport();
 
 export default function Home() {
   return <HomePage />;

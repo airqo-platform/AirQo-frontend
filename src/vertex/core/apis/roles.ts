@@ -1,9 +1,6 @@
-import createAxiosInstance from "./axiosConfig";
-import { USERS_MGT_URL } from "../urls";
+import createSecureApiClient from "../utils/secureApiProxyClient";
 import { AxiosError } from "axios";
 import { Role } from "@/app/types/roles";
-
-const axiosInstance = createAxiosInstance();
 
 interface ErrorResponse {
   message: string;
@@ -12,8 +9,9 @@ interface ErrorResponse {
 export const roles = {
   getRolesApi: async () => {
     try {
-      const response = await axiosInstance.get(
-        `${USERS_MGT_URL}/roles/summary`
+      const response = await createSecureApiClient().get(
+        `/users/roles/summary`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -25,8 +23,9 @@ export const roles = {
   },
   getRolesDetailsApi: async (roleId: string) => {
     try {
-      const response = await axiosInstance.get(
-        `${USERS_MGT_URL}/roles/${roleId}`
+      const response = await createSecureApiClient().get(
+        `/users/roles/${roleId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -39,8 +38,9 @@ export const roles = {
 
   getOrgRolesApi: async (groupId: string) => {
     try {
-      const response = await axiosInstance.get(
-        `${USERS_MGT_URL}/groups/${groupId}/roles`
+      const response = await createSecureApiClient().get(
+        `/users/groups/${groupId}/roles`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -52,8 +52,9 @@ export const roles = {
   },
   updateRoleDetailsApi: async (roleId: string, data: Role) => {
     try {
-      const response = await axiosInstance.put(
-        `${USERS_MGT_URL}/roles/${roleId}`, data
+      const response = await createSecureApiClient().put(
+        `/users/roles/${roleId}`, data,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {
@@ -65,9 +66,10 @@ export const roles = {
   },
   createRoleApi: async (data: any) => {
     try {
-      const response = await axiosInstance.post(
-        `${USERS_MGT_URL}/roles`,
-        data
+      const response = await createSecureApiClient().post(
+        `/users/roles`,
+        data,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {

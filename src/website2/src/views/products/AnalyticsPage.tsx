@@ -221,14 +221,16 @@ const AnalyticsPage = () => {
               Gain insights to take action
             </h3>
             <p className="text-lg text-gray-700 mb-4">
-              With our air quality analytics dashboard, you can view,
-              historical, real-time, or forecast calibrated data in locations
-              that matter to you.
+              We integrate AI and machine learning models to deliver predictive
+              insights, giving stakeholders access to historical, real-time, or
+              forecast air quality data in locations that matter to them. This
+              empowers the stakeholders to make evidence-informed decisions to
+              better manage air pollution.
             </p>
             <p className="text-lg text-gray-700 mt-4">
-              You can generate, compare and download air quality data in various
-              African Cities and develop evidence-informed actions for air
-              pollution.
+              Easily generate, download and compare air quality data across
+              various African cities and develop evidence-informed actions for
+              air pollution.
             </p>
           </motion.div>
         </div>

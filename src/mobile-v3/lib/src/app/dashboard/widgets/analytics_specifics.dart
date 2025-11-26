@@ -6,7 +6,8 @@ import 'package:flutter/material.dart';
 
 class AnalyticsSpecifics extends StatefulWidget {
   final Measurement measurement;
-  const AnalyticsSpecifics({super.key, required this.measurement});
+  final String? fallbackLocationName;
+  const AnalyticsSpecifics({super.key, required this.measurement, this.fallbackLocationName});
 
   @override
   State<AnalyticsSpecifics> createState() => _AnalyticsSpecificsState();
@@ -82,7 +83,9 @@ class _AnalyticsSpecificsState extends State<AnalyticsSpecifics> {
                     Expanded(
                       child: Text(
                         widget.measurement.siteDetails?.searchName ??
-                            "Unnamed Site",
+                            widget.measurement.siteDetails?.name ??
+                            widget.fallbackLocationName ??
+                            "---",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 24,

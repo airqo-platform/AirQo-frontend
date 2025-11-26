@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  icon-website:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped
+    # Uncomment below if you want to use environment files
+    # env_file:
+    #   - .env

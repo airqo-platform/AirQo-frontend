@@ -1,56 +1,226 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 
-import { removeTrailingSlash } from '@/utils';
+import type { FAQ } from '@/types';
 
-// Define the base URL for the API
-const API_BASE_URL = `${removeTrailingSlash(process.env.NEXT_PUBLIC_API_URL || '')}/website`;
+// Define the base URL for the API using our proxy route
+const getApiBaseUrl = () => {
+  return '/api/proxy';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Create an Axios instance with default configurations
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  timeout: process.env.NODE_ENV === 'development' ? 15000 : 10000, // Longer timeout in dev
+  validateStatus: (status: number) => {
+    return status >= 200 && status < 300;
   },
 });
+
+// Add request interceptor for development debugging
+if (process.env.NODE_ENV === 'development') {
+  apiClient.interceptors.request.use(
+    (config) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Making API request to: ${config.baseURL}${config.url}`);
+      }
+      return config;
+    },
+    (error) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Request interceptor error:', error);
+      }
+      return Promise.reject(error);
+    },
+  );
+
+  apiClient.interceptors.response.use(
+    (response) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(
+          `API response from: ${response.config.url}`,
+          response.status,
+        );
+      }
+      return response;
+    },
+    (error) => {
+      // Don't log client disconnections as errors in development
+      if (error.code === 'ERR_CANCELED' || error.message?.includes('aborted')) {
+        if (process.env.NODE_ENV === 'development') {
+          console.debug('Request was cancelled (likely page refresh)');
+        }
+        return Promise.reject(error);
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`API error from: ${error.config?.url}`, error.message);
+      }
+      return Promise.reject(error);
+    },
+  );
+}
 
 // Generic GET request handler
 const getRequest = async (endpoint: string): Promise<any> => {
   try {
-    const response = await apiClient.get(endpoint);
+    // Use our proxy route with the /website prefix
+    const response = await apiClient.post('', {
+      endpoint: `/website${endpoint}`,
+      method: 'GET',
+    });
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
-    console.error(`Error fetching data from ${endpoint}:`, axiosError.message);
+
+    // Handle cancellation gracefully (don't log as error)
+    if (
+      axiosError.code === 'ERR_CANCELED' ||
+      axiosError.message?.includes('aborted')
+    ) {
+      throw axiosError; // Re-throw but don't log
+    }
+
+    if (process.env.NODE_ENV === 'development') {
+      console.error(
+        `Error fetching data from ${endpoint}:`,
+        axiosError.message,
+      );
+    }
+
+    // In development, provide more detailed error information
+    if (process.env.NODE_ENV === 'development') {
+      if (axiosError.response) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Response data:', axiosError.response.data);
+          console.error('Response status:', axiosError.response.status);
+        }
+      } else if (axiosError.request) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('Network error - no response received');
+          console.error('Request config:', axiosError.config);
+        }
+      }
+    }
+
     throw axiosError;
   }
 };
 
 // Press Articles API
 export const getPressArticles = async (): Promise<any> => {
-  return getRequest('/press/');
+  try {
+    return await getRequest('/press/');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to fetch press articles:', error);
+      }
+    }
+    return []; // Return empty array so components can show "no data" message
+  }
 };
 
 // Impact Numbers API
 export const getImpactNumbers = async (): Promise<any> => {
-  return getRequest('/impact-number/');
+  try {
+    return await getRequest('/impact-number/');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to fetch impact numbers:', error);
+      }
+    }
+    return {}; // Return empty object so components can show "no data" message
+  }
 };
 
 // Events API
 export const getAirQoEvents = async (): Promise<any> => {
-  return getRequest('/events/?category=airqo');
+  try {
+    return await getRequest('/events/?category=airqo');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to fetch AirQo events:', error);
+      }
+    }
+    return []; // Return empty array so components can show "no data" message
+  }
 };
 
 export const getCleanAirEvents = async (): Promise<any> => {
-  return getRequest('/events/?category=cleanair');
+  try {
+    return await getRequest('/events/?category=cleanair');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to fetch Clean Air events:', error);
+      }
+    }
+    return []; // Return empty array so components can show "no data" message
+  }
 };
 
 export const getEventDetails = async (id: string): Promise<any> => {
-  return getRequest(`/events/${id}/`);
+  try {
+    return await getRequest(`/events/${id}/`);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`Failed to fetch event ${id}:`, error);
+      }
+    }
+    return null; // Return null so components can show "not found" message
+  }
 };
 
 // Highlights API
 export const getHighlights = async (): Promise<any> => {
-  return getRequest('/highlights/');
+  try {
+    return await getRequest('/highlights/');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('Failed to fetch highlights:', error);
+      }
+    }
+    return []; // Return empty array so components can show "no data" message
+  }
 };
 
 // Careers API
@@ -116,4 +286,21 @@ export const getCleanAirResources = async (): Promise<any> => {
 // African Countries API
 export const getAfricanCountries = async (): Promise<any> => {
   return getRequest('/african-countries/');
+};
+
+// FAQ API
+export const getFAQs = async (): Promise<FAQ[]> => {
+  try {
+    return await getRequest('/faq/');
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    // Don't warn about cancelled requests
+    if (
+      axiosError.code !== 'ERR_CANCELED' &&
+      !axiosError.message?.includes('aborted')
+    ) {
+      console.warn('Failed to fetch FAQs:', error);
+    }
+    return [] as FAQ[]; // Return typed empty array so components can show "no data" message
+  }
 };

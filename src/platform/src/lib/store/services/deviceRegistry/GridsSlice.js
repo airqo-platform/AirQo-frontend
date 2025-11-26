@@ -2,7 +2,8 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import {
   getSiteSummaryDetails,
   getGridLocationDetails,
-  getGirdsSummaryDetails,
+  getGridsSummaryDetails,
+  getAssignedSitesForGrid,
 } from '@/core/apis/DeviceRegistry';
 
 const initialState = {
@@ -13,6 +14,7 @@ const initialState = {
   selectedLocations: [],
   gridsSummary: [],
   gridsDataSummary: [],
+  assignedSites: {},
 };
 
 export const getGridLocation = createAsyncThunk('/get/grid', async (gridID) => {
@@ -28,11 +30,19 @@ export const getSitesSummary = createAsyncThunk(
   },
 );
 
+export const getAssignedSites = createAsyncThunk(
+  '/get/assigned-sites',
+  async (gridID) => {
+    const response = await getAssignedSitesForGrid(gridID);
+    return response;
+  },
+);
+
 // New async thunk for getting grids data summary
 export const getGridsDataSummary = createAsyncThunk(
   '/get/grids-data-summary',
   async () => {
-    const response = await getGirdsSummaryDetails();
+    const response = await getGridsSummaryDetails();
     return response;
   },
 );
@@ -87,6 +97,20 @@ export const gridsSlice = createSlice({
         state.success = action.payload.success;
       })
       .addCase(getGridsDataSummary.rejected, (state, action) => {
+        state.errors = action.error.message;
+        state.success = false;
+      })
+      .addCase(getAssignedSites.pending, (state) => {
+        state.errors = null;
+      })
+      .addCase(getAssignedSites.fulfilled, (state, action) => {
+        // store by grid id for quick lookup
+        if (action.meta && action.meta.arg) {
+          state.assignedSites[action.meta.arg] = action.payload;
+        }
+        state.success = action.payload.success;
+      })
+      .addCase(getAssignedSites.rejected, (state, action) => {
         state.errors = action.error.message;
         state.success = false;
       });

@@ -1,21 +1,20 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { signIn as _signIn, getSession as _getSession } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import * as Yup from 'yup';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { AqEye, AqEyeOff } from '@airqo/icons-react';
 
-import AccountPageLayout from '@/components/Account/Layout';
-import Spinner from '@/components/Spinner';
-import Toast from '@/components/Toast';
+import AccountPageLayout from '@/common/components/Account/Layout';
 import InputField from '@/common/components/InputField';
-
+import Button from '@/common/components/Button';
 import { setUserData } from '@/lib/store/services/account/LoginSlice';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import { withAuthRoute } from '@/core/HOC';
-import logger from '@/lib/logger';
+import ErrorBoundary from '@/common/components/ErrorBoundary';
+import NotificationService from '@/core/utils/notificationService';
+import { setupUserSession } from '@/core/utils/loginSetup';
 
 const loginSchema = Yup.object().shape({
   userName: Yup.string()
@@ -25,103 +24,183 @@ const loginSchema = Yup.object().shape({
 });
 
 const UserLogin = () => {
-  const [error, setErrorState] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
+  const router = useRouter();
   const { userData } = useSelector((state) => state.login);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const handleLogin = useCallback(
     async (e) => {
       e.preventDefault();
-      setLoading(true);
-      setErrorState('');
 
-      // Get form data
+      if (loading || !isMountedRef.current) return;
+
+      setLoading(true);
+
       const formData = {
         userName: userData.userName?.trim() || '',
         password: userData.password || '',
       };
 
-      // Validate credentials
       try {
         await loginSchema.validate(formData, { abortEarly: false });
       } catch (validationError) {
-        const messages = validationError.inner
-          .map((err) => err.message)
-          .join(', ');
-        setLoading(false);
-        return setErrorState(messages);
+        if (isMountedRef.current) {
+          setLoading(false);
+          const messages = validationError.inner
+            .map((err) => err.message)
+            .join(' ');
+          // Use status code 422 for validation errors
+          NotificationService.error(422, messages);
+        }
+        return;
       }
 
       try {
-        logger.info('Attempting login with NextAuth...');
-
-        // Use NextAuth signIn
-        const result = await _signIn('credentials', {
+        const result = await signIn('credentials', {
           userName: formData.userName,
           password: formData.password,
           redirect: false,
         });
 
-        logger.info('NextAuth signIn result:', result);
+        if (!isMountedRef.current) return;
 
         if (result?.error) {
-          throw new Error(result.error);
+          // Enhanced error handling with better status code detection and user-friendly messages
+          let statusCode = 401; // Default to unauthorized
+          let customMessage = null;
+
+          const errorMsg = result.error.toLowerCase();
+
+          if (
+            errorMsg.includes('invalid credentials') ||
+            errorMsg.includes('authentication failed') ||
+            errorMsg.includes('incorrect password') ||
+            errorMsg.includes('incorrect email or password') ||
+            errorMsg.includes('unauthorized')
+          ) {
+            statusCode = 401;
+            customMessage =
+              'Invalid email or password. Please check your credentials and try again.';
+          } else if (
+            errorMsg.includes('user not found') ||
+            errorMsg.includes('account does not exist')
+          ) {
+            statusCode = 404;
+            customMessage = 'No account found with this email address.';
+          } else if (
+            errorMsg.includes('account locked') ||
+            errorMsg.includes('account disabled') ||
+            errorMsg.includes('account suspended')
+          ) {
+            statusCode = 403;
+            customMessage =
+              'Your account has been suspended. Please contact support.';
+          } else if (
+            errorMsg.includes('too many attempts') ||
+            errorMsg.includes('rate limit') ||
+            errorMsg.includes('throttled')
+          ) {
+            statusCode = 429;
+            customMessage =
+              'Too many login attempts. Please wait a moment and try again.';
+          } else if (
+            errorMsg.includes('network') ||
+            errorMsg.includes('connection') ||
+            errorMsg.includes('timeout')
+          ) {
+            statusCode = 503;
+            customMessage =
+              'Connection problem. Please check your internet and try again.';
+          } else if (
+            errorMsg.includes(
+              'authentication service returned an unexpected response',
+            )
+          ) {
+            statusCode = 502;
+            customMessage =
+              'Authentication service is temporarily unavailable. Please try again.';
+          } else if (errorMsg.includes('you do not have permission')) {
+            statusCode = 403;
+            customMessage =
+              'Access denied. Please contact support if you believe this is an error.';
+          } else if (
+            errorMsg.includes('server error') ||
+            errorMsg.includes('internal error')
+          ) {
+            statusCode = 500;
+            customMessage =
+              'Server error occurred. Please try again in a moment.';
+          } else {
+            statusCode = 400;
+            customMessage = result.error; // Use original error message as fallback
+          }
+
+          NotificationService.error(statusCode, customMessage);
+          return;
         }
 
         if (result?.ok) {
-          logger.info('Login successful, waiting for session...');
+          // Success notification (kept simple)
+          NotificationService.success(200, 'Welcome back!');
 
-          // Force session refresh after successful login
-          const session = await _getSession();
-          logger.info('Session after login:', session);
+          // Get the freshly minted session and run the client-side setup
+          try {
+            const session = await getSession();
+            if (session?.user) {
+              // Compute destination before initializing session so setupUserSession
+              // can pick the correct active group based on the intended route.
+              const redirectOrg = session.requestedOrgSlug || session.orgSlug;
+              const dest = redirectOrg
+                ? `/org/${redirectOrg}/dashboard`
+                : '/user/Home';
 
-          if (session?.user && session?.accessToken) {
-            logger.info(
-              'Session validated, HOC will handle setup and redirect',
-            );
+              // Run setup which will populate Redux with user/groups/etc.
+              // We await this so the user lands on the app with data loaded.
+              await setupUserSession(session, dispatch, dest);
 
-            // Force NextAuth to update the session context immediately
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new window.Event('focus'));
+              // Redirect to the computed destination
+              router.replace(dest);
+              return;
             }
-          } else {
-            throw new Error('Session data is incomplete');
+            NotificationService.error(
+              500,
+              'Session setup failed. Please try logging in again.',
+            );
+            return;
+          } catch (setupErr) {
+            NotificationService.error(
+              500,
+              setupErr.message || 'Login setup failed',
+            );
+            return;
           }
         } else {
-          throw new Error('Login failed without specific error');
+          NotificationService.error(500, 'Login failed. Please try again.');
         }
       } catch (err) {
-        logger.error('Login error:', err);
+        if (!isMountedRef.current) return;
 
-        let errorMessage = 'Something went wrong, please try again';
-
-        if (err.message) {
-          // Handle specific error messages
-          if (
-            err.message.includes('Invalid credentials') ||
-            err.message.includes('Authentication failed') ||
-            err.message.includes('HTTP 401')
-          ) {
-            errorMessage =
-              'Invalid email or password. Please check your credentials.';
-          } else if (
-            err.message.includes('Network Error') ||
-            err.message.includes('fetch')
-          ) {
-            errorMessage =
-              'Network error. Please check your connection and try again.';
-          } else {
-            errorMessage = err.message;
-          }
-        }
-
-        setErrorState(errorMessage);
+        // Use status-based notification instead of generic error message
+        NotificationService.error(
+          500,
+          err.message || 'An unexpected error occurred. Please try again.',
+        );
       } finally {
-        setLoading(false);
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     },
-    [userData],
+    [userData, loading, dispatch, router],
   );
 
   const handleInputChange = useCallback(
@@ -130,9 +209,12 @@ const UserLogin = () => {
     },
     [dispatch],
   );
+
   const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+    setShowPassword((prev) => !prev);
   };
+
+  const isFormValid = userData.userName?.trim() && userData.password;
 
   return (
     <ErrorBoundary name="UserLogin" feature="User Authentication">
@@ -147,50 +229,51 @@ const UserLogin = () => {
           <p className="text-xl font-normal mt-3 text-gray-700 dark:text-gray-300">
             Get access to air quality analytics across Africa
           </p>
-          {error && <Toast type="error" timeout={8000} message={error} />}
           <form onSubmit={handleLogin} noValidate>
             <div className="mt-6">
               <InputField
+                id="login-email"
                 label="Email Address"
                 type="email"
                 placeholder="e.g. greta.nagawa@gmail.com"
                 value={userData.userName || ''}
-                onChange={(value) => handleInputChange('userName', value)}
+                onChange={(e) => handleInputChange('userName', e.target.value)}
                 required
               />
             </div>
             <div className="mt-6">
               <div className="relative">
                 <InputField
+                  id="login-password"
                   label="Password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="******"
                   value={userData.password || ''}
-                  onChange={(value) => handleInputChange('password', value)}
+                  onChange={(e) =>
+                    handleInputChange('password', e.target.value)
+                  }
                   required
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-10 text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
+                  className="absolute right-3 top-12 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none dark:text-gray-400 dark:hover:text-gray-300"
                   onClick={togglePasswordVisibility}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? (
-                    <FaEyeSlash size={20} />
-                  ) : (
-                    <FaEye size={20} />
-                  )}
+                  {showPassword ? <AqEyeOff size={20} /> : <AqEye size={20} />}
                 </button>
               </div>
             </div>
             <div className="mt-10">
-              <button
-                className="w-full btn border-none bg-blue-600 dark:bg-blue-700 rounded-lg text-white text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
-                disabled={loading}
+              <Button
+                className="w-full rounded-lg text-sm"
+                disabled={!isFormValid || loading}
+                loading={loading}
                 type="submit"
+                variant={isFormValid && !loading ? 'filled' : 'disabled'}
               >
-                {loading ? <Spinner width={25} height={25} /> : 'Login'}
-              </button>
+                {loading ? 'Logging in...' : 'Login'}
+              </Button>
             </div>
           </form>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 text-sm">
@@ -216,4 +299,4 @@ const UserLogin = () => {
   );
 };
 
-export default withAuthRoute(UserLogin);
+export default UserLogin;

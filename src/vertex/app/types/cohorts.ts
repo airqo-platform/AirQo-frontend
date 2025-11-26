@@ -8,6 +8,20 @@ export interface Cohort {
   groups: string[];
   numberOfDevices: number;
   devices: Device[];
+  createdAt?: string;
+}
+
+export interface CohortsSummaryResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
+  cohorts: Cohort[];
 }
 
 interface Grid {

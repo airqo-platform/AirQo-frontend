@@ -1,21 +1,22 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { usePathname, useParams, useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import SideBarItem from '../../layouts/SideBar/SideBarItem';
-import CloseIcon from '@/icons/close_icon';
-import LineChartIcon from '@/icons/Charts/LineChartIcon';
+import { AqBarChart07, AqXClose } from '@airqo/icons-react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
-  setTogglingGlobalDrawer,
-  setSidebar,
+  setGlobalSidebarOpen,
+  setGlobalDrawerOpen,
 } from '@/lib/store/services/sideBar/SideBarSlice';
-import Card from '@/components/CardWrapper';
+import Card from '@/common/components/CardWrapper';
 import { MdAdminPanelSettings } from 'react-icons/md';
-import { FiExternalLink } from 'react-icons/fi';
-import AirqoLogo from '@/icons/airqo_logo.svg';
-import HomeIcon from '@/icons/SideBar/HomeIcon';
+import AirqoLogo from '@/common/components/Icons/AirqoLogo';
 import {
   getNavigationItems,
   USER_TYPES,
 } from '../../layouts/SideBar/sidebarConfig';
+import { usePermissions } from '@/core/utils/permissionUtils';
+import { useGetActiveGroup } from '@/app/providers/UnifiedGroupProvider';
 
 /**
  * GlobalSideBarDrawer - Enhanced with stable subroute hover functionality
@@ -31,22 +32,84 @@ import {
 
 const GlobalSideBarDrawer = () => {
   const dispatch = useDispatch();
-  const togglingGlobalDrawer = useSelector(
-    (state) => state.sidebar.toggleGlobalDrawer,
-  );
+  const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { hasAnyPermission, isLoading } = usePermissions();
+  const { id: activeGroupID } = useGetActiveGroup();
+
+  // Fix permission check for admin panel access
+  // Only allow access if user has admin permissions AND either:
+  // 1. Has @airqo.net email (AirQo staff), OR
+  // 2. Has AIRQO_ADMIN role (which should be checked by the permission system)
+  const canViewAdminPanel = useMemo(() => {
+    if (isLoading) return false;
+
+    // Check if user has required permissions
+    const hasAdminPermissions = hasAnyPermission(
+      ['GROUP_MANAGEMENT', 'USER_MANAGEMENT'],
+      activeGroupID,
+    );
+
+    if (!hasAdminPermissions) return false;
+
+    // Additional domain restriction: Only allow @airqo.net emails (normalize for casing/whitespace)
+    const rawEmail = session?.user?.email;
+    const normalizedEmail =
+      typeof rawEmail === 'string' ? rawEmail.trim().toLowerCase() : '';
+    const isAirQoStaff = normalizedEmail.endsWith('@airqo.net');
+
+    if (!isAirQoStaff) {
+      // For now, restrict to @airqo.net emails only
+      return false;
+    }
+
+    return true;
+  }, [hasAnyPermission, activeGroupID, isLoading, session?.user?.email]);
+  const params = useParams();
+  const isGlobalSidebarOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalSidebarOpen || false;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const isGlobalDrawerOpen = useSelector((state) => {
+    try {
+      return state?.sidebar?.isGlobalDrawerOpen || false;
+    } catch {
+      return false;
+    }
+  }, []);
+  // Show global sidebar if either desktop or mobile state is open
+  const togglingGlobalDrawer = isGlobalSidebarOpen || isGlobalDrawerOpen;
 
   // Optimized drawer width calculation
   const drawerWidth = useMemo(
-    () => (togglingGlobalDrawer ? 'w-64' : 'w-0'),
+    () => (togglingGlobalDrawer ? 'w-72' : 'w-0'),
     [togglingGlobalDrawer],
   );
-
   // Enhanced drawer close handler
   const closeDrawer = useCallback(() => {
-    // Batch state updates for better performance
-    dispatch(setTogglingGlobalDrawer(false));
-    dispatch(setSidebar(false));
+    // Close both global sidebar states
+    dispatch(setGlobalSidebarOpen(false));
+    dispatch(setGlobalDrawerOpen(false));
   }, [dispatch]);
+
+  // Route context detection and analytics path generation
+  const getAnalyticsPath = useMemo(() => {
+    const isOrganizationRoute = pathname?.startsWith('/org/');
+    const orgSlug = params?.org_slug;
+
+    if (isOrganizationRoute && orgSlug) {
+      // Organization flow - redirect to org-specific routes
+      return `/org/${orgSlug}/insights`;
+    } else {
+      // User flow - redirect to user-specific routes
+      return '/user/analytics';
+    }
+  }, [pathname, params]);
 
   // Enhanced subroute click handler with better UX
   const handleSubrouteClick = useCallback(
@@ -56,7 +119,6 @@ const GlobalSideBarDrawer = () => {
 
       // Validate subroute before navigation
       if (!subroute || !subroute.path) {
-        console.warn('Invalid subroute:', subroute);
         return;
       }
 
@@ -65,23 +127,18 @@ const GlobalSideBarDrawer = () => {
         if (subroute.path.startsWith('http')) {
           // External links
           window.open(subroute.path, '_blank', 'noopener,noreferrer');
-        } else if (subroute.path.includes('/admin')) {
-          // Admin routes - use direct navigation for better performance
-          window.location.href = subroute.path;
         } else {
-          // Internal routes
-          window.location.href = subroute.path;
+          // Internal routes - use Next.js router for SPA navigation
+          router.push(subroute.path);
         }
-
         // Close drawer immediately after starting navigation
         closeDrawer();
-      } catch (error) {
-        console.error('Navigation error:', error);
+      } catch {
         // Fallback: still close the drawer
         closeDrawer();
       }
     },
-    [closeDrawer],
+    [closeDrawer, router],
   );
 
   // Enhanced admin panel subroutes with better caching and error handling
@@ -90,7 +147,6 @@ const GlobalSideBarDrawer = () => {
       const adminItems = getNavigationItems(USER_TYPES.ADMIN);
 
       if (!Array.isArray(adminItems)) {
-        console.warn('Admin items not found or invalid');
         return [];
       }
 
@@ -115,17 +171,8 @@ const GlobalSideBarDrawer = () => {
         }))
         .slice(0, 10); // Increased limit for better functionality
 
-      // Debug logging in development
-      if (process.env.NODE_ENV === 'development') {
-        console.log(
-          `✅ Loaded ${subroutes.length} admin subroutes:`,
-          subroutes.map((s) => s.label),
-        );
-      }
-
       return subroutes;
-    } catch (error) {
-      console.error('Error loading admin subroutes:', error);
+    } catch {
       // Return empty array as fallback
       return [];
     }
@@ -187,6 +234,7 @@ const GlobalSideBarDrawer = () => {
       <Card
         width={drawerWidth}
         padding="p-0 m-0"
+        radius="rounded-none"
         className="fixed left-0 top-0 h-full z-[10001] border-r-gray-200 dark:border-r-gray-700 border-r transition-all duration-200 ease-in-out"
         contentClassName="flex h-full flex-col overflow-y-auto border-t-0 scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800"
         style={{
@@ -201,52 +249,36 @@ const GlobalSideBarDrawer = () => {
           </div>
           <button
             type="button"
-            className="relative w-auto focus:outline-none border border-gray-200 rounded-xl p-2"
+            className="relative w-auto focus:outline-none p-2"
             onClick={closeDrawer}
           >
-            <CloseIcon />
+            <AqXClose />
           </button>
         </div>
 
         {/* Enhanced navigation section with better dark mode */}
         <div className="flex flex-col justify-between px-3 h-full">
           <div className="mt-4 space-y-2">
-            <SideBarItem
-              label="Home"
-              Icon={HomeIcon}
-              navPath="/user/Home"
-              onClick={closeDrawer}
-              key="home"
-            />
-
-            {/* Enhanced Admin Panel with improved subroute functionality */}
-            <SideBarItem
-              label="Admin Panel"
-              Icon={MdAdminPanelSettings}
-              navPath="/admin"
-              onClick={closeDrawer}
-              subroutes={adminSubroutes}
-              onSubrouteClick={handleSubrouteClick}
-              key="admin-panel-enhanced"
-            />
+            {/* Enhanced Admin Panel with improved subroute functionality, now access-controlled */}
+            {!isLoading && canViewAdminPanel && (
+              <SideBarItem
+                label="Admin Panel"
+                Icon={MdAdminPanelSettings}
+                navPath="#"
+                onClick={closeDrawer}
+                subroutes={adminSubroutes}
+                onSubrouteClick={handleSubrouteClick}
+                key="admin-panel-enhanced"
+              />
+            )}
 
             {/* Data Analytics */}
             <SideBarItem
               label="Data Analytics"
-              Icon={LineChartIcon}
-              navPath="/user/analytics"
+              Icon={AqBarChart07}
+              navPath={getAnalyticsPath}
               onClick={closeDrawer}
               key="data-analytics"
-            />
-
-            {/* External link */}
-            <SideBarItem
-              label="AirQo Website"
-              Icon={FiExternalLink}
-              navPath="https://airqo.africa"
-              isExternal={true}
-              onClick={closeDrawer}
-              key="airqo-website"
             />
           </div>
         </div>

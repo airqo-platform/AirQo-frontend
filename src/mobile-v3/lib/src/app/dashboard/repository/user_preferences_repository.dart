@@ -220,23 +220,26 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
         loggy.info('Rollback successful');
         return {
           'success': false,
-          'message': 'Failed to update preferences, but successfully rolled back to previous state',
-          'rolled_back': true
+          'message': 'Failed to save your location selections. Your previous favorites have been restored. Please try again.',
+          'rolled_back': true,
+          'show_retry': true
         };
       } else {
         loggy.error('Failed to rollback preferences: ${rollbackResponse.body}');
         return {
           'success': false,
-          'message': 'Failed to update preferences and rollback failed. Your saved locations may be temporarily unavailable.',
-          'rolled_back': false
+          'message': 'Failed to save locations and restore previous state. Your saved locations may be temporarily unavailable. Please try again later.',
+          'rolled_back': false,
+          'show_retry': true
         };
       }
     } catch (e) {
       loggy.error('Error during rollback: $e');
       return {
         'success': false,
-        'message': 'Critical error: Could not update preferences or restore previous state. Please try again later.',
-        'rolled_back': false
+        'message': 'Critical error: Could not save your location selections or restore previous state. Please try again later.',
+        'rolled_back': false,
+        'show_retry': true
       };
     }
   }

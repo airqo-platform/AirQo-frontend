@@ -11,7 +11,6 @@ import MonitorDisplay from '../sections/footer/MonitorDisplay';
 import ScrollToTopButton from './ScrollToTopButton';
 
 const Footer = () => {
-  const adminUrl = `${process.env.NEXT_PUBLIC_API_URL}/website`;
   return (
     <footer
       id="WebsiteFooter"
@@ -172,6 +171,19 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
+                <Link href="/faqs" className="text-gray-600 hover:underline">
+                  FAQs
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/clean-air-forum"
+                  className="text-gray-600 hover:underline"
+                >
+                  CLEAN-Air Forum
+                </Link>
+              </li>
+              <li>
                 <Link href="/press" className="text-gray-600 hover:underline">
                   Press
                 </Link>
@@ -217,9 +229,12 @@ const Footer = () => {
       <div className="flex flex-col text-sm lg:flex-row justify-between items-start lg:items-center space-y-4 lg:space-y-0">
         {/* Footer Bottom Links */}
         <div className="flex flex-wrap gap-4 text-center lg:text-left text-gray-600">
-          &copy; {new Date().getFullYear()} AirQo
+          &copy; 2025 AirQo
           <Link href="/legal/terms-of-service" className="hover:underline">
             Terms of service
+          </Link>
+          <Link href="/faqs" className="hover:underline">
+            FAQs
           </Link>
           <Link href="/legal/privacy-policy" className="hover:underline">
             Privacy Policy
@@ -230,14 +245,6 @@ const Footer = () => {
           <Link href="/legal/payment-refund-policy" className="hover:underline">
             Payment Terms
           </Link>
-          <a
-            href={adminUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            Admin Portal
-          </a>
         </div>
 
         {/* Makerere University Attribution */}
