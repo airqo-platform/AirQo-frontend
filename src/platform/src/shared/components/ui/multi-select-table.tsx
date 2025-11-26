@@ -990,7 +990,7 @@ const MultiSelectTable = <T extends TableItem>({
 
   return (
     <Card
-      className={`p-0 shadow border border-border w-full overflow-hidden ${className}`}
+      className={`p-0 shadow border border-border w-full max-w-full overflow-hidden ${className}`}
     >
       {/* Header 2 */}
       {headerComponent && (
@@ -1087,7 +1087,7 @@ const MultiSelectTable = <T extends TableItem>({
       )}
 
       <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
-        <div className="min-w-full inline-block">
+        <div className="min-w-full inline-block align-top">
           {error ? (
             (errorComponent ?? (
               <ErrorState
@@ -1126,7 +1126,7 @@ const MultiSelectTable = <T extends TableItem>({
               className="min-h-[300px] border-0 bg-transparent"
             />
           ) : (
-            <table className="w-full bg-card">
+            <table className="w-full bg-card table-auto">
               <thead className="border-b bg-muted border-border">
                 <tr>
                   {displayColumns.map(column => (
@@ -1134,9 +1134,14 @@ const MultiSelectTable = <T extends TableItem>({
                       key={column.key}
                       className={`py-2 sm:py-3 text-xs font-medium tracking-wider text-left uppercase text-muted-foreground ${
                         column.key === 'checkbox'
-                          ? 'w-4 sm:w-6 px-1 pl-2 sm:pl-3'
-                          : 'px-2 sm:px-4 md:px-6 min-w-0'
+                          ? 'w-12 max-w-[3rem] px-2 sm:px-3'
+                          : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
                       }`}
+                      style={
+                        column.key !== 'checkbox'
+                          ? { minWidth: '120px' }
+                          : undefined
+                      }
                     >
                       <div className="flex items-center space-x-1 min-w-0">
                         <span
@@ -1196,15 +1201,20 @@ const MultiSelectTable = <T extends TableItem>({
                         key={column.key}
                         className={`py-2 sm:py-4 text-sm text-foreground align-top ${
                           column.key === 'checkbox'
-                            ? 'w-4 sm:w-6 px-1 pl-2 sm:pl-3'
-                            : 'px-2 sm:px-4 md:px-6 min-w-0'
+                            ? 'w-12 max-w-[3rem] px-2 sm:px-3'
+                            : 'px-2 sm:px-4 md:px-6 max-w-[300px]'
                         }`}
+                        style={
+                          column.key !== 'checkbox'
+                            ? { minWidth: '120px' }
+                            : undefined
+                        }
                       >
                         <div
                           className={
                             column.key === 'checkbox'
                               ? ''
-                              : 'break-words whitespace-pre-wrap overflow-wrap-anywhere'
+                              : 'break-words whitespace-normal overflow-wrap-anywhere max-w-full'
                           }
                         >
                           {renderCell(item, column)}

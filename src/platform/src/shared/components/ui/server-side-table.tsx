@@ -41,6 +41,9 @@ export interface ServerSideTableProps<T = TableItem> {
 
   // Custom header component
   customHeader?: React.ReactNode;
+
+  // Whether to show client-side pagination from MultiSelectTable
+  showClientPagination?: boolean;
 }
 
 /**
@@ -70,6 +73,8 @@ export function ServerSideTable<T extends TableItem>({
   onSearchChange,
 
   customHeader,
+
+  showClientPagination = false,
 }: ServerSideTableProps<T>) {
   // Pagination controls (only when pagination props are provided)
   const handlePreviousPage = useCallback(() => {
@@ -156,7 +161,7 @@ export function ServerSideTable<T extends TableItem>({
     ) : null;
 
   return (
-    <div className={`w-full overflow-hidden ${className}`}>
+    <div className={`w-full max-w-full overflow-hidden ${className}`}>
       <MultiSelectTable
         data={data}
         title={`${title}`}
@@ -168,7 +173,7 @@ export function ServerSideTable<T extends TableItem>({
         selectedItems={selectedItems}
         onSelectedItemsChange={onSelectedItemsChange}
         searchable={true} // Enable search in table header
-        showPagination={true} // Enable built-in pagination for client-side operations
+        showPagination={showClientPagination} // Enable built-in pagination for client-side operations
         sortable={true}
         headerComponent={customHeader}
         {...(searchTerm !== undefined && onSearchChange !== undefined
