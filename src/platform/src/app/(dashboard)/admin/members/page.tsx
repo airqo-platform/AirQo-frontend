@@ -154,11 +154,6 @@ const MembersPage: React.FC = () => {
                 <div className="text-sm text-muted-foreground">
                   {member.email}
                 </div>
-                {member.description && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {member.description}
-                  </div>
-                )}
               </div>
             </div>
           );

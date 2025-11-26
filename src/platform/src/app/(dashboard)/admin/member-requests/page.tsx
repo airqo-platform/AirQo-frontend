@@ -42,6 +42,9 @@ const MemberRequestsPage: React.FC = () => {
     userName: string;
   } | null>(null);
 
+  // Expanded emails state
+  const [expandedEmails, setExpandedEmails] = useState<Set<string>>(new Set());
+
   // Get member requests
   const {
     data: requestsData,
@@ -128,6 +131,19 @@ const MemberRequestsPage: React.FC = () => {
     }
   }, [rejectMutation, confirmDialog]);
 
+  // Toggle expanded email
+  const toggleExpandEmail = useCallback((id: string) => {
+    setExpandedEmails(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
   // Table columns for member requests
   const columns = useMemo(
     () => [
@@ -138,13 +154,17 @@ const MemberRequestsPage: React.FC = () => {
           const user = request.user;
           if (!user) {
             return (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-medium text-gray-500">?</span>
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-xs sm:text-sm font-medium text-gray-500">
+                    ?
+                  </span>
                 </div>
-                <div>
-                  <div className="font-medium text-gray-500">Unknown User</div>
-                  <div className="text-sm text-muted-foreground">
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-gray-500 text-sm truncate">
+                    Unknown User
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground truncate">
                     {request.email}
                   </div>
                 </div>
@@ -152,20 +172,40 @@ const MemberRequestsPage: React.FC = () => {
             );
           }
 
+          const isExpanded = expandedEmails.has(request._id);
+          const emailText = request.email;
+          const shouldTruncate = emailText.length > 30;
+
           return (
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                <span className="text-sm font-medium text-primary">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-xs sm:text-sm font-medium text-primary">
                   {user.firstName?.[0] || '?'}
                   {user.lastName?.[0] || ''}
                 </span>
               </div>
-              <div>
-                <div className="font-medium">
+              <div className="min-w-0 flex-1">
+                <div className="font-medium text-sm truncate">
                   {user.firstName} {user.lastName}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  {request.email}
+                <div className="flex items-center gap-1">
+                  <div
+                    className={`text-xs sm:text-sm text-muted-foreground ${!isExpanded && shouldTruncate ? 'truncate' : ''}`}
+                  >
+                    {isExpanded || !shouldTruncate
+                      ? emailText
+                      : emailText.slice(0, 30) + '...'}
+                  </div>
+                  {shouldTruncate && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => toggleExpandEmail(request._id)}
+                      className="text-xs p-0 h-auto"
+                    >
+                      {isExpanded ? 'Show Less' : 'Show More'}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -177,7 +217,7 @@ const MemberRequestsPage: React.FC = () => {
         label: 'Status',
         render: (value: unknown, request: GroupJoinRequest) => (
           <span
-            className={`px-2 py-1 rounded-full text-xs font-medium ${
+            className={`inline-flex px-2 py-1 rounded-full text-xs font-medium whitespace-nowrap ${
               request.status === 'pending'
                 ? 'bg-yellow-100 text-yellow-800'
                 : request.status === 'approved'
@@ -193,7 +233,7 @@ const MemberRequestsPage: React.FC = () => {
         key: 'requestDate',
         label: 'Request Date',
         render: (value: unknown, request: GroupJoinRequest) => (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
             {formatWithPattern(request.createdAt, 'MMM dd, yyyy')}
           </div>
         ),
@@ -202,7 +242,7 @@ const MemberRequestsPage: React.FC = () => {
         key: 'lastLogin',
         label: 'Last Login',
         render: (value: unknown, request: GroupJoinRequest) => (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
             {request.user?.lastLogin
               ? formatWithPattern(request.user.lastLogin, 'MMM dd, yyyy')
               : 'Never'}
@@ -215,7 +255,7 @@ const MemberRequestsPage: React.FC = () => {
         render: (value: unknown, request: GroupJoinRequest) => {
           if (request.status !== 'pending') {
             return (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
                 {request.status === 'approved' ? 'Approved' : 'Rejected'}
               </span>
             );
@@ -226,13 +266,13 @@ const MemberRequestsPage: React.FC = () => {
             : request.email;
 
           return (
-            <div className="flex gap-2">
+            <div className="flex gap-1 sm:gap-2 flex-wrap">
               <Button
                 size="sm"
                 variant="filled"
                 Icon={AqCheckCircle}
                 onClick={() => handleApprove(request._id, userName)}
-                className="bg-green-600 hover:bg-green-700"
+                className="bg-green-600 hover:bg-green-700 text-xs whitespace-nowrap"
               >
                 Approve
               </Button>
@@ -240,6 +280,7 @@ const MemberRequestsPage: React.FC = () => {
                 size="sm"
                 variant="outlined"
                 onClick={() => handleReject(request._id, userName)}
+                className="text-xs whitespace-nowrap"
               >
                 Reject
               </Button>
@@ -248,7 +289,7 @@ const MemberRequestsPage: React.FC = () => {
         },
       },
     ],
-    [handleApprove, handleReject]
+    [handleApprove, handleReject, expandedEmails, toggleExpandEmail]
   );
 
   return (
@@ -272,20 +313,22 @@ const MemberRequestsPage: React.FC = () => {
           />
 
           {/* Member Requests Table */}
-          <ServerSideTable
-            title="Member Requests"
-            data={tableData}
-            columns={columns}
-            loading={isLoading}
-            currentPage={currentPage}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            totalItems={filteredRequests.length}
-            onPageChange={setCurrentPage}
-            onPageSizeChange={setPageSize}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-          />
+          <div className="w-full max-w-full overflow-hidden">
+            <ServerSideTable
+              title="Member Requests"
+              data={tableData}
+              columns={columns}
+              loading={isLoading}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              pageSize={pageSize}
+              totalItems={filteredRequests.length}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+            />
+          </div>
 
           {/* Confirmation Dialog */}
           <ReusableDialog

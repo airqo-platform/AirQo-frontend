@@ -113,10 +113,17 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
       const normalizedUser = normalizeUser(user);
       const normalizedGroups = normalizeGroups(user.groups);
 
-      // Batch dispatches to prevent multiple re-renders
-      dispatch(setUser(normalizedUser));
-      dispatch(setGroups(normalizedGroups));
-      dispatch(setError(null));
+      if (normalizedUser) {
+        // Batch dispatches to prevent multiple re-renders
+        dispatch(setUser(normalizedUser));
+        dispatch(setGroups(normalizedGroups));
+        dispatch(setError(null));
+      } else {
+        // Avoid keeping stale user data when backend responds with an invalid shape
+        dispatch(clearUser());
+        dispatch(setGroups([]));
+        dispatch(setError('Invalid user data received from API'));
+      }
     }
   }, [data, dispatch]);
 
