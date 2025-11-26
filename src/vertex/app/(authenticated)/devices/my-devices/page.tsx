@@ -18,6 +18,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import { OrphanedDevicesAlert } from "@/components/features/devices/orphaned-devices-alert";
+import ReusableButton from "@/components/shared/button/ReusableButton";
+
 const MyDevicesPage = () => {
   const router = useRouter();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
@@ -65,16 +68,9 @@ const MyDevicesPage = () => {
                   contact support if the problem persists.
                 </p>
                 <div className="flex gap-2 justify-center">
-                  <Button onClick={() => window.location.reload()}>
+                  <ReusableButton onClick={() => window.location.reload()}>
                     Retry
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/devices/claim")}
-                  >
-                    <AqPlus className="mr-2 h-4 w-4" />
-                    Claim Device
-                  </Button>
+                  </ReusableButton>
                 </div>
               </div>
             </CardContent>
@@ -96,27 +92,29 @@ const MyDevicesPage = () => {
             </p>
           </div>
           <div className="flex gap-2 items-center">
-<Button
-            onClick={() => router.push("/devices/claim")}
-            disabled={isLoading}
-          >
-            <AqPlus className="mr-2 h-4 w-4" />
-            Claim Device
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={isLoading}>
-                <AqDotsHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowAssignmentModal(true)}>
-                Share Device
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <Button
+              onClick={() => router.push("/devices/claim")}
+              disabled={isLoading}
+            >
+              <AqPlus className="mr-2 h-4 w-4" />
+              Claim Device
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={isLoading}>
+                  <AqDotsHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowAssignmentModal(true)}>
+                  Share Device
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
+
+        {userDetails?._id && <OrphanedDevicesAlert userId={userDetails._id} />}
 
         <ClientPaginatedDevicesTable
           devices={devicesData?.devices || []}

@@ -545,4 +545,16 @@ export const devices = {
       throw error;
     }
   },
+  getOrphanedDevices: async (userId: string) => {
+    try {
+      const params = new URLSearchParams({ user_id: userId });
+      const response = await jwtApiClient.get(
+        `/devices/orphaned?${params.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };

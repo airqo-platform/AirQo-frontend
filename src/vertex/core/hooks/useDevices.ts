@@ -33,6 +33,7 @@ import type {
   BulkPrepareResponse,
   GenerateLabelsResponse,
   ShippingStatusResponse,
+  OrphanedDevicesResponse,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
 import { useDispatch } from 'react-redux';
@@ -692,5 +693,14 @@ export const useShippingStatus = (deviceNames?: string[]) => {
     queryKey: ['shippingStatus', deviceNames],
     queryFn: () => devices.getShippingStatus(deviceNames),
     staleTime: 60000,
+  });
+};
+
+export const useOrphanedDevices = (userId: string) => {
+  return useQuery<OrphanedDevicesResponse, AxiosError>({
+    queryKey: ['orphanedDevices', userId],
+    queryFn: () => devices.getOrphanedDevices(userId),
+    enabled: !!userId,
+    staleTime: 300_000, // 5 minutes
   });
 };

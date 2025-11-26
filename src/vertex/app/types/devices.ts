@@ -400,3 +400,22 @@ export interface ShippingStatusResponse {
     };
   };
 }
+
+export interface OrphanedDevice {
+  name: string;
+  long_name: string;
+  status: string;
+  isActive: boolean;
+  claim_status: string;
+  owner_id: string;
+  cohort_ids: string[];
+  claimed_at: string;
+}
+
+export interface OrphanedDevicesResponse {
+  success: boolean;
+  message: string;
+  devices: OrphanedDevice[];
+  total_orphaned: number;
+  recommendation: string;
+}
