@@ -65,7 +65,7 @@ void main() async {
         config.debug = true;
         config.captureApplicationLifecycleEvents = true;
         config.personProfiles = PostHogPersonProfiles.identifiedOnly;
-        config.maxBatchSize = 1; // Send events immediately instead of batching
+        config.maxBatchSize = 1;
 
         try {
           await Posthog().setup(config);
