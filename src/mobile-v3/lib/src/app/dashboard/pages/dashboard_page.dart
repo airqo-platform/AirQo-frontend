@@ -128,17 +128,56 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
   }
 
   void _showLoginPrompt() {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Login Required'),
-        content: const Text('Please log in to access this feature.'),
+        backgroundColor:
+            isDarkMode ? AppColors.darkThemeBackground : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        title: Text(
+          'Feature Requires Account',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: isDarkMode
+                ? AppColors.boldHeadlineColor2
+                : AppColors.boldHeadlineColor5,
+          ),
+        ),
+        content: Text(
+          'Create an account or sign in to access all features including personalized views.',
+          style: TextStyle(
+            fontSize: 16,
+            color: isDarkMode
+                ? AppColors.secondaryHeadlineColor2
+                : AppColors.secondaryHeadlineColor,
+          ),
+        ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            onPressed: () => Navigator.pop(context),
+            style: TextButton.styleFrom(
+              foregroundColor: isDarkMode ? Colors.grey[400] : Colors.grey[700],
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.push(
@@ -146,7 +185,13 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 MaterialPageRoute(builder: (context) => LoginPage()),
               );
             },
-            child: const Text('Login'),
+            child: const Text(
+              'Sign In',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),
@@ -300,7 +345,9 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
               );
 
             case DashboardView.nearYou:
-              return NearbyView();
+              return NearbyView(
+                onNavigateToFavorites: () => setView(DashboardView.favorites),
+              );
 
             case DashboardView.country:
               final countryMeasurements = state.response.measurements!
