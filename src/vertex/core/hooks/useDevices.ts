@@ -141,10 +141,15 @@ export const useMyDevices = (
 
   // The user profile is fetched from Redux state
   // We use optional chaining and fallbacks to ensure safety
+  type UserGroup = {
+    _id: string;
+    grp_title?: string;
+  };
+
   const groupIds = userDetails?.groups
-    ? userDetails.groups
-        .filter((g: any) => g.grp_title?.toLowerCase() !== "airqo")
-        .map((g: any) => g._id)
+    ? (userDetails.groups as UserGroup[])
+        .filter((g) => g.grp_title?.toLowerCase() !== "airqo")
+        .map((g) => g._id)
     : userDetails?.group_ids || [];
   const cohortIds = userDetails?.cohort_ids || [];
 
