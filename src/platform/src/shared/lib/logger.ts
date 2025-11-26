@@ -60,6 +60,21 @@ const isDuplicate = (error: Error): boolean => {
   return false;
 };
 
+// Check if Slack notifications are enabled
+const isSlackEnabled = (): boolean => {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // In production, Slack is always enabled
+  if (isProduction) {
+    return true;
+  }
+
+  // In development, check env variable (defaults to false if not set)
+  const devNotificationsEnabled =
+    process.env.NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS === 'true';
+  return devNotificationsEnabled;
+};
+
 // Send error to Slack via API route
 const sendToSlack = async (
   error: Error,
@@ -69,6 +84,14 @@ const sendToSlack = async (
     additionalData?: Record<string, unknown>;
   }
 ): Promise<void> => {
+  // Check if Slack notifications are enabled
+  if (!isSlackEnabled()) {
+    log.debug(
+      'Slack notifications disabled in development mode. To enable, set NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS=true in .env.local'
+    );
+    return;
+  }
+
   // Check if this is a duplicate error
   if (isDuplicate(error)) {
     log.info('Skipping duplicate error notification');

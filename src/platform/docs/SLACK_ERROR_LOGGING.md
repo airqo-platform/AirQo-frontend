@@ -2,7 +2,14 @@
 
 ## Overview
 
-Production-ready error logging system that sends critical errors to Slack channel `#notifs-airqo-analytics-web` with built-in deduplication and rate limiting.
+Production-ready error logging system that sends **ONLY CRITICAL ERRORS** to Slack channel `#notifs-airqo-analytics-web` with built-in deduplication and rate limiting.
+
+**What gets sent to Slack:**
+
+- ✅ Critical errors (TypeError, ReferenceError, SyntaxError, RangeError, ChunkLoadError, NetworkError)
+- ❌ Warnings (not sent)
+- ❌ Info logs (not sent)
+- ❌ Debug logs (not sent)
 
 ## Architecture
 
@@ -72,20 +79,31 @@ Server-side endpoint that handles Slack webhook calls.
 
 ### Development Environment
 
-Navigate to `/user/home` and look for the **"🔧 Test Slack"** button (only visible in development mode).
+**Slack notifications are DISABLED by default in development mode** to avoid noise during development.
 
-**Test Steps:**
+**To enable Slack notifications in development:**
 
-1. Click "🔧 Test Slack" button
-2. Check Slack channel: `#notifs-airqo-analytics-web`
-3. Verify message appears with proper formatting
+1. Add to your `.env.local` file:
+   ```env
+   NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS=true
+   ```
+2. Restart your development server
+3. Trigger a test error using browser console:
+   ```javascript
+   throw new Error('TypeError: Test critical error');
+   ```
+4. Check Slack channel: `#notifs-airqo-analytics-web`
+5. Verify message appears with proper formatting
+6. To disable: Set to `false` or remove the variable
 
 ### Production Environment
 
+**Slack notifications are ENABLED by default in production.**
+
 The system automatically captures and reports:
 
-- Unhandled React component errors
-- Critical JavaScript errors
+- Unhandled React component errors (via ErrorBoundary)
+- Critical JavaScript errors (TypeError, ReferenceError, etc.)
 - Network failures
 - Code chunk loading errors
 
@@ -94,7 +112,11 @@ The system automatically captures and reports:
 ### Environment Variables
 
 ```env
+# Required - Slack webhook URL
 NEXT_PUBLIC_SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+
+# Optional - Enable Slack notifications in development (defaults to false)
+NEXT_PUBLIC_ENABLE_SLACK_DEV_NOTIFS=false
 ```
 
 ### Rate Limiting

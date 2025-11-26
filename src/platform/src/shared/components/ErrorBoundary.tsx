@@ -37,7 +37,7 @@ class ErrorBoundary extends React.Component<
     if (isCritical) {
       // Send to Slack with deduplication and rate limiting handled by logger
       sendToSlack(error, {
-        componentStack: errorInfo.componentStack,
+        componentStack: errorInfo.componentStack ?? undefined,
         additionalData: {
           errorType: 'ErrorBoundary',
           isCritical: true,
