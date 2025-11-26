@@ -113,10 +113,14 @@ export function UserDataFetcher({ children }: { children: React.ReactNode }) {
       const normalizedUser = normalizeUser(user);
       const normalizedGroups = normalizeGroups(user.groups);
 
-      // Batch dispatches to prevent multiple re-renders
-      dispatch(setUser(normalizedUser));
-      dispatch(setGroups(normalizedGroups));
-      dispatch(setError(null));
+      if (normalizedUser) {
+        // Batch dispatches to prevent multiple re-renders
+        dispatch(setUser(normalizedUser));
+        dispatch(setGroups(normalizedGroups));
+        dispatch(setError(null));
+      } else {
+        dispatch(setError('Invalid user data received from API'));
+      }
     }
   }, [data, dispatch]);
 
