@@ -57,7 +57,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
             item={{
               href: '/home',
               icon: LayoutGrid,
-              label: 'Network Management',
+              label: 'Device Management',
               activeOverride: activeModule === 'network',
             }}
             onClick={() => handleModuleChange('network')}
