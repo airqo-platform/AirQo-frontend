@@ -21,15 +21,22 @@ class _SurveyListPageState extends State<SurveyListPage> {
   @override
   void initState() {
     super.initState();
-    context.read<SurveyBloc>().add(const LoadSurveys());
+    _loadSurveysIfAuthenticated();
     // Track survey list page view
     AnalyticsService().trackSurveyListViewed();
+  }
+
+  Future<void> _loadSurveysIfAuthenticated() async {
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    if (mounted && userId != null) {
+      context.read<SurveyBloc>().add(const LoadSurveys());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -64,17 +71,28 @@ class _SurveyListPageState extends State<SurveyListPage> {
           ),
         ],
       ),
-      body: BlocBuilder<SurveyBloc, SurveyState>(
-        builder: (context, state) {
-          if (state is SurveyLoading) {
-            return _buildLoadingState();
-          } else if (state is SurveysLoaded) {
-            return _buildSurveysLoadedState(state);
-          } else if (state is SurveyError) {
-            return _buildErrorState(state);
-          } else {
-            return _buildEmptyState();
+      body: FutureBuilder<String?>(
+        future: AuthHelper.getCurrentUserId(suppressGuestWarning: true),
+        builder: (context, authSnapshot) {
+          final isGuest = authSnapshot.data == null;
+
+          if (isGuest) {
+            return _buildGuestSignInState();
           }
+
+          return BlocBuilder<SurveyBloc, SurveyState>(
+            builder: (context, state) {
+              if (state is SurveyLoading) {
+                return _buildLoadingState();
+              } else if (state is SurveysLoaded) {
+                return _buildSurveysLoadedState(state);
+              } else if (state is SurveyError) {
+                return _buildErrorState(state);
+              } else {
+                return _buildEmptyState();
+              }
+            },
+          );
         },
       ),
     );
@@ -571,9 +589,59 @@ class _SurveyListPageState extends State<SurveyListPage> {
     );
   }
 
+  Widget _buildGuestSignInState() {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.login,
+              size: 64,
+              color: AppColors.primaryColor.withValues(alpha: 0.7),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Sign in to access surveys',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Create an account or sign in to participate in research surveys and help improve air quality.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/auth');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Sign In'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
     final theme = Theme.of(context);
-    
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
