@@ -7,6 +7,7 @@ import 'package:airqo/src/app/surveys/models/survey_response_model.dart';
 import 'package:airqo/src/app/surveys/widgets/survey_card.dart';
 import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class SurveyListPage extends StatefulWidget {
@@ -507,52 +508,66 @@ class _SurveyListPageState extends State<SurveyListPage> {
   }
 
   Widget _buildErrorState(SurveyError state) {
-    final theme = Theme.of(context);
-    
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.withValues(alpha: 0.5),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Oops! Something went wrong',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              state.message,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                context.read<SurveyBloc>().add(const LoadSurveys());
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+    return FutureBuilder<String?>(
+      future: AuthHelper.getCurrentUserId(suppressGuestWarning: true),
+      builder: (context, snapshot) {
+        final theme = Theme.of(context);
+        final isGuest = snapshot.data == null;
+
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isGuest ? Icons.login : Icons.error_outline,
+                  size: 64,
+                  color: isGuest
+                      ? AppColors.primaryColor.withValues(alpha: 0.7)
+                      : Colors.red.withValues(alpha: 0.5),
                 ),
-              ),
-              child: const Text('Try Again'),
+                const SizedBox(height: 16),
+                Text(
+                  isGuest ? 'Sign in to access surveys' : 'Oops! Something went wrong',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isGuest
+                      ? 'Create an account or sign in to participate in research surveys and help improve air quality.'
+                      : state.message,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.7),
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    if (isGuest) {
+                      Navigator.of(context).pushNamed('/auth');
+                    } else {
+                      context.read<SurveyBloc>().add(const LoadSurveys());
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(isGuest ? 'Sign In' : 'Try Again'),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
