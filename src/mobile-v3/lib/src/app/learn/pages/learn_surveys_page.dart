@@ -9,6 +9,7 @@ import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
 import 'package:airqo/src/app/surveys/services/survey_notification_service.dart';
 import 'package:airqo/src/app/learn/models/lesson_response_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class LearnSurveysPage extends StatefulWidget {
@@ -362,7 +363,11 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed('/auth');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,

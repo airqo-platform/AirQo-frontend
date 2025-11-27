@@ -8,6 +8,7 @@ import 'package:airqo/src/app/surveys/widgets/survey_card.dart';
 import 'package:airqo/src/app/surveys/pages/survey_detail_page.dart';
 import 'package:airqo/src/app/shared/services/analytics_service.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
 class SurveyListPage extends StatefulWidget {
@@ -622,7 +623,11 @@ class _SurveyListPageState extends State<SurveyListPage> {
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).pushNamed('/auth');
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const LoginPage(),
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
