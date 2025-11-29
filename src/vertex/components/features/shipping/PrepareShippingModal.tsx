@@ -16,10 +16,10 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
     const [currentInput, setCurrentInput] = useState('');
     const [tokenType, setTokenType] = useState<'hex' | 'readable'>('readable');
     const [isImporting, setIsImporting] = useState(false);
-    const [filePreview, setFilePreview] = useState<{ headers: string[], data: any[][], fileName: string } | null>(null);
+    const [filePreview, setFilePreview] = useState<{ headers: string[], data: unknown[][], fileName: string } | null>(null);
     const [selectedColumn, setSelectedColumn] = useState<number>(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { mutate: prepareBulk, isPending, data } = usePrepareBulkDevicesForShipping();
+    const { mutate: prepareBulk, isPending } = usePrepareBulkDevicesForShipping();
 
     const handleAddDevice = () => {
         const trimmedInput = currentInput.trim();
@@ -67,17 +67,17 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
         setIsImporting(true);
 
         try {
-            let parsedData: any[][] = [];
+            let parsedData: unknown[][] = [];
             let headers: string[] = [];
 
             if (fileExtension === 'csv') {
                 const Papa = (await import('papaparse')).default;
                 Papa.parse(file, {
                     complete: (results) => {
-                        parsedData = results.data as any[][];
+                        parsedData = results.data as unknown[][];
                         if (parsedData.length > 0) {
                             const firstRow = parsedData[0];
-                            headers = firstRow.map((cell: any, index: number) => {
+                            headers = (firstRow as unknown[]).map((cell: unknown, index: number) => {
                                 const cellStr = String(cell || '').trim();
                                 return cellStr || `Column ${index + 1}`;
                             });
@@ -98,10 +98,10 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                     const bstr = evt.target?.result;
                     const workbook = XLSX.read(bstr, { type: 'binary' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    parsedData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as any[][];
+                    parsedData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }) as unknown[][];
                     if (parsedData.length > 0) {
                         const firstRow = parsedData[0];
-                        headers = firstRow.map((cell: any, index: number) => {
+                        headers = (firstRow as unknown[]).map((cell: unknown, index: number) => {
                             const cellStr = String(cell || '').trim();
                             return cellStr || `Column ${index + 1}`;
                         });
@@ -116,7 +116,7 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                 };
                 reader.readAsBinaryString(file);
             }
-        } catch (error) {
+        } catch {
             ReusableToast({ message: 'Error importing file. Please ensure papaparse and xlsx libraries are installed.', type: 'ERROR' });
             setIsImporting(false);
         }

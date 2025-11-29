@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShippingLabel } from '@/app/types/devices';
 import ReusableButton from '@/components/shared/button/ReusableButton';
+import Image from 'next/image';
 
 interface ShippingLabelPrintProps {
     labels: ShippingLabel[];
@@ -31,10 +32,13 @@ const ShippingLabelPrint: React.FC<ShippingLabelPrintProps> = ({ labels }) => {
                     </div>
 
                     <div className="qr-code-section flex justify-center my-4">
-                        <img
+                        <Image
                             src={label.qr_code_image}
                             alt="QR Code for device claiming"
+                            width={192}
+                            height={192}
                             className="qr-code"
+                            unoptimized
                         />
                     </div>
 

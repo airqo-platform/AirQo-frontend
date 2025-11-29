@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from 'react';
+import { ShippingStatusDevice } from '@/app/types/devices';
 import { useGenerateShippingLabels, useShippingStatus } from '@/core/hooks/useDevices';
 import { useQueryClient } from '@tanstack/react-query';
 import ReusableButton from '@/components/shared/button/ReusableButton';
@@ -47,16 +48,20 @@ const ShippingStatus = () => {
     const { mutate: generateLabels, isPending: isGenerating, data: labelsData } = useGenerateShippingLabels();
 
     const [showLabelModal, setShowLabelModal] = useState(false);
-    const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
 
-    const columns: TableColumn<any>[] = [
+    type ShippingDevice = ShippingStatusDevice & {
+        id: string;
+        [key: string]: unknown;
+    };
+
+    const columns: TableColumn<ShippingDevice>[] = [
         {
             key: 'name',
             label: 'Device Name',
             render: (value) => (
                 <div className="flex flex-col gap-1">
-                    <span className="font-medium uppercase truncate" title={value}>
-                        {value}
+                    <span className="font-medium uppercase truncate" title={value as string}>
+                        {value as string}
                     </span>
                 </div>
             )
@@ -65,65 +70,52 @@ const ShippingStatus = () => {
             key: 'claim_status',
             label: 'Status',
             render: (value) => (
-                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${value === 'claimed'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${(value as string) === 'claimed'
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                     }`}>
-                    {value?.charAt(0).toUpperCase() + value?.slice(1) || 'Unknown'}
+                    {(value as string)?.charAt(0).toUpperCase() + (value as string)?.slice(1) || 'Unknown'}
                 </span>
             )
         },
         {
             key: 'claim_token',
             label: 'Claim Token',
-            render: (value) => <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">{value || '-'}</span>
+            render: (value) => <span className="text-sm text-gray-500 dark:text-gray-400 font-mono">{(value as string | null) || '-'}</span>
         },
         {
             key: 'shipping_prepared_at',
             label: 'Prepared At',
-            render: (value) => <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(value).toLocaleDateString()}</span>
+            render: (value) => <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(value as string).toLocaleDateString()}</span>
         }
     ];
 
-    const devices = statusData?.shipping_status?.devices?.map((device: any) => ({
+    const devices: ShippingDevice[] = statusData?.shipping_status?.devices?.map((device) => ({
         ...device,
         id: device.name
     })) || [];
 
-    const claimedDevicesCount = devices.filter((d: any) => d.claim_status === 'claimed').length;
+    const claimedDevicesCount = devices.filter((d: ShippingDevice) => d.claim_status === 'claimed').length;
 
-    // Handle label generation with proper success handling
     const handleGenerateLabels = useCallback((ids: (string | number)[]) => {
         generateLabels(ids as string[], {
             onSuccess: (data) => {
                 if (data.success) {
-                    // Show success toast
                     ReusableToast({
                         message: `Successfully generated ${data.shipping_labels.labels.length} shipping label(s)`,
                         type: 'SUCCESS',
                     });
 
-                    // Open the modal to display labels
                     setShowLabelModal(true);
-
-                    // Store selected IDs for clearing later
-                    setSelectedIds(ids);
                 }
             }
         });
     }, [generateLabels]);
 
-    // Handle modal close with data refresh and selection clearing
     const handleCloseModal = useCallback(() => {
         setShowLabelModal(false);
 
-        // Invalidate shipping status query to refresh the table
         queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
-
-        // Clear the selection after a short delay to ensure smooth transition
-        setTimeout(() => {
-            setSelectedIds([]);
-        }, 100);
     }, [queryClient]);
 
     const actions = [
@@ -178,7 +170,7 @@ const ShippingStatus = () => {
                             {claimedDevicesCount} {claimedDevicesCount === 1 ? 'device has' : 'devices have'} already been claimed and cannot be selected for label generation.
                         </p>
                         <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
-                            Only devices with "Unclaimed" status can be selected to generate shipping labels.
+                            Only devices with &quot;Unclaimed&quot; status can be selected to generate shipping labels.
                         </p>
                     </div>
                 </div>

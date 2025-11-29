@@ -4,6 +4,7 @@ import React from 'react';
 import { ShippingLabel } from '@/app/types/devices';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import { Printer } from 'lucide-react';
+import Image from 'next/image';
 
 interface ShippingLabelPrintModalProps {
     labels: ShippingLabel[];
@@ -209,10 +210,13 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
                         </div>
 
                         <div className="qr-code-section flex justify-center my-4">
-                            <img
+                            <Image
                                 src={label.qr_code_image}
                                 alt="QR Code for device claiming"
+                                width={192}
+                                height={192}
                                 className="qr-code"
+                                unoptimized
                             />
                         </div>
 

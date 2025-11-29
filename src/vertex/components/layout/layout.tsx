@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAppSelector } from '@/core/redux/hooks';
 import Topbar from './topbar';
@@ -64,9 +64,9 @@ export default function Layout({ children }: LayoutProps) {
   // 2. Authenticated and initialized but context is still loading AND we don't have persisted user data
   // This prevents showing loading screen when user returns after inactivity,
   // as we have persisted data and can render immediately while background refetch happens
-  const shouldShowInitialLoading = 
-    !isInitialized || 
-    !isAuthenticated || 
+  const shouldShowInitialLoading =
+    !isInitialized ||
+    !isAuthenticated ||
     isLoggingOut ||
     (isAuthenticated && isInitialized && isContextLoading && !userDetails);
 
