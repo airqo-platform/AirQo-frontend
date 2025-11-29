@@ -86,7 +86,11 @@ const ShippingStatus = () => {
         {
             key: 'shipping_prepared_at',
             label: 'Prepared At',
-            render: (value) => <span className="text-sm text-gray-500 dark:text-gray-400">{new Date(value as string).toLocaleDateString()}</span>
+            render: (value) => {
+                const date = value ? new Date(value as string) : null;
+                const formatted = date && !isNaN(date.getTime()) ? date.toLocaleDateString() : '-';
+                return <span className="text-sm text-gray-500 dark:text-gray-400">{formatted}</span>;
+            }
         }
     ];
 
