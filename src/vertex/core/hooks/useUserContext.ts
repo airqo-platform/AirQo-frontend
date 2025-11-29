@@ -172,7 +172,7 @@ export const useUserContext = (): UserContextState => {
 
       case 'external-org':
         return {
-          title: activeGroup?.grp_title ||'Organization',
+          title: activeGroup?.grp_title || 'Organization',
           showContextSwitcher: false,
           showNetworkMap: false,
           showSites: false,
