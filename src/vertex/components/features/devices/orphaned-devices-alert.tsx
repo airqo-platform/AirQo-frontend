@@ -33,7 +33,7 @@ export const OrphanedDevicesAlert: React.FC<OrphanedDevicesAlertProps> = ({ user
             return;
         }
 
-        const deviceIds = data.devices.map(d => d.name);
+        const deviceIds = data.devices.map(d => d._id);
 
         assignDevices(
             { cohortId, deviceIds },
