@@ -161,9 +161,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         if (isOpen) {
             setStep(initialStep);
             setError(null);
-            if (initialStep !== 'method-select') {
-                formMethods.reset();
-            }
+            formMethods.reset();
         }
     }, [isOpen, initialStep, formMethods]);
 
