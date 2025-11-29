@@ -100,7 +100,7 @@ html {
 
 .dark body,
 .dark html {
-  background: rgb(42 44 45);
+  background: rgb(var(--background));
 }
 
 /* ==========================================================================
