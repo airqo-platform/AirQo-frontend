@@ -29,6 +29,7 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
   const user = useAppSelector((state) => state.user.userDetails);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const userContext = useAppSelector((state) => state.user.userContext);
 
   const result = useMemo(() => {
     if (MOCK_PERMISSIONS_ENABLED) {
@@ -38,12 +39,25 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
 
     if (!user) return false;
 
+    // If in personal context and no active organization is provided,
+    // check against AirQo group permissions (if user has one)
+    let effectiveContext = context;
+    if (userContext === 'personal' && !context?.activeOrganization && !activeGroup) {
+      const airqoGroup = permissionService.getAirQoGroup(user);
+      if (airqoGroup) {
+        effectiveContext = {
+          ...context,
+          activeOrganization: airqoGroup,
+        };
+      }
+    }
+
     return permissionService.hasPermission(user, permission, {
-      activeOrganization: activeGroup ?? undefined,
+      activeOrganization: effectiveContext?.activeOrganization ?? activeGroup ?? undefined,
       activeNetwork: activeNetwork ?? undefined,
-      ...context,
+      ...effectiveContext,
     });
-  }, [user, permission, activeGroup, activeNetwork, context]);
+  }, [user, permission, activeGroup, activeNetwork, userContext, context]);
 
   return result;
 };

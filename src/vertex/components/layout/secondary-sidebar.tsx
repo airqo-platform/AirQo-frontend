@@ -189,19 +189,17 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 <>
                   <NavItem
                     item={{
-                      href: '/admin/networks',
-                      icon: AqHomeSmile,
-                      label: 'Networks',
-                      disabled: !contextPermissions.canViewNetworks,
+                      href: '/admin/shipping',
+                      icon: AqPackagePlus,
+                      label: 'Shipping',
                     }}
                     isCollapsed={isCollapsed}
                   />
                   <NavItem
                     item={{
-                      href: '/admin/shipping',
-                      icon: AqPackagePlus,
-                      label: 'Shipping',
-                      disabled: false,
+                      href: '/admin/networks',
+                      icon: AqHomeSmile,
+                      label: 'Networks',
                     }}
                     isCollapsed={isCollapsed}
                   />

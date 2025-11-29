@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { QrCode, CheckCircle, X, Keyboard, Plus } from "lucide-react";
+import { QrCode, CheckCircle, Keyboard, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ClaimDeviceModal, { ClaimedDeviceInfo } from "@/components/features/claim/claim-device-modal";
