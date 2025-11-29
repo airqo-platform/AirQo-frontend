@@ -26,7 +26,7 @@ const ShippingPage = () => {
                     onClick={() => setShowPrepareModal(true)}
                     Icon={AqPlus}
                 >
-                    Prep Shipment
+                    Prepare New Batch
                 </ReusableButton>
             </div>
 

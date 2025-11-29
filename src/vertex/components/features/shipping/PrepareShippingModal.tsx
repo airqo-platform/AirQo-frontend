@@ -188,9 +188,10 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
     return (
         <ReusableDialog
             size="4xl"
+            maxHeight='70vh'
             isOpen={isOpen}
             onClose={onClose}
-            title="Prepare Devices for Shipping"
+            title="Prepare New Batch for Shipping"
             showCloseButton
             preventBackdropClose={false}
         >
@@ -235,18 +236,11 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                             </div>
                             <div className="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
                                 <ReusableButton onClick={handleCancelImport} variant="outlined">Cancel</ReusableButton>
-                                <ReusableButton onClick={handleConfirmImport}>Import from {filePreview.headers[selectedColumn]}</ReusableButton>
+                                <ReusableButton onClick={handleConfirmImport}>Import Device Names</ReusableButton>
                             </div>
                         </div>
                     </div>
                 )}
-
-                <div className="flex justify-between items-center mb-4">
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-gray-500">{devices.length} device{devices.length !== 1 ? 's' : ''} added</span>
-                        {devices.length > 0 && (<button type="button" onClick={handleClearAll} className="text-sm text-red-600 hover:text-red-700 hover:underline">Clear All</button>)}
-                    </div>
-                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-3">
@@ -270,6 +264,10 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                                 </div>
                             </div>
                         )}
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-sm text-gray-500">{devices.length} device{devices.length !== 1 ? 's' : ''} added</span>
+                            {devices.length > 0 && (<button type="button" onClick={handleClearAll} className="text-sm text-red-600 hover:text-red-700 hover:underline">Clear All</button>)}
+                        </div>
                     </div>
                     <div className="flex flex-col space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Token Type</label>
