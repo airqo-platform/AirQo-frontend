@@ -165,10 +165,6 @@ html {
     transition: color 0.2s ease;
   }
 
-  a:focus {
-    outline: none;
-  }
-
   /* Lists */
   ul,
   ol {
