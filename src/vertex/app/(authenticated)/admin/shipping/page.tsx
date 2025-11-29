@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useGenerateShippingLabels, useShippingStatus } from '@/core/hooks/useDevices';
+import { useQueryClient } from '@tanstack/react-query';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import ShippingLabelPrint from '@/components/features/shipping/ShippingLabelPrint';
+import ShippingLabelPrintModal from '@/components/features/shipping/ShippingLabelPrintModal';
 import { AqPlus } from '@airqo/icons-react';
 import ReusableTable, { TableColumn } from '@/components/shared/table/ReusableTable';
 import { PrepareShippingModal } from '@/components/features/shipping/PrepareShippingModal';
 import { Skeleton } from "@/components/ui/skeleton";
+import ReusableToast from '@/components/shared/toast/ReusableToast';
 
 const ShippingPage = () => {
     const [showPrepareModal, setShowPrepareModal] = useState(false);
@@ -40,8 +42,12 @@ const ShippingPage = () => {
 };
 
 const ShippingStatus = () => {
+    const queryClient = useQueryClient();
     const { data: statusData, isLoading } = useShippingStatus();
     const { mutate: generateLabels, isPending: isGenerating, data: labelsData } = useGenerateShippingLabels();
+
+    const [showLabelModal, setShowLabelModal] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
 
     const columns: TableColumn<any>[] = [
         {
@@ -60,8 +66,8 @@ const ShippingStatus = () => {
             label: 'Status',
             render: (value) => (
                 <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${value === 'claimed'
-                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                     }`}>
                     {value?.charAt(0).toUpperCase() + value?.slice(1) || 'Unknown'}
                 </span>
@@ -79,24 +85,54 @@ const ShippingStatus = () => {
         }
     ];
 
-    if (labelsData?.success) {
-        return (<div><div className="mb-4"><ReusableButton onClick={() => window.location.reload()} variant="outlined">Back to Status</ReusableButton></div><ShippingLabelPrint labels={labelsData.shipping_labels.labels} /></div>);
-    }
-
     const devices = statusData?.shipping_status?.devices?.map((device: any) => ({
         ...device,
         id: device.name
     })) || [];
 
+    const claimedDevicesCount = devices.filter((d: any) => d.claim_status === 'claimed').length;
+
+    // Handle label generation with proper success handling
+    const handleGenerateLabels = useCallback((ids: (string | number)[]) => {
+        generateLabels(ids as string[], {
+            onSuccess: (data) => {
+                if (data.success) {
+                    // Show success toast
+                    ReusableToast({
+                        message: `Successfully generated ${data.shipping_labels.labels.length} shipping label(s)`,
+                        type: 'SUCCESS',
+                    });
+
+                    // Open the modal to display labels
+                    setShowLabelModal(true);
+
+                    // Store selected IDs for clearing later
+                    setSelectedIds(ids);
+                }
+            }
+        });
+    }, [generateLabels]);
+
+    // Handle modal close with data refresh and selection clearing
+    const handleCloseModal = useCallback(() => {
+        setShowLabelModal(false);
+
+        // Invalidate shipping status query to refresh the table
+        queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
+
+        // Clear the selection after a short delay to ensure smooth transition
+        setTimeout(() => {
+            setSelectedIds([]);
+        }, 100);
+    }, [queryClient]);
+
     const actions = [
         {
             label: isGenerating ? 'Generating...' : 'Generate Labels',
             value: 'generate_labels',
-            handler: (ids: (string | number)[]) => generateLabels(ids as string[])
+            handler: handleGenerateLabels
         }
     ];
-
-    const claimedDevicesCount = devices.filter((d: any) => d.claim_status === 'claimed').length;
 
     return (
         <div className="space-y-6">
@@ -112,10 +148,22 @@ const ShippingStatus = () => {
             ) : (
                 statusData?.shipping_status?.summary && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="p-4 bg-gray-50 rounded-lg text-center"><p className="text-2xl font-bold">{statusData.shipping_status.summary.total_devices}</p><p className="text-sm text-gray-500">Total Devices</p></div>
-                        <div className="p-4 bg-blue-50 rounded-lg text-center"><p className="text-2xl font-bold text-blue-600">{statusData.shipping_status.summary.prepared_for_shipping}</p><p className="text-sm text-gray-500">Prepared</p></div>
-                        <div className="p-4 bg-green-50 rounded-lg text-center"><p className="text-2xl font-bold text-green-600">{statusData.shipping_status.summary.claimed_devices}</p><p className="text-sm text-gray-500">Claimed</p></div>
-                        <div className="p-4 bg-purple-50 rounded-lg text-center"><p className="text-2xl font-bold text-purple-600">{statusData.shipping_status.summary.deployed_devices}</p><p className="text-sm text-gray-500">Deployed</p></div>
+                        <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">{statusData.shipping_status.summary.total_devices}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Total Devices</p>
+                        </div>
+                        <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{statusData.shipping_status.summary.prepared_for_shipping}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Prepared</p>
+                        </div>
+                        <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg text-center">
+                            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{statusData.shipping_status.summary.claimed_devices}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Claimed</p>
+                        </div>
+                        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-center">
+                            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{statusData.shipping_status.summary.deployed_devices}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Deployed</p>
+                        </div>
                     </div>
                 )
             )}
@@ -146,6 +194,15 @@ const ShippingStatus = () => {
                 loading={isLoading}
                 isRowSelectable={(device) => device.claim_status !== 'claimed'}
             />
+
+            {/* Label Print Modal */}
+            {labelsData?.success && (
+                <ShippingLabelPrintModal
+                    labels={labelsData.shipping_labels.labels}
+                    isOpen={showLabelModal}
+                    onClose={handleCloseModal}
+                />
+            )}
         </div>
     );
 };
