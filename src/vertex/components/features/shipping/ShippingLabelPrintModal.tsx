@@ -22,6 +22,13 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
             return;
         }
 
+        const escapeHtml = (str: string) =>
+            str.replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+
         // Build the complete HTML document for the print window
         const htmlContent = `
             <!DOCTYPE html>
@@ -142,8 +149,8 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
                                 <h2>AirQo Air Quality Monitor</h2>
                             </div>
                             <div class="device-info">
-                                <p><strong>Device ID:</strong> ${label.device_id}</p>
-                                <p><strong>Claim Token:</strong> ${label.claim_token}</p>
+                                <p><strong>Device ID:</strong> ${escapeHtml(label.device_id)}</p>
+                                <p><strong>Claim Token:</strong> ${escapeHtml(label.claim_token)}</p>
                             </div>
                             <div class="qr-code-section">
                                 <img src="${label.qr_code_image}" alt="QR Code for device claiming" class="qr-code" />
@@ -151,7 +158,7 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
                             <div class="instructions">
                                 <h3>Setup Instructions:</h3>
                                 <ol>
-                                    ${label.instructions.map(instruction => `<li>${instruction}</li>`).join('')}
+                                    ${label.instructions.map(instruction => `<li>${escapeHtml(instruction)}</li>`).join('')}
                                 </ol>
                             </div>
                         </div>
