@@ -48,6 +48,9 @@
     --scrollbar-hover: 51 65 85;
 
     /* Typography */
+    --font-mono:
+    'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro',
+    monospace;
     --heading-weight: 500;
     --heading-line-height: 1.25;
     --heading-letter-spacing: -0.025em;
