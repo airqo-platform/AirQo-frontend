@@ -8,7 +8,7 @@ const OrganizationLoadingState = ({ organizationName }: { organizationName: stri
         <div className="flex flex-col items-center space-y-6 max-w-md mx-auto px-6">
             {/* Spinner */}
             <div className="relative">
-            <div className="SecondaryMainloader" aria-label="Loading"></div>
+            <div className="secondary-main-loader" aria-label="Loading"></div>
             </div>
 
             <div className="text-center space-y-2">
