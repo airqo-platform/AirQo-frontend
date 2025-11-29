@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import ReusableToast from '@/components/shared/toast/ReusableToast';
 import { AqCollocation } from '@airqo/icons-react';
 import ClaimDeviceModal from '../claim/claim-device-modal';
 
