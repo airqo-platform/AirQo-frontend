@@ -339,7 +339,10 @@ export const useAssignCohortsToUser = () => {
       });
     },
     onError: error => {
-      console.error('Failed to assign cohorts to user:', error);
+      ReusableToast({
+        message: `Failed to assign cohorts: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
     },
   });
 };
