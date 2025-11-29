@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef } from 'react';
 import { usePrepareBulkDevicesForShipping } from '@/core/hooks/useDevices';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
