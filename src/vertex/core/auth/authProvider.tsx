@@ -133,18 +133,19 @@ function useOnlineStatus() {
 }
 
 /**
- * Hook to fetch user details - only when online
+ * Hook to fetch user details with React Query v5 offline-first pattern
  */
-function useUserDetails(userId: string | null, isOnline: boolean) {
+function useUserDetails(userId: string | null) {
   return useQuery<UserDetailsResponse, Error>({
     queryKey: ['userDetails', userId],
     queryFn: () => users.getUserDetails(userId!),
-    enabled: !!userId && isOnline, // Only fetch when online
+    enabled: !!userId,
+    networkMode: 'offlineFirst',
     retry: 1,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
-    refetchOnReconnect: true, // Auto-refetch when connection restored
+    refetchOnReconnect: true,
   });
 }
 
@@ -174,7 +175,7 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 }
 
 /**
- * Fetches user data in background without blocking render
+ * Fetches user data with true offline-first behavior
  */
 function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const { data: session } = useSession();
@@ -189,23 +190,21 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const logout = useLogout();
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
-  // Memoize userId
   const userId = useMemo(() => {
     return session?.user && 'id' in session.user
       ? (session.user as { id: string }).id
       : null;
   }, [session?.user]);
 
-  // Fetch user details (only when online)
-  const { data, error, isLoading } = useUserDetails(userId, isOnline);
+  // React Query handles offline-first behavior automatically
+  const { data, error, isLoading, isError, fetchStatus } = useUserDetails(userId);
 
-  // Track refs for change detection
   const prevUserIdRef = useRef(userId);
   const prevDataRef = useRef(data);
   const hasShownOfflineToastRef = useRef(false);
   const hasLoggedOutForNoGroupRef = useRef(false);
 
-  // Clear user data when userId changes (user switch)
+  // Clear user data when userId changes
   useEffect(() => {
     const prevUserId = prevUserIdRef.current;
     prevUserIdRef.current = userId;
@@ -218,58 +217,64 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
   }, [userId, dispatch]);
 
-  // Handle offline state with cached data
+  // Show offline notification when appropriate
   useEffect(() => {
-    if (!isOnline && cachedUser && userId && !isInitialized) {
-      logger.info('[UserDataFetcher] Offline - using cached user data');
-      dispatch(setInitialized());
-      
-      if (!hasShownOfflineToastRef.current) {
+    if (!isOnline && !hasShownOfflineToastRef.current) {
+      // Only show if we have cached data or are actively trying to fetch
+      if (cachedUser || fetchStatus === 'fetching') {
+        logger.info('[UserDataFetcher] Offline mode - using cached data');
         hasShownOfflineToastRef.current = true;
+        
+        if (cachedUser) {
+          //do nothing 
+        }
       }
     }
 
     // Reset toast flag when back online
     if (isOnline && hasShownOfflineToastRef.current) {
       hasShownOfflineToastRef.current = false;
-    }
-  }, [isOnline, cachedUser, userId, isInitialized, dispatch]);
-
-  // Handle errors
-  useEffect(() => {
-    if (!error) return;
-
-    // Offline errors are expected - don't show error toast
-    if (!isOnline) {
-      logger.info('[UserDataFetcher] Query failed while offline (expected)');
-      return;
-    }
-
-    // Real error while online
-    logger.error('[UserDataFetcher] Error fetching user details', {
-      error: getApiErrorMessage(error),
-    });
-
-    // If we have cached data, inform user we're using it
-    if (cachedUser) {
-      
-    } else {
       ReusableToast({
-        message: `Could not load user details: ${getApiErrorMessage(error)}`,
-        type: 'WARNING',
+        message: 'Connection restored.',
+        type: 'SUCCESS',
       });
     }
-  }, [error, isOnline, cachedUser]);
+  }, [isOnline, cachedUser, fetchStatus]);
+
+  // Handle errors (only real errors, not offline state)
+  useEffect(() => {
+    if (!isError || !error) return;
+
+    // With networkMode: 'offlineFirst', React Query differentiates
+    // between network errors and actual failures
+    logger.error('[UserDataFetcher] Error fetching user details', {
+      error: getApiErrorMessage(error),
+      isOnline,
+      fetchStatus,
+    });
+
+    // Only show error if online and not just a network issue
+    if (isOnline && fetchStatus === 'idle') {
+      if (cachedUser) {
+        ReusableToast({
+          message: 'Could not refresh user data. Using cached version.',
+          type: 'WARNING',
+        });
+      } else {
+        ReusableToast({
+          message: `Could not load user details: ${getApiErrorMessage(error)}`,
+          type: 'ERROR',
+        });
+      }
+    }
+  }, [isError, error, isOnline, cachedUser, fetchStatus]);
 
   // Handle successful data fetching
   useEffect(() => {
     const prevData = prevDataRef.current;
     prevDataRef.current = data;
 
-    // Skip if data hasn't changed
-    if (data === prevData) {
-      return;
-    }
+    if (data === prevData) return;
 
     if (!data?.users || data.users.length === 0) {
       logger.warn('[UserDataFetcher] Data received but no users found');
@@ -277,9 +282,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
 
     const userInfo = data.users[0] as UserDetails;
-    if (!userInfo) {
-      return;
-    }
+    if (!userInfo) return;
 
     logger.info('[UserDataFetcher] Updating user data in Redux');
 
@@ -294,7 +297,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         activeGroup
       );
 
-    // Update Redux store
     dispatch(setUserDetails(userInfo));
     dispatch(setUserGroups(filteredGroups));
     dispatch(setAvailableNetworks(filteredNetworks));
@@ -334,7 +336,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     }
   }, [activeGroup, cachedUser, logout, isLoading, isInitialized, userContext, isLoggingOut]);
 
-  // CRITICAL: Always render children - don't block on loading
   return <>{children}</>;
 }
 
