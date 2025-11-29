@@ -529,6 +529,7 @@ interface ReusableTableProps<T extends TableItem> {
   emptyState?: ReactNode;
   className?: string;
   tableId?: string | boolean;
+  isRowSelectable?: (item: T) => boolean;
 
   // Server-side operation props
   serverSidePagination?: boolean;
@@ -590,6 +591,7 @@ const ReusableTable = <T extends TableItem>({
   emptyState = "No data available",
   className = "",
   tableId: tableIdProp,
+  isRowSelectable = () => true,
   // Server-side props
   serverSidePagination = false,
   pageCount = 0,
@@ -1024,7 +1026,7 @@ const ReusableTable = <T extends TableItem>({
       if (isChecked) {
         setSelectedItems((prevSelected) => {
           const newItems = finalPaginatedData.filter(
-            (item) => !prevSelected.some(prev => prev.id === item.id)
+            (item) => isRowSelectable(item) && !prevSelected.some(prev => prev.id === item.id)
           );
           const updatedSelected = [...prevSelected, ...newItems];
           onSelectedItemsChange?.(updatedSelected);
@@ -1043,7 +1045,7 @@ const ReusableTable = <T extends TableItem>({
         });
       }
     },
-    [finalPaginatedData, onSelectedItemsChange, onSelectedIdsChange]
+    [finalPaginatedData, onSelectedItemsChange, onSelectedIdsChange, isRowSelectable]
   );
 
   const handleSelectItem = useCallback(
@@ -1068,17 +1070,19 @@ const ReusableTable = <T extends TableItem>({
   );
 
   const isAllSelectedOnPage = useMemo(
-    () =>
-      finalPaginatedData.length > 0 &&
-      finalPaginatedData.every((item) => selectedItems.some(sel => sel.id === item.id)),
-    [finalPaginatedData, selectedItems]
+    () => {
+      const selectableItems = finalPaginatedData.filter(item => isRowSelectable(item));
+      return selectableItems.length > 0 &&
+        selectableItems.every((item) => selectedItems.some(sel => sel.id === item.id));
+    },
+    [finalPaginatedData, selectedItems, isRowSelectable]
   );
 
   const isIndeterminate = useMemo(
     () =>
       selectedItems.length > 0 &&
       !isAllSelectedOnPage,
-    [finalPaginatedData, selectedItems, isAllSelectedOnPage]
+    [selectedItems, isAllSelectedOnPage]
   );
 
   useEffect(() => {
@@ -1128,15 +1132,23 @@ const ReusableTable = <T extends TableItem>({
             />
           </div>
         ),
-        render: (_value: T[keyof T], item: T) => (
-          <input
-            type="checkbox"
-            className="w-4 h-4 text-primary bg-gray-100 border border-gray-300 rounded focus:ring-primary"
-            checked={selectedItems.some(sel => sel.id === item.id)}
-            onClick={(e) => e.stopPropagation()}
-            onChange={(e) => handleSelectItem(item, e.target.checked)}
-          />
-        ),
+        render: (_value: T[keyof T], item: T) => {
+          const selectable = isRowSelectable(item);
+          return (
+            <input
+              type="checkbox"
+              className={`w-4 h-4 rounded focus:ring-primary ${selectable
+                ? 'text-primary bg-gray-100 border border-gray-300 cursor-pointer'
+                : 'text-gray-300 bg-gray-50 border border-gray-200 cursor-not-allowed opacity-50'
+                }`}
+              checked={selectedItems.some(sel => sel.id === item.id)}
+              disabled={!selectable}
+              onClick={(e) => e.stopPropagation()}
+              onChange={(e) => handleSelectItem(item, e.target.checked)}
+              title={!selectable ? 'This item cannot be selected' : ''}
+            />
+          );
+        },
         sortable: false,
       });
     }
@@ -1148,6 +1160,7 @@ const ReusableTable = <T extends TableItem>({
     selectedItems,
     handleSelectAll,
     handleSelectItem,
+    isRowSelectable,
   ]);
 
   // Add refs for scroll synchronization
