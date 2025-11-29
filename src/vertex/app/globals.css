@@ -46,6 +46,11 @@
     --scrollbar-track: 241 245 249;
     --scrollbar-thumb: 100 116 139;
     --scrollbar-hover: 51 65 85;
+
+    /* Typography */
+    --heading-weight: 500;
+    --heading-line-height: 1.25;
+    --heading-letter-spacing: -0.025em;
   }
 
   .dark {
