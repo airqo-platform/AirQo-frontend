@@ -104,7 +104,6 @@ const QRScanner: React.FC<QRScannerProps> = ({
             scanner.render(handleScanSuccess, handleScanError);
             scannerRef.current = scanner;
 
-            setHasPermission(true);
         } catch (err) {
             console.error('Failed to initialize scanner:', err);
             setError('Failed to initialize camera. Please refresh and try again.');
