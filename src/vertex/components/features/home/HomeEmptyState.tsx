@@ -34,12 +34,6 @@ const HomeEmptyState = () => {
                     variant="outlined"
                     disabled
                     title="Import feature coming soon"
-                    onClick={() =>
-                        ReusableToast({
-                            message: 'Import feature coming soon',
-                            type: 'INFO',
-                        })
-                    }
                     Icon={Upload}
                 >
                     Import Existing Device
