@@ -167,10 +167,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     }, [isOpen, initialStep, formMethods]);
 
     const handleClaimDevice = (deviceId: string, claimToken: string) => {
+        if (!user?._id) {
+            setError('User session not available. Please try again.');
+            return;
+        }
         setError(null);
         claimDevice({
             device_name: deviceId,
-            user_id: user?._id || '',
+            user_id: user._id,
             claim_token: claimToken,
         });
     };
