@@ -135,10 +135,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             }
 
             if (redirectOnSuccess) {
-                setTimeout(() => {
+                const timer = setTimeout(() => {
                     handleClose();
                     router.push('/devices/my-devices');
                 }, 2000);
+                return () => clearTimeout(timer);
             }
         }
     }, [isSuccess, claimData, redirectOnSuccess, router, handleClose, onSuccess]);
