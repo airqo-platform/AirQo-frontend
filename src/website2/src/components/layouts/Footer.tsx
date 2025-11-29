@@ -142,6 +142,14 @@ const Footer = () => {
                   For Research
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/solutions/network-coverage"
+                  className="text-gray-600 hover:underline"
+                >
+                  Network Coverage
+                </Link>
+              </li>
             </ul>
           </div>
 

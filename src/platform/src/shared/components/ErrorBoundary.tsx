@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import log from 'loglevel';
+import logger, { sendToSlack } from '@/shared/lib/logger';
 import OopsIcon from './ui/OopsIcon';
 import { Button } from './ui/button';
 
@@ -28,57 +28,40 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Determine if this is a critical error
+    // Log error with component stack
+    logger.error('Error caught by boundary:', error, errorInfo);
+
+    // Determine if this is a critical error that should be sent to Slack
     const isCritical = this.isCriticalError(error);
 
     if (isCritical) {
-      this.sendToSlack(error, errorInfo);
+      // Send to Slack with deduplication and rate limiting handled by logger
+      sendToSlack(error, {
+        componentStack: errorInfo.componentStack ?? undefined,
+        additionalData: {
+          errorType: 'ErrorBoundary',
+          isCritical: true,
+        },
+      }).catch(err =>
+        logger.error('Failed to send critical error to Slack:', err)
+      );
     }
-
-    // Log to console for debugging
-    log.error('Error caught by boundary:', error, errorInfo);
   }
 
   private isCriticalError(error: Error): boolean {
-    // Define what constitutes a critical error
-    // For now, consider all errors critical, but you can customize this logic
-    // e.g., check error.message for specific keywords like 'TypeError', 'ReferenceError', etc.
-    const criticalKeywords = [
+    // Define critical error patterns
+    const criticalPatterns = [
       'TypeError',
       'ReferenceError',
       'SyntaxError',
       'RangeError',
+      'ChunkLoadError',
+      'NetworkError',
     ];
-    return (
-      criticalKeywords.some(keyword => error.message.includes(keyword)) ||
-      (error.name === 'Error' && error.message.includes('critical'))
+
+    return criticalPatterns.some(
+      pattern => error.name.includes(pattern) || error.message.includes(pattern)
     );
-  }
-
-  private async sendToSlack(error: Error, errorInfo: React.ErrorInfo) {
-    const webhookUrl = process.env.NEXT_PUBLIC_SLACK_WEBHOOK_URL;
-
-    if (!webhookUrl) {
-      log.warn('Slack webhook URL not configured');
-      return;
-    }
-
-    const message = {
-      text: `🚨 Critical Error Alert 🚨\n\nError: ${error.message}\n\nStack: ${error.stack}\n\nComponent Stack: ${errorInfo.componentStack}\n\nTime: ${new Date().toISOString()}`,
-    };
-
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(message),
-      });
-      log.info('Error sent to Slack successfully');
-    } catch (slackError) {
-      log.error('Failed to send error to Slack:', slackError);
-    }
   }
 
   render() {

@@ -33,6 +33,7 @@ import {
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { cn } from '@/shared/lib/utils';
 import { toast } from '@/shared/components/ui/toast';
+import { STANDARDS_ORGANIZATIONS } from '@/shared/utils/airQuality';
 
 export const ChartContainer: React.FC<ChartContainerProps> = ({
   title,
@@ -125,13 +126,14 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
     setCurrentStandards(config);
     setShowReferenceLines(config.showReferenceLine ?? true);
     toast.success(
-      `Applied ${config.organization} standards for ${config.pollutant}`
+      `Applied ${STANDARDS_ORGANIZATIONS[config.organization]} standards for ${config.pollutant}`
     );
   };
 
   // Typed standards organization for child props
-  const currentStandardsOrg: 'WHO' | 'NEMA' =
-    (currentStandards?.organization as 'WHO' | 'NEMA') || 'WHO';
+  const currentStandardsOrg: 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA' =
+    (currentStandards?.organization as 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA') ||
+    'WHO';
 
   return (
     <Card className={cn('w-full', className)}>

@@ -162,13 +162,12 @@ const AppDropdown: React.FC<AppDropdownProps> = ({ className = '' }) => {
             </div>
 
             <div className="flex justify-center mb-6">
-              <div className="w-56 h-56 bg-white rounded-2xl border-2 border-primary shadow-sm overflow-hidden">
+              <div className="w-56 h-56 bg-white overflow-hidden rounded-2xl border-2 border-primary shadow-sm flex items-center justify-center relative">
                 <Image
-                  src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132437/website/photos/QR_code_ysf0ca.jpg"
+                  src="/images/QR/AQR.jpeg"
                   alt="AirQo Mobile App QR Code"
-                  width={224}
-                  height={224}
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-contain"
                 />
               </div>
             </div>

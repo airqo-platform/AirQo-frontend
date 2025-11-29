@@ -709,6 +709,22 @@ export const METADATA_CONFIGS = {
       type: 'image/png',
     },
   },
+  solutionsNetworkCoverage: {
+    title:
+      'Network Coverage Map | AirQo Network Across Africa - 200+ Active Stations',
+    description:
+      "Explore AirQo's extensive air quality monitoring network spanning 16+ African countries. Interactive map shows 200+ monitor locations, real-time status, and coverage areas. Discover where we measure PM2.5, PM10, and NO2 across cities, towns, and communities.",
+    keywords:
+      'AirQo network coverage, air quality network map, monitoring stations Africa, sensor locations, coverage map, monitor deployment, African cities coverage, real-time monitoring network, sensor distribution, air quality infrastructure',
+    url: '/solutions/network-coverage',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'AirQo Network Coverage Map - 200+ Stations Across Africa',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
   // Legal pages with proper SEO
   privacyPolicy: {
     title: 'Privacy Policy | AirQo - Data Protection & User Privacy',

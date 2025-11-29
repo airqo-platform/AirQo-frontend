@@ -13,8 +13,10 @@ import {
   AqLayoutGrid02,
   AqRefreshCcw02,
   AqCheck,
+  AqEye,
 } from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
+import ReusableDialog from '@/shared/components/ui/dialog';
 import { Button } from '@/shared/components/ui/button';
 import { HexColorPicker } from 'react-colorful';
 import { useUser } from '@/shared/hooks/useUser';
@@ -39,6 +41,7 @@ const presetColors = [
 const ThemeSettings: React.FC = () => {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [customColor, setCustomColor] = useState('#1649e5');
+  const [showPreview, setShowPreview] = useState(false);
   const { activeGroup } = useUser();
   const { data: groupThemeData, isLoading: isLoadingGroupTheme } =
     useGroupTheme(activeGroup?.id || '');
@@ -131,7 +134,7 @@ const ThemeSettings: React.FC = () => {
         description="Customize the appearance and behavior of your organization's interface theme."
       >
         <div className="flex items-center justify-center py-12">
-          <LoadingSpinner size={32} />
+          <LoadingSpinner />
         </div>
       </SettingsLayout>
     );
@@ -143,57 +146,115 @@ const ThemeSettings: React.FC = () => {
       description="Customize the appearance and behavior of your organization's interface theme."
     >
       <div className="space-y-6">
-        {/* Primary Color */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Primary Color
-          </h3>
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-3">
-            {presetColors.map(color => (
-              <Tooltip
-                key={color.value}
-                content={color.name}
-                className="bg-black"
-              >
-                <button
-                  onClick={() =>
-                    updateDraftTheme({ primaryColor: color.value })
-                  }
-                  disabled={isUpdatingTheme}
-                  className={`w-10 h-10 rounded-md border-2 transition-all ${
-                    displayTheme.primaryColor === color.value
-                      ? 'border-gray-900 dark:border-white scale-110'
-                      : 'border-gray-300 dark:border-gray-600 hover:scale-105'
-                  } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  style={{ backgroundColor: color.value }}
-                  aria-label={`Select ${color.name} color`}
-                />
-              </Tooltip>
-            ))}
-            <Tooltip content="Custom color" className="bg-black">
-              <button
-                onClick={() => setShowColorPicker(!showColorPicker)}
-                disabled={isUpdatingTheme}
-                className={`w-10 h-10 rounded-md border-2 transition-all flex items-center justify-center ${
-                  showColorPicker
-                    ? 'border-primary bg-primary/10'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
-                aria-label="Open custom color picker"
-              >
-                <AqPalette size={16} />
-              </button>
-            </Tooltip>
+        {/* Reset Button */}
+        <div className="flex justify-end">
+          <Tooltip
+            content="Reset to defaults"
+            placement="bottom"
+            className="bg-black"
+          >
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetToDefaults}
+              disabled={isUpdatingTheme}
+              className="h-8 w-8 p-0"
+              aria-label="Reset to defaults"
+            >
+              <AqRefreshCcw02 size={14} />
+            </Button>
+          </Tooltip>
+        </div>
+
+        {/* Color Palette */}
+        <section>
+          <div className="mb-3">
+            <h3 className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Color Palette
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Choose your brand color
+            </p>
           </div>
 
+          {/* Color Grid: 5 presets + custom button */}
+          <div className="grid grid-cols-6 gap-1.5 max-w-xs">
+            {presetColors.map(color => (
+              <button
+                key={color.value}
+                className="relative w-8 h-8"
+                onClick={() => updateDraftTheme({ primaryColor: color.value })}
+                disabled={isUpdatingTheme}
+              >
+                <div
+                  className={`w-full h-full rounded-md transition-all ${
+                    displayTheme.primaryColor === color.value
+                      ? 'ring-2 ring-offset-1'
+                      : 'ring-1 ring-gray-300 dark:ring-gray-600 hover:ring-2'
+                  } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  style={{
+                    backgroundColor: color.value,
+                    ...(displayTheme.primaryColor === color.value && {
+                      '--tw-ring-color': displayTheme.primaryColor,
+                    }),
+                  }}
+                />
+                {displayTheme.primaryColor === color.value && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-3 h-3 bg-white rounded-full flex items-center justify-center shadow-sm">
+                      <svg width="8" height="8" viewBox="0 0 12 12" fill="none">
+                        <path
+                          d="M10 3L4.5 8.5L2 6"
+                          stroke={color.value}
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                )}
+              </button>
+            ))}
+
+            {/* Custom Color Button - Same size as color swatches */}
+            <button
+              className="relative w-8 h-8"
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              disabled={isUpdatingTheme}
+            >
+              <div
+                className={`w-full h-full rounded-md border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-primary/50 bg-gray-50 dark:bg-gray-800 flex items-center justify-center transition-all ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <AqPalette
+                  size={12}
+                  className="text-gray-500 dark:text-gray-400"
+                />
+              </div>
+            </button>
+          </div>
+
+          {/* Color Picker */}
           {showColorPicker && (
-            <Card className="p-3 mb-3">
-              <HexColorPicker
-                color={customColor}
-                onChange={setCustomColor}
-                className="w-full"
-              />
-              <div className="flex gap-2 mt-3">
+            <div className="mt-3">
+              <Card className="p-3 space-y-2">
+                <HexColorPicker
+                  color={customColor}
+                  onChange={setCustomColor}
+                  style={{ width: '100%', height: '120px' }}
+                />
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-8 h-8 rounded-md border border-gray-300 dark:border-gray-600 flex-shrink-0"
+                    style={{ backgroundColor: customColor }}
+                  />
+                  <input
+                    type="text"
+                    value={customColor}
+                    onChange={e => setCustomColor(e.target.value)}
+                    className="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800"
+                  />
+                </div>
                 <Button
                   onClick={() => {
                     updateDraftTheme({ primaryColor: customColor });
@@ -201,502 +262,247 @@ const ThemeSettings: React.FC = () => {
                   }}
                   disabled={isUpdatingTheme}
                   size="sm"
-                  Icon={AqPalette}
+                  className="w-full"
+                  style={{
+                    backgroundColor: displayTheme.primaryColor,
+                    borderColor: displayTheme.primaryColor,
+                  }}
                 >
                   Apply
                 </Button>
-                <Button
-                  onClick={() => setShowColorPicker(false)}
-                  variant="outlined"
-                  size="sm"
-                >
-                  Cancel
-                </Button>
-              </div>
-            </Card>
+              </Card>
+            </div>
           )}
-        </div>
+        </section>
 
-        {/* Theme Mode */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Theme Mode
-          </h3>
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { value: 'light' as const, label: 'Light', icon: AqSun },
-              { value: 'dark' as const, label: 'Dark', icon: AqMoon02 },
-              { value: 'system' as const, label: 'System', icon: AqMonitor01 },
-            ].map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => updateDraftTheme({ mode: value })}
-                disabled={isUpdatingTheme}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  displayTheme.mode === value
-                    ? 'border-primary bg-primary/10'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <Icon size={20} className="mx-auto mb-1" />
-                <span className="text-xs font-medium">{label}</span>
-              </button>
-            ))}
+        {/* Appearance */}
+        <section>
+          <div className="mb-3">
+            <h3 className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Appearance
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Select your preferred theme
+            </p>
           </div>
-        </div>
+
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'light', label: 'Light', icon: AqSun },
+              { value: 'dark', label: 'Dark', icon: AqMoon02 },
+              { value: 'system', label: 'Auto', icon: AqMonitor01 },
+            ].map(mode => {
+              const Icon = mode.icon;
+              const isActive = displayTheme.mode === mode.value;
+              return (
+                <button
+                  key={mode.value}
+                  className={`flex flex-col items-center gap-2 py-3 rounded-md transition-all ${
+                    isActive
+                      ? 'text-white shadow-md'
+                      : 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() =>
+                    updateDraftTheme({
+                      mode: mode.value as 'light' | 'dark' | 'system',
+                    })
+                  }
+                  disabled={isUpdatingTheme}
+                  style={
+                    isActive
+                      ? { backgroundColor: displayTheme.primaryColor }
+                      : {}
+                  }
+                >
+                  <Icon size={16} />
+                  <span className="text-xs font-medium">{mode.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
         {/* Interface Style */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Interface Style
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { value: 'default' as const, label: 'Default', icon: AqDotsGrid },
-              { value: 'bordered' as const, label: 'Bordered', icon: AqGrid01 },
-            ].map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => updateDraftTheme({ interfaceStyle: value })}
-                disabled={isUpdatingTheme}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  displayTheme.interfaceStyle === value
-                    ? 'border-primary bg-primary/10'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <Icon size={20} className="mx-auto mb-1" />
-                <span className="text-xs font-medium">{label}</span>
-              </button>
-            ))}
+        <section>
+          <div className="mb-3">
+            <h3 className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Interface Style
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              How components should look
+            </p>
           </div>
-        </div>
 
-        {/* Content Layout */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Content Layout
-          </h3>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
             {[
               {
-                value: 'compact' as const,
+                value: 'default',
+                label: 'Default',
+                description: 'Clean and minimal design',
+                icon: AqDotsGrid,
+              },
+              {
+                value: 'bordered',
+                label: 'Bordered',
+                description: 'Defined boundaries',
+                icon: AqGrid01,
+              },
+            ].map(style => {
+              const Icon = style.icon;
+              const isActive = displayTheme.interfaceStyle === style.value;
+              return (
+                <button
+                  key={style.value}
+                  className={`w-full text-left p-3 rounded-md border-2 transition-all ${
+                    isActive
+                      ? 'bg-opacity-5'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() =>
+                    updateDraftTheme({
+                      interfaceStyle: style.value as 'default' | 'bordered',
+                    })
+                  }
+                  disabled={isUpdatingTheme}
+                  style={
+                    isActive
+                      ? {
+                          borderColor: displayTheme.primaryColor,
+                          backgroundColor: displayTheme.primaryColor + '0D', // 5% opacity
+                        }
+                      : {}
+                  }
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-700">
+                      <Icon size={14} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm text-gray-900 dark:text-white">
+                        {style.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {style.description}
+                      </div>
+                    </div>
+                    {isActive && (
+                      <div
+                        className="w-4 h-4 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: displayTheme.primaryColor }}
+                      >
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 12 12"
+                          fill="none"
+                        >
+                          <path
+                            d="M10 3L4.5 8.5L2 6"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Content Layout */}
+        <section>
+          <div className="mb-3">
+            <h3 className="text-sm uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              Content Layout
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Spacing and density
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {[
+              {
+                value: 'compact',
                 label: 'Compact',
+                description: 'Dense, information-rich',
                 icon: AqLayoutGrid01,
               },
-              { value: 'wide' as const, label: 'Wide', icon: AqLayoutGrid02 },
-            ].map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                onClick={() => updateDraftTheme({ contentLayout: value })}
-                disabled={isUpdatingTheme}
-                className={`p-3 rounded-lg border-2 transition-all ${
-                  displayTheme.contentLayout === value
-                    ? 'border-primary bg-primary/10'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
-                } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
-              >
-                <Icon size={20} className="mx-auto mb-1" />
-                <span className="text-xs font-medium">{label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Theme Preview */}
-        <div>
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Live Preview
-          </h3>
-          <Card className="p-6">
-            <div className="space-y-6">
-              {/* Color Preview */}
-              <div>
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
-                  Primary Color
-                </h4>
-                <div className="flex flex-wrap gap-3">
-                  <button
-                    className="px-3 py-1.5 text-sm font-medium rounded-md text-white transition-all"
-                    style={{
-                      backgroundColor: displayTheme.primaryColor,
-                      borderColor: displayTheme.primaryColor,
-                    }}
-                  >
-                    Primary Button
-                  </button>
-                  <button
-                    className="px-3 py-1.5 text-sm font-medium rounded-md border transition-all"
-                    style={{
-                      color: displayTheme.primaryColor,
-                      borderColor: displayTheme.primaryColor,
-                      backgroundColor: 'transparent',
-                    }}
-                  >
-                    Secondary Button
-                  </button>
-                  <button
-                    className="px-3 py-1.5 text-sm font-medium rounded-md transition-all"
-                    style={{
-                      color: displayTheme.primaryColor,
-                      backgroundColor: 'transparent',
-                    }}
-                  >
-                    Ghost Button
-                  </button>
-                </div>
-              </div>
-
-              {/* Layout Preview */}
-              <div>
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
-                  Content Layout
-                </h4>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                      {displayTheme.contentLayout === 'wide'
-                        ? 'Wide Layout (max-w-7xl)'
-                        : 'Compact Layout (max-w-5xl)'}
-                    </p>
-                    <div className="border rounded-lg overflow-hidden">
-                      {/* Container showing the layout width difference */}
+              {
+                value: 'wide',
+                label: 'Wide',
+                description: 'Spacious and comfortable',
+                icon: AqLayoutGrid02,
+              },
+            ].map(layout => {
+              const Icon = layout.icon;
+              const isActive = displayTheme.contentLayout === layout.value;
+              return (
+                <button
+                  key={layout.value}
+                  className={`w-full text-left p-3 rounded-md border-2 transition-all ${
+                    isActive
+                      ? 'bg-opacity-5'
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                  } ${isUpdatingTheme ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() =>
+                    updateDraftTheme({
+                      contentLayout: layout.value as 'compact' | 'wide',
+                    })
+                  }
+                  disabled={isUpdatingTheme}
+                  style={
+                    isActive
+                      ? {
+                          borderColor: displayTheme.primaryColor,
+                          backgroundColor: displayTheme.primaryColor + '0D', // 5% opacity
+                        }
+                      : {}
+                  }
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-1.5 rounded-md bg-gray-100 dark:bg-gray-700">
+                      <Icon size={14} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm text-gray-900 dark:text-white">
+                        {layout.label}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {layout.description}
+                      </div>
+                    </div>
+                    {isActive && (
                       <div
-                        className={`mx-auto transition-all duration-300 ${
-                          displayTheme.contentLayout === 'wide'
-                            ? 'max-w-7xl'
-                            : 'max-w-5xl'
-                        }`}
-                        style={{
-                          backgroundColor:
-                            displayTheme.mode === 'dark'
-                              ? '#1f2937'
-                              : '#ffffff',
-                        }}
+                        className="w-4 h-4 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: displayTheme.primaryColor }}
                       >
-                        <div className="px-4 py-6 md:px-6 lg:px-8">
-                          <div className="flex items-center justify-between mb-4">
-                            <h5
-                              className={`text-lg font-medium ${
-                                displayTheme.mode === 'dark'
-                                  ? 'text-white'
-                                  : 'text-gray-900'
-                              }`}
-                            >
-                              Page Content Area
-                            </h5>
-                            <div className="flex gap-2">
-                              <button
-                                className="px-3 py-1.5 text-sm font-medium rounded-md text-white transition-all"
-                                style={{
-                                  backgroundColor: displayTheme.primaryColor,
-                                  borderColor: displayTheme.primaryColor,
-                                }}
-                              >
-                                Action
-                              </button>
-                            </div>
-                          </div>
-
-                          {/* Content grid showing the layout difference */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                            <div
-                              className={`p-4 rounded-lg border ${
-                                displayTheme.interfaceStyle === 'bordered'
-                                  ? displayTheme.mode === 'dark'
-                                    ? 'border-gray-600 bg-gray-800'
-                                    : 'border-gray-200 bg-gray-50'
-                                  : displayTheme.mode === 'dark'
-                                    ? 'border-transparent bg-gray-800'
-                                    : 'border-transparent bg-gray-50'
-                              }`}
-                            >
-                              <h6
-                                className={`text-sm font-medium mb-2 ${
-                                  displayTheme.mode === 'dark'
-                                    ? 'text-white'
-                                    : 'text-gray-900'
-                                }`}
-                              >
-                                Content Block 1
-                              </h6>
-                              <p
-                                className={`text-xs ${
-                                  displayTheme.mode === 'dark'
-                                    ? 'text-gray-300'
-                                    : 'text-gray-600'
-                                }`}
-                              >
-                                Sample content showing layout width differences.
-                              </p>
-                            </div>
-
-                            <div
-                              className={`p-4 rounded-lg border ${
-                                displayTheme.interfaceStyle === 'bordered'
-                                  ? displayTheme.mode === 'dark'
-                                    ? 'border-gray-600 bg-gray-800'
-                                    : 'border-gray-200 bg-gray-50'
-                                  : displayTheme.mode === 'dark'
-                                    ? 'border-transparent bg-gray-800'
-                                    : 'border-transparent bg-gray-50'
-                              }`}
-                            >
-                              <h6
-                                className={`text-sm font-medium mb-2 ${
-                                  displayTheme.mode === 'dark'
-                                    ? 'text-white'
-                                    : 'text-gray-900'
-                                }`}
-                              >
-                                Content Block 2
-                              </h6>
-                              <p
-                                className={`text-xs ${
-                                  displayTheme.mode === 'dark'
-                                    ? 'text-gray-300'
-                                    : 'text-gray-600'
-                                }`}
-                              >
-                                Notice how the container width changes between
-                                compact and wide.
-                              </p>
-                            </div>
-
-                            <div
-                              className={`p-4 rounded-lg border ${
-                                displayTheme.interfaceStyle === 'bordered'
-                                  ? displayTheme.mode === 'dark'
-                                    ? 'border-gray-600 bg-gray-800'
-                                    : 'border-gray-200 bg-gray-50'
-                                  : displayTheme.mode === 'dark'
-                                    ? 'border-transparent bg-gray-800'
-                                    : 'border-transparent bg-gray-50'
-                              }`}
-                            >
-                              <h6
-                                className={`text-sm font-medium mb-2 ${
-                                  displayTheme.mode === 'dark'
-                                    ? 'text-white'
-                                    : 'text-gray-900'
-                                }`}
-                              >
-                                Content Block 3
-                              </h6>
-                              <p
-                                className={`text-xs ${
-                                  displayTheme.mode === 'dark'
-                                    ? 'text-gray-300'
-                                    : 'text-gray-600'
-                                }`}
-                              >
-                                The max-width constraint affects the overall
-                                page layout.
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Action buttons at bottom */}
-                          <div className="flex gap-3 justify-end">
-                            <button
-                              className="px-4 py-2 text-sm font-medium rounded-md border transition-all"
-                              style={{
-                                color: displayTheme.primaryColor,
-                                borderColor: displayTheme.primaryColor,
-                                backgroundColor: 'transparent',
-                              }}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              className="px-4 py-2 text-sm font-medium rounded-md text-white transition-all"
-                              style={{
-                                backgroundColor: displayTheme.primaryColor,
-                                borderColor: displayTheme.primaryColor,
-                              }}
-                            >
-                              Save Changes
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Theme Mode Preview */}
-              <div>
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
-                  Theme Mode: {displayTheme.mode}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border rounded-lg p-4 bg-white text-gray-900">
-                    <div className="flex items-center gap-2 mb-3">
-                      <AqSun size={16} />
-                      <span className="text-xs font-medium">Light Mode</span>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Dashboard</span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          style={{ color: '#374151' }}
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 12 12"
+                          fill="none"
                         >
-                          Settings
-                        </Button>
+                          <path
+                            d="M10 3L4.5 8.5L2 6"
+                            stroke="white"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="h-2 bg-gray-300 rounded mb-2"></div>
-                          <div className="h-2 bg-gray-200 rounded w-3/4"></div>
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                          <div className="h-2 bg-gray-300 rounded mb-2"></div>
-                          <div className="h-2 bg-gray-200 rounded w-2/3"></div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          style={{
-                            backgroundColor: displayTheme.primaryColor,
-                            borderColor: displayTheme.primaryColor,
-                            color: 'white',
-                          }}
-                        >
-                          Primary Action
-                        </Button>
-                        <Button size="sm" variant="outlined">
-                          Secondary
-                        </Button>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                  <div className="border rounded-lg p-4 bg-gray-900 text-white">
-                    <div className="flex items-center gap-2 mb-3">
-                      <AqMoon02 size={16} />
-                      <span className="text-xs font-medium">Dark Mode</span>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium">Dashboard</span>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          style={{ color: '#ffffff' }}
-                        >
-                          Settings
-                        </Button>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="p-3 bg-gray-800 rounded-lg border border-gray-700">
-                          <div className="h-2 bg-gray-600 rounded mb-2"></div>
-                          <div className="h-2 bg-gray-700 rounded w-3/4"></div>
-                        </div>
-                        <div className="p-3 bg-gray-800 rounded-lg border border-gray-700">
-                          <div className="h-2 bg-gray-600 rounded mb-2"></div>
-                          <div className="h-2 bg-gray-700 rounded w-2/3"></div>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          className="px-3 py-1.5 text-sm font-medium rounded-md text-white transition-all"
-                          style={{
-                            backgroundColor: displayTheme.primaryColor,
-                            borderColor: displayTheme.primaryColor,
-                          }}
-                        >
-                          Primary Action
-                        </button>
-                        <button
-                          className="px-3 py-1.5 text-sm font-medium rounded-md border transition-all"
-                          style={{
-                            color: displayTheme.primaryColor,
-                            borderColor: displayTheme.primaryColor,
-                            backgroundColor: 'transparent',
-                          }}
-                        >
-                          Secondary
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Interface Style Preview */}
-              <div>
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
-                  Interface Style: {displayTheme.interfaceStyle}
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border rounded-lg p-4 bg-white text-gray-900">
-                    <h5 className="text-sm font-medium mb-3">Default Style</h5>
-                    <div className="space-y-3">
-                      <div className="p-3 bg-gray-50 rounded">
-                        <h6 className="text-xs font-medium mb-1 text-gray-900">
-                          Card Title
-                        </h6>
-                        <p className="text-xs text-gray-600">
-                          Content without visible borders
-                        </p>
-                      </div>
-                      <div className="p-3 bg-gray-50 rounded">
-                        <h6 className="text-xs font-medium mb-1 text-gray-900">
-                          Another Card
-                        </h6>
-                        <p className="text-xs text-gray-600">
-                          More content here
-                        </p>
-                      </div>
-                      <button
-                        className="px-3 py-1.5 text-sm font-medium rounded-md text-white transition-all"
-                        style={{
-                          backgroundColor: displayTheme.primaryColor,
-                          borderColor: displayTheme.primaryColor,
-                        }}
-                      >
-                        Action Button
-                      </button>
-                    </div>
-                  </div>
-                  <div className="border rounded-lg p-4 bg-gray-900 text-white">
-                    <h5 className="text-sm font-medium mb-3">Bordered Style</h5>
-                    <div className="space-y-3">
-                      <div className="p-3 bg-gray-800 border border-gray-700 rounded">
-                        <h6 className="text-xs font-medium mb-1 text-white">
-                          Card Title
-                        </h6>
-                        <p className="text-xs text-gray-300">
-                          Content with visible borders
-                        </p>
-                      </div>
-                      <div className="p-3 bg-gray-800 border border-gray-700 rounded">
-                        <h6 className="text-xs font-medium mb-1 text-white">
-                          Another Card
-                        </h6>
-                        <p className="text-xs text-gray-300">
-                          More bordered content
-                        </p>
-                      </div>
-                      <button
-                        className="px-3 py-1.5 text-sm font-medium rounded-md text-white transition-all"
-                        style={{
-                          backgroundColor: displayTheme.primaryColor,
-                          borderColor: displayTheme.primaryColor,
-                        }}
-                      >
-                        Action Button
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
         {/* Action Buttons */}
         <div className="pt-3 border-t border-gray-200 dark:border-gray-700 flex gap-3">
@@ -704,25 +510,221 @@ const ThemeSettings: React.FC = () => {
             onClick={handleSaveChanges}
             disabled={isUpdatingTheme || !hasUnsavedChanges}
             loading={isUpdatingTheme}
-            size="sm"
             Icon={AqCheck}
+            className="bg-primary text-white border-primary hover:bg-primary/90"
           >
             {isUpdatingTheme ? 'Saving...' : 'Save Changes'}
           </Button>
           <Button
-            onClick={resetToDefaults}
+            onClick={() => setShowPreview(true)}
             disabled={isUpdatingTheme}
             variant="outlined"
-            size="sm"
-            Icon={AqRefreshCcw02}
+            Icon={AqEye}
+            style={{
+              borderColor: displayTheme.primaryColor,
+              color: displayTheme.primaryColor,
+            }}
           >
-            Reset to Defaults
+            Preview Changes
           </Button>
         </div>
+
+        {/* Preview Dialog */}
+        <ReusableDialog
+          isOpen={showPreview}
+          onClose={() => setShowPreview(false)}
+          title="Theme Preview"
+          subtitle="See how your organization's theme will look"
+          icon={AqEye}
+          iconColor={displayTheme.primaryColor}
+          size="xl"
+          maxHeight="max-h-[50vh] sm:max-h-[60vh] md:max-h-[70vh]"
+          primaryAction={{
+            label: 'Apply Changes',
+            onClick: () => {
+              handleSaveChanges();
+              setShowPreview(false);
+            },
+            disabled: isUpdatingTheme || !hasUnsavedChanges,
+            className: 'text-white',
+          }}
+          secondaryAction={{
+            label: 'Close',
+            onClick: () => setShowPreview(false),
+            variant: 'outlined',
+          }}
+        >
+          <div className="space-y-4">
+            {/* Color Showcase */}
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Primary Color
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  className="px-3 py-1.5 text-xs font-medium rounded-md text-white"
+                  style={{
+                    backgroundColor: displayTheme.primaryColor,
+                  }}
+                >
+                  Primary
+                </button>
+                <button
+                  className="px-3 py-1.5 text-xs font-medium rounded-md border"
+                  style={{
+                    color: displayTheme.primaryColor,
+                    borderColor: displayTheme.primaryColor,
+                  }}
+                >
+                  Secondary
+                </button>
+              </div>
+            </div>
+
+            {/* Layout Demonstration */}
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Content Layout: {displayTheme.contentLayout}
+              </h4>
+              <div className="bg-gray-50 dark:bg-gray-800 rounded p-2">
+                <div
+                  className={`mx-auto bg-white dark:bg-gray-700 p-3 rounded shadow-sm`}
+                >
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    {displayTheme.contentLayout === 'wide'
+                      ? 'Wide Layout (more spacious)'
+                      : 'Compact Layout (denser)'}
+                  </div>
+                  <div
+                    className={`grid gap-2 ${
+                      displayTheme.contentLayout === 'wide'
+                        ? 'grid-cols-2'
+                        : 'grid-cols-1'
+                    }`}
+                  >
+                    {Array.from({
+                      length: displayTheme.contentLayout === 'wide' ? 2 : 1,
+                    }).map((_, index) => (
+                      <div
+                        key={index}
+                        className={`p-2 rounded ${
+                          displayTheme.interfaceStyle === 'bordered'
+                            ? 'border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800'
+                            : 'bg-gray-100 dark:bg-gray-600'
+                        }`}
+                      >
+                        <div className="h-4 bg-gray-300 dark:bg-gray-500 rounded mb-1"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-gray-400 rounded w-2/3"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Interface Style Demo */}
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Interface Style: {displayTheme.interfaceStyle}
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                <div
+                  className={`p-2 rounded text-xs ${
+                    displayTheme.interfaceStyle === 'bordered'
+                      ? 'border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800'
+                      : 'bg-gray-100 dark:bg-gray-700'
+                  }`}
+                >
+                  Sample Card
+                </div>
+                <div
+                  className={`p-2 rounded text-xs ${
+                    displayTheme.interfaceStyle === 'bordered'
+                      ? 'border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800'
+                      : 'bg-gray-100 dark:bg-gray-700'
+                  }`}
+                >
+                  Another Card
+                </div>
+              </div>
+            </div>
+
+            {/* Theme Mode Demo */}
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Theme Mode: {displayTheme.mode}
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="p-2 bg-white border rounded text-xs">
+                  <div className="flex items-center gap-1 mb-1">
+                    <AqSun size={12} className="text-yellow-500" />
+                    <span className="font-medium">Light</span>
+                  </div>
+                  Bright interface
+                </div>
+                <div className="p-2 bg-gray-900 border border-gray-700 rounded text-xs text-white">
+                  <div className="flex items-center gap-1 mb-1">
+                    <AqMoon02 size={12} className="text-blue-400" />
+                    <span className="font-medium">Dark</span>
+                  </div>
+                  Easy on eyes
+                </div>
+              </div>
+            </div>
+
+            {/* Theme Settings Summary */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Configuration
+              </h4>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Color:
+                  </span>
+                  <div className="flex items-center gap-1 mt-1">
+                    <div
+                      className="w-2 h-2 rounded"
+                      style={{ backgroundColor: displayTheme.primaryColor }}
+                    />
+                    <span className="font-mono text-xs">
+                      {displayTheme.primaryColor}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Mode:
+                  </span>
+                  <p className="mt-1 font-medium capitalize">
+                    {displayTheme.mode}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Interface:
+                  </span>
+                  <p className="mt-1 font-medium capitalize">
+                    {displayTheme.interfaceStyle}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Layout:
+                  </span>
+                  <p className="mt-1 font-medium capitalize">
+                    {displayTheme.contentLayout}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ReusableDialog>
       </div>
     </SettingsLayout>
   );
 };
+
 const AdminSettingsPage: React.FC = () => {
   const { status } = useSession();
   const [activeTab, setActiveTab] = useState(0);

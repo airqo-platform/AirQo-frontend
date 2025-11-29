@@ -17,6 +17,9 @@ import type {
   RequestClientActivationResponse,
   GenerateTokenRequest,
   GenerateTokenResponse,
+  DeleteClientResponse,
+  RefreshClientSecretResponse,
+  GetClientByIdResponse,
   ApiErrorResponse,
 } from '../types/api';
 
@@ -155,6 +158,53 @@ export class ClientService {
     }
 
     return data as GenerateTokenResponse;
+  }
+
+  // Get client by ID
+  async getClientById(clientId: string): Promise<GetClientByIdResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetClientByIdResponse | ApiErrorResponse
+    >(`/users/clients/${clientId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get client details');
+    }
+
+    return data as GetClientByIdResponse;
+  }
+
+  // Delete a client
+  async deleteClient(clientId: string): Promise<DeleteClientResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      DeleteClientResponse | ApiErrorResponse
+    >(`/users/clients/${clientId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to delete client');
+    }
+
+    return data as DeleteClientResponse;
+  }
+
+  // Refresh client secret
+  async refreshClientSecret(
+    clientId: string
+  ): Promise<RefreshClientSecretResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.patch<
+      RefreshClientSecretResponse | ApiErrorResponse
+    >(`/users/clients/${clientId}/secret`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to refresh client secret');
+    }
+
+    return data as RefreshClientSecretResponse;
   }
 }
 

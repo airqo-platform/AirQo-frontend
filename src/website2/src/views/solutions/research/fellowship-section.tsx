@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChevronRight } from 'lucide-react';
+import { LuChevronRight } from 'react-icons/lu';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -82,7 +82,7 @@ export default function FellowshipSection() {
                   className="flex items-start"
                   variants={animations.item}
                 >
-                  <ChevronRight className="h-6 w-6 text-green-500 mr-2 flex-shrink-0 mt-1" />
+                  <LuChevronRight className="h-6 w-6 text-green-500 mr-2 flex-shrink-0 mt-1" />
                   <span className="text-gray-600">{area}</span>
                 </motion.li>
               ))}

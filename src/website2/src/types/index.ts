@@ -44,3 +44,6 @@ export interface FAQ {
   created_at: string;
   updated_at: string;
 }
+
+// Export grid-related types
+export * from './grids';

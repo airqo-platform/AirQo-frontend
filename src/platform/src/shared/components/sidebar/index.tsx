@@ -31,8 +31,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }, [dispatch]);
 
   const handleItemClick = React.useCallback(() => {
-    // No longer auto-close on mobile since it's handled by global MobileSidebar
-  }, []);
+    // Close sidebar on mobile when navigation item is clicked
+    if (isMobile) {
+      dispatch(toggleSidebar());
+    }
+  }, [isMobile, dispatch]);
 
   // Determine flow type and org slug - memoized to prevent unnecessary re-renders
   const { flow, orgSlug } = React.useMemo(() => {

@@ -31,39 +31,51 @@ export interface NormalizedGroup {
 /**
  * Normalizes the user data from the API response
  */
-export function normalizeUser(user: User): NormalizedUser {
+export function normalizeUser(
+  user: User | null | undefined
+): NormalizedUser | null {
+  if (!user || typeof user !== 'object' || !user._id) {
+    return null;
+  }
   return {
     id: user._id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    userName: user.userName,
-    profilePicture: user.profilePicture,
-    isActive: user.isActive,
-    verified: user.verified,
-    country: user.country,
-    organization: user.organization,
-    jobTitle: user.jobTitle,
-    description: user.description,
-    lastLogin: user.lastLogin,
-    createdAt: user.createdAt,
-    updatedAt: user.updatedAt,
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
+    email: user.email || '',
+    userName: user.userName || '',
+    profilePicture: user.profilePicture || '',
+    isActive: user.isActive || false,
+    verified: user.verified || false,
+    country: user.country || '',
+    organization: user.organization || '',
+    jobTitle: user.jobTitle || '',
+    description: user.description || '',
+    lastLogin: user.lastLogin || '',
+    createdAt: user.createdAt || '',
+    updatedAt: user.updatedAt || '',
   };
 }
 
 /**
  * Normalizes the groups data from the user's groups array
  */
-export function normalizeGroups(groups: Group[]): NormalizedGroup[] {
-  return groups.map(group => ({
-    id: group._id,
-    title: group.grp_title,
-    organizationSlug: group.organization_slug,
-    profilePicture: group.grp_profile_picture,
-    createdAt: group.createdAt,
-    status: group.status,
-    userType: group.userType,
-  }));
+export function normalizeGroups(
+  groups: Group[] | null | undefined
+): NormalizedGroup[] {
+  if (!groups || !Array.isArray(groups)) {
+    return [];
+  }
+  return groups
+    .filter(group => group && typeof group === 'object' && group._id)
+    .map(group => ({
+      id: group._id,
+      title: group.grp_title || '',
+      organizationSlug: group.organization_slug || '',
+      profilePicture: group.grp_profile_picture || '',
+      createdAt: group.createdAt || '',
+      status: group.status || '',
+      userType: group.userType || '',
+    }));
 }
 
 /**

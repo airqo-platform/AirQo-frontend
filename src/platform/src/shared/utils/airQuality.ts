@@ -41,7 +41,7 @@ export type AirQualityLevel =
 // TODO: Expand to support additional pollutants (no2, o3, co, so2) when needed
 export type PollutantType = 'pm2_5' | 'pm10';
 
-export type StandardsOrganization = 'WHO' | 'NEMA';
+export type StandardsOrganization = 'WHO' | 'NEMA_UGANDA' | 'NEMA_KENYA';
 
 export interface AirQualityStandard {
   level: string;
@@ -268,31 +268,31 @@ export const NEMA_PM10_STANDARDS: AirQualityStandard[] = [
     level: 'Good',
     range: { min: 0, max: 20 },
     color: '#10B981', // green-500
-    description: 'Well below NEMA annual limit - Good air quality',
+    description: 'Well below NEMA Uganda annual limit - Good air quality',
   },
   {
     level: 'Moderate',
     range: { min: 20, max: 40 },
     color: '#F59E0B', // amber-500
-    description: 'Within NEMA annual limit (40 µg/m³) - Acceptable',
+    description: 'Within NEMA Uganda annual limit (40 µg/m³) - Acceptable',
   },
   {
     level: 'Unhealthy for Sensitive Groups',
     range: { min: 40, max: 60 },
     color: '#EF4444', // red-500
-    description: 'Above NEMA annual but within 24-hour limit',
+    description: 'Above NEMA Uganda annual but within 24-hour limit',
   },
   {
     level: 'Unhealthy',
     range: { min: 60, max: 100 },
     color: '#8B5CF6', // violet-500
-    description: 'Above NEMA 24-hour limit (60 µg/m³)',
+    description: 'Above NEMA Uganda 24-hour limit (60 µg/m³)',
   },
   {
     level: 'Very Unhealthy',
     range: { min: 100, max: 200 },
     color: '#DC2626', // red-600
-    description: 'Significantly above NEMA limits',
+    description: 'Significantly above NEMA Uganda limits',
   },
   {
     level: 'Hazardous',
@@ -303,21 +303,109 @@ export const NEMA_PM10_STANDARDS: AirQualityStandard[] = [
 ];
 
 // ========================================
+// NEMA KENYA AIR QUALITY STANDARDS
+// ========================================
+// Based on Kenya Legal Notice 180 of 2024 - Environmental Management and
+// Co-ordination (Air Quality) Regulations, 2024
+
+export const NEMA_KENYA_PM25_STANDARDS: AirQualityStandard[] = [
+  {
+    level: 'Good',
+    range: { min: 0, max: 17.5 },
+    color: '#10B981', // green-500
+    description: 'Well below NEMA Kenya annual limit - Good air quality',
+  },
+  {
+    level: 'Moderate',
+    range: { min: 17.5, max: 35 },
+    color: '#F59E0B', // amber-500
+    description: 'Within NEMA Kenya annual limit (35 µg/m³) - Acceptable',
+  },
+  {
+    level: 'Unhealthy for Sensitive Groups',
+    range: { min: 35, max: 75 },
+    color: '#EF4444', // red-500
+    description: 'Above NEMA Kenya annual but within 24-hour limit (75 µg/m³)',
+  },
+  {
+    level: 'Unhealthy',
+    range: { min: 75, max: 110 },
+    color: '#8B5CF6', // violet-500
+    description: 'Above NEMA Kenya 24-hour limit',
+  },
+  {
+    level: 'Very Unhealthy',
+    range: { min: 110, max: 150 },
+    color: '#DC2626', // red-600
+    description: 'Significantly above NEMA Kenya limits',
+  },
+  {
+    level: 'Hazardous',
+    range: { min: 150, max: Infinity },
+    color: '#7C2D12', // red-900
+    description: 'Health emergency - Take immediate action',
+  },
+];
+
+export const NEMA_KENYA_PM10_STANDARDS: AirQualityStandard[] = [
+  {
+    level: 'Good',
+    range: { min: 0, max: 35 },
+    color: '#10B981', // green-500
+    description: 'Well below NEMA Kenya annual limit - Good air quality',
+  },
+  {
+    level: 'Moderate',
+    range: { min: 35, max: 70 },
+    color: '#F59E0B', // amber-500
+    description: 'Within NEMA Kenya annual limit (70 µg/m³) - Acceptable',
+  },
+  {
+    level: 'Unhealthy for Sensitive Groups',
+    range: { min: 70, max: 150 },
+    color: '#EF4444', // red-500
+    description: 'Above NEMA Kenya annual but within 24-hour limit (150 µg/m³)',
+  },
+  {
+    level: 'Unhealthy',
+    range: { min: 150, max: 225 },
+    color: '#8B5CF6', // violet-500
+    description: 'Above NEMA Kenya 24-hour limit',
+  },
+  {
+    level: 'Very Unhealthy',
+    range: { min: 225, max: 300 },
+    color: '#DC2626', // red-600
+    description: 'Significantly above NEMA Kenya limits',
+  },
+  {
+    level: 'Hazardous',
+    range: { min: 300, max: Infinity },
+    color: '#7C2D12', // red-900
+    description: 'Health emergency - Take immediate action',
+  },
+];
+
+// ========================================
 // STANDARD REFERENCE VALUES
 // ========================================
 
 /**
  * Standard values for reference lines in charts
- * Using WHO 2021 guidelines and NEMA Uganda standards
+ * Using WHO 2021 guidelines, NEMA Uganda, and NEMA Kenya standards
  */
 export const AQ_STANDARDS: Record<StandardsOrganization, StandardValues> = {
   WHO: {
     pm2_5: 5, // WHO 2021 annual guideline: 5 µg/m³
     pm10: 15, // WHO 2021 annual guideline: 15 µg/m³
   },
-  NEMA: {
+  NEMA_UGANDA: {
     pm2_5: 25, // NEMA Uganda annual limit: 25 µg/m³
     pm10: 40, // NEMA Uganda annual limit: 40 µg/m³
+  },
+  NEMA_KENYA: {
+    pm2_5: 35, // NEMA Kenya annual limit (Legal Notice 180/2024): 35 µg/m³
+    pm10: 70, // NEMA Kenya annual limit (Legal Notice 180/2024): 70 µg/m³
   },
 } as const;
 
@@ -331,11 +419,17 @@ export const REFERENCE_LINES = {
     PM10_ANNUAL: 15,
     PM10_24HR: 45,
   },
-  NEMA: {
+  NEMA_UGANDA: {
     PM25_ANNUAL: 25,
     PM25_24HR: 35,
     PM10_ANNUAL: 40,
     PM10_24HR: 60,
+  },
+  NEMA_KENYA: {
+    PM25_ANNUAL: 35,
+    PM25_24HR: 75,
+    PM10_ANNUAL: 70,
+    PM10_24HR: 150,
   },
 } as const;
 
@@ -435,9 +529,15 @@ export const getAirQualityThreshold = (
   let standards: AirQualityStandard[];
   if (organization === 'WHO') {
     standards = pollutant === 'PM10' ? WHO_PM10_STANDARDS : WHO_PM25_STANDARDS;
-  } else {
+  } else if (organization === 'NEMA_UGANDA') {
     standards =
       pollutant === 'PM10' ? NEMA_PM10_STANDARDS : NEMA_PM25_STANDARDS;
+  } else {
+    // NEMA_KENYA
+    standards =
+      pollutant === 'PM10'
+        ? NEMA_KENYA_PM10_STANDARDS
+        : NEMA_KENYA_PM25_STANDARDS;
   }
 
   return standards.find(std => std.level === standardLevel);
@@ -539,8 +639,13 @@ export const getStandardsByType = (
 ): AirQualityStandard[] => {
   if (organization === 'WHO') {
     return pollutant === 'PM10' ? WHO_PM10_STANDARDS : WHO_PM25_STANDARDS;
-  } else {
+  } else if (organization === 'NEMA_UGANDA') {
     return pollutant === 'PM10' ? NEMA_PM10_STANDARDS : NEMA_PM25_STANDARDS;
+  } else {
+    // NEMA_KENYA
+    return pollutant === 'PM10'
+      ? NEMA_KENYA_PM10_STANDARDS
+      : NEMA_KENYA_PM25_STANDARDS;
   }
 };
 
@@ -549,7 +654,8 @@ export const getStandardsByType = (
  */
 export const STANDARDS_ORGANIZATIONS = {
   WHO: 'WHO (World Health Organization)',
-  NEMA: 'NEMA (Uganda)',
+  NEMA_UGANDA: 'NEMA (Uganda)',
+  NEMA_KENYA: 'NEMA (Kenya)',
 } as const;
 
 /**

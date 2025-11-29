@@ -68,13 +68,7 @@ const AppPromo = () => {
         >
           {/* QR Code - Larger size for better visibility */}
           <div className="border border-gray-300 rounded-lg p-4">
-            <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132437/website/photos/QR_code_ysf0ca.jpg"
-              alt="QR Code for AirQo App"
-              width={220}
-              height={220}
-              loading="eager"
-            />
+            <Image src="/QR/AQR.jpeg" alt="QR Code" width={220} height={220} />
           </div>
 
           {/* Download buttons */}

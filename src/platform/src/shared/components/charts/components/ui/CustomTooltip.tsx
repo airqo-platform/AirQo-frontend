@@ -49,10 +49,10 @@ export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   return (
     <div
       className={cn(
-        'bg-card border border-border rounded-lg shadow-lg p-3 max-w-xs break-words z-50',
+        'bg-card border border-border rounded-lg shadow-lg p-3 max-w-xs break-words',
         className
       )}
-      style={{ wordBreak: 'break-word' }}
+      style={{ wordBreak: 'break-word', zIndex: 9999 }}
     >
       {/* Header with timestamp */}
       <div className="text-sm font-medium text-muted-foreground mb-2">

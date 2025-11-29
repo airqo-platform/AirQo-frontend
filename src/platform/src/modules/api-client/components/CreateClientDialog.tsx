@@ -3,28 +3,27 @@
 import React, { useState } from 'react';
 import { Button, Input, Dialog } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
-import { useCreateClient } from '@/shared/hooks/useClient';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { isValidIpAddress } from '@/shared/lib/validators';
-import type { CreateClientData } from '../types';
+import { clientService } from '@/shared/services/clientService';
 
 interface CreateClientDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  userId: string;
+  onSuccess?: () => void;
+  userId?: string;
 }
 
 const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
   isOpen,
   onClose,
+  onSuccess,
   userId,
 }) => {
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState<string[]>(['']);
   const [ipErrors, setIpErrors] = useState<string[]>(['']);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const { trigger: createClient } = useCreateClient();
 
   const handleAddIpAddress = () => {
     setIpAddresses([...ipAddresses, '']);
@@ -78,19 +77,19 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
         return;
       }
 
-      const clientData: CreateClientData = {
+      const clientData = {
         name: clientName.trim(),
-        user_id: userId,
+        ...(userId && { user_id: userId }),
         ...(filteredIpAddresses.length > 0 && {
           ip_addresses: filteredIpAddresses,
         }),
       };
 
-      await createClient(clientData);
+      await clientService.createClient(clientData);
       toast.success('Client created successfully');
       setClientName('');
       setIpAddresses(['']);
-      onClose();
+      onSuccess?.();
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
       console.error('Client creation error:', error);
@@ -113,7 +112,6 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       isOpen={isOpen}
       onClose={handleClose}
       title="Create New API Client"
-      // use built-in footer via primaryAction / secondaryAction
       primaryAction={{
         label: 'Create',
         onClick: handleSubmit,

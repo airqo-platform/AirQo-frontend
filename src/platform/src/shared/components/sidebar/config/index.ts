@@ -11,6 +11,7 @@ import {
   AqShield02,
   AqSettings01,
   AqData,
+  AqKey01,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -23,6 +24,15 @@ export interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   group?: string;
   badge?: string | number;
+  disabled?: boolean;
+  subroutes?: SubRoute[];
+}
+
+export interface SubRoute {
+  id: string;
+  label: string;
+  href: string;
+  description?: string;
   disabled?: boolean;
 }
 
@@ -132,6 +142,12 @@ const adminSidebarConfig: NavGroup[] = [
         icon: AqFileQuestion02,
       },
       {
+        id: 'admin-clients',
+        label: 'API Clients',
+        href: '/admin/clients',
+        icon: AqKey01,
+      },
+      {
         id: 'admin-members',
         label: 'Members',
         href: '/admin/members',
@@ -175,6 +191,44 @@ const globalSidebarConfig: NavGroup[] = [
         label: 'Administrative Panel',
         href: '/admin/org-requests',
         icon: AqFolderShield,
+        subroutes: [
+          {
+            id: 'admin-org-requests',
+            label: 'Organization Requests',
+            href: '/admin/org-requests',
+            description: 'Manage organization requests',
+          },
+          {
+            id: 'admin-clients',
+            label: 'API Clients',
+            href: '/admin/clients',
+            description: 'Manage API clients',
+          },
+          {
+            id: 'admin-members',
+            label: 'Members',
+            href: '/admin/members',
+            description: 'View and manage members',
+          },
+          {
+            id: 'admin-member-requests',
+            label: 'Member Requests',
+            href: '/admin/member-requests',
+            description: 'Review member requests',
+          },
+          {
+            id: 'admin-roles',
+            label: 'Roles & Permissions',
+            href: '/admin/roles',
+            description: 'Manage roles and permissions',
+          },
+          {
+            id: 'admin-org-settings',
+            label: 'Organization Settings',
+            href: '/admin/organization-settings',
+            description: 'Configure organization settings',
+          },
+        ],
       },
       {
         id: 'data-access',

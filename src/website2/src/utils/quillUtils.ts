@@ -17,6 +17,18 @@ const isHtml = (str: string): boolean => {
 };
 
 /**
+ * Helper to escape HTML entities
+ */
+const escapeHtml = (text: string): string => {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+/**
  * Converts a Quill Delta (JSON string, Delta object) to HTML or returns the HTML string if already provided.
  * Includes inline styles and supports full Quill formatting.
  * @param {string | object} deltaInput - The Delta object, JSON string, or HTML string.
@@ -44,6 +56,11 @@ export const convertDeltaToHtml = (deltaInput: string | object): string => {
       return '';
     }
 
+    // If it doesn't look like JSON, treat as plain text
+    if (!trimmedInput.startsWith('{') && !trimmedInput.startsWith('[')) {
+      return `<p>${escapeHtml(trimmedInput).replace(/\n/g, '<br>')}</p>`;
+    }
+
     try {
       delta = JSON.parse(trimmedInput);
     } catch (error) {
@@ -56,7 +73,8 @@ export const convertDeltaToHtml = (deltaInput: string | object): string => {
           inputLength: trimmedInput.length,
         },
       );
-      return ''; // Return an empty string if the input is not valid JSON
+      // If JSON parse fails, treat as plain text
+      return `<p>${escapeHtml(trimmedInput).replace(/\n/g, '<br>')}</p>`;
     }
   } else if (typeof deltaInput === 'object') {
     delta = deltaInput; // If the input is already an object, use it directly
