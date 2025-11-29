@@ -354,38 +354,6 @@ All detailed documentation is now consolidated in this changelog. Original docum
 
 No migration required. All new features work seamlessly with existing code.
 
-### Optional Enhancements
-
-If you want to leverage the new `isRowSelectable` prop in `ReusableTable`:
-
-```typescript
-<ReusableTable
-    data={data}
-    columns={columns}
-    multiSelect
-    isRowSelectable={(item) => item.status !== 'locked'}
-/>
-```
-
-If you want to use role-based access control:
-
-```typescript
-<RouteGuard role="ORG_ADMIN">
-  <AdminContent />
-</RouteGuard>
-```
-
----
-
-## Future Roadmap
-
-### Planned Enhancements
-1. **PDF Export**: Download shipping labels as PDF
-2. **Batch Operations**: Enhanced bulk device management
-3. **Print Settings**: Pre-configure printer preferences
-4. **Custom Label Templates**: Multiple label format options
-5. **Email Integration**: Send labels directly via email
-
 ---
 
 ## Contributors
