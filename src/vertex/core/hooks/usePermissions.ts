@@ -33,14 +33,11 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
 
   const result = useMemo(() => {
     if (MOCK_PERMISSIONS_ENABLED) {
-      // If permission is explicitly set in the mock map, use it; otherwise default to false
       return MOCK_PERMISSIONS[permission] ?? false;
     }
 
     if (!user) return false;
 
-    // If in personal context and no active organization is provided,
-    // check against AirQo group permissions (if user has one)
     let effectiveContext = context;
     if (userContext === 'personal' && !context?.activeOrganization && !activeGroup) {
       const airqoGroup = permissionService.getAirQoGroup(user);
@@ -53,9 +50,9 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
     }
 
     return permissionService.hasPermission(user, permission, {
-      activeOrganization: effectiveContext?.activeOrganization ?? activeGroup ?? undefined,
-      activeNetwork: activeNetwork ?? undefined,
       ...effectiveContext,
+      activeOrganization: effectiveContext?.activeOrganization ?? activeGroup ?? undefined,
+      activeNetwork: effectiveContext?.activeNetwork ?? activeNetwork ?? undefined,
     });
   }, [user, permission, activeGroup, activeNetwork, userContext, context]);
 

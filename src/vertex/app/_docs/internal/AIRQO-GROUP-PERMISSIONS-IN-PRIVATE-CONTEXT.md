@@ -67,9 +67,9 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
     }
 
     return permissionService.hasPermission(user, permission, {
+      ...effectiveContext,  // ✅ Spread first
       activeOrganization: effectiveContext?.activeOrganization ?? activeGroup ?? undefined,
-      activeNetwork: activeNetwork ?? undefined,
-      ...effectiveContext,
+      activeNetwork: effectiveContext?.activeNetwork ?? activeNetwork ?? undefined,
     });
   }, [user, permission, activeGroup, activeNetwork, userContext, context]);
 
