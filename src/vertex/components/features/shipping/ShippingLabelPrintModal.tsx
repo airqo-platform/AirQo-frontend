@@ -13,12 +13,22 @@ interface ShippingLabelPrintModalProps {
 }
 
 const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ labels, isOpen, onClose }) => {
+    const isValidDataUrl = (url: string) => {
+        return url.startsWith('data:image/') || /^https?:\/\//i.test(url);
+    };
+
     const handlePrint = () => {
         // Generate HTML for the new window
         const printWindow = window.open('', '_blank');
 
         if (!printWindow) {
             alert('Please allow pop-ups for this site to print labels');
+            return;
+        }
+
+        const invalidLabels = labels.filter(label => !isValidDataUrl(label.qr_code_image));
+        if (invalidLabels.length > 0) {
+            alert('Some QR code images have invalid URLs');
             return;
         }
 
