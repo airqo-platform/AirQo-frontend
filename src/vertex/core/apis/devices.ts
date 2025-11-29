@@ -498,12 +498,26 @@ export const devices = {
 
   prepareBulkDevicesForShipping: async (
     deviceNames: string[],
-    tokenType: "hex" | "readable" = "hex"
+    tokenType: "hex" | "readable" = "hex",
+    batchName?: string
   ): Promise<BulkPrepareResponse> => {
     try {
+      const requestBody: {
+        device_names: string[];
+        token_type: string;
+        batch_name?: string;
+      } = {
+        device_names: deviceNames,
+        token_type: tokenType,
+      };
+
+      if (batchName) {
+        requestBody.batch_name = batchName;
+      }
+
       const response = await jwtApiClient.post<BulkPrepareResponse>(
         `/devices/prepare-bulk-for-shipping`,
-        { device_names: deviceNames, token_type: tokenType },
+        requestBody,
         { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;

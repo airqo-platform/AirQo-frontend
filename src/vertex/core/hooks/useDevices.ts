@@ -657,10 +657,10 @@ export const usePrepareBulkDevicesForShipping = () => {
   return useMutation<
     BulkPrepareResponse,
     AxiosError<ErrorResponse>,
-    { deviceNames: string[]; tokenType?: 'hex' | 'readable' }
+    { deviceNames: string[]; tokenType?: 'hex' | 'readable'; batchName?: string }
   >({
-    mutationFn: ({ deviceNames, tokenType }) =>
-      devices.prepareBulkDevicesForShipping(deviceNames, tokenType),
+    mutationFn: ({ deviceNames, tokenType, batchName }) =>
+      devices.prepareBulkDevicesForShipping(deviceNames, tokenType, batchName),
     onSuccess: (data) => {
       ReusableToast({
         message: data.message,

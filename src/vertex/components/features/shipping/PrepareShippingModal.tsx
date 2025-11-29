@@ -15,6 +15,7 @@ interface PrepareShippingModalProps {
 
 export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOpen, onClose }) => {
     const [devices, setDevices] = useState<string[]>([]);
+    const [batchName, setBatchName] = useState('');
     const [currentInput, setCurrentInput] = useState('');
     const [tokenType, setTokenType] = useState<'hex' | 'readable'>('readable');
     const [isImporting, setIsImporting] = useState(false);
@@ -171,13 +172,14 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
             return;
         }
         prepareBulk(
-            { deviceNames: devices, tokenType },
+            { deviceNames: devices, tokenType, batchName: batchName.trim() || undefined },
             {
                 onSuccess: () => {
                     // Reset form state
                     setDevices([]);
                     setCurrentInput('');
                     setTokenType('readable');
+                    setBatchName('');
                     // Close modal
                     onClose();
                 }
@@ -188,7 +190,7 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
     return (
         <ReusableDialog
             size="4xl"
-            maxHeight='70vh'
+            maxHeight='80vh'
             isOpen={isOpen}
             onClose={onClose}
             title="Prepare New Batch for Shipping"
@@ -270,6 +272,21 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                         </div>
                     </div>
                     <div className="flex flex-col space-y-2">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                            Batch Name <span className="text-gray-500 text-xs"></span>
+                        </label>
+                        <ReusableInputField
+                            value={batchName}
+                            onChange={(e) => setBatchName(e.target.value)}
+                            placeholder="Madagascar batch 01"
+                            className="w-full"
+                            required
+                        />
+                        <p className="text-xs text-gray-500">
+                            Assign a unique name to this batch for easier tracking
+                        </p>
+                    </div>
+                    <div className="flex flex-col space-y-2">
                         <label className="text-sm font-medium text-gray-700 dark:text-gray-200">Token Type</label>
                         <div className="flex space-x-4">
                             <label className="inline-flex items-center"><input type="radio" className="form-radio text-primary" name="bulkTokenType" value="hex" checked={tokenType === 'hex'} onChange={() => setTokenType('hex')} /><span className="ml-2">Hex</span></label>
@@ -277,7 +294,7 @@ export const PrepareShippingModal: React.FC<PrepareShippingModalProps> = ({ isOp
                         </div>
                     </div>
                     <div className="flex justify-end pt-4">
-                        <ReusableButton type="submit" disabled={isPending || devices.length === 0} loading={isPending}>Prepare {devices.length} Device{devices.length !== 1 ? 's' : ''}</ReusableButton>
+                        <ReusableButton type="submit" disabled={isPending || devices.length === 0 || !batchName} loading={isPending}>Prepare {devices.length} Device{devices.length !== 1 ? 's' : ''}</ReusableButton>
                     </div>
                 </form>
             </div>
