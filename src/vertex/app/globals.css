@@ -430,9 +430,9 @@ html {
 
 /* Basic tooltip styling for Flowbite tooltips */
 .tooltip {
-  background-color: rgb(31 41 55) !important;
+  background-color: rgb(var(--card)) !important;
   /* gray-800 */
-  color: rgb(255 255 255) !important;
+  color: rgb(var(--card-foreground)) !important;
   /* white */
   border-radius: 0.375rem !important;
   /* rounded-md */
@@ -446,14 +446,6 @@ html {
   z-index: 50 !important;
   max-width: 20rem !important;
   word-wrap: break-word !important;
-}
-
-/* Dark mode tooltip styling */
-.dark .tooltip {
-  background-color: rgb(17 24 39) !important;
-  /* gray-900 */
-  color: rgb(243 244 246) !important;
-  /* gray-100 */
 }
 
 /* Arrow styling */
