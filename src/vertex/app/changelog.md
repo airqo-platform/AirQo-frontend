@@ -4,6 +4,59 @@
 
 ---
 
+## Version 1.8.0
+**Released:** November 30, 2025
+
+### Enhanced App Launcher & Shipping Improvements
+
+Created a comprehensive app dropdown component with QR code modal for mobile app downloads and fixed shipping label generation to respect claim status rules.
+
+<details>
+<summary><strong>Improvements (5)</strong></summary>
+
+- **Unified App Launcher**: Single dropdown component for accessing all AirQo platforms and services
+- **QR Code Integration**: Dedicated modal view for mobile app download with QR code scanning
+- **Environment Awareness**: Automatically adjusts URLs for staging vs production environments
+- **Consistent Business Rules**: Shipping label generation now excludes claimed devices in both bulk and per-row operations
+- **Better User Feedback**: Improved error messages when no unclaimed devices are available
+
+</details>
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **AppDropdown Component**: Standalone component with grid layout showing 7 apps (Analytics, Calibrate, Website, Vertex, API Docs, Mobile App, AI Platform)
+- **Mobile App QR Modal**: Toggle view with QR code, app store buttons, and back navigation
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- Created `AppDropdown.tsx` with environment-aware URL generation
+- Integrated `AppDropdown` into `topbar.tsx` replacing inline implementation
+- Added claim status filter to `handleGenerateAllLabels` in batch details page
+- Updated error message to reflect unclaimed device requirement
+
+</details>
+
+<details>
+<summary><strong>Files Created (1)</strong></summary>
+
+- `components/layout/AppDropdown.tsx`
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `components/layout/topbar.tsx`
+- `app/(authenticated)/admin/shipping/[batchId]/page.tsx`
+
+</details>
+
+---
+
 ## Version 1.7.0
 **Released:** November 30, 2025
 

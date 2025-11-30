@@ -2,8 +2,8 @@
 
 import type React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import { Moon, Sun, BarChart2, BookOpen, Settings } from 'lucide-react';
-import { AqDotsGrid, AqMenu01 } from '@airqo/icons-react';
+import { Moon, Sun } from 'lucide-react';
+import { AqMenu01 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,6 +25,7 @@ import OrganizationPicker from '../features/org-picker/organization-picker';
 import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
 import { useLogout } from '@/core/hooks/useLogout';
+import AppDropdown from './AppDropdown';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -49,27 +50,6 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
   };
-
-  const apps = [
-    {
-      name: 'Calibrate',
-      url: '/calibrate',
-      description: 'Device Calibration Tool',
-      icon: <Settings className="w-7 h-7 text-blue-600" />,
-    },
-    {
-      name: 'Documentation',
-      url: '/docs',
-      description: 'API & User Guides',
-      icon: <BookOpen className="w-7 h-7 text-green-600" />,
-    },
-    {
-      name: 'Analytics',
-      url: '/analytics',
-      description: 'Advanced Analytics Platform',
-      icon: <BarChart2 className="w-7 h-7 text-purple-600" />,
-    },
-  ];
 
   const handleLogoClick = useCallback(() => {
     router.push('/home');
@@ -99,9 +79,8 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   // Get user initials for avatar fallback
   const getInitials = () => {
     if (!currentUser) return 'U';
-    return `${currentUser.firstName?.charAt(0) || ''}${
-      currentUser.lastName?.charAt(0) || ''
-    }`.toUpperCase();
+    return `${currentUser.firstName?.charAt(0) || ''}${currentUser.lastName?.charAt(0) || ''
+      }`.toUpperCase();
   };
 
   // Format user name
@@ -135,40 +114,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
           <div className="flex items-center gap-x-1 ml-auto">
             <OrganizationPicker />
 
-            <DropdownMenu>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        className={`p-2 rounded-full transition hover:bg-gray-100`}
-                      >
-                        <AqDotsGrid className="w-6 h-6 text-gray-600" />
-                      </button>
-                    </DropdownMenuTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>Applications</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <DropdownMenuContent
-                align="end"
-                className="rounded-2xl shadow-xl p-4 bg-white w-[320px] grid grid-cols-3 gap-3"
-              >
-                {apps.map(app => (
-                  <a
-                    key={app.name}
-                    href={app.url}
-                    className="flex flex-col items-center justify-center gap-1 p-2 rounded-xl hover:bg-blue-50 focus:bg-blue-100 transition"
-                    title={app.description}
-                  >
-                    {app.icon}
-                    <span className="text-xs font-medium text-center">
-                      {app.name}
-                    </span>
-                  </a>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <AppDropdown />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
