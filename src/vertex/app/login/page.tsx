@@ -53,8 +53,9 @@ export default function LoginPage() {
       if (!isMounted.current) return;
 
       if (result?.ok) {
-        router.replace("/home");
-        ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
+        ReusableToast({ message: "Login successful! Redirecting...", type: "SUCCESS" });
+
+        router.push("/home");
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
@@ -110,6 +111,7 @@ export default function LoginPage() {
                     type="email"
                     required
                     error={fieldState.error?.message}
+                    disabled={isLoading}
                     {...field}
                   />
                 )}
@@ -133,6 +135,7 @@ export default function LoginPage() {
                       required
                       error={fieldState.error?.message}
                       className="mt-2"
+                      disabled={isLoading}
                       {...field}
                     />
                   </div>
@@ -140,7 +143,9 @@ export default function LoginPage() {
               />
               <ReusableButton type="submit" className="max-w-xs w-full mx-auto" disabled={isLoading} loading={isLoading} variant="filled">
                 {isLoading ? (
-                  "Logging in..."
+                  <span className="flex items-center gap-2">
+                    <span>Signing in...</span>
+                  </span>
                 ) : (
                   "Login"
                 )}

@@ -1,54 +1,48 @@
-"use client";
+'use client';
 
-import type React from "react";
-import { useState, useEffect, useCallback } from "react";
-import {
-  Moon,
-  Sun,
-  BarChart2,
-  BookOpen,
-  Settings,
-} from "lucide-react";
-import { AqMenu02, AqDotsGrid } from "@airqo/icons-react";
-import { Button } from "@/components/ui/button";
+import type React from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { Moon, Sun, BarChart2, BookOpen, Settings } from 'lucide-react';
+import { AqDotsGrid, AqMenu01 } from '@airqo/icons-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useAppSelector } from "@/core/redux/hooks";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+} from '@/components/ui/dropdown-menu';
+import { useAppSelector } from '@/core/redux/hooks';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { useRouter } from "next/navigation";
-import OrganizationPicker from "../features/org-picker/organization-picker";
-import Image from "next/image";
-import Card from "../shared/card/CardWrapper";
-import { useLogout } from "@/core/hooks/useLogout";
+} from '@/components/ui/tooltip';
+import { useRouter } from 'next/navigation';
+import OrganizationPicker from '../features/org-picker/organization-picker';
+import Image from 'next/image';
+import Card from '../shared/card/CardWrapper';
+import { useLogout } from '@/core/hooks/useLogout';
 
 interface TopbarProps {
   onMenuClick: () => void;
 }
 
-const AirqoLogoRaw = "/images/airqo_logo.svg";
+const AirqoLogoRaw = '/images/airqo_logo.svg';
 
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const [darkMode, setDarkMode] = useState(false);
-  const currentUser = useAppSelector((state) => state.user.userDetails);
+  const currentUser = useAppSelector(state => state.user.userDetails);
   const logout = useLogout();
   const router = useRouter();
 
   useEffect(() => {
     if (darkMode) {
-      document.documentElement.classList.add("dark");
+      document.documentElement.classList.add('dark');
     } else {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
 
@@ -58,31 +52,31 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
   const apps = [
     {
-      name: "Calibrate",
-      url: "/calibrate",
-      description: "Device Calibration Tool",
+      name: 'Calibrate',
+      url: '/calibrate',
+      description: 'Device Calibration Tool',
       icon: <Settings className="w-7 h-7 text-blue-600" />,
     },
     {
-      name: "Documentation",
-      url: "/docs",
-      description: "API & User Guides",
+      name: 'Documentation',
+      url: '/docs',
+      description: 'API & User Guides',
       icon: <BookOpen className="w-7 h-7 text-green-600" />,
     },
     {
-      name: "Analytics",
-      url: "/analytics",
-      description: "Advanced Analytics Platform",
+      name: 'Analytics',
+      url: '/analytics',
+      description: 'Advanced Analytics Platform',
       icon: <BarChart2 className="w-7 h-7 text-purple-600" />,
     },
   ];
 
   const handleLogoClick = useCallback(() => {
-    router.push("/home");
+    router.push('/home');
   }, [router]);
 
   const LogoComponent = useCallback(
-    ({ className = "", buttonProps = {} }) => (
+    ({ className = '', buttonProps = {} }) => (
       <Button
         onClick={handleLogoClick}
         variant="ghost"
@@ -92,10 +86,10 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
         <Image
           src={AirqoLogoRaw}
           alt="AirQo logo"
-          width={48}
-          height={48}
+          width={120}
+          height={32}
+          className="w-auto h-6"
           priority
-          className="object-cover transition-opacity duration-500"
         />
       </Button>
     ),
@@ -104,17 +98,17 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
   // Get user initials for avatar fallback
   const getInitials = () => {
-    if (!currentUser) return "U";
-    return `${currentUser.firstName?.charAt(0) || ""}${
-      currentUser.lastName?.charAt(0) || ""
+    if (!currentUser) return 'U';
+    return `${currentUser.firstName?.charAt(0) || ''}${
+      currentUser.lastName?.charAt(0) || ''
     }`.toUpperCase();
   };
 
   // Format user name
   const getUserName = () => {
-    if (!currentUser) return "User";
+    if (!currentUser) return 'User';
     return (
-      `${currentUser.firstName || ""} ${currentUser.lastName || ""}`.trim() ||
+      `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() ||
       currentUser.userName
     );
   };
@@ -129,7 +123,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
               className="inline-flex items-center justify-center focus:outline-none min-h-[32px] hover:bg-blue-50 p-2 rounded-md"
             >
               <span>
-                <AqMenu02 size={20} color="#0A84FF" />
+                <AqMenu01 className="text-foreground" />
               </span>
             </button>
             <LogoComponent
@@ -160,7 +154,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 align="end"
                 className="rounded-2xl shadow-xl p-4 bg-white w-[320px] grid grid-cols-3 gap-3"
               >
-                {apps.map((app) => (
+                {apps.map(app => (
                   <a
                     key={app.name}
                     href={app.url}
@@ -184,7 +178,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={currentUser?.profilePicture || ""}
+                      src={currentUser?.profilePicture || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
@@ -197,7 +191,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <div className="flex items-center">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={currentUser?.profilePicture || ""}
+                      src={currentUser?.profilePicture || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
@@ -207,7 +201,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                   <div className="flex flex-col space-y-1 p-2">
                     <p className="text-sm font-medium leading-none">
                       {getUserName().length > 18
-                        ? getUserName().slice(0, 18) + "..."
+                        ? getUserName().slice(0, 18) + '...'
                         : getUserName()}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
@@ -227,7 +221,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                   ) : (
                     <Moon className="h-4 w-4" />
                   )}
-                  {darkMode ? "Light Mode" : "Dark Mode"}
+                  {darkMode ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

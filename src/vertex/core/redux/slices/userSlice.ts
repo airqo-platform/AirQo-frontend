@@ -59,7 +59,7 @@ const initialState: UserState = {
     isSwitching: false,
     switchingTo: "",
   },
-  isContextLoading: true,
+  isContextLoading: false,
   isLoggingOut: false,
 };
 
@@ -136,6 +136,8 @@ const userSlice = createSlice({
       state.userContext = null;
       state.isAirQoStaff = false;
       state.canSwitchContext = false;
+      state.isInitialized = false;
+      state.isContextLoading = false;
     },
     setInitialized(state) {
       state.isInitialized = true;

@@ -29,21 +29,32 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
   const user = useAppSelector((state) => state.user.userDetails);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
+  const userContext = useAppSelector((state) => state.user.userContext);
 
   const result = useMemo(() => {
     if (MOCK_PERMISSIONS_ENABLED) {
-      // If permission is explicitly set in the mock map, use it; otherwise default to false
       return MOCK_PERMISSIONS[permission] ?? false;
     }
 
     if (!user) return false;
 
+    let effectiveContext = context;
+    if (userContext === 'personal' && !context?.activeOrganization && !activeGroup) {
+      const airqoGroup = permissionService.getAirQoGroup(user);
+      if (airqoGroup) {
+        effectiveContext = {
+          ...context,
+          activeOrganization: airqoGroup,
+        };
+      }
+    }
+
     return permissionService.hasPermission(user, permission, {
-      activeOrganization: activeGroup ?? undefined,
-      activeNetwork: activeNetwork ?? undefined,
-      ...context,
+      ...effectiveContext,
+      activeOrganization: effectiveContext?.activeOrganization ?? activeGroup ?? undefined,
+      activeNetwork: effectiveContext?.activeNetwork ?? activeNetwork ?? undefined,
     });
-  }, [user, permission, activeGroup, activeNetwork, context]);
+  }, [user, permission, activeGroup, activeNetwork, userContext, context]);
 
   return result;
 };
