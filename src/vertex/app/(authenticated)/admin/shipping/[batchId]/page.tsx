@@ -32,6 +32,14 @@ const BatchDetailsPage = () => {
     const [showLabelModal, setShowLabelModal] = useState(false);
 
     const handleGenerateLabels = useCallback((ids: (string | number)[]) => {
+        if (!ids || ids.length === 0) {
+            ReusableToast({
+                message: 'Please select at least one device',
+                type: 'ERROR',
+            });
+            return;
+        }
+
         const selectedDeviceNames = (data?.batch?.devices || [])
             .filter(device => ids.includes(device._id || device.name))
             .map(device => device.name)
