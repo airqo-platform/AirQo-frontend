@@ -309,7 +309,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     name="device_id"
                                     render={({ field, fieldState }) => (
                                         <ReusableInputField
-                                            label="Device ID (Serial Number)"
+                                            label="Device Name"
                                             placeholder="e.g. airqo_g5241"
                                             error={fieldState.error?.message}
                                             required
