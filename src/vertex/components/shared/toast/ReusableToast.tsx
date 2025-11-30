@@ -76,17 +76,18 @@ const ToastBody: React.FC<ToastBodyProps> = ({
       />
 
       {/* Content area */}
-      <div className="flex items-start justify-between flex-1 px-4 py-3">
-        <div className="flex-1 min-w-0 pr-3">
+      <div className="flex items-start justify-between flex-1 px-4 py-3" style={{ listStyle: 'none' }}>
+        <div className="flex-1 min-w-0 pr-3" style={{ listStyle: 'none' }}>
           {title && (
             <div
               className={`text-[15px] leading-tight mb-0.5 font-semibold ${config.titleColor}`}
+              style={{ listStyle: 'none' }}
             >
               {title}
             </div>
           )}
           {description && (
-            <div className="text-[13px] leading-relaxed text-muted-foreground font-medium">
+            <div className="text-[13px] leading-relaxed text-muted-foreground font-medium" style={{ listStyle: 'none' }}>
               {description}
             </div>
           )}
@@ -161,6 +162,7 @@ const showToast = (options: ToastOptions) => {
         aria-live="polite"
         aria-atomic="true"
         className="w-full min-w-[360px] max-w-[560px] bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
+        style={{ listStyle: 'none' }}
       >
         <ToastBody
           title={title}

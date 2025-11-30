@@ -11,13 +11,16 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { Skeleton } from "@/components/ui/skeleton";
+import HomeEmptyState from "@/components/features/home/HomeEmptyState";
+import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
 
 const WelcomePage = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const user = useAppSelector((state) => state.user.userDetails);
   const router = useRouter();
   const { userContext, hasError, error } = useUserContext();
   const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
-
+  
   const allActions = [
     {
       href: "/devices/claim",
@@ -49,7 +52,21 @@ const WelcomePage = () => {
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
 
-  // Error state
+  const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
+    limit: 1,
+  });
+
+  const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
+    user?._id || "",
+    undefined,
+    { enabled: !!user?._id }
+  );
+
+  // ============================================================
+  // EARLY RETURNS - All checks happen BEFORE any UI is rendered
+  // ============================================================
+
+  // 1. Error state - check first
   if (hasError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
@@ -60,6 +77,52 @@ const WelcomePage = () => {
       </div>
     );
   }
+
+  // 2. Loading state - show loading UI while data is being fetched
+  const isLoading = isContextLoading || 
+    (userContext === "personal" && isLoadingMyDevices) ||
+    (userContext !== "personal" && isLoadingGroupDevices);
+
+  if (isLoading) {
+    return (
+      <div>
+        <DashboardWelcomeBanner />
+        {/* Context Header Skeleton */}
+        <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-gradient-to-r from-primary to-primary/80 text-white p-8">
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-3/4 bg-white/20" />
+            <Skeleton className="h-6 w-1/2 bg-white/20" />
+          </div>
+        </div>
+        {/* Stats Cards Skeleton */}
+        <div className="mb-10">
+          <DashboardStatsCards />
+        </div>
+        {/* Quick Access Skeleton */}
+        <div className="mb-10">
+          <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Empty state - check AFTER loading is complete but BEFORE main UI
+  const hasNoDevices = userContext === "personal"
+    ? myDevicesData?.devices?.length === 0
+    : groupDevices.length === 0;
+
+  if (hasNoDevices) {
+    return <HomeEmptyState />;
+  }
+
+  // ============================================================
+  // MAIN UI - Only renders when we have data to show
+  // ============================================================
 
   const getContextTitle = () => {
     switch (userContext) {
@@ -111,24 +174,15 @@ const WelcomePage = () => {
 
       {/* Context Header */}
       <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-gradient-to-r from-primary to-primary/80 text-white p-8">
-        {isContextLoading ? (
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-3/4 bg-white/20" />
-            <Skeleton className="h-6 w-1/2 bg-white/20" />
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
-                You&apos;re in{" "}
-                <span className="capitalize">{getContextTitle()}! 👋</span>
-              </h1>
-            </div>
-            <p className="mt-2 text-lg text-white/90 max-w-2xl">
-              {getContextDescription()}
-            </p>
-          </>
-        )}
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
+            You&apos;re in{" "}
+            <span className="capitalize">{getContextTitle()}! 👋</span>
+          </h1>
+        </div>
+        <p className="mt-2 text-lg text-white/90 max-w-2xl">
+          {getContextDescription()}
+        </p>
       </div>
 
       {/* Stats Cards */}
@@ -137,31 +191,27 @@ const WelcomePage = () => {
       </div>
 
       {/* Quick Access Buttons */}
-      {(isContextLoading || actions.length > 0) && (
+      {actions.length > 0 && (
         <div className="mb-10">
           <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
-            {isContextLoading
-              ? getContextActions().map((action) => (
-                  <Skeleton key={action.href} className="h-12 w-full" />
-                ))
-              : actions.map((action) => {
-                  const hasPermission = permissionsMap[action.permission];
-                  return (
-                    <ReusableButton
-                      key={action.href}
-                      variant="outlined"
-                      className="w-full"
-                      padding="p-3"
-                      disabled={!hasPermission}
-                      permission={action.permission}
-                      onClick={() => router.push(action.href)}
-                      Icon={PlusSquare}
-                    >
-                      {action.label}
-                    </ReusableButton>
-                  );
-                })}
+            {actions.map((action) => {
+              const hasPermission = permissionsMap[action.permission];
+              return (
+                <ReusableButton
+                  key={action.href}
+                  variant="outlined"
+                  className="w-full"
+                  padding="p-3"
+                  disabled={!hasPermission}
+                  permission={action.permission}
+                  onClick={() => router.push(action.href)}
+                  Icon={PlusSquare}
+                >
+                  {action.label}
+                </ReusableButton>
+              );
+            })}
           </div>
         </div>
       )}

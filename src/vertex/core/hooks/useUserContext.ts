@@ -67,17 +67,14 @@ export const useUserContext = (): UserContextState => {
 
   // Determine loading states
   const isLoading = useMemo(() => {
-    // Loading if not initialized or not authenticated
     if (!isInitialized || !isAuthenticated) {
       return true;
     }
     
-    // Loading if we don't have user details yet
     if (!userDetails) {
       return true;
     }
     
-    // Loading if we don't have a context determined yet
     if (!userContext) {
       return true;
     }
@@ -86,18 +83,15 @@ export const useUserContext = (): UserContextState => {
   }, [isInitialized, isAuthenticated, userDetails, userContext]);
 
   const isPermissionsLoading = useMemo(() => {
-    // Permissions are loading if we have context but permissions aren't ready
     return !isLoading && userContext && (canViewDevices === null || canViewSites === null);
   }, [isLoading, userContext, canViewDevices, canViewSites]);
 
   // Error state
   const hasError = useMemo(() => {
-    // Error if initialized but not authenticated
     if (isInitialized && !isAuthenticated) {
       return true;
     }
     
-    // Error if we have user details but can't determine context
     if (userDetails && !userContext && !isContextLoading) {
       return true;
     }
@@ -123,7 +117,6 @@ export const useUserContext = (): UserContextState => {
   const isExternalOrg = userContext === 'external-org';
 
   const getSidebarConfig = (): SidebarConfig => {
-    // Return safe defaults if still loading
     if (isLoading || !userContext) {
       return {
         title: 'Loading...',
@@ -260,4 +253,4 @@ export const useUserContext = (): UserContextState => {
     getSidebarConfig,
     getContextPermissions,
   };
-}; 
+};

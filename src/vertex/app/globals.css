@@ -4,137 +4,504 @@
 
 @layer base {
   :root {
-    /* Light mode defaults */
-  --color-primary: #145fff;
-  --color-primary-rgb: 20, 95, 255;
-    --background: #f6f6f7;
-    --text: #1f2937;
-    --border: #e5e7eb;
-    --scrollbar-track: #f3f6f8;
-    --scrollbar-thumb: #9eb0c2;
-    --scrollbar-hover: #555;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    /* Colors */
+    --background: 246 246 247;
+    --foreground: 28 29 32;
+    --primary: 20 95 255;
+    --primary-foreground: 255 255 255;
+    --secondary: 241 245 249;
+    --secondary-foreground: 15 23 42;
+    --muted: 241 245 249;
+    --muted-foreground: 100 116 139;
+    --accent: 241 245 249;
+    --accent-foreground: 15 23 42;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+    --border: 226 232 240;
+    --input: 226 232 240;
+    --ring: 20 95 255;
+    --card: 255 255 255;
+    --card-foreground: 15 23 42;
+    --popover: 255 255 255;
+    --popover-foreground: 15 23 42;
+    --text: 31 41 55;
+    --heading: 16 24 40;
+
+    /* Primary color variations for highlights */
+    --primary-50: 239 246 255;
+    /* Very light blue */
+    --primary-100: 219 234 254;
+    /* Light blue */
+    --primary-700: 3 105 161;
+    /* Dark blue */
+    --primary-800: 7 89 133;
+    /* Darker blue */
+    --primary-900: 12 74 110;
+    /* Darkest blue */
+
+    /* Layout */
     --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-    --chart-6: 210 76% 55%;
-    --chart-7: 0 76% 60%;
-    --chart-8: 120 58% 45%;
-    --chart-9: 60 70% 50%;
+
+    /* Scrollbars */
+    --scrollbar-track: 241 245 249;
+    --scrollbar-thumb: 100 116 139;
+    --scrollbar-hover: 51 65 85;
+
+    /* Typography */
+    --font-mono:
+    'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro',
+    monospace;
+    --heading-weight: 500;
+    --heading-line-height: 1.25;
+    --heading-letter-spacing: -0.025em;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --chart-6: 200 75% 60%;
-    --chart-7: 360 75% 55%;
-    --chart-8: 150 65% 50%;
-    --chart-9: 50 80% 60%;
+    --background: 29 31 32;
+    --foreground: 237 237 237;
+    --primary: 20 95 255;
+    --primary-foreground: 255 255 255;
+    --secondary: 30 41 59;
+    --secondary-foreground: 248 250 252;
+    --muted: 30 41 59;
+    --muted-foreground: 148 163 184;
+    --accent: 30 41 59;
+    --accent-foreground: 248 250 252;
+    --destructive: 220 38 38;
+    --destructive-foreground: 255 255 255;
+    --border: 51 65 85;
+    --input: 51 65 85;
+    --ring: 20 95 255;
+    --card: 29 31 32;
+    --card-foreground: 248 250 252;
+    --popover: 29 31 32;
+    --popover-foreground: 248 250 252;
+    --text: 249 250 251;
+    --heading: 255 255 255;
+    --scrollbar-track: 30 41 59;
+    --scrollbar-thumb: 148 163 184;
+    --scrollbar-hover: 51 65 85;
   }
 }
+
+/* ==========================================================================
+   BASE STYLES
+   ========================================================================== */
+html {
+  overflow: hidden;
+}
+
+body,
+html {
+  color: rgb(var(--foreground));
+  background: rgb(var(--background));
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+}
+
+.dark body,
+.dark html {
+  background: rgb(var(--background));
+}
+
+/* ==========================================================================
+     TYPOGRAPHY SYSTEM
+     ========================================================================== */
 
 @layer base {
-  html,
-  body {
-    width: 100%;
-    height: 100%;
+
+  /* Base heading styles */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    color: rgb(var(--heading));
+    font-weight: var(--heading-weight);
+    line-height: var(--heading-line-height);
+    letter-spacing: var(--heading-letter-spacing);
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-    overflow-x: hidden;
-    background-color: var(--background);
-    color: var(--text);
   }
-  *,
-  *::before,
-  *::after {
-    box-sizing: inherit;
+
+  /* Individual heading sizes */
+  h1 {
+    font-size: 2.25rem;
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+  }
+
+  h2 {
+    font-size: 1.875rem;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  h4 {
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+
+  h5 {
+    font-size: 1.125rem;
+    line-height: 1.4;
+  }
+
+  h6 {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  /* Links */
+  a {
+    color: rgb(var(--primary));
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  button:focus:not(:focus-visible),
+  input:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible),
+  select:focus:not(:focus-visible) {
+    outline: 2px solid rgb(var(--ring));
+    outline-offset: 2px;
+  }
+
+  /* Lists */
+  ul,
+  ol {
+    color: rgb(var(--foreground));
+    line-height: 1.6;
+  }
+
+  ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+  }
+
+  ol {
+    list-style-type: decimal;
+    padding-left: 1.5rem;
+  }
+
+  /* Dropdown menus - remove list styles */
+  [role='listbox'] {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  /* Toasts and alerts - remove list styles */
+  [role='alert'],
+  [role='status'],
+  [aria-live='polite'],
+  [aria-live='assertive'] {
+    list-style: none !important;
+  }
+
+  [role='alert'] *,
+  [role='status'] *,
+  [aria-live='polite'] *,
+  [aria-live='assertive'] * {
+    list-style: none !important;
+  }
+
+  /* Blockquotes */
+  blockquote {
+    border-left: 4px solid rgb(var(--border));
+    padding-left: 1rem;
+    margin: 1.5rem 0;
+    color: rgb(var(--muted-foreground));
+    font-style: italic;
+  }
+
+  /* Code blocks */
+  code {
+    font-family: var(--font-mono);
+    font-size: 0.875em;
+    background: rgb(var(--muted));
+    color: rgb(var(--foreground));
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    border: 1px solid rgb(var(--border));
+  }
+
+  pre {
+    font-family: var(--font-mono);
+    background: rgb(var(--muted));
+    color: rgb(var(--foreground));
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(var(--border));
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+
+  pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+  }
+
+  /* Form elements */
+  input,
+  textarea,
+  select {
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* Focus styles - removed blue ring */
+  button:focus,
+  input:focus,
+  textarea:focus,
+  select:focus {
+    outline: none;
+  }
+
+  /* Alternative focus styles for accessibility */
+  textarea:focus {
+    border-color: rgb(var(--ring));
+    box-shadow: 0 0 0 1px rgb(var(--ring));
+  }
+
+  a:focus {
+    background-color: rgb(var(--accent));
+    color: rgb(var(--accent-foreground));
+  }
+
+  /* Responsive typography */
+  @media (max-width: 640px) {
+    h1 {
+      font-size: 1.875rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+    }
   }
 }
 
-/* Animations */
-@keyframes slide-in {
-  from {
-    transform: translateY(-100%);
+/* ==========================================================================
+     UTILITIES
+     ========================================================================== */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
-  to {
-    transform: translateY(0);
+
+  /* Text color utilities */
+  .text-primary {
+    color: rgb(var(--primary));
   }
-}
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
+
+  .text-primary-foreground {
+    color: rgb(var(--primary-foreground));
+  }
+
+  .text-secondary {
+    color: rgb(var(--secondary));
+  }
+
+  .text-secondary-foreground {
+    color: rgb(var(--secondary-foreground));
+  }
+
+  .text-muted {
+    color: rgb(var(--muted-foreground));
+  }
+
+  .text-accent {
+    color: rgb(var(--accent));
+  }
+
+  .text-accent-foreground {
+    color: rgb(var(--accent-foreground));
+  }
+
+  .text-destructive {
+    color: rgb(var(--destructive));
+  }
+
+  .text-destructive-foreground {
+    color: rgb(var(--destructive-foreground));
+  }
+
+  .text-foreground {
+    color: rgb(var(--foreground));
+  }
+
+  .text-background {
+    color: rgb(var(--background));
+  }
+
+  .text-text {
+    color: rgb(var(--text));
+  }
+
+  .text-heading {
+    color: rgb(var(--heading));
+  }
 }
 
-/* HTML: spinner */
-.SecondaryMainloader {
+/* ==========================================================================
+     COMPONENTS
+     ========================================================================== */
+
+/* Spinner */
+.secondary-main-loader {
   width: 50px;
   aspect-ratio: 1;
   border-radius: 50%;
   background:
-    radial-gradient(farthest-side, var(--color-primary) 94%, #0000) top/8px 8px
-      no-repeat,
-    conic-gradient(#0000 30%, var(--color-primary));
+    radial-gradient(farthest-side, rgb(var(--primary)) 94%, #0000) top/8px 8px no-repeat,
+    conic-gradient(#0000 30%, rgb(var(--primary)));
   -webkit-mask: radial-gradient(farthest-side, #0000 calc(100% - 8px), #000 0);
   animation: l13 1s infinite linear;
 }
 
+@keyframes l13 {
+  100% {
+    transform: rotate(1turn);
+  }
+}
+
+/* ==========================================================================
+     SCROLLBARS
+     ========================================================================== */
+
+/* Hide scrollbars */
 .custom-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Default scrollbar styles */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
-  background: var(--scrollbar-track);
+  background: rgb(var(--scrollbar-track));
 }
+
 ::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
+  background: rgb(var(--scrollbar-thumb));
   border-radius: 4px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-hover);
+  background: rgb(var(--scrollbar-hover));
+}
+
+/* Horizontal scrollbars */
+.country-scroll-bar {
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: pointer;
+}
+
+.country-scroll-bar::-webkit-scrollbar {
+  height: 4px;
+  display: none;
+}
+
+.country-scroll-bar:hover::-webkit-scrollbar {
+  display: block;
+}
+
+.map-scrollbar::-webkit-scrollbar {
+  height: 2px;
+}
+
+/* ==========================================================================
+     FLOWBITE TOOLTIP STYLES
+     ========================================================================== */
+
+/* Basic tooltip styling for Flowbite tooltips */
+.tooltip {
+  background-color: rgb(var(--card)) !important;
+  /* gray-800 */
+  color: rgb(var(--card-foreground)) !important;
+  /* white */
+  border-radius: 0.375rem !important;
+  /* rounded-md */
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.875rem !important;
+  /* text-sm */
+  font-weight: 500 !important;
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1) !important;
+  z-index: 50 !important;
+  max-width: 20rem !important;
+  word-wrap: break-word !important;
+}
+
+/* Arrow styling */
+.tooltip-arrow:before {
+  background-color: inherit !important;
+}
+
+/* ==========================================================================
+   PRINT STYLES FOR LABELS (GLOBAL)
+   ========================================================================== */
+
+@media print {
+  @page {
+    size: 4in 6in;
+    margin: 0;
+  }
+
+  /* Hide everything */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Remove parent containers completely from layout */
+  body > *:not(.print-label) {
+    display: none !important;
+  }
+
+  /* Make the print label the only element positioned */
+  .print-label, .print-label * {
+    visibility: visible !important;
+  }
+
+  .print-label {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+
+    width: 4in !important;
+    height: 6in !important;
+    padding: 0.15in !important;
+
+    background: white !important;
+    border: 2px solid black !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  /* Prevent Tailwind layout constraints */
+  html, body {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: white !important;
+    overflow: visible !important;
+  }
 }
 

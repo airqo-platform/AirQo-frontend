@@ -72,6 +72,8 @@ export interface UserDetails {
   createdAt: string;
   my_networks?: string[];
   my_groups?: string[];
+  group_ids?: string[];
+  cohort_ids?: string[];
   iat?: number;
 }
 

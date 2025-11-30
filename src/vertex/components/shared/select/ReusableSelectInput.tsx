@@ -186,7 +186,7 @@ const ReusableSelectInput: React.FC<ReusableSelectInputProps> = ({
           className="mb-2 text-sm font-medium text-gray-700 dark:text-gray-200 flex items-center"
         >
           {label}
-          {required && <span className="ml-1 text-[var(--org-primary,var(--color-primary,#145fff))]">*</span>}
+          {required && <span className="ml-1 text-[var(--org-primary,var(--primary,#145fff))]">*</span>}
         </label>
       )}
 
@@ -206,10 +206,10 @@ const ReusableSelectInput: React.FC<ReusableSelectInputProps> = ({
           className={cn(
             "w-full flex justify-between items-center rounded-xl px-4 py-2.5 text-sm",
             "transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-offset-2",
-            "focus:ring-[var(--org-primary,var(--color-primary,#145fff))]",
+            "focus:ring-[var(--org-primary,var(--primary,#145fff))]",
             error
               ? "border border-red-500"
-              : "border border-gray-300 dark:border-gray-600 focus:border-[var(--org-primary,var(--color-primary,#145fff))]",
+              : "border border-gray-300 dark:border-gray-600 focus:border-[var(--org-primary,var(--primary,#145fff))]",
             disabled
               ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 cursor-not-allowed"
               : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700",
@@ -270,7 +270,7 @@ const ReusableSelectInput: React.FC<ReusableSelectInputProps> = ({
                       "bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:bg-opacity-20",
                       selectedItem &&
                       selectedItem.value === item.value &&
-                      "bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--color-primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium",
+                      "bg-[var(--org-primary-100,rgba(20,95,255,0.2))] dark:bg-[var(--org-primary-800,rgba(20,95,255,0.8))] dark:bg-opacity-30 text-[var(--org-primary-700,var(--primary,#145fff))] dark:text-[var(--org-primary-200,rgba(20,95,255,0.4))] font-medium",
                       !item.disabled &&
                       "hover:bg-[var(--org-primary-50,rgba(20,95,255,0.1))] dark:hover:bg-[var(--org-primary-900,rgba(20,95,255,0.9))] dark:hover:bg-opacity-20",
                     )}

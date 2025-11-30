@@ -1,19 +1,20 @@
 "use client";
 
 import React from "react";
-import { usePermission, usePermissionCheck } from "@/core/hooks/usePermissions";
-import { Permission } from "@/core/permissions/constants";
+import { usePermission, usePermissionCheck, useUserRole } from "@/core/hooks/usePermissions";
+import { Permission, RoleName } from "@/core/permissions/constants";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle, Lock } from "lucide-react";
-import { useUserContext } from "@/core/hooks/useUserContext"; 
+import { useUserContext } from "@/core/hooks/useUserContext";
 import { UserContext } from "@/core/redux/slices/userSlice";
-import SessionLoadingState from "../loading/session-loading";
 
 interface RouteGuardProps {
-  permission: Permission;
+  permission?: Permission;
+  role?: RoleName;
+  roles?: RoleName[];
   children: React.ReactNode;
   redirectTo?: string;
   showError?: boolean;
@@ -28,6 +29,8 @@ interface RouteGuardProps {
 
 export const RouteGuard: React.FC<RouteGuardProps> = ({
   permission,
+  role,
+  roles,
   children,
   redirectTo = "/unauthorized",
   showError = true,
@@ -35,30 +38,56 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   resourceContext,
 }) => {
   const router = useRouter();
-  const { userContext, isContextLoading } = useUserContext(); 
-  const hasPermission = usePermission(permission, { resourceContext });
-  const permissionCheck = usePermissionCheck(permission, { resourceContext });
+  const { userContext, isLoading } = useUserContext();
+  const hasPermission = usePermission(permission || '' as Permission, { resourceContext });
+  const permissionCheck = usePermissionCheck(permission || '' as Permission, { resourceContext });
+  const userRole = useUserRole(resourceContext?.organizationId);
+
+  // Validate that at least one access control method is specified
+  if (!permission && !role && !roles) {
+    throw new Error('RouteGuard requires either permission, role, or roles prop');
+  }
+
+  // Check role-based access
+  const hasRoleAccess = React.useMemo(() => {
+    if (!role && !roles) return true;
+    if (!userRole) return false;
+
+    if (role) {
+      return userRole === role;
+    }
+
+    if (roles && roles.length > 0) {
+      return roles.includes(userRole as RoleName);
+    }
+
+    return false;
+  }, [role, roles, userRole]);
+
+  // Check permission-based access
+  const hasPermissionAccess = permission ? hasPermission : true;
 
   const hasValidContext = !allowedContexts || (userContext !== null && allowedContexts.includes(userContext));
-  const hasAccess = hasPermission && hasValidContext;
+
+  const hasAccess = hasValidContext && (hasPermissionAccess || hasRoleAccess);
 
   useEffect(() => {
-    if (isContextLoading) {
+    if (isLoading) {
       return;
     }
 
     if (!hasAccess && !showError) {
       router.push(redirectTo);
     }
-  }, [hasAccess, isContextLoading, router, redirectTo, showError]);
+  }, [hasAccess, isLoading, router, redirectTo, showError]);
 
-  if (isContextLoading) {
-    return <SessionLoadingState />;
+  if (isLoading) {
+    return null;
   }
 
   if (!hasAccess) {
     if (showError) {
-    return (
+      return (
         <div className="container mx-auto p-6 max-w-2xl">
           <Card>
             <CardHeader>
@@ -67,16 +96,16 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                 Access Denied
               </CardTitle>
               <CardDescription>
-                {!hasValidContext 
+                {!hasValidContext
                   ? "This page is not available in your current context"
-                  : "You don't have permission to access this page"
+                  : "You don't have the required permission or role to access this page"
                 }
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>
+                <AlertDescription>
                   <div className="space-y-2">
                     {!hasValidContext && (
                       <div>
@@ -85,13 +114,23 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                         <strong>Current Context:</strong> {userContext}
                       </div>
                     )}
-                    {!hasPermission && (
+                    {permission && !hasPermissionAccess && (
                       <>
                         <div>
                           <strong>Required Permission:</strong> {permission}
                         </div>
                         <div>
                           <strong>Reason:</strong> {permissionCheck.reason}
+                        </div>
+                      </>
+                    )}
+                    {(role || roles) && !hasRoleAccess && (
+                      <>
+                        <div>
+                          <strong>Required Role:</strong> {role || roles?.join(', ')}
+                        </div>
+                        <div>
+                          <strong>Your Current Role:</strong> {userRole || 'No role assigned'}
                         </div>
                       </>
                     )}
@@ -106,9 +145,9 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
                       </div>
                     )}
                   </div>
-          </AlertDescription>
-        </Alert>
-              
+                </AlertDescription>
+              </Alert>
+
               <div className="mt-4 p-4 bg-muted rounded-lg">
                 <h4 className="font-medium mb-2">What you can do:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
@@ -129,8 +168,8 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
               </div>
             </CardContent>
           </Card>
-      </div>
-    );
+        </div>
+      );
     }
 
     return null;
@@ -167,3 +206,33 @@ export const withRoutePermission = (
     return WrappedComponent;
   };
 };
+
+// Higher-order component for route-level role protection
+export const withRouteRole = (
+  role: RoleName,
+  redirectTo?: string,
+  organizationId?: string
+) => {
+  return <P extends object>(Component: React.ComponentType<P>) => {
+    const WrappedComponent = (props: P) => {
+      const userRole = useUserRole(organizationId);
+      const router = useRouter();
+
+      useEffect(() => {
+        if (userRole !== role) {
+          router.push(redirectTo || "/unauthorized");
+        }
+      }, [userRole, router]);
+
+      if (userRole !== role) {
+        return null;
+      }
+
+      return <Component {...props} />;
+    };
+
+    WrappedComponent.displayName = `withRouteRole(${Component.displayName || Component.name})`;
+    return WrappedComponent;
+  };
+};
+

@@ -12,13 +12,18 @@ import type {
   DeviceUpdateGroupResponse,
   MaintenanceLogData,
   DecryptionRequest,
-  DecryptionResponse
+  DecryptionResponse,
+  PrepareDeviceResponse,
+  BulkPrepareResponse,
+  GenerateLabelsResponse,
+  ShippingStatusResponse,
+  ShippingBatchesResponse,
+  ShippingBatchDetailsResponse,
 } from "@/app/types/devices";
 
 // Create secure API clients that use the proxy
 const jwtApiClient = createSecureApiClient();
 const tokenApiClient = createSecureApiClient();
-
 interface DeviceStatusSummary {
   _id: string;
   created_at: string;
@@ -199,13 +204,25 @@ export const devices = {
     }
   },
 
-  getMyDevices: async (userId: string): Promise<MyDevicesResponse> => {
+  getMyDevices: async (
+    userId: string,
+    groupIds?: string[],
+    cohortIds?: string[]
+  ): Promise<MyDevicesResponse> => {
     try {
       const params = new URLSearchParams({ user_id: userId });
 
+      if (groupIds && groupIds.length > 0) {
+        params.append("group_ids", groupIds.join(","));
+      }
+
+      if (cohortIds && cohortIds.length > 0) {
+        params.append("cohort_ids", cohortIds.join(","));
+      }
+
       const response = await jwtApiClient.get<MyDevicesResponse>(
         `/devices/my-devices?${params.toString()}`,
-        { headers: { 'X-Auth-Type': 'JWT' } }
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
@@ -455,6 +472,131 @@ export const devices = {
       const response = await jwtApiClient.post<DecryptionResponse>(
         `/devices/decrypt/bulk`,
         requestBody,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  prepareDeviceForShipping: async (
+    deviceName: string,
+    tokenType: "hex" | "readable" = "hex"
+  ): Promise<PrepareDeviceResponse> => {
+    try {
+      const response = await jwtApiClient.post<PrepareDeviceResponse>(
+        `/devices/prepare-for-shipping`,
+        { device_name: deviceName, token_type: tokenType },
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  prepareBulkDevicesForShipping: async (
+    deviceNames: string[],
+    tokenType: "hex" | "readable" = "hex",
+    batchName?: string
+  ): Promise<BulkPrepareResponse> => {
+    try {
+      const requestBody: {
+        device_names: string[];
+        token_type: string;
+        batch_name?: string;
+      } = {
+        device_names: deviceNames,
+        token_type: tokenType,
+      };
+
+      if (batchName) {
+        requestBody.batch_name = batchName;
+      }
+
+      const response = await jwtApiClient.post<BulkPrepareResponse>(
+        `/devices/prepare-bulk-for-shipping`,
+        requestBody,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  generateShippingLabels: async (
+    deviceNames: string[]
+  ): Promise<GenerateLabelsResponse> => {
+    try {
+      const response = await jwtApiClient.post<GenerateLabelsResponse>(
+        `/devices/generate-shipping-labels`,
+        { device_names: deviceNames },
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getShippingStatus: async (
+    deviceNames?: string[]
+  ): Promise<ShippingStatusResponse> => {
+    try {
+      const queryParams = new URLSearchParams();
+      if (deviceNames && deviceNames.length > 0) {
+        queryParams.set("device_names", deviceNames.join(","));
+      }
+
+      const response = await jwtApiClient.get<ShippingStatusResponse>(
+        `/devices/shipping-status?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getOrphanedDevices: async (userId: string) => {
+    try {
+      const params = new URLSearchParams({ user_id: userId });
+      const response = await jwtApiClient.get(
+        `/devices/orphaned?${params.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getShippingBatches: async (params: {
+    limit?: number;
+    skip?: number;
+  }): Promise<ShippingBatchesResponse> => {
+    try {
+      const response = await jwtApiClient.get<ShippingBatchesResponse>(
+        `/devices/shipping-batches`,
+        {
+          params,
+          headers: { "X-Auth-Type": "JWT" },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getShippingBatchDetails: async (
+    batchId: string
+  ): Promise<ShippingBatchDetailsResponse> => {
+    try {
+      const response = await jwtApiClient.get<ShippingBatchDetailsResponse>(
+        `/devices/shipping-batches/${batchId}`,
         { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;

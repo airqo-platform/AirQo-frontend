@@ -71,6 +71,18 @@ export const cohorts = {
       throw error;
     }
   },
+  assignCohortsToUser: async (userId: string, cohortIds: string[]) => {
+    try {
+      const response = await createSecureApiClient().post(
+        `/users/${userId}/cohorts/assign`,
+        { cohort_ids: cohortIds },
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   updateCohortDetailsApi: async (cohortId: string, cohortData: Partial<Cohort>) => {
     try {
       const response = await createSecureApiClient().put(

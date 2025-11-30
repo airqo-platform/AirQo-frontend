@@ -226,6 +226,18 @@ class PermissionService {
   }
 
   /**
+   * Get user's AirQo group (if they have one)
+   * This is useful for private context permission checks
+   */
+  getAirQoGroup(user: UserDetails): Group | undefined {
+    if (!user.groups) return undefined;
+    
+    return user.groups.find((group) => 
+      group.grp_title.toLowerCase() === 'airqo'
+    );
+  }
+
+  /**
    * Check if permission is organization-specific
    */
   isOrganizationPermission(permission: Permission): boolean {
@@ -410,4 +422,4 @@ class PermissionService {
 }
 
 // Export singleton instance
-export const permissionService = new PermissionService(); 
+export const permissionService = new PermissionService();
