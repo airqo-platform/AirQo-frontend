@@ -99,7 +99,7 @@ const MyDevicesPage = () => {
               <AqPlus className="mr-2 h-4 w-4" />
               Claim Device
             </Button>
-            <DropdownMenu>
+            {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" disabled={isLoading}>
                   <AqDotsHorizontal className="h-4 w-4" />
@@ -110,7 +110,7 @@ const MyDevicesPage = () => {
                   Share Device
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+            </DropdownMenu> */}
           </div>
         </div>
 
