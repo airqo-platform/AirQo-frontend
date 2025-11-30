@@ -224,7 +224,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
       if (cachedUser || fetchStatus === 'fetching') {
         logger.info('[UserDataFetcher] Offline mode - using cached data');
         hasShownOfflineToastRef.current = true;
-        
+
         if (cachedUser) {
           //do nothing 
         }
@@ -286,9 +286,9 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
 
     logger.info('[UserDataFetcher] Updating user data in Redux');
 
-    const { groups: filteredGroups, networks: filteredNetworks } = 
+    const { groups: filteredGroups, networks: filteredNetworks } =
       filterGroupsAndNetworks(userInfo);
-    const { defaultGroup, defaultNetwork, initialUserContext } = 
+    const { defaultGroup, defaultNetwork, initialUserContext } =
       determineInitialUserSetup(
         userInfo,
         filteredGroups,
@@ -486,7 +486,65 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }
 
   // Render app with background data fetching
-  return <UserDataFetcher>{children}</UserDataFetcher>;
+  return (
+    <UserDataFetcher>
+      <AutoLogoutHandler />
+      {children}
+    </UserDataFetcher>
+  );
+}
+
+/**
+ * Handles auto-logout on inactivity
+ */
+function AutoLogoutHandler() {
+  const { data: session } = useSession();
+  const logout = useLogout();
+  const lastActivityRef = useRef(Date.now());
+  const INACTIVITY_LIMIT = 30 * 60 * 1000; // 30 minutes
+
+  const updateActivity = useCallback(() => {
+    lastActivityRef.current = Date.now();
+  }, []);
+
+  useEffect(() => {
+    if (!session) return;
+
+    const events = ['mousedown', 'keydown', 'scroll', 'touchstart', 'mousemove'];
+
+    // Throttle event listeners to avoid performance impact
+    let throttleTimer: NodeJS.Timeout | null = null;
+    const handleActivity = () => {
+      if (!throttleTimer) {
+        updateActivity();
+        throttleTimer = setTimeout(() => {
+          throttleTimer = null;
+        }, 1000);
+      }
+    };
+
+    events.forEach((event) => {
+      window.addEventListener(event, handleActivity);
+    });
+
+    const intervalId = setInterval(() => {
+      const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+      if (timeSinceLastActivity >= INACTIVITY_LIMIT) {
+        logger.warn('[AutoLogoutHandler] User inactive for 30 minutes, logging out');
+        logout();
+      }
+    }, 60 * 1000); // Check every minute
+
+    return () => {
+      events.forEach((event) => {
+        window.removeEventListener(event, handleActivity);
+      });
+      clearInterval(intervalId);
+      if (throttleTimer) clearTimeout(throttleTimer);
+    };
+  }, [session, logout, updateActivity]);
+
+  return null;
 }
 
 /**

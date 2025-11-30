@@ -4,6 +4,47 @@
 
 ---
 
+## Version 1.7.0
+**Released:** November 30, 2025
+
+### Auto-Logout on Inactivity
+
+Implemented automatic user logout after 30 minutes of inactivity to enhance security and protect user sessions.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Enhanced Security**: Automatically logs out idle users to prevent unauthorized session access
+- **Activity Tracking**: Monitors mouse movements, keyboard input, clicks, scrolling, and touch events
+- **Performance Optimized**: Throttled event listeners (1-second intervals) to minimize CPU usage
+
+</details>
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **AutoLogoutHandler Component**: Standalone component that tracks user activity and triggers logout after 30 minutes of inactivity
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Created `AutoLogoutHandler` function component in `authProvider.tsx`
+- Implemented interval-based inactivity check (every 60 seconds)
+- Integrated handler into `AuthWrapper` via `UserDataFetcher`
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `core/auth/authProvider.tsx`
+
+</details>
+
+---
+
 ## Version 1.6.0
 **Released:** November 30, 2025
 
