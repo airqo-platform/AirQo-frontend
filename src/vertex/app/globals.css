@@ -258,10 +258,10 @@ html {
   }
 
   /* Focus styles - removed blue ring */
-  button:focus:not(:focus-visible),
-  input:focus:not(:focus-visible),
-  textarea:focus:not(:focus-visible),
-  select:focus:not(:focus-visible) {
+  button:focus,
+  input:focus,
+  textarea:focus,
+  select:focus {
     outline: none;
   }
 

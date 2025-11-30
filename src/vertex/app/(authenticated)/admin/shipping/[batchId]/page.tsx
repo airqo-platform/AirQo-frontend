@@ -34,7 +34,16 @@ const BatchDetailsPage = () => {
     const handleGenerateLabels = useCallback((ids: (string | number)[]) => {
         const selectedDeviceNames = (data?.batch?.devices || [])
             .filter(device => ids.includes(device._id || device.name))
-            .map(device => device.name);
+            .map(device => device.name)
+            .filter(name => name && name.trim().length > 0);
+
+        if (selectedDeviceNames.length === 0) {
+            ReusableToast({
+                message: 'Selected devices have no valid names',
+                type: 'ERROR',
+            });
+            return;
+        }
 
         generateLabels(selectedDeviceNames, {
             onSuccess: (data) => {
@@ -52,11 +61,12 @@ const BatchDetailsPage = () => {
 
     const handleGenerateAllLabels = useCallback(() => {
         const allDeviceNames = (data?.batch?.devices || [])
-            .map(device => device.name);
+            .map(device => device.name)
+            .filter(name => name && name.trim().length > 0);
 
         if (allDeviceNames.length === 0) {
             ReusableToast({
-                message: 'No devices found in this batch',
+                message: 'No devices found with valid names in this batch',
                 type: 'ERROR',
             });
             return;
