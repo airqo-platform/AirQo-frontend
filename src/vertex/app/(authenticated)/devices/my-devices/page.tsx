@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AqCollocation, AqDotsHorizontal, AqPlus } from "@airqo/icons-react";
+import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyDevices } from "@/core/hooks/useDevices";
@@ -11,12 +11,6 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import { OrphanedDevicesAlert } from "@/components/features/devices/orphaned-devices-alert";
 import ReusableButton from "@/components/shared/button/ReusableButton";

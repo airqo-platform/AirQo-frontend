@@ -6,7 +6,7 @@ import { useShippingBatchDetails } from '@/core/hooks/useDevices';
 import { format } from 'date-fns';
 import { ArrowLeft } from 'lucide-react';
 import ReusableTable, { TableColumn } from '@/components/shared/table/ReusableTable';
-import { Device } from '@/app/types/devices';
+import { ShippingStatusDevice } from '@/app/types/devices';
 import { Skeleton } from "@/components/ui/skeleton";
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { AqArrowLeft } from '@airqo/icons-react';
@@ -15,6 +15,12 @@ import ReusableToast from '@/components/shared/toast/ReusableToast';
 import ShippingLabelPrintModal from '@/components/features/shipping/ShippingLabelPrintModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
+
+type BatchDevice = ShippingStatusDevice & {
+    id: string | number;
+    createdAt?: string;
+    [key: string]: unknown;
+};
 
 const BatchDetailsPage = () => {
     const params = useParams();
@@ -83,7 +89,7 @@ const BatchDetailsPage = () => {
         }
     ];
 
-    const columns: TableColumn<Device>[] = [
+    const columns: TableColumn<BatchDevice>[] = [
         {
             key: 'name',
             label: 'Device Name',
@@ -137,7 +143,7 @@ const BatchDetailsPage = () => {
 
     const batch = data?.batch;
 
-    const tableData = (batch?.devices || []).map(device => ({
+    const tableData: BatchDevice[] = (batch?.devices || []).map(device => ({
         ...device,
         id: device._id || device.name
     }));
@@ -184,7 +190,7 @@ const BatchDetailsPage = () => {
                 <ReusableTable
                     title="Devices in Batch"
                     data={tableData}
-                    columns={columns as any}
+                    columns={columns}
                     searchableColumns={['name', 'long_name']}
                     loading={isLoading}
                     multiSelect

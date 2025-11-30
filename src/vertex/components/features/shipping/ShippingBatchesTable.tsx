@@ -5,11 +5,16 @@ import { format } from 'date-fns';
 import { ShippingBatch } from '@/app/types/devices';
 import ReusableTable, { TableColumn } from '@/components/shared/table/ReusableTable';
 
+type BatchTableItem = ShippingBatch & {
+    id: string;
+    [key: string]: unknown;
+};
+
 const ShippingBatchesTable: React.FC = () => {
     const router = useRouter();
     const { data, isLoading, error } = useShippingBatches();
 
-    const columns: TableColumn<ShippingBatch & { id: string }>[] = [
+    const columns: TableColumn<BatchTableItem>[] = [
         {
             key: 'batch_name',
             label: 'Batch Name',
@@ -38,7 +43,7 @@ const ShippingBatchesTable: React.FC = () => {
             )
         },
         {
-            key: 'actions' as keyof (ShippingBatch & { id: string }),
+            key: 'actions',
             label: 'Actions',
             render: (_, item) => (
                 <button
@@ -62,7 +67,7 @@ const ShippingBatchesTable: React.FC = () => {
         );
     }
 
-    const batches = (data?.batches || []).map(batch => ({
+    const batches: BatchTableItem[] = (data?.batches || []).map(batch => ({
         ...batch,
         id: batch._id
     }));
@@ -71,7 +76,7 @@ const ShippingBatchesTable: React.FC = () => {
         <ReusableTable
             title="Shipping Batches"
             data={batches}
-            columns={columns as any}
+            columns={columns}
             loading={isLoading}
             emptyState={
                 <div className="p-8 text-center text-gray-500 dark:text-gray-400">
