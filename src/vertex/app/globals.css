@@ -165,9 +165,10 @@ html {
     transition: color 0.2s ease;
   }
 
-  button:focus-visible,
-  input:focus-visible,
-  select:focus-visible {
+  button:focus:not(:focus-visible),
+  input:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible),
+  select:focus:not(:focus-visible) {
     outline: 2px solid rgb(var(--ring));
     outline-offset: 2px;
   }
@@ -257,10 +258,10 @@ html {
   }
 
   /* Focus styles - removed blue ring */
-  button:focus,
-  input:focus,
-  textarea:focus,
-  select:focus {
+  button:focus:not(:focus-visible),
+  input:focus:not(:focus-visible),
+  textarea:focus:not(:focus-visible),
+  select:focus:not(:focus-visible) {
     outline: none;
   }
 
