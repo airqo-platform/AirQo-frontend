@@ -4,6 +4,46 @@
 
 ---
 
+## Version 1.6.0
+**Released:** November 30, 2025
+
+### Batch Details & Label Printing Enhancements
+
+Enhanced the Batch Details page with bulk actions and optimized the shipping label print layout for perfect 4x6 inch output.
+
+<details>
+<summary><strong>Improvements (5)</strong></summary>
+
+- **Bulk Label Generation**: Added "Generate Labels" button to batch header to process all devices at once
+- **Multi-Select Actions**: Enabled selecting specific devices in the batch table to generate labels
+- **Print Layout Optimization**: Aggressively tuned styles (padding, fonts, QR size) to fit 4x6" labels without overflow
+- **Clean Instructions**: Fixed double numbering issue in setup instructions
+- **Global Print Styles**: Added dedicated `@media print` styles to isolate labels and hide UI elements
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **API Payload Fix**: Mapped device IDs to names in `BatchDetailsPage` before calling `generateLabels`
+- **New Component**: Created `ShippingLabelPrint` for consistent label rendering
+- **CSS Reset**: Added `list-none` to instruction lists to prevent browser default numbering conflict
+- **Print Isolation**: Implemented global print styles in `globals.css` to ensure only labels are printed
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/(authenticated)/admin/shipping/[batchId]/page.tsx`
+- `components/features/shipping/ShippingLabelPrint.tsx`
+- `components/features/shipping/ShippingLabelPrintModal.tsx`
+- `app/globals.css`
+
+</details>
+
+---
+
 ## Version 1.5.0
 **Released:** November 29, 2025
 

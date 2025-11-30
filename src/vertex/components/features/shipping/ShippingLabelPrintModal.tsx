@@ -114,8 +114,8 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
                     }
                     
                     .instructions ol {
-                        list-style: decimal;
-                        padding-left: 0.5in;
+                        list-style: none;
+                        padding-left: 0;
                     }
                     
                     .instructions li {
@@ -239,7 +239,7 @@ const ShippingLabelPrintModal: React.FC<ShippingLabelPrintModalProps> = ({ label
 
                         <div className="instructions">
                             <h3 className="font-bold mb-2">Setup Instructions:</h3>
-                            <ol className="list-decimal pl-5">
+                            <ol className="list-none pl-0">
                                 {label.instructions.map((instruction, i) => (
                                     <li key={i}>{instruction}</li>
                                 ))}

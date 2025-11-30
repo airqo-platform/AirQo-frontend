@@ -16,13 +16,14 @@ import type {
   PrepareDeviceResponse,
   BulkPrepareResponse,
   GenerateLabelsResponse,
-  ShippingStatusResponse
+  ShippingStatusResponse,
+  ShippingBatchesResponse,
+  ShippingBatchDetailsResponse,
 } from "@/app/types/devices";
 
 // Create secure API clients that use the proxy
 const jwtApiClient = createSecureApiClient();
 const tokenApiClient = createSecureApiClient();
-
 interface DeviceStatusSummary {
   _id: string;
   created_at: string;
@@ -479,7 +480,6 @@ export const devices = {
     }
   },
 
-
   prepareDeviceForShipping: async (
     deviceName: string,
     tokenType: "hex" | "readable" = "hex"
@@ -559,11 +559,44 @@ export const devices = {
       throw error;
     }
   },
+
   getOrphanedDevices: async (userId: string) => {
     try {
       const params = new URLSearchParams({ user_id: userId });
       const response = await jwtApiClient.get(
         `/devices/orphaned?${params.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getShippingBatches: async (params: {
+    limit?: number;
+    skip?: number;
+  }): Promise<ShippingBatchesResponse> => {
+    try {
+      const response = await jwtApiClient.get<ShippingBatchesResponse>(
+        `/devices/shipping-batches`,
+        {
+          params,
+          headers: { "X-Auth-Type": "JWT" },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  getShippingBatchDetails: async (
+    batchId: string
+  ): Promise<ShippingBatchDetailsResponse> => {
+    try {
+      const response = await jwtApiClient.get<ShippingBatchDetailsResponse>(
+        `/devices/shipping-batches/${batchId}`,
         { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;

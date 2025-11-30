@@ -34,6 +34,8 @@ import type {
   GenerateLabelsResponse,
   ShippingStatusResponse,
   OrphanedDevicesResponse,
+  ShippingBatchesResponse,
+  ShippingBatchDetailsResponse,
 } from '@/app/types/devices';
 import { AxiosError } from 'axios';
 import { useDispatch } from 'react-redux';
@@ -666,7 +668,8 @@ export const usePrepareBulkDevicesForShipping = () => {
         message: data.message,
         type: 'SUCCESS',
       });
-      queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
+      // queryClient.invalidateQueries({ queryKey: ['shippingStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['shippingBatches'] });
     },
     onError: (error) => {
       ReusableToast({
@@ -707,5 +710,22 @@ export const useOrphanedDevices = (userId: string) => {
     queryFn: () => devices.getOrphanedDevices(userId),
     enabled: !!userId,
     staleTime: 300_000, // 5 minutes
+  });
+};
+
+export const useShippingBatches = (params: { limit?: number; skip?: number } = {}) => {
+  return useQuery<ShippingBatchesResponse, AxiosError<ErrorResponse>>({
+    queryKey: ['shippingBatches', params],
+    queryFn: () => devices.getShippingBatches(params),
+    staleTime: 60_000,
+  });
+};
+
+export const useShippingBatchDetails = (batchId: string) => {
+  return useQuery<ShippingBatchDetailsResponse, AxiosError<ErrorResponse>>({
+    queryKey: ['shippingBatchDetails', batchId],
+    queryFn: () => devices.getShippingBatchDetails(batchId),
+    enabled: !!batchId,
+    staleTime: 60_000,
   });
 };

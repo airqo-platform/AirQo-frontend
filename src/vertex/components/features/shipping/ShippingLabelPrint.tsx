@@ -13,8 +13,8 @@ const ShippingLabelPrint: React.FC<ShippingLabelPrintProps> = ({ labels }) => {
     };
 
     return (
-        <div className="print-container">
-            <div className="no-print mb-4">
+        <div className="print-label">
+            <div className="no-print">
                 <ReusableButton onClick={printLabels} variant="filled">
                     Print Labels
                 </ReusableButton>
@@ -23,67 +23,35 @@ const ShippingLabelPrint: React.FC<ShippingLabelPrintProps> = ({ labels }) => {
             {labels.map((label, index) => (
                 <div key={index} className="shipping-label">
                     <div className="label-header">
-                        <h2 className="text-xl font-bold">AirQo Air Quality Monitor</h2>
+                        <h2>AirQo Air Quality Monitor</h2>
                     </div>
 
-                    <div className="device-info my-4">
+                    <div className="device-info">
                         <p><strong>Device ID:</strong> {label.device_id}</p>
                         <p><strong>Claim Token:</strong> {label.claim_token}</p>
                     </div>
 
-                    <div className="qr-code-section flex justify-center my-4">
+                    <div className="qr-code-section">
                         <Image
                             src={label.qr_code_image}
                             alt="QR Code for device claiming"
-                            width={192}
-                            height={192}
+                            width={120}
+                            height={120}
                             className="qr-code"
                             unoptimized
                         />
                     </div>
 
                     <div className="instructions">
-                        <h3 className="font-bold mb-2">Setup Instructions:</h3>
-                        <ol className="list-decimal pl-5">
+                        <h3>Setup Instructions:</h3>
+                        <ol>
                             {label.instructions.map((instruction, i) => (
-                                <li key={i}>{instruction}</li>
+                                <li key={i}>{i + 1}. {instruction}</li>
                             ))}
                         </ol>
                     </div>
                 </div>
             ))}
-
-            <style jsx>{`
-        .shipping-label {
-          width: 4in;
-          height: 6in;
-          border: 2px solid #000;
-          padding: 0.5in;
-          margin: 0.25in;
-          page-break-after: always;
-          font-family: Arial, sans-serif;
-          background: white;
-          color: black;
-        }
-        
-        .qr-code {
-          width: 2in;
-          height: 2in;
-        }
-        
-        @media print {
-          .no-print { display: none; }
-          body { background: white; }
-          .print-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: white;
-            z-index: 9999;
-          }
-        }
-      `}</style>
         </div>
     );
 };

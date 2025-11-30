@@ -66,7 +66,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
             <>
               <NavItem
                 item={{
-                  href: '/admin/networks',
+                  href: '/admin/shipping',
                   icon: ShieldCheck,
                   label: 'Platform Administration',
                   activeOverride: activeModule === 'admin',

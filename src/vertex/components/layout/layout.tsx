@@ -49,7 +49,7 @@ export default function Layout({ children }: LayoutProps) {
     setIsPrimarySidebarOpen(false);
 
     if (module === 'admin') {
-      router.push('/admin/networks');
+      router.push('/admin/shipping');
     } else {
       router.push('/home');
     }

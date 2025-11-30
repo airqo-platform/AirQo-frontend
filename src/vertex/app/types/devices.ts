@@ -279,27 +279,6 @@ export interface DecryptionResponse {
   decrypted_keys: DecryptedKeyResult[];
 }
 
-export interface DeviceOnboardRequest {
-  device_name: string;
-  claim_token?: string;
-  owner_type: 'user' | 'organization';
-  owner_id: string;
-}
-
-export interface DeviceOnboardResponse {
-  success: boolean;
-  message: string;
-  cohort_id: string;
-  device: {
-    _id: string;
-    name: string;
-    long_name: string;
-    status: string;
-    claim_status: 'claimed';
-    claimed_at: string;
-  };
-}
-
 export interface DevicePreparation {
   device_name: string;
   claim_token: string;
@@ -373,6 +352,8 @@ export interface GenerateLabelsResponse {
 }
 
 export interface ShippingStatusDevice {
+  id?: string;
+  _id?: string;
   name: string;
   long_name: string;
   claim_status: string;
@@ -419,4 +400,28 @@ export interface OrphanedDevicesResponse {
   devices: OrphanedDevice[];
   total_orphaned: number;
   recommendation: string;
+}
+
+export interface ShippingBatch {
+  _id: string;
+  batch_name: string;
+  device_count: number;
+  device_names: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShippingBatchesResponse {
+  success: boolean;
+  message: string;
+  batches: ShippingBatch[];
+  meta: PaginationMeta;
+}
+
+export interface ShippingBatchDetailsResponse {
+  success: boolean;
+  message: string;
+  batch: ShippingBatch & {
+    devices: ShippingStatusDevice[];
+  };
 }
