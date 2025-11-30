@@ -363,7 +363,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         <div className="w-full space-y-3 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-600 dark:text-gray-400">Device Name:</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name}</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name || claimData.device.name}</span>
                             </div>
                             <div className="flex items-center justify-between text-sm">
                                 <span className="text-gray-600 dark:text-gray-400">Device ID:</span>
