@@ -14,12 +14,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAppSelector } from '@/core/redux/hooks';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { useRouter } from 'next/navigation';
 import OrganizationPicker from '../features/org-picker/organization-picker';
 import Image from 'next/image';
