@@ -12,45 +12,50 @@
 Created a comprehensive app dropdown component with QR code modal for mobile app downloads and fixed shipping label generation to respect claim status rules.
 
 <details>
-<summary><strong>Improvements (5)</strong></summary>
+<summary><strong>Improvements (6)</strong></summary>
 
 - **Unified App Launcher**: Single dropdown component for accessing all AirQo platforms and services
 - **QR Code Integration**: Dedicated modal view for mobile app download with QR code scanning
 - **Environment Awareness**: Automatically adjusts URLs for staging vs production environments
 - **Consistent Business Rules**: Shipping label generation now excludes claimed devices in both bulk and per-row operations
 - **Better User Feedback**: Improved error messages when no unclaimed devices are available
+- **Professional Footer**: Added application footer with automatic year and platform branding
 
 </details>
 
 <details>
-<summary><strong>Features Added (2)</strong></summary>
+<summary><strong>Features Added (3)</strong></summary>
 
 - **AppDropdown Component**: Standalone component with grid layout showing 7 apps (Analytics, Calibrate, Website, Vertex, API Docs, Mobile App, AI Platform)
 - **Mobile App QR Modal**: Toggle view with QR code, app store buttons, and back navigation
+- **Footer Component**: Reusable footer with dynamic copyright year and platform name
 
 </details>
 
 <details>
-<summary><strong>Technical Changes (4)</strong></summary>
+<summary><strong>Technical Changes (5)</strong></summary>
 
 - Created `AppDropdown.tsx` with environment-aware URL generation
 - Integrated `AppDropdown` into `topbar.tsx` replacing inline implementation
 - Added claim status filter to `handleGenerateAllLabels` in batch details page
 - Updated error message to reflect unclaimed device requirement
+- Created and integrated `Footer.tsx` component into main layout
 
 </details>
 
 <details>
-<summary><strong>Files Created (1)</strong></summary>
+<summary><strong>Files Created (2)</strong></summary>
 
 - `components/layout/AppDropdown.tsx`
+- `components/layout/Footer.tsx`
 
 </details>
 
 <details>
-<summary><strong>Files Modified (2)</strong></summary>
+<summary><strong>Files Modified (3)</strong></summary>
 
 - `components/layout/topbar.tsx`
+- `components/layout/layout.tsx`
 - `app/(authenticated)/admin/shipping/[batchId]/page.tsx`
 
 </details>
