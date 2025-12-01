@@ -69,12 +69,13 @@ const BatchDetailsPage = () => {
 
     const handleGenerateAllLabels = useCallback(() => {
         const allDeviceNames = (data?.batch?.devices || [])
+            .filter(device => device.claim_status !== 'claimed')
             .map(device => device.name)
             .filter(name => name && name.trim().length > 0);
 
         if (allDeviceNames.length === 0) {
             ReusableToast({
-                message: 'No devices found with valid names in this batch',
+                message: 'No unclaimed devices found with valid names in this batch',
                 type: 'ERROR',
             });
             return;

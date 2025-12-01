@@ -4,6 +4,105 @@
 
 ---
 
+## Version 1.8.0
+**Released:** November 30, 2025
+
+### Enhanced App Launcher & Shipping Improvements
+
+Created a comprehensive app dropdown component with QR code modal for mobile app downloads and fixed shipping label generation to respect claim status rules.
+
+<details>
+<summary><strong>Improvements (6)</strong></summary>
+
+- **Unified App Launcher**: Single dropdown component for accessing all AirQo platforms and services
+- **QR Code Integration**: Dedicated modal view for mobile app download with QR code scanning
+- **Environment Awareness**: Automatically adjusts URLs for staging vs production environments
+- **Consistent Business Rules**: Shipping label generation now excludes claimed devices in both bulk and per-row operations
+- **Better User Feedback**: Improved error messages when no unclaimed devices are available
+- **Professional Footer**: Added application footer with automatic year and platform branding
+
+</details>
+
+<details>
+<summary><strong>Features Added (3)</strong></summary>
+
+- **AppDropdown Component**: Standalone component with grid layout showing 7 apps (Analytics, Calibrate, Website, Vertex, API Docs, Mobile App, AI Platform)
+- **Mobile App QR Modal**: Toggle view with QR code, app store buttons, and back navigation
+- **Footer Component**: Reusable footer with dynamic copyright year and platform name
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- Created `AppDropdown.tsx` with environment-aware URL generation
+- Integrated `AppDropdown` into `topbar.tsx` replacing inline implementation
+- Added claim status filter to `handleGenerateAllLabels` in batch details page
+- Updated error message to reflect unclaimed device requirement
+- Created and integrated `Footer.tsx` component into main layout
+
+</details>
+
+<details>
+<summary><strong>Files Created (2)</strong></summary>
+
+- `components/layout/AppDropdown.tsx`
+- `components/layout/Footer.tsx`
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/layout/topbar.tsx`
+- `components/layout/layout.tsx`
+- `app/(authenticated)/admin/shipping/[batchId]/page.tsx`
+
+</details>
+
+---
+
+## Version 1.7.0
+**Released:** November 30, 2025
+
+### Auto-Logout on Inactivity
+
+Implemented automatic user logout after 30 minutes of inactivity to enhance security and protect user sessions.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Enhanced Security**: Automatically logs out idle users to prevent unauthorized session access
+- **Activity Tracking**: Monitors mouse movements, keyboard input, clicks, scrolling, and touch events
+- **Performance Optimized**: Throttled event listeners (1-second intervals) to minimize CPU usage
+
+</details>
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **AutoLogoutHandler Component**: Standalone component that tracks user activity and triggers logout after 30 minutes of inactivity
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Created `AutoLogoutHandler` function component in `authProvider.tsx`
+- Implemented interval-based inactivity check (every 60 seconds)
+- Integrated handler into `AuthWrapper` via `UserDataFetcher`
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `core/auth/authProvider.tsx`
+
+</details>
+
+---
+
 ## Version 1.6.0
 **Released:** November 30, 2025
 

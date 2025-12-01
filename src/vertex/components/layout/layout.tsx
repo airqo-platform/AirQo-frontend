@@ -9,6 +9,7 @@ import SecondarySidebar from './secondary-sidebar';
 import OrganizationLoadingState from './loading/org-loading';
 import SessionLoadingState from './loading/session-loading';
 import ErrorBoundary from '../shared/ErrorBoundary';
+import Footer from './Footer';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -110,6 +111,7 @@ export default function Layout({ children }: LayoutProps) {
             {children}
           </ErrorBoundary>
         </div>
+        <Footer />
       </main>
     </div>
   );
