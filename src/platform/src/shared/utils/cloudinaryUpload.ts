@@ -80,8 +80,9 @@ export async function uploadToCloudinary(
     const sanitizedFolder = sanitizeFolder(options.folder);
     const timestamp = Date.now();
     const randomId = Math.random().toString(36).substring(2, 8);
-    const extension = file.name.split('.').pop() || 'jpg';
-    const publicId = `${sanitizedFolder}/${timestamp}_${randomId}.${extension}`;
+    // Do not include extension in public_id to avoid double extensions in URLs
+    // Cloudinary will add the extension based on the file format
+    const publicId = `${sanitizedFolder}/${timestamp}_${randomId}`;
     formData.append('public_id', publicId);
   }
 
@@ -96,7 +97,14 @@ export async function uploadToCloudinary(
       body: formData,
     });
 
-    const result = await response.json();
+    let result;
+    const text = await response.text();
+    try {
+      result = JSON.parse(text);
+    } catch {
+      // If response is not JSON (e.g. 500 HTML), throw the text
+      throw new Error(`Upload failed: ${text.substring(0, 100)}...`);
+    }
 
     if (!response.ok) {
       throw new Error(result.error || 'Upload failed');
@@ -217,15 +225,35 @@ export function extractPublicIdFromUrl(url: string): string | null {
 
   try {
     const urlObj = new URL(url);
-    const pathParts = urlObj.pathname.split('/');
-    // Path structure: /cloud_name/image/upload/version/public_id.ext
-    // We want everything after 'upload/version/'
+    const pathParts = urlObj.pathname.split('/').map(decodeURIComponent);
+    // Path structure: /cloud_name/image/upload/transformations/version/public_id.ext
+
     const uploadIndex = pathParts.indexOf('upload');
     if (uploadIndex === -1) return null;
 
-    // Skip 'upload' and version (next part)
-    const relevantParts = pathParts.slice(uploadIndex + 2);
-    return relevantParts.join('/').replace(/\.[^/.]+$/, ''); // Remove extension
+    // Get parts after 'upload'
+    const parts = pathParts.slice(uploadIndex + 1);
+
+    // Helper to identify transformations and versions
+    const isTransformation = (part: string) =>
+      /^(c_|w_|h_|q_|f_|e_|l_|u_|d_|a_|g_|b_|co_|so_|y_|x_|z_|r_|p_|dn_|fl_|if_|bo_)/.test(
+        part
+      ) || part.includes(',');
+    const isVersion = (part: string) => /^v\d+$/.test(part);
+
+    // Skip leading transformations and version
+    let startIndex = 0;
+    while (
+      startIndex < parts.length &&
+      (isTransformation(parts[startIndex]) || isVersion(parts[startIndex]))
+    ) {
+      startIndex++;
+    }
+
+    const publicIdParts = parts.slice(startIndex);
+    if (publicIdParts.length === 0) return null;
+
+    return publicIdParts.join('/').replace(/\.[^/.]+$/, ''); // Remove extension
   } catch {
     return null;
   }

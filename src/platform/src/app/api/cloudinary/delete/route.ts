@@ -13,9 +13,11 @@ if (!CLOUDINARY_NAME) {
 
 const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/destroy`;
 
-// Validate publicId format (Cloudinary public IDs can contain alphanumeric, _, -, .)
+// Validate publicId format
+// Cloudinary Public IDs can include any character except: ? & # \ % < >
+// We also allow + as it is common in URLs (spaces)
 const isValidPublicId = (publicId: string): boolean => {
-  const publicIdRegex = /^[a-zA-Z0-9_\-\.]+$/;
+  const publicIdRegex = /^[^?&#\\%<>]+$/;
   return (
     publicIdRegex.test(publicId) &&
     publicId.length > 0 &&
@@ -41,6 +43,8 @@ export async function DELETE(request: NextRequest) {
 
     const { publicId } = body;
 
+    console.log('Attempting to delete publicId:', publicId);
+
     if (!publicId || typeof publicId !== 'string') {
       return NextResponse.json(
         { error: 'No publicId provided or invalid type' },
@@ -50,6 +54,7 @@ export async function DELETE(request: NextRequest) {
 
     // Validate publicId format
     if (!isValidPublicId(publicId)) {
+      console.error('Invalid publicId format:', publicId);
       return NextResponse.json(
         { error: 'Invalid publicId format' },
         { status: 400 }
