@@ -82,7 +82,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
         className={cn('w-full cursor-pointer', className)}
         onClick={() => {
           posthog?.capture('analytics_card_clicked', {
-            site_id: siteData.id,
+            site_id: siteData._id,
             site_name: siteData.name,
             pollutant: displayPollutant,
             aqi_status: status,
@@ -95,7 +95,7 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             posthog?.capture('analytics_card_clicked', {
-              site_id: siteData.id,
+              site_id: siteData._id,
               site_name: siteData.name,
               pollutant: displayPollutant,
               aqi_status: status,

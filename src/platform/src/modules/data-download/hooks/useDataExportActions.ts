@@ -196,6 +196,7 @@ export const useDataExportActions = (
       deviceCategory,
       fileTitle,
       downloadData,
+      posthog,
     ]
   );
 
@@ -244,6 +245,7 @@ export const useDataExportActions = (
     countriesData,
     citiesData,
     dispatch,
+    posthog,
   ]);
 
   return {
