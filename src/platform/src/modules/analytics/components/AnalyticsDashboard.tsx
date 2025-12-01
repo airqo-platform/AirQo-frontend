@@ -126,7 +126,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   ) => {
     posthog?.capture('more_insights_clicked', {
       source: 'analytics_dashboard',
-      sites_count: sites?.length || selectedSites.length,
+      sites_count: sites?.length ?? selectedSites.length,
     });
 
     // Use provided sites from chart, or fall back to selectedSites with proper data
