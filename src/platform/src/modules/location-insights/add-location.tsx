@@ -16,6 +16,7 @@ import {
 import { closeDialog, openMoreInsights } from '@/shared/store/insightsSlice';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import type { SelectedSite } from '@/shared/store/insightsSlice';
+import { hashId } from '@/shared/utils/analytics';
 
 const AddLocation: React.FC = () => {
   const dispatch = useDispatch();
@@ -98,7 +99,7 @@ const AddLocation: React.FC = () => {
 
     posthog?.capture('locations_added_to_insights', {
       count: newSites.length,
-      site_ids: newSites.map(s => s._id),
+      site_ids_hashed: newSites.map(s => hashId(s._id)),
     });
 
     dispatch(closeDialog('add-location'));

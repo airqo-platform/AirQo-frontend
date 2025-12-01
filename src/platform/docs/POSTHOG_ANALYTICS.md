@@ -71,8 +71,7 @@ PostHog is used to track user interactions, feature usage, and key business metr
 - **Trigger**: User selects a specific location on the map.
 - **Location**: `src/modules/airqo-map/MapPage.tsx`
 - **Properties**:
-  - `location_id`: ID of the selected location
-  - `location_name`: Name of the selected location
+  - `location_id_hashed`: Anonymized hash of the location ID
 
 ### 2.6 Location Insights
 
@@ -81,7 +80,7 @@ PostHog is used to track user interactions, feature usage, and key business metr
 - **Location**: `src/modules/location-insights/add-location.tsx`
 - **Properties**:
   - `count`: Number of locations added
-  - `site_ids`: Array of added site IDs
+  - `site_ids_hashed`: Array of anonymized hashes of added site IDs
 
 ### 2.7 Analytics Dashboard
 
@@ -167,9 +166,30 @@ To gain deeper insights into user behavior and product performance, the followin
 - **`session_duration`**: While PostHog tracks this automatically, defining custom "active usage" events can help measure true engagement.
 - **`returning_user`**: Identify and track users who return after a specific period.
 
-## 4. Best Practices Used
+## 4. Privacy & Data Protection
+
+To protect user privacy and comply with data protection regulations, the following measures are implemented:
+
+### 4.1 Identifier Anonymization
+
+- **Site and Location IDs**: Raw identifiers are hashed using a client-side FNV-1a hash function before being sent to PostHog. This prevents re-identification while maintaining the ability to track unique entities.
+- **Property Denylist**: The PostHog configuration includes a `property_denylist` that automatically redacts any raw location identifiers (`site_id`, `location_id`, `site_name`, `location_name`) that might accidentally be sent.
+- **URL Sanitization**: Pageview events strip query parameters to avoid capturing sensitive tokens or personal information in URLs.
+
+### 4.2 Utility Functions
+
+- **`hashId(str: string): string`**: Generates a deterministic hash of the input string.
+- **`anonymizeSiteData(siteId: string)`**: Returns an object with `site_id_hashed` property, omitting the site name.
+
+### 4.3 Implementation Locations
+
+- **Analytics Utils**: `src/shared/utils/analytics.ts`
+- **PostHog Provider**: `src/shared/providers/posthog-provider.tsx`
+
+## 5. Best Practices Used
 
 - **Descriptive Event Names**: Events use a `noun_verb` format (e.g., `client_created`, `map_viewed`) for clarity.
 - **Rich Properties**: Events include relevant context (e.g., counts, types, IDs) to allow for detailed segmentation and analysis.
 - **Client-Side Only**: PostHog is initialized only on the client side to be compatible with Next.js App Router and avoid hydration mismatches.
 - **Manual Pageview Tracking**: To ensure accuracy with client-side routing, pageviews are tracked manually via a `useEffect` hook in the provider.
+- **Privacy-First Design**: Location identifiers are anonymized using hashing, and sensitive properties are denylisted to prevent accidental data leakage.

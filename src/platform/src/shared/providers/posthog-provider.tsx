@@ -13,6 +13,12 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
           process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com',
         capture_pageview: false, // Disable automatic pageview capture, as we capture manually
         capture_pageleave: true, // Enable pageleave capture
+        property_denylist: [
+          'site_id',
+          'location_id',
+          'site_name',
+          'location_name',
+        ], // Redact raw location identifiers for privacy
       });
     }
   }, []);

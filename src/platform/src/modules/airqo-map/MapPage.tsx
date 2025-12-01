@@ -17,6 +17,7 @@ import type {
 import type { MapReading } from '../../shared/types/api';
 import { normalizeMapReadings } from './utils/dataNormalization';
 import citiesData from './data/cities.json';
+import { hashId } from '@/shared/utils/analytics';
 
 const MapPage = () => {
   const dispatch = useDispatch();
@@ -124,8 +125,7 @@ const MapPage = () => {
   ) => {
     try {
       posthog?.capture('map_location_selected', {
-        location_id: locationId,
-        location_name: locationData?.name,
+        location_id_hashed: hashId(locationId),
       });
 
       setSelectedLocationId(locationId);
