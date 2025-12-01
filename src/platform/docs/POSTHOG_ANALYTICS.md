@@ -17,7 +17,7 @@ PostHog is used to track user interactions, feature usage, and key business metr
 - **Event Name**: `$pageview`
 - **Trigger**: Automatically triggered on every route change.
 - **Properties**:
-  - `$current_url`: The full URL of the current page, including query parameters.
+  - `$current_url`: The full URL of the current page, excluding query parameters for privacy.
 
 ### 2.2 Data Downloads
 
@@ -89,10 +89,52 @@ PostHog is used to track user interactions, feature usage, and key business metr
 - **Trigger**: User clicks on an analytics card to view details.
 - **Location**: `src/modules/analytics/components/AnalyticsCard.tsx`
 - **Properties**:
-  - `site_id`: ID of the site
-  - `site_name`: Name of the site
+  - `site_id_hashed`: Anonymized hash of the site ID
   - `pollutant`: The pollutant being displayed
   - `aqi_status`: The AQI status (e.g., 'good', 'moderate')
+
+- **Event Name**: `manage_favorites_clicked`
+- **Trigger**: User clicks the "Manage Favorites" button.
+- **Location**: `src/modules/analytics/components/AnalyticsDashboard.tsx`
+- **Properties**: None
+
+- **Event Name**: `more_insights_clicked`
+- **Trigger**: User clicks "More Insights" on the dashboard or charts.
+- **Location**: `src/modules/analytics/components/AnalyticsDashboard.tsx`
+- **Properties**:
+  - `source`: Where the click originated (e.g., 'analytics_dashboard')
+  - `sites_count`: Number of sites included in the insight
+
+### 2.8 Charts & Visualization
+
+- **Event Name**: `chart_export_clicked`
+- **Trigger**: User exports a chart as PDF or PNG.
+- **Location**: `src/shared/components/charts/components/ChartContainer.tsx`
+- **Properties**:
+  - `format`: Export format ('pdf' or 'png')
+  - `chart_title`: Title of the chart being exported
+
+- **Event Name**: `air_quality_standards_clicked`
+- **Trigger**: User opens the Air Quality Standards dialog.
+- **Location**: `src/shared/components/charts/components/ChartContainer.tsx`
+- **Properties**:
+  - `chart_title`: Title of the chart
+
+- **Event Name**: `air_quality_standards_applied`
+- **Trigger**: User applies a specific air quality standard.
+- **Location**: `src/shared/components/charts/components/ChartContainer.tsx`
+- **Properties**:
+  - `organization`: The standards organization (e.g., 'WHO')
+  - `pollutant`: The pollutant for the standard
+
+### 2.9 Favorites Management
+
+- **Event Name**: `favorites_updated`
+- **Trigger**: User saves changes to their favorite locations.
+- **Location**: `src/modules/location-insights/add-favorites.tsx`
+- **Properties**:
+  - `count`: Number of favorites saved
+  - `site_ids`: Array of site IDs (consider hashing these in future updates if privacy is a concern)
 
 ## 3. Recommendations for Future Tracking
 

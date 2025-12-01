@@ -43,7 +43,8 @@ export async function DELETE(request: NextRequest) {
 
     const { publicId } = body;
 
-    console.log('Attempting to delete publicId:', publicId);
+    // Use debug level or structured logging in production
+    console.debug('Attempting to delete publicId');
 
     if (!publicId || typeof publicId !== 'string') {
       return NextResponse.json(

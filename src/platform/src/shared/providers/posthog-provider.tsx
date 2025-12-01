@@ -3,7 +3,7 @@
 import posthog from 'posthog-js';
 import { PostHogProvider as PHProvider } from 'posthog-js/react';
 import { useEffect, Suspense } from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
@@ -29,19 +29,15 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
 
 function PostHogPageView() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (pathname && process.env.NEXT_PUBLIC_POSTHOG_KEY) {
-      let url = window.origin + pathname;
-      if (searchParams && searchParams.toString()) {
-        url = url + `?${searchParams.toString()}`;
-      }
+      const url = window.location.origin + pathname;
       posthog.capture('$pageview', {
         $current_url: url,
       });
     }
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return null;
 }
