@@ -20,6 +20,8 @@ import type {
   DeviceAvailabilityResponse,
   DeviceClaimRequest,
   DeviceClaimResponse,
+  BulkDeviceClaimRequest,
+  BulkDeviceClaimResponse,
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
   Device,
@@ -263,6 +265,47 @@ export const useClaimDevice = () => {
     onError: error => {
       ReusableToast({
         message: `Claim Failed: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const useBulkClaimDevices = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    BulkDeviceClaimResponse,
+    AxiosError<ErrorResponse>,
+    BulkDeviceClaimRequest
+  >({
+    mutationFn: devices.claimDevicesBulk,
+    onSuccess: (data) => {
+      const { successful_count, failed_count } = data.results.summary;
+      
+      if (failed_count === 0) {
+        ReusableToast({
+          message: `All ${successful_count} device${successful_count !== 1 ? 's' : ''} claimed successfully!`,
+          type: 'SUCCESS',
+        });
+      } else if (successful_count === 0) {
+        ReusableToast({
+          message: `Failed to claim all ${failed_count} device${failed_count !== 1 ? 's' : ''}`,
+          type: 'ERROR',
+        });
+      } else {
+        ReusableToast({
+          message: `${successful_count} device${successful_count !== 1 ? 's' : ''} claimed, ${failed_count} failed`,
+          type: 'WARNING',
+        });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+    },
+    onError: error => {
+      ReusableToast({
+        message: `Bulk Claim Failed: ${getApiErrorMessage(error)}`,
         type: 'ERROR',
       });
     },

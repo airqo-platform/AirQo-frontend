@@ -217,6 +217,43 @@ export interface DeviceClaimResponse {
   };
 }
 
+export interface BulkDeviceClaimItem {
+  device_name: string;
+  claim_token: string;
+}
+
+export interface BulkDeviceClaimRequest {
+  user_id: string;
+  devices: BulkDeviceClaimItem[];
+}
+
+export interface BulkDeviceClaimResult {
+  device_name: string;
+  success: boolean;
+  device?: {
+    name: string;
+    long_name: string;
+    status: string;
+    claim_status: "claimed";
+    claimed_at: string;
+  };
+  error?: string;
+}
+
+export interface BulkDeviceClaimResponse {
+  success: boolean;
+  message: string;
+  results: {
+    successful_claims: BulkDeviceClaimResult[];
+    failed_claims: BulkDeviceClaimResult[];
+    summary: {
+      total_requested: number;
+      successful_count: number;
+      failed_count: number;
+    };
+  };
+}
+
 export interface MyDevicesResponse {
   success: boolean;
   message: string;
