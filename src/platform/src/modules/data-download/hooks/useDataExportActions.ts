@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
+import { usePostHog } from 'posthog-js/react';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -46,6 +47,7 @@ export const useDataExportActions = (
   citiesData: TableItem[]
 ) => {
   const dispatch = useDispatch();
+  const posthog = usePostHog();
   const { downloadData, isDownloading } = useDataDownload();
 
   // Handle data download
@@ -136,6 +138,23 @@ export const useDataExportActions = (
 
       try {
         await downloadData(request, fileTitle || undefined);
+
+        posthog?.capture('data_download_initiated', {
+          data_type: dataType,
+          file_type: fileType,
+          frequency: frequency,
+          device_category: deviceCategory,
+          pollutants: selectedPollutants,
+          active_tab: activeTab,
+          sites_count: activeTab === 'sites' ? selectedSites.length : undefined,
+          devices_count:
+            activeTab === 'devices' ? selectedDevices.length : undefined,
+          grids_count:
+            activeTab === 'countries' || activeTab === 'cities'
+              ? selectedGridIds.length
+              : undefined,
+        });
+
         toast.success(
           'Download Started',
           'Your data export has been initiated successfully.'
@@ -182,6 +201,13 @@ export const useDataExportActions = (
 
   // Handle visualize data - open more insights dialog
   const handleVisualizeData = useCallback(() => {
+    posthog?.capture('data_visualize_clicked', {
+      active_tab: activeTab,
+      sites_count: selectedSiteIds.length,
+      devices_count: selectedDeviceIds.length,
+      grids_count: selectedGridIds.length,
+    });
+
     if (activeTab === 'sites' && selectedSiteIds.length > 0) {
       // For sites tab, use the selected site IDs directly
       const sitesToVisualize = createSitesForVisualization(

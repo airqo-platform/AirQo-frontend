@@ -4,6 +4,7 @@ import Script from 'next/script';
 import { Inter } from 'next/font/google';
 import { ReduxProvider } from '@/shared/providers/redux-provider';
 import { AuthProvider } from '@/shared/providers/auth-provider';
+import { PostHogProvider } from '@/shared/providers/posthog-provider';
 import { Toaster } from '@/shared/components/ui';
 import { ThemeProvider } from '@/modules/themes';
 import { getThemeScript } from '@/modules/themes/utils/themeUtils';
@@ -35,7 +36,9 @@ export default function RootLayout({
         <ReduxProvider>
           <ErrorBoundary>
             <AuthProvider>
-              <ThemeProvider>{children}</ThemeProvider>
+              <PostHogProvider>
+                <ThemeProvider>{children}</ThemeProvider>
+              </PostHogProvider>
             </AuthProvider>
           </ErrorBoundary>
         </ReduxProvider>

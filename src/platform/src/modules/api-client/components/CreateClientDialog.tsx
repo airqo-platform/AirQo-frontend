@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { Button, Input, Dialog } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -20,6 +21,7 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
   onSuccess,
   userId,
 }) => {
+  const posthog = usePostHog();
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState<string[]>(['']);
   const [ipErrors, setIpErrors] = useState<string[]>(['']);
@@ -86,6 +88,12 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       };
 
       await clientService.createClient(clientData);
+
+      posthog?.capture('client_created', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+      });
+
       toast.success('Client created successfully');
       setClientName('');
       setIpAddresses(['']);

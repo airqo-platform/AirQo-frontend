@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDispatch, useSelector } from 'react-redux';
+import { usePostHog } from 'posthog-js/react';
 import WideDialog from '@/shared/components/ui/wide-dialog';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import LocationCard from '@/shared/components/ui/location-card';
@@ -18,6 +19,7 @@ import type { SelectedSite } from '@/shared/store/insightsSlice';
 
 const AddLocation: React.FC = () => {
   const dispatch = useDispatch();
+  const posthog = usePostHog();
   const isOpen = useSelector(selectIsDialogOpen('add-location'));
   const selectedSites = useSelector(selectSelectedSites);
 
@@ -93,6 +95,11 @@ const AddLocation: React.FC = () => {
   const handleAddLocations = () => {
     // Create new sites array from stored site data
     const newSites: SelectedSite[] = Array.from(selectedSiteData.values());
+
+    posthog?.capture('locations_added_to_insights', {
+      count: newSites.length,
+      site_ids: newSites.map(s => s._id),
+    });
 
     dispatch(closeDialog('add-location'));
     dispatch(openMoreInsights({ sites: newSites }));
