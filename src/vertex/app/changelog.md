@@ -4,6 +4,39 @@
 
 ---
 
+## Version 1.13.0
+**Released:** December 02, 2025
+
+### Conditional Device Fetching & Bug Fixes
+
+Optimized device fetching logic to respect user context and fixed a potential crash in the bulk claim modal.
+
+<details>
+<summary><strong>Improvements (2)</strong></summary>
+
+- **Optimized Data Fetching**: `My Devices` page now intelligently switches between `useMyDevices` (Personal) and `useDevices` (External Org) to prevent redundant API calls.
+- **Stability**: Fixed a potential crash in the bulk claim results view when API response data is incomplete.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Updated `useDevices` hook to support an `enabled` option for conditional execution.
+- Refactored `MyDevicesPage` to use `useUserContext` for robust context detection.
+- Added optional chaining to `bulkClaimData` access in `claim-device-modal.tsx`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `app/(authenticated)/devices/my-devices/page.tsx`
+- `core/hooks/useDevices.ts`
+- `components/features/claim/claim-device-modal.tsx`
+
+</details>
+
 ## Version 1.12.0
 **Released:** December 02, 2025
 
