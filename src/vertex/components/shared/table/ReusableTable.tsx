@@ -23,6 +23,8 @@ import {
 import SelectField from "@/components/ui/select-field";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import { TableExportModal } from "./TableExportModal";
+import { AqDownload01 } from "@airqo/icons-react";
 
 // --- Type Definitions ---
 interface FilterOption {
@@ -220,6 +222,8 @@ interface TableHeaderProps<T> {
   filterValues: Record<string, FilterValue>;
   onFilterChange: (key: keyof T, value: FilterValue) => void;
   selectedCount: number;
+  exportable: boolean;
+  onExportClick: () => void;
 }
 
 const TableHeader = <T extends TableItem>({
@@ -233,6 +237,8 @@ const TableHeader = <T extends TableItem>({
   filterValues,
   onFilterChange,
   selectedCount,
+  exportable,
+  onExportClick,
 }: TableHeaderProps<T>) => {
   return (
     <div className="px-6 py-2 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20] rounded-t-lg shadow-sm">
@@ -246,6 +252,16 @@ const TableHeader = <T extends TableItem>({
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          {exportable && (
+            <ReusableButton
+              onClick={onExportClick}
+              variant="outlined"
+              className="text-sm h-8 px-3"
+              Icon={AqDownload01}
+            >
+              Export
+            </ReusableButton>
+          )}
           {searchable && (
             <div className="relative">
               <AqSearchSm className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary/60 dark:text-primary/80 w-4 h-4" />
@@ -541,6 +557,8 @@ interface ReusableTableProps<T extends TableItem> {
   stickyHeader?: boolean;
   onSearchChange?: (searchTerm: string) => void;
   searchTerm?: string;
+  exportable?: boolean;
+  onExport?: (format: 'csv', selectedColumns: string[]) => Promise<void>;
 }
 
 // Normalize any value to a searchable string
@@ -602,6 +620,8 @@ const ReusableTable = <T extends TableItem>({
   onSearchChange,
   searchTerm: searchTermProp,
   stickyHeader = true,
+  exportable = true,
+  onExport,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -611,6 +631,7 @@ const ReusableTable = <T extends TableItem>({
 
   const [selectedItems, setSelectedItems] = useState<T[]>([]);
   const [selectedAction, setSelectedAction] = useState<string>("");
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const headerCheckboxRef = useRef<HTMLInputElement>(null);
 
@@ -751,6 +772,80 @@ const ReusableTable = <T extends TableItem>({
       return undefined;
     };
     return walk(obj, 0);
+  };
+
+  const handleExport = async (selectedColumns: string[], scope: 'current' | 'all') => {
+    if (onExport && scope === 'all' && serverSidePagination) {
+      await onExport('csv', selectedColumns);
+      return;
+    }
+
+    // Client-side export logic
+    const dataToExport = scope === 'current' ? finalPaginatedData : (serverSidePagination ? data : filteredData);
+
+    // Dynamically import papaparse
+    const Papa = (await import('papaparse')).default;
+
+    const csvData = dataToExport.map(item => {
+      const row: Record<string, string> = {};
+      selectedColumns.forEach(colKey => {
+        const colDef = columns.find(c => c.key === colKey);
+        if (colDef) {
+          // Use the column's render function to get the exact displayed value
+          const rawValue = item[colKey as keyof T];
+          let displayValue = '';
+
+          try {
+            const rendered = colDef.render(rawValue, item);
+
+            // Extract text from rendered content
+            if (typeof rendered === 'string' || typeof rendered === 'number') {
+              displayValue = String(rendered);
+            } else if (React.isValidElement(rendered)) {
+              // Extract text from React elements
+              const extractText = (element: unknown): string => {
+                if (typeof element === 'string' || typeof element === 'number') {
+                  return String(element);
+                }
+                if (React.isValidElement(element)) {
+                  const props = element.props as { children?: unknown };
+                  if (props.children) {
+                    if (Array.isArray(props.children)) {
+                      return props.children.map(extractText).join(' ');
+                    }
+                    return extractText(props.children);
+                  }
+                }
+                return '';
+              };
+              displayValue = extractText(rendered);
+            } else {
+              // Fallback to raw value
+              displayValue = normalizeToString(rawValue);
+            }
+          } catch {
+            // If render fails, use raw value
+            displayValue = normalizeToString(rawValue);
+          }
+
+          // Use the column title (or label) as it appears in the table header
+          const columnHeader = colDef.title || (typeof colDef.label === 'string' ? colDef.label : String(colKey));
+          row[columnHeader] = displayValue;
+        }
+      });
+      return row;
+    });
+
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${title.toLowerCase().replace(/\s+/g, '_')}_export.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const filteredData = useMemo(() => {
@@ -1197,6 +1292,8 @@ const ReusableTable = <T extends TableItem>({
           filterValues={filterValues}
           onFilterChange={handleFilterChange}
           selectedCount={selectedItems.length}
+          exportable={exportable}
+          onExportClick={() => setIsExportModalOpen(true)}
         />
 
         {multiSelect && isAnySelected && (
@@ -1353,6 +1450,22 @@ const ReusableTable = <T extends TableItem>({
         display: none;
       }
     `}</style>
+
+      {/* Export Modal */}
+      {exportable && (
+        <TableExportModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          onExport={handleExport}
+          columns={columns.map(col => ({
+            key: String(col.key),
+            title: col.title || (typeof col.label === 'string' ? col.label : String(col.key))
+          })).filter(c => c.key !== 'checkbox' && c.key !== 'actions')}
+          totalRows={serverSidePagination ? (pageCount * pageSize) : filteredData.length}
+          currentPageRows={finalPaginatedData.length}
+          hasServerSidePagination={serverSidePagination}
+        />
+      )}
     </div>
   );
 };
