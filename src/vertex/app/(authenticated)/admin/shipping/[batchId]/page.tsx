@@ -13,7 +13,6 @@ import { AqArrowLeft } from '@airqo/icons-react';
 import { useGenerateShippingLabels } from '@/core/hooks/useDevices';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
 import ShippingLabelPrintModal from '@/components/features/shipping/ShippingLabelPrintModal';
-import { ExportFormatModal } from '@/components/features/shipping/ExportFormatModal';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState, useCallback } from 'react';
 
@@ -31,8 +30,6 @@ const BatchDetailsPage = () => {
     const { data, isLoading, error } = useShippingBatchDetails(batchId);
     const { mutate: generateLabels, isPending: isGenerating, data: labelsData } = useGenerateShippingLabels();
     const [showLabelModal, setShowLabelModal] = useState(false);
-    const [showExportModal, setShowExportModal] = useState(false);
-    const [selectedDevices, setSelectedDevices] = useState<BatchDevice[]>([]);
 
     const handleGenerateLabels = useCallback((ids: (string | number)[]) => {
         if (!ids || ids.length === 0) {
@@ -103,74 +100,11 @@ const BatchDetailsPage = () => {
         queryClient.invalidateQueries({ queryKey: ['shippingBatchDetails', batchId] });
     }, [queryClient, batchId]);
 
-    const handleExportClick = useCallback((ids: (string | number)[]) => {
-        if (!ids || ids.length === 0) {
-            ReusableToast({
-                message: 'Please select at least one device to export',
-                type: 'ERROR',
-            });
-            return;
-        }
-
-        const selected = (data?.batch?.devices || [])
-            .filter(device => ids.includes(device._id || device.name));
-
-        setSelectedDevices(selected as BatchDevice[]);
-        setShowExportModal(true);
-    }, [data?.batch?.devices]);
-
-    const handleExport = useCallback(async (format: 'csv' | 'xlsx') => {
-        if (selectedDevices.length === 0) return;
-
-        const exportData = selectedDevices.map(device => ({
-            'Device Name': device.name,
-            'Claim Token': device.claim_token || 'N/A',
-        }));
-
-        const batchName = data?.batch?.batch_name || 'batch';
-        const timestamp = new Date().toISOString().split('T')[0];
-        const filename = `${batchName}_devices_${timestamp}`;
-
-        try {
-            if (format === 'csv') {
-                const Papa = (await import('papaparse')).default;
-                const csv = Papa.unparse(exportData);
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-                const link = document.createElement('a');
-                link.href = URL.createObjectURL(blob);
-                link.download = `${filename}.csv`;
-                link.click();
-                URL.revokeObjectURL(link.href);
-            } else {
-                const XLSX = await import('xlsx');
-                const worksheet = XLSX.utils.json_to_sheet(exportData);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, 'Devices');
-                XLSX.writeFile(workbook, `${filename}.xlsx`);
-            }
-
-            ReusableToast({
-                message: `Successfully exported ${selectedDevices.length} device${selectedDevices.length !== 1 ? 's' : ''} as ${format.toUpperCase()}`,
-                type: 'SUCCESS',
-            });
-        } catch (error) {
-            ReusableToast({
-                message: `Failed to export devices: ${error instanceof Error ? error.message : 'Unknown error'}`,
-                type: 'ERROR',
-            });
-        }
-    }, [selectedDevices, data?.batch?.batch_name]);
-
     const actions = [
         {
             label: isGenerating ? 'Generating...' : 'Generate Labels',
             value: 'generate_labels',
             handler: handleGenerateLabels
-        },
-        {
-            label: 'Export Devices',
-            value: 'export_devices',
-            handler: handleExportClick
         }
     ];
 
@@ -292,14 +226,6 @@ const BatchDetailsPage = () => {
                     onClose={handleCloseModal}
                 />
             )}
-
-            {/* Export Format Modal */}
-            <ExportFormatModal
-                isOpen={showExportModal}
-                onClose={() => setShowExportModal(false)}
-                onExport={handleExport}
-                deviceCount={selectedDevices.length}
-            />
         </div>
     );
 };
