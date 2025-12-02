@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { 
   Smartphone, 
   FileSpreadsheet, 
@@ -13,9 +12,7 @@ import {
 import ClaimDeviceModal, { FlowStep } from "@/components/features/claim/claim-device-modal";
 
 const DeviceClaimingPage = () => {
-  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  // We pass the starting step to the modal to skip the menu inside the modal
   const [initialStep, setInitialStep] = useState<FlowStep>('method-select');
 
   const handleOpenModal = (step: FlowStep) => {
@@ -33,7 +30,7 @@ const DeviceClaimingPage = () => {
             Claim Your Devices
           </h1>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl">
-            Add devices to your personal account. Once added, you can easily transfer them to your organization's workspace.
+            Add devices to your personal account. Once added, you can easily transfer them to your organization&apos;s workspace.
           </p>
         </div>
 

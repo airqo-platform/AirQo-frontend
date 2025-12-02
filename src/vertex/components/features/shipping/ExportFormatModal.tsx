@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
-import ReusableButton from '@/components/shared/button/ReusableButton';
-import { AqDownload01 } from '@airqo/icons-react';
 
 interface ExportFormatModalProps {
     isOpen: boolean;

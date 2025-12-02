@@ -7,10 +7,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 
 interface BulkClaimResultsProps {
     results: BulkDeviceClaimResponse['data'];
-    onRetry?: (failedDevices: Array<{ device_name: string; claim_token: string }>) => void;
 }
 
-export const BulkClaimResults: React.FC<BulkClaimResultsProps> = ({ results, onRetry }) => {
+export const BulkClaimResults: React.FC<BulkClaimResultsProps> = ({ results }) => {
     const [showSuccessful, setShowSuccessful] = React.useState(true);
     const [showFailed, setShowFailed] = React.useState(true);
 
