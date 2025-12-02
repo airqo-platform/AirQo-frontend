@@ -33,7 +33,8 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
             // For server-side pagination, only allow 'current' page
             setScope(hasServerSidePagination ? 'current' : 'all');
         }
-    }, [isOpen, columns, hasServerSidePagination]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, hasServerSidePagination]);
 
     const handleColumnToggle = (key: string) => {
         setSelectedColumns(prev =>
