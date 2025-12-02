@@ -157,12 +157,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             if (redirectOnSuccess) {
                 const timer = setTimeout(() => {
                     handleClose();
-                    router.push('/devices/my-devices');
+                    // Redirect based on user context
+                    const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
+                    router.push(redirectPath);
                 }, 2000);
                 return () => clearTimeout(timer);
             }
         }
-    }, [isSuccess, claimData, redirectOnSuccess, router, handleClose, onSuccess]);
+    }, [isSuccess, claimData, redirectOnSuccess, router, handleClose, onSuccess, isPersonalContext]);
 
     useEffect(() => {
         if (claimError) {
@@ -181,8 +183,19 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     useEffect(() => {
         if (isBulkSuccess && bulkClaimData) {
             setStep('bulk-results');
+
+            // Auto-redirect after showing results
+            if (redirectOnSuccess) {
+                const timer = setTimeout(() => {
+                    handleClose();
+                    // Redirect based on user context
+                    const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
+                    router.push(redirectPath);
+                }, 3000); // Longer delay for bulk results
+                return () => clearTimeout(timer);
+            }
         }
-    }, [isBulkSuccess, bulkClaimData]);
+    }, [isBulkSuccess, bulkClaimData, redirectOnSuccess, router, handleClose, isPersonalContext]);
 
     useEffect(() => {
         if (bulkClaimError) {
