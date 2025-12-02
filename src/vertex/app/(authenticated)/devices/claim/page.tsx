@@ -105,6 +105,7 @@ const DeviceClaimingPage = () => {
           </div>
 
           {/* Support Links */}
+          {/* TODO */}
           <div className="pl-4 border-l border-gray-200 dark:border-gray-700 hidden md:block">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <HelpCircle className="w-5 h-5 text-gray-500" />
