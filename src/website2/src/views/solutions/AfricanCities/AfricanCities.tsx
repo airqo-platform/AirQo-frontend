@@ -225,16 +225,16 @@ const AfricanCities: React.FC = () => {
                 </div>
 
                 {/* Right Section: Images */}
-                <div className="xl:col-span-5">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4 xl:gap-6">
+                <div className="xl:col-span-5 h-full">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-4 xl:gap-6 h-full">
                     {selectedCity.content[0].image.map((img, index: number) => (
                       <div
                         key={img.id}
-                        className={`relative group overflow-hidden rounded-xl shadow-lg ${
+                        className={`relative group overflow-hidden rounded-xl shadow-lg h-full ${
                           index > 1 ? 'hidden sm:block xl:hidden' : ''
                         } ${index === 0 ? 'sm:col-span-2 xl:col-span-1' : ''}`}
                       >
-                        <div className="aspect-[4/3] xl:aspect-[3/2] relative">
+                        <div className="relative h-full">
                           <Image
                             src={img.image_url}
                             alt={`${selectedCity.city_name} - Image ${index + 1}`}
