@@ -79,7 +79,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'single-method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
+export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -351,7 +351,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         }
                     }
                 };
-            case 'bulk-results':
+            case 'bulk-results': {
                 const hasSuccessfulClaims = (bulkClaimData?.data?.successful_claims?.length ?? 0) > 0;
                 return {
                     ...baseConfig,
@@ -368,6 +368,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         }
                     }
                 };
+            }
             default:
                 return baseConfig;
         }
