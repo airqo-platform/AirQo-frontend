@@ -153,18 +153,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     cohortId: '',
                 });
             }
-
-            if (redirectOnSuccess) {
-                const timer = setTimeout(() => {
-                    handleClose();
-                    // Redirect based on user context
-                    const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
-                    router.push(redirectPath);
-                }, 2000);
-                return () => clearTimeout(timer);
-            }
         }
-    }, [isSuccess, claimData, redirectOnSuccess, router, handleClose, onSuccess, isPersonalContext]);
+    }, [isSuccess, claimData, onSuccess]);
 
     useEffect(() => {
         if (claimError) {
@@ -183,19 +173,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     useEffect(() => {
         if (isBulkSuccess && bulkClaimData) {
             setStep('bulk-results');
-
-            // Auto-redirect after showing results
-            if (redirectOnSuccess) {
-                const timer = setTimeout(() => {
-                    handleClose();
-                    // Redirect based on user context
-                    const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
-                    router.push(redirectPath);
-                }, 3000); // Longer delay for bulk results
-                return () => clearTimeout(timer);
-            }
         }
-    }, [isBulkSuccess, bulkClaimData, redirectOnSuccess, router, handleClose, isPersonalContext]);
+    }, [isBulkSuccess, bulkClaimData]);
 
     useEffect(() => {
         if (bulkClaimError) {
@@ -359,9 +338,36 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             case 'bulk-claiming':
                 return { ...baseConfig, title: 'Claiming Devices...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
             case 'success':
-                return { ...baseConfig, title: 'Success!', showCloseButton: false, preventBackdropClose: true, showFooter: false };
+                return {
+                    ...baseConfig,
+                    title: 'Success!',
+                    showFooter: true,
+                    primaryAction: {
+                        label: 'Go to Devices',
+                        onClick: () => {
+                            handleClose();
+                            const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
+                            router.push(redirectPath);
+                        }
+                    }
+                };
             case 'bulk-results':
-                return { ...baseConfig, title: 'Bulk Claim Results', showFooter: true, primaryAction: { label: 'Done', onClick: handleClose } };
+                const hasSuccessfulClaims = (bulkClaimData?.data?.successful_claims?.length ?? 0) > 0;
+                return {
+                    ...baseConfig,
+                    title: 'Bulk Claim Results',
+                    showFooter: true,
+                    primaryAction: {
+                        label: hasSuccessfulClaims ? 'Go to Devices' : 'Done',
+                        onClick: () => {
+                            handleClose();
+                            if (hasSuccessfulClaims) {
+                                const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
+                                router.push(redirectPath);
+                            }
+                        }
+                    }
+                };
             default:
                 return baseConfig;
         }
