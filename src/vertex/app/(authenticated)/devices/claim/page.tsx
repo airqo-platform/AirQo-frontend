@@ -10,14 +10,25 @@ import {
   CheckCircle2
 } from "lucide-react";
 import ClaimDeviceModal, { FlowStep } from "@/components/features/claim/claim-device-modal";
+import { useUserContext } from "@/core/hooks/useUserContext";
 
 const DeviceClaimingPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialStep, setInitialStep] = useState<FlowStep>('method-select');
+  const { isPersonalContext, activeGroup } = useUserContext();
 
   const handleOpenModal = (step: FlowStep) => {
     setInitialStep(step);
     setIsModalOpen(true);
+  };
+
+  const getDescriptionText = () => {
+    if (isPersonalContext) {
+      return "Add devices to your personal account. Once added, you can easily transfer them to your organization's workspace.";
+    }
+
+    const groupName = activeGroup?.grp_title || "your organization";
+    return `Add devices to ${groupName}. You will be able to deploy, monitor online status and more.`;
   };
 
   return (
@@ -30,7 +41,7 @@ const DeviceClaimingPage = () => {
             Claim Your Devices
           </h1>
           <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl">
-            Add devices to your personal account. Once added, you can easily transfer them to your organization&apos;s workspace.
+            {getDescriptionText()}
           </p>
         </div>
 
