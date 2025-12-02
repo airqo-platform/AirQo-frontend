@@ -28,7 +28,7 @@ const DeviceClaimingPage = () => {
     }
 
     const groupName = activeGroup?.grp_title || "your organization";
-    return `Add devices to ${groupName}. You will be able to deploy, monitor online status and more.`;
+    return `Add devices to ${groupName} organization. You will be able to deploy, monitor online status and more.`;
   };
 
   return (
