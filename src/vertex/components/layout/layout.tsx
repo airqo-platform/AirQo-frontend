@@ -90,7 +90,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex overflow-hidden min-h-screen h-screen bg-background">
-      {/* Organization Setup Banner - Fixed at top */}
+      {/* Organization Setup Banner - Fixed at bottom */}
       <OrganizationSetupBanner />
 
       <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />
