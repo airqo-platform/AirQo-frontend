@@ -50,12 +50,15 @@ export const OrganizationSetupBanner: React.FC = () => {
                     assignToGroup({
                         groupId: activeGroup._id,
                         cohortIds: [data.cohort._id]
+                    }, {
+                        onSuccess: () => {
+                            setIsCreating(false);
+                            handleDismiss();
+                        },
+                        onError: () => {
+                            setIsCreating(false);
+                        },
                     });
-                    setIsCreating(false);
-                    handleDismiss();
-                },
-                onError: () => {
-                    setIsCreating(false);
                 },
             }
         );
