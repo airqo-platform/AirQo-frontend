@@ -59,16 +59,18 @@ export interface DeviceListingOptions {
   sortBy?: string;
   order?: 'asc' | 'desc';
   network?: string;
+  enabled?: boolean;
 }
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
   const isAirQoGroup = activeGroup?.grp_title === 'airqo';
+  const { enabled = true } = options;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
     {
-      enabled: !isAirQoGroup && !!activeGroup?._id,
+      enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
     }
   );
 
@@ -118,6 +120,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
       });
     },
     enabled:
+      enabled &&
       !!activeGroup?.grp_title &&
       (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
