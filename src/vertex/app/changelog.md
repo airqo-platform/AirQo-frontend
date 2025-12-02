@@ -4,6 +4,57 @@
 
 ---
 
+## Version 1.10.0
+**Released:** December 02, 2025
+
+### ReusableTable Export Feature
+
+Added comprehensive CSV export functionality to all tables using the `ReusableTable` component, with intelligent handling of client-side and server-side pagination.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Universal Export**: All tables now have built-in export capability
+- **Column Selection**: Users can choose which columns to export
+- **Pagination-Aware**: Automatically adapts to client-side vs server-side pagination
+- **Exact Data Match**: Exported values match exactly what's displayed in the table
+
+</details>
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **TableExportModal**: Configuration modal for selecting columns and export scope
+- **Export Button**: New "Export" button in table headers with download icon
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- Added `exportable` prop to `ReusableTable` (default `true`)
+- Implemented CSV generation using `papaparse` with dynamic import
+- Export uses column `render` functions to extract displayed text values
+- Server-side pagination tables restricted to current page export only
+
+</details>
+
+<details>
+<summary><strong>Files Created (1)</strong></summary>
+
+- `components/shared/table/TableExportModal.tsx`
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `components/shared/table/ReusableTable.tsx`
+
+</details>
+
+---
+
 ## Version 1.9.0
 **Released:** December 02, 2025
 
