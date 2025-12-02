@@ -358,7 +358,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     title: 'Bulk Claim Results',
                     showFooter: true,
                     primaryAction: {
-                        label: hasSuccessfulClaims ? 'Go to Devices' : 'Done',
+                        label: hasSuccessfulClaims ? 'Go to Devices' : 'Close',
                         onClick: () => {
                             handleClose();
                             if (hasSuccessfulClaims) {
