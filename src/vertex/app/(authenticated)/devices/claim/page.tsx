@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { 
-  Smartphone, 
-  FileSpreadsheet, 
-  Wifi, 
+import {
+  Smartphone,
+  FileSpreadsheet,
+  Wifi,
   QrCode,
   HelpCircle,
   CheckCircle2
@@ -48,7 +48,7 @@ const DeviceClaimingPage = () => {
               Add Single Device
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              Best for setting up a new monitor at home or a specific site. 
+              Best for setting up a new monitor at home or a specific site.
               Scan the QR code or enter the ID manually.
             </p>
             <span className="text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline mt-auto">
@@ -68,7 +68,7 @@ const DeviceClaimingPage = () => {
               Bulk Import
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              Ideal for organizations deploying a fleet. 
+              Ideal for organizations deploying a fleet.
               Upload a CSV file or enter multiple IDs at once.
             </p>
             <span className="text-sm font-medium text-green-600 dark:text-green-400 group-hover:underline mt-auto">
@@ -79,7 +79,7 @@ const DeviceClaimingPage = () => {
 
         {/* Onboarding / Preparation Section */}
         <div className="grid md:grid-cols-3 gap-8 pt-4">
-          
+
           {/* Checklist */}
           <div className="md:col-span-2 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -105,7 +105,7 @@ const DeviceClaimingPage = () => {
           </div>
 
           {/* Support Links */}
-          {/* TODO */}
+          {/* TODO: Create documentation pages for device claiming help resources */}
           <div className="pl-4 border-l border-gray-200 dark:border-gray-700 hidden md:block">
             <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <HelpCircle className="w-5 h-5 text-gray-500" />
@@ -113,13 +113,37 @@ const DeviceClaimingPage = () => {
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Where do I find the Device ID?</a>
+                {/* TODO: Add link to Device ID location guide */}
+                <button
+                  type="button"
+                  disabled
+                  className="text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                  title="Documentation coming soon"
+                >
+                  Where do I find the Device ID?
+                </button>
               </li>
               <li>
-                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Download Bulk Import Template</a>
+                {/* TODO: Add link to CSV template download */}
+                <button
+                  type="button"
+                  disabled
+                  className="text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                  title="Template coming soon"
+                >
+                  Download Bulk Import Template
+                </button>
               </li>
               <li>
-                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Contact Support</a>
+                {/* TODO: Add link to support contact form or email */}
+                <button
+                  type="button"
+                  disabled
+                  className="text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                  title="Support link coming soon"
+                >
+                  Contact Support
+                </button>
               </li>
             </ul>
           </div>
@@ -131,7 +155,7 @@ const DeviceClaimingPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         initialStep={initialStep}
-        redirectOnSuccess={true} 
+        redirectOnSuccess={true}
       />
     </div>
   );
