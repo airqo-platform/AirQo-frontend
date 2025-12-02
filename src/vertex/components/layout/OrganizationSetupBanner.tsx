@@ -60,6 +60,9 @@ export const OrganizationSetupBanner: React.FC = () => {
                         },
                     });
                 },
+                onError: () => {
+                    setIsCreating(false);
+                },
             }
         );
     };
