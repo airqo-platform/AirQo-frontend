@@ -77,7 +77,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-type FlowStep = 'method-select' | 'single-method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
+export type FlowStep = 'method-select' | 'single-method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;

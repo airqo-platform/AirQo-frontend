@@ -2,149 +2,138 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { QrCode, CheckCircle, Keyboard, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import ClaimDeviceModal, { ClaimedDeviceInfo } from "@/components/features/claim/claim-device-modal";
-
-type ClaimMethod = 'qr-scan' | 'manual-input' | null;
+import { 
+  Smartphone, 
+  FileSpreadsheet, 
+  Wifi, 
+  QrCode,
+  HelpCircle,
+  CheckCircle2
+} from "lucide-react";
+import ClaimDeviceModal, { FlowStep } from "@/components/features/claim/claim-device-modal";
 
 const DeviceClaimingPage = () => {
   const router = useRouter();
-  const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState<ClaimMethod>(null);
-  const [lastClaimedDevice, setLastClaimedDevice] = useState<ClaimedDeviceInfo | null>(null);
-  const [showSuccessState, setShowSuccessState] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  // We pass the starting step to the modal to skip the menu inside the modal
+  const [initialStep, setInitialStep] = useState<FlowStep>('method-select');
 
-  const handleClaimSuccess = (deviceInfo: ClaimedDeviceInfo) => {
-    setLastClaimedDevice(deviceInfo);
-    setShowSuccessState(true);
-    setIsClaimModalOpen(false);
-  };
-
-  const handleClaimAnotherDevice = () => {
-    setShowSuccessState(false);
-    setLastClaimedDevice(null);
-    setSelectedMethod(null);
-    setIsClaimModalOpen(true);
-  };
-
-  const handleOpenModal = (method: ClaimMethod) => {
-    setSelectedMethod(method);
-    setIsClaimModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsClaimModalOpen(false);
-    setSelectedMethod(null);
+  const handleOpenModal = (step: FlowStep) => {
+    setInitialStep(step);
+    setIsModalOpen(true);
   };
 
   return (
-    <div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Claim your new device</CardTitle>
-          <CardDescription>
-            Claiming a device links it to your account, enabling you to manage and deploy it within your organization.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {showSuccessState && lastClaimedDevice ? (
-            // Success State
-            <div className="flex flex-col items-center justify-center space-y-6 py-8">
-              <div className="flex flex-col items-center gap-2">
-                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
-                  <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+    <div className="min-h-screen bg-gray-50/50 dark:bg-gray-900 p-6 md:p-12">
+      <div className="max-w-5xl mx-auto space-y-8">
+
+        {/* Header Section */}
+        <div className="space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+            Claim Your Devices
+          </h1>
+          <p className="text-lg text-gray-500 dark:text-gray-400 max-w-2xl">
+            Add devices to your personal account. Once added, you can easily transfer them to your organization's workspace.
+          </p>
+        </div>
+
+        {/* Main Action Cards - The "Intent" Selection */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Option A: Single Device (Smartphone/QR Context) */}
+          <button
+            onClick={() => handleOpenModal('qr-scan')}
+            className="flex flex-col text-left p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 hover:shadow-md transition-all group"
+          >
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Smartphone className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Add Single Device
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              Best for setting up a new monitor at home or a specific site. 
+              Scan the QR code or enter the ID manually.
+            </p>
+            <span className="text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline mt-auto">
+              Start Setup &rarr;
+            </span>
+          </button>
+
+          {/* Option B: Bulk Import (File/Office Context) */}
+          <button
+            onClick={() => handleOpenModal('bulk-input')}
+            className="flex flex-col text-left p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-400 hover:shadow-md transition-all group"
+          >
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <FileSpreadsheet className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Bulk Import
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              Ideal for organizations deploying a fleet. 
+              Upload a CSV file or enter multiple IDs at once.
+            </p>
+            <span className="text-sm font-medium text-green-600 dark:text-green-400 group-hover:underline mt-auto">
+              Import Batch &rarr;
+            </span>
+          </button>
+        </div>
+
+        {/* Onboarding / Preparation Section */}
+        <div className="grid md:grid-cols-3 gap-8 pt-4">
+          
+          {/* Checklist */}
+          <div className="md:col-span-2 bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-gray-500" />
+              Before you start
+            </h4>
+            <div className="grid sm:grid-cols-2 gap-6">
+              <div className="flex gap-3">
+                <Wifi className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900 dark:text-white block mb-1">Check WiFi Connectivity</span>
+                  <span className="text-gray-500 dark:text-gray-400">Ensure the installation site has reliable 2.4GHz WiFi coverage.</span>
                 </div>
-                <h2 className="text-xl font-semibold text-green-700 dark:text-green-400">
-                  Device claimed successfully!
-                </h2>
-                <p className="text-muted-foreground text-center">
-                  You can now deploy your device or view all your devices.
-                </p>
               </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  onClick={() => router.push(`/devices/deploy/${lastClaimedDevice.deviceId}`)}
-                  className="w-full sm:w-40"
-                >
-                  Deploy Device
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => router.push("/devices/overview")}
-                  className="w-full sm:w-40"
-                >
-                  View All Devices
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleClaimAnotherDevice}
-                  className="w-full sm:w-40"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Claim Another
-                </Button>
+              <div className="flex gap-3">
+                <QrCode className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
+                <div className="text-sm">
+                  <span className="font-medium text-gray-900 dark:text-white block mb-1">Locate Device Label</span>
+                  <span className="text-gray-500 dark:text-gray-400">Have the physical device or the box ready to scan the QR code.</span>
+                </div>
               </div>
             </div>
-          ) : (
-            // Method Selection
-            <div className="space-y-6">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Choose how you&apos;d like to add your device.
-              </p>
+          </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  onClick={() => handleOpenModal('qr-scan')}
-                  className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                >
-                  <QrCode className="w-12 h-12 text-blue-600 dark:text-blue-400 mb-4" />
-                  <span className="font-medium text-gray-900 dark:text-white text-lg">
-                    Scan QR Code
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Fast & automatic
-                  </span>
-                </button>
+          {/* Support Links */}
+          <div className="pl-4 border-l border-gray-200 dark:border-gray-700 hidden md:block">
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+              <HelpCircle className="w-5 h-5 text-gray-500" />
+              Need Help?
+            </h4>
+            <ul className="space-y-3 text-sm">
+              <li>
+                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Where do I find the Device ID?</a>
+              </li>
+              <li>
+                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Download Bulk Import Template</a>
+              </li>
+              <li>
+                <a href="#" className="text-blue-600 dark:text-blue-400 hover:underline">Contact Support</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
-                <button
-                  onClick={() => handleOpenModal('manual-input')}
-                  className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                >
-                  <Keyboard className="w-12 h-12 text-blue-600 dark:text-blue-400 mb-4" />
-                  <span className="font-medium text-gray-900 dark:text-white text-lg">
-                    Enter Manually
-                  </span>
-                  <span className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Type device details
-                  </span>
-                </button>
-              </div>
-
-              {/* Quick Tips */}
-              <div className="mt-8 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                  Where to find device details
-                </h4>
-                <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                  <li><strong>QR Code:</strong> Located on the device shipping label</li>
-                  <li><strong>Device ID:</strong> Printed below the QR code (e.g., aq_g5_001)</li>
-                  <li><strong>Claim Token:</strong> Unique code on the shipping label</li>
-                </ul>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Claim Device Modal */}
+      {/* The Modal handles the actual logic */}
       <ClaimDeviceModal
-        isOpen={isClaimModalOpen}
-        onClose={handleCloseModal}
-        onSuccess={handleClaimSuccess}
-        redirectOnSuccess={false}
-        initialStep={selectedMethod || 'method-select'}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        initialStep={initialStep}
+        redirectOnSuccess={true} 
       />
     </div>
   );
