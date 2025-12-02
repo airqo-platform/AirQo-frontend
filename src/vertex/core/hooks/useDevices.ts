@@ -280,8 +280,10 @@ export const useBulkClaimDevices = () => {
     BulkDeviceClaimRequest
   >({
     mutationFn: devices.claimDevicesBulk,
-    onSuccess: (data) => {
-      const { successful_count, failed_count } = data.results.summary;
+    onSuccess: (response) => {
+      const { successful_claims, failed_claims } = response.data;
+      const successful_count = successful_claims.length;
+      const failed_count = failed_claims.length;
       
       if (failed_count === 0) {
         ReusableToast({

@@ -6,7 +6,7 @@ import { BulkDeviceClaimResponse } from '@/app/types/devices';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface BulkClaimResultsProps {
-    results: BulkDeviceClaimResponse['results'];
+    results: BulkDeviceClaimResponse['data'];
     onRetry?: (failedDevices: Array<{ device_name: string; claim_token: string }>) => void;
 }
 
@@ -14,7 +14,11 @@ export const BulkClaimResults: React.FC<BulkClaimResultsProps> = ({ results, onR
     const [showSuccessful, setShowSuccessful] = React.useState(true);
     const [showFailed, setShowFailed] = React.useState(true);
 
-    const { successful_claims, failed_claims, summary } = results;
+    const { successful_claims, failed_claims } = results;
+
+    const successful_count = successful_claims.length;
+    const failed_count = failed_claims.length;
+    const total_requested = successful_count + failed_count;
 
     return (
         <div className="space-y-4">
@@ -22,15 +26,15 @@ export const BulkClaimResults: React.FC<BulkClaimResultsProps> = ({ results, onR
             <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
                     <div className="text-sm text-gray-500 dark:text-gray-400">Total Requested</div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{summary.total_requested}</div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white">{total_requested}</div>
                 </div>
                 <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
                     <div className="text-sm text-green-600 dark:text-green-400">Successful</div>
-                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">{summary.successful_count}</div>
+                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">{successful_count}</div>
                 </div>
                 <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                     <div className="text-sm text-red-600 dark:text-red-400">Failed</div>
-                    <div className="text-2xl font-bold text-red-700 dark:text-red-300">{summary.failed_count}</div>
+                    <div className="text-2xl font-bold text-red-700 dark:text-red-300">{failed_count}</div>
                 </div>
             </div>
 

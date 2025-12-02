@@ -596,8 +596,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 )}
 
                 {/* Bulk Results Step */}
-                {step === 'bulk-results' && bulkClaimData?.results && (
-                    <BulkClaimResults results={bulkClaimData.results} />
+                {step === 'bulk-results' && bulkClaimData?.data && (
+                    <BulkClaimResults results={bulkClaimData.data} />
                 )}
             </div>
         </ReusableDialog>

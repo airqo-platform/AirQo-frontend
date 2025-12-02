@@ -229,7 +229,7 @@ export interface BulkDeviceClaimRequest {
 
 export interface BulkDeviceClaimResult {
   device_name: string;
-  success: boolean;
+  success?: boolean;
   device?: {
     name: string;
     long_name: string;
@@ -241,16 +241,11 @@ export interface BulkDeviceClaimResult {
 }
 
 export interface BulkDeviceClaimResponse {
-  success: boolean;
+  success?: boolean;
   message: string;
-  results: {
+  data: {
     successful_claims: BulkDeviceClaimResult[];
     failed_claims: BulkDeviceClaimResult[];
-    summary: {
-      total_requested: number;
-      successful_count: number;
-      failed_count: number;
-    };
   };
 }
 
