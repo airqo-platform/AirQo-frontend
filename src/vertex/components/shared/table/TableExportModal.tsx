@@ -116,11 +116,6 @@ export const TableExportModal: React.FC<TableExportModalProps> = ({
                             </div>
                         </label>
                     </div>
-                    {hasServerSidePagination && scope === 'all' && (
-                        <p className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 p-2 rounded">
-                            Note: Exporting all data might take longer as it fetches from the server.
-                        </p>
-                    )}
                 </div>
 
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
