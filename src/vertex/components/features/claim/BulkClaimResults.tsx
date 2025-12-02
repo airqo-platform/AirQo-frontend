@@ -10,8 +10,8 @@ interface BulkClaimResultsProps {
 }
 
 export const BulkClaimResults: React.FC<BulkClaimResultsProps> = ({ results }) => {
-    const [showSuccessful, setShowSuccessful] = React.useState(true);
-    const [showFailed, setShowFailed] = React.useState(true);
+    const [showSuccessful, setShowSuccessful] = React.useState(false);
+    const [showFailed, setShowFailed] = React.useState(false);
 
     const { successful_claims, failed_claims } = results;
 
