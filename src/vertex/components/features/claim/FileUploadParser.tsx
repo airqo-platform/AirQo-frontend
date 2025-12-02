@@ -111,8 +111,8 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
                                         <th
                                             key={index}
                                             className={`px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm font-medium ${index === deviceNameColumn || index === claimTokenColumn
-                                                    ? 'bg-primary/10 text-primary'
-                                                    : 'text-gray-900 dark:text-gray-100'
+                                                ? 'bg-primary/10 text-primary'
+                                                : 'text-gray-900 dark:text-gray-100'
                                                 }`}
                                         >
                                             {header}
@@ -140,9 +140,9 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
                                             <td
                                                 key={cellIndex}
                                                 className={`px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-700 ${cellIndex === deviceNameColumn ||
-                                                        cellIndex === claimTokenColumn
-                                                        ? 'bg-primary/10 font-medium text-primary'
-                                                        : 'text-gray-700 dark:text-gray-300'
+                                                    cellIndex === claimTokenColumn
+                                                    ? 'bg-primary/10 font-medium text-primary'
+                                                    : 'text-gray-700 dark:text-gray-300'
                                                     }`}
                                             >
                                                 {String(cell || '')}
@@ -171,9 +171,10 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
 
 interface FileUploadParserProps {
     onFilesParsed: (devices: Array<{ device_name: string; claim_token: string }>) => void;
+    variant?: 'button' | 'dropzone';
 }
 
-export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParsed }) => {
+export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParsed, variant = 'button' }) => {
     const [isImporting, setIsImporting] = useState(false);
     const [filePreview, setFilePreview] = useState<ParsedFileData | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -322,15 +323,35 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
                 className="hidden"
             />
 
-            <ReusableButton
-                Icon={AqUploadCloud02}
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isImporting}
-                loading={isImporting}
-                variant="outlined"
-            >
-                Import File
-            </ReusableButton>
+            {variant === 'dropzone' ? (
+                <div
+                    onClick={() => !isImporting && fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors w-full ${isImporting
+                            ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
+                            : 'border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-400'
+                        }`}
+                >
+                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-3">
+                        <AqUploadCloud02 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        {isImporting ? 'Processing file...' : 'Click to upload or drag and drop'}
+                    </span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        CSV or Excel files (max 5MB)
+                    </span>
+                </div>
+            ) : (
+                <ReusableButton
+                    Icon={AqUploadCloud02}
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isImporting}
+                    loading={isImporting}
+                    variant="outlined"
+                >
+                    Import File
+                </ReusableButton>
+            )}
         </>
     );
 };

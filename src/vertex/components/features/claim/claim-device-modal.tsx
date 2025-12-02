@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, Component, ReactNode } from 'react';
-import { CheckCircle2, Loader2, AlertCircle, QrCode, Keyboard } from 'lucide-react';
+import { CheckCircle2, Loader2, AlertCircle, Keyboard } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,7 +17,6 @@ import { FileUploadParser } from './FileUploadParser';
 import { DeviceEntryRow } from './DeviceEntryRow';
 import { BulkClaimResults } from './BulkClaimResults';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import { BulkDeviceClaimResponse } from '@/app/types/devices';
 import { AqPlus } from '@airqo/icons-react';
 
 interface QRScannerErrorBoundaryProps {
@@ -78,8 +77,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-type ClaimMode = 'single' | 'bulk';
-type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
+type FlowStep = 'method-select' | 'single-method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -111,14 +109,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     // Bulk device claim hook
     const { mutate: bulkClaimDevices, isPending: isBulkPending, isSuccess: isBulkSuccess, data: bulkClaimData, error: bulkClaimError } = useBulkClaimDevices();
 
-    const [claimMode, setClaimMode] = useState<ClaimMode>('single');
     const [step, setStep] = useState<FlowStep>(initialStep);
     const [error, setError] = useState<string | null>(null);
 
     // Bulk device entries state
-    const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([
-        { device_name: '', claim_token: '' }
-    ]);
+    const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([]);
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -132,8 +127,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         formMethods.reset();
         setStep('method-select');
         setError(null);
-        setClaimMode('single');
-        setBulkDevices([{ device_name: '', claim_token: '' }]);
+        setBulkDevices([]);
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -248,9 +242,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const handleRemoveDevice = (index: number) => {
-        if (bulkDevices.length > 1) {
-            setBulkDevices(bulkDevices.filter((_, i) => i !== index));
-        }
+        setBulkDevices(bulkDevices.filter((_, i) => i !== index));
     };
 
     const handleDeviceChange = (index: number, field: 'device_name' | 'claim_token', value: string) => {
@@ -321,12 +313,12 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     ...baseConfig,
                     showFooter: true,
                     primaryAction: { label: isPending ? 'Claiming...' : 'Claim Device', onClick: formMethods.handleSubmit(onManualSubmit), disabled: isPending },
-                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
+                    secondaryAction: { label: 'Back', onClick: () => setStep('qr-scan'), variant: 'outline' as const },
                 };
             case 'bulk-input':
                 return {
                     ...baseConfig,
-                    title: 'Bulk Claim Devices',
+                    title: 'Add Multiple Devices',
                     showFooter: true,
                     primaryAction: { label: isBulkPending ? 'Claiming...' : `Claim ${bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim()).length} Device(s)`, onClick: handleBulkSubmit, disabled: isBulkPending },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
@@ -360,59 +352,48 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             <div className="space-y-6 py-2">
                 {step === 'method-select' && (
                     <div className="space-y-6">
-                        {/* Mode Toggle */}
-                        <div className="flex items-center justify-center gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Choose how you would like to add your device(s).</p>
+                        <div className="grid grid-cols-1 gap-4">
+                            {/* Card A: Add Single Device */}
                             <button
-                                onClick={() => setClaimMode('single')}
-                                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${claimMode === 'single'
-                                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                    }`}
+                                onClick={() => {
+                                    setStep('qr-scan');
+                                }}
+                                className="flex flex-col items-start p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
                             >
-                                Single Device
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                                        <Keyboard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <span className="font-semibold text-lg text-gray-900 dark:text-white">Add Single Device</span>
+                                </div>
+                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-11">
+                                    Scan a QR code or manually enter a Device ID.
+                                </span>
                             </button>
+
+                            {/* Card B: Add Multiple Devices */}
                             <button
-                                onClick={() => setClaimMode('bulk')}
-                                className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors ${claimMode === 'bulk'
-                                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow'
-                                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                                    }`}
+                                onClick={() => {
+                                    setStep('bulk-input');
+                                }}
+                                className="flex flex-col items-start p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
                             >
-                                Bulk Claim
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
+                                        <AqPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <span className="font-semibold text-lg text-gray-900 dark:text-white">Add Multiple Devices</span>
+                                </div>
+                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-11">
+                                    Upload a CSV file or enter a list of IDs for bulk setup.
+                                </span>
                             </button>
                         </div>
-
-                        {claimMode === 'single' ? (
-                            <>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Choose how you would like to add your device.</p>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <button onClick={() => setStep('qr-scan')} className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                                        <QrCode className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-3" />
-                                        <span className="font-medium text-gray-900 dark:text-white">Scan QR Code</span>
-                                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Fast & automatic</span>
-                                    </button>
-                                    <button onClick={() => setStep('manual-input')} className="flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
-                                        <Keyboard className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-3" />
-                                        <span className="font-medium text-gray-900 dark:text-white">Enter Manually</span>
-                                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Type device details</span>
-                                    </button>
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Claim multiple devices at once by uploading a file or entering them manually.</p>
-                                <button
-                                    onClick={() => setStep('bulk-input')}
-                                    className="w-full flex flex-col items-center justify-center p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
-                                >
-                                    <AqPlus className="w-10 h-10 text-blue-600 dark:text-blue-400 mb-3" />
-                                    <span className="font-medium text-gray-900 dark:text-white">Start Bulk Claiming</span>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">Upload file or enter manually</span>
-                                </button>
-                            </>
-                        )}
                     </div>
                 )}
+
+
 
                 {step === 'qr-scan' && isOpen && (
                     <QRScannerErrorBoundary
@@ -524,59 +505,94 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 {/* Bulk Input Step */}
                 {step === 'bulk-input' && (
                     <div className="space-y-6">
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Enter device details manually or import from a CSV/XLSX file.
-                        </p>
+                        {bulkDevices.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-4 space-y-6">
 
-                        {/* File Upload */}
-                        <div className="flex items-center gap-3">
-                            <FileUploadParser onFilesParsed={handleFileImport} />
-                            <span className="text-sm text-gray-500">or add devices manually below</span>
-                        </div>
 
-                        {/* Device Entry Rows */}
-                        <div className="space-y-3 max-h-96 overflow-y-auto">
-                            {bulkDevices.map((device, index) => (
-                                <DeviceEntryRow
-                                    key={index}
-                                    index={index}
-                                    deviceName={device.device_name}
-                                    claimToken={device.claim_token}
-                                    onDeviceNameChange={(value) =>
-                                        handleDeviceChange(index, 'device_name', value)
-                                    }
-                                    onClaimTokenChange={(value) =>
-                                        handleDeviceChange(index, 'claim_token', value)
-                                    }
-                                    onRemove={() => handleRemoveDevice(index)}
-                                    showRemove={bulkDevices.length > 1}
-                                />
-                            ))}
-                        </div>
+                                <div className="w-full">
+                                    <FileUploadParser onFilesParsed={handleFileImport} variant="dropzone" />
+                                </div>
 
-                        {/* Add Device Button */}
-                        <ReusableButton
-                            Icon={AqPlus}
-                            onClick={handleAddDevice}
-                            variant="outlined"
-                            className="w-full"
-                        >
-                            Add Another Device
-                        </ReusableButton>
+                                <div className="relative w-full">
+                                    <div className="absolute inset-0 flex items-center">
+                                        <span className="w-full border-t border-gray-200 dark:border-gray-700" />
+                                    </div>
+                                    <div className="relative flex justify-center text-xs uppercase">
+                                        <span className="bg-white dark:bg-gray-800 px-2 text-gray-500">Or</span>
+                                    </div>
+                                </div>
 
-                        {error && (
-                            <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
-                                <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
-                                {error}
+                                <button
+                                    onClick={handleAddDevice}
+                                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                                >
+                                    Enter device details manually
+                                </button>
                             </div>
-                        )}
+                        ) : (
+                            <>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Review your devices before claiming.
+                                    </p>
+                                    <button
+                                        onClick={() => setBulkDevices([])}
+                                        className="text-xs text-red-600 hover:text-red-700 dark:text-red-400"
+                                    >
+                                        Clear All
+                                    </button>
+                                </div>
 
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                            <span className="font-medium">
-                                {bulkDevices.filter((d) => d.device_name.trim() && d.claim_token.trim()).length}
-                            </span>{' '}
-                            device(s) ready to claim
-                        </div>
+                                {/* Device Entry Rows */}
+                                <div className="space-y-3 max-h-96 overflow-y-auto">
+                                    {bulkDevices.map((device, index) => (
+                                        <DeviceEntryRow
+                                            key={index}
+                                            index={index}
+                                            deviceName={device.device_name}
+                                            claimToken={device.claim_token}
+                                            onDeviceNameChange={(value) =>
+                                                handleDeviceChange(index, 'device_name', value)
+                                            }
+                                            onClaimTokenChange={(value) =>
+                                                handleDeviceChange(index, 'claim_token', value)
+                                            }
+                                            onRemove={() => handleRemoveDevice(index)}
+                                            showRemove={true}
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* Add Device Button */}
+                                <div className="flex gap-3">
+                                    <ReusableButton
+                                        Icon={AqPlus}
+                                        onClick={handleAddDevice}
+                                        variant="outlined"
+                                        className="flex-1"
+                                    >
+                                        Add Row
+                                    </ReusableButton>
+                                    <div className="flex-1">
+                                        <FileUploadParser onFilesParsed={(devices) => setBulkDevices([...bulkDevices, ...devices])} />
+                                    </div>
+                                </div>
+
+                                {error && (
+                                    <div className="flex items-center p-3 text-sm text-red-600 bg-red-50 dark:bg-red-900/20 dark:text-red-400 rounded-lg">
+                                        <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+                                        {error}
+                                    </div>
+                                )}
+
+                                <div className="text-sm text-gray-500 dark:text-gray-400">
+                                    <span className="font-medium">
+                                        {bulkDevices.filter((d) => d.device_name.trim() && d.claim_token.trim()).length}
+                                    </span>{' '}
+                                    device(s) ready to claim
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 
