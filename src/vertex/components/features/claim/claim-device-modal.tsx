@@ -12,6 +12,8 @@ import { useAppSelector } from '@/core/redux/hooks';
 import { useRouter } from 'next/navigation';
 import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
+import { useUserContext } from '@/core/hooks/useUserContext';
+import { useGroupCohorts } from '@/core/hooks/useCohorts';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
 import { DeviceEntryRow } from './DeviceEntryRow';
@@ -103,16 +105,21 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const router = useRouter();
     const user = useAppSelector(state => state.user.userDetails);
 
-    // Single device claim hook
+    const { isPersonalContext, isAirQoInternal, isExternalOrg, activeGroup } = useUserContext();
+
+    const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
+        enabled: !isPersonalContext && !!activeGroup?._id,
+    });
+
+    const defaultCohort = groupCohortIds?.[0] || null;
+
     const { mutate: claimDevice, isPending, isSuccess, data: claimData, error: claimError } = useClaimDevice();
 
-    // Bulk device claim hook
     const { mutate: bulkClaimDevices, isPending: isBulkPending, isSuccess: isBulkSuccess, data: bulkClaimData, error: bulkClaimError } = useBulkClaimDevices();
 
     const [step, setStep] = useState<FlowStep>(initialStep);
     const [error, setError] = useState<string | null>(null);
 
-    // Bulk device entries state
     const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([]);
 
     const formMethods = useForm<ClaimDeviceFormData>({
@@ -203,11 +210,18 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             setError('User session not available. Please try again.');
             return;
         }
+
+        if (!isPersonalContext && !defaultCohort) {
+            setError('No cohorts found. Please create a cohort first.');
+            return;
+        }
+
         setError(null);
         claimDevice({
             device_name: deviceId,
             user_id: user._id,
             claim_token: claimToken,
+            ...(defaultCohort && { cohort_id: defaultCohort }),
         });
     };
 
@@ -215,14 +229,12 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         handleClaimDevice(data.device_id, data.claim_token);
     };
 
-    // Bulk claim handlers
     const handleBulkSubmit = () => {
         if (!user?._id) {
             setError('User session not available. Please try again.');
             return;
         }
 
-        // Filter out empty entries
         const validDevices = bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim());
 
         if (validDevices.length === 0) {
@@ -230,10 +242,16 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             return;
         }
 
+        if (!isPersonalContext && !defaultCohort) {
+            setError('No cohorts found. Please create a cohort first.');
+            return;
+        }
+
         setError(null);
         bulkClaimDevices({
             user_id: user._id,
             devices: validDevices,
+            ...(defaultCohort && { cohort_id: defaultCohort }),
         });
     };
 
@@ -403,6 +421,19 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         }}
                     >
                         <div className="space-y-4">
+                            {/* Cohort confirmation message */}
+                            {!isPersonalContext && defaultCohort && (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+                                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                                        <strong>Device will be added to:</strong>
+                                        {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
+                                        {isAirQoInternal && ` in AirQo Organization`}
+                                    </p>
+                                    <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                        You can change ownership or share devices later.
+                                    </p>
+                                </div>
+                            )}
                             <QRScanner onScan={handleQRScan} />
                             <button onClick={() => setStep('manual-input')} className="w-full text-sm text-blue-600 dark:text-blue-400 hover:underline">
                                 Having trouble? Enter details manually
@@ -414,6 +445,19 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 {step === 'manual-input' && (
                     <Form {...formMethods}>
                         <div className="space-y-6">
+                            {/* Cohort confirmation message */}
+                            {!isPersonalContext && defaultCohort && (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3">
+                                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                                        <strong>Device will be added to:</strong>
+                                        {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
+                                        {isAirQoInternal && ` in AirQo Organization`}
+                                    </p>
+                                    <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                        You can change ownership or share devices later.
+                                    </p>
+                                </div>
+                            )}
                             <p className="text-sm text-gray-500 dark:text-gray-400">Enter the device details found on the shipping label.</p>
                             <div className="space-y-4">
                                 <FormField
@@ -531,6 +575,19 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                             </div>
                         ) : (
                             <>
+                                {/* Cohort confirmation message */}
+                                {!isPersonalContext && defaultCohort && (
+                                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-3 mb-4">
+                                        <p className="text-sm text-blue-800 dark:text-blue-200">
+                                            <strong>Devices will be added to:</strong>
+                                            {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
+                                            {isAirQoInternal && ` in AirQo Organization`}
+                                        </p>
+                                        <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
+                                            You can change ownership or share devices later.
+                                        </p>
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between">
                                     <p className="text-sm text-gray-500 dark:text-gray-400">
                                         Review your devices before claiming.

@@ -4,6 +4,93 @@
 
 ---
 
+## Version 1.12.0
+**Released:** December 02, 2025
+
+### Organization Setup Guide Banner
+
+Introduced a persistent, dismissible banner for users in new or incomplete organizations to guide them through essential setup steps like creating cohorts and adding devices.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Guided Onboarding**: Helps new organizational users understand the next steps.
+- **Context-Aware**: Banner only appears for users in an organization that has no cohorts or devices.
+- **Dismissible**: Users can hide the banner.
+- **Action-Oriented**: Includes direct links to "Create a Cohort" and "Add a Device".
+
+</details>
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **OrgSetupBanner Component**: A new component that displays setup guidance for organizations.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (2)</strong></summary>
+
+- Added `OrgSetupBanner.tsx` component with logic to check if an organization has cohorts or devices.
+- Integrated the banner into the main authenticated layout.
+
+</details>
+
+---
+
+## Version 1.11.0
+**Released:** December 02, 2025
+
+### Cohort-Based Device Claiming
+
+Implemented automatic cohort assignment during device claiming for external organizations and AirQo internal contexts, with clear user confirmation messages.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Automatic Cohort Assignment**: Devices are automatically assigned to the first cohort in the organization
+- **Context-Aware Claiming**: Different behavior for personal, external org, and AirQo internal contexts
+- **User Confirmation**: Clear messages inform users where devices will be added before claiming
+
+</details>
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **Cohort Integration**: Device claiming now includes `cohort_id` for organizational contexts
+- **Confirmation Banners**: Blue info banners show cohort and organization details during claim process
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Added `cohort_id` field to `DeviceClaimRequest` and `BulkDeviceClaimRequest` types
+- Integrated `useUserContext` and `useCohorts` hooks in claim modal
+- Automatic cohort determination using first cohort from organization's cohort list
+
+</details>
+
+<details>
+<summary><strong>Behavior by Context</strong></summary>
+
+- **Personal Context**: No cohort assignment (unchanged behavior)
+- **External Organization**: Automatically assigns to first cohort with org name confirmation
+- **AirQo Internal**: Automatically assigns to first AirQo cohort with confirmation
+- **Error Handling**: Prevents claiming if no cohorts exist for the organization
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `app/types/devices.ts`
+- `components/features/claim/claim-device-modal.tsx`
+
+</details>
+
+---
+
 ## Version 1.10.0
 **Released:** December 02, 2025
 

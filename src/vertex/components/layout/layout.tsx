@@ -10,6 +10,7 @@ import OrganizationLoadingState from './loading/org-loading';
 import SessionLoadingState from './loading/session-loading';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
+import { OrganizationSetupBanner } from './OrganizationSetupBanner';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -89,6 +90,9 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="flex overflow-hidden min-h-screen h-screen bg-background">
+      {/* Organization Setup Banner - Fixed at top */}
+      <OrganizationSetupBanner />
+
       <Topbar onMenuClick={() => setIsPrimarySidebarOpen(true)} />
       <PrimarySidebar
         isOpen={isPrimarySidebarOpen}

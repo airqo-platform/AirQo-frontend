@@ -203,6 +203,7 @@ export interface DeviceClaimRequest {
   device_name: string;
   user_id: string;
   claim_token?: string;
+  cohort_id?: string;
 }
 
 export interface DeviceClaimResponse {
@@ -225,6 +226,7 @@ export interface BulkDeviceClaimItem {
 export interface BulkDeviceClaimRequest {
   user_id: string;
   devices: BulkDeviceClaimItem[];
+  cohort_id?: string;
 }
 
 export interface BulkDeviceClaimResult {
