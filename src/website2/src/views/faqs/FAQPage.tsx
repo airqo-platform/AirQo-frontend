@@ -205,6 +205,7 @@ if (typeof window !== 'undefined') {
 
 const FAQPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const [openAccordionId, setOpenAccordionId] = useState<number | null>(null);
   const itemsPerPage = 20;
@@ -216,22 +217,30 @@ const FAQPage: React.FC = () => {
     (f: any) => f.is_active,
   );
 
-  // If the user has entered a search query, perform client-side filtering
-  // against question and answer text (case-insensitive). Otherwise use all results.
-  const normalizedQuery = searchQuery.trim().toLowerCase();
-  const filtered = normalizedQuery
-    ? allFetched.filter((f) => {
-        const q = (f.question || '').toLowerCase();
-        const a = (f.answer || '').toLowerCase();
-        const ah = (f.answer_html || '').toLowerCase();
+  // Extract unique categories
+  const categories = [
+    'All',
+    ...Array.from(
+      new Set(allFetched.map((f) => f.category_name).filter(Boolean)),
+    ),
+  ];
 
-        return (
-          q.includes(normalizedQuery) ||
-          a.includes(normalizedQuery) ||
-          ah.includes(normalizedQuery)
-        );
-      })
-    : allFetched;
+  // Filter by category and search query
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filtered = allFetched.filter((f) => {
+    const matchesCategory =
+      selectedCategory === 'All' || f.category_name === selectedCategory;
+    const q = (f.question || '').toLowerCase();
+    const a = (f.answer || '').toLowerCase();
+    const ah = (f.answer_html || '').toLowerCase();
+    const matchesSearch =
+      !normalizedQuery ||
+      q.includes(normalizedQuery) ||
+      a.includes(normalizedQuery) ||
+      ah.includes(normalizedQuery);
+
+    return matchesCategory && matchesSearch;
+  });
 
   // For UI pagination, paginate the filtered result client-side
   const faqsList: FAQ[] = filtered.slice(
@@ -246,6 +255,12 @@ const FAQPage: React.FC = () => {
     setSearchQuery(e.target.value);
     setCurrentPage(1); // Reset to first page when searching
     setOpenAccordionId(null); // Close any open accordion when searching
+  };
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1);
+    setOpenAccordionId(null);
   };
 
   const clearSearch = () => {
@@ -358,6 +373,30 @@ const FAQPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Category Tabs */}
+          {!isLoading && categories.length > 1 && (
+            <div className="mb-8 overflow-x-auto">
+              <div className="flex space-x-6 border-b border-gray-200 min-w-max">
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => handleCategoryChange(category)}
+                    className={`capitalize pb-3 text-sm font-medium transition-colors relative ${
+                      selectedCategory === category
+                        ? 'text-blue-600'
+                        : 'text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    {category === 'All' ? 'All Questions' : category}
+                    {selectedCategory === category && (
+                      <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-t-full" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Loading State */}
           {isLoading ? (
