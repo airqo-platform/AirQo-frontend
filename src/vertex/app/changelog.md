@@ -4,6 +4,55 @@
 
 ---
 
+## Version 1.9.0
+**Released:** December 02, 2025
+
+### Bulk Device Claiming & Batch Export
+
+Introduced a streamlined bulk device claiming workflow with file upload support and added batch device export functionality.
+
+<details>
+<summary><strong>Improvements (5)</strong></summary>
+
+- **Streamlined Claim Flow**: New card-based selection for Single vs Bulk claiming
+- **Direct QR Access**: Single device claim now goes directly to QR scan
+- **Bulk File Upload**: Dedicated dropzone for CSV/XLSX upload in bulk claim
+- **Batch Export**: Export batch device lists to CSV or XLSX
+- **Client-Side Summaries**: Improved performance for bulk claim results
+
+</details>
+
+<details>
+<summary><strong>Features Added (3)</strong></summary>
+
+- **Bulk Claiming**: Support for claiming multiple devices via file upload or manual entry
+- **ExportFormatModal**: Modal for choosing export format
+- **FileUploadParser**: Reusable component for parsing device files with dropzone support
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Refactored `claim-device-modal.tsx` navigation state
+- Updated `useBulkClaimDevices` to handle new API response structure
+- Implemented `papaparse` and `xlsx` for file handling
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `components/features/claim/claim-device-modal.tsx`
+- `components/features/claim/FileUploadParser.tsx`
+- `app/(authenticated)/admin/shipping/[batchId]/page.tsx`
+- `core/hooks/useDevices.ts`
+- `app/types/devices.ts`
+
+</details>
+
+---
+
 ## Version 1.8.0
 **Released:** November 30, 2025
 
