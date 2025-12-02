@@ -256,9 +256,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const handleDeviceChange = (index: number, field: 'device_name' | 'claim_token', value: string) => {
-        const updated = [...bulkDevices];
-        updated[index][field] = value;
-        setBulkDevices(updated);
+        setBulkDevices(prev =>
+            prev.map((device, i) =>
+                i === index ? { ...device, [field]: value } : device
+            )
+        );
     };
 
     const handleFileImport = (devices: Array<{ device_name: string; claim_token: string }>) => {
