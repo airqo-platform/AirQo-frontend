@@ -123,6 +123,37 @@ export const useUpdateCohortDetails = () => {
   });
 };
 
+export const useCreateCohort = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({
+            name,
+            network,
+        }: {
+            name: string;
+            network: string;
+        }) => {
+            const createResp = await cohortsApi.createCohort({ name, network });
+            const cohortId = createResp?.cohort?._id;
+            if (!cohortId) throw new Error('Cohort created but missing id');
+            return createResp;
+        },
+        onSuccess: (resp, variables) => {
+            ReusableToast({
+                message: `${variables.name} created`,
+                type: 'SUCCESS',
+            });
+            queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+        },
+        onError: error => {
+            ReusableToast({
+                message: `Failed to create cohort: ${getApiErrorMessage(error)}`,
+                type: 'ERROR',
+            });
+        },
+    });
+}
+
 export const useCreateCohortWithDevices = () => {
   const queryClient = useQueryClient();
 
@@ -293,10 +324,6 @@ export const useAssignCohortsToGroup = () => {
       return cohortsApi.assignCohortsToGroup(groupId, cohortIds);
     },
     onSuccess: (data, variables) => {
-      ReusableToast({
-        message: `${variables.cohortIds.length} cohort(s) assigned to organization successfully`,
-        type: 'SUCCESS',
-      });
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
