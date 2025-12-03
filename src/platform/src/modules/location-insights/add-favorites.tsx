@@ -15,6 +15,7 @@ import {
 } from '@/shared/hooks/usePreferences';
 import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
+import { trackEvent } from '@/shared/utils/analytics';
 
 interface AddFavoritesProps {
   isOpen: boolean;
@@ -200,6 +201,11 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
       });
 
       posthog?.capture('favorites_updated', {
+        count: sitesToSave.length,
+        site_ids: sitesToSave.map(s => s._id),
+      });
+
+      trackEvent('favorites_updated', {
         count: sitesToSave.length,
         site_ids: sitesToSave.map(s => s._id),
       });

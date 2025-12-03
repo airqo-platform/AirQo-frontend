@@ -35,6 +35,7 @@ import { cn } from '@/shared/lib/utils';
 import { toast } from '@/shared/components/ui/toast';
 import { STANDARDS_ORGANIZATIONS } from '@/shared/utils/airQuality';
 import { usePostHog } from 'posthog-js/react';
+import { trackEvent } from '@/shared/utils/analytics';
 
 export const ChartContainer: React.FC<ChartContainerProps> = ({
   title,
@@ -90,6 +91,11 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       chart_title: title,
     });
 
+    trackEvent('chart_export_clicked', {
+      format,
+      chart_title: title,
+    });
+
     setIsExporting(true);
     try {
       await exportChart({
@@ -126,6 +132,10 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
       chart_title: title,
     });
 
+    trackEvent('air_quality_standards_clicked', {
+      chart_title: title,
+    });
+
     if (onAirQualityStandards) {
       onAirQualityStandards();
     } else {
@@ -135,6 +145,11 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
 
   const handleApplyStandards = (config: AirQualityStandardsConfig) => {
     posthog?.capture('air_quality_standards_applied', {
+      organization: config.organization,
+      pollutant: config.pollutant,
+    });
+
+    trackEvent('air_quality_standards_applied', {
       organization: config.organization,
       pollutant: config.pollutant,
     });

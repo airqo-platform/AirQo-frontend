@@ -17,7 +17,7 @@ import { getPollutantLabel } from '@/shared/components/charts/utils';
 import type { PollutantType } from '@/shared/components/charts/types';
 import { useResizeObserver } from '@/shared/hooks';
 import { AqWind01 } from '@airqo/icons-react';
-import { anonymizeSiteData } from '@/shared/utils/analytics';
+import { anonymizeSiteData, trackEvent } from '@/shared/utils/analytics';
 
 export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
   ({ siteData, className, showIcon = true, selectedPollutant, onClick }) => {
@@ -87,6 +87,11 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
             pollutant: displayPollutant,
             aqi_status: status,
           });
+          trackEvent('analytics_card_clicked', {
+            ...anonymizeSiteData(siteData._id),
+            pollutant: displayPollutant,
+            aqi_status: status,
+          });
           onClick?.(siteData);
         }}
         role="button"
@@ -95,6 +100,11 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             posthog?.capture('analytics_card_clicked', {
+              ...anonymizeSiteData(siteData._id),
+              pollutant: displayPollutant,
+              aqi_status: status,
+            });
+            trackEvent('analytics_card_clicked', {
               ...anonymizeSiteData(siteData._id),
               pollutant: displayPollutant,
               aqi_status: status,

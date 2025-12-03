@@ -7,6 +7,7 @@ import { toast } from '@/shared/components/ui';
 import { useInitiateAccountDeletion, useUser } from '@/shared/hooks';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqAlertTriangle } from '@airqo/icons-react';
+import { trackEvent } from '@/shared/utils/analytics';
 
 const AccountDeletionCard: React.FC = () => {
   const posthog = usePostHog();
@@ -25,6 +26,8 @@ const AccountDeletionCard: React.FC = () => {
       await initiateDeletion({ email: user.email });
 
       posthog?.capture('account_deletion_initiated');
+
+      trackEvent('account_deletion_initiated');
 
       setShowDeleteDialog(false);
       toast.success(

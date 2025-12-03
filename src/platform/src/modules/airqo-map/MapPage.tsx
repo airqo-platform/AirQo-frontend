@@ -17,7 +17,7 @@ import type {
 import type { MapReading } from '../../shared/types/api';
 import { normalizeMapReadings } from './utils/dataNormalization';
 import citiesData from './data/cities.json';
-import { hashId } from '@/shared/utils/analytics';
+import { hashId, trackEvent } from '@/shared/utils/analytics';
 
 const MapPage = () => {
   const dispatch = useDispatch();
@@ -75,6 +75,7 @@ const MapPage = () => {
   // Track map view
   React.useEffect(() => {
     posthog?.capture('map_viewed');
+    trackEvent('map_viewed');
   }, [posthog]);
 
   const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {
@@ -125,6 +126,10 @@ const MapPage = () => {
   ) => {
     try {
       posthog?.capture('map_location_selected', {
+        location_id_hashed: hashId(locationId),
+      });
+
+      trackEvent('map_location_selected', {
         location_id_hashed: hashId(locationId),
       });
 

@@ -4,6 +4,7 @@ import { usePostHog } from 'posthog-js/react';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { trackEvent } from '@/shared/utils/analytics';
 import { useDataDownload } from '@/modules/analytics/hooks';
 import { DataDownloadRequest } from '@/shared/types/api';
 import { DateRange } from '@/shared/components/calendar/types';
@@ -155,6 +156,23 @@ export const useDataExportActions = (
               : undefined,
         });
 
+        // Track to Google Analytics
+        trackEvent('data_download_initiated', {
+          data_type: dataType,
+          file_type: fileType,
+          frequency: frequency,
+          device_category: deviceCategory,
+          pollutants_count: selectedPollutants.length,
+          active_tab: activeTab,
+          sites_count: activeTab === 'sites' ? selectedSites.length : undefined,
+          devices_count:
+            activeTab === 'devices' ? selectedDevices.length : undefined,
+          grids_count:
+            activeTab === 'countries' || activeTab === 'cities'
+              ? selectedGridIds.length
+              : undefined,
+        });
+
         toast.success(
           'Download Started',
           'Your data export has been initiated successfully.'
@@ -203,6 +221,14 @@ export const useDataExportActions = (
   // Handle visualize data - open more insights dialog
   const handleVisualizeData = useCallback(() => {
     posthog?.capture('data_visualize_clicked', {
+      active_tab: activeTab,
+      sites_count: selectedSiteIds.length,
+      devices_count: selectedDeviceIds.length,
+      grids_count: selectedGridIds.length,
+    });
+
+    // Track to Google Analytics
+    trackEvent('data_visualize_clicked', {
       active_tab: activeTab,
       sites_count: selectedSiteIds.length,
       devices_count: selectedDeviceIds.length,
