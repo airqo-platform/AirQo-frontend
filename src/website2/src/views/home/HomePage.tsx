@@ -53,9 +53,9 @@ const HomePage = () => {
       {/* Reversible Content Section 1 */}
       <MotionSection>
         <ReversibleContentSection
-          title="High-resolution air quality monitoring network"
+          title="Binos Air Quality Monitor – Built for African Cities"
           subtitle="Air Quality Monitor"
-          description="We deploy a high-resolution air quality monitoring network in target urban areas across Africa to increase awareness and understanding of air quality management, provide actionable information, and derive actions against air pollution."
+          description="Our Binos Air Quality Monitors are designed, manufactured, and calibrated specifically for African urban environments. Optimized to withstand extreme weather, high dust, and heat, these locally built monitors provide accurate, AI-calibrated air quality data. Easy to install on buildings or motorcycle taxis, they enable high-resolution, mobile monitoring to fill data gaps across cities. Powered by solar or mains electricity and operating on reliable 2G networks, Binos Monitors deliver actionable insights to support effective air quality management across Africa. "
           buttonText="Learn more"
           buttonLink="/products/monitor"
           imageUrl="https://res.cloudinary.com/dbibjvyhm/image/upload/v1757020397/website/photos/monitorHome_dmmrsk_tof2wo.webp"
