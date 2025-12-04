@@ -455,6 +455,7 @@ const ClientsAdminPage: React.FC = () => {
           columns={columns}
           loading={isLoading}
           error={error?.message}
+          showClientPagination={true}
         />
 
         {/* Create Client Dialog */}

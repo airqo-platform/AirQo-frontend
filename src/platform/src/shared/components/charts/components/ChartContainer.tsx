@@ -34,6 +34,8 @@ import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { cn } from '@/shared/lib/utils';
 import { toast } from '@/shared/components/ui/toast';
 import { STANDARDS_ORGANIZATIONS } from '@/shared/utils/airQuality';
+import { usePostHog } from 'posthog-js/react';
+import { trackEvent } from '@/shared/utils/analytics';
 
 export const ChartContainer: React.FC<ChartContainerProps> = ({
   title,
@@ -62,6 +64,7 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   showTitle = true,
   showMoreButton = true,
 }) => {
+  const posthog = usePostHog();
   const [isExporting, setIsExporting] = useState(false);
   const [showStandardsDialog, setShowStandardsDialog] = useState(false);
   const [currentStandards, setCurrentStandards] =
@@ -82,6 +85,16 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
 
   const handleExport = async (format: 'pdf' | 'png') => {
     if (!exportOptions.filename) return;
+
+    posthog?.capture('chart_export_clicked', {
+      format,
+      chart_title: title,
+    });
+
+    trackEvent('chart_export_clicked', {
+      format,
+      chart_title: title,
+    });
 
     setIsExporting(true);
     try {
@@ -115,6 +128,14 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   };
 
   const handleAirQualityStandards = () => {
+    posthog?.capture('air_quality_standards_clicked', {
+      chart_title: title,
+    });
+
+    trackEvent('air_quality_standards_clicked', {
+      chart_title: title,
+    });
+
     if (onAirQualityStandards) {
       onAirQualityStandards();
     } else {
@@ -123,6 +144,16 @@ export const ChartContainer: React.FC<ChartContainerProps> = ({
   };
 
   const handleApplyStandards = (config: AirQualityStandardsConfig) => {
+    posthog?.capture('air_quality_standards_applied', {
+      organization: config.organization,
+      pollutant: config.pollutant,
+    });
+
+    trackEvent('air_quality_standards_applied', {
+      organization: config.organization,
+      pollutant: config.pollutant,
+    });
+
     setCurrentStandards(config);
     setShowReferenceLines(config.showReferenceLine ?? true);
     toast.success(

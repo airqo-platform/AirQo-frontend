@@ -26,6 +26,8 @@ import type {
   GetGroupDetailsResponse,
   SendGroupInviteRequest,
   SendGroupInviteResponse,
+  UpdateGroupDetailsRequest,
+  UpdateGroupDetailsResponse,
 } from '../types/api';
 
 export class UserService {
@@ -321,6 +323,24 @@ export class UserService {
     }
 
     return data as { success: boolean; message: string };
+  }
+
+  // Update group details - authenticated endpoint
+  async updateGroupDetails(
+    groupId: string,
+    details: UpdateGroupDetailsRequest
+  ): Promise<UpdateGroupDetailsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<
+      UpdateGroupDetailsResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}`, details);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to update group details');
+    }
+
+    return data as UpdateGroupDetailsResponse;
   }
 }
 

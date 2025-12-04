@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { MapSidebar, EnhancedMap } from '@/modules/airqo-map';
 import { useSitesByCountry, useMapReadings, useWAQICities } from './hooks';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,9 +17,11 @@ import type {
 import type { MapReading } from '../../shared/types/api';
 import { normalizeMapReadings } from './utils/dataNormalization';
 import citiesData from './data/cities.json';
+import { hashId, trackEvent } from '@/shared/utils/analytics';
 
 const MapPage = () => {
   const dispatch = useDispatch();
+  const posthog = usePostHog();
   const selectedLocation = useSelector(
     (state: RootState): MapReading | AirQualityReading | null => {
       const reading = state.selectedLocation.selectedReading;
@@ -69,6 +72,12 @@ const MapPage = () => {
     };
   }, []);
 
+  // Track map view
+  React.useEffect(() => {
+    posthog?.capture('map_viewed');
+    trackEvent('map_viewed');
+  }, [posthog]);
+
   const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {
     setSelectedPollutant(pollutant);
   };
@@ -116,6 +125,14 @@ const MapPage = () => {
     locationData?: { latitude: number; longitude: number; name: string }
   ) => {
     try {
+      posthog?.capture('map_location_selected', {
+        location_id_hashed: hashId(locationId),
+      });
+
+      trackEvent('map_location_selected', {
+        location_id_hashed: hashId(locationId),
+      });
+
       setSelectedLocationId(locationId);
 
       if (locationData) {

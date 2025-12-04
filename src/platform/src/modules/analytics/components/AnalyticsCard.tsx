@@ -1,6 +1,7 @@
 'use client';
 
 import React, { memo, useRef, useState, useCallback } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { cn } from '@/shared/lib/utils';
 import type { AnalyticsCardProps } from '../types';
@@ -16,9 +17,11 @@ import { getPollutantLabel } from '@/shared/components/charts/utils';
 import type { PollutantType } from '@/shared/components/charts/types';
 import { useResizeObserver } from '@/shared/hooks';
 import { AqWind01 } from '@airqo/icons-react';
+import { anonymizeSiteData, trackEvent } from '@/shared/utils/analytics';
 
 export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
   ({ siteData, className, showIcon = true, selectedPollutant, onClick }) => {
+    const posthog = usePostHog();
     // truncation refs
     const nameRef = useRef<HTMLHeadingElement>(null);
     const locationRef = useRef<HTMLParagraphElement>(null);
@@ -78,12 +81,34 @@ export const AnalyticsCard: React.FC<AnalyticsCardProps> = memo(
     return (
       <Card
         className={cn('w-full cursor-pointer', className)}
-        onClick={() => onClick?.(siteData)}
+        onClick={() => {
+          posthog?.capture('analytics_card_clicked', {
+            ...anonymizeSiteData(siteData._id),
+            pollutant: displayPollutant,
+            aqi_status: status,
+          });
+          trackEvent('analytics_card_clicked', {
+            ...anonymizeSiteData(siteData._id),
+            pollutant: displayPollutant,
+            aqi_status: status,
+          });
+          onClick?.(siteData);
+        }}
         role="button"
         tabIndex={0}
         onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
+            posthog?.capture('analytics_card_clicked', {
+              ...anonymizeSiteData(siteData._id),
+              pollutant: displayPollutant,
+              aqi_status: status,
+            });
+            trackEvent('analytics_card_clicked', {
+              ...anonymizeSiteData(siteData._id),
+              pollutant: displayPollutant,
+              aqi_status: status,
+            });
             onClick?.(siteData);
           }
         }}
