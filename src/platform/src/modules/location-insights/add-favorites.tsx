@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePostHog } from 'posthog-js/react';
 import WideDialog from '@/shared/components/ui/wide-dialog';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { EmptyState } from '@/shared/components/ui/empty-state';
@@ -14,6 +15,7 @@ import {
 } from '@/shared/hooks/usePreferences';
 import { useChecklistIntegration } from '@/modules/user-checklist';
 import type { Site } from '@/shared/types/api';
+import { trackEvent } from '@/shared/utils/analytics';
 
 interface AddFavoritesProps {
   isOpen: boolean;
@@ -21,6 +23,7 @@ interface AddFavoritesProps {
 }
 
 const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
+  const posthog = usePostHog();
   const [selectedIds, setSelectedIds] = useState<(string | number)[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -197,6 +200,16 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
         selected_sites: sitesToSave,
       });
 
+      posthog?.capture('favorites_updated', {
+        count: sitesToSave.length,
+        site_ids: sitesToSave.map(s => s._id),
+      });
+
+      trackEvent('favorites_updated', {
+        count: sitesToSave.length,
+        site_ids: sitesToSave.map(s => s._id),
+      });
+
       // Update checklist - mark location selection step as completed
       try {
         await markLocationStepCompleted();
@@ -222,6 +235,7 @@ const AddFavorites: React.FC<AddFavoritesProps> = ({ isOpen, onClose }) => {
     updatePreferences,
     markLocationStepCompleted,
     onClose,
+    posthog,
   ]);
 
   return (

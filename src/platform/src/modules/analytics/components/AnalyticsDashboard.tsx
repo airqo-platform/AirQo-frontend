@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { usePostHog } from 'posthog-js/react';
 import { QuickAccessCard, EmptyAnalyticsState } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
@@ -18,6 +19,7 @@ import AddLocation from '@/modules/location-insights/add-location';
 import type { SiteData } from '../types';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
+import { trackEvent } from '@/shared/utils/analytics';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -27,6 +29,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   className = '',
 }) => {
   const dispatch = useDispatch();
+  const posthog = usePostHog();
 
   // Get filters from Redux
   const { filters } = useAnalytics();
@@ -94,6 +97,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Handle manage favorites
   const handleManageFavorites = () => {
+    posthog?.capture('manage_favorites_clicked');
+    trackEvent('manage_favorites_clicked');
     setIsFavoritesDialogOpen(true);
   };
 
@@ -121,6 +126,16 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       country?: string;
     }>
   ) => {
+    posthog?.capture('more_insights_clicked', {
+      source: 'analytics_dashboard',
+      sites_count: sites?.length ?? selectedSites.length,
+    });
+
+    trackEvent('more_insights_clicked', {
+      source: 'analytics_dashboard',
+      sites_count: sites?.length ?? selectedSites.length,
+    });
+
     // Use provided sites from chart, or fall back to selectedSites with proper data
     const sitesToUse =
       sites ||

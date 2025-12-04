@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { Button, Input, Dialog } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { isValidIpAddress } from '@/shared/lib/validators';
 import { clientService } from '@/shared/services/clientService';
+import { trackEvent } from '@/shared/utils/analytics';
 
 interface CreateClientDialogProps {
   isOpen: boolean;
@@ -20,6 +22,7 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
   onSuccess,
   userId,
 }) => {
+  const posthog = usePostHog();
   const [clientName, setClientName] = useState('');
   const [ipAddresses, setIpAddresses] = useState<string[]>(['']);
   const [ipErrors, setIpErrors] = useState<string[]>(['']);
@@ -86,6 +89,17 @@ const CreateClientDialog: React.FC<CreateClientDialogProps> = ({
       };
 
       await clientService.createClient(clientData);
+
+      posthog?.capture('client_created', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+      });
+
+      trackEvent('client_created', {
+        has_ips: filteredIpAddresses.length > 0,
+        ip_count: filteredIpAddresses.length,
+      });
+
       toast.success('Client created successfully');
       setClientName('');
       setIpAddresses(['']);

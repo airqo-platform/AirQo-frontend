@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import { Button, Dialog } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import { useInitiateAccountDeletion, useUser } from '@/shared/hooks';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqAlertTriangle } from '@airqo/icons-react';
+import { trackEvent } from '@/shared/utils/analytics';
 
 const AccountDeletionCard: React.FC = () => {
+  const posthog = usePostHog();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const { user } = useUser();
   const { trigger: initiateDeletion, isMutating: deleting } =
@@ -21,6 +24,11 @@ const AccountDeletionCard: React.FC = () => {
 
     try {
       await initiateDeletion({ email: user.email });
+
+      posthog?.capture('account_deletion_initiated');
+
+      trackEvent('account_deletion_initiated');
+
       setShowDeleteDialog(false);
       toast.success(
         'Account deletion initiated. Please check your email for confirmation.'

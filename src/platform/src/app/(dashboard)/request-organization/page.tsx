@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useMemo,
+} from 'react';
 import {
   AqCheckCircle,
   AqXCircle,
@@ -8,6 +14,7 @@ import {
   AqImage01,
 } from '@airqo/icons-react';
 import Image from 'next/image';
+import { countries } from 'countries-list';
 import {
   useCreateOrganizationRequest,
   useCheckSlugAvailability,
@@ -80,6 +87,13 @@ const RequestOrganizationPage = () => {
   const [logoPreview, setLogoPreview] = useState<string>('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Country options for dropdown
+  const countryOptions = useMemo(() => {
+    return Object.values(countries)
+      .map(c => ({ value: c.name, label: c.name }))
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, []);
 
   // Validation state
   const [validationErrors, setValidationErrors] = useState<{
@@ -425,14 +439,21 @@ const RequestOrganizationPage = () => {
                   <option value="other">Other</option>
                 </SelectField>
 
-                <Input
+                <SelectField
                   label="Country"
                   name="country"
                   value={formData.country}
-                  onChange={handleInputChange}
+                  onChange={handleSelectChange}
                   required
-                  placeholder="Enter country"
-                />
+                  placeholder="Select a country"
+                >
+                  <option value="">Select a country</option>
+                  {countryOptions.map(c => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </SelectField>
               </div>
 
               {/* Organization Slug Section */}
