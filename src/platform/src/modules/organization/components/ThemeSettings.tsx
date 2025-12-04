@@ -109,7 +109,11 @@ const ThemeSettings: React.FC = () => {
       toast.success('Theme settings updated successfully');
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
-      toast.error('Failed to update theme', errorMessage);
+      toast.error(
+        errorMessage
+          ? `Failed to update theme: ${errorMessage}`
+          : 'Failed to update theme'
+      );
       console.error('Failed to update theme:', error);
     }
   };

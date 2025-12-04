@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Image from 'next/image';
 import { countries } from 'countries-list';
 import { useSWRConfig } from 'swr';
@@ -37,14 +37,20 @@ const GroupDetailsSettings: React.FC = () => {
       .sort((a, b) => a.label.localeCompare(b.label));
   }, []);
 
-  // Cleanup object URL to avoid memory leaks
+  // Cleanup object URL to avoid memory leaks on unmount
+  const imagePreviewRef = useRef(imagePreview);
+  imagePreviewRef.current = imagePreview;
+
   useEffect(() => {
     return () => {
-      if (imagePreview && imagePreview.startsWith('blob:')) {
-        URL.revokeObjectURL(imagePreview);
+      if (
+        imagePreviewRef.current &&
+        imagePreviewRef.current.startsWith('blob:')
+      ) {
+        URL.revokeObjectURL(imagePreviewRef.current);
       }
     };
-  }, [imagePreview]);
+  }, []);
 
   useEffect(() => {
     const fetchGroupDetails = async () => {
@@ -94,6 +100,10 @@ const GroupDetailsSettings: React.FC = () => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      // Revoke previous blob URL if it exists to prevent memory leaks
+      if (imagePreview && imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(imagePreview);
+      }
       setSelectedImage(file);
       setImagePreview(URL.createObjectURL(file));
       setImageError(false);
