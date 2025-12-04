@@ -13,6 +13,40 @@ interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
   };
 }
 
+// Safe JSON stringification to prevent circular reference errors and memory leaks
+const safeStringify = (obj: unknown, maxLength = 1000): string => {
+  try {
+    const seen = new WeakSet();
+    const result = JSON.stringify(
+      obj,
+      (key, value) => {
+        // Handle circular references
+        if (typeof value === 'object' && value !== null) {
+          if (seen.has(value)) {
+            return '[Circular]';
+          }
+          seen.add(value);
+        }
+        // Redact sensitive keys
+        if (
+          typeof key === 'string' &&
+          /password|token|secret|authorization|api[-_]?key/i.test(key)
+        ) {
+          return '[REDACTED]';
+        }
+        return value;
+      },
+      2
+    );
+    // Truncate if too long to prevent memory issues
+    return result.length > maxLength
+      ? result.substring(0, maxLength) + '... [truncated]'
+      : result;
+  } catch {
+    return '[Unstringifiable]';
+  }
+};
+
 // Auth types
 export enum AuthType {
   NONE = 'none',
@@ -73,14 +107,14 @@ export class ApiClient {
           startTime: Date.now(),
         };
 
-        // Log outgoing requests at debug level
+        // Log outgoing requests at debug level (dev only)
         logger.debug('API Request', {
           method: config.method?.toUpperCase(),
           url: config.url,
           baseURL: config.baseURL,
           timeout: config.timeout,
           hasData: !!config.data,
-          dataSize: config.data ? JSON.stringify(config.data).length : 0,
+          dataSize: config.data ? safeStringify(config.data).length : 0,
         });
 
         if (this.authType === AuthType.JWT) {
@@ -100,7 +134,7 @@ export class ApiClient {
     // Response interceptor for error handling
     this.client.interceptors.response.use(
       response => {
-        // Log successful responses at debug level
+        // Log successful responses at debug level (dev only)
         logger.debug('API Response Success', {
           method: response.config.method?.toUpperCase(),
           url: response.config.url,
@@ -110,13 +144,14 @@ export class ApiClient {
             Date.now() -
             ((response.config as RequestConfigWithMetadata).metadata
               ?.startTime || Date.now()),
-          dataSize: JSON.stringify(response.data).length,
+          dataSize: safeStringify(response.data).length,
         });
 
         return response;
       },
       error => {
-        // Log API errors with context
+        // Build comprehensive error context for logging
+        // Use safe stringification to prevent circular reference errors and memory leaks
         const errorContext = {
           url: error.config?.url,
           method: error.config?.method?.toUpperCase(),
@@ -124,13 +159,19 @@ export class ApiClient {
           statusText: error.response?.statusText,
           baseURL: error.config?.baseURL,
           timeout: error.config?.timeout,
-          data: error.config?.data
-            ? JSON.stringify(error.config.data).substring(0, 500)
+          duration: error.config?.metadata?.startTime
+            ? Date.now() - error.config.metadata.startTime
             : undefined,
+          // Sanitize request data - avoid logging sensitive info
+          hasRequestData: !!error.config?.data,
+          requestDataSize: error.config?.data
+            ? safeStringify(error.config.data, 500).length
+            : 0,
         };
 
         if (error.response?.status === 401) {
-          // Handle unauthorized - check if it's session expiry vs permissions
+          // 401 Unauthorized - expected behavior, don't send to Slack
+          // Log at warn level for debugging purposes only
           logger.warn('Unauthorized API access', {
             ...errorContext,
             message: 'Session may have expired or insufficient permissions',
@@ -148,8 +189,18 @@ export class ApiClient {
               })
             );
           }
+        } else if (error.response?.status === 403) {
+          // 403 Forbidden - permission issue, log but don't spam Slack
+          logger.warn('Forbidden API access', {
+            ...errorContext,
+            message: 'User lacks required permissions',
+          });
+        } else if (error.response?.status === 404) {
+          // 404 Not Found - could be expected behavior, log at debug level
+          logger.debug('API resource not found', errorContext);
         } else if (error.response?.status >= 500) {
-          // Server errors - critical
+          // 5xx Server errors - CRITICAL, always notify
+          // These indicate backend issues that need immediate attention
           const apiError = new Error(
             `API Server Error: ${error.response.status} ${error.response.statusText}`
           );
@@ -158,21 +209,41 @@ export class ApiClient {
             ...errorContext,
             responseData: error.response.data,
           });
-        } else if (error.response?.status >= 400) {
-          // Client errors - log as error but not critical
-          const apiError = new Error(
-            `API Client Error: ${error.response.status} ${error.response.statusText}`
-          );
-          apiError.name = 'APIClientError';
-          logger.errorWithSlack('API client error occurred', apiError, {
+        } else if (error.response?.status === 429) {
+          // 429 Rate Limit - warn but don't spam Slack
+          logger.warn('API rate limit exceeded', {
             ...errorContext,
-            responseData: error.response.data,
+            retryAfter: error.response.headers?.['retry-after'],
           });
+        } else if (error.response?.status >= 400) {
+          // Other 4xx Client errors - log locally but only send serious ones to Slack
+          // Avoid sending validation errors (400, 422) to Slack in production
+          const shouldNotifySlack =
+            error.response.status >= 405 && // Skip validation errors (400, 404 already handled)
+            error.response.status !== 408 && // Skip request timeout (client-side)
+            error.response.status !== 429; // Skip rate limiting (already handled)
+
+          if (shouldNotifySlack) {
+            const apiError = new Error(
+              `API Client Error: ${error.response.status} ${error.response.statusText}`
+            );
+            apiError.name = 'APIClientError';
+            logger.errorWithSlack('API client error occurred', apiError, {
+              ...errorContext,
+              responseData: error.response.data,
+            });
+          } else {
+            // Log validation and expected errors locally only
+            logger.warn('API validation error', {
+              ...errorContext,
+              responseData: error.response.data,
+            });
+          }
         } else if (
           error.code === 'ECONNABORTED' ||
           error.message?.includes('timeout')
         ) {
-          // Timeout errors
+          // Timeout errors - notify Slack as these are serious connectivity issues
           const timeoutError = new Error(
             `API request timeout: ${error.config?.timeout}ms`
           );
@@ -182,9 +253,11 @@ export class ApiClient {
             timeoutError,
             errorContext
           );
-        } else if (!error.response) {
-          // Network errors
-          const networkError = new Error(`Network error: ${error.message}`);
+        } else if (error.code === 'ERR_NETWORK' || !error.response) {
+          // Network errors - critical infrastructure issues, notify Slack
+          const networkError = new Error(
+            `Network error: ${error.message || 'Unable to reach API'}`
+          );
           networkError.name = 'APINetworkError';
           logger.errorWithSlack(
             'API network error occurred',
@@ -192,10 +265,23 @@ export class ApiClient {
             errorContext
           );
         } else {
-          // Other errors
+          // Unknown/other errors - log but evaluate if Slack notification is needed
           const otherError = new Error(`API error: ${error.message}`);
           otherError.name = 'APIError';
-          logger.errorWithSlack('API error occurred', otherError, errorContext);
+          logger.error('Unexpected API error occurred', {
+            ...errorContext,
+            errorCode: error.code,
+            errorMessage: error.message,
+          });
+
+          // Only send truly unexpected errors to Slack
+          if (error.code && error.code !== 'ERR_CANCELED') {
+            logger.errorWithSlack(
+              'Unexpected API error',
+              otherError,
+              errorContext
+            );
+          }
         }
 
         return Promise.reject(error);

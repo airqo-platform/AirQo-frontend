@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import logger from '@/shared/lib/logger';
 
 const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
 const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
@@ -7,7 +8,10 @@ export async function POST(request: NextRequest) {
   try {
     // Enhanced validation with detailed logging for production debugging
     if (!CLOUDINARY_NAME) {
-      console.error('❌ NEXT_PUBLIC_CLOUDINARY_NAME is not configured');
+      logger.error(
+        'Cloudinary name not configured',
+        new Error('Missing CLOUDINARY_NAME')
+      );
       return NextResponse.json(
         { error: 'Cloudinary API credentials not configured' },
         { status: 500 }
@@ -15,7 +19,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (!CLOUDINARY_PRESET) {
-      console.error('❌ NEXT_PUBLIC_CLOUDINARY_PRESET is not configured');
+      logger.error(
+        'Cloudinary preset not configured',
+        new Error('Missing CLOUDINARY_PRESET')
+      );
       return NextResponse.json(
         { error: 'Cloudinary API credentials not configured' },
         { status: 500 }
@@ -29,21 +36,20 @@ export async function POST(request: NextRequest) {
     // Validate required fields
     const file = formData.get('file') as File;
     if (!file) {
-      console.error('❌ No file provided in request');
+      logger.debug('No file provided in upload request');
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Log file details for debugging
-    console.log('📤 Upload request:', {
+    // Log file details at debug level only
+    logger.debug('Cloudinary upload request', {
       fileName: file.name,
       fileType: file.type,
-      fileSize: `${(file.size / 1024 / 1024).toFixed(2)}MB`,
-      maxAllowed: '5MB',
+      fileSizeMB: (file.size / 1024 / 1024).toFixed(2),
     });
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      console.error('❌ Invalid file type:', file.type);
+      logger.debug('Invalid file type attempted', { fileType: file.type });
       return NextResponse.json(
         { error: 'Invalid file type. Only images are allowed.' },
         { status: 400 }
@@ -53,10 +59,9 @@ export async function POST(request: NextRequest) {
     // Validate file size (5MB max)
     const maxSize = 5 * 1024 * 1024; // 5MB
     if (file.size > maxSize) {
-      console.error('❌ File too large:', {
-        size: file.size,
-        maxSize,
-        sizeInMB: (file.size / 1024 / 1024).toFixed(2),
+      logger.debug('File size exceeds limit', {
+        fileSizeMB: (file.size / 1024 / 1024).toFixed(2),
+        maxSizeMB: '5',
       });
       return NextResponse.json(
         {
@@ -70,8 +75,6 @@ export async function POST(request: NextRequest) {
     if (!formData.has('upload_preset')) {
       formData.append('upload_preset', CLOUDINARY_PRESET);
     }
-
-    console.log('📤 Uploading to Cloudinary:', CLOUDINARY_URL);
 
     // Upload to Cloudinary with timeout
     const controller = new AbortController();
@@ -92,11 +95,17 @@ export async function POST(request: NextRequest) {
         try {
           result = JSON.parse(text);
         } catch {
-          console.error('❌ Cloudinary returned non-JSON response:', {
-            status: response.status,
-            statusText: response.statusText,
-            preview: text.substring(0, 200),
-          });
+          const parseError = new Error('Cloudinary returned non-JSON response');
+          parseError.name = 'CloudinaryParseError';
+          logger.errorWithSlack(
+            'Invalid Cloudinary response format',
+            parseError,
+            {
+              status: response.status,
+              statusText: response.statusText,
+              responsePreview: text.substring(0, 200),
+            }
+          );
           return NextResponse.json(
             {
               error: 'Invalid response from Cloudinary',
@@ -106,7 +115,12 @@ export async function POST(request: NextRequest) {
           );
         }
       } catch (e) {
-        console.error('❌ Failed to read Cloudinary response:', e);
+        const readError =
+          e instanceof Error
+            ? e
+            : new Error('Failed to read Cloudinary response');
+        readError.name = 'CloudinaryReadError';
+        logger.errorWithSlack('Failed to read Cloudinary response', readError);
         return NextResponse.json(
           { error: 'Failed to read response from Cloudinary' },
           { status: 502 }
@@ -114,11 +128,16 @@ export async function POST(request: NextRequest) {
       }
 
       if (!response.ok) {
-        console.error('❌ Cloudinary upload failed:', {
+        const uploadError = new Error(
+          `Cloudinary upload failed: ${result.error?.message || 'Unknown error'}`
+        );
+        uploadError.name = 'CloudinaryUploadError';
+        logger.errorWithSlack('Cloudinary upload request failed', uploadError, {
           status: response.status,
           statusText: response.statusText,
-          error: result.error,
-          result,
+          cloudinaryError: result.error,
+          fileName: file.name,
+          fileSize: file.size,
         });
         return NextResponse.json(
           { error: result.error?.message || 'Upload failed' },
@@ -126,7 +145,7 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      console.log('✅ Upload successful:', {
+      logger.debug('Cloudinary upload successful', {
         publicId: result.public_id,
         format: result.format,
         bytes: result.bytes,
@@ -136,7 +155,14 @@ export async function POST(request: NextRequest) {
     } catch (fetchError: unknown) {
       clearTimeout(timeoutId);
       if (fetchError instanceof Error && fetchError.name === 'AbortError') {
-        console.error('❌ Upload timeout after 30 seconds');
+        const timeoutError = new Error(
+          'Cloudinary upload timeout after 30 seconds'
+        );
+        timeoutError.name = 'CloudinaryTimeoutError';
+        logger.errorWithSlack('Cloudinary upload timeout', timeoutError, {
+          fileName: file.name,
+          fileSize: file.size,
+        });
         return NextResponse.json(
           { error: 'Upload timeout. Please try again.' },
           { status: 504 }
@@ -145,11 +171,17 @@ export async function POST(request: NextRequest) {
       throw fetchError;
     }
   } catch (error: unknown) {
-    console.error('❌ Cloudinary upload error:', {
-      message: (error as Error)?.message,
-      stack: (error as Error)?.stack,
-      error,
+    const uploadError =
+      error instanceof Error
+        ? error
+        : new Error('Unknown error during Cloudinary upload');
+    uploadError.name = 'CloudinaryUploadException';
+
+    logger.errorWithSlack('Cloudinary upload operation failed', uploadError, {
+      errorMessage: (error as Error)?.message,
+      errorStack: (error as Error)?.stack,
     });
+
     return NextResponse.json(
       { error: 'Internal server error. Please check server logs.' },
       { status: 500 }

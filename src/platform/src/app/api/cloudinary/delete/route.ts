@@ -46,9 +46,6 @@ export async function DELETE(request: NextRequest) {
 
     const publicId = body?.publicId;
 
-    // Use debug level or structured logging in production
-    console.debug('Attempting to delete publicId');
-
     if (!publicId || typeof publicId !== 'string') {
       return NextResponse.json(
         { error: 'No publicId provided or invalid type' },
@@ -58,7 +55,7 @@ export async function DELETE(request: NextRequest) {
 
     // Validate publicId format
     if (!isValidPublicId(publicId)) {
-      console.error('Invalid publicId format:', publicId);
+      logger.debug('Invalid publicId format attempted', { publicId });
       return NextResponse.json(
         { error: 'Invalid publicId format' },
         { status: 400 }
@@ -129,6 +126,19 @@ export async function DELETE(request: NextRequest) {
     const result = await response.json();
 
     if (!response.ok) {
+      // Handle 404 gracefully - resource might not exist (e.g., first-time upload)
+      if (response.status === 404 || result.result === 'not found') {
+        logger.debug('Cloudinary resource not found for deletion', {
+          publicId,
+          status: response.status,
+        });
+        // Return success since the resource doesn't exist anyway
+        return NextResponse.json({
+          result: 'ok',
+          message: 'Resource already deleted or does not exist',
+        });
+      }
+
       const cloudinaryError = new Error(
         `Cloudinary delete failed: ${result.error?.message || 'Unknown error'}`
       );
