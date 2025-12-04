@@ -135,7 +135,9 @@ export async function POST(request: NextRequest) {
         logger.errorWithSlack('Cloudinary upload request failed', uploadError, {
           status: response.status,
           statusText: response.statusText,
-          cloudinaryError: result.error,
+          errorMessage: result.error?.message,
+          errorHttp: result.error?.http_code,
+          publicId: result.public_id,
           fileName: file.name,
           fileSize: file.size,
         });

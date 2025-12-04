@@ -99,6 +99,7 @@ export async function DELETE(request: NextRequest) {
     // IMPORTANT: The signature must include ALL parameters in alphabetical order
     // Reference: https://cloudinary.com/documentation/upload_images#generating_authentication_signatures
     const crypto = await import('crypto');
+    // Build parameter string in alphabetical order: invalidate, public_id, timestamp
     const stringToSign = `invalidate=true&public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
     const signature = crypto
       .createHash('sha1')
