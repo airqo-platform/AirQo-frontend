@@ -1,4 +1,4 @@
-import type { User, Group } from '../types/api';
+import type { User, Group, GroupDetails } from '../types/api';
 
 export interface NormalizedUser {
   id: string;
@@ -71,7 +71,8 @@ export function normalizeGroups(
       id: group._id,
       title: group.grp_title || '',
       organizationSlug: group.organization_slug || '',
-      profilePicture: group.grp_profile_picture || '',
+      // Prioritize grp_image (logo) over grp_profile_picture for consistency
+      profilePicture: group.grp_image || group.grp_profile_picture || '',
       createdAt: group.createdAt || '',
       status: group.status || '',
       userType: group.userType || '',
@@ -79,14 +80,23 @@ export function normalizeGroups(
 }
 
 /**
- * Finds the default group (airqo) from the normalized groups
+ * Normalizes a single group from GroupDetails API response
  */
-export function findDefaultGroup(
-  groups: NormalizedGroup[]
+export function normalizeGroupDetails(
+  groupDetails: GroupDetails | null | undefined
 ): NormalizedGroup | null {
-  return (
-    groups.find(group => group.organizationSlug === 'airqo') ||
-    groups[0] ||
-    null
-  );
+  if (!groupDetails || typeof groupDetails !== 'object' || !groupDetails._id) {
+    return null;
+  }
+  return {
+    id: groupDetails._id,
+    title: groupDetails.grp_title || '',
+    organizationSlug: groupDetails.organization_slug || '',
+    // Prioritize grp_image (logo) over grp_profile_picture for consistency
+    profilePicture:
+      groupDetails.grp_image || groupDetails.grp_profile_picture || '',
+    createdAt: groupDetails.createdAt || '',
+    status: groupDetails.grp_status || '',
+    userType: 'group', // Default value since GroupDetails doesn't have userType
+  };
 }

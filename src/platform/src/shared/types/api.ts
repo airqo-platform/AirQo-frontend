@@ -1313,3 +1313,27 @@ export interface SendGroupInviteResponse {
   success: boolean;
   message: string;
 }
+
+// Update Group Details Types
+export interface UpdateGroupDetailsRequest {
+  grp_title?: string;
+  grp_status?: string;
+  grp_tasks?: number;
+  grp_description?: string;
+  grp_manager?: string;
+  grp_manager_username?: string;
+  grp_manager_firstname?: string;
+  grp_manager_lastname?: string;
+  grp_website?: string;
+  grp_industry?: string;
+  grp_country?: string;
+  grp_timezone?: string;
+  grp_image?: string;
+  grp_profile_picture?: string;
+}
+
+export interface UpdateGroupDetailsResponse {
+  success: boolean;
+  message: string;
+  group: GroupDetails;
+}
