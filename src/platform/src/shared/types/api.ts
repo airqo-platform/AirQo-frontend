@@ -310,6 +310,7 @@ export interface Group {
   grp_title: string;
   organization_slug: string;
   grp_profile_picture: string;
+  grp_image?: string; // Optional logo field that may be present in API responses
   _id: string;
   createdAt: string;
   status: string;
