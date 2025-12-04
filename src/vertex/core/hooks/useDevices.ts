@@ -20,6 +20,8 @@ import type {
   DeviceAvailabilityResponse,
   DeviceClaimRequest,
   DeviceClaimResponse,
+  BulkDeviceClaimRequest,
+  BulkDeviceClaimResponse,
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
   Device,
@@ -57,16 +59,18 @@ export interface DeviceListingOptions {
   sortBy?: string;
   order?: 'asc' | 'desc';
   network?: string;
+  enabled?: boolean;
 }
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
   const isAirQoGroup = activeGroup?.grp_title === 'airqo';
+  const { enabled = true } = options;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
     {
-      enabled: !isAirQoGroup && !!activeGroup?._id,
+      enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
     }
   );
 
@@ -116,6 +120,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
       });
     },
     enabled:
+      enabled &&
       !!activeGroup?.grp_title &&
       (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)),
     staleTime: 300_000,
@@ -263,6 +268,49 @@ export const useClaimDevice = () => {
     onError: error => {
       ReusableToast({
         message: `Claim Failed: ${getApiErrorMessage(error)}`,
+        type: 'ERROR',
+      });
+    },
+  });
+};
+
+export const useBulkClaimDevices = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    BulkDeviceClaimResponse,
+    AxiosError<ErrorResponse>,
+    BulkDeviceClaimRequest
+  >({
+    mutationFn: devices.claimDevicesBulk,
+    onSuccess: (response) => {
+      const { successful_claims, failed_claims } = response.data;
+      const successful_count = successful_claims.length;
+      const failed_count = failed_claims.length;
+      
+      if (failed_count === 0) {
+        ReusableToast({
+          message: `All ${successful_count} device${successful_count !== 1 ? 's' : ''} claimed successfully!`,
+          type: 'SUCCESS',
+        });
+      } else if (successful_count === 0) {
+        ReusableToast({
+          message: `Failed to claim all ${failed_count} device${failed_count !== 1 ? 's' : ''}`,
+          type: 'ERROR',
+        });
+      } else {
+        ReusableToast({
+          message: `${successful_count} device${successful_count !== 1 ? 's' : ''} claimed, ${failed_count} failed`,
+          type: 'WARNING',
+        });
+      }
+      
+      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+    },
+    onError: error => {
+      ReusableToast({
+        message: `Bulk Claim Failed: ${getApiErrorMessage(error)}`,
         type: 'ERROR',
       });
     },

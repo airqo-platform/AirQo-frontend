@@ -203,6 +203,7 @@ export interface DeviceClaimRequest {
   device_name: string;
   user_id: string;
   claim_token?: string;
+  cohort_id?: string;
 }
 
 export interface DeviceClaimResponse {
@@ -214,6 +215,39 @@ export interface DeviceClaimResponse {
     status: string;
     claim_status: "claimed";
     claimed_at: string;
+  };
+}
+
+export interface BulkDeviceClaimItem {
+  device_name: string;
+  claim_token: string;
+}
+
+export interface BulkDeviceClaimRequest {
+  user_id: string;
+  devices: BulkDeviceClaimItem[];
+  cohort_id?: string;
+}
+
+export interface BulkDeviceClaimResult {
+  device_name: string;
+  success?: boolean;
+  device?: {
+    name: string;
+    long_name: string;
+    status: string;
+    claim_status: "claimed";
+    claimed_at: string;
+  };
+  error?: string;
+}
+
+export interface BulkDeviceClaimResponse {
+  success?: boolean;
+  message: string;
+  data: {
+    successful_claims: BulkDeviceClaimResult[];
+    failed_claims: BulkDeviceClaimResult[];
   };
 }
 

@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useMyDevices } from "@/core/hooks/useDevices";
+import { useMyDevices, useDevices } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
+import { useUserContext } from "@/core/hooks/useUserContext";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
@@ -20,11 +21,31 @@ const MyDevicesPage = () => {
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
+  const { isPersonalContext, isExternalOrg } = useUserContext();
+
   const {
-    data: devicesData,
-    isLoading,
-    error,
-  } = useMyDevices(userDetails?._id || "", activeGroup?._id);
+    data: myDevicesData,
+    isLoading: isLoadingMyDevices,
+    error: myDevicesError,
+  } = useMyDevices(userDetails?._id || "", activeGroup?._id, {
+    enabled: isPersonalContext,
+  });
+
+  const {
+    devices: orgDevices,
+    isLoading: isLoadingOrgDevices,
+    error: orgDevicesError,
+  } = useDevices({
+    enabled: isExternalOrg,
+  });
+
+  const devices = isPersonalContext
+    ? myDevicesData?.devices || []
+    : isExternalOrg
+      ? orgDevices
+      : [];
+  const isLoading = isPersonalContext ? isLoadingMyDevices : isLoadingOrgDevices;
+  const error = isPersonalContext ? myDevicesError : orgDevicesError;
 
   if (error) {
     return (
@@ -111,14 +132,14 @@ const MyDevicesPage = () => {
         {userDetails?._id && <OrphanedDevicesAlert userId={userDetails._id} />}
 
         <ClientPaginatedDevicesTable
-          devices={devicesData?.devices || []}
+          devices={devices}
           isLoading={isLoading}
           error={error}
         />
 
         {/* Device Assignment Modal */}
         <DeviceAssignmentModal
-          devices={devicesData?.devices || []}
+          devices={devices}
           isLoadingDevices={isLoading}
           isOpen={showAssignmentModal}
           onClose={() => {

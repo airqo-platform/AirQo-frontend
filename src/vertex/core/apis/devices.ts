@@ -4,6 +4,8 @@ import type {
   DeviceAvailabilityResponse,
   DeviceClaimRequest,
   DeviceClaimResponse,
+  BulkDeviceClaimRequest,
+  BulkDeviceClaimResponse,
   MyDevicesResponse,
   DeviceAssignmentRequest,
   DeviceAssignmentResponse,
@@ -195,6 +197,19 @@ export const devices = {
     try {
       const response = await jwtApiClient.post<DeviceClaimResponse>(
         `/devices/claim`,
+        claimData,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  claimDevicesBulk: async (claimData: BulkDeviceClaimRequest): Promise<BulkDeviceClaimResponse> => {
+    try {
+      const response = await jwtApiClient.post<BulkDeviceClaimResponse>(
+        `/devices/claim/bulk`,
         claimData,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );

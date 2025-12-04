@@ -4,6 +4,226 @@
 
 ---
 
+## Version 1.13.0
+**Released:** December 02, 2025
+
+### Conditional Device Fetching & Bug Fixes
+
+Optimized device fetching logic to respect user context and fixed a potential crash in the bulk claim modal.
+
+<details>
+<summary><strong>Improvements (2)</strong></summary>
+
+- **Optimized Data Fetching**: `My Devices` page now intelligently switches between `useMyDevices` (Personal) and `useDevices` (External Org) to prevent redundant API calls.
+- **Stability**: Fixed a potential crash in the bulk claim results view when API response data is incomplete.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Updated `useDevices` hook to support an `enabled` option for conditional execution.
+- Refactored `MyDevicesPage` to use `useUserContext` for robust context detection.
+- Added optional chaining to `bulkClaimData` access in `claim-device-modal.tsx`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `app/(authenticated)/devices/my-devices/page.tsx`
+- `core/hooks/useDevices.ts`
+- `components/features/claim/claim-device-modal.tsx`
+
+</details>
+
+## Version 1.12.0
+**Released:** December 02, 2025
+
+### Organization Setup Guide Banner
+
+Introduced a persistent, dismissible banner for users in new or incomplete organizations to guide them through essential setup steps like creating cohorts and adding devices.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Guided Onboarding**: Helps new organizational users understand the next steps.
+- **Context-Aware**: Banner only appears for users in an organization that has no cohorts or devices.
+- **Dismissible**: Users can hide the banner.
+- **Action-Oriented**: Includes direct links to "Create a Cohort" and "Add a Device".
+
+</details>
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **OrgSetupBanner Component**: A new component that displays setup guidance for organizations.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (2)</strong></summary>
+
+- Added `OrgSetupBanner.tsx` component with logic to check if an organization has cohorts or devices.
+- Integrated the banner into the main authenticated layout.
+
+</details>
+
+---
+
+## Version 1.11.0
+**Released:** December 02, 2025
+
+### Cohort-Based Device Claiming
+
+Implemented automatic cohort assignment during device claiming for external organizations and AirQo internal contexts, with clear user confirmation messages.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Automatic Cohort Assignment**: Devices are automatically assigned to the first cohort in the organization
+- **Context-Aware Claiming**: Different behavior for personal, external org, and AirQo internal contexts
+- **User Confirmation**: Clear messages inform users where devices will be added before claiming
+
+</details>
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **Cohort Integration**: Device claiming now includes `cohort_id` for organizational contexts
+- **Confirmation Banners**: Blue info banners show cohort and organization details during claim process
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Added `cohort_id` field to `DeviceClaimRequest` and `BulkDeviceClaimRequest` types
+- Integrated `useUserContext` and `useCohorts` hooks in claim modal
+- Automatic cohort determination using first cohort from organization's cohort list
+
+</details>
+
+<details>
+<summary><strong>Behavior by Context</strong></summary>
+
+- **Personal Context**: No cohort assignment (unchanged behavior)
+- **External Organization**: Automatically assigns to first cohort with org name confirmation
+- **AirQo Internal**: Automatically assigns to first AirQo cohort with confirmation
+- **Error Handling**: Prevents claiming if no cohorts exist for the organization
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `app/types/devices.ts`
+- `components/features/claim/claim-device-modal.tsx`
+
+</details>
+
+---
+
+## Version 1.10.0
+**Released:** December 02, 2025
+
+### ReusableTable Export Feature
+
+Added comprehensive CSV export functionality to all tables using the `ReusableTable` component, with intelligent handling of client-side and server-side pagination.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Universal Export**: All tables now have built-in export capability
+- **Column Selection**: Users can choose which columns to export
+- **Pagination-Aware**: Automatically adapts to client-side vs server-side pagination
+- **Exact Data Match**: Exported values match exactly what's displayed in the table
+
+</details>
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **TableExportModal**: Configuration modal for selecting columns and export scope
+- **Export Button**: New "Export" button in table headers with download icon
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- Added `exportable` prop to `ReusableTable` (default `true`)
+- Implemented CSV generation using `papaparse` with dynamic import
+- Export uses column `render` functions to extract displayed text values
+- Server-side pagination tables restricted to current page export only
+
+</details>
+
+<details>
+<summary><strong>Files Created (1)</strong></summary>
+
+- `components/shared/table/TableExportModal.tsx`
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `components/shared/table/ReusableTable.tsx`
+
+</details>
+
+---
+
+## Version 1.9.0
+**Released:** December 02, 2025
+
+### Bulk Device Claiming & Batch Export
+
+Introduced a streamlined bulk device claiming workflow with file upload support and added batch device export functionality.
+
+<details>
+<summary><strong>Improvements (5)</strong></summary>
+
+- **Streamlined Claim Flow**: New card-based selection for Single vs Bulk claiming
+- **Direct QR Access**: Single device claim now goes directly to QR scan
+- **Bulk File Upload**: Dedicated dropzone for CSV/XLSX upload in bulk claim
+- **Batch Export**: Export batch device lists to CSV or XLSX
+- **Client-Side Summaries**: Improved performance for bulk claim results
+
+</details>
+
+<details>
+<summary><strong>Features Added (3)</strong></summary>
+
+- **Bulk Claiming**: Support for claiming multiple devices via file upload or manual entry
+- **ExportFormatModal**: Modal for choosing export format
+- **FileUploadParser**: Reusable component for parsing device files with dropzone support
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Refactored `claim-device-modal.tsx` navigation state
+- Updated `useBulkClaimDevices` to handle new API response structure
+- Implemented `papaparse` and `xlsx` for file handling
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `components/features/claim/claim-device-modal.tsx`
+- `components/features/claim/FileUploadParser.tsx`
+- `app/(authenticated)/admin/shipping/[batchId]/page.tsx`
+- `core/hooks/useDevices.ts`
+- `app/types/devices.ts`
+
+</details>
+
+---
+
 ## Version 1.8.0
 **Released:** November 30, 2025
 
