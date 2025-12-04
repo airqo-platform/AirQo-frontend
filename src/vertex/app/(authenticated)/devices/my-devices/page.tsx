@@ -2,32 +2,50 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AqCollocation, AqDotsHorizontal, AqPlus } from "@airqo/icons-react";
+import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useMyDevices } from "@/core/hooks/useDevices";
+import { useMyDevices, useDevices } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
+import { useUserContext } from "@/core/hooks/useUserContext";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
+import { OrphanedDevicesAlert } from "@/components/features/devices/orphaned-devices-alert";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 const MyDevicesPage = () => {
   const router = useRouter();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
+  const { isPersonalContext, isExternalOrg } = useUserContext();
+
   const {
-    data: devicesData,
-    isLoading,
-    error,
-  } = useMyDevices(userDetails?._id || "", activeGroup?._id);
+    data: myDevicesData,
+    isLoading: isLoadingMyDevices,
+    error: myDevicesError,
+  } = useMyDevices(userDetails?._id || "", activeGroup?._id, {
+    enabled: isPersonalContext,
+  });
+
+  const {
+    devices: orgDevices,
+    isLoading: isLoadingOrgDevices,
+    error: orgDevicesError,
+  } = useDevices({
+    enabled: isExternalOrg,
+  });
+
+  const devices = isPersonalContext
+    ? myDevicesData?.devices || []
+    : isExternalOrg
+      ? orgDevices
+      : [];
+  const isLoading = isPersonalContext ? isLoadingMyDevices : isLoadingOrgDevices;
+  const error = isPersonalContext ? myDevicesError : orgDevicesError;
 
   if (error) {
     return (
@@ -65,16 +83,9 @@ const MyDevicesPage = () => {
                   contact support if the problem persists.
                 </p>
                 <div className="flex gap-2 justify-center">
-                  <Button onClick={() => window.location.reload()}>
+                  <ReusableButton onClick={() => window.location.reload()}>
                     Retry
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push("/devices/claim")}
-                  >
-                    <AqPlus className="mr-2 h-4 w-4" />
-                    Claim Device
-                  </Button>
+                  </ReusableButton>
                 </div>
               </div>
             </CardContent>
@@ -96,37 +107,39 @@ const MyDevicesPage = () => {
             </p>
           </div>
           <div className="flex gap-2 items-center">
-<Button
-            onClick={() => router.push("/devices/claim")}
-            disabled={isLoading}
-          >
-            <AqPlus className="mr-2 h-4 w-4" />
-            Claim Device
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" disabled={isLoading}>
-                <AqDotsHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setShowAssignmentModal(true)}>
-                Share Device
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <Button
+              onClick={() => router.push("/devices/claim")}
+              disabled={isLoading}
+            >
+              <AqPlus className="mr-2 h-4 w-4" />
+              Claim Device
+            </Button>
+            {/* <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={isLoading}>
+                  <AqDotsHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setShowAssignmentModal(true)}>
+                  Share Device
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu> */}
           </div>
         </div>
 
+        {userDetails?._id && <OrphanedDevicesAlert userId={userDetails._id} />}
+
         <ClientPaginatedDevicesTable
-          devices={devicesData?.devices || []}
+          devices={devices}
           isLoading={isLoading}
           error={error}
         />
 
         {/* Device Assignment Modal */}
         <DeviceAssignmentModal
-          devices={devicesData?.devices || []}
+          devices={devices}
           isLoadingDevices={isLoading}
           isOpen={showAssignmentModal}
           onClose={() => {

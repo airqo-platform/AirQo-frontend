@@ -128,11 +128,7 @@ export default async function RootLayout({
 }: {
   children: ReactNode;
 }) {
-  const GA_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
-  const ENABLE_GA =
-    process.env.NODE_ENV === 'production' &&
-    // process.env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true' &&
-    !!GA_ID;
+  const GA_ID = 'G-79ZVCLEDSG';
   const rawSiteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://airqo.net/';
   const siteUrl = rawSiteUrl.replace(/\/$/, '') + '/';
 
@@ -207,24 +203,18 @@ export default async function RootLayout({
           {JSON.stringify(structuredData)}
         </Script>
 
-        {/* GA snippet is conditionally loaded based on user consent */}
-        {/* Actual loading is handled by GoogleAnalytics component in body */}
-        {ENABLE_GA && (
-          <>
-            <Script
-              src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-              strategy="afterInteractive"
-            />
-            <Script id="ga-init" strategy="afterInteractive">
-              {`
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){ dataLayer.push(arguments); }
-                gtag('js', new Date());
-                // GA config is called by GoogleAnalytics component after consent
-              `}
-            </Script>
-          </>
-        )}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){ dataLayer.push(arguments); }
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
+          `}
+        </Script>
       </head>
       <body>
         <ExternalLinkDecorator />

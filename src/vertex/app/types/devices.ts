@@ -203,6 +203,7 @@ export interface DeviceClaimRequest {
   device_name: string;
   user_id: string;
   claim_token?: string;
+  cohort_id?: string;
 }
 
 export interface DeviceClaimResponse {
@@ -217,12 +218,46 @@ export interface DeviceClaimResponse {
   };
 }
 
+export interface BulkDeviceClaimItem {
+  device_name: string;
+  claim_token: string;
+}
+
+export interface BulkDeviceClaimRequest {
+  user_id: string;
+  devices: BulkDeviceClaimItem[];
+  cohort_id?: string;
+}
+
+export interface BulkDeviceClaimResult {
+  device_name: string;
+  success?: boolean;
+  device?: {
+    name: string;
+    long_name: string;
+    status: string;
+    claim_status: "claimed";
+    claimed_at: string;
+  };
+  error?: string;
+}
+
+export interface BulkDeviceClaimResponse {
+  success?: boolean;
+  message: string;
+  data: {
+    successful_claims: BulkDeviceClaimResult[];
+    failed_claims: BulkDeviceClaimResult[];
+  };
+}
+
 export interface MyDevicesResponse {
   success: boolean;
   message: string;
   devices: Device[];
   total_devices: number;
   deployed_devices: number;
+  deployed_devices_count?: number;
 }
 
 export interface DeviceAssignmentRequest {
@@ -276,4 +311,151 @@ export interface DecryptionResponse {
   success: boolean;
   message: string;
   decrypted_keys: DecryptedKeyResult[];
+}
+
+export interface DevicePreparation {
+  device_name: string;
+  claim_token: string;
+  token_type: string;
+  qr_code_data: {
+    device_id: string;
+    claim_url: string;
+    platform: string;
+    token: string;
+    generated_at: string;
+  };
+  qr_code_image: string;
+  label_data: {
+    device_name: string;
+    device_id: string;
+    claim_token: string;
+    instructions: string[];
+  };
+  shipping_prepared_at: string;
+}
+
+export interface PrepareDeviceResponse {
+  success: boolean;
+  message: string;
+  device_preparation: DevicePreparation;
+}
+
+export interface BulkPreparationResult {
+  device_name: string;
+  claim_token: string;
+  qr_code_data: unknown;
+  qr_code_image: string;
+}
+
+export interface BulkPreparationFailure {
+  device_name: string;
+  error: string;
+}
+
+export interface BulkPrepareResponse {
+  success: boolean;
+  message: string;
+  bulk_preparation_results: {
+    successful_preparations: BulkPreparationResult[];
+    failed_preparations: BulkPreparationFailure[];
+    summary: {
+      total_requested: number;
+      successful_count: number;
+      failed_count: number;
+    };
+  };
+}
+
+export interface ShippingLabel {
+  device_name: string;
+  device_id: string;
+  device_long_name: string;
+  claim_token: string;
+  qr_code_image: string;
+  qr_code_data: unknown;
+  instructions: string[];
+}
+
+export interface GenerateLabelsResponse {
+  success: boolean;
+  message: string;
+  shipping_labels: {
+    labels: ShippingLabel[];
+    total_labels: number;
+  };
+}
+
+export interface ShippingStatusDevice {
+  id?: string;
+  _id?: string;
+  name: string;
+  long_name: string;
+  claim_status: string;
+  claim_token: string | null;
+  shipping_prepared_at: string;
+  owner_id: string;
+  claimed_at: string;
+}
+
+export interface ShippingStatusResponse {
+  success: boolean;
+  message: string;
+  shipping_status: {
+    devices: ShippingStatusDevice[];
+    summary: {
+      total_devices: number;
+      prepared_for_shipping: number;
+      claimed_devices: number;
+      deployed_devices: number;
+    };
+    categorized: {
+      prepared_for_shipping: unknown[];
+      claimed_devices: unknown[];
+      deployed_devices: unknown[];
+    };
+  };
+}
+
+export interface OrphanedDevice {
+  _id: string;
+  name: string;
+  long_name: string;
+  status: string;
+  isActive: boolean;
+  claim_status: string;
+  owner_id: string;
+  cohort_ids: string[];
+  claimed_at: string;
+}
+
+export interface OrphanedDevicesResponse {
+  success: boolean;
+  message: string;
+  devices: OrphanedDevice[];
+  total_orphaned: number;
+  recommendation: string;
+}
+
+export interface ShippingBatch {
+  _id: string;
+  batch_name: string;
+  device_count: number;
+  device_names: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShippingBatchesResponse {
+  success: boolean;
+  message: string;
+  batches: ShippingBatch[];
+  meta: PaginationMeta;
+}
+
+export interface ShippingBatchDetailsResponse {
+  success: boolean;
+  message: string;
+  batch: ShippingBatch & {
+    devices: ShippingStatusDevice[];
+  };
 }
