@@ -98,6 +98,14 @@ export interface ColumnMapping {
   channel?: string
 }
 
+export interface AirQloudPerformanceData {
+  id: string
+  name: string
+  freq: number[]
+  error_margin: number[]
+  timestamp: string[]
+}
+
 class AirQloudService {
   private baseUrl: string
 
@@ -290,6 +298,38 @@ class AirQloudService {
       return data
     } catch (error) {
       console.error('Error creating AirQloud with devices:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get performance data for multiple AirQlouds
+   */
+  async getAirQloudPerformance(params: {
+    start: string
+    end: string
+    ids: string[]
+  }): Promise<AirQloudPerformanceData[]> {
+    const url = `${this.baseUrl}/performance/airqloud`
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(params),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error fetching AirQloud performance:', error)
       throw error
     }
   }

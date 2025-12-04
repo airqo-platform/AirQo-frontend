@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Upload, FileText } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Plus, FileText } from "lucide-react"
 import AnalyticsFilters, { FilterState } from "./analytics-filters"
 import AirQloudsTable from "./airqlouds-table"
 import { Button } from "@/components/ui/button"
@@ -18,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/components/ui/use-toast"
 import { airQloudService, ColumnMapping } from "@/services/airqloud.service"
+import { deviceApiService } from "@/services/device-api.service"
 import { Switch } from "@/components/ui/switch"
 import {
   Select,
@@ -31,6 +33,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 export default function AnalyticsPage() {
   const { toast } = useToast()
+  const router = useRouter()
   const [filters, setFilters] = useState<FilterState>({
     filterType: "airqlouds",
     selectedItems: [],
@@ -40,12 +43,15 @@ export default function AnalyticsPage() {
     },
     includeTime: false,
   })
+  const [isAnalysing, setIsAnalysing] = useState(false)
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [includeDevices, setIncludeDevices] = useState(false)
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [csvColumns, setCsvColumns] = useState<string[]>([])
+  const [csvDeviceCount, setCsvDeviceCount] = useState<number>(0)
   const [columnMappings, setColumnMappings] = useState<ColumnMapping>({})
+  const [refreshKey, setRefreshKey] = useState(0)
   const [formData, setFormData] = useState({
     name: "",
     country: "",
@@ -57,18 +63,91 @@ export default function AnalyticsPage() {
     console.log("Filters changed:", newFilters)
   }
 
+  const handleAnalyse = async (filterState: FilterState) => {
+    if (!filterState.dateRange.from || !filterState.dateRange.to) {
+      toast({
+        title: "Date Range Required",
+        description: "Please select a date range for the analysis.",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (filterState.selectedItems.length === 0) {
+      toast({
+        title: "No Items Selected",
+        description: `Please select at least one ${filterState.filterType === 'airqlouds' ? 'AirQloud' : 'Device'} to analyse.`,
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsAnalysing(true)
+
+    try {
+      // Format dates to ISO strings with time
+      const startDate = new Date(filterState.dateRange.from)
+      startDate.setHours(0, 0, 0, 0)
+      const endDate = new Date(filterState.dateRange.to)
+      endDate.setHours(23, 59, 59, 999)
+
+      let response
+      
+      if (filterState.filterType === "airqlouds") {
+        response = await airQloudService.getAirQloudPerformance({
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          ids: filterState.selectedItems,
+        })
+      } else {
+        // Device analysis
+        response = await deviceApiService.getDevicePerformanceData({
+          start: startDate.toISOString(),
+          end: endDate.toISOString(),
+          ids: filterState.selectedItems,
+        })
+      }
+
+      // Store the data in sessionStorage and navigate to analysis page
+      sessionStorage.setItem('analysisData', JSON.stringify(response))
+      sessionStorage.setItem('analysisDateRange', JSON.stringify({
+        from: startDate.toISOString(),
+        to: endDate.toISOString(),
+      }))
+      sessionStorage.setItem('analysisType', filterState.filterType)
+      
+      router.push('/dashboard/analytics/analysis')
+    } catch (error) {
+      toast({
+        title: "Analysis Failed",
+        description: error instanceof Error ? error.message : "Failed to fetch analysis data",
+        variant: "destructive",
+      })
+    } finally {
+      setIsAnalysing(false)
+    }
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setCsvFile(file)
-      // Parse CSV to get column headers
+      // Parse CSV to get column headers and count devices
       const reader = new FileReader()
       reader.onload = (event) => {
         const text = event.target?.result as string
-        const lines = text.split('\n')
+        const lines = text.split('\n').filter(line => line.trim().length > 0)
         if (lines.length > 0) {
-          const headers = lines[0].split(',').map(h => h.trim())
+          // Filter out empty column names and ensure uniqueness
+          const headers = lines[0]
+            .split(',')
+            .map(h => h.trim())
+            .filter(h => h.length > 0) // Remove empty strings
+            .filter((h, index, self) => self.indexOf(h) === index) // Remove duplicates
           setCsvColumns(headers)
+          // Count devices (excluding header row)
+          const deviceCount = lines.length - 1
+          setCsvDeviceCount(deviceCount)
         }
       }
       reader.readAsText(file)
@@ -86,6 +165,7 @@ export default function AnalyticsPage() {
     setFormData({ name: "", country: "" })
     setCsvFile(null)
     setCsvColumns([])
+    setCsvDeviceCount(0)
     setColumnMappings({})
     setIncludeDevices(false)
   }
@@ -93,6 +173,9 @@ export default function AnalyticsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    
+    // Close dialog immediately when submit is clicked
+    setOpen(false)
 
     try {
       if (includeDevices && csvFile) {
@@ -135,11 +218,10 @@ export default function AnalyticsPage() {
         })
       }
 
-      setOpen(false)
       resetForm()
 
-      // Optionally refresh the table here
-      window.location.reload()
+      // Trigger table refresh without full page reload
+      setRefreshKey(prev => prev + 1)
     } catch (error) {
       toast({
         title: "Error",
@@ -248,6 +330,13 @@ export default function AnalyticsPage() {
                       <p className="text-xs text-muted-foreground">
                         Upload a CSV file containing device information
                       </p>
+                      {csvDeviceCount > 0 && (
+                        <div className="mt-2 p-2 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-md">
+                          <p className="text-sm text-green-700 dark:text-green-300 font-medium">
+                            📊 {csvDeviceCount} device{csvDeviceCount !== 1 ? 's' : ''} found in CSV
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Column Mappings */}
@@ -373,10 +462,14 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Filters Component */}
-      <AnalyticsFilters onFilterChange={handleFilterChange} />
+      <AnalyticsFilters 
+        onFilterChange={handleFilterChange} 
+        onAnalyse={handleAnalyse}
+        isAnalysing={isAnalysing}
+      />
 
       {/* AirQlouds Table Component */}
-      <AirQloudsTable />
+      <AirQloudsTable key={refreshKey} />
     </div>
   )
 }

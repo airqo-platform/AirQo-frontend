@@ -4,8 +4,8 @@ import { useEffect, useState } from "react"
 import type React from "react"
 import { useRouter } from "next/navigation"
 import authService from "@/services/api-service"
-import TopNav from "@/components/dashboard/TopNav"
-import Sidebar from "@/components/dashboard/Sidebar"
+import TopNav from "@/components/dashboard/top-nav"
+import Sidebar from "@/components/dashboard/sidebar"
 
 type User = {
   id?: number

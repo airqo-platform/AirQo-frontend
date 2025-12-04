@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { config } from '@/lib/config';
 import { 
   ItemsStock,
   ItemsStockCreate,
@@ -14,11 +15,11 @@ import {
 } from '@/types/stock.types';
 
 class StockService {
-  private baseUrl: string;
+  private readonly baseUrl: string;
 
   constructor() {
-    // Use the beacon API base URL from environment or default
-    this.baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    // Use centralized config for API URL
+    this.baseUrl = config.beaconApiUrl;
   }
 
   /**

@@ -19,11 +19,11 @@ import {
 } from '@/types/api.types'
 
 class ApiService {
-  private baseUrl: string
-  private defaultHeaders: HeadersInit
-  private maxRetries: number = 3
-  private retryDelay: number = 1000
-  private apiPrefix: string
+  private readonly baseUrl: string
+  private readonly defaultHeaders: HeadersInit
+  private readonly maxRetries: number = 3
+  private readonly retryDelay: number = 1000
+  private readonly apiPrefix: string
 
   constructor() {
     this.baseUrl = config.apiUrl

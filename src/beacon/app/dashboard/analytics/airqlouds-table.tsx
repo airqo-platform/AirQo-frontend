@@ -352,52 +352,65 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedData.map((airqloud) => (
-                  <TableRow 
-                    key={airqloud.id}
-                    className="cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => handleRowClick(airqloud.id)}
-                  >
-                    <TableCell>
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium">{airqloud.name}</div>
-                          {airqloud.location && (
-                            <div className="text-sm text-muted-foreground">{airqloud.location}</div>
-                          )}
+                {sortedData.map((airqloud) => {
+                  const isDataLoading = airqloud.uptime === null && airqloud.errorMargin === null
+                  
+                  return (
+                    <TableRow 
+                      key={airqloud.id}
+                      className={isDataLoading 
+                        ? "opacity-60" 
+                        : "cursor-pointer hover:bg-muted/50 transition-colors"
+                      }
+                      onClick={isDataLoading ? undefined : () => handleRowClick(airqloud.id)}
+                    >
+                      <TableCell>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium">{airqloud.name}</div>
+                            {airqloud.location && (
+                              <div className="text-sm text-muted-foreground">{airqloud.location}</div>
+                            )}
+                          </div>
+                          {!isDataLoading && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                         </div>
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <UptimeMiniGraph 
-                        uptimeHistory={airqloud.uptimeHistory} 
-                        averageUptime={airqloud.uptime} 
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      {airqloud.errorMargin !== null ? (
-                        <span
-                          className={`font-medium ${
-                            airqloud.errorMargin <= 3
-                              ? "text-green-600"
-                              : airqloud.errorMargin <= 5
-                              ? "text-yellow-600"
-                              : "text-red-600"
-                          }`}
-                        >
-                          ±{airqloud.errorMargin.toFixed(1)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">N/A</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(airqloud.isActive)}</TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>
+                        {isDataLoading ? (
+                          <span className="text-muted-foreground italic">Data loading...</span>
+                        ) : (
+                          <UptimeMiniGraph 
+                            uptimeHistory={airqloud.uptimeHistory} 
+                            averageUptime={airqloud.uptime} 
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {isDataLoading ? (
+                          <span className="text-muted-foreground italic">Data loading...</span>
+                        ) : airqloud.errorMargin !== null ? (
+                          <span
+                            className={`font-medium ${
+                              airqloud.errorMargin <= 3
+                                ? "text-green-600"
+                                : airqloud.errorMargin <= 5
+                                ? "text-yellow-600"
+                                : "text-red-600"
+                            }`}
+                          >
+                            ±{airqloud.errorMargin.toFixed(1)}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">N/A</span>
+                        )}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(airqloud.isActive)}</TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           </div>

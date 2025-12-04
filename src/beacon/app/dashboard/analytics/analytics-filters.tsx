@@ -19,6 +19,8 @@ import type { Device } from "@/types/api.types"
 
 interface AnalyticsFiltersProps {
   onFilterChange?: (filters: FilterState) => void
+  onAnalyse?: (filters: FilterState) => void
+  isAnalysing?: boolean
 }
 
 export interface FilterState {
@@ -40,7 +42,7 @@ interface SelectedItem {
   name: string
 }
 
-export default function AnalyticsFilters({ onFilterChange }: AnalyticsFiltersProps) {
+export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
   const [filterType, setFilterType] = useState<"airqlouds" | "devices">("airqlouds")
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [selectedItemsMap, setSelectedItemsMap] = useState<Map<string, SelectedItem>>(new Map())
@@ -519,8 +521,25 @@ export default function AnalyticsFilters({ onFilterChange }: AnalyticsFiltersPro
             </div>
           </div>
         </div>
-        <Button className="w-full mt-6">
-          Analyse
+        <Button 
+          className="w-full mt-6"
+          onClick={() => onAnalyse?.({
+            filterType,
+            selectedItems,
+            dateRange,
+            timeRange: includeTime ? timeRange : undefined,
+            includeTime,
+          })}
+          disabled={isAnalysing || selectedItems.length === 0}
+        >
+          {isAnalysing ? (
+            <>
+              <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Analysing...
+            </>
+          ) : (
+            'Analyse'
+          )}
         </Button>
       </CardContent>
     </Card>

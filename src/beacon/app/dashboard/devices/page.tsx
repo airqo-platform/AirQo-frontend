@@ -43,7 +43,7 @@ import { config } from "@/lib/config"
 import { getDeviceStatsForUI, getDevicesForUIPaginated } from "@/services/device-api.service"
 import type { UIDeviceCounts, UIDevice } from "@/types/api.types"
 import DynamicImportWrapper from "@/components/dynamic-import-wrapper"
-import UpdateDeviceDialog from "@/components/dashboard/UpdateDeviceDialog"
+import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 
 // Dynamically import the map component to avoid SSR issues with better error handling
 const AfricaMap = dynamic(

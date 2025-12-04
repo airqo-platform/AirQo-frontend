@@ -28,7 +28,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import AirQloudPerformanceTab from "./AirQloudPerformanceTab"
+import AirQloudPerformanceTab from "./airqloud-performance-tab"
 
 interface AirQloudDetailData {
   id: string
@@ -87,7 +87,7 @@ const processDevicePerformance = (device: AirQloudDetailData['device_performance
   })
   
   // Convert to arrays for history graphs
-  const dates = Object.keys(dailyData).sort().slice(-14) // Last 14 days
+  const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14) // Sort chronologically and take last 14 days
   
   const uptimeHistory = dates.map(date => ({
     value: (dailyData[date].hours / 24) * 100, // Percentage of 24 hours
@@ -258,7 +258,7 @@ export default function AirQloudDetailPage() {
       return <span className="text-muted-foreground">N/A</span>
     }
 
-    const values = uptimeHistory.slice(-14)
+    const values = uptimeHistory.slice(-14).reverse() // Reverse to show latest to oldest
     
     const getBarColor = (value: number) => {
       if (value >= 75) return "bg-green-500 hover:bg-green-600"
@@ -313,7 +313,7 @@ export default function AirQloudDetailPage() {
       return <span className="text-muted-foreground">N/A</span>
     }
 
-    const values = errorMarginHistory.slice(-14)
+    const values = errorMarginHistory.slice(-14).reverse() // Reverse to show latest to oldest
     const maxValue = Math.max(...values.map(v => v.value), 1)
     
     const getBarColor = (value: number) => {

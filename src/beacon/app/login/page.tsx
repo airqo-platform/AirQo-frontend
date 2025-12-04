@@ -15,7 +15,7 @@ import DynamicImportWrapper from "@/components/dynamic-import-wrapper"
 
 // Dynamically import the 3D component to avoid SSR issues with better error handling
 const DeviceModel3D = dynamic(
-  () => import("@/components/DeviceModel3D").catch((error) => {
+  () => import("@/components/device-model-3d").catch((error) => {
     console.error('Failed to load DeviceModel3D:', error)
     // Return a fallback component
     return {
@@ -93,7 +93,7 @@ export default function LoginPage() {
     } else {
       // Check if user is authenticated
       if (authService.isAuthenticated()) {
-        router.push("/dashboard")
+        router.push("/dashboard/devices")
       }
 
     }
@@ -164,7 +164,7 @@ export default function LoginPage() {
         setPassword("")
         
         // Redirect to dashboard
-        router.push("/dashboard")
+        router.push("/dashboard/devices")
         
         // Force refresh to ensure clean state
         router.refresh()

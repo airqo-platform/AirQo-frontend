@@ -19,12 +19,12 @@ import {
 import { config } from "@/lib/config"
 import authService from "@/services/api-service"
 import { useToast } from "@/hooks/use-toast"
-import UpdateDeviceDialog from "@/components/dashboard/UpdateDeviceDialog"
-import SensorDataTab from "./SensorDataTab"
-import MetadataTab from "./MetadataTab"
-import ConfigTab from "./ConfigTab"
-import PerformanceTab from "./PerformanceTab"
-import DeviceDetailsTab from "./DeviceDetailsTab"
+import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
+import SensorDataTab from "./sensor-data-tab"
+import MetadataTab from "./metadata-tab"
+import ConfigTab from "./config-tab"
+import PerformanceTab from "./performance-tab"
+import DeviceDetailsTab from "./device-details-tab"
 
 // Define interfaces for the device data
 interface DeviceMetadataEntry {

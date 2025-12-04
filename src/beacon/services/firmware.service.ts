@@ -4,6 +4,7 @@
  */
 
 import axios from 'axios';
+import { config } from '@/lib/config';
 import { 
   FirmwareVersion, 
   FirmwareUploadData, 
@@ -14,11 +15,11 @@ import {
 } from '@/types/firmware.types';
 
 class FirmwareService {
-  private baseUrl: string;
+  private readonly baseUrl: string;
 
   constructor() {
-    // Use the beacon API base URL from environment or default
-    this.baseUrl = process.env.NEXT_PUBLIC_LOCAL_API_URL || 'http://localhost:8000';
+    // Use centralized config for API URL
+    this.baseUrl = config.beaconApiUrl;
   }
 
   /**
@@ -145,14 +146,14 @@ class FirmwareService {
    * Helper function to trigger file download in browser
    */
   triggerDownload(blob: Blob, filename: string) {
-    const url = window.URL.createObjectURL(blob);
+    const url = globalThis.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    window.URL.revokeObjectURL(url);
+    link.remove();
+    globalThis.URL.revokeObjectURL(url);
   }
 
   /**
