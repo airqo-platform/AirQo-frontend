@@ -5,7 +5,11 @@ import { useSWRConfig } from 'swr';
 import { useDispatch } from 'react-redux';
 import { useUser } from '@/shared/hooks/useUser';
 import { userService } from '@/shared/services/userService';
-import { uploadToCloudinary } from '@/shared/utils/cloudinaryUpload';
+import {
+  uploadToCloudinary,
+  deleteFromCloudinary,
+  extractPublicIdFromUrl,
+} from '@/shared/utils/cloudinaryUpload';
 import { LoadingSpinner } from '@/shared/components/ui';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -118,6 +122,9 @@ const GroupDetailsSettings: React.FC = () => {
     try {
       let imageUrl = formData.grp_image;
 
+      // Handle group logo changes - delete old image when uploading a new one
+      const oldImageUrl = groupDetails?.grp_image;
+
       if (selectedImage) {
         // Validate file size (max 5MB)
         const maxSize = 5 * 1024 * 1024; // 5MB in bytes
@@ -125,6 +132,22 @@ const GroupDetailsSettings: React.FC = () => {
           toast.error('File size exceeds 5MB limit');
           setIsSaving(false);
           return;
+        }
+
+        // Delete old logo from Cloudinary if it exists
+        if (oldImageUrl) {
+          const oldPublicId = extractPublicIdFromUrl(oldImageUrl);
+          if (oldPublicId) {
+            try {
+              await deleteFromCloudinary(oldPublicId);
+            } catch (deleteError) {
+              console.warn(
+                'Failed to delete old group logo from Cloudinary:',
+                deleteError
+              );
+              // Don't block the update if deletion fails
+            }
+          }
         }
 
         const uploadResult = await uploadToCloudinary(selectedImage, {
