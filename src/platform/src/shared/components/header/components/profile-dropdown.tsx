@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { AqUser03 } from '@airqo/icons-react';
 import {
   Avatar,
@@ -21,10 +22,25 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
   const { data: session } = useSession();
   const { user, isLoggingOut } = useUser();
   const logout = useLogout();
+  const pathname = usePathname();
 
   const handleSignOut = async () => {
     await logout();
   };
+
+  // Determine profile route based on current path
+  // If user is in organization flow (/org/[slug]/...), route to org profile
+  // Otherwise, route to individual user profile
+  const profileRoute = React.useMemo(() => {
+    if (pathname?.startsWith('/org/')) {
+      // Extract org slug from pathname like /org/my-organization/dashboard
+      const matches = pathname.match(/^\/org\/([^\/]+)/);
+      if (matches && matches[1]) {
+        return `/org/${matches[1]}/profile`;
+      }
+    }
+    return '/user/profile';
+  }, [pathname]);
 
   // Use user data from useUser hook, fallback to session for name/email if needed
   const displayName = user
@@ -66,7 +82,7 @@ export const ProfileDropdown: React.FC<ProfileDropdownProps> = ({
           </div>
 
           <Link
-            href="/user/profile"
+            href={profileRoute}
             className="flex items-center gap-3 text-muted-foreground rounded-md px-2 py-2 text-sm hover:bg-accent transition-colors"
           >
             <AqUser03 className="h-5 w-5 flex-shrink-0" />
