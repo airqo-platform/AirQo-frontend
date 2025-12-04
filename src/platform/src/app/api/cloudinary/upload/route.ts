@@ -133,9 +133,9 @@ export async function POST(request: NextRequest) {
       });
 
       return NextResponse.json(result);
-    } catch (fetchError: any) {
+    } catch (fetchError: unknown) {
       clearTimeout(timeoutId);
-      if (fetchError.name === 'AbortError') {
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
         console.error('❌ Upload timeout after 30 seconds');
         return NextResponse.json(
           { error: 'Upload timeout. Please try again.' },
@@ -144,10 +144,10 @@ export async function POST(request: NextRequest) {
       }
       throw fetchError;
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('❌ Cloudinary upload error:', {
-      message: error?.message,
-      stack: error?.stack,
+      message: (error as Error)?.message,
+      stack: (error as Error)?.stack,
       error,
     });
     return NextResponse.json(

@@ -1,4 +1,17 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
+import logger from '@/shared/lib/logger';
+
+// Extended type for config with metadata
+interface RequestConfigWithMetadata extends InternalAxiosRequestConfig {
+  metadata?: {
+    startTime: number;
+  };
+}
 
 // Auth types
 export enum AuthType {
@@ -55,6 +68,21 @@ export class ApiClient {
     // Request interceptor to add auth headers
     this.client.interceptors.request.use(
       async config => {
+        // Add metadata for timing
+        (config as RequestConfigWithMetadata).metadata = {
+          startTime: Date.now(),
+        };
+
+        // Log outgoing requests at debug level
+        logger.debug('API Request', {
+          method: config.method?.toUpperCase(),
+          url: config.url,
+          baseURL: config.baseURL,
+          timeout: config.timeout,
+          hasData: !!config.data,
+          dataSize: config.data ? JSON.stringify(config.data).length : 0,
+        });
+
         if (this.authType === AuthType.JWT) {
           // JWT tokens are set via setAuthToken() method
           // The Authorization header should already be set on the client defaults
@@ -63,17 +91,50 @@ export class ApiClient {
         }
         return config;
       },
-      error => Promise.reject(error)
+      error => {
+        logger.error('API Request failed to send', error);
+        return Promise.reject(error);
+      }
     );
 
     // Response interceptor for error handling
     this.client.interceptors.response.use(
-      response => response,
+      response => {
+        // Log successful responses at debug level
+        logger.debug('API Response Success', {
+          method: response.config.method?.toUpperCase(),
+          url: response.config.url,
+          status: response.status,
+          statusText: response.statusText,
+          duration:
+            Date.now() -
+            ((response.config as RequestConfigWithMetadata).metadata
+              ?.startTime || Date.now()),
+          dataSize: JSON.stringify(response.data).length,
+        });
+
+        return response;
+      },
       error => {
-        // Handle common errors
+        // Log API errors with context
+        const errorContext = {
+          url: error.config?.url,
+          method: error.config?.method?.toUpperCase(),
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          baseURL: error.config?.baseURL,
+          timeout: error.config?.timeout,
+          data: error.config?.data
+            ? JSON.stringify(error.config.data).substring(0, 500)
+            : undefined,
+        };
+
         if (error.response?.status === 401) {
           // Handle unauthorized - check if it's session expiry vs permissions
-          console.error('Unauthorized access - checking session validity');
+          logger.warn('Unauthorized API access', {
+            ...errorContext,
+            message: 'Session may have expired or insufficient permissions',
+          });
 
           // Dispatch event with error details for smart handling
           if (typeof window !== 'undefined') {
@@ -87,7 +148,56 @@ export class ApiClient {
               })
             );
           }
+        } else if (error.response?.status >= 500) {
+          // Server errors - critical
+          const apiError = new Error(
+            `API Server Error: ${error.response.status} ${error.response.statusText}`
+          );
+          apiError.name = 'APIServerError';
+          logger.critical('API server error occurred', apiError, {
+            ...errorContext,
+            responseData: error.response.data,
+          });
+        } else if (error.response?.status >= 400) {
+          // Client errors - log as error but not critical
+          const apiError = new Error(
+            `API Client Error: ${error.response.status} ${error.response.statusText}`
+          );
+          apiError.name = 'APIClientError';
+          logger.errorWithSlack('API client error occurred', apiError, {
+            ...errorContext,
+            responseData: error.response.data,
+          });
+        } else if (
+          error.code === 'ECONNABORTED' ||
+          error.message?.includes('timeout')
+        ) {
+          // Timeout errors
+          const timeoutError = new Error(
+            `API request timeout: ${error.config?.timeout}ms`
+          );
+          timeoutError.name = 'APITimeoutError';
+          logger.errorWithSlack(
+            'API request timed out',
+            timeoutError,
+            errorContext
+          );
+        } else if (!error.response) {
+          // Network errors
+          const networkError = new Error(`Network error: ${error.message}`);
+          networkError.name = 'APINetworkError';
+          logger.errorWithSlack(
+            'API network error occurred',
+            networkError,
+            errorContext
+          );
+        } else {
+          // Other errors
+          const otherError = new Error(`API error: ${error.message}`);
+          otherError.name = 'APIError';
+          logger.errorWithSlack('API error occurred', otherError, errorContext);
         }
+
         return Promise.reject(error);
       }
     );
