@@ -120,7 +120,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
               )}
             </Link>
           </li>
-          <li>
+          {/* <li>
             <Link
               href="/dashboard/category"
               className={`flex items-center rounded-md hover:bg-gray-100 transition-colors group relative ${
@@ -136,7 +136,7 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
                 </span>
               )}
             </Link>
-          </li>
+          </li> */}
           <li>
             <Link
               href="/dashboard/stock"

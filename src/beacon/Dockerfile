@@ -1,5 +1,5 @@
 # Use Node.js Alpine image for smaller size
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Install dependencies needed for node-gyp
 RUN apk add --no-cache libc6-compat
