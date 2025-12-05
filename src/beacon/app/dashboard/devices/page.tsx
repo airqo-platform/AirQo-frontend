@@ -617,8 +617,17 @@ export default function DevicesPage() {
                         return (
                           <tr 
                             key={device.device_id} 
-                            className="border-b hover:bg-gray-50 transition-colors cursor-pointer"
+                            className="border-b hover:bg-gray-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset"
                             onClick={() => handleRowClick(device.device_id)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                handleRowClick(device.device_id)
+                              }
+                            }}
+                            tabIndex={0}
+                            role="button"
+                            aria-label={`View details for device ${device.device_name || device.device_id}`}
                           >
                             <td className="py-3 px-4">
                               <div className="flex items-center gap-2" title={statusInfo.text}>

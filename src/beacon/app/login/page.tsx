@@ -66,7 +66,6 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
-  const [rememberMe, setRememberMe] = useState<boolean>(false)
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [pageReady, setPageReady] = useState<boolean>(false)
   
@@ -156,16 +155,8 @@ export default function LoginPage() {
       if (response?.token || response?.success) {
         // Set authentication cookie for middleware
         if (response.token) {
-          // Set cookie with appropriate expiry based on remember me
-          const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60 // 30 days or 1 day
+          const maxAge = 24 * 60 * 60 // 1 day
           document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Strict`
-          
-          // Store remember me preference
-          if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true')
-          } else {
-            sessionStorage.setItem('rememberMe', 'false')
-          }
         }
         
         // Clear form
