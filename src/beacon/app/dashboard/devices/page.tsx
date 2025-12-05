@@ -13,36 +13,24 @@ import {
 } from "@/components/ui/tooltip"
 import {
   Search,
-  Filter,
   MapPin,
   Wifi,
   WifiOff,
-  AlertTriangle,
   BarChart3,
-  Plus,
-  ArrowRight,
   RefreshCw,
   AlertCircle,
-  Clock,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
   Map,
   Activity,
   Package,
   List
 } from "lucide-react"
-import Link from "next/link"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
 import { Pagination } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
 import dynamic from "next/dynamic"
-import { config } from "@/lib/config"
 import { getDeviceStatsForUI, getDevicesForUIPaginated } from "@/services/device-api.service"
 import type { UIDeviceCounts, UIDevice } from "@/types/api.types"
-import DynamicImportWrapper from "@/components/dynamic-import-wrapper"
 import UpdateDeviceDialog from "@/components/dashboard/update-device-dialog"
 
 // Dynamically import the map component to avoid SSR issues with better error handling
@@ -57,7 +45,7 @@ const AfricaMap = dynamic(
             <MapPin className="h-10 w-10 text-red-400 mx-auto mb-2" />
             <p className="text-red-600 text-sm">Africa map failed to load</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={() => globalThis.location.reload()}
               className="mt-2 px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
             >
               Retry
@@ -237,6 +225,27 @@ export default function DevicesPage() {
       return (a.device_name || "").localeCompare(b.device_name || "");
     });
   }, [devices]);
+
+  // Memoize map device data to avoid re-filtering/mapping on every render
+  const mapDevices = useMemo(() => {
+    return devices
+      .filter((device) => 
+        device.latitude != null && 
+        device.longitude != null &&
+        !Number.isNaN(device.latitude) &&
+        !Number.isNaN(device.longitude)
+      )
+      .map((device) => ({
+        id: device.device_id,
+        name: device.device_name,
+        status: device.status ?? (device.is_online ? "online" : "offline"),
+        lat: device.latitude,
+        lng: device.longitude,
+        pm2_5: device.pm2_5,
+        pm10: device.pm10,
+        reading_timestamp: device.reading_timestamp,
+      }))
+  }, [devices])
   
   // Display current items (no need for slicing since backend handles pagination)
   const currentItems = sortedDevices;
@@ -718,7 +727,7 @@ export default function DevicesPage() {
           {viewMode === "map" && showMap && (
             <div className="h-[700px] w-full">
               <AfricaMap
-                devices={[]}
+                devices={mapDevices}
                 onDeviceSelect={handleDeviceSelect}
                 selectedDeviceId={selectedDeviceId || undefined}
               />

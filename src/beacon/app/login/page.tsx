@@ -11,7 +11,6 @@ import { Loader2, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import authService from "@/services/api-service"
 import dynamic from "next/dynamic"
-import DynamicImportWrapper from "@/components/dynamic-import-wrapper"
 
 // Dynamically import the 3D component to avoid SSR issues with better error handling
 const DeviceModel3D = dynamic(

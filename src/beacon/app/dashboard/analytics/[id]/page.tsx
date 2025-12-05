@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect, memo } from "react"
 import { useParams } from "next/navigation"
 import { ArrowLeft, Calendar, MapPin, Wifi, AlertTriangle } from "lucide-react"
 import Link from "next/link"
@@ -131,6 +131,118 @@ const formatChartData = (freq: number[], errorMargin: number[], timestamps: stri
   })).slice(-14) // Last 14 days
 }
 
+// Props interfaces for mini graph components
+interface UptimeMiniGraphProps {
+  uptimeHistory: Array<{ value: number; timestamp: string }>
+  averageUptime: number
+}
+
+interface ErrorMarginMiniGraphProps {
+  errorMarginHistory: Array<{ value: number; timestamp: string }>
+  averageErrorMargin: number
+}
+
+// Helper functions for bar colors
+const getUptimeBarColor = (value: number) => {
+  if (value >= 75) return "bg-green-500 hover:bg-green-600"
+  if (value >= 50) return "bg-orange-500 hover:bg-orange-600"
+  return "bg-red-500 hover:bg-red-600"
+}
+
+const getUptimeTooltipBgColor = (value: number) => {
+  if (value >= 75) return "bg-green-600 border-green-700"
+  if (value >= 50) return "bg-orange-600 border-orange-700"
+  return "bg-red-600 border-red-700"
+}
+
+const getErrorMarginBarColor = (value: number) => {
+  if (value <= 6) return "bg-green-500 hover:bg-green-600"
+  if (value <= 12) return "bg-orange-500 hover:bg-orange-600"
+  return "bg-red-500 hover:bg-red-600"
+}
+
+const getErrorMarginTooltipBgColor = (value: number) => {
+  if (value <= 6) return "bg-green-600 border-green-700"
+  if (value <= 12) return "bg-orange-600 border-orange-700"
+  return "bg-red-600 border-red-700"
+}
+
+const formatDateForTooltip = (timestamp: string) => {
+  const date = new Date(timestamp)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// Mini bar graph component for uptime history - moved outside render scope
+const UptimeMiniGraph = memo(function UptimeMiniGraph({ uptimeHistory, averageUptime }: UptimeMiniGraphProps) {
+  if (uptimeHistory.length === 0) {
+    return <span className="text-muted-foreground">N/A</span>
+  }
+
+  const values = uptimeHistory.slice(-14).reverse() // Reverse to show latest to oldest
+
+  return (
+    <TooltipProvider>
+      <div className="flex items-center gap-2">
+        <span className="font-medium min-w-[50px]">{averageUptime.toFixed(1)}%</span>
+        <div className="flex items-end gap-[2px] h-8">
+          {values.map((item, index) => (
+            <Tooltip key={index} delayDuration={100}>
+              <TooltipTrigger asChild>
+                <div
+                  className={`w-1.5 rounded-t-full ${getUptimeBarColor(item.value)} transition-all cursor-pointer`}
+                  style={{ height: `${Math.max(4, (item.value / 100) * 32)}px` }}
+                />
+              </TooltipTrigger>
+              <TooltipContent className={`${getUptimeTooltipBgColor(item.value)} text-white border`}>
+                <div className="text-xs font-medium">
+                  <div>{formatDateForTooltip(item.timestamp)}</div>
+                  <div>Uptime: {item.value.toFixed(1)}%</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </div>
+    </TooltipProvider>
+  )
+})
+
+// Mini bar graph component for error margin history - moved outside render scope
+const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHistory, averageErrorMargin }: ErrorMarginMiniGraphProps) {
+  if (errorMarginHistory.length === 0) {
+    return <span className="text-muted-foreground">N/A</span>
+  }
+
+  const values = errorMarginHistory.slice(-14).reverse() // Reverse to show latest to oldest
+  const maxValue = Math.max(...values.map(v => v.value), 1)
+
+  return (
+    <TooltipProvider>
+      <div className="flex items-center gap-2">
+        <span className="font-medium min-w-[50px]">±{averageErrorMargin.toFixed(1)}</span>
+        <div className="flex items-end gap-[2px] h-8">
+          {values.map((item, index) => (
+            <Tooltip key={index} delayDuration={100}>
+              <TooltipTrigger asChild>
+                <div
+                  className={`w-1.5 rounded-t-full ${getErrorMarginBarColor(item.value)} transition-all cursor-pointer`}
+                  style={{ height: `${Math.max(4, (item.value / maxValue) * 32)}px` }}
+                />
+              </TooltipTrigger>
+              <TooltipContent className={`${getErrorMarginTooltipBgColor(item.value)} text-white border`}>
+                <div className="text-xs font-medium">
+                  <div>{formatDateForTooltip(item.timestamp)}</div>
+                  <div>Error Margin: ±{item.value.toFixed(2)}</div>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </div>
+    </TooltipProvider>
+  )
+})
+
 export default function AirQloudDetailPage() {
   const params = useParams()
   const airqloudId = params?.id as string
@@ -247,117 +359,6 @@ export default function AirQloudDetailPage() {
       label: "Error Margin",
       color: "#ef4444",
     },
-  }
-
-  // Mini bar graph component for uptime history
-  const UptimeMiniGraph = ({ uptimeHistory, averageUptime }: { 
-    uptimeHistory: Array<{ value: number; timestamp: string }>, 
-    averageUptime: number 
-  }) => {
-    if (uptimeHistory.length === 0) {
-      return <span className="text-muted-foreground">N/A</span>
-    }
-
-    const values = uptimeHistory.slice(-14).reverse() // Reverse to show latest to oldest
-    
-    const getBarColor = (value: number) => {
-      if (value >= 75) return "bg-green-500 hover:bg-green-600"
-      if (value >= 50) return "bg-orange-500 hover:bg-orange-600"
-      return "bg-red-500 hover:bg-red-600"
-    }
-
-    const getTooltipBgColor = (value: number) => {
-      if (value >= 75) return "bg-green-600 border-green-700"
-      if (value >= 50) return "bg-orange-600 border-orange-700"
-      return "bg-red-600 border-red-700"
-    }
-
-    const formatDate = (timestamp: string) => {
-      const date = new Date(timestamp)
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    }
-
-    return (
-      <TooltipProvider>
-        <div className="flex items-center gap-2">
-          <span className="font-medium min-w-[50px]">{averageUptime.toFixed(1)}%</span>
-          <div className="flex items-end gap-[2px] h-8">
-            {values.map((item, index) => (
-              <Tooltip key={index} delayDuration={100}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`w-1.5 rounded-t-full ${getBarColor(item.value)} transition-all cursor-pointer`}
-                    style={{ height: `${Math.max(4, (item.value / 100) * 32)}px` }}
-                  />
-                </TooltipTrigger>
-                <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
-                  <div className="text-xs font-medium">
-                    <div>{formatDate(item.timestamp)}</div>
-                    <div>Uptime: {item.value.toFixed(1)}%</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-        </div>
-      </TooltipProvider>
-    )
-  }
-
-  // Mini bar graph component for error margin history
-  const ErrorMarginMiniGraph = ({ errorMarginHistory, averageErrorMargin }: { 
-    errorMarginHistory: Array<{ value: number; timestamp: string }>, 
-    averageErrorMargin: number 
-  }) => {
-    if (errorMarginHistory.length === 0) {
-      return <span className="text-muted-foreground">N/A</span>
-    }
-
-    const values = errorMarginHistory.slice(-14).reverse() // Reverse to show latest to oldest
-    const maxValue = Math.max(...values.map(v => v.value), 1)
-    
-    const getBarColor = (value: number) => {
-      if (value <= 6) return "bg-green-500 hover:bg-green-600"
-      if (value <= 12) return "bg-orange-500 hover:bg-orange-600"
-      return "bg-red-500 hover:bg-red-600"
-    }
-
-    const getTooltipBgColor = (value: number) => {
-      if (value <= 6) return "bg-green-600 border-green-700"
-      if (value <= 12) return "bg-orange-600 border-orange-700"
-      return "bg-red-600 border-red-700"
-    }
-
-    const formatDate = (timestamp: string) => {
-      const date = new Date(timestamp)
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    }
-
-    return (
-      <TooltipProvider>
-        <div className="flex items-center gap-2">
-          <span className="font-medium min-w-[50px]">±{averageErrorMargin.toFixed(1)}</span>
-          <div className="flex items-end gap-[2px] h-8">
-            {values.map((item, index) => (
-              <Tooltip key={index} delayDuration={100}>
-                <TooltipTrigger asChild>
-                  <div
-                    className={`w-1.5 rounded-t-full ${getBarColor(item.value)} transition-all cursor-pointer`}
-                    style={{ height: `${Math.max(4, (item.value / maxValue) * 32)}px` }}
-                  />
-                </TooltipTrigger>
-                <TooltipContent className={`${getTooltipBgColor(item.value)} text-white border`}>
-                  <div className="text-xs font-medium">
-                    <div>{formatDate(item.timestamp)}</div>
-                    <div>Error Margin: ±{item.value.toFixed(2)}</div>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            ))}
-          </div>
-        </div>
-      </TooltipProvider>
-    )
   }
 
   return (

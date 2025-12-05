@@ -12,7 +12,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies for build)
-RUN npm install --legacy-peer-deps
+RUN npm ci
 
 # Copy all files
 COPY . .
@@ -34,7 +34,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Install production dependencies only
 COPY package*.json ./
-RUN npm install --legacy-peer-deps --omit=dev && \
+RUN npm ci --only=production && \
     npm cache clean --force
 
 # Copy built application from builder

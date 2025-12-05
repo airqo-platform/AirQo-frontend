@@ -204,6 +204,7 @@ export default function UpdateDeviceDialog({
         const selectedFirmware = firmwareVersions.find((fw) => fw.id === selectedTargetFirmware)
 
         if (!selectedFirmware) {
+          setIsUpdating(false)
           toast({
             title: "Error",
             description: "Selected firmware not found. Please try again.",
