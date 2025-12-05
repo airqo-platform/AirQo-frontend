@@ -19,7 +19,7 @@ import {
   BarChart3,
   RefreshCw,
   AlertCircle,
-  Map,
+  Map as MapIcon,
   Activity,
   Package,
   List
@@ -485,7 +485,7 @@ export default function DevicesPage() {
                 onClick={() => setViewMode("map")}
                 className="flex items-center"
               >
-                <Map className="mr-2 h-4 w-4" />
+                <MapIcon className="mr-2 h-4 w-4" />
                 Map View
               </Button>
             </div>

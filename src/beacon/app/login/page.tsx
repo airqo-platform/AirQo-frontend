@@ -12,24 +12,34 @@ import Link from "next/link"
 import authService from "@/services/api-service"
 import dynamic from "next/dynamic"
 
+// Fallback component when 3D model fails to load - signals readiness on mount
+function DeviceModel3DFallback({ onModelLoaded }: Readonly<{ onModelLoaded?: () => void }>) {
+  useEffect(() => {
+    // Signal page readiness even when the 3D model fails to load
+    onModelLoaded?.()
+  }, [onModelLoaded])
+
+  return (
+    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-red-300 via-red-400 to-red-500">
+      <AlertCircle className="h-16 w-16 text-white mb-4" />
+      <div className="text-white text-xl font-semibold">3D model failed to load</div>
+      <button
+        onClick={() => globalThis.location.reload()}
+        className="mt-4 px-4 py-2 bg-white text-red-500 rounded hover:bg-gray-100"
+      >
+        Retry
+      </button>
+    </div>
+  )
+}
+
 // Dynamically import the 3D component to avoid SSR issues with better error handling
 const DeviceModel3D = dynamic(
   () => import("@/components/device-model-3d").catch((error) => {
     console.error('Failed to load DeviceModel3D:', error)
-    // Return a fallback component
+    // Return a fallback component that signals readiness
     return {
-      default: () => (
-        <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-red-300 via-red-400 to-red-500">
-          <AlertCircle className="h-16 w-16 text-white mb-4" />
-          <div className="text-white text-xl font-semibold">3D model failed to load</div>
-          <button
-            onClick={() => window.location.reload()}
-            className="mt-4 px-4 py-2 bg-white text-red-500 rounded hover:bg-gray-100"
-          >
-            Retry
-          </button>
-        </div>
-      )
+      default: DeviceModel3DFallback
     }
   }),
   {
