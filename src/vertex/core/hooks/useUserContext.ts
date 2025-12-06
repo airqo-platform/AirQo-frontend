@@ -29,7 +29,6 @@ export interface UserContextState {
   
   // Loading states
   isLoading: boolean;
-  isContextLoading: boolean;
   isPermissionsLoading: boolean;
   
   // Error states
@@ -54,7 +53,6 @@ export const useUserContext = (): UserContextState => {
   const userDetails = useAppSelector((state) => state.user.userDetails);
   const isInitialized = useAppSelector((state) => state.user.isInitialized);
   const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
-  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
 
   // Permission checks with loading states
   const canViewDevices = usePermission(PERMISSIONS.DEVICE.VIEW);
@@ -92,24 +90,24 @@ export const useUserContext = (): UserContextState => {
       return true;
     }
     
-    if (userDetails && !userContext && !isContextLoading) {
+    if (userDetails && !userContext) {
       return true;
     }
     
     return false;
-  }, [isInitialized, isAuthenticated, userDetails, userContext, isContextLoading]);
+  }, [isInitialized, isAuthenticated, userDetails, userContext]);
 
   const error = useMemo(() => {
     if (isInitialized && !isAuthenticated) {
       return "Authentication required";
     }
     
-    if (userDetails && !userContext && !isContextLoading) {
+    if (userDetails && !userContext) {
       return "Unable to determine user context";
     }
     
     return null;
-  }, [isInitialized, isAuthenticated, userDetails, userContext, isContextLoading]);
+  }, [isInitialized, isAuthenticated, userDetails, userContext]);
 
   // Computed context values
   const isPersonalContext = userContext === 'personal';
@@ -237,7 +235,6 @@ export const useUserContext = (): UserContextState => {
     
     // Loading states
     isLoading,
-    isContextLoading,
     isPermissionsLoading: isPermissionsLoading || false,
     
     // Error states
