@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
+import dynamic from "next/dynamic";
 import { PlusSquare, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import { DashboardStatsCards } from "@/components/features/dashboard/stats-cards";
 import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
 import { useRouter } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
@@ -14,13 +14,42 @@ import { Skeleton } from "@/components/ui/skeleton";
 import HomeEmptyState from "@/components/features/home/HomeEmptyState";
 import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
 
+// Lazy load stats cards
+const DashboardStatsCards = dynamic(
+  () => import("@/components/features/dashboard/stats-cards").then(mod => ({ default: mod.DashboardStatsCards })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="md:col-span-1 lg:col-span-1">
+              <div className="rounded-lg bg-white dark:bg-gray-800 border p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="h-12 w-12 rounded-xl" />
+                    <div className="flex flex-col gap-2">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-32" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-10 w-16" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+  }
+);
+
 const WelcomePage = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const user = useAppSelector((state) => state.user.userDetails);
   const router = useRouter();
   const { userContext, hasError, error } = useUserContext();
-  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
-  
+
   const allActions = [
     {
       href: "/devices/claim",
@@ -48,18 +77,20 @@ const WelcomePage = () => {
     },
   ];
 
-  // Get all permissions at once - THIS HOOK MUST BE CALLED BEFORE CONDITIONAL RETURNS
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
 
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
     limit: 1,
+    enabled: userContext !== "personal", // Only fetch for org contexts
   });
 
   const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
     user?._id || "",
     undefined,
-    { enabled: !!user?._id }
+    {
+      enabled: !!user?._id && userContext === "personal", // Only fetch for personal context
+    }
   );
 
   // ============================================================
@@ -79,7 +110,7 @@ const WelcomePage = () => {
   }
 
   // 2. Loading state - show loading UI while data is being fetched
-  const isLoading = isContextLoading || 
+  const isLoading =
     (userContext === "personal" && isLoadingMyDevices) ||
     (userContext !== "personal" && isLoadingGroupDevices);
 

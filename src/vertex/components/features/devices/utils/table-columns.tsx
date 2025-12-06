@@ -3,7 +3,6 @@ import {
   TableColumn,
   TableItem,
 } from "@/components/shared/table/ReusableTable";
-import moment from "moment";
 import {
   AlertTriangle,
   CheckCircle,
@@ -12,6 +11,7 @@ import {
   XCircle,
 } from "lucide-react";
 import React from "react";
+import { add, format, isAfter, isValid, parseISO } from "date-fns";
 
 export type TableDevice = TableItem<unknown> & Device;
 
@@ -44,19 +44,27 @@ interface FormattedDate {
  * Formats a date string, handling future date errors.
  */
 const formatDisplayDate = (dateString: string): FormattedDate => {
-  const date = moment(dateString);
-  if (!date.isValid()) {
+  const date = parseISO(dateString);
+
+  // Invalid date check
+  if (!isValid(date)) {
     return { message: "Invalid date", isError: true, errorType: "invalid" };
   }
-  const now = moment.utc();
-  const formattedDate = date.format("D MMM YYYY, HH:mm A");
-  if (date.isAfter(moment.utc(now).add(5, "minutes"))) {
+
+  const now = new Date();
+  const nowPlus5 = add(now, { minutes: 5 });
+
+  const formattedDate = format(date, "MMM d yyyy, h:mm a").toUpperCase();
+
+  // Future date check
+  if (isAfter(date, nowPlus5)) {
     return {
       message: formattedDate,
       isError: true,
       errorType: "future",
     };
   }
+
   return {
     message: formattedDate,
     isError: false,
@@ -205,9 +213,8 @@ export const getColumns = (
         };
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-              statusClasses[value] || "bg-gray-100 text-gray-800"
-            }`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusClasses[value] || "bg-gray-100 text-gray-800"
+              }`}
           >
             {String(status || "").replace("_", " ")}
           </span>
@@ -221,8 +228,12 @@ export const getColumns = (
         if (typeof value !== "string" || !value) {
           return "-";
         }
-        const date = moment(value);
-        return date.isValid() ? date.format("MMM D YYYY, h:mm A") : "-";
+
+        const date = parseISO(value);
+
+        return isValid(date)
+          ? format(date, "MMM d yyyy, h:mm a").toUpperCase()
+          : "-";
       },
     },
   ];

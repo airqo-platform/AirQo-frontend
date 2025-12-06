@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { useDeviceDetails } from "@/core/hooks/useDevices";
 import React from "react";
-import moment from "moment";
+import { add, format, isAfter, isValid, parseISO } from 'date-fns';
 import {
   Tooltip,
   TooltipContent,
@@ -110,19 +110,28 @@ const getDetailedExplanation = (
 };
 
 const formatDisplayDate = (dateString: string): FormattedDate => {
-  const date = moment(dateString);
-  if (!date.isValid()) {
+  const date = parseISO(dateString);
+
+  // Validate date
+  if (!isValid(date)) {
     return { message: "Invalid date", isError: true, errorType: "invalid" };
   }
-  const now = moment.utc();
-  const formattedDate = date.format("D MMM YYYY, HH:mm A");
-  if (date.isAfter(moment.utc(now).add(5, "minutes"))) {
+
+  // Now in UTC
+  const now = new Date();
+  const nowPlus5 = add(now, { minutes: 5 });
+
+  const formattedDate = format(date, "MMM d yyyy, h:mm a");
+
+  // Check if date is more than 5 minutes in the future
+  if (isAfter(date, nowPlus5)) {
     return {
       message: formattedDate,
       isError: true,
       errorType: "future",
     };
   }
+
   return {
     message: formattedDate,
     isError: false,

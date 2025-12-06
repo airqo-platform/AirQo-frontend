@@ -7,7 +7,7 @@ import ReusableTable, {
   TableColumn,
   TableItem,
 } from "@/components/shared/table/ReusableTable";
-import moment from "moment";
+import { format, parseISO } from "date-fns";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import { useMemo, useRef, useEffect } from "react";
@@ -75,7 +75,7 @@ export default function GridsTable({
     { key: "numberOfSites", label: "Number of sites", render: (v) => String(v ?? 0), sortable: true },
     { key: "admin_level", label: "Admin level", render: (v) => String(v ?? ""), sortable: true },
     { key: "visibility", label: "Visibility", render: (v) => (v ? "Visible" : "Hidden"), sortable: true },
-    { key: "createdAt", label: "Date created", render: (v) => v ? moment(v as string).format("MMM D YYYY, h:mm A") : "", sortable: true },
+    { key: "createdAt", label: "Date created", render: (v) => v ? format(parseISO(v as string), "MMM d yyyy, h:mm a") : "", sortable: true },
   ];
 
   return (

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import dynamic from "next/dynamic";
 import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
@@ -14,10 +15,19 @@ import "leaflet/dist/leaflet.css";
 import { useApproximateCoordinates, useCreateSite } from "@/core/hooks/useSites";
 import { AqPlus } from "@airqo/icons-react";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
-import MiniMap from "@/components/features/mini-map/mini-map";
 import { Label } from "@/components/ui/label";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+
+// Lazy load MiniMap to reduce initial bundle size
+const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-64 rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
+      <span className="text-sm text-muted-foreground">Loading map...</span>
+    </div>
+  ),
+});
 
 const siteFormSchema = z.object({
   name: z.string().min(2, {

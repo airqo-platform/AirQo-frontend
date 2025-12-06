@@ -2,10 +2,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { store } from "@/core/redux/store";
+import { persistor, store } from "@/core/redux/store";
 import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 import { AuthProvider } from "@/core/auth/authProvider";
-import NetworkStatusBanner from "@/components/features/network-status-banner";
+import dynamic from 'next/dynamic';
+
+const NetworkStatusBanner = dynamic(
+  () => import('@/components/features/network-status-banner'),
+  { ssr: false }
+);
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -22,15 +28,17 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <Provider store={store}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider> {/* AuthProvider now handles session initialization internally */}
-          {children}
-          {process.env.NODE_ENV !== "production" && (
-            <ReactQueryDevtools initialIsOpen={false} />
-          )}
-          <NetworkStatusBanner />
-        </AuthProvider>
-      </QueryClientProvider>
+      <PersistGate loading={null} persistor={persistor}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            {children}
+            {process.env.NODE_ENV !== "production" && (
+              <ReactQueryDevtools initialIsOpen={false} />
+            )}
+            <NetworkStatusBanner />
+          </AuthProvider>
+        </QueryClientProvider>
+      </PersistGate>
     </Provider>
   );
 }

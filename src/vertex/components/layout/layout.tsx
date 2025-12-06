@@ -31,7 +31,6 @@ export default function Layout({ children }: LayoutProps) {
   const isInitialized = useAppSelector(state => state.user.isInitialized);
   const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
-  const isContextLoading = useAppSelector(state => state.user.isContextLoading);
   const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
@@ -70,7 +69,7 @@ export default function Layout({ children }: LayoutProps) {
     !isInitialized ||
     !isAuthenticated ||
     isLoggingOut ||
-    (isAuthenticated && isInitialized && isContextLoading && !userDetails);
+    (isAuthenticated && isInitialized && !userDetails);
 
   if (shouldShowInitialLoading) {
     return (

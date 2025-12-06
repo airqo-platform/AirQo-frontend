@@ -19,13 +19,13 @@ export const useContextAwareRouting = () => {
   const router = useRouter();
   const pathname = usePathname();
   const { getSidebarConfig, userContext } = useUserContext();
-  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
+
   const previousContextRef = useRef<string | null>(null);
   const initializedRef = useRef(false);
 
   useEffect(() => {
     // Don't run routing logic until the user context is fully initialized.
-    if (isContextLoading || !userContext) {
+    if (!userContext) {
       return;
     }
 
@@ -73,5 +73,5 @@ export const useContextAwareRouting = () => {
       // logger.debug('Context-aware redirect', { from: pathname, to: '/home', userContext, sidebarConfig })
       router.push('/home');
     }
-  }, [userContext, pathname, isContextLoading, getSidebarConfig, router]);
+  }, [userContext, pathname, getSidebarConfig, router]);
 }; 

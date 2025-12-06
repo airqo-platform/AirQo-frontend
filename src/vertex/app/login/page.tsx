@@ -36,10 +36,11 @@ export default function LoginPage() {
   const isMounted = useRef(true);
   useEffect(() => {
     isMounted.current = true;
+    router.prefetch("/home");
     return () => {
       isMounted.current = false;
     };
-  }, []);
+  }, [router]);
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
