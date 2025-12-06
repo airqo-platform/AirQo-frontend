@@ -8,7 +8,7 @@ import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTa
 import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useState, useEffect, useMemo, useRef } from "react";
-import moment from "moment";
+import { format } from 'date-fns';
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqPlus } from "@airqo/icons-react";
 import { CreateCohortFromSelectionDialog } from "@/components/features/cohorts/create-cohort-from-cohorts";
@@ -86,7 +86,7 @@ export default function CohortsPage() {
       sortable: true,
       render: (value) => {
         const date = new Date(value as string);
-        return moment(date).format("MMM D YYYY, H:mm A");
+        return format(date, "MMM d yyyy, h:mm a");
       }
     }
   ]
