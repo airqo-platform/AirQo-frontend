@@ -3,6 +3,8 @@
  * Handles all authentication operations for the AirQo platform
  */
 
+import { config } from '@/lib/config'
+
 interface LoginCredentials {
   userName: string
   password: string
@@ -25,8 +27,11 @@ interface ApiError {
   data?: any
 }
 
+// Helper to check if we're in browser
+const isBrowser = () => !config.isServer
+
 class AuthService {
-  private baseUrl: string
+  private readonly baseUrl: string
   private token: string | null = null
   private readonly TOKEN_KEY = 'authToken'
   private readonly USER_DATA_KEY = 'userData'
@@ -34,11 +39,11 @@ class AuthService {
   private readonly TOKEN_MAX_AGE = 7 * 24 * 60 * 60 // 7 days in seconds
   
   constructor() {
-    // Initialize base URL from environment or use default
-    this.baseUrl = process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 'https://staging-platform.airqo.net'
+    // Use centralized config for API URL
+    this.baseUrl = config.airqoPlatformUrl
     
     // Restore token from storage if available
-    if (typeof window !== 'undefined') {
+    if (isBrowser()) {
       this.token = this.getStoredToken()
     }
   }
@@ -47,8 +52,7 @@ class AuthService {
    * Gets token from various storage locations
    */
   private getStoredToken(): string | null {
-    // Check if we're in the browser
-    if (typeof window === 'undefined') {
+    if (!isBrowser()) {
       return null
     }
 
@@ -88,7 +92,7 @@ class AuthService {
    */
   private async handleResponse(response: Response): Promise<any> {
     const contentType = response.headers.get('content-type')
-    const isJson = contentType && contentType.includes('application/json')
+    const isJson = contentType?.includes('application/json')
     
     // Parse response based on content type
     const data = isJson ? await response.json() : await response.text()
@@ -113,7 +117,6 @@ class AuthService {
    */
   private setAuthCookie(token: string): void {
     if (typeof document !== 'undefined') {
-      // Set cookie with all security flags
       const cookieString = `${this.TOKEN_COOKIE_NAME}=${token}; path=/; max-age=${this.TOKEN_MAX_AGE}; SameSite=Strict; Secure`
       document.cookie = cookieString
     }
@@ -140,7 +143,7 @@ class AuthService {
    * Clears all authentication data from all storage locations
    */
   private clearAllAuthData(): void {
-    if (typeof window === 'undefined') return
+    if (!isBrowser()) return
 
     // Clear from localStorage
     localStorage.removeItem(this.TOKEN_KEY)
@@ -162,10 +165,10 @@ class AuthService {
     }
     
     // Remove collected keys
-    keysToRemove.forEach(key => {
+    for (const key of keysToRemove) {
       localStorage.removeItem(key)
       sessionStorage.removeItem(key)
-    })
+    }
     
     // Clear all auth-related cookies
     this.removeAuthCookie()
@@ -189,7 +192,7 @@ class AuthService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(credentials),
-        credentials: 'same-origin' // Include cookies in the request
+        credentials: 'same-origin'
       })
 
       const data = await this.handleResponse(response)
@@ -197,8 +200,7 @@ class AuthService {
       // Store authentication data
       if (data.token) {
         this.token = data.token
-        if (typeof window !== 'undefined') {
-          // Store in both localStorage and sessionStorage for redundancy
+        if (isBrowser()) {
           localStorage.setItem(this.TOKEN_KEY, data.token)
           sessionStorage.setItem(this.TOKEN_KEY, data.token)
           this.setAuthCookie(data.token)
@@ -212,7 +214,7 @@ class AuthService {
           email: data.email || credentials.userName,
           userName: data.userName || credentials.userName
         }
-        if (typeof window !== 'undefined') {
+        if (isBrowser()) {
           localStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData))
           sessionStorage.setItem(this.USER_DATA_KEY, JSON.stringify(userData))
         }
@@ -222,17 +224,10 @@ class AuthService {
     } catch (error: any) {
       // Handle CORS errors specifically
       if (error.message?.includes('Failed to fetch')) {
-        throw {
-          message: 'Unable to connect to the server. Please check your connection.',
-          status: 0,
-          ...error
-        }
+        throw new Error('Unable to connect to the server. Please check your connection.')
       }
       
-      throw {
-        message: error.message || 'Authentication failed. Please try again.',
-        ...error
-      }
+      throw new Error(error.message || 'Authentication failed. Please try again.')
     }
   }
 
@@ -240,13 +235,10 @@ class AuthService {
    * Logs out the current user and clears all authentication data
    */
   logout(): void {
-    // Clear all authentication data
     this.clearAllAuthData()
     
-    // Only redirect if we're not already on the login page
-    if (typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
-      // Use replace to prevent going back to authenticated pages
-      window.location.replace('/login')
+    if (isBrowser() && !globalThis.location.pathname.includes('/login')) {
+      globalThis.location.replace('/login')
     }
   }
 
@@ -254,28 +246,26 @@ class AuthService {
    * Force logout - more aggressive clearing
    */
   forceLogout(): void {
-    if (typeof window === 'undefined') return
+    if (!isBrowser()) return
     
-    // Clear all storage
     this.clearAllAuthData()
     
-    // Clear all cookies (not just auth-related)
-    document.cookie.split(";").forEach((c) => {
+    // Clear all cookies
+    for (const c of document.cookie.split(";")) {
       document.cookie = c
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
-    })
+    }
     
-    // Clear session storage completely
     sessionStorage.clear()
     
-    // Clear specific localStorage items but preserve non-auth data
     const authKeys = ['authToken', 'userData', 'token', 'user']
-    authKeys.forEach(key => localStorage.removeItem(key))
+    for (const key of authKeys) {
+      localStorage.removeItem(key)
+    }
     
-    // Only force redirect if not already on login page
-    if (!window.location.pathname.includes('/login')) {
-      window.location.href = '/login'
+    if (!globalThis.location.pathname.includes('/login')) {
+      globalThis.location.href = '/login'
     }
   }
 
@@ -283,22 +273,18 @@ class AuthService {
    * Checks if user is currently authenticated
    */
   isAuthenticated(): boolean {
-    // Check if we're in the browser
-    if (typeof window === 'undefined') {
+    if (!isBrowser()) {
       return false
     }
 
-    // Check multiple sources for token
     const token = this.getStoredToken()
     
     if (!token) {
       return false
     }
     
-    // Update memory token if found in storage
     this.token = token
     
-    // Optional: Check if token is expired (if JWT)
     try {
       if (this.isTokenExpired(token)) {
         this.clearAllAuthData()
@@ -306,7 +292,6 @@ class AuthService {
       }
     } catch {
       // If we can't decode the token, assume it's valid
-      // The server will reject if invalid
     }
     
     return true
@@ -317,18 +302,15 @@ class AuthService {
    */
   private isTokenExpired(token: string): boolean {
     try {
-      // Decode JWT without verifying signature (client-side check only)
       const payload = JSON.parse(atob(token.split('.')[1]))
       
-      // Check expiration
       if (payload.exp) {
-        const expirationTime = payload.exp * 1000 // Convert to milliseconds
+        const expirationTime = payload.exp * 1000
         return Date.now() > expirationTime
       }
       
       return false
     } catch {
-      // If we can't decode, assume not expired
       return false
     }
   }
@@ -337,25 +319,21 @@ class AuthService {
    * Retrieves stored user data
    */
   getUserData(): any {
-    if (typeof window !== 'undefined') {
-      // Try localStorage first
+    if (isBrowser()) {
       const localData = localStorage.getItem(this.USER_DATA_KEY)
       if (localData) {
         try {
           return JSON.parse(localData)
         } catch {
-          // Invalid JSON, remove it
           localStorage.removeItem(this.USER_DATA_KEY)
         }
       }
       
-      // Try sessionStorage
       const sessionData = sessionStorage.getItem(this.USER_DATA_KEY)
       if (sessionData) {
         try {
           return JSON.parse(sessionData)
         } catch {
-          // Invalid JSON, remove it
           sessionStorage.removeItem(this.USER_DATA_KEY)
         }
       }
@@ -367,16 +345,8 @@ class AuthService {
    * Gets the current authentication token
    */
   getToken(): string | null {
-    // Always get fresh token from storage
     this.token = this.getStoredToken()
     return this.token
-  }
-
-  /**
-   * Updates the API base URL
-   */
-  setBaseUrl(url: string): void {
-    this.baseUrl = url
   }
 
   /**
@@ -395,10 +365,9 @@ class AuthService {
 const authService = new AuthService()
 
 // Add event listener for storage changes (logout from other tabs)
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (e) => {
+if (!config.isServer) {
+  globalThis.addEventListener('storage', (e: StorageEvent) => {
     if (e.key === 'authToken' && !e.newValue) {
-      // Token was removed in another tab, logout here too
       authService.logout()
     }
   })

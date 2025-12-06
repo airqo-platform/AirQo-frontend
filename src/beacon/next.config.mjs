@@ -23,16 +23,27 @@ const nextConfig = {
         ],
     deviceSizes: process.env.IMAGE_DEVICE_SIZES?.split(',').map(Number) || [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: process.env.IMAGE_SIZES?.split(',').map(Number) || [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: parseInt(process.env.IMAGE_CACHE_TTL || '60', 10),
+    minimumCacheTTL: Number.parseInt(process.env.IMAGE_CACHE_TTL || '60', 10),
   },
   
   async rewrites() {
     const rewrites = [];
     
-    if (process.env.AIRQO_API_BASE_URL) {
+    // Beacon API proxy for local development
+    if (process.env.NEXT_PUBLIC_LOCAL_API_URL) {
+      rewrites.push({
+        source: '/api/beacon/:path*',
+        destination: `${process.env.NEXT_PUBLIC_LOCAL_API_URL}/:path*`,
+      });
+    }
+    
+    // AirQo Platform API proxy
+    const airqoApiUrl = process.env.AIRQO_API_BASE_URL || 
+                        process.env.AIRQO_STAGING_API_BASE_URL;
+    if (airqoApiUrl) {
       rewrites.push({
         source: '/api/proxy/:path*',
-        destination: `${process.env.AIRQO_API_BASE_URL}/api/:path*`,
+        destination: `${airqoApiUrl}/api/:path*`,
       });
     }
     
@@ -44,7 +55,11 @@ const nextConfig = {
     }
     
     if (process.env.CUSTOM_REWRITES) {
-      rewrites.push(...JSON.parse(process.env.CUSTOM_REWRITES));
+      try {
+        rewrites.push(...JSON.parse(process.env.CUSTOM_REWRITES));
+      } catch (e) {
+        console.warn('Failed to parse CUSTOM_REWRITES:', e);
+      }
     }
     
     return rewrites;
@@ -116,7 +131,7 @@ const nextConfig = {
   
   experimental: {
     workerThreads: process.env.ENABLE_WORKER_THREADS === 'true',
-    cpus: parseInt(process.env.WORKER_CPUS || '1', 10),
+    cpus: Number.parseInt(process.env.WORKER_CPUS || '1', 10),
     optimizeCss: process.env.OPTIMIZE_CSS === 'true',
     scrollRestoration: process.env.ENABLE_SCROLL_RESTORATION === 'true',
   },

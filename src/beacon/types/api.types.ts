@@ -52,10 +52,56 @@ export interface Device {
   longitude?: number
   power_type?: string
   mount_type?: string
+  height?: number
   last_updated?: string
   next_maintenance?: string
+  first_seen?: string
   created_at?: string
   updated_at?: string
+  channel_id?: number
+  network_id?: string
+  current_firmware?: string
+  target_firmware?: string
+  firmware_download_state?: string
+  site_location?: {
+    site_name?: string
+    city?: string
+    district?: string
+    country?: string
+    latitude?: number
+    longitude?: number
+    site_category?: string
+  } | null
+  location?: {
+    latitude?: number
+    longitude?: number
+    site_name?: string
+  } | null
+  latest_reading?: {
+    pm2_5?: number | null
+    pm10?: number | null
+    temperature?: number | null
+    humidity?: number | null
+    timestamp?: string
+  } | null
+}
+
+// Pagination Metadata
+export interface PaginationMetadata {
+  total: number
+  skip: number
+  limit: number | null
+  returned: number
+  pages: number
+  current_page: number
+  has_next: boolean
+  has_previous: boolean
+}
+
+// Paginated Device Response
+export interface PaginatedDeviceResponse {
+  devices: Device[]
+  pagination: PaginationMetadata
 }
 
 // Device Performance Types
@@ -153,6 +199,7 @@ export interface DeviceQueryParams {
   site_id?: string
   network?: string
   status?: string
+  search?: string
 }
 
 export interface PerformanceQueryParams {
@@ -199,7 +246,27 @@ export interface UIDevice {
   longitude?: number
   location_name?: string
   city?: string
+  district?: string
   country?: string
+  site_category?: string
+  power_type?: string
+  mount_type?: string
+  height?: number
+  next_maintenance?: string
+  first_seen?: string
+  last_updated?: string
+  channel_id?: number
+  network_id?: string
+  current_firmware?: string
+  target_firmware?: string
+  firmware_download_state?: string
+  
+  // Latest reading data
+  pm2_5?: number | null
+  pm10?: number | null
+  temperature?: number | null
+  humidity?: number | null
+  reading_timestamp?: string
   
   // Nested structure (for new code)
   device: {
@@ -213,6 +280,7 @@ export interface UIDevice {
   location: {
     name?: string
     city?: string
+    district?: string
     country?: string
     latitude?: number
     longitude?: number
@@ -232,6 +300,12 @@ export interface UIDevice {
     humidity?: number
     aqi_category?: string
   }>
+}
+
+// Paginated UI Device Response
+export interface PaginatedUIDeviceResponse {
+  devices: UIDevice[]
+  pagination: PaginationMetadata
 }
 
 // Transform functions types

@@ -226,7 +226,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">AirQo Device Health Dashboard</h1>
+        <h1 className="text-2xl font-bold"></h1>
         <Button 
           variant="outline" 
           size="sm" 

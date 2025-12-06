@@ -4,7 +4,16 @@
  */
 import { NextRequest, NextResponse } from 'next/server'
 
-const AIRQO_API_BASE_URL = process.env.AIRQO_STAGING_API_BASE_URL || process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 'https://staging-platform.airqo.net'
+// Use environment variables with proper fallbacks
+const getApiBaseUrl = () => {
+  return process.env.AIRQO_STAGING_API_BASE_URL || 
+         process.env.NEXT_PUBLIC_AIRQO_STAGING_API_BASE_URL || 
+         process.env.AIRQO_API_BASE_URL ||
+         process.env.NEXT_PUBLIC_AIRQO_API_BASE_URL ||
+         'https://staging-platform.airqo.net'
+}
+
+const AIRQO_API_BASE_URL = getApiBaseUrl()
 const API_VERSION = process.env.AIRQO_API_VERSION || 'v2'
 const LOGIN_ENDPOINT = process.env.LOGIN_ENDPOINT || 'users/loginUser'
 const AIRQO_API_URL = `${AIRQO_API_BASE_URL}/api/${API_VERSION}/${LOGIN_ENDPOINT}`
@@ -43,8 +52,9 @@ export async function POST(request: NextRequest) {
     
     try {
       data = JSON.parse(responseText)
-    } catch (parseError) {
-      // Handle non-JSON responses
+    } catch {
+      // Handle non-JSON responses - log for debugging
+      console.error('Failed to parse API response:', responseText.substring(0, 200))
       return NextResponse.json(
         {
           success: false,
