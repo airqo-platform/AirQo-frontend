@@ -219,7 +219,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           ) : (
             <NavItem
               item={{
-                href: '/profile',
+                href: '#',
                 icon: AqUser03,
                 label: 'Profile',
               }}
