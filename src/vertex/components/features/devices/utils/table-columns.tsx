@@ -51,13 +51,13 @@ const formatDisplayDate = (dateString: string): FormattedDate => {
     return { message: "Invalid date", isError: true, errorType: "invalid" };
   }
 
-  const nowUtc = new Date(); // Current time in UTC context
-  const nowUtcPlus5 = add(nowUtc, { minutes: 5 });
+  const now = new Date();
+  const nowPlus5 = add(now, { minutes: 5 });
 
   const formattedDate = format(date, "MMM d yyyy, h:mm a").toUpperCase();
 
   // Future date check
-  if (isAfter(date, nowUtcPlus5)) {
+  if (isAfter(date, nowPlus5)) {
     return {
       message: formattedDate,
       isError: true,
@@ -213,9 +213,8 @@ export const getColumns = (
         };
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
-              statusClasses[value] || "bg-gray-100 text-gray-800"
-            }`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${statusClasses[value] || "bg-gray-100 text-gray-800"
+              }`}
           >
             {String(status || "").replace("_", " ")}
           </span>
