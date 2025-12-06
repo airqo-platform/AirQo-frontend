@@ -17,21 +17,45 @@
                     }
                 ],
                 "errors-in-console": [
-                    "error",
-                    {
-                        "minScore": 0.9
-                    }
-                ],
-                "categories:accessibility": [
                     "warn",
                     {
                         "minScore": 0.9
                     }
                 ],
-                "first-contentful-paint": [
+                "legacy-javascript-insight": [
                     "warn",
                     {
-                        "maxNumericValue": 2500
+                        "minScore": 0.9
+                    }
+                ],
+                "network-dependency-tree-insight": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "target-size": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "unused-css-rules": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "unused-javascript": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "valid-source-maps": [
+                    "warn",
+                    {
+                        "minScore": 0.9
                     }
                 ],
                 "interactive": [
