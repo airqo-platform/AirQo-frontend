@@ -219,7 +219,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           ) : (
             <NavItem
               item={{
-                href: '#',
+                href: '#', // Path doesnt existsSync, temporal placeholder
                 icon: AqUser03,
                 label: 'Profile',
               }}
