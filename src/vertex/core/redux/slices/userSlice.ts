@@ -210,6 +210,21 @@ const userSlice = createSlice({
       state.isLoggingOut = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase("persist/REHYDRATE", (state, action: any) => {
+      // If we have userDetails from persistence, assume authenticated and initialized
+      // This enables instant loading for existing users without waiting for a fresh session check
+      if (action.payload?.user?.userDetails) {
+        state.isAuthenticated = true;
+        state.isInitialized = true;
+        state.userDetails = action.payload.user.userDetails;
+        
+        // Also restore critical flags if they exist
+        if (action.payload.user.activeGroup) state.activeGroup = action.payload.user.activeGroup;
+        if (action.payload.user.userContext) state.userContext = action.payload.user.userContext;
+      }
+    });
+  },
 });
 
 export const {

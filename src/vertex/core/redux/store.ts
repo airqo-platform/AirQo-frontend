@@ -16,15 +16,38 @@ import devicesReducer from "./slices/devicesSlice";
 import cohortsReducer from "./slices/cohortsSlice";
 import gridsReducer from "./slices/gridsSlice";
 import groupsReducer from "./slices/groupsSlice";
+
+// Create a conditional storage object to handle SSR
+const createNoopStorage = () => {
+  return {
+    getItem(_key: string) {
+      return Promise.resolve(null);
+    },
+    setItem(_key: string, value: any) {
+      return Promise.resolve(value);
+    },
+    removeItem(_key: string) {
+      return Promise.resolve();
+    },
+  };
+};
+
+const storageToUse =
+  typeof window !== "undefined"
+    ? storage
+    : createNoopStorage();
+
 const userPersistConfig = {
   key: "user",
-  storage,
+  storage: storageToUse,
   whitelist: [
     "userDetails",
     "userGroups",
     "activeGroup",
     "userContext",
     "activeNetwork",
+    "isAuthenticated",
+    "isInitialized", 
   ],
 };
 const rootReducer = combineReducers({
