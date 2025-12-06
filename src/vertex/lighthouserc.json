@@ -1,0 +1,73 @@
+{
+    "ci": {
+        "collect": {
+            "startServerCommand": "npm start",
+            "url": [
+                "http://localhost:3000/home"
+            ],
+            "numberOfRuns": 3
+        },
+        "assert": {
+            "preset": "lighthouse:no-pwa",
+            "assertions": {
+                "categories:performance": [
+                    "warn",
+                    {
+                        "minScore": 0.6
+                    }
+                ],
+                "errors-in-console": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "legacy-javascript-insight": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "network-dependency-tree-insight": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "target-size": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "unused-css-rules": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "unused-javascript": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "valid-source-maps": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "interactive": [
+                    "warn",
+                    {
+                        "maxNumericValue": 3500
+                    }
+                ]
+            }
+        },
+        "upload": {
+            "target": "temporary-public-storage"
+        }
+    }
+}

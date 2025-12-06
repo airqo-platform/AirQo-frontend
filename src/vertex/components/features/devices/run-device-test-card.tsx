@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, RotateCw, AlertTriangle } from "lucide-react"; // Added AlertTriangle
 import { useDeviceStatusFeed } from "@/core/hooks/useDevices";
 import React from "react";
-import moment from "moment";
+import { add, format, isAfter, isValid, parseISO } from "date-fns";
 import {
   Tooltip,
   TooltipContent,
@@ -21,12 +21,12 @@ interface RunDeviceTestCardProps {
 const isDateInFuture = (dateString: string | null | undefined): boolean => {
   if (!dateString) return false;
 
-  const date = moment(dateString);
-  const now = moment();
+  const date = parseISO(dateString);
+  if (!isValid(date)) return false;
 
-  if (!date.isValid()) return false;
+  const nowPlus5 = add(new Date(), { minutes: 5 });
 
-  return date.isAfter(now.add(5, "minutes"));
+  return isAfter(date, nowPlus5);
 };
 
 const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, getElapsedDurationMapper }) => {
@@ -63,9 +63,8 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
 
               // --- Future Date Check ---
               if (isDateInFuture(createdAt)) {
-                const formattedDate = moment(createdAt).format(
-                  "D MMM YYYY, HH:mm A"
-                );
+                const formattedDate = format(parseISO(createdAt), "MMM d yyyy, h:mm a");
+
                 return (
                   <TooltipProvider>
                     <Tooltip>

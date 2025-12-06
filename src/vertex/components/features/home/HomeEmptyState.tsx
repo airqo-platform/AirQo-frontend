@@ -4,7 +4,12 @@ import React, { useState } from 'react';
 import { Plus, Upload } from 'lucide-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { AqCollocation } from '@airqo/icons-react';
-import ClaimDeviceModal from '../claim/claim-device-modal';
+import dynamic from 'next/dynamic';
+
+const ClaimDeviceModal = dynamic(
+    () => import('../claim/claim-device-modal'),
+    { ssr: false }
+);
 
 const HomeEmptyState = () => {
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);

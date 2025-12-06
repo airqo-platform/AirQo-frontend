@@ -122,3 +122,4 @@ cypress/screenshots
 # vscode files
 .vscode/*
 
+.lighthouseci

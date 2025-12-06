@@ -9,22 +9,44 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 import userReducer from "./slices/userSlice";
 import sitesReducer from "./slices/sitesSlice";
 import devicesReducer from "./slices/devicesSlice";
 import cohortsReducer from "./slices/cohortsSlice";
 import gridsReducer from "./slices/gridsSlice";
 import groupsReducer from "./slices/groupsSlice";
+
+// Create a conditional storage object to handle SSR
+const createNoopStorage = () => {
+  return {
+    getItem(_key: string) {
+      return Promise.resolve(null);
+    },
+    setItem(_key: string, value: any) {
+      return Promise.resolve(value);
+    },
+    removeItem(_key: string) {
+      return Promise.resolve();
+    },
+  };
+};
+
+const storageToUse =
+  typeof window !== "undefined"
+    ? require("redux-persist/lib/storage").default
+    : createNoopStorage();
+
 const userPersistConfig = {
   key: "user",
-  storage,
+  storage: storageToUse,
   whitelist: [
     "userDetails",
     "userGroups",
     "activeGroup",
     "userContext",
     "activeNetwork",
+    "isAuthenticated",
+    "isInitialized", 
   ],
 };
 const rootReducer = combineReducers({

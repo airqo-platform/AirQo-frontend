@@ -25,10 +25,9 @@ const OrganizationPicker: React.FC = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const userContext = useAppSelector((state) => state.user.userContext);
-  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
   const isAirQoStaff = useAppSelector((state) => state.user.isAirQoStaff);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isPersonalContext } = useUserContext();
+  const { isPersonalContext, isLoading } = useUserContext();
 
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
@@ -46,9 +45,9 @@ const OrganizationPicker: React.FC = () => {
   }, [userGroups, isAirQoStaff]);
 
   const handleOrganizationChange = async (group: Group | "private") => {
-    dispatch(setOrganizationSwitching({ 
-      isSwitching: true, 
-      switchingTo: group === "private" ? "Private Mode" : group.grp_title 
+    dispatch(setOrganizationSwitching({
+      isSwitching: true,
+      switchingTo: group === "private" ? "Private Mode" : group.grp_title
     }));
 
     let newContext: UserContext;
@@ -84,7 +83,7 @@ const OrganizationPicker: React.FC = () => {
       }
 
       setIsModalOpen(false);
-      
+
       // Navigate to home after state is set
       router.push("/home");
     } catch (error) {
@@ -103,7 +102,7 @@ const OrganizationPicker: React.FC = () => {
     return formatTitle(activeGroup?.grp_title || "") || "Select Organization";
   };
 
-  if (isContextLoading) {
+  if (isLoading) {
     return <Skeleton className="h-10 w-48 rounded-lg" />;
   }
 
