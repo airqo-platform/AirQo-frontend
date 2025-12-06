@@ -14,7 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import Card from '../shared/card/CardWrapper';
-import { useAppSelector } from '@/core/redux/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NavItem } from './NavItem';
 
