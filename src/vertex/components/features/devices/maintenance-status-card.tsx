@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import React from "react";
-import {format} from 'date-fns';
+import {format, parseISO} from 'date-fns';
 import {
   useDeviceDetails,
   useDeviceMaintenanceLogs,
@@ -53,7 +53,7 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
                 Next Maintenance
               </div>
               <div className="text-base font-normal">
-                {format(device.nextMaintenance, "MMM d yyyy, h:mm a")}
+                {format(parseISO(device.nextMaintenance), "MMM d yyyy, h:mm a")}
               </div>
             </div>
           )}
@@ -84,7 +84,7 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
                         {log.description || "Maintenance activity"}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {format(log.date, "MMM d yyyy, h:mm a")}
+                        {format(parseISO(log.date), "MMM d yyyy, h:mm a")}
                       </div>
                     </div>
                     <div className="text-xs text-muted-foreground whitespace-nowrap capitalize">
