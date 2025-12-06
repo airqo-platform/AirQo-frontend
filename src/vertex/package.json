@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "check-size": "npm run build && size-limit"
   },
   "dependencies": {
     "@airqo/icons-react": "^0.2.6",
@@ -74,6 +75,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@lhci/cli": "^0.15.1",
+    "@size-limit/preset-app": "^12.0.0",
     "@tailwindcss/typography": "^0.5.19",
     "@tanstack/eslint-plugin-query": "^5.62.9",
     "@types/leaflet": "^1.9.16",
@@ -87,7 +90,15 @@
     "eslint": "^8",
     "eslint-config-next": "14.2.16",
     "postcss": "^8",
+    "size-limit": "^12.0.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
-  }
+  },
+  "size-limit": [
+    {
+      "name": "vertex-main-chunk",
+      "path": ".next/static/chunks/app/**/*.js",
+      "limit": "200 kB"
+    }
+  ]
 }

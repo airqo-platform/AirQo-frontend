@@ -1,0 +1,43 @@
+{
+    "ci": {
+        "collect": {
+            "startServerCommand": "npm start",
+            "url": [
+                "http://localhost:3000/home"
+            ],
+            "numberOfRuns": 3
+        },
+        "assert": {
+            "preset": "lighthouse:no-pwa",
+            "assertions": {
+                "categories:performance": [
+                    "error",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "categories:accessibility": [
+                    "warn",
+                    {
+                        "minScore": 0.9
+                    }
+                ],
+                "first-contentful-paint": [
+                    "warn",
+                    {
+                        "maxNumericValue": 2500
+                    }
+                ],
+                "interactive": [
+                    "warn",
+                    {
+                        "maxNumericValue": 3500
+                    }
+                ]
+            }
+        },
+        "upload": {
+            "target": "temporary-public-storage"
+        }
+    }
+}
