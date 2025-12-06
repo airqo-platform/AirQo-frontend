@@ -232,7 +232,7 @@ export const getColumns = (
         const date = parseISO(value);
 
         return isValid(date)
-          ? format(date, "MMM d yyyy, h:mm a")
+          ? format(date, "MMM d yyyy, h:mm a").toUpperCase()
           : "-";
       },
     },
