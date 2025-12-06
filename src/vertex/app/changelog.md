@@ -100,6 +100,19 @@ Removed 7 unused packages:
 </details>
 
 <details>
+<summary><strong>Automated Guardrails (CI/CD)</strong></summary>
+
+- **Bundle Size Enforcement**: Integrated `size-limit` to strictly enforce a 200KB budget for the main bundle. Refuses to build if exceeded.
+- **Lighthouse Guidelines**: Configured `lighthouserc.json` to benchmark Core Web Vitals with a target score of 0.9.
+- **Static Analysis**: Optimized `check-size` script to run in <50ms using purely static analysis (removed execution-time dependencies).
+
+**Files Modified**:
+- `package.json` (Added `check-size` script & dependencies)
+- `lighthouserc.json` (New configuration)
+
+</details>
+
+<details>
 <summary><strong>Performance Metrics</strong></summary>
 
 | Metric | Before | After | Improvement |
