@@ -77,18 +77,20 @@ const WelcomePage = () => {
     },
   ];
 
-  // Get all permissions at once - THIS HOOK MUST BE CALLED BEFORE CONDITIONAL RETURNS
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
 
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
     limit: 1,
+    enabled: userContext !== "personal", // Only fetch for org contexts
   });
 
   const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
     user?._id || "",
     undefined,
-    { enabled: !!user?._id }
+    {
+      enabled: !!user?._id && userContext === "personal", // Only fetch for personal context
+    }
   );
 
   // ============================================================
