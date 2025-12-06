@@ -4,9 +4,9 @@ import { useState, useEffect } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import dynamic from "next/dynamic";
 import { Form, FormField } from "@/components/ui/form";
 import { Plus } from "lucide-react";
-import MiniMap from "@/components/features/mini-map/mini-map";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useCreateGrid } from "@/core/hooks/useGrids";
 import { Position } from "@/core/redux/slices/gridsSlice";
@@ -15,6 +15,16 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+
+// Lazy load MiniMap to reduce initial bundle size
+const MiniMap = dynamic(() => import("@/components/features/mini-map/mini-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse flex items-center justify-center">
+      <span className="text-sm text-muted-foreground">Loading map...</span>
+    </div>
+  ),
+});
 
 const gridFormSchema = z.object({
   name: z.string().min(2, {
