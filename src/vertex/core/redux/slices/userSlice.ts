@@ -33,7 +33,6 @@ interface UserState {
     isSwitching: boolean;
     switchingTo: string;
   };
-  isContextLoading: boolean;
   isLoggingOut: boolean;
 }
 
@@ -59,7 +58,6 @@ const initialState: UserState = {
     isSwitching: false,
     switchingTo: "",
   },
-  isContextLoading: false,
   isLoggingOut: false,
 };
 
@@ -137,7 +135,6 @@ const userSlice = createSlice({
       state.isAirQoStaff = false;
       state.canSwitchContext = false;
       state.isInitialized = false;
-      state.isContextLoading = false;
     },
     setInitialized(state) {
       state.isInitialized = true;
@@ -209,9 +206,6 @@ const userSlice = createSlice({
     setOrganizationSwitching: (state, action: PayloadAction<{ isSwitching: boolean; switchingTo: string }>) => {
       state.organizationSwitching = action.payload;
     },
-    setContextLoading(state, action: PayloadAction<boolean>) {
-      state.isContextLoading = action.payload;
-    },
     setLoggingOut(state, action: PayloadAction<boolean>) {
       state.isLoggingOut = action.payload;
     },
@@ -230,7 +224,6 @@ export const {
   setForbiddenState,
   clearForbiddenState,
   setOrganizationSwitching,
-  setContextLoading,
   setLoggingOut,
 } = userSlice.actions;
 export default userSlice.reducer;
