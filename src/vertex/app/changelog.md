@@ -86,6 +86,20 @@ Removed 7 unused packages:
 </details>
 
 <details>
+<summary><strong>Home Page & State Hydration (Critical Fix)</strong></summary>
+
+- **Instant Dashboard**: Fixed a race condition where the app waited for API responses despite having cached data (-2.4s delay removed)
+- **PersistGate**: Implemented correct Redux persistence integration to ensure state is ready before render
+- **Lazy Loaded Claim Workflow**: Removed heavy QR code scanner libraries from the initial dashboard bundle
+- **Deep Clean**: 2,579 modules -> ~1,000 modules for the home page
+
+**Files Modified**:
+- `app/providers.tsx`
+- `components/features/home/HomeEmptyState.tsx`
+
+</details>
+
+<details>
 <summary><strong>Performance Metrics</strong></summary>
 
 | Metric | Before | After | Improvement |
