@@ -19,7 +19,6 @@ const WelcomePage = () => {
   const user = useAppSelector((state) => state.user.userDetails);
   const router = useRouter();
   const { userContext, hasError, error } = useUserContext();
-  const isContextLoading = useAppSelector((state) => state.user.isContextLoading);
   
   const allActions = [
     {
@@ -79,7 +78,7 @@ const WelcomePage = () => {
   }
 
   // 2. Loading state - show loading UI while data is being fetched
-  const isLoading = isContextLoading || 
+  const isLoading =  
     (userContext === "personal" && isLoadingMyDevices) ||
     (userContext !== "personal" && isLoadingGroupDevices);
 

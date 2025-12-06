@@ -46,11 +46,10 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   toggleSidebar,
   activeModule,
 }) => {
-  const { getSidebarConfig, getContextPermissions, isPersonalContext } =
+  const { getSidebarConfig, getContextPermissions, isPersonalContext, isLoading } =
     useUserContext();
   const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
-  const isContextLoading = useAppSelector(state => state.user.isContextLoading);
 
   return (
     <aside className="hidden lg:block fixed left-0 top-[55px] z-50 text-sidebar-text transition-all duration-300 ease-in-out p-1">
@@ -77,7 +76,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           overflowType="auto"
           contentClassName={`flex flex-col h-full overflow-x-hidden scrollbar-thin ${styles.scrollbar}`}
         >
-          {isContextLoading ? (
+          {isLoading ? (
             <div className="flex flex-col gap-4 p-2">
               <Skeleton className="h-10 w-full" />
               <Skeleton className="h-10 w-full" />
@@ -214,7 +213,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           <SidebarSectionHeading isCollapsed={isCollapsed}>
             Account
           </SidebarSectionHeading>
-          {isContextLoading ? (
+          {isLoading ? (
             <div className="p-2">
               <Skeleton className="h-10 w-full" />
             </div>
