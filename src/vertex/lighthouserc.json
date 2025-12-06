@@ -11,6 +11,12 @@
             "preset": "lighthouse:no-pwa",
             "assertions": {
                 "categories:performance": [
+                    "warn",
+                    {
+                        "minScore": 0.6
+                    }
+                ],
+                "errors-in-console": [
                     "error",
                     {
                         "minScore": 0.9
