@@ -9,7 +9,6 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import storage from "redux-persist/lib/storage"; // defaults to localStorage for web
 import userReducer from "./slices/userSlice";
 import sitesReducer from "./slices/sitesSlice";
 import devicesReducer from "./slices/devicesSlice";
@@ -34,7 +33,7 @@ const createNoopStorage = () => {
 
 const storageToUse =
   typeof window !== "undefined"
-    ? storage
+    ? require("redux-persist/lib/storage").default
     : createNoopStorage();
 
 const userPersistConfig = {

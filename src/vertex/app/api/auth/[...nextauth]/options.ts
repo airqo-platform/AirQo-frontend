@@ -108,5 +108,5 @@ export const options: NextAuthOptions = {
     error: '/login',
   },
   
-  debug: process.env.NODE_ENV === 'development',
+  debug: false,
 };
