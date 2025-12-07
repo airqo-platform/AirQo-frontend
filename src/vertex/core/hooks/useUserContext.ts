@@ -22,6 +22,7 @@ export interface SidebarConfig {
 export interface UserContextState {
   // Core context data
   userContext: 'personal' | 'airqo-internal' | 'external-org' | null;
+  userScope: 'personal' | 'organisation' | null;
   isAirQoStaff: boolean;
   canSwitchContext: boolean;
   activeGroup: any;
@@ -39,6 +40,8 @@ export interface UserContextState {
   isPersonalContext: boolean;
   isAirQoInternal: boolean;
   isExternalOrg: boolean;
+  isPersonalScope: boolean;
+  isOrganisationScope: boolean;
   
   // Methods
   getSidebarConfig: () => SidebarConfig;
@@ -113,6 +116,27 @@ export const useUserContext = (): UserContextState => {
   const isPersonalContext = userContext === 'personal';
   const isAirQoInternal = userContext === 'airqo-internal';
   const isExternalOrg = userContext === 'external-org';
+
+  // Determine user scope based on permissions
+  // Only AirQo internal users can have 'organisation' scope
+  const userScope = useMemo(() => {
+    if (userContext !== 'airqo-internal') {
+      return 'personal';
+    }
+    
+    // Check if user has any organizational permissions
+    // Permissions can be true, false, or null (loading), so we explicitly check for true
+    const hasOrgPermissions = 
+      Boolean(canViewSites) ||
+      Boolean(canViewNetworks) ||
+      Boolean(isSuperAdmin) ||
+      Boolean(isSystemAdmin);
+    
+    return hasOrgPermissions ? 'organisation' : 'personal';
+  }, [userContext, canViewSites, canViewNetworks, isSuperAdmin, isSystemAdmin]);
+
+  const isPersonalScope = userScope === 'personal';
+  const isOrganisationScope = userScope === 'organisation';
 
   const getSidebarConfig = (): SidebarConfig => {
     if (isLoading || !userContext) {
@@ -228,6 +252,7 @@ export const useUserContext = (): UserContextState => {
   return {
     // Core context data
     userContext,
+    userScope,
     isAirQoStaff,
     canSwitchContext,
     activeGroup,
@@ -245,6 +270,8 @@ export const useUserContext = (): UserContextState => {
     isPersonalContext,
     isAirQoInternal,
     isExternalOrg,
+    isPersonalScope,
+    isOrganisationScope,
     
     // Methods
     getSidebarConfig,

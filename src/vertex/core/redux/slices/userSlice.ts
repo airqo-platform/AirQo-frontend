@@ -8,6 +8,7 @@ import type {
 } from "@/app/types/users";
 
 export type UserContext = 'personal' | 'airqo-internal' | 'external-org';
+export type UserScope = 'personal' | 'organisation';
 
 interface ForbiddenState {
   isForbidden: boolean;
@@ -26,6 +27,7 @@ interface UserState {
   isInitialized: boolean;
   activeGroup: Group | null;
   userContext: UserContext | null;
+  userScope: UserScope | null;
   isAirQoStaff: boolean;
   canSwitchContext: boolean;
   forbidden: ForbiddenState;
@@ -46,6 +48,7 @@ const initialState: UserState = {
   isInitialized: false,
   activeGroup: null,
   userContext: null,
+  userScope: null,
   isAirQoStaff: false,
   canSwitchContext: false,
   forbidden: {
@@ -59,6 +62,34 @@ const initialState: UserState = {
     switchingTo: "",
   },
   isLoggingOut: false,
+};
+
+// Helper function to determine user scope based on permissions
+// NOTE: This requires permissions to be calculated, so it should be called 
+// in components/hooks that have access to permission state, not in Redux reducers
+const determineUserScope = (
+  userContext: UserContext | null,
+  permissions: {
+    canViewSites?: boolean | null;
+    canViewNetworks?: boolean | null;
+    isSuperAdmin?: boolean | null;
+    isSystemAdmin?: boolean | null;
+  }
+): UserScope => {
+  // Only apply scope logic to AirQo internal context
+  // External orgs and personal contexts don't use the scope concept
+  if (userContext !== 'airqo-internal') {
+    return 'personal';
+  }
+  
+  // Determine if user has any organizational permissions
+  const hasOrgPermissions = 
+    permissions.canViewSites === true ||
+    permissions.canViewNetworks === true ||
+    permissions.isSuperAdmin === true ||
+    permissions.isSystemAdmin === true;
+  
+  return hasOrgPermissions ? 'organisation' : 'personal';
 };
 
 // Helper function to determine user context
@@ -132,6 +163,7 @@ const userSlice = createSlice({
       state.availableNetworks = [];
       state.currentRole = null;
       state.userContext = null;
+      state.userScope = null;
       state.isAirQoStaff = false;
       state.canSwitchContext = false;
       state.isInitialized = false;
