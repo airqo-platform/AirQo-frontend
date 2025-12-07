@@ -5,7 +5,6 @@ import { useMemo } from "react";
 
 export interface SidebarConfig {
   title: string;
-  showContextSwitcher: boolean;
   showNetworkMap: boolean;
   showSites: boolean;
   showGrids: boolean;
@@ -142,7 +141,6 @@ export const useUserContext = (): UserContextState => {
     if (isLoading || !userContext) {
       return {
         title: 'Loading...',
-        showContextSwitcher: false,
         showNetworkMap: false,
         showSites: false,
         showGrids: false,
@@ -161,7 +159,6 @@ export const useUserContext = (): UserContextState => {
       case 'personal':
         return {
           title: 'My Monitors',
-          showContextSwitcher: false,
           showNetworkMap: false,
           showSites: false,
           showGrids: false,
@@ -178,7 +175,6 @@ export const useUserContext = (): UserContextState => {
       case 'airqo-internal':
         return {
           title: 'AirQo Organization',
-          showContextSwitcher: canSwitchContext,
           showNetworkMap: false,
           showSites: canViewSites,
           showGrids: canViewSites,
@@ -195,7 +191,6 @@ export const useUserContext = (): UserContextState => {
       case 'external-org':
         return {
           title: activeGroup?.grp_title || 'Organization',
-          showContextSwitcher: false,
           showNetworkMap: false,
           showSites: false,
           showGrids: false,
@@ -212,7 +207,6 @@ export const useUserContext = (): UserContextState => {
       default:
         return {
           title: 'My Monitors',
-          showContextSwitcher: false,
           showNetworkMap: true,
           showSites: false,
           showGrids: false,
