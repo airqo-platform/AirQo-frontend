@@ -87,7 +87,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
             </div>
           ) : (
             <>
-              {activeModule === 'network' && (
+              {/* Device Management Module - Personal devices for all users */}
+              {activeModule === 'devices' && (
                 <>
                   <NavItem
                     item={{
@@ -99,90 +100,120 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                   />
 
-                  {/* Network Section Heading */}
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
-                    {isPersonalContext ? 'My Network' : 'Network'}
+                    My Network
                   </SidebarSectionHeading>
 
-                  {/* Devices Section */}
-                  {contextPermissions.canViewDevices &&
-                    (isPersonalContext
-                      ? sidebarConfig.showMyDevices && (
-                        <NavItem
-                          item={{
-                            href: '/devices/my-devices',
-                            icon: AqMonitor,
-                            label: 'My Devices',
-                            disabled: !contextPermissions.canViewDevices,
-                          }}
-                          isCollapsed={isCollapsed}
-                        />
-                      )
-                      : sidebarConfig.showDeviceOverview && (
-                        <NavItem
-                          item={{
-                            href: '/devices/overview',
-                            icon: AqMonitor,
-                            label: 'Devices',
-                            disabled: !contextPermissions.canViewDevices,
-                          }}
-                          isCollapsed={isCollapsed}
-                        />
-                      ))}
+                  <NavItem
+                    item={{
+                      href: '/devices/my-devices',
+                      icon: AqMonitor,
+                      label: 'My Devices',
+                      disabled: !contextPermissions.canViewDevices,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
 
-                  {sidebarConfig.showClaimDevice && (
-                    <NavItem
-                      item={{
-                        href: '/devices/claim',
-                        icon: AqPackagePlus,
-                        label: 'Claim Device',
-                      }}
-                      isCollapsed={isCollapsed}
-                    />
-                  )}
-
-                  {/* Sites - only for non-personal contexts */}
-                  {sidebarConfig.showSites &&
-                    contextPermissions.canViewSites && (
-                      <NavItem
-                        item={{
-                          href: '/sites',
-                          icon: AqMarkerPin01,
-                          label: 'Sites',
-                          disabled: false,
-                        }}
-                        isCollapsed={isCollapsed}
-                      />
-                    )}
-
-                  {sidebarConfig.showGrids &&
-                    contextPermissions.canViewSites && (
-                      <NavItem
-                        item={{
-                          href: '/grids',
-                          icon: AqAirQlouds,
-                          label: 'Grids',
-                          disabled: false,
-                        }}
-                        isCollapsed={isCollapsed}
-                      />
-                    )}
-
-                  {sidebarConfig.showCohorts &&
-                    contextPermissions.canViewDevices && (
-                      <NavItem
-                        item={{
-                          href: '/cohorts',
-                          icon: AqCollocation,
-                          label: 'Cohorts',
-                          disabled: false,
-                        }}
-                        isCollapsed={isCollapsed}
-                      />
-                    )}
+                  <NavItem
+                    item={{
+                      href: '/devices/claim',
+                      icon: AqPackagePlus,
+                      label: 'Claim Device',
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
                 </>
               )}
 
+              {/* Organisation Devices Module - AirQo organizational assets */}
+              {activeModule === 'org-devices' && (
+                <>
+                  <SidebarSectionHeading isCollapsed={isCollapsed}>
+                    Organisation
+                  </SidebarSectionHeading>
+
+                  <NavItem
+                    item={{
+                      href: '/devices/overview',
+                      icon: AqMonitor,
+                      label: 'Devices',
+                      disabled: !contextPermissions.canViewDevices,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+
+                  <NavItem
+                    item={{
+                      href: '/cohorts',
+                      icon: AqCollocation,
+                      label: 'Cohorts',
+                      disabled: !contextPermissions.canViewDevices,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+
+                  <NavItem
+                    item={{
+                      href: '/sites',
+                      icon: AqMarkerPin01,
+                      label: 'Sites',
+                      disabled: !contextPermissions.canViewSites,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+
+                  <NavItem
+                    item={{
+                      href: '/grids',
+                      icon: AqAirQlouds,
+                      label: 'Grids',
+                      disabled: !contextPermissions.canViewSites,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+                </>
+              )}
+
+              {/* Network Management Module - Network configuration */}
+              {activeModule === 'network-mgmt' && (
+                <>
+                  <SidebarSectionHeading isCollapsed={isCollapsed}>
+                    Network Configuration
+                  </SidebarSectionHeading>
+
+                  <NavItem
+                    item={{
+                      href: '/admin/networks',
+                      icon: AqHomeSmile,
+                      label: 'Networks',
+                      disabled: !contextPermissions.canViewNetworks,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+
+                  <NavItem
+                    item={{
+                      href: '/sites',
+                      icon: AqMarkerPin01,
+                      label: 'Sites',
+                      disabled: !contextPermissions.canViewSites,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+
+                  <NavItem
+                    item={{
+                      href: '/grids',
+                      icon: AqAirQlouds,
+                      label: 'Grids',
+                      disabled: !contextPermissions.canViewSites,
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+                </>
+              )}
+
+              {/* Platform Admin Module - System administration */}
               {activeModule === 'admin' && (
                 <>
                   <NavItem

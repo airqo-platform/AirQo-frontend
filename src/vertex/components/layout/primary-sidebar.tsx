@@ -1,13 +1,12 @@
 'use client';
 
 import type React from 'react';
-import { X, LayoutGrid, ShieldCheck } from 'lucide-react';
+import { X, LayoutGrid, ShieldCheck, Building2, Network } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/core/redux/store';
 import { NavItem } from './NavItem';
+import { useUserContext } from '@/core/hooks/useUserContext';
 
 interface PrimarySidebarProps {
   isOpen: boolean;
@@ -22,9 +21,8 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   activeModule,
   onModuleChange: handleModuleChange,
 }) => {
-  const { userDetails } = useSelector((state: RootState) => state.user);
-  const isAirQoInternalUser =
-    userDetails?.email?.endsWith('@airqo.net') || false;
+  const { userScope, isOrganisationScope, getContextPermissions } = useUserContext();
+  const permissions = getContextPermissions();
 
   return (
     <>
@@ -53,27 +51,54 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
         </div>
 
         <nav className="flex flex-col gap-2">
+          {/* Device Management - visible to ALL users */}
           <NavItem
             item={{
               href: '/home',
               icon: LayoutGrid,
               label: 'Device Management',
-              activeOverride: activeModule === 'network',
+              activeOverride: activeModule === 'devices',
             }}
-            onClick={() => handleModuleChange('network')}
+            onClick={() => handleModuleChange('devices')}
           />
-          {isAirQoInternalUser && (
-            <>
-              <NavItem
-                item={{
-                  href: '/admin/shipping',
-                  icon: ShieldCheck,
-                  label: 'Platform Administration',
-                  activeOverride: activeModule === 'admin',
-                }}
-                onClick={() => handleModuleChange('admin')}
-              />
-            </>
+
+          {/* Organisation Devices - visible to users with organisation scope */}
+          {isOrganisationScope && (
+            <NavItem
+              item={{
+                href: '/devices/overview',
+                icon: Building2,
+                label: 'Organisation Devices',
+                activeOverride: activeModule === 'org-devices',
+              }}
+              onClick={() => handleModuleChange('org-devices')}
+            />
+          )}
+
+          {/* Network Management - visible to users with network permissions */}
+          {isOrganisationScope && permissions.canViewNetworks && (
+            <NavItem
+              item={{
+                href: '/admin/networks',
+                icon: Network,
+                label: 'Network Management',
+                activeOverride: activeModule === 'network-mgmt',
+              }}
+              onClick={() => handleModuleChange('network-mgmt')}
+            />
+          )}
+
+          {/* Platform Administration - visible to super admins */}
+          {permissions.canViewNetworks && (
+            <NavItem
+              item={{
+                href: '/admin/shipping',
+                icon: ShieldCheck,
+                label: 'Platform Administration',
+                activeOverride: activeModule === 'admin',
+              }}
+              onClick={() => handleModuleChange('admin')}
+            />
           )}
         </nav>
       </motion.aside>
