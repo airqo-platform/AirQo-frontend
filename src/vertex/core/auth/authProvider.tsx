@@ -42,14 +42,12 @@ function filterGroupsAndNetworks(
     };
   }
 
-  const filteredGroups = (userInfo.groups || []).filter(
-    (group) => group.grp_title.toLowerCase() !== 'airqo'
-  );
-  const filteredNetworks = (userInfo.networks || []).filter(
-    (network) => network.net_name.toLowerCase() !== 'airqo'
-  );
-
-  return { groups: filteredGroups, networks: filteredNetworks };
+  // Return all groups and networks regardless of staff status
+  // AirQo should be visible to all users as the default organization
+  return {
+    groups: userInfo.groups || [],
+    networks: userInfo.networks || [],
+  };
 }
 
 function determineInitialUserSetup(
@@ -80,11 +78,8 @@ function determineInitialUserSetup(
   }
 
   if (!defaultGroup) {
-    if (isAirQoStaff) {
-      defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
-    } else {
-      defaultGroup = filteredGroups[0];
-    }
+    // Prioritize AirQo as the default group for ALL users
+    defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
   }
 
   if (defaultGroup && filteredNetworks.length > 0) {

@@ -23,15 +23,15 @@ interface OrganizationModalProps {
   activeGroup: Group | null;
   userContext: UserContext | null;
   isAirQoStaff: boolean;
-  onOrganizationChange: (group: Group | 'private') => void;
+  onOrganizationChange: (group: Group) => void;
 }
 
 const formatTitle = (title: string) => {
-    if (!title) return "";
-    return title
-      .replace(/[_-]/g, " ")
-      .toUpperCase();
-  };
+  if (!title) return "";
+  return title
+    .replace(/[_-]/g, " ")
+    .toUpperCase();
+};
 
 const OrganizationModal: React.FC<OrganizationModalProps> = ({
   isOpen,
@@ -62,29 +62,16 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
       .map(id => groupMap.get(id))
       .filter((g): g is Group => g !== undefined);
 
-    // Filter out AirQo organization for non-staff users in recent groups
-    const filteredRecents = isAirQoStaff 
-      ? recents 
-      : recents.filter(group => group.grp_title.toLowerCase() !== 'airqo');
-    
-    logger.debug('[OrgModal:useEffect] Setting final recent groups', { 
-      count: filteredRecents.length, 
-      groups: filteredRecents.map(g => g.grp_title),
-      isAirQoStaff,
-    });
-
-    setRecentGroups(filteredRecents);
-  }, [userGroups, isOpen, activeGroup, isAirQoStaff]);
+    setRecentGroups(recents);
+  }, [userGroups, isOpen, activeGroup]);
 
   const updateRecents = (group: Group) => {
     const updatedRecents = [group._id, ...recentGroups.map(g => g._id).filter(id => id !== group._id)].slice(0, 5);
     localStorage.setItem("recentOrganizations", JSON.stringify(updatedRecents));
   }
 
-  const handleSelection = (group: Group | 'private') => {
-    if (group !== 'private') {
-      updateRecents(group);
-    }
+  const handleSelection = (group: Group) => {
+    updateRecents(group);
     onOrganizationChange(group);
   }
 
@@ -92,26 +79,14 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     if (!Array.isArray(userGroups)) {
       return [];
     }
-    
-    let groups = userGroups.filter((group) =>
-        group.grp_title && 
-        group.grp_title.toLowerCase().includes(searchTerm?.toLowerCase() || '')
+
+    const groups = userGroups.filter((group) =>
+      group.grp_title &&
+      group.grp_title.toLowerCase().includes(searchTerm?.toLowerCase() || '')
     );
 
-    // Filter out AirQo organization for non-staff users
-    if (!isAirQoStaff) {
-      groups = groups.filter(group => 
-        group.grp_title && 
-        group.grp_title.toLowerCase() !== 'airqo'
-      );
-    }
-
-    logger.debug('[OrgModal:useMemo] Final filtered groups', { 
-      count: groups.length, 
-      groups: groups.map(g => g.grp_title) 
-    });
     return groups;
-  }, [userGroups, searchTerm, isAirQoStaff]);
+  }, [userGroups, searchTerm]);
 
   const handleCreateNew = () => {
     const baseUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || 'https://analytics.airqo.net';
@@ -120,28 +95,10 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     onClose();
   }
 
-  const PrivateModeItem = () => {
-    return (
-      <div
-        onClick={() => handleSelection('private')}
-        className={`flex items-center justify-between p-3 hover:bg-blue-50 rounded-xl cursor-pointer ${userContext === 'personal' && "border border-blue-200 bg-blue-50/50"}`}
-      >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-            <AqUser02 size={16} className="text-blue-600" />
-          </div>
-          <div>
-            <p className="font-medium uppercase text-sm">Private Mode</p>
-          </div>
-        </div>
-        {userContext === 'personal' && <div className="bg-blue-600 h-2 w-2 rounded-full" />}
-      </div>
-    );
-  };
 
   const OrganizationItem = ({ group }: { group: Group }) => {
     const isActive = activeGroup?._id === group._id && userContext !== 'personal';
-    
+
     return (
       <div
         onClick={() => handleSelection(group)}
@@ -161,19 +118,12 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   };
 
   const renderOrganizationList = (groups: Group[]) => {
-    // Always show Private Mode - it's the default mode for all users
-    const showPrivateMode = true;
-    
     return (
       <div className="space-y-1 py-2">
-        {showPrivateMode && <PrivateModeItem />}
-        {showPrivateMode && groups.length > 0 && (
-          <div className="my-2" />
-        )}
         {groups.length > 0 && (
           <div className="px-1 mb-2 mt-3">
             <h3 className="text-sm font-medium text-muted-foreground">
-              {showPrivateMode ? 'Organizations' : 'Available Organizations'}
+              Available Organizations
             </h3>
           </div>
         )}
@@ -181,7 +131,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
           groups.map((group) => <OrganizationItem key={group._id} group={group} />)
         ) : (
           <p className="text-muted-foreground text-center py-8">
-            {showPrivateMode ? 'No other organizations found.' : 'No organizations found.'}
+            No organizations found.
           </p>
         )}
       </div>
@@ -201,27 +151,27 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
           </DialogTitle>
         </DialogHeader>
         <div className="px-6 pb-2 border-b flex-shrink-0">
-            <div className="relative w-full">
-                <AqSearchMd className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input 
-                    placeholder="Search organizations by name" 
-                    className="pl-10" 
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                />
-            </div>
+          <div className="relative w-full">
+            <AqSearchMd className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search organizations by name"
+              className="pl-10"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
         <div className="flex-grow flex flex-col min-h-0 px-6 max-h-[450px] overflow-y-auto">
           {renderOrganizationList(filteredGroups)}
         </div>
         <DialogFooter className="p-4 border-t flex-shrink-0">
-            <DialogClose asChild>
-                <Button variant="outline">Close</Button>
-            </DialogClose>
+          <DialogClose asChild>
+            <Button variant="outline">Close</Button>
+          </DialogClose>
         </DialogFooter>
       </CustomDialogContent>
     </Dialog>
   );
 };
 
-export default OrganizationModal; 
+export default OrganizationModal;

@@ -111,7 +111,9 @@ const determineUserContext = (
 
   let context: UserContext;
   if (isAirQoOrg) {
-    context = isAirQoStaff ? 'airqo-internal' : 'personal';
+    // AirQo organization always uses airqo-internal context
+    // Access within this context is controlled by permissions (userScope)
+    context = 'airqo-internal';
   } else {
     context = 'external-org';
   }
@@ -211,10 +213,9 @@ const userSlice = createSlice({
       const { isAirQoStaff } = state;
       
       // Validate context change
-      if (action.payload === 'airqo-internal' && !isAirQoStaff) {
-        console.error('Unauthorized context change attempt: non-staff user trying to access airqo-internal');
-        return; // Prevent the change
-      }
+      // Logic for blocking non-staff from airqo-internal removed
+      // Access is now controlled by permissions in useUserContext scope calculation
+
       
       state.userContext = action.payload;
     },

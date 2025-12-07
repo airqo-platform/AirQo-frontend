@@ -32,55 +32,28 @@ const OrganizationPicker: React.FC = () => {
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
 
-    const filteredGroups = userGroups.filter(
+    return userGroups.filter(
       (group): group is Group => !!(group && group._id && group.grp_title)
     );
+  }, [userGroups]);
 
-    if (!isAirQoStaff) {
-      return filteredGroups.filter(
-        (group) => group.grp_title.toLowerCase() !== "airqo"
-      );
-    }
-    return filteredGroups;
-  }, [userGroups, isAirQoStaff]);
-
-  const handleOrganizationChange = async (group: Group | "private") => {
+  const handleOrganizationChange = async (group: Group) => {
     dispatch(setOrganizationSwitching({
       isSwitching: true,
-      switchingTo: group === "private" ? "Private Mode" : group.grp_title
+      switchingTo: group.grp_title
     }));
 
-    let newContext: UserContext;
-    if (group === "private") {
-      newContext = "personal";
-    } else {
-      newContext =
-        group.grp_title.toLowerCase() === "airqo"
-          ? "airqo-internal"
-          : "external-org";
-    }
-
-    if (newContext === "airqo-internal" && !isAirQoStaff) {
-      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
-      return;
-    }
+    const newContext: UserContext =
+      group.grp_title.toLowerCase() === "airqo"
+        ? "airqo-internal"
+        : "external-org";
 
     try {
       await queryClient.cancelQueries();
       await queryClient.invalidateQueries();
 
-      if (group === "private") {
-        dispatch(setActiveGroup(null));
-        dispatch(setUserContext("personal"));
-      } else {
-        if (group.grp_title.toLowerCase() === "airqo") {
-          dispatch(setActiveGroup(group));
-          dispatch(setUserContext("airqo-internal"));
-        } else {
-          dispatch(setActiveGroup(group));
-          dispatch(setUserContext("external-org"));
-        }
-      }
+      dispatch(setActiveGroup(group));
+      dispatch(setUserContext(newContext));
 
       setIsModalOpen(false);
 
@@ -96,9 +69,6 @@ const OrganizationPicker: React.FC = () => {
   };
 
   const getDisplayTitle = () => {
-    if (isPersonalContext) {
-      return "PRIVATE MODE";
-    }
     return formatTitle(activeGroup?.grp_title || "") || "Select Organization";
   };
 
