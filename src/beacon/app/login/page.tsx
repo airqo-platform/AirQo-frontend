@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, FormEvent } from "react"
+import { useState, useEffect, FormEvent, Component, ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,17 +20,50 @@ function DeviceModel3DFallback({ onModelLoaded }: Readonly<{ onModelLoaded?: () 
   }, [onModelLoaded])
 
   return (
-    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-red-300 via-red-400 to-red-500">
-      <AlertCircle className="h-16 w-16 text-white mb-4" />
-      <div className="text-white text-xl font-semibold">3D model failed to load</div>
-      <button
-        onClick={() => globalThis.location.reload()}
-        className="mt-4 px-4 py-2 bg-white text-red-500 rounded hover:bg-gray-100"
-      >
-        Retry
-      </button>
+    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
+      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md mx-4">
+        <AlertCircle className="h-16 w-16 text-white mb-4 mx-auto" />
+        <div className="text-white text-xl font-semibold text-center mb-2">Unable to load 3D model</div>
+        <p className="text-blue-100 text-sm text-center mb-4">
+          The interactive device model could not be loaded, but you can still sign in.
+        </p>
+        <button
+          onClick={() => globalThis.location.reload()}
+          className="w-full px-4 py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
+        >
+          Retry Loading
+        </button>
+      </div>
     </div>
   )
+}
+
+// Error boundary to catch runtime errors in the 3D component
+class Model3DErrorBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; onError: () => void }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('3D Model Error:', error, errorInfo)
+    this.props.onError()
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <DeviceModel3DFallback onModelLoaded={this.props.onError} />
+    }
+
+    return this.props.children
+  }
 }
 
 // Dynamically import the 3D component to avoid SSR issues with better error handling
@@ -214,7 +247,9 @@ export default function LoginPage() {
       <div className={`min-h-screen flex transition-opacity duration-500 ${pageReady ? 'opacity-100' : 'opacity-0'}`}>
         {/* Left side - 3D Model */}
         <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
-          <DeviceModel3D onModelLoaded={() => setPageReady(true)} />
+          <Model3DErrorBoundary onError={() => setPageReady(true)}>
+            <DeviceModel3D onModelLoaded={() => setPageReady(true)} />
+          </Model3DErrorBoundary>
           
           {/* Overlay text */}
           <div className="absolute bottom-10 left-10 right-10 text-white">
