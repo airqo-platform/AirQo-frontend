@@ -35,6 +35,7 @@ interface MapSidebarProps {
   onBackToList?: () => void;
   locationDetailsLoading?: boolean;
   selectedPollutant?: PollutantType;
+  cohort_id?: string;
 }
 
 export const MapSidebar: React.FC<MapSidebarProps> = ({
@@ -51,6 +52,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
   onBackToList,
   locationDetailsLoading = false,
   selectedPollutant = 'pm2_5',
+  cohort_id,
 }) => {
   // Single Card wrapper for consistent styling
   const hasSearch = searchQuery.trim().length > 0;
@@ -93,6 +95,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
               selectedCountry={selectedCountry}
               onLocationSelect={onLocationSelect}
               searchQuery={searchQuery}
+              cohort_id={cohort_id}
               selectedLocationId={
                 selectedLocationId ||
                 (selectedMapReading

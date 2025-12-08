@@ -109,6 +109,12 @@ const orgSidebarConfig: NavGroup[] = [
         icon: AqHomeSmile,
       },
       {
+        id: 'map',
+        label: 'Map',
+        href: '/org/map',
+        icon: AqGlobe05,
+      },
+      {
         id: 'bulk-export',
         label: 'Bulk Data Export',
         href: '/org/data-export',

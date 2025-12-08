@@ -19,7 +19,11 @@ import { normalizeMapReadings } from './utils/dataNormalization';
 import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
 
-const MapPage = () => {
+interface MapPageProps {
+  cohortId?: string;
+}
+
+const MapPage: React.FC<MapPageProps> = ({ cohortId }) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
   const selectedLocation = useSelector(
@@ -85,19 +89,32 @@ const MapPage = () => {
   // Use the new hooks
   const { setCountry } = useSitesByCountry({
     country: selectedCountry,
+    cohort_id: cohortId,
   });
-  const { readings, isLoading: mapDataLoading, refetch } = useMapReadings();
+  const {
+    readings,
+    isLoading: mapDataLoading,
+    refetch,
+  } = useMapReadings(cohortId);
 
   // WAQI data for major cities - progressive loading to optimize performance
   const allCities = React.useMemo(() => {
+    // If cohortId is present, we only want AirQo readings for that cohort, so no WAQI cities
+    if (cohortId) return [];
     return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
-  }, []);
+  }, [cohortId]);
 
-  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500); // Load 10 cities per batch with 500ms delay
+  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500);
 
   // Normalize map readings - prioritize AirQo data
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
+
+    // If cohortId is present, we only want AirQo readings for that cohort
+    if (cohortId) {
+      return airqoReadings;
+    }
+
     const combined = [...airqoReadings, ...waqiReadings];
     // Remove duplicates based on ID to prevent React key conflicts
     const seenIds = new Set<string>();
@@ -108,7 +125,7 @@ const MapPage = () => {
       seenIds.add(reading.id);
       return true;
     });
-  }, [readings, waqiReadings, selectedPollutant]);
+  }, [readings, waqiReadings, selectedPollutant, cohortId]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

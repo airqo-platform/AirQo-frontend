@@ -11,6 +11,7 @@ export interface UseSitesByCountryParams {
   country?: string;
   enabled?: boolean;
   initialLimit?: number;
+  cohort_id?: string;
 }
 
 export interface UseSitesByCountryResult {
@@ -35,6 +36,7 @@ export function useSitesByCountry({
   country = 'Uganda',
   enabled = true,
   initialLimit = 6,
+  cohort_id,
 }: UseSitesByCountryParams = {}): UseSitesByCountryResult {
   const [sites, setSites] = useState<Record<string, unknown>[]>([]);
   const [totalSites, setTotalSites] = useState(0);
@@ -76,8 +78,22 @@ export function useSitesByCountry({
           queryParams.country = formatCountryForApi(currentCountry);
         }
 
-        const response: SitesSummaryResponse =
-          await deviceService.getSitesSummaryAuthenticated(queryParams);
+        let response: SitesSummaryResponse | any;
+
+        if (cohort_id) {
+          const cohortIds = cohort_id.split(',');
+          response = await deviceService.getCohortSites(
+            { cohort_ids: cohortIds },
+            {
+              ...queryParams,
+              // Map search param if it exists
+              search: queryParams.search,
+            }
+          );
+        } else {
+          response =
+            await deviceService.getSitesSummaryAuthenticated(queryParams);
+        }
 
         if (append) {
           setSites(prev => [...prev, ...response.sites]);
@@ -98,7 +114,7 @@ export function useSitesByCountry({
         }
       }
     },
-    [enabled, initialLimit, currentCountry]
+    [enabled, initialLimit, currentCountry, cohort_id]
   );
 
   const loadMore = useCallback(() => {
