@@ -16,22 +16,6 @@ export default function Sidebar({ sidebarOpen, onToggleSidebar }: SidebarProps) 
         sidebarOpen ? "w-56" : "w-16"
       } flex flex-col ml-4 mt-20 mb-4 rounded-xl shadow-sm`}
     >
-      {/* Toggle Button */}
-      <button
-        type="button"
-        onClick={onToggleSidebar}
-        className={`flex items-center justify-center p-2 mx-2 mt-2 rounded-md hover:bg-gray-100 transition-colors ${
-          sidebarOpen ? "self-end" : "self-center"
-        }`}
-        aria-label={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
-        aria-expanded={sidebarOpen}
-      >
-        {sidebarOpen ? (
-          <ChevronLeft className="h-5 w-5 text-gray-500" />
-        ) : (
-          <ChevronRight className="h-5 w-5 text-gray-500" />
-        )}
-      </button>
 
       <nav className="px-2 py-3 flex-1">
         <ul className="space-y-1">
