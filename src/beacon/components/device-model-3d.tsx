@@ -26,14 +26,18 @@ if (globalThis.window !== undefined) {
  * 3D Device Model Component
  * Loads and displays the cell phone holder GLB model with interactive controls
  */
-function DeviceModel({ onLoad }: Readonly<{ onLoad?: () => void }>) {
+function DeviceModel({ onLoad, onError }: Readonly<{ onLoad?: () => void; onError?: () => void }>) {
   const groupRef = useRef<THREE.Group>(null)
   
-  // Load the GLB model
+  // Load the GLB model - errors will be caught by error boundary
   const { scene } = useGLTF('/gen6_assembly.glb')
   
   // Clone the scene to avoid issues with shared materials/textures
   const clonedScene = useMemo(() => {
+    if (!scene) {
+      onError?.()
+      return null
+    }
     const clone = scene.clone(true)
     
     // Traverse and handle materials that might have problematic textures
@@ -51,7 +55,7 @@ function DeviceModel({ onLoad }: Readonly<{ onLoad?: () => void }>) {
     })
     
     return clone
-  }, [scene])
+  }, [scene, onError])
   
   // Notify parent when model is loaded
   useEffect(() => {
@@ -98,14 +102,30 @@ function Loader() {
 /**
  * Main 3D Scene Component
  */
-export default function DeviceModel3D({ onModelLoaded }: Readonly<{ onModelLoaded?: () => void }>) {
+export default function DeviceModel3D({ onModelLoaded, onModelFailed }: Readonly<{ onModelLoaded?: () => void; onModelFailed?: () => void }>) {
   const [isLoaded, setIsLoaded] = useState(false)
+  const [hasError, setHasError] = useState(false)
 
   const handleLoad = () => {
     setIsLoaded(true)
     if (onModelLoaded) {
       onModelLoaded()
     }
+  }
+
+  const handleError = () => {
+    setHasError(true)
+    if (onModelFailed) {
+      onModelFailed()
+    }
+    if (onModelLoaded) {
+      onModelLoaded() // Still signal page readiness
+    }
+  }
+
+  // If there's an error, render nothing (the login form will take full width)
+  if (hasError) {
+    return null
   }
 
   return (
@@ -124,6 +144,12 @@ export default function DeviceModel3D({ onModelLoaded }: Readonly<{ onModelLoade
         dpr={[1, 2]}
         gl={{ antialias: true }}
         className="bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500"
+        onCreated={({ gl }) => {
+          // Check if WebGL context was created successfully
+          if (!gl.getContext()) {
+            handleError()
+          }
+        }}
       >
         {/* Camera setup */}
         <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={40} />
@@ -141,7 +167,7 @@ export default function DeviceModel3D({ onModelLoaded }: Readonly<{ onModelLoade
         
         {/* 3D Model */}
         <Suspense fallback={null}>
-          <DeviceModel onLoad={handleLoad} />
+          <DeviceModel onLoad={handleLoad} onError={handleError} />
           <Environment preset="city" />
         </Suspense>
         

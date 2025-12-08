@@ -12,38 +12,23 @@ import Link from "next/link"
 import authService from "@/services/api-service"
 import dynamic from "next/dynamic"
 
-// Fallback component when 3D model fails to load - signals readiness on mount
-function DeviceModel3DFallback({ onModelLoaded }: Readonly<{ onModelLoaded?: () => void }>) {
+// Fallback component when 3D model fails to load - signals to hide the model section
+function DeviceModel3DFallback({ onModelLoaded, onModelFailed }: Readonly<{ onModelLoaded?: () => void; onModelFailed?: () => void }>) {
   useEffect(() => {
-    // Signal page readiness even when the 3D model fails to load
+    // Signal that model failed so we hide the section
+    onModelFailed?.()
     onModelLoaded?.()
-  }, [onModelLoaded])
+  }, [onModelLoaded, onModelFailed])
 
-  return (
-    <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
-      <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 max-w-md mx-4">
-        <AlertCircle className="h-16 w-16 text-white mb-4 mx-auto" />
-        <div className="text-white text-xl font-semibold text-center mb-2">Unable to load 3D model</div>
-        <p className="text-blue-100 text-sm text-center mb-4">
-          The interactive device model could not be loaded, but you can still sign in.
-        </p>
-        <button
-          onClick={() => globalThis.location.reload()}
-          className="w-full px-4 py-2 bg-white text-blue-600 rounded-lg font-medium hover:bg-blue-50 transition-colors"
-        >
-          Retry Loading
-        </button>
-      </div>
-    </div>
-  )
+  return null
 }
 
 // Error boundary to catch runtime errors in the 3D component
 class Model3DErrorBoundary extends Component<
-  { children: ReactNode; onError: () => void },
+  { children: ReactNode; onError: () => void; onModelFailed: () => void },
   { hasError: boolean }
 > {
-  constructor(props: { children: ReactNode; onError: () => void }) {
+  constructor(props: { children: ReactNode; onError: () => void; onModelFailed: () => void }) {
     super(props)
     this.state = { hasError: false }
   }
@@ -55,11 +40,12 @@ class Model3DErrorBoundary extends Component<
   componentDidCatch(error: Error, errorInfo: any) {
     console.error('3D Model Error:', error, errorInfo)
     this.props.onError()
+    this.props.onModelFailed()
   }
 
   render() {
     if (this.state.hasError) {
-      return <DeviceModel3DFallback onModelLoaded={this.props.onError} />
+      return null
     }
 
     return this.props.children
@@ -101,6 +87,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string>("")
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [pageReady, setPageReady] = useState<boolean>(false)
+  const [modelFailed, setModelFailed] = useState<boolean>(false)
   
   /**
    * Check if on mobile and set page ready immediately (no 3D model on mobile)
@@ -245,26 +232,34 @@ export default function LoginPage() {
 
       {/* Main Content - Hidden until ready */}
       <div className={`min-h-screen flex transition-opacity duration-500 ${pageReady ? 'opacity-100' : 'opacity-0'}`}>
-        {/* Left side - 3D Model */}
-        <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
-          <Model3DErrorBoundary onError={() => setPageReady(true)}>
-            <DeviceModel3D onModelLoaded={() => setPageReady(true)} />
-          </Model3DErrorBoundary>
-          
-          {/* Overlay text */}
-          <div className="absolute bottom-10 left-10 right-10 text-white">
-            <h1 className="text-5xl font-bold mb-4">AirQo Beacon</h1>
-            <p className="text-xl opacity-90">
-              Device Performance Monitoring & Management
-            </p>
+        {/* Left side - 3D Model (hidden if model failed to load) */}
+        {!modelFailed && (
+          <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
+            <Model3DErrorBoundary 
+              onError={() => setPageReady(true)} 
+              onModelFailed={() => setModelFailed(true)}
+            >
+              <DeviceModel3D 
+                onModelLoaded={() => setPageReady(true)} 
+                onModelFailed={() => setModelFailed(true)} 
+              />
+            </Model3DErrorBoundary>
+            
+            {/* Overlay text */}
+            <div className="absolute bottom-10 left-10 right-10 text-white">
+              <h1 className="text-5xl font-bold mb-4">AirQo Beacon</h1>
+              <p className="text-xl opacity-90">
+                Device Performance Monitoring & Management
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Right side - Login Form */}
-        <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+        {/* Right side - Login Form (full width if model failed) */}
+        <div className={`w-full flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8 ${!modelFailed ? 'lg:w-1/2 xl:w-2/5' : ''}`}>
         <div className="max-w-md w-full space-y-8">
-          {/* Header - Mobile only */}
-          <div className="text-center lg:hidden">
+          {/* Header - Mobile only or when model failed */}
+          <div className={`text-center ${!modelFailed ? 'lg:hidden' : ''}`}>
             <h1 className="text-4xl font-bold text-blue-600 mb-2">AirQo Beacon</h1>
             <h2 className="text-3xl font-extrabold text-gray-900">Welcome back</h2>
             <p className="mt-2 text-sm text-gray-600">
@@ -272,13 +267,15 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Header - Desktop */}
-          <div className="hidden lg:block text-center">
-            <h2 className="text-3xl font-extrabold text-gray-900">Welcome back</h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Enter your credentials to access your account
-            </p>
-          </div>
+          {/* Header - Desktop (only shown when model is visible) */}
+          {!modelFailed && (
+            <div className="hidden lg:block text-center">
+              <h2 className="text-3xl font-extrabold text-gray-900">Welcome back</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Enter your credentials to access your account
+              </p>
+            </div>
+          )}
 
         {/* Login Card */}
         <Card className="mt-8">
