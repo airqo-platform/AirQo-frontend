@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, LayoutGrid, ShieldCheck, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, LayoutGrid, ShieldCheck, ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { NavItem } from './NavItem';
 import { useUserContext } from '@/core/hooks/useUserContext';
+import { useRecentlyVisited } from '@/core/hooks/useRecentlyVisited';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,7 +38,10 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   const { getContextPermissions } = useUserContext();
   const permissions = getContextPermissions();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isRecentOpen, setIsRecentOpen] = useState(false);
+  const { visitedPages } = useRecentlyVisited();
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const recentTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   return (
     <>
@@ -205,6 +209,73 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                     Track device logistics
                   </span>
                 </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Recently Visited - visible to ALL users */}
+          {visitedPages.length > 0 && (
+            <DropdownMenu open={isRecentOpen} onOpenChange={setIsRecentOpen} modal={false}>
+              <DropdownMenuTrigger asChild>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="w-full"
+                  onMouseEnter={() => {
+                    if (recentTimeoutRef.current) clearTimeout(recentTimeoutRef.current);
+                    setIsRecentOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    recentTimeoutRef.current = setTimeout(() => setIsRecentOpen(false), 200);
+                  }}
+                >
+                  <NavItem
+                    item={{
+                      href: '#',
+                      icon: Clock,
+                      label: 'Recently Visited',
+                      endIcon: isRecentOpen ? ChevronDown : ChevronRight,
+                    }}
+                    onClick={(e) => { e?.preventDefault(); }}
+                  />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="right"
+                className="w-64 ml-2 z-[1001]"
+                align="start"
+                onMouseEnter={() => {
+                  if (recentTimeoutRef.current) clearTimeout(recentTimeoutRef.current);
+                }}
+                onMouseLeave={() => {
+                  recentTimeoutRef.current = setTimeout(() => setIsRecentOpen(false), 200);
+                }}
+              >
+                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Recently Visited
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {visitedPages.map((page, index) => (
+                  <DropdownMenuItem
+                    key={`${page.href}-${index}`}
+                    onClick={() => {
+                      // Detect module from href to update active state if needed,
+                      // though strictly we might just rely on URL change.
+                      if (page.href.includes('/devices')) handleModuleChange('devices');
+                      else if (page.href.includes('/admin')) handleModuleChange('admin');
+
+                      router.push(page.href);
+                      setIsRecentOpen(false);
+                    }}
+                    className={cn(
+                      "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                      pathname === page.href && "bg-blue-50 text-blue-700"
+                    )}
+                  >
+                    <span className="font-medium">{page.label}</span>
+                  </DropdownMenuItem>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           )}
