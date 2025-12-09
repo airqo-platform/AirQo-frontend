@@ -1,10 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUserContext, SidebarConfig } from './useUserContext';
-import { useAppSelector } from '../redux/hooks';
 import { ROUTE_LINKS } from '@/core/routes';
 
-// Map routes to sidebar config properties
 // Map routes to sidebar config properties
 const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   [ROUTE_LINKS.SITES]: 'showSites',
