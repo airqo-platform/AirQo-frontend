@@ -15,7 +15,10 @@ import type {
   ClusterData,
 } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
-import { normalizeMapReadings } from './utils/dataNormalization';
+import {
+  normalizeMapReadings,
+  calculateMapBounds,
+} from './utils/dataNormalization';
 import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
 
@@ -140,6 +143,44 @@ const MapPage: React.FC<MapPageProps> = ({
       return true;
     });
   }, [readings, waqiReadings, selectedPollutant, cohortId, isOrganizationFlow]);
+
+  // Auto-zoom to organization nodes when data loads (organization flow only)
+  const hasAutoZoomedRef = React.useRef(false);
+  React.useEffect(() => {
+    // Only auto-zoom in organization flow when we have data and haven't zoomed yet
+    if (
+      isOrganizationFlow &&
+      normalizedReadings.length > 0 &&
+      !hasAutoZoomedRef.current &&
+      !mapDataLoading
+    ) {
+      const bounds = calculateMapBounds(normalizedReadings);
+      if (bounds) {
+        setFlyToLocation({
+          longitude: bounds.center.longitude,
+          latitude: bounds.center.latitude,
+          zoom: bounds.zoom,
+        });
+
+        // Clear the flyToLocation after animation completes
+        if (flyToTimeoutRef.current) {
+          clearTimeout(flyToTimeoutRef.current);
+        }
+        flyToTimeoutRef.current = setTimeout(() => {
+          setFlyToLocation(undefined);
+          flyToTimeoutRef.current = null;
+        }, 1500); // Slightly longer timeout for smoother animation
+
+        // Mark as zoomed to prevent repeated auto-zoom
+        hasAutoZoomedRef.current = true;
+      }
+    }
+
+    // Reset the auto-zoom flag when cohortId changes (switching organizations)
+    if (cohortId) {
+      hasAutoZoomedRef.current = false;
+    }
+  }, [isOrganizationFlow, normalizedReadings, mapDataLoading, cohortId]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

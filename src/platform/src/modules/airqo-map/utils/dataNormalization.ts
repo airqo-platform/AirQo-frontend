@@ -296,3 +296,93 @@ export function normalizeWAQIReadings(
       };
     });
 }
+
+/**
+ * Calculates map bounds and center from an array of air quality readings
+ * Used for auto-zoom functionality in organization flow
+ */
+export function calculateMapBounds(readings: any[]): {
+  center: { longitude: number; latitude: number };
+  zoom: number;
+} | null {
+  if (!readings || readings.length === 0) {
+    return null;
+  }
+
+  // Extract coordinates from readings
+  const coordinates = readings
+    .map(reading => {
+      // Handle different coordinate structures
+      if (reading.latitude !== undefined && reading.longitude !== undefined) {
+        return { lat: reading.latitude, lng: reading.longitude };
+      }
+      if (
+        reading.siteDetails?.approximate_latitude &&
+        reading.siteDetails?.approximate_longitude
+      ) {
+        return {
+          lat: reading.siteDetails.approximate_latitude,
+          lng: reading.siteDetails.approximate_longitude,
+        };
+      }
+      return null;
+    })
+    .filter((coord): coord is { lat: number; lng: number } => coord !== null);
+
+  if (coordinates.length === 0) {
+    return null;
+  }
+
+  // Single point - zoom in closer
+  if (coordinates.length === 1) {
+    return {
+      center: {
+        longitude: coordinates[0].lng,
+        latitude: coordinates[0].lat,
+      },
+      zoom: 12, // Closer zoom for single point
+    };
+  }
+
+  // Multiple points - calculate bounds
+  const lngs = coordinates.map(c => c.lng);
+  const lats = coordinates.map(c => c.lat);
+
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+
+  // Calculate center
+  const centerLng = (minLng + maxLng) / 2;
+  const centerLat = (minLat + maxLat) / 2;
+
+  // Calculate span to determine appropriate zoom level
+  const lngSpan = maxLng - minLng;
+  const latSpan = maxLat - minLat;
+  const maxSpan = Math.max(lngSpan, latSpan);
+
+  // Calculate zoom level based on span
+  // Mapbox zoom levels: 0 (world) to 22 (building level)
+  // This formula provides a good balance
+  let zoom = 10; // Default zoom
+  if (maxSpan < 0.01)
+    zoom = 13; // Very close points
+  else if (maxSpan < 0.05)
+    zoom = 11; // Close points
+  else if (maxSpan < 0.2)
+    zoom = 9; // Nearby points
+  else if (maxSpan < 0.5)
+    zoom = 8; // Regional view
+  else if (maxSpan < 1)
+    zoom = 7; // State/province view
+  else zoom = 6; // Country view
+
+  return {
+    center: {
+      longitude: centerLng,
+      latitude: centerLat,
+    },
+    zoom,
+  };
+}
