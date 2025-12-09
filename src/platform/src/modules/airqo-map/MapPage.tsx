@@ -16,7 +16,7 @@ import {
   normalizeMapReadings,
   calculateMapBounds,
 } from './utils/dataNormalization';
-import citiesData from './data/cities.json';
+// import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
 
 interface MapPageProps {
@@ -99,12 +99,14 @@ const MapPage: React.FC<MapPageProps> = ({
     refetch,
   } = useMapReadings(cohortId);
 
-  // Never load WAQI data in organization flow
+  // Disable WAQI data loading - keep logic for future enablement
   const allCities = React.useMemo(() => {
-    if (isOrganizationFlow) return [];
-    if (cohortId) return [];
-    return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
-  }, [cohortId, isOrganizationFlow]);
+    // Temporarily disabled WAQI data loading
+    // if (isOrganizationFlow) return [];
+    // if (cohortId) return [];
+    // return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
+    return [];
+  }, []);
 
   const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500);
 
