@@ -59,7 +59,6 @@ export default function NetworkDetailsPage() {
                             </ReusableButton>
                         ) : (
                             <ReusableButton
-                                variant="outlined"
                                 disabled={!canUpdateDevice}
                                 onClick={() => setImportDeviceOpen(true)}
                                 Icon={Upload}
