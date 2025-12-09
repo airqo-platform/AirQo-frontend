@@ -550,7 +550,7 @@ function AutoLogoutHandler() {
       clearInterval(intervalId);
       if (throttleTimer) clearTimeout(throttleTimer);
     };
-  }, [session, logout, updateActivity]);
+  }, [session, logout, updateActivity, INACTIVITY_LIMIT]);
 
   return null;
 }
