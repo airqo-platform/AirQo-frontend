@@ -16,6 +16,7 @@ Centralized application route definitions and consolidated administrative naviga
 
 - **Centralized Route Constants**: Introduced `ROUTE_LINKS` constant to manage all application paths from a single source of truth, eliminating hardcoded strings.
 - **Consolidated Admin Panel**: Created a unified "Administrative Panel" dropdown in the primary sidebar, decluttering the navigation and grouping related admin tasks (Networks, Cohorts, Sites, Grids, Shipping).
+- **File Migration**: Successfully migrated `cohorts`, `sites`, and `grids` pages to the `/admin` directory, ensuring clearer project structure and route organization.
 - **Enhanced Context Routing**: Updated `useContextAwareRouting` and `useUserContext` to robustly handle the new consolidated admin structure and ensure correct visibility based on user roles and permissions.
 
 </details>
