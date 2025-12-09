@@ -16,6 +16,7 @@ export interface SidebarConfig {
   showClaimDevice: boolean;
   showDeployDevice: boolean;
   showNetworks: boolean;
+  showShipping: boolean;
 }
 
 export interface UserContextState {
@@ -143,6 +144,7 @@ export const useUserContext = (): UserContextState => {
         showClaimDevice: true,
         showDeployDevice: true,
         showNetworks: false,
+        showShipping: false,
       };
     }
 
@@ -161,6 +163,7 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: false,
+          showShipping: false,
         };
 
       case 'airqo-internal':
@@ -178,6 +181,7 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: canViewNetworks,
+          showShipping: true,
         };
 
       case 'external-org':
@@ -195,6 +199,7 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: false,
+          showShipping: false,
         };
 
       default:
@@ -211,6 +216,7 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: false,
+          showShipping: false,
         };
     }
   };

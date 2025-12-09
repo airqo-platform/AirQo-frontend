@@ -2,17 +2,21 @@ import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUserContext, SidebarConfig } from './useUserContext';
 import { useAppSelector } from '../redux/hooks';
+import { ROUTE_LINKS } from '@/core/routes';
 
 // Map routes to sidebar config properties
+// Map routes to sidebar config properties
 const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
-  '/sites': 'showSites',
+  [ROUTE_LINKS.SITES]: 'showSites',
   '/user-management': 'showUserManagement',
   '/access-control': 'showAccessControl',
-  '/devices/my-devices': 'showMyDevices',
-  '/devices/overview': 'showDeviceOverview',
+  [ROUTE_LINKS.MY_DEVICES]: 'showMyDevices',
+  [ROUTE_LINKS.ORG_ASSETS]: 'showDeviceOverview', // Assuming this maps to /devices/overview
   '/devices/claim': 'showClaimDevice',
-  '/grids': 'showGrids',
-  '/cohorts': 'showCohorts',
+  [ROUTE_LINKS.GRIDS]: 'showGrids',
+  [ROUTE_LINKS.COHORTS]: 'showCohorts',
+  [ROUTE_LINKS.ADMIN_NETWORKS]: 'showNetworks',
+  [ROUTE_LINKS.ADMIN_SHIPPING]: 'showShipping',
 };
 
 export const useContextAwareRouting = () => {
@@ -48,7 +52,7 @@ export const useContextAwareRouting = () => {
     // Check if current route is accessible in new context
     const isRouteAccessible = (route: string): boolean => {
       // Dashboard is always accessible
-      if (route === '/home') return true;
+      if (route === ROUTE_LINKS.HOME) return true;
       
       // Check if route maps to a sidebar config property
       const configKey = routeToSidebarConfig[route];
@@ -71,7 +75,7 @@ export const useContextAwareRouting = () => {
     // If current route is not accessible, redirect to dashboard
     if (!isRouteAccessible(pathname)) {
       // logger.debug('Context-aware redirect', { from: pathname, to: '/home', userContext, sidebarConfig })
-      router.push('/home');
+      router.push(ROUTE_LINKS.HOME);
     }
   }, [userContext, pathname, getSidebarConfig, router]);
 }; 

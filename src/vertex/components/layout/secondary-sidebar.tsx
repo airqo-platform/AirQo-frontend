@@ -13,6 +13,7 @@ import {
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
+import { ROUTE_LINKS } from '@/core/routes';
 import Card from '../shared/card/CardWrapper';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NavItem } from './NavItem';
@@ -96,7 +97,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     <>
                       <NavItem
                         item={{
-                          href: '/home',
+                          href: ROUTE_LINKS.HOME,
                           icon: AqHomeSmile,
                           label: 'Home',
                           disabled: false,
@@ -108,7 +109,16 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       </SidebarSectionHeading>
                       <NavItem
                         item={{
-                          href: '/devices/my-devices',
+                          href: ROUTE_LINKS.MY_NETWORKS,
+                          icon: AqMonitor,
+                          label: 'My Network',
+                          disabled: false, // My Network is public
+                        }}
+                        isCollapsed={isCollapsed}
+                      />
+                      <NavItem
+                        item={{
+                          href: ROUTE_LINKS.MY_DEVICES,
                           icon: AqMonitor,
                           label: 'My Devices',
                           disabled: !contextPermissions.canViewDevices,
@@ -117,7 +127,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       />
                       <NavItem
                         item={{
-                          href: '/devices/claim',
+                          href: '/devices/claim', // Keep as is for now or add to routes if needed
                           icon: AqPackagePlus,
                           label: 'Claim Device',
                         }}
@@ -129,7 +139,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     <>
                       <NavItem
                         item={{
-                          href: '/home',
+                          href: ROUTE_LINKS.HOME,
                           icon: AqHomeSmile,
                           label: 'Overview',
                           disabled: false,
@@ -141,7 +151,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       </SidebarSectionHeading>
                       <NavItem
                         item={{
-                          href: '/devices/overview',
+                          href: ROUTE_LINKS.ORG_ASSETS,
                           icon: AqMonitor,
                           label: 'Assets',
                           disabled: !contextPermissions.canViewDevices,
@@ -150,7 +160,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       />
                       <NavItem
                         item={{
-                          href: '/devices/claim',
+                          href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
                           icon: AqPackagePlus,
                           label: 'Register Device',
                         }}
@@ -169,7 +179,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     <>
                       <NavItem
                         item={{
-                          href: '/home', // Keep Overview accessible
+                          href: ROUTE_LINKS.HOME, // Keep Overview accessible
                           icon: AqHomeSmile,
                           label: 'Overview',
                           disabled: false,
@@ -181,7 +191,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       </SidebarSectionHeading>
                       <NavItem
                         item={{
-                          href: '/devices/overview',
+                          href: ROUTE_LINKS.ORG_ASSETS,
                           icon: AqMonitor,
                           label: 'Assets',
                           disabled: !contextPermissions.canViewDevices,
@@ -190,7 +200,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       />
                       <NavItem
                         item={{
-                          href: '/devices/claim',
+                          href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
                           icon: AqPackagePlus,
                           label: 'Register Device',
                         }}
@@ -206,7 +216,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                       <NavItem
                         item={{
-                          href: '/devices/overview',
+                          href: ROUTE_LINKS.ORG_ASSETS,
                           icon: AqMonitor,
                           label: 'Devices',
                           disabled: !contextPermissions.canViewDevices,
@@ -216,7 +226,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                       <NavItem
                         item={{
-                          href: '/cohorts',
+                          href: ROUTE_LINKS.COHORTS,
                           icon: AqCollocation,
                           label: 'Cohorts',
                           disabled: !contextPermissions.canViewDevices,
@@ -226,7 +236,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                       <NavItem
                         item={{
-                          href: '/sites',
+                          href: ROUTE_LINKS.SITES,
                           icon: AqMarkerPin01,
                           label: 'Sites',
                           disabled: !contextPermissions.canViewSites,
@@ -236,7 +246,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                       <NavItem
                         item={{
-                          href: '/grids',
+                          href: ROUTE_LINKS.GRIDS,
                           icon: AqAirQlouds,
                           label: 'Grids',
                           disabled: !contextPermissions.canViewSites,
@@ -257,7 +267,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: '/admin/networks',
+                      href: ROUTE_LINKS.ADMIN_NETWORKS,
                       icon: AqHomeSmile,
                       label: 'Networks',
                       disabled: !contextPermissions.canViewNetworks,
@@ -267,7 +277,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: '/sites',
+                      href: ROUTE_LINKS.SITES,
                       icon: AqMarkerPin01,
                       label: 'Sites',
                       disabled: !contextPermissions.canViewSites,
@@ -277,7 +287,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: '/grids',
+                      href: ROUTE_LINKS.GRIDS,
                       icon: AqAirQlouds,
                       label: 'Grids',
                       disabled: !contextPermissions.canViewSites,
@@ -298,7 +308,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                   {/* Network Management - Flat Item */}
                   <NavItem
                     item={{
-                      href: '/admin/networks',
+                      href: ROUTE_LINKS.ADMIN_NETWORKS,
                       icon: AqHomeSmile,
                       label: 'Networks',
                       disabled: !contextPermissions.canViewNetworks,
@@ -308,7 +318,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: '/cohorts', // TODO: Update to /admin/cohorts after manual move
+                      href: ROUTE_LINKS.COHORTS, // TODO: Update to /admin/cohorts after manual move
                       icon: AqCollocation,
                       label: 'Cohorts',
                       disabled: !contextPermissions.canViewDevices,
@@ -318,7 +328,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: '/sites', // TODO: Update to /admin/sites after manual move
+                      href: ROUTE_LINKS.SITES, // TODO: Update to /admin/sites after manual move
                       icon: AqMarkerPin01,
                       label: 'Sites',
                       disabled: !contextPermissions.canViewSites,
@@ -328,7 +338,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: '/grids', // TODO: Update to /admin/grids after manual move
+                      href: ROUTE_LINKS.GRIDS, // TODO: Update to /admin/grids after manual move
                       icon: AqAirQlouds,
                       label: 'Grids',
                       disabled: !contextPermissions.canViewSites,
@@ -338,7 +348,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: '/admin/shipping',
+                      href: ROUTE_LINKS.ADMIN_SHIPPING,
                       icon: AqPackagePlus,
                       label: 'Shipping',
                     }}

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { ROUTE_LINKS } from '@/core/routes';
 
 interface PrimarySidebarProps {
   isOpen: boolean;
@@ -69,7 +70,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
           {/* Device Management - visible to ALL users */}
           <NavItem
             item={{
-              href: '/home',
+              href: ROUTE_LINKS.HOME,
               icon: LayoutGrid,
               label: 'Device Management',
               activeOverride: activeModule === 'devices',
@@ -122,21 +123,21 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuSeparator />
 
                 <DropdownMenuItem
-                    onClick={() => {
-                      handleModuleChange('admin');
-                      router.push('/admin/networks');
-                      setIsDropdownOpen(false);
-                    }}
-                    className={cn(
-                      "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                      pathname.startsWith('/admin/networks') && "bg-blue-50 text-blue-700"
-                    )}
-                  >
-                    <span className="font-medium">Networks</span>
-                    <span className={cn("text-xs", pathname.startsWith('/admin/networks') ? "text-blue-500" : "text-muted-foreground")}>
-                      Manage and configure networks
-                    </span>
-                  </DropdownMenuItem>
+                  onClick={() => {
+                    handleModuleChange('admin');
+                    router.push('/admin/networks');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={cn(
+                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                    pathname.startsWith('/admin/networks') && "bg-blue-50 text-blue-700"
+                  )}
+                >
+                  <span className="font-medium">Networks</span>
+                  <span className={cn("text-xs", pathname.startsWith('/admin/networks') ? "text-blue-500" : "text-muted-foreground")}>
+                    Manage and configure networks
+                  </span>
+                </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={() => {
