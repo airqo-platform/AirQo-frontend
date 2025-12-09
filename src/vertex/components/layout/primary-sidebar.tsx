@@ -150,7 +150,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   )}
                 >
                   <span className="font-medium">Networks</span>
-                  <span className={cn("text-xs", pathname.startsWith('/admin/networks') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS) ? "text-blue-500" : "text-muted-foreground")}>
                     Manage and configure networks
                   </span>
                 </DropdownMenuItem>
@@ -167,7 +167,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   )}
                 >
                   <span className="font-medium">Cohorts</span>
-                  <span className={cn("text-xs", pathname.startsWith('/admin/cohorts') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.COHORTS) ? "text-blue-500" : "text-muted-foreground")}>
                     Group devices for analytics
                   </span>
                 </DropdownMenuItem>
@@ -184,7 +184,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   )}
                 >
                   <span className="font-medium">Sites</span>
-                  <span className={cn("text-xs", pathname.startsWith('/admin/sites') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.SITES) ? "text-blue-500" : "text-muted-foreground")}>
                     Manage location deployments
                   </span>
                 </DropdownMenuItem>
@@ -201,7 +201,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   )}
                 >
                   <span className="font-medium">Grids</span>
-                  <span className={cn("text-xs", pathname.startsWith('/admin/grids') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.GRIDS) ? "text-blue-500" : "text-muted-foreground")}>
                     Configure spatial grids
                   </span>
                 </DropdownMenuItem>
@@ -218,7 +218,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   )}
                 >
                   <span className="font-medium">Shipping</span>
-                  <span className={cn("text-xs", pathname.startsWith('/admin/shipping') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING) ? "text-blue-500" : "text-muted-foreground")}>
                     Track device logistics
                   </span>
                 </DropdownMenuItem>
