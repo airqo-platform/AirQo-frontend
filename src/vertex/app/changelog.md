@@ -4,6 +4,45 @@
 
 ---
 
+## Version 1.16.0
+**Released:** December 09, 2025
+
+### Route Centralization & Admin Panel Consolidation
+
+Centralized application route definitions and consolidated administrative navigation to improve maintainability and user experience.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Centralized Route Constants**: Introduced `ROUTE_LINKS` constant to manage all application paths from a single source of truth, eliminating hardcoded strings.
+- **Consolidated Admin Panel**: Created a unified "Administrative Panel" dropdown in the primary sidebar, decluttering the navigation and grouping related admin tasks (Networks, Cohorts, Sites, Grids, Shipping).
+- **Enhanced Context Routing**: Updated `useContextAwareRouting` and `useUserContext` to robustly handle the new consolidated admin structure and ensure correct visibility based on user roles and permissions.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- Created `src/vertex/core/routes.ts` for centralized route management.
+- Refactored `primary-sidebar.tsx` and `secondary-sidebar.tsx` to utilize `ROUTE_LINKS`.
+- Updated `useContextAwareRouting.ts` to map new `ROUTE_LINKS` to sidebar configuration keys.
+- Extended `useUserContext` state to track `showNetworks` and `showShipping` visibility.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/routes.ts` (New)
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `core/hooks/useContextAwareRouting.ts`
+- `core/hooks/useUserContext.ts`
+
+</details>
+
+---
+
 ## Version 1.15.0
 **Released:** December 09, 2025
 
