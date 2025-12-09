@@ -105,7 +105,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const router = useRouter();
     const user = useAppSelector(state => state.user.userDetails);
 
-    const { isPersonalContext, isAirQoInternal, isExternalOrg, activeGroup, userScope } = useUserContext();
+    const { isPersonalContext, isExternalOrg, activeGroup, userScope } = useUserContext();
 
     const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
         enabled: !isPersonalContext && !!activeGroup?._id,
@@ -449,7 +449,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     <p className="text-sm text-blue-800 dark:text-blue-200">
                                         <strong>Device will be added to:</strong>
                                         {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
-                                        {isAirQoInternal && ` in AirQo Organization`}
+                                        {isPersonalContext && ` as your personal devices`}
                                     </p>
                                     <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                                         You can change ownership or share devices later.
@@ -473,7 +473,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     <p className="text-sm text-blue-800 dark:text-blue-200">
                                         <strong>Device will be added to:</strong>
                                         {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
-                                        {isAirQoInternal && ` in AirQo Organization`}
+                                        {isPersonalContext && ` as your personal devices`}
                                     </p>
                                     <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                                         You can change ownership or share devices later.
@@ -603,7 +603,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                         <p className="text-sm text-blue-800 dark:text-blue-200">
                                             <strong>Devices will be added to:</strong>
                                             {isExternalOrg && activeGroup && ` ${activeGroup.grp_title}`}
-                                            {isAirQoInternal && ` in AirQo Organization`}
+                                            {isPersonalContext && ` as your personal devices`}
                                         </p>
                                         <p className="text-xs text-blue-600 dark:text-blue-300 mt-1">
                                             You can change ownership or share devices later.

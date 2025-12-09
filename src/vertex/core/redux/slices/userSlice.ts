@@ -7,7 +7,7 @@ import type {
   Group,
 } from "@/app/types/users";
 
-export type UserContext = 'personal' | 'airqo-internal' | 'external-org';
+export type UserContext = 'personal' | 'external-org';
 export type UserScope = 'personal' | 'organisation';
 
 interface ForbiddenState {
@@ -74,11 +74,9 @@ const determineUserScope = (
     isSystemAdmin?: boolean | null;
   }
 ): UserScope => {
-  // Only apply scope logic to AirQo internal context
-  // External orgs and personal contexts don't use the scope concept
-  if (userContext !== 'airqo-internal') {
-    return 'personal';
-  }
+  // No special handling needed for personal context or permissions yet
+  // This function might be deprecated or simplified if we rely solely on SidebarConfig logic
+  return 'personal';
   
   // Determine if user has any organizational permissions
   const hasOrgPermissions = 
@@ -109,9 +107,9 @@ const determineUserContext = (
 
   let context: UserContext;
   if (isAirQoOrg) {
-    // AirQo organization always uses airqo-internal context
-    // Access within this context is controlled by permissions (userScope)
-    context = 'airqo-internal';
+    // AirQo organization now uses personal context with elevated permissions
+    // The active airqo group allows RBAC checks to pass
+    context = 'personal';
   } else {
     context = 'external-org';
   }
@@ -224,12 +222,6 @@ const userSlice = createSlice({
     },
     // New action to manually set context (for context switching)
     setUserContext(state, action: PayloadAction<UserContext>) {
-      
-      // Validate context change
-      // Logic for blocking non-staff from airqo-internal removed
-      // Access is now controlled by permissions in useUserContext scope calculation
-
-      
       state.userContext = action.payload;
     },
     // Forbidden state actions

@@ -58,23 +58,7 @@ const WelcomePage = () => {
       showInPersonal: true,
       showInAirQoInternal: true,
       showInExternalOrg: true,
-    },
-    {
-      href: "/sites",
-      label: "Create Site",
-      permission: PERMISSIONS.SITE.CREATE,
-      showInPersonal: false,
-      showInAirQoInternal: true,
-      showInExternalOrg: false,
-    },
-    {
-      href: "/sites",
-      label: "Manage Sites",
-      permission: PERMISSIONS.SITE.VIEW,
-      showInPersonal: false,
-      showInAirQoInternal: true,
-      showInExternalOrg: false,
-    },
+    }
   ];
 
   const permissionsToCheck = allActions.map((action) => action.permission);
@@ -161,8 +145,6 @@ const WelcomePage = () => {
     switch (userContext) {
       case "personal":
         return "your space";
-      case "airqo-internal":
-        return "AirQo Organization";
       case "external-org":
         return activeGroup?.grp_title.split("_").join(" ") || "Organization";
       default:
@@ -174,8 +156,6 @@ const WelcomePage = () => {
     switch (userContext) {
       case "personal":
         return "Manage and monitor your personal devices. You can switch to an organisation view anytime";
-      case "airqo-internal":
-        return "Full access to AirQo device management features";
       case "external-org":
         return `View and manage all devices linked to your organisation`;
       default:
@@ -189,8 +169,6 @@ const WelcomePage = () => {
       switch (userContext) {
         case "personal":
           return action.showInPersonal;
-        case "airqo-internal":
-          return action.showInAirQoInternal;
         case "external-org":
           return action.showInExternalOrg;
         default:

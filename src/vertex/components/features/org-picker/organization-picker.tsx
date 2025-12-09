@@ -44,7 +44,7 @@ const OrganizationPicker: React.FC = () => {
 
     const newContext: UserContext =
       group.grp_title.toLowerCase() === "airqo"
-        ? "airqo-internal"
+        ? "personal"
         : "external-org";
 
     try {

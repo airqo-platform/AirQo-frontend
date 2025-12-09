@@ -36,10 +36,7 @@ export default function Layout({ children }: LayoutProps) {
   useEffect(() => {
     // Determine active module based on current pathname
     if (
-      pathname.startsWith('/admin/') ||
-      pathname.startsWith('/cohorts') ||
-      pathname.startsWith('/sites') ||
-      pathname.startsWith('/grids')
+      pathname.startsWith('/admin/')
     ) {
       setActiveModule('admin');
     } else if (

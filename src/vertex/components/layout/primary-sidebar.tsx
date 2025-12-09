@@ -141,16 +141,16 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/cohorts');
+                    router.push('/admin/cohorts');
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/cohorts') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith('/admin/cohorts') && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Cohorts</span>
-                  <span className={cn("text-xs", pathname.startsWith('/cohorts') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith('/admin/cohorts') ? "text-blue-500" : "text-muted-foreground")}>
                     Group devices for analytics
                   </span>
                 </DropdownMenuItem>
@@ -158,16 +158,16 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/sites');
+                    router.push('/admin/sites');
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/sites') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith('/admin/sites') && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Sites</span>
-                  <span className={cn("text-xs", pathname.startsWith('/sites') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith('/admin/sites') ? "text-blue-500" : "text-muted-foreground")}>
                     Manage location deployments
                   </span>
                 </DropdownMenuItem>
@@ -175,16 +175,16 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/grids');
+                    router.push('/admin/grids');
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/grids') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith('/admin/grids') && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Grids</span>
-                  <span className={cn("text-xs", pathname.startsWith('/grids') ? "text-blue-500" : "text-muted-foreground")}>
+                  <span className={cn("text-xs", pathname.startsWith('/admin/grids') ? "text-blue-500" : "text-muted-foreground")}>
                     Configure spatial grids
                   </span>
                 </DropdownMenuItem>

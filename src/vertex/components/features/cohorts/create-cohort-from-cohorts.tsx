@@ -66,7 +66,7 @@ export function CreateCohortFromSelectionDialog({
         onSuccess: (response) => {
           onSuccess?.();
           if (andNavigate && response?.data?._id) {
-            router.push(`/cohorts/${response.data._id}`);
+            router.push(`/admin/cohorts/${response.data._id}`);
           } else {
             handleClose();
           }

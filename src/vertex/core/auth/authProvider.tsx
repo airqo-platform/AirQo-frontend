@@ -46,12 +46,12 @@ function determineInitialUserSetup(
   userInfo: UserDetails,
   filteredGroups: Group[],
   filteredNetworks: Network[],
-  userContext: 'personal' | 'airqo-internal' | 'external-org' | null,
+  userContext: 'personal' | 'external-org' | null,
   activeGroup: Group | null,
 ): {
   defaultNetwork?: Network;
   defaultGroup?: Group;
-  initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
+  initialUserContext: 'personal' | 'external-org';
 } {
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
@@ -92,12 +92,12 @@ function determineInitialUserSetup(
     defaultNetwork = filteredNetworks.find((n) => n.net_name.toLowerCase() === groupTitle) || filteredNetworks[0];
   }
 
-  let initialUserContext: 'personal' | 'airqo-internal' | 'external-org' = 'personal';
+  let initialUserContext: 'personal' | 'external-org' = 'personal';
   if (defaultGroup) {
-    // AirQo organization ALWAYS uses airqo-internal context
-    // Regardless of staff status - permissions control access
+    // AirQo organization uses personal context
+    // Regardless of staff status - permissions control access in the sidebar
     if (defaultGroup.grp_title.toLowerCase() === 'airqo') {
-      initialUserContext = 'airqo-internal';
+      initialUserContext = 'personal';
     } else {
       initialUserContext = 'external-org';
     }

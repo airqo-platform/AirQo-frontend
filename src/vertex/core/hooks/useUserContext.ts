@@ -21,7 +21,7 @@ export interface SidebarConfig {
 
 export interface UserContextState {
   // Core context data
-  userContext: 'personal' | 'airqo-internal' | 'external-org' | null;
+  userContext: 'personal' | 'external-org' | null;
   userScope: 'personal' | 'organisation' | null;
   canSwitchContext: boolean;
   activeGroup: any;
@@ -37,7 +37,7 @@ export interface UserContextState {
   
   // Computed values
   isPersonalContext: boolean;
-  isAirQoInternal: boolean;
+
   isExternalOrg: boolean;
   isPersonalScope: boolean;
   isOrganisationScope: boolean;
@@ -110,7 +110,6 @@ export const useUserContext = (): UserContextState => {
 
   // Computed context values
   const isPersonalContext = userContext === 'personal';
-  const isAirQoInternal = userContext === 'airqo-internal';
   const isExternalOrg = userContext === 'external-org';
 
   // Determine user scope based on permissions
@@ -123,6 +122,8 @@ export const useUserContext = (): UserContextState => {
     }
     
     // AirQo internal context and Personal context use personal scope
+    // We treat 'personal' context as personal scope regardless of permissions for now
+    // Permissions just toggle sidebar visibility
     return 'personal';
   }, [userContext]);
 
@@ -153,35 +154,17 @@ export const useUserContext = (): UserContextState => {
         return {
           title: 'My Monitors',
           showNetworkMap: false,
-          showSites: false,
-          showGrids: false,
-          showCohorts: false,
-          showUserManagement: false,
-          showAccessControl: false,
-          showMyDevices: true,
-          showDeviceOverview: false,
-          showClaimDevice: true,
-          showDeployDevice: true,
-          showNetworks: false,
-          showShipping: false,
-        };
-
-      case 'airqo-internal':
-        return {
-          title: 'AirQo Organization',
-          showNetworkMap: false,
-          showSites: canViewSites,
+          showSites: canViewSites, // Permission based
           showGrids: canViewSites,
           showCohorts: canViewDevices,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
-          // My Devices only shows for personal scope, regardless of role
-          showMyDevices: userScope === 'personal',
+          showMyDevices: true,
           showDeviceOverview: canViewDevices,
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: canViewNetworks,
-          showShipping: true,
+          showShipping: true, // Should this be permission based too? Assume true for now if staff
         };
 
       case 'external-org':
@@ -224,12 +207,14 @@ export const useUserContext = (): UserContextState => {
   const getContextPermissions = () => {
     if (userContext === 'personal') {
       return {
-        canViewDevices: true,
-        canViewSites: false,
-        canViewUserManagement: false,
-        canViewAccessControl: false,
+        // Return full permissions object for personal context
+        // This allows RBAC to control visibility of specific features
+        canViewDevices: true, // Always true for personal context (implicit ownership)
+        canViewSites: canViewSites || false,
+        canViewUserManagement: canViewUserManagement || false,
+        canViewAccessControl: canViewAccessControl || false,
         canViewOrganizations: false,
-        canViewNetworks: false,
+        canViewNetworks: canViewNetworks || false,
       };
     }
 
@@ -260,7 +245,7 @@ export const useUserContext = (): UserContextState => {
     
     // Computed values
     isPersonalContext,
-    isAirQoInternal,
+    
     isExternalOrg,
     isPersonalScope,
     isOrganisationScope,

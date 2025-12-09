@@ -107,15 +107,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       </SidebarSectionHeading>
                       <NavItem
                         item={{
-                          href: ROUTE_LINKS.MY_NETWORKS,
-                          icon: AqMonitor,
-                          label: 'My Network',
-                          disabled: false, // My Network is public
-                        }}
-                        isCollapsed={isCollapsed}
-                      />
-                      <NavItem
-                        item={{
                           href: ROUTE_LINKS.MY_DEVICES,
                           icon: AqMonitor,
                           label: 'My Devices',
@@ -316,7 +307,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: ROUTE_LINKS.COHORTS, // TODO: Update to /admin/cohorts after manual move
+                      href: ROUTE_LINKS.COHORTS,
                       icon: AqCollocation,
                       label: 'Cohorts',
                       disabled: !contextPermissions.canViewDevices,
@@ -326,7 +317,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: ROUTE_LINKS.SITES, // TODO: Update to /admin/sites after manual move
+                      href: ROUTE_LINKS.SITES,
                       icon: AqMarkerPin01,
                       label: 'Sites',
                       disabled: !contextPermissions.canViewSites,
@@ -336,7 +327,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
 
                   <NavItem
                     item={{
-                      href: ROUTE_LINKS.GRIDS, // TODO: Update to /admin/grids after manual move
+                      href: ROUTE_LINKS.GRIDS,
                       icon: AqAirQlouds,
                       label: 'Grids',
                       disabled: !contextPermissions.canViewSites,

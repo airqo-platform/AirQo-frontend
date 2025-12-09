@@ -52,7 +52,7 @@ export default function SitesTable({
   const handleSiteClick = (item: unknown) => {
     const site = item as Site;
     if (onSiteClick) onSiteClick(site);
-    else if (site._id) router.push(`/sites/${site._id}`);
+    else if (site._id) router.push(`/admin/sites/${site._id}`);
   };
 
   const handleSelectedItemsChange = (selectedIds: (string | number)[]) => {

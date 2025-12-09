@@ -94,7 +94,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
 
 
   const OrganizationItem = ({ group }: { group: Group }) => {
-    const isActive = activeGroup?._id === group._id && userContext !== 'personal';
+    const isActive = activeGroup?._id === group._id;
 
     return (
       <div

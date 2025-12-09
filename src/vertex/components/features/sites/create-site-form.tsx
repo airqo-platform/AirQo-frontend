@@ -98,7 +98,7 @@ export function CreateSiteForm({ disabled = false }: CreateSiteFormProps) {
         onSuccess: (data) => {
           handleClose();
           if (data?.site?._id) {
-            router.push(`/sites/${data.site._id}`);
+            router.push(`/admin/sites/${data.site._id}`);
           }
         },
       }

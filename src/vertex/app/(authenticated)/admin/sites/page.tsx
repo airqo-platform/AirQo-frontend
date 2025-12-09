@@ -14,10 +14,7 @@ const CreateSiteForm = dynamic(() =>
 
 export default function SitesPage() {
   return (
-    <RouteGuard
-      permission="SITE_VIEW"
-      allowedContexts={['airqo-internal', 'external-org']}
-    >
+    <RouteGuard permission="SITE_VIEW">
       <div>
         <div className="flex justify-between items-center mb-3">
           <div>

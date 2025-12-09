@@ -139,7 +139,7 @@ export default function CohortsPage() {
             loading={isFetching}
             onRowClick={(item: unknown) => {
               const row = item as CohortRow;
-              if (row?.id) router.push(`/cohorts/${row.id}`)
+              if (row?.id) router.push(`/admin/cohorts/${row.id}`)
             }}
             emptyState={error ? (error.message || "unable to load cohorts") : "No cohorts available"}
             multiSelect
