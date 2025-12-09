@@ -253,6 +253,7 @@ class PermissionService {
       ...Object.values(PERMISSIONS.ANALYTICS),
       ...Object.values(PERMISSIONS.NETWORK),
       ...Object.values(PERMISSIONS.SETTINGS),
+      ...Object.values(PERMISSIONS.SHIPPING),
     ];
 
     return orgPermissions.includes(permission);
