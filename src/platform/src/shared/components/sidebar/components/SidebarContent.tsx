@@ -15,7 +15,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   onItemClick,
   className,
 }) => {
-  const { hasRole, isAirQoSuperAdminWithEmail } = useRBAC();
+  const { isAirQoSuperAdminWithEmail } = useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
@@ -57,7 +57,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     }
 
     return config;
-  }, [flow, orgSlug, hasRole, isAirQoSuperAdminWithEmail]);
+  }, [flow, orgSlug, isAirQoSuperAdminWithEmail]);
 
   return (
     <div className={cn('flex-1 py-6', className)}>

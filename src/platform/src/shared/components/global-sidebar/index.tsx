@@ -23,7 +23,7 @@ export const GlobalSidebar: React.FC = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
   const { activeGroup } = useUserActions();
-  const { hasRole, hasPermission, isAirQoSuperAdminWithEmail } = useRBAC();
+  const { hasPermission, isAirQoSuperAdminWithEmail } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
 
   // Helper function to determine if current group is AirQo
@@ -145,7 +145,7 @@ export const GlobalSidebar: React.FC = () => {
           };
         })
     );
-  }, [flow, orgSlug, hasRole, hasPermission, isAirQoSuperAdminWithEmail]);
+  }, [flow, orgSlug, hasPermission, isAirQoSuperAdminWithEmail]);
 
   // Focus management
   useEffect(() => {
