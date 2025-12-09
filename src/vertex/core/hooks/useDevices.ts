@@ -498,6 +498,7 @@ export const useCreateDevice = () => {
         });
       }
       queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['network-devices'] });
     },
     onError: error => {
       ReusableToast({
@@ -540,6 +541,7 @@ export const useImportDevice = () => {
         });
       }
       queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['network-devices'] });
     },
     onError: error => {
       ReusableToast({
