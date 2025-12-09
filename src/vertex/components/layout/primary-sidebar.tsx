@@ -135,12 +135,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/admin/networks');
+                    router.push(ROUTE_LINKS.ADMIN_NETWORKS);
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/admin/networks') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS) && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Networks</span>
@@ -152,12 +152,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/admin/cohorts');
+                    router.push(ROUTE_LINKS.COHORTS);
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/admin/cohorts') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith(ROUTE_LINKS.COHORTS) && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Cohorts</span>
@@ -169,12 +169,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/admin/sites');
+                    router.push(ROUTE_LINKS.SITES);
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/admin/sites') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith(ROUTE_LINKS.SITES) && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Sites</span>
@@ -186,12 +186,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/admin/grids');
+                    router.push(ROUTE_LINKS.GRIDS);
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/admin/grids') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith(ROUTE_LINKS.GRIDS) && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Grids</span>
@@ -203,12 +203,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 <DropdownMenuItem
                   onClick={() => {
                     handleModuleChange('admin');
-                    router.push('/admin/shipping');
+                    router.push(ROUTE_LINKS.ADMIN_SHIPPING);
                     setIsDropdownOpen(false);
                   }}
                   className={cn(
                     "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith('/admin/shipping') && "bg-blue-50 text-blue-700"
+                    pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING) && "bg-blue-50 text-blue-700"
                   )}
                 >
                   <span className="font-medium">Shipping</span>
