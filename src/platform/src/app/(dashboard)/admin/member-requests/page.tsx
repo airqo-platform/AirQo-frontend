@@ -294,7 +294,7 @@ const MemberRequestsPage: React.FC = () => {
 
   return (
     <AdminPageGuard requiredPermissionsInActiveGroup={['USER_MANAGEMENT']}>
-      {error ? (
+      {error && (!requestsData || requestsData.success !== true) ? (
         <ErrorBanner
           title="Failed to load member requests"
           message="Unable to load member request information. Please try again later."
