@@ -40,16 +40,10 @@ export const usePermission = (permission: Permission, context?: Partial<AccessCo
 
     if (!user) return false;
 
-    let effectiveContext = context;
-    if (userContext === 'personal' && !context?.activeOrganization && !activeGroup) {
-      const airqoGroup = permissionService.getAirQoGroup(user);
-      if (airqoGroup) {
-        effectiveContext = {
-          ...context,
-          activeOrganization: airqoGroup,
-        };
-      }
-    }
+    // Standard permission check using the active context
+    // For AirQo staff in Personal Mode, activeGroup will be set to 'AirQo'
+    // For regular users in Personal Mode, activeGroup will be null (correct)
+    const effectiveContext = context;
 
     return permissionService.hasPermission(user, permission, {
       ...effectiveContext,

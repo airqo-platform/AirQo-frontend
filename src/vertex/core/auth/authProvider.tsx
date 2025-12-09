@@ -65,7 +65,16 @@ function determineInitialUserSetup(
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {
-    return { initialUserContext: 'personal' };
+    // Check if we can upgrade "Personal Mode" to "Personal Mode with AirQo Group"
+    // This happens if the user has the AirQo group in their list
+    const airqoGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
+    if (airqoGroup) {
+      // We have an AirQo group, so we let the logic fall through to default selection
+      // which will pick it up below
+    } else {
+      // Truly isolated user without AirQo group
+      return { initialUserContext: 'personal' };
+    }
   }
 
   let defaultGroup: Group | undefined;

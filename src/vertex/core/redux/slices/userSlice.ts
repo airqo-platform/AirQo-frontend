@@ -177,6 +177,27 @@ const userSlice = createSlice({
       state.activeGroup = action.payload;
       
       if (!action.payload) {
+        // For ALL users (staff or external), "Personal Mode" means using the AirQo group with personal scope.
+        // We find the AirQo group from their userGroups and set it as active.
+        const airqoGroup = state.userGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
+
+        if (airqoGroup) {
+          state.activeGroup = airqoGroup;
+          // Determine context immediately with the new group
+          const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+            state.userDetails,
+            airqoGroup,
+            state.userGroups
+          );
+          state.userContext = context;
+          state.isAirQoStaff = isAirQoStaff;
+          state.canSwitchContext = canSwitchContext;
+          return;
+        }
+
+        // If no AirQo group is found, fall back to null group (true Personal Mode)
+        // This handles edge cases where a user might not belong to AirQo
+        state.activeGroup = null;
         state.userContext = 'personal';
         state.canSwitchContext = false;
         // When activeGroup is null, activeNetwork should also be null

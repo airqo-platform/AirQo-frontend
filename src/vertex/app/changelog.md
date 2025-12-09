@@ -4,6 +4,55 @@
 
 ---
 
+## Version 1.15.0
+**Released:** December 09, 2025
+
+### Network Management Role & Scoped Navigation
+
+Refined application scoping to enforce strict personal view for AirQo staff and introduced a dedicated `AIRQO_NETWORK_ADMIN` role for granular control over network management features.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Context vs Scope Architecture**: Shifted application logic from relying on raw contexts (e.g. `airqo-internal`) to abstract scopes (`personal` vs `organisation`). This decoupling ensures that internal staff now operate within a standard "Personal" scope, fixing inconsistencies where staff were treated as organization admins in their own private workspace.
+- **Strict Scope Enforcement**: `organisation` scope is now exclusive to external organizations. AirQo internal users default to `personal` scope for a consistent "My Workspace" experience.
+- **Granular Access Control**: Replaced generic admin checks with specific `NETWORK` permissions (VIEW, CREATE, EDIT, DELETE).
+- **Dedicated Role**: Introduced `AIRQO_NETWORK_ADMIN` role for specialized network managers, decoupling this power from general system admins.
+- **Legacy Compatibility**: Automatically maps old `CREATE_UPDATE_AND_DELETE_NETWORKS` permissions to the new granular system.
+
+</details>
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **New Role**: `AIRQO_NETWORK_ADMIN` with full network management capabilities.
+- **Permission Categories**: Added `NETWORK` category to permission service with clear UI descriptions.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- Refactored `useUserContext` to enforce `personal` scope for `airqo-internal` context.
+- Updated `constants.ts` with new permissions and role definitions.
+- Enhanced `permissionService.ts` to recognize and describe network permissions.
+- Fixed sidebar visibility logic to rely purely on permission checks rather than scope state.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/hooks/useUserContext.ts`
+- `core/permissions/constants.ts`
+- `core/permissions/permissionService.ts`
+- `components/layout/primary-sidebar.tsx`
+- `app/(authenticated)/admin/layout.tsx`
+
+</details>
+
+---
+
 ## Version 1.14.0
 **Released:** December 06, 2025
 
