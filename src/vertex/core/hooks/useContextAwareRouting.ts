@@ -9,7 +9,7 @@ const routeToSidebarConfig: Record<string, keyof SidebarConfig> = {
   '/user-management': 'showUserManagement',
   '/access-control': 'showAccessControl',
   [ROUTE_LINKS.MY_DEVICES]: 'showMyDevices',
-  [ROUTE_LINKS.ORG_ASSETS]: 'showDeviceOverview', // Assuming this maps to /devices/overview
+  [ROUTE_LINKS.ORG_ASSETS]: 'showDeviceOverview',
   '/devices/claim': 'showClaimDevice',
   [ROUTE_LINKS.GRIDS]: 'showGrids',
   [ROUTE_LINKS.COHORTS]: 'showCohorts',

@@ -87,10 +87,6 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
-  if (!network) {
-    throw new Error("Network is required");
-  }
-
   const queryKey = [
     "network-devices",
     { page, limit, search, sortBy, order, network },
@@ -102,6 +98,9 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
   >({
     queryKey,
     queryFn: async () => {
+      if (!network) {
+        throw new Error("Network is required");
+      }
       return devices.getDevicesSummaryApi({
         limit: safeLimit,
         skip,
