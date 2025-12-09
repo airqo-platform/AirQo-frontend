@@ -134,7 +134,7 @@ Introduced a dedicated **Network Details Page** for comprehensive network manage
 Centralized application route definitions and consolidated administrative navigation to improve maintainability and user experience.
 
 <details>
-<summary><strong>Improvements (3)</strong></summary>
+<summary><strong>Improvements (4)</strong></summary>
 
 - **Centralized Route Constants**: Introduced `ROUTE_LINKS` constant to manage all application paths from a single source of truth, eliminating hardcoded strings.
 - **Consolidated Admin Panel**: Created a unified "Administrative Panel" dropdown in the primary sidebar, decluttering the navigation and grouping related admin tasks (Networks, Cohorts, Sites, Grids, Shipping).
@@ -193,7 +193,7 @@ Refined application scoping to enforce strict personal view for AirQo staff and 
 </details>
 
 <details>
-<summary><strong>Technical Changes (4)</strong></summary>
+<summary><strong>Technical Changes (5)</strong></summary>
 
 - Refactored `useUserContext` to enforce `personal` scope for `airqo-internal` context.
 - Updated `constants.ts` with new permissions and role definitions.
