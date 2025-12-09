@@ -21,9 +21,13 @@ import { hashId, trackEvent } from '@/shared/utils/analytics';
 
 interface MapPageProps {
   cohortId?: string;
+  isOrganizationFlow?: boolean;
 }
 
-const MapPage: React.FC<MapPageProps> = ({ cohortId }) => {
+const MapPage: React.FC<MapPageProps> = ({
+  cohortId,
+  isOrganizationFlow = false,
+}) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
   const selectedLocation = useSelector(
@@ -97,12 +101,14 @@ const MapPage: React.FC<MapPageProps> = ({ cohortId }) => {
     refetch,
   } = useMapReadings(cohortId);
 
-  // WAQI data for major cities - progressive loading to optimize performance
+  // WAQI data for major cities - NEVER load in organization flow
   const allCities = React.useMemo(() => {
-    // If cohortId is present, we only want AirQo readings for that cohort, so no WAQI cities
+    // CRITICAL: Never load WAQI data in organization flow
+    if (isOrganizationFlow) return [];
+    // If cohortId is present in user flow, we only want AirQo readings for that cohort
     if (cohortId) return [];
     return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
-  }, [cohortId]);
+  }, [cohortId, isOrganizationFlow]);
 
   const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500);
 
@@ -110,11 +116,17 @@ const MapPage: React.FC<MapPageProps> = ({ cohortId }) => {
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
 
-    // If cohortId is present, we only want AirQo readings for that cohort
+    // In organization flow, ONLY return AirQo readings (no WAQI)
+    if (isOrganizationFlow) {
+      return airqoReadings;
+    }
+
+    // If cohortId is present in user flow, we only want AirQo readings
     if (cohortId) {
       return airqoReadings;
     }
 
+    // User flow without cohortId: combine AirQo and WAQI data
     const combined = [...airqoReadings, ...waqiReadings];
     // Remove duplicates based on ID to prevent React key conflicts
     const seenIds = new Set<string>();
@@ -125,7 +137,7 @@ const MapPage: React.FC<MapPageProps> = ({ cohortId }) => {
       seenIds.add(reading.id);
       return true;
     });
-  }, [readings, waqiReadings, selectedPollutant, cohortId]);
+  }, [readings, waqiReadings, selectedPollutant, cohortId, isOrganizationFlow]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -241,6 +253,7 @@ const MapPage: React.FC<MapPageProps> = ({ cohortId }) => {
             onBackToList={handleBackToList}
             locationDetailsLoading={locationDetailsLoading}
             selectedPollutant={selectedPollutant}
+            cohort_id={cohortId}
           />
         </div>
 
@@ -288,6 +301,7 @@ const MapPage: React.FC<MapPageProps> = ({ cohortId }) => {
             selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
             selectedPollutant={selectedPollutant}
+            cohort_id={cohortId}
           />
         </div>
       </div>

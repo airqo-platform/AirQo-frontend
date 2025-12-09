@@ -13,6 +13,7 @@ interface CountryListProps {
   selectedCountry?: string;
   onCountrySelect?: (countryCode: string) => void;
   className?: string;
+  cohort_id?: string;
 }
 
 const CountryListSkeleton: React.FC<{ className?: string }> = ({
@@ -42,8 +43,13 @@ export const CountryList: React.FC<CountryListProps> = ({
   selectedCountry = 'uganda',
   onCountrySelect,
   className,
+  cohort_id,
 }) => {
-  const { countries: countriesData, isLoading, error } = useCountries();
+  const {
+    countries: countriesData,
+    isLoading,
+    error,
+  } = useCountries(cohort_id);
 
   // Transform CountryData to Country format using utility function
   const countries: Country[] = React.useMemo(() => {

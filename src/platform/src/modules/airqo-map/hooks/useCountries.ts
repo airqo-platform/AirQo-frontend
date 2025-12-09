@@ -13,18 +13,31 @@ export interface UseCountriesResult {
 
 /**
  * Hook for fetching countries list
+ * @param cohort_id - Optional comma-separated cohort IDs for filtering
  */
-export function useCountries(): UseCountriesResult {
+export function useCountries(cohort_id?: string): UseCountriesResult {
   const [countries, setCountries] = useState<CountryData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchCountries = async () => {
+    // If cohort_id is null, wait for it to be determined
+    if (cohort_id === null) {
+      return;
+    }
+
+    // If cohort_id is empty string, no cohorts exist, so no countries
+    if (cohort_id === '') {
+      setCountries([]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
       const response: CountriesResponse =
-        await deviceService.getCountriesAuthenticated();
+        await deviceService.getCountriesAuthenticated(cohort_id);
       setCountries(response.countries);
     } catch (err) {
       setError(
@@ -37,7 +50,8 @@ export function useCountries(): UseCountriesResult {
 
   useEffect(() => {
     fetchCountries();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cohort_id]);
 
   return {
     countries,

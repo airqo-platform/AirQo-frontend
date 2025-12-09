@@ -156,7 +156,8 @@ export function useSitesByCountry({
 
   useEffect(() => {
     fetchSites({}, false);
-  }, [fetchSites, currentCountry, enabled]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCountry, enabled, cohort_id]);
 
   return {
     sites,

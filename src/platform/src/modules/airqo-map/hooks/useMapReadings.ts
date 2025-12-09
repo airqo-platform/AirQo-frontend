@@ -15,6 +15,7 @@ export interface UseMapReadingsResult {
 
 /**
  * Hook for fetching map readings data
+ * @param cohort_id - Optional comma-separated cohort IDs for filtering
  */
 export function useMapReadings(
   cohort_id?: string | null
@@ -53,6 +54,7 @@ export function useMapReadings(
 
   useEffect(() => {
     fetchReadings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cohort_id]);
 
   return {

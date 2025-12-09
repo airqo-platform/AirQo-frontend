@@ -88,6 +88,7 @@ export const MapSidebar: React.FC<MapSidebarProps> = ({
             <CountryList
               selectedCountry={selectedCountry}
               onCountrySelect={onCountrySelect}
+              cohort_id={cohort_id}
             />
           )}
           <div className="flex-1 min-h-0">
