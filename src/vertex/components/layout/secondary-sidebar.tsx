@@ -116,7 +116,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       />
                       <NavItem
                         item={{
-                          href: '/devices/claim', // Keep as is for now or add to routes if needed
+                          href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
                           icon: AqPackagePlus,
                           label: 'Claim Device',
                         }}
