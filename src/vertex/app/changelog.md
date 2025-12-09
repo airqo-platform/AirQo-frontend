@@ -37,6 +37,7 @@ Refined application scoping to enforce strict personal view for AirQo staff and 
 - Updated `constants.ts` with new permissions and role definitions.
 - Enhanced `permissionService.ts` to recognize and describe network permissions.
 - Fixed sidebar visibility logic to rely purely on permission checks rather than scope state.
+- Removed redundant `isAirQoStaff` flag and logic, enabling context switching for all multi-organization users.
 
 </details>
 

@@ -24,10 +24,10 @@ Crucially, **Context does not 1:1 map to Scope**. We enforce strict scoping rule
 | Context | Mapped Scope | Behavior Description |
 | :--- | :--- | :--- |
 | `personal` | `personal` | **"My Workspace"**. User manages their own devices, follows their own sites. |
-| `airqo-internal` | **`personal`** | **"My Workspace (Staff Enhanced)"**. AirQo staff now operate in a personal scope. They see "My Devices" but have elevated permissions (via fallback) to manage the platform. |
+| `airqo-internal` | **`personal`** | **"My Workspace (System Access)"**. Users with the AirQo group operate in a personal scope. They see "My Devices" but have elevated permissions to manage the platform permissions. |
 | `external-org` | `organisation` | **"Organization Dashboard"**. Traditional admin view for external partners to manage their specific entity. |
 
-> **Key Change (v1.15.0)**: Previously, `airqo-internal` was treated similarly to `organisation` scope. Now, it is strictly `personal`. This means AirQo staff do not "administer the AirQo Organization" in the same way an external org admin does; instead, they administrate the *System* from their *Personal Workspace*.
+> **Key Change (v1.15.0)**: Previously, `airqo-internal` was treated similarly to `organisation` scope. Now, it is strictly `personal`. This means AirQo group members do not "administer the AirQo Organization" in the same way an external org admin does; instead, they administrate the *System* from their *Personal Workspace*.
 
 ## Permission Resolution Strategy
 
@@ -39,7 +39,7 @@ How we decide if a user can do something (`usePermission` hook) depends on the S
 *   **Example**: A KCCA Admin viewing KCCA dashboard checks KCCA group permissions.
 
 ### 2. In `personal` Scope (Private & AirQo Internal)
-This uses a layered approach to allow staff to work seamlessly.
+This uses a layered approach to allow seamless system management.
 
 *   **Layer 1: Ownership (Implicit)**
     *   Users always have owner-level access to their *own* resources (e.g., `canViewDevices` is always true for own devices).
@@ -47,7 +47,7 @@ This uses a layered approach to allow staff to work seamlessly.
 *   **Layer 2: Active Group Assignment (Universal)**
     *   **Problem**: Users in Personal Mode need permissions to access certain features, but traditionally had no active group.
     *   **Solution**: If a user belongs to the **AirQo** group, the system now automatically sets it as their `activeGroup` even when in Personal Mode.
-    *   **Result**: Standard permissions work out-of-the-box. An Admin see their admin features because they genuinely have the AirQo group active.
+    *   **Result**: Standard permissions work out-of-the-box. An Admin see their admin features because they genuinely have the AirQo group active. This applies to **any** user in the AirQo group, not just staff.
 
 ### Implementation Details
 
@@ -77,4 +77,5 @@ if (!action.payload) {
 
 ## Summary
 *   **External Users**: Strict isolation. They only see what's in their Org.
-*   **AirQo Staff**: Hybrid power. They "live" in a Personal Scope (seeing their own stuff) but "borrow" powers from the AirQo System Group to manage global resources like Networks and Sites.
+*   **AirQo Group Members**: Hybrid power. They "live" in a Personal Scope (seeing their own stuff) but "borrow" powers from the AirQo System Group to manage global resources like Networks and Sites.
+*   **Context Switching**: Available to **any** user who belongs to multiple organizations (`hasMultipleOrgs`), not restricted to staff.
