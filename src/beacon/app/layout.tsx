@@ -2,6 +2,9 @@ import type React from "react"
 import "./globals.css"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
+import { QueryProvider } from "@/components/providers/query-provider"
+import { Toaster } from "@/components/ui/toaster"
+import ChunkErrorHandler from "@/components/chunk-error-handler"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -22,7 +25,13 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16x16.png" />
         <link rel="shortcut icon" href="/icons/favicon.ico" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className} suppressHydrationWarning={true}>
+        <QueryProvider>
+          <ChunkErrorHandler />
+          {children}
+          <Toaster />
+        </QueryProvider>
+      </body>
     </html>
   )
 }
