@@ -59,7 +59,7 @@ const OrganizationPicker: React.FC = () => {
       // All users navigate to /home (personal devices view)
       // Sidebar modules control access to org-level features
       router.push("/home");
-    } catch (error) {
+    } catch {
       ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
     } finally {
       setTimeout(() => {

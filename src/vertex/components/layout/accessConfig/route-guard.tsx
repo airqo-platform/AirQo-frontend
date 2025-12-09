@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { usePermission, usePermissionCheck, useUserRole } from "@/core/hooks/usePermissions";
+import { usePermission, useUserRole } from "@/core/hooks/usePermissions";
 import { Permission, RoleName } from "@/core/permissions/constants";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -38,7 +38,6 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   const router = useRouter();
   const { userContext, isLoading } = useUserContext();
   const hasPermission = usePermission(permission || '' as Permission, { resourceContext });
-  const permissionCheck = usePermissionCheck(permission || '' as Permission, { resourceContext });
   const userRole = useUserRole(resourceContext?.organizationId);
 
   // Validate that at least one access control method is specified
