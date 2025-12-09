@@ -4,6 +4,7 @@ import { deviceService } from '../../../shared/services/deviceService';
 import type {
   SitesSummaryResponse,
   SitesSummaryParams,
+  CohortSitesResponse,
 } from '../../../shared/types/api';
 import { formatCountryForApi } from '../utils/dataNormalization';
 
@@ -73,12 +74,11 @@ export function useSitesByCountry({
           ...params,
         };
 
-        // If country is undefined, don't include it in params (shows all sites)
         if (currentCountry) {
           queryParams.country = formatCountryForApi(currentCountry);
         }
 
-        let response: SitesSummaryResponse | any;
+        let response: SitesSummaryResponse | CohortSitesResponse;
 
         if (cohort_id) {
           const cohortIds = cohort_id.split(',');
@@ -86,7 +86,6 @@ export function useSitesByCountry({
             { cohort_ids: cohortIds },
             {
               ...queryParams,
-              // Map search param if it exists
               search: queryParams.search,
             }
           );

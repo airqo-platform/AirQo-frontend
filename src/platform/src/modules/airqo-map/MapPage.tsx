@@ -10,10 +10,7 @@ import {
   clearSelectedLocation,
 } from '../../shared/store/selectedLocationSlice';
 import type { RootState } from '../../shared/store';
-import type {
-  AirQualityReading,
-  ClusterData,
-} from '@/modules/airqo-map/components/map/MapNodes';
+import type { AirQualityReading } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
 import {
   normalizeMapReadings,
@@ -73,10 +70,8 @@ const MapPage: React.FC<MapPageProps> = ({
     'pm2_5' | 'pm10'
   >('pm2_5');
 
-  // Ref to store timeout ID for flyToLocation cleanup
   const flyToTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Cleanup timeout on unmount
   React.useEffect(() => {
     return () => {
       if (flyToTimeoutRef.current) {
@@ -85,7 +80,6 @@ const MapPage: React.FC<MapPageProps> = ({
     };
   }, []);
 
-  // Track map view
   React.useEffect(() => {
     posthog?.capture('map_viewed');
     trackEvent('map_viewed');
@@ -95,7 +89,6 @@ const MapPage: React.FC<MapPageProps> = ({
     setSelectedPollutant(pollutant);
   };
 
-  // Use the new hooks
   const { setCountry } = useSitesByCountry({
     country: selectedCountry,
     cohort_id: cohortId,
@@ -106,34 +99,27 @@ const MapPage: React.FC<MapPageProps> = ({
     refetch,
   } = useMapReadings(cohortId);
 
-  // WAQI data for major cities - NEVER load in organization flow
+  // Never load WAQI data in organization flow
   const allCities = React.useMemo(() => {
-    // CRITICAL: Never load WAQI data in organization flow
     if (isOrganizationFlow) return [];
-    // If cohortId is present in user flow, we only want AirQo readings for that cohort
     if (cohortId) return [];
     return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
   }, [cohortId, isOrganizationFlow]);
 
   const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500);
 
-  // Normalize map readings - prioritize AirQo data
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
 
-    // In organization flow, ONLY return AirQo readings (no WAQI)
     if (isOrganizationFlow) {
       return airqoReadings;
     }
 
-    // If cohortId is present in user flow, we only want AirQo readings
     if (cohortId) {
       return airqoReadings;
     }
 
-    // User flow without cohortId: combine AirQo and WAQI data
     const combined = [...airqoReadings, ...waqiReadings];
-    // Remove duplicates based on ID to prevent React key conflicts
     const seenIds = new Set<string>();
     return combined.filter(reading => {
       if (seenIds.has(reading.id)) {
@@ -144,10 +130,8 @@ const MapPage: React.FC<MapPageProps> = ({
     });
   }, [readings, waqiReadings, selectedPollutant, cohortId, isOrganizationFlow]);
 
-  // Auto-zoom to organization nodes when data loads (organization flow only)
   const hasAutoZoomedRef = React.useRef(false);
   React.useEffect(() => {
-    // Only auto-zoom in organization flow when we have data and haven't zoomed yet
     if (
       isOrganizationFlow &&
       normalizedReadings.length > 0 &&
@@ -162,21 +146,18 @@ const MapPage: React.FC<MapPageProps> = ({
           zoom: bounds.zoom,
         });
 
-        // Clear the flyToLocation after animation completes
         if (flyToTimeoutRef.current) {
           clearTimeout(flyToTimeoutRef.current);
         }
         flyToTimeoutRef.current = setTimeout(() => {
           setFlyToLocation(undefined);
           flyToTimeoutRef.current = null;
-        }, 1500); // Slightly longer timeout for smoother animation
+        }, 1500);
 
-        // Mark as zoomed to prevent repeated auto-zoom
         hasAutoZoomedRef.current = true;
       }
     }
 
-    // Reset the auto-zoom flag when cohortId changes (switching organizations)
     if (cohortId) {
       hasAutoZoomedRef.current = false;
     }
@@ -211,7 +192,7 @@ const MapPage: React.FC<MapPageProps> = ({
         setFlyToLocation({
           longitude: locationData.longitude,
           latitude: locationData.latitude,
-          zoom: 10, // Reduced zoom level for better overview
+          zoom: 10,
         });
 
         if (flyToTimeoutRef.current) {
@@ -229,7 +210,7 @@ const MapPage: React.FC<MapPageProps> = ({
           setFlyToLocation({
             longitude: reading.siteDetails.approximate_longitude,
             latitude: reading.siteDetails.approximate_latitude,
-            zoom: 10, // Reduced zoom level
+            zoom: 10,
           });
 
           if (flyToTimeoutRef.current) {
@@ -269,7 +250,7 @@ const MapPage: React.FC<MapPageProps> = ({
     }
   };
 
-  const handleClusterClick = (cluster: ClusterData) => {
+  const handleClusterClick = () => {
     setSelectedLocationId(null);
   };
 
@@ -279,9 +260,7 @@ const MapPage: React.FC<MapPageProps> = ({
 
   return (
     <>
-      {/* Desktop Layout */}
       <div className="hidden md:flex h-full overflow-visible shadow rounded">
-        {/* Left Sidebar */}
         <div className="flex-shrink-0 md:ml-2 h-full">
           <MapSidebar
             onSearch={handleSearch}
@@ -299,7 +278,6 @@ const MapPage: React.FC<MapPageProps> = ({
           />
         </div>
 
-        {/* Right Map Area */}
         <div className="flex-1 min-w-0 h-full">
           <EnhancedMap
             airQualityData={normalizedReadings}
@@ -314,9 +292,7 @@ const MapPage: React.FC<MapPageProps> = ({
         </div>
       </div>
 
-      {/* Mobile/Tablet Layout */}
       <div className="flex flex-col h-full md:hidden">
-        {/* Map Area - Top 1/3 */}
         <div className="h-1/2 flex-shrink-0">
           <EnhancedMap
             airQualityData={normalizedReadings}
@@ -330,7 +306,6 @@ const MapPage: React.FC<MapPageProps> = ({
           />
         </div>
 
-        {/* Sidebar Area - Bottom 2/3 */}
         <div className="flex-1 min-h-0">
           <MapSidebar
             className="h-full rounded-none"
