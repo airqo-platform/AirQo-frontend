@@ -49,7 +49,7 @@ Standardized the "Access Denied" experience across the application by introducin
 Introduced a dedicated **Network Details Page** for comprehensive network management and established a unified **Admin Device Details** view, streamlining navigation and device operations within the admin panel.
 
 <details>
-<summary><strong>Improvements (5)</strong></summary>
+<summary><strong>Improvements (6)</strong></summary>
 
 - **Network Details Page**: New route `/admin/networks/[id]` displaying network info and a dedicated device list.
 - **Recently Visited**: Added a smart "Recently Visited" sidebar item that tracks user navigation history (persisted locally) and aggregates deep links (e.g. Network Details) up to their parent module for efficient backtracking.
@@ -61,7 +61,7 @@ Introduced a dedicated **Network Details Page** for comprehensive network manage
 </details>
 
 <details>
-<summary><strong>Technical Changes (5)</strong></summary>
+<summary><strong>Technical Changes (6)</strong></summary>
 
 - Created `src/vertex/app/(authenticated)/admin/networks/[id]/page.tsx`
 - Created `src/vertex/app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx`
@@ -73,7 +73,7 @@ Introduced a dedicated **Network Details Page** for comprehensive network manage
 </details>
 
 <details>
-<summary><strong>Files Modified (6)</strong></summary>
+<summary><strong>Files Modified (8)</strong></summary>
 
 - `app/(authenticated)/admin/networks/[id]/page.tsx` (New)
 - `app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx` (New)
