@@ -22,7 +22,6 @@ export interface UserContextState {
   // Core context data
   userContext: 'personal' | 'airqo-internal' | 'external-org' | null;
   userScope: 'personal' | 'organisation' | null;
-  isAirQoStaff: boolean;
   canSwitchContext: boolean;
   activeGroup: any;
   userDetails: any;
@@ -49,7 +48,6 @@ export interface UserContextState {
 
 export const useUserContext = (): UserContextState => {
   const userContext = useAppSelector((state) => state.user.userContext);
-  const isAirQoStaff = useAppSelector((state) => state.user.isAirQoStaff);
   const canSwitchContext = useAppSelector((state) => state.user.canSwitchContext);
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userDetails = useAppSelector((state) => state.user.userDetails);
@@ -61,8 +59,6 @@ export const useUserContext = (): UserContextState => {
   const canViewSites = usePermission(PERMISSIONS.SITE.VIEW);
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
-  const isSuperAdmin = usePermission(PERMISSIONS.SYSTEM.SUPER_ADMIN);
-  const isSystemAdmin = usePermission(PERMISSIONS.SYSTEM.SYSTEM_ADMIN);
   const canViewNetworks = usePermission(PERMISSIONS.NETWORK.VIEW);
 
   // Determine loading states
@@ -244,7 +240,6 @@ export const useUserContext = (): UserContextState => {
     // Core context data
     userContext,
     userScope,
-    isAirQoStaff,
     canSwitchContext,
     activeGroup,
     userDetails,

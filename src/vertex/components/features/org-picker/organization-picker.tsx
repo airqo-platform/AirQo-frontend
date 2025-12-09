@@ -25,7 +25,6 @@ const OrganizationPicker: React.FC = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const userContext = useAppSelector((state) => state.user.userContext);
-  const isAirQoStaff = useAppSelector((state) => state.user.isAirQoStaff);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isPersonalContext, isLoading } = useUserContext();
 
@@ -97,7 +96,6 @@ const OrganizationPicker: React.FC = () => {
         userGroups={validUserGroups}
         activeGroup={activeGroup}
         userContext={userContext}
-        isAirQoStaff={isAirQoStaff}
         onOrganizationChange={handleOrganizationChange}
       />
     </>

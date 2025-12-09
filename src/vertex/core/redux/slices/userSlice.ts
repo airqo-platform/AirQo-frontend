@@ -28,7 +28,6 @@ interface UserState {
   activeGroup: Group | null;
   userContext: UserContext | null;
   userScope: UserScope | null;
-  isAirQoStaff: boolean;
   canSwitchContext: boolean;
   forbidden: ForbiddenState;
   organizationSwitching: {
@@ -49,7 +48,6 @@ const initialState: UserState = {
   activeGroup: null,
   userContext: null,
   userScope: null,
-  isAirQoStaff: false,
   canSwitchContext: false,
   forbidden: {
     isForbidden: false,
@@ -97,14 +95,14 @@ const determineUserContext = (
   userDetails: UserDetails | null,
   activeGroup: Group | null,
   userGroups: Group[] | null | undefined
-): { context: UserContext; isAirQoStaff: boolean; canSwitchContext: boolean } => {
+): { context: UserContext; canSwitchContext: boolean } => {
   
-  const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
   const hasMultipleOrgs = Array.isArray(userGroups) && userGroups.length > 1;
-  const canSwitchContext = isAirQoStaff && hasMultipleOrgs;
+  // Allow context switching for any user with multiple organizations
+  const canSwitchContext = hasMultipleOrgs;
 
   if (!userDetails || !activeGroup) {
-    return { context: 'personal', isAirQoStaff, canSwitchContext };
+    return { context: 'personal', canSwitchContext };
   }
 
   const isAirQoOrg = activeGroup.grp_title?.toLowerCase() === 'airqo';
@@ -118,7 +116,7 @@ const determineUserContext = (
     context = 'external-org';
   }
 
-  return { context, isAirQoStaff, canSwitchContext };
+  return { context, canSwitchContext };
 };
 
 const userSlice = createSlice({
@@ -137,13 +135,12 @@ const userSlice = createSlice({
       state.userGroups = action.payload.groups || [];
       
       // Update context when user details change
-      const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+      const { context, canSwitchContext } = determineUserContext(
         action.payload,
         state.activeGroup,
         action.payload.groups || []
       );
       state.userContext = context;
-      state.isAirQoStaff = isAirQoStaff;
       state.canSwitchContext = canSwitchContext;
     },
     setActiveNetwork(state: UserState, action: PayloadAction<Network>) {
@@ -166,7 +163,6 @@ const userSlice = createSlice({
       state.currentRole = null;
       state.userContext = null;
       state.userScope = null;
-      state.isAirQoStaff = false;
       state.canSwitchContext = false;
       state.isInitialized = false;
     },
@@ -184,13 +180,12 @@ const userSlice = createSlice({
         if (airqoGroup) {
           state.activeGroup = airqoGroup;
           // Determine context immediately with the new group
-          const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+          const { context, canSwitchContext } = determineUserContext(
             state.userDetails,
             airqoGroup,
             state.userGroups
           );
           state.userContext = context;
-          state.isAirQoStaff = isAirQoStaff;
           state.canSwitchContext = canSwitchContext;
           return;
         }
@@ -206,13 +201,12 @@ const userSlice = createSlice({
         return;
       }
       
-      const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+      const { context, canSwitchContext } = determineUserContext(
         state.userDetails,
         action.payload,
         state.userGroups
       );
       state.userContext = context;
-      state.isAirQoStaff = isAirQoStaff;
       state.canSwitchContext = canSwitchContext;
     },
     setUserGroups(state, action: PayloadAction<Group[]>) {
@@ -220,18 +214,16 @@ const userSlice = createSlice({
       state.userGroups = groups;
       
       // Update context when user groups change
-      const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+      const { context, canSwitchContext } = determineUserContext(
         state.userDetails,
         state.activeGroup,
         groups
       );
       state.userContext = context;
-      state.isAirQoStaff = isAirQoStaff;
       state.canSwitchContext = canSwitchContext;
     },
     // New action to manually set context (for context switching)
     setUserContext(state, action: PayloadAction<UserContext>) {
-      const { isAirQoStaff } = state;
       
       // Validate context change
       // Logic for blocking non-staff from airqo-internal removed

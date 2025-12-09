@@ -50,7 +50,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // Check role-based access
   const hasRoleAccess = React.useMemo(() => {
-    if (!role && !roles) return true;
+    if (!role && !roles) return false;
     if (!userRole) return false;
 
     if (role) {
@@ -65,7 +65,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   }, [role, roles, userRole]);
 
   // Check permission-based access
-  const hasPermissionAccess = permission ? hasPermission : true;
+  const hasPermissionAccess = permission ? hasPermission : false;
 
   const hasValidContext = !allowedContexts || (userContext !== null && allowedContexts.includes(userContext));
 

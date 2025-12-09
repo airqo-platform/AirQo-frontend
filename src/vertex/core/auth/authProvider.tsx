@@ -34,14 +34,6 @@ import logger from '@/lib/logger';
 function filterGroupsAndNetworks(
   userInfo: UserDetails
 ): { groups: Group[]; networks: Network[] } {
-  const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
-  if (isAirQoStaff) {
-    return {
-      groups: userInfo.groups || [],
-      networks: userInfo.networks || [],
-    };
-  }
-
   // Return all groups and networks regardless of staff status
   // AirQo should be visible to all users as the default organization
   return {
@@ -61,7 +53,6 @@ function determineInitialUserSetup(
   defaultGroup?: Group;
   initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
 } {
-  const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {

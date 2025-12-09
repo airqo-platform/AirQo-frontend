@@ -22,7 +22,6 @@ interface OrganizationModalProps {
   userGroups?: Group[];
   activeGroup: Group | null;
   userContext: UserContext | null;
-  isAirQoStaff: boolean;
   onOrganizationChange: (group: Group) => void;
 }
 
@@ -39,7 +38,6 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   userGroups,
   activeGroup,
   userContext,
-  isAirQoStaff,
   onOrganizationChange,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
