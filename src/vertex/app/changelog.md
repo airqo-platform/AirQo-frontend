@@ -4,6 +4,43 @@
 
 ---
 
+## Version 1.18.0
+**Released:** December 09, 2025
+
+### Unified Forbidden Access UI
+
+Standardized the "Access Denied" experience across the application by introducing a reusable `ForbiddenError` component, ensuring consistent UI for both full-page and inline error states.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Reusable Forbidden UI**: Extracted the "Oops! Access Denied" UI into a standalone `ForbiddenError` component for use anywhere in the app.
+- **Consistent styling**: `RouteGuard` now renders the exact same friendly error UI as the full page version instead of a basic card.
+- **UI Enhancement**: Upgraded the "Go back" button to use the standardized `ReusableButton` component.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Created `src/vertex/components/ui/forbidden-error.tsx`.
+- Refactored `src/vertex/components/ui/forbidden-page.tsx` to wrap the new reusable component.
+- Updated `src/vertex/components/layout/accessConfig/route-guard.tsx` to render `ForbiddenError` centered in a container.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/ui/forbidden-error.tsx` (New)
+- `components/ui/forbidden-page.tsx`
+- `components/layout/accessConfig/route-guard.tsx`
+- `app/changelog.md`
+
+</details>
+
+---
+
 ## Version 1.17.0
 **Released:** December 09, 2025
 
