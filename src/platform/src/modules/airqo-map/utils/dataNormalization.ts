@@ -274,7 +274,12 @@ export function calculateMapBounds(
 
   const coordinates = readings
     .map(reading => {
-      if (reading.latitude !== undefined && reading.longitude !== undefined) {
+      if (
+        reading.latitude !== undefined &&
+        reading.latitude !== null &&
+        reading.longitude !== undefined &&
+        reading.longitude !== null
+      ) {
         return { lat: reading.latitude, lng: reading.longitude };
       }
       if (

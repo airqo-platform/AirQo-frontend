@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useUserRolesById } from './useAuth';
 import { useUser } from './useUser';
 
@@ -75,9 +75,12 @@ export const useRBAC = () => {
   /**
    * Check if user has a specific permission
    */
-  const hasPermission = (permission: string): boolean => {
-    return allPermissions.includes(permission);
-  };
+  const hasPermission = useCallback(
+    (permission: string): boolean => {
+      return allPermissions.includes(permission);
+    },
+    [allPermissions]
+  );
 
   /**
    * Check if user has any of the specified permissions
@@ -256,13 +259,13 @@ export const useRBAC = () => {
   /**
    * Check if user is AIRQO_SUPER_ADMIN with @airqo.net email
    */
-  const isAirQoSuperAdminWithEmail = (): boolean => {
+  const isAirQoSuperAdminWithEmail = useCallback((): boolean => {
     const hasRole = allRoles.some(
       role => role.toUpperCase() === 'AIRQO_SUPER_ADMIN'
     );
     const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
     return hasRole && hasValidEmail;
-  };
+  }, [allRoles, user?.email]);
 
   return {
     // Data

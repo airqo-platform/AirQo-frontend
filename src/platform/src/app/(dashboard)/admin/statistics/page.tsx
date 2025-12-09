@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { useUserStatistics } from '@/shared/hooks/useAdmin';
@@ -60,6 +60,11 @@ const UserStatisticsPage: React.FC = () => {
   }, [filteredData, page, pageSize]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
+
+  // Reset page to 1 when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
 
   // Table columns
   const columns = useMemo(
@@ -287,7 +292,10 @@ const UserStatisticsPage: React.FC = () => {
           setPage(1);
         }}
         searchTerm={search}
-        onSearchChange={setSearch}
+        onSearchChange={value => {
+          setSearch(value);
+          setPage(1);
+        }}
         loading={isLoading}
       />
     </div>
@@ -301,7 +309,7 @@ const ProtectedUserStatisticsPage: React.FC = () => {
       requiredPermissions={['ANALYTICS_VIEW', 'ANALYTICS_EXPORT']}
       requiredRoles={['AIRQO_SUPER_ADMIN']}
       accessDeniedTitle="Access Denied"
-      accessDeniedMessage="You need ANALYTICS_VIEW or ANALYTICS_EXPORT permission and AIRQO_SUPER_ADMIN role to view user statistics."
+      accessDeniedMessage="You need both ANALYTICS_VIEW and ANALYTICS_EXPORT permissions, and the AIRQO_SUPER_ADMIN role, to view user statistics."
     >
       <UserStatisticsPage />
     </PermissionGuard>
