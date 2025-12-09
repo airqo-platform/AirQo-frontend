@@ -62,8 +62,8 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
             onClick={() => handleModuleChange('devices')}
           />
 
-          {/* Network Management - visible to AirQo internal users with network permissions */}
-          {isOrganisationScope && permissions.canViewNetworks && (
+          {/* Network Management - visible to users with network permissions */}
+          {permissions.canViewNetworks && (
             <NavItem
               item={{
                 href: '/admin/networks',
