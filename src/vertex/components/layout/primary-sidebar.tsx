@@ -267,10 +267,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   <DropdownMenuItem
                     key={`${page.href}-${index}`}
                     onClick={() => {
-                      // Detect module from href to update active state if needed,
-                      // though strictly we might just rely on URL change.
-                      if (page.href.includes('/devices')) handleModuleChange('devices');
-                      else if (page.href.includes('/admin')) handleModuleChange('admin');
+                      // Detect module from href using route constants
+                      if (page.href.startsWith('/devices')) {
+                        handleModuleChange('devices');
+                      } else if (page.href.startsWith('/admin')) {
+                        handleModuleChange('admin');
+                      }
 
                       router.push(page.href);
                       setIsRecentOpen(false);
