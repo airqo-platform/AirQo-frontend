@@ -3,7 +3,7 @@
 import React, { useMemo } from 'react';
 import { useRBAC } from '@/shared/hooks';
 import { AccessDenied } from './AccessDenied';
-import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 
 interface PermissionGuardProps {
   children: React.ReactNode;
@@ -171,13 +171,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
 
   // Show loading state while checking permissions
   if (isLoading) {
-    return (
-      loadingComponent || (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <LoadingSpinner />
-        </div>
-      )
-    );
+    return loadingComponent || <LoadingState className="min-h-[400px]" />;
   }
 
   // Show access denied if user doesn't have required permissions
