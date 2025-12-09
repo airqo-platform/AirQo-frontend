@@ -43,6 +43,13 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const recentTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
+  React.useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (recentTimeoutRef.current) clearTimeout(recentTimeoutRef.current);
+    };
+  }, []);
+
   return (
     <>
       {isOpen && (
