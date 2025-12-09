@@ -1,10 +1,10 @@
 'use client';
 
 import DOMPurify from 'dompurify';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FiSearch, FiX } from 'react-icons/fi';
 
-import { Accordion, Input, NoData, Pagination } from '@/components/ui';
+import { Accordion, Button, Input, NoData } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useFAQs } from '@/hooks/useApiHooks';
 import { FAQ } from '@/types';
@@ -206,28 +206,49 @@ if (typeof window !== 'undefined') {
 const FAQPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
   const [openAccordionId, setOpenAccordionId] = useState<number | null>(null);
   const itemsPerPage = 20;
 
-  const { data, isLoading, error: isError } = useFAQs();
+  const {
+    data,
+    isLoading,
+    error: isError,
+  } = useFAQs({
+    page,
+    page_size: itemsPerPage,
+  });
 
-  // FAQs returned by API (only active ones)
-  const allFetched: FAQ[] = (data?.results ?? []).filter(
-    (f: any) => f.is_active,
-  );
+  useEffect(() => {
+    if (data) {
+      if (data.results) {
+        setFaqs((prev) => {
+          const newFaqs = data.results.filter((f: any) => f.is_active);
+          // Avoid duplicates
+          const existingIds = new Set(prev.map((f) => f.id));
+          const uniqueNewFaqs = newFaqs.filter(
+            (f: any) => !existingIds.has(f.id),
+          );
+          return [...prev, ...uniqueNewFaqs];
+        });
+      }
+      if (data.total_pages) {
+        setTotalPages(data.total_pages);
+      }
+    }
+  }, [data]);
 
   // Extract unique categories
   const categories = [
     'All',
-    ...Array.from(
-      new Set(allFetched.map((f) => f.category_name).filter(Boolean)),
-    ),
+    ...Array.from(new Set(faqs.map((f) => f.category_name).filter(Boolean))),
   ];
 
   // Filter by category and search query
   const normalizedQuery = searchQuery.trim().toLowerCase();
-  const filtered = allFetched.filter((f) => {
+  const filtered = faqs.filter((f) => {
     const matchesCategory =
       selectedCategory === 'All' || f.category_name === selectedCategory;
     const q = (f.question || '').toLowerCase();
@@ -242,36 +263,28 @@ const FAQPage: React.FC = () => {
     return matchesCategory && matchesSearch;
   });
 
-  // For UI pagination, paginate the filtered result client-side
-  const faqsList: FAQ[] = filtered.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage,
-  );
-
+  const faqsList = filtered;
   const totalCount = filtered.length;
-  const totalPages = Math.max(1, Math.ceil(totalCount / itemsPerPage));
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page when searching
     setOpenAccordionId(null); // Close any open accordion when searching
   };
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
-    setCurrentPage(1);
     setOpenAccordionId(null);
   };
 
   const clearSearch = () => {
     setSearchQuery('');
-    setCurrentPage(1);
     setOpenAccordionId(null);
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    setOpenAccordionId(null); // Close any open accordion when changing pages
+  const handleLoadMore = () => {
+    if (page < totalPages) {
+      setPage((prev) => prev + 1);
+    }
   };
 
   const handleAccordionToggle = (faqId: number) => {
@@ -399,13 +412,13 @@ const FAQPage: React.FC = () => {
           )}
 
           {/* Loading State */}
-          {isLoading ? (
+          {isLoading && faqs.length === 0 ? (
             <div className="w-full">
               {[...Array(5)].map((_, index) => (
                 <FAQSkeleton key={index} />
               ))}
             </div>
-          ) : isError ? (
+          ) : isError && faqs.length === 0 ? (
             <NoData message="Failed to load FAQs. Please try again later." />
           ) : faqsList.length > 0 ? (
             <>
@@ -423,26 +436,16 @@ const FAQPage: React.FC = () => {
                 ))}
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-8">
-                  <Pagination
-                    totalPages={totalPages}
-                    currentPage={currentPage}
-                    onPageChange={handlePageChange}
-                    scrollToTop={true}
-                  />
-                </div>
-              )}
-
-              {/* FAQ Count */}
-              {totalPages > 1 && (
-                <div className="text-center mt-6">
-                  <p className="text-sm text-gray-500">
-                    Showing {(currentPage - 1) * itemsPerPage + 1}-
-                    {Math.min(currentPage * itemsPerPage, totalCount)} of{' '}
-                    {totalCount} FAQs
-                  </p>
+              {/* Load More Button */}
+              {(page < totalPages || (isLoading && page > 1)) && (
+                <div className="mt-8 flex justify-center">
+                  <Button
+                    onClick={handleLoadMore}
+                    disabled={isLoading}
+                    className="px-8 py-3 bg-blue-600 text-white  hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? 'Loading...' : 'Load More'}
+                  </Button>
                 </div>
               )}
             </>

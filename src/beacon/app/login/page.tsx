@@ -1,15 +1,77 @@
 "use client"
 
-import { useState, useEffect, FormEvent } from "react"
+import { useState, useEffect, FormEvent, Component, ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2, Mail, Lock, AlertCircle } from "lucide-react"
+import { Loader2, Mail, Lock, AlertCircle, Eye, EyeOff } from "lucide-react"
 import Link from "next/link"
 import authService from "@/services/api-service"
+import dynamic from "next/dynamic"
+
+// Fallback component when 3D model fails to load - signals to hide the model section
+function DeviceModel3DFallback({ onModelLoaded, onModelFailed }: Readonly<{ onModelLoaded?: () => void; onModelFailed?: () => void }>) {
+  useEffect(() => {
+    // Signal that model failed so we hide the section
+    onModelFailed?.()
+    onModelLoaded?.()
+  }, [onModelLoaded, onModelFailed])
+
+  return null
+}
+
+// Error boundary to catch runtime errors in the 3D component
+class Model3DErrorBoundary extends Component<
+  { children: ReactNode; onError: () => void; onModelFailed: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; onError: () => void; onModelFailed: () => void }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error('3D Model Error:', error, errorInfo)
+    this.props.onError()
+    this.props.onModelFailed()
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null
+    }
+
+    return this.props.children
+  }
+}
+
+// Dynamically import the 3D component to avoid SSR issues with better error handling
+const DeviceModel3D = dynamic(
+  () => import("@/components/device-model-3d").catch((error) => {
+    console.error('Failed to load DeviceModel3D:', error)
+    // Return a fallback component that signals readiness
+    return {
+      default: DeviceModel3DFallback
+    }
+  }),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500">
+        <Loader2 className="h-16 w-16 text-white animate-spin mb-4" />
+        <div className="text-white text-xl font-semibold">Loading 3D Experience...</div>
+        <div className="text-blue-100 text-sm mt-2">Preparing your login page</div>
+      </div>
+    ),
+  }
+)
 
 /**
  * Login Page Component
@@ -23,7 +85,25 @@ export default function LoginPage() {
   const [password, setPassword] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
-  const [rememberMe, setRememberMe] = useState<boolean>(false)
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [pageReady, setPageReady] = useState<boolean>(false)
+  const [modelFailed, setModelFailed] = useState<boolean>(false)
+  
+  /**
+   * Check if on mobile and set page ready immediately (no 3D model on mobile)
+   */
+  useEffect(() => {
+    // Check if screen is smaller than lg breakpoint (1024px)
+    const checkMobile = () => {
+      if (window.innerWidth < 1024) {
+        setPageReady(true)
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   
   /**
    * Check authentication status on mount
@@ -41,7 +121,7 @@ export default function LoginPage() {
     } else {
       // Check if user is authenticated
       if (authService.isAuthenticated()) {
-        router.push("/dashboard")
+        router.push("/dashboard/devices")
       }
 
     }
@@ -95,16 +175,8 @@ export default function LoginPage() {
       if (response?.token || response?.success) {
         // Set authentication cookie for middleware
         if (response.token) {
-          // Set cookie with appropriate expiry based on remember me
-          const maxAge = rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60 // 30 days or 1 day
+          const maxAge = 24 * 60 * 60 // 1 day
           document.cookie = `token=${response.token}; path=/; max-age=${maxAge}; SameSite=Strict`
-          
-          // Store remember me preference
-          if (rememberMe) {
-            localStorage.setItem('rememberMe', 'true')
-          } else {
-            sessionStorage.setItem('rememberMe', 'false')
-          }
         }
         
         // Clear form
@@ -112,7 +184,7 @@ export default function LoginPage() {
         setPassword("")
         
         // Redirect to dashboard
-        router.push("/dashboard")
+        router.push("/dashboard/devices")
         
         // Force refresh to ensure clean state
         router.refresh()
@@ -148,25 +220,70 @@ export default function LoginPage() {
   }, [email, password])
 
   return (
-
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-4xl font-bold text-blue-600 mb-2">AirQo Beacon</h1>
-          <h2 className="text-3xl font-extrabold text-gray-900">Sign in</h2>
-          <p className="mt-2 text-sm text-gray-600">
-            Access your device monitoring dashboard
-          </p>
+    <div className="relative">
+      {/* Full Page Loader - Shows until 3D model is ready */}
+      {!pageReady && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500">
+          <Loader2 className="h-20 w-20 text-white animate-spin mb-6" />
+          <div className="text-white text-2xl font-bold mb-2">AirQo Beacon</div>
+          <div className="text-blue-100 text-lg">Loading devices...</div>
         </div>
+      )}
+
+      {/* Main Content - Hidden until ready */}
+      <div className={`min-h-screen flex transition-opacity duration-500 ${pageReady ? 'opacity-100' : 'opacity-0'}`}>
+        {/* Left side - 3D Model (hidden if model failed to load) */}
+        {!modelFailed && (
+          <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative overflow-hidden">
+            <Model3DErrorBoundary 
+              onError={() => setPageReady(true)} 
+              onModelFailed={() => setModelFailed(true)}
+            >
+              <DeviceModel3D 
+                onModelLoaded={() => setPageReady(true)} 
+                onModelFailed={() => setModelFailed(true)} 
+              />
+            </Model3DErrorBoundary>
+            
+            {/* Overlay text */}
+            <div className="absolute bottom-10 left-10 right-10 text-white">
+              <h1 className="text-5xl font-bold mb-4">AirQo Beacon</h1>
+              <p className="text-xl opacity-90">
+                Device Performance Monitoring & Management
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Right side - Login Form (full width if model failed) */}
+        <div className={`w-full flex items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8 ${!modelFailed ? 'lg:w-1/2 xl:w-2/5' : ''}`}>
+        <div className="max-w-md w-full space-y-8">
+          {/* Header - Mobile only or when model failed */}
+          <div className={`text-center ${!modelFailed ? 'lg:hidden' : ''}`}>
+            <h1 className="text-4xl font-bold text-blue-600 mb-2">AirQo Beacon</h1>
+            <h2 className="text-3xl font-extrabold text-gray-900">Welcome back</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Enter your credentials to access your account
+            </p>
+          </div>
+
+          {/* Header - Desktop (only shown when model is visible) */}
+          {!modelFailed && (
+            <div className="hidden lg:block text-center">
+              <h2 className="text-3xl font-extrabold text-gray-900">Welcome back</h2>
+              <p className="mt-2 text-sm text-gray-600">
+                Enter your credentials to access your account
+              </p>
+            </div>
+          )}
 
         {/* Login Card */}
         <Card className="mt-8">
           <CardHeader>
-            <CardTitle className="text-xl">Welcome back</CardTitle>
-            <CardDescription>
+            <CardTitle className="text-xl">Sign in</CardTitle>
+            {/* <CardDescription>
               Enter your credentials to access your account
-            </CardDescription>
+            </CardDescription> */}
           </CardHeader>
           
           <CardContent>
@@ -216,20 +333,33 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 pr-10"
                     placeholder="Enter your password"
                     disabled={isLoading}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    disabled={isLoading}
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    )}
+                  </button>
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
+              {/* Remember Me & Forgot Password  I will implement this later */}
+              {/* <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <input
                     id="remember-me"
@@ -253,7 +383,7 @@ export default function LoginPage() {
                     Forgot your password?
                   </Link>
                 </div>
-              </div>
+              </div> */}
 
               {/* Submit Button */}
               <Button
@@ -274,15 +404,16 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        {/* Footer */}
-        <p className="mt-8 text-center text-xs text-gray-500">
-          By signing in, you agree to our{" "}
-          <Link href="/terms" className="underline">Terms of Service</Link>
-          {" "}and{" "}
-          <Link href="/privacy" className="underline">Privacy Policy</Link>
-        </p>
+          {/* Footer */}
+          {/* <p className="mt-8 text-center text-xs text-gray-500">
+            By signing in, you agree to our{" "}
+            <Link href="/terms" className="underline">Terms of Service</Link>
+            {" "}and{" "}
+            <Link href="/privacy" className="underline">Privacy Policy</Link>
+          </p> */}
+        </div>
+        </div>
       </div>
-
     </div>
   )
 }
