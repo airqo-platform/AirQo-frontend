@@ -132,11 +132,11 @@ const UserStatisticsPage: React.FC = () => {
   const exportToCSV = () => {
     const headers = ['First Name', 'Last Name', 'Email', 'Username', 'User ID'];
     const csvData = currentData.map(user => [
-      user.firstName || '',
-      user.lastName || '',
-      user.email || '',
-      user.userName || '',
-      user._id,
+      (user.firstName || '').replace(/"/g, '""'),
+      (user.lastName || '').replace(/"/g, '""'),
+      (user.email || '').replace(/"/g, '""'),
+      (user.userName || '').replace(/"/g, '""'),
+      user._id.replace(/"/g, '""'),
     ]);
     const csvContent = [headers, ...csvData]
       .map(row => row.map(field => `"${field}"`).join(','))

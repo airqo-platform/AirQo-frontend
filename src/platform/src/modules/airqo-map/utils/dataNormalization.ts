@@ -278,8 +278,10 @@ export function calculateMapBounds(
         return { lat: reading.latitude, lng: reading.longitude };
       }
       if (
-        reading.siteDetails?.approximate_latitude &&
-        reading.siteDetails?.approximate_longitude
+        reading.siteDetails?.approximate_latitude !== undefined &&
+        reading.siteDetails?.approximate_latitude !== null &&
+        reading.siteDetails?.approximate_longitude !== undefined &&
+        reading.siteDetails?.approximate_longitude !== null
       ) {
         return {
           lat: reading.siteDetails.approximate_latitude,
