@@ -19,7 +19,11 @@ export function normalizeCountries(countriesData: CountryData[]): Country[] {
   ];
 
   if (countriesData && countriesData.length > 0) {
-    const sortedCountries = [...countriesData].sort((a, b) => {
+    // Filter out countries with 0 sites and sort with Uganda first
+    const filteredCountries = countriesData.filter(
+      countryData => countryData.sites > 0
+    );
+    const sortedCountries = [...filteredCountries].sort((a, b) => {
       if (a.country.toLowerCase() === 'uganda') return -1;
       if (b.country.toLowerCase() === 'uganda') return 1;
       return a.country.localeCompare(b.country);
