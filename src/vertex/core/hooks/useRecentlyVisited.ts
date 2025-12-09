@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAppSelector } from '@/core/redux/hooks';
 import { usePathname } from 'next/navigation';
 import { ROUTE_LINKS } from '@/core/routes';
 
@@ -29,16 +30,12 @@ const getCanonicalRoute = (pathname: string): { label: string; href: string } | 
     return { label: 'Shipping', href: '/admin/shipping' };
   }
 
-  // Device Management (Home)
-  // We treat these as discrete because they are top-level views in the breakdown
   if (pathname === ROUTE_LINKS.HOME) return { label: 'Device Management', href: ROUTE_LINKS.HOME };
   
   if (pathname.includes('/devices/my-devices')) return { label: 'My Devices', href: ROUTE_LINKS.MY_DEVICES };
   if (pathname.includes('/devices/overview')) return { label: 'Device Overview', href: ROUTE_LINKS.ORG_ASSETS };
   if (pathname.includes('/devices/claim')) return { label: 'Register Device', href: ROUTE_LINKS.ORG_REGISTER_DEVICE };
 
-  // Fallback: If we can't map it clearly to a sidebar module, we might want to ignore it 
-  // or just return a generic one. For now, let's ignore unknowns to keep the list clean.
   return null;
 };
 
@@ -46,26 +43,36 @@ export const useRecentlyVisited = () => {
   const pathname = usePathname();
   const [visitedPages, setVisitedPages] = useState<RecentPage[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const userDetails = useAppSelector((state) => state.user.userDetails);
+  const userId = userDetails?._id;
 
-  // Load from localStorage on mount
+  const storageKey = userId ? `${STORAGE_KEY}_${userId}` : null;
+
   useEffect(() => {
+    if (!storageKey) {
+      setVisitedPages([]);
+      setIsLoaded(true);
+      return;
+    }
+
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = localStorage.getItem(storageKey);
       if (stored) {
         setVisitedPages(JSON.parse(stored));
+      } else {
+        setVisitedPages([]);
       }
     } catch (error) {
       console.error('Failed to load recently visited pages:', error);
     } finally {
       setIsLoaded(true);
     }
-  }, []);
+  }, [storageKey]);
 
   // Update visited pages on pathname change
   useEffect(() => {
-    if (!isLoaded || !pathname) return;
+    if (!isLoaded || !pathname || !storageKey) return;
 
-    // Skip certain paths if needed (e.g. login, error pages)
     if (pathname === '/' || pathname.includes('/login')) return;
 
     const route = getCanonicalRoute(pathname);
@@ -75,21 +82,18 @@ export const useRecentlyVisited = () => {
     const newPage: RecentPage = { label, href };
 
     setVisitedPages((prev) => {
-      // Remove existing occurrence to promote it to the top
       const filtered = prev.filter((p) => p.href !== href);
-      // Add new page to the front
       const updated = [newPage, ...filtered].slice(0, MAX_RECENT_PAGES);
       
-      // Persist to localStorage
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        localStorage.setItem(storageKey, JSON.stringify(updated));
       } catch (error) {
         console.error('Failed to save recently visited pages:', error);
       }
 
       return updated;
     });
-  }, [pathname, isLoaded]);
+  }, [pathname, isLoaded, storageKey]);
 
   return { visitedPages };
 };
