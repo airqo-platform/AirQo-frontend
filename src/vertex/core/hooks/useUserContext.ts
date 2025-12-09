@@ -61,6 +61,7 @@ export const useUserContext = (): UserContextState => {
   const canViewUserManagement = usePermission(PERMISSIONS.USER.VIEW);
   const canViewAccessControl = usePermission(PERMISSIONS.ROLE.VIEW);
   const canViewNetworks = usePermission(PERMISSIONS.NETWORK.VIEW);
+  const canViewShipping = usePermission(PERMISSIONS.SHIPPING.VIEW);
 
   // Determine loading states
   const isLoading = useMemo(() => {
@@ -164,7 +165,7 @@ export const useUserContext = (): UserContextState => {
           showClaimDevice: true,
           showDeployDevice: true,
           showNetworks: canViewNetworks,
-          showShipping: true, // Should this be permission based too? Assume true for now if staff
+          showShipping: canViewShipping,
         };
 
       case 'external-org':
@@ -224,6 +225,7 @@ export const useUserContext = (): UserContextState => {
       canViewUserManagement,
       canViewAccessControl,
       canViewNetworks,
+      canViewShipping,
     };
   };
 

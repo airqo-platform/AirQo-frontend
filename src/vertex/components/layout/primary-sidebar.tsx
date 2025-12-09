@@ -19,6 +19,8 @@ import {
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { ROUTE_LINKS } from '@/core/routes';
+import { PERMISSIONS } from '@/core/permissions/constants';
+import PermissionTooltip from '@/components/ui/permission-tooltip';
 
 interface PrimarySidebarProps {
   isOpen: boolean;
@@ -26,6 +28,54 @@ interface PrimarySidebarProps {
   activeModule: string;
   onModuleChange: (module: string) => void;
 }
+
+interface AdminDropdownItemProps {
+  permission: boolean;
+  permissionCode: string;
+  tooltipMessage: string;
+  onClick: () => void;
+  label: string;
+  subLabel: string;
+  isActive: boolean;
+}
+
+const AdminDropdownItem: React.FC<AdminDropdownItemProps> = ({
+  permission,
+  permissionCode,
+  tooltipMessage,
+  onClick,
+  label,
+  subLabel,
+  isActive,
+}) => {
+  const item = (
+    <DropdownMenuItem
+      disabled={!permission}
+      onClick={onClick}
+      className={cn(
+        "flex flex-col items-start gap-1 p-3 cursor-pointer",
+        isActive && "bg-blue-50 text-blue-700"
+      )}
+    >
+      <span className="font-medium">{label}</span>
+      <span className={cn("text-xs", isActive ? "text-blue-500" : "text-muted-foreground")}>
+        {subLabel}
+      </span>
+    </DropdownMenuItem>
+  );
+
+  return (
+    <span className="w-full h-full block">
+      {!permission ? (
+        <PermissionTooltip permission={permissionCode} message={tooltipMessage}>
+          {item}
+        </PermissionTooltip>
+      ) : (
+        item
+      )}
+    </span>
+  );
+};
 
 const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   isOpen,
@@ -40,8 +90,18 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isRecentOpen, setIsRecentOpen] = useState(false);
   const { visitedPages } = useRecentlyVisited();
+  const { activeGroup } = useUserContext();
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const recentTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Determine if user can view Admin Panel (Role based OR Permission based)
+  const canViewAdminPanel = React.useMemo(() => {
+    if (permissions.canViewNetworks) return true;
+    if (!activeGroup?.role?.role_name) return false;
+
+    const allowedRoles = ['AIRQO_SUPER_ADMIN', 'AIRQO_ADMIN', 'AIRQO_NETWORK_ADMIN'];
+    return allowedRoles.includes(activeGroup.role.role_name);
+  }, [permissions.canViewNetworks, activeGroup]);
 
   React.useEffect(() => {
     return () => {
@@ -88,8 +148,8 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
             onClick={() => handleModuleChange('devices')}
           />
 
-          {/* Administrative Panel - visible to users with admin permissions */}
-          {permissions.canViewNetworks && (
+          {/* Administrative Panel - visible to authorized admin roles */}
+          {canViewAdminPanel && (
             <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen} modal={false}>
               <DropdownMenuTrigger asChild>
                 <div
@@ -138,90 +198,75 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem
+                <AdminDropdownItem
+                  permission={!!permissions.canViewNetworks}
+                  permissionCode={PERMISSIONS.NETWORK.VIEW}
+                  tooltipMessage="This action requires network view permission"
                   onClick={() => {
                     handleModuleChange('admin');
                     router.push(ROUTE_LINKS.ADMIN_NETWORKS);
                     setIsDropdownOpen(false);
                   }}
-                  className={cn(
-                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS) && "bg-blue-50 text-blue-700"
-                  )}
-                >
-                  <span className="font-medium">Networks</span>
-                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS) ? "text-blue-500" : "text-muted-foreground")}>
-                    Manage and configure networks
-                  </span>
-                </DropdownMenuItem>
+                  label="Networks"
+                  subLabel="Manage and configure networks"
+                  isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS)}
+                />
 
-                <DropdownMenuItem
+                <AdminDropdownItem
+                  permission={!!permissions.canViewDevices}
+                  permissionCode={PERMISSIONS.DEVICE.VIEW}
+                  tooltipMessage="This action requires device view permission"
                   onClick={() => {
                     handleModuleChange('admin');
                     router.push(ROUTE_LINKS.COHORTS);
                     setIsDropdownOpen(false);
                   }}
-                  className={cn(
-                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith(ROUTE_LINKS.COHORTS) && "bg-blue-50 text-blue-700"
-                  )}
-                >
-                  <span className="font-medium">Cohorts</span>
-                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.COHORTS) ? "text-blue-500" : "text-muted-foreground")}>
-                    Group devices for analytics
-                  </span>
-                </DropdownMenuItem>
+                  label="Cohorts"
+                  subLabel="Group devices for analytics"
+                  isActive={pathname.startsWith(ROUTE_LINKS.COHORTS)}
+                />
 
-                <DropdownMenuItem
+                <AdminDropdownItem
+                  permission={!!permissions.canViewSites}
+                  permissionCode={PERMISSIONS.SITE.VIEW}
+                  tooltipMessage="This action requires site view permission"
                   onClick={() => {
                     handleModuleChange('admin');
                     router.push(ROUTE_LINKS.SITES);
                     setIsDropdownOpen(false);
                   }}
-                  className={cn(
-                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith(ROUTE_LINKS.SITES) && "bg-blue-50 text-blue-700"
-                  )}
-                >
-                  <span className="font-medium">Sites</span>
-                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.SITES) ? "text-blue-500" : "text-muted-foreground")}>
-                    Manage location deployments
-                  </span>
-                </DropdownMenuItem>
+                  label="Sites"
+                  subLabel="Manage location deployments"
+                  isActive={pathname.startsWith(ROUTE_LINKS.SITES)}
+                />
 
-                <DropdownMenuItem
+                <AdminDropdownItem
+                  permission={!!permissions.canViewSites}
+                  permissionCode={PERMISSIONS.SITE.VIEW}
+                  tooltipMessage="This action requires site view permission"
                   onClick={() => {
                     handleModuleChange('admin');
                     router.push(ROUTE_LINKS.GRIDS);
                     setIsDropdownOpen(false);
                   }}
-                  className={cn(
-                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith(ROUTE_LINKS.GRIDS) && "bg-blue-50 text-blue-700"
-                  )}
-                >
-                  <span className="font-medium">Grids</span>
-                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.GRIDS) ? "text-blue-500" : "text-muted-foreground")}>
-                    Configure spatial grids
-                  </span>
-                </DropdownMenuItem>
+                  label="Grids"
+                  subLabel="Configure spatial grids"
+                  isActive={pathname.startsWith(ROUTE_LINKS.GRIDS)}
+                />
 
-                <DropdownMenuItem
+                <AdminDropdownItem
+                  permission={!!permissions.canViewShipping}
+                  permissionCode={PERMISSIONS.SHIPPING.VIEW}
+                  tooltipMessage="This action requires shipping view permission"
                   onClick={() => {
                     handleModuleChange('admin');
                     router.push(ROUTE_LINKS.ADMIN_SHIPPING);
                     setIsDropdownOpen(false);
                   }}
-                  className={cn(
-                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
-                    pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING) && "bg-blue-50 text-blue-700"
-                  )}
-                >
-                  <span className="font-medium">Shipping</span>
-                  <span className={cn("text-xs", pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING) ? "text-blue-500" : "text-muted-foreground")}>
-                    Track device logistics
-                  </span>
-                </DropdownMenuItem>
+                  label="Shipping"
+                  subLabel="Track device logistics"
+                  isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_SHIPPING)}
+                />
               </DropdownMenuContent>
             </DropdownMenu>
           )}

@@ -97,6 +97,14 @@ export const PERMISSIONS = {
     EDIT: 'SETTINGS_EDIT',
     GROUP_SETTINGS: 'GROUP_SETTINGS',
   },
+
+  // Shipping permissions
+  SHIPPING: {
+    VIEW: 'SHIPPING_VIEW',
+    CREATE: 'SHIPPING_CREATE',
+    EDIT: 'SHIPPING_EDIT',
+    DELETE: 'SHIPPING_DELETE',
+  },
 } as const;
 
 // Role definitions with inheritance and capabilities
@@ -124,6 +132,7 @@ export const ROLES = {
       ...Object.values(PERMISSIONS.SITE),
       ...Object.values(PERMISSIONS.ANALYTICS),
       ...Object.values(PERMISSIONS.SETTINGS),
+      ...Object.values(PERMISSIONS.SHIPPING),
     ],
     canOverrideOrganization: false,
     systemWide: true,
@@ -158,6 +167,7 @@ export const ROLES = {
       ...Object.values(PERMISSIONS.DEVICE),
       ...Object.values(PERMISSIONS.SITE),
       ...Object.values(PERMISSIONS.ANALYTICS),
+      ...Object.values(PERMISSIONS.SHIPPING),
     ],
     canOverrideOrganization: false,
     systemWide: true,
@@ -294,7 +304,8 @@ export type Permission =
   | typeof PERMISSIONS.SITE[keyof typeof PERMISSIONS.SITE]
   | typeof PERMISSIONS.ANALYTICS[keyof typeof PERMISSIONS.ANALYTICS]
   | typeof PERMISSIONS.NETWORK[keyof typeof PERMISSIONS.NETWORK]
-  | typeof PERMISSIONS.SETTINGS[keyof typeof PERMISSIONS.SETTINGS];
+  | typeof PERMISSIONS.SETTINGS[keyof typeof PERMISSIONS.SETTINGS]
+  | typeof PERMISSIONS.SHIPPING[keyof typeof PERMISSIONS.SHIPPING];
 
 export type RoleName = keyof typeof ROLES;
 export type PermissionCategory = keyof typeof PERMISSION_CATEGORIES; 
