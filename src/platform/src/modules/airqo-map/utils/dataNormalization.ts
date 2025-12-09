@@ -1,35 +1,29 @@
 import type { CountryData } from '../../../shared/types/api';
 
-/**
- * Country interface for display in the UI
- */
 export interface Country {
   code: string;
   name: string;
   flag: string;
 }
 
-/**
- * Location interface for display in the UI
- */
 export interface Location {
   id: string;
   title: string;
   location: string;
 }
 
-/**
- * Transforms API country data to UI display format
- * Adds "All" option first, sorts with Uganda prioritized, and formats country codes
- */
+// Transforms API country data to UI format with Uganda prioritized
 export function normalizeCountries(countriesData: CountryData[]): Country[] {
   const transformedCountries: Country[] = [
     { code: 'all', name: 'All', flag: '🌍' },
   ];
 
-  if (countriesData) {
-    // Sort countries with Uganda first
-    const sortedCountries = [...countriesData].sort((a, b) => {
+  if (countriesData && countriesData.length > 0) {
+    // Filter out countries with 0 sites and sort with Uganda first
+    const filteredCountries = countriesData.filter(
+      countryData => countryData.sites > 0
+    );
+    const sortedCountries = [...filteredCountries].sort((a, b) => {
       if (a.country.toLowerCase() === 'uganda') return -1;
       if (b.country.toLowerCase() === 'uganda') return 1;
       return a.country.localeCompare(b.country);
@@ -47,10 +41,6 @@ export function normalizeCountries(countriesData: CountryData[]): Country[] {
   return transformedCountries;
 }
 
-/**
- * Transforms API sites data to UI location format
- * Extracts relevant fields for display in the locations list
- */
 export function normalizeLocations(
   sites: Record<string, unknown>[]
 ): Location[] {
@@ -61,10 +51,7 @@ export function normalizeLocations(
   }));
 }
 
-/**
- * Converts a country code (with underscores) back to a properly formatted country name
- * Used when passing country parameters to APIs that expect capitalized names
- */
+// Converts country code to properly formatted name for API
 export function formatCountryForApi(countryCode: string): string {
   if (!countryCode || countryCode === 'all') return '';
 
@@ -74,10 +61,6 @@ export function formatCountryForApi(countryCode: string): string {
     .join(' ');
 }
 
-/**
- * Filters locations based on a search query
- * Searches in both title and location fields
- */
 export function filterLocations(
   locations: Location[],
   searchQuery: string
@@ -92,10 +75,6 @@ export function filterLocations(
   );
 }
 
-/**
- * Limits the number of locations displayed initially
- * Used for pagination in the UI
- */
 export function limitLocationsForDisplay(
   locations: Location[],
   isSearching: boolean,
@@ -121,18 +100,12 @@ import {
   type PollutantType,
 } from '../../../shared/utils/airQuality';
 
-/**
- * Configuration for pollutant display
- */
 export interface PollutantConfig {
   type: PollutantType;
   label: string;
   unit: string;
 }
 
-/**
- * Available pollutant configurations
- */
 export const POLLUTANT_CONFIGS: Record<PollutantType, PollutantConfig> = {
   pm2_5: {
     type: 'pm2_5',
@@ -146,22 +119,15 @@ export const POLLUTANT_CONFIGS: Record<PollutantType, PollutantConfig> = {
   },
 };
 
-/**
- * Default pollutant for display
- */
 export const DEFAULT_POLLUTANT: PollutantType = 'pm2_5';
 
-/**
- * Normalizes API map readings to UI air quality readings format
- * Converts MapReading[] to AirQualityReading[] with dynamic pollutant support
- */
+// Normalizes API map readings to UI format with dynamic pollutant support
 export function normalizeMapReadings(
   readings: MapReading[],
   pollutantType: PollutantType = DEFAULT_POLLUTANT
 ): AirQualityReading[] {
   return readings
     .filter(reading => {
-      // Filter out readings without required data
       const pollutantValue = reading[pollutantType]?.value;
       return (
         pollutantValue !== null &&
@@ -219,9 +185,7 @@ export function normalizeMapReadings(
     });
 }
 
-/**
- * Normalizes WAQI city data to UI air quality readings format
- */
+// Normalizes WAQI city data to UI format
 export function normalizeWAQIReadings(
   waqiData: Array<{ city: string; data: WAQICityResponse['data'] }>
 ): AirQualityReading[] {
@@ -234,11 +198,9 @@ export function normalizeWAQIReadings(
       const pm25 = data.iaqi.pm25?.v || 0;
       const pm10 = data.iaqi.pm10?.v || 0;
 
-      // Use PM2.5 for AQI calculation
       const level = getAirQualityLevel(pm25, 'pm2_5');
       const color = getAirQualityColor(level);
 
-      // Convert WAQI forecast to AirQo forecast format if available
       let forecastData: ForecastData[] = [];
       if (data.forecast?.daily?.pm25) {
         forecastData = data.forecast.daily.pm25.map(f => ({
@@ -250,22 +212,18 @@ export function normalizeWAQIReadings(
         }));
       }
 
-      // Safely parse the date
       let lastUpdated: Date;
       try {
         lastUpdated = data.time?.s ? new Date(data.time.s) : new Date();
-        // Check if the date is valid
         if (isNaN(lastUpdated.getTime())) {
-          lastUpdated = new Date(); // Fallback to current date
+          lastUpdated = new Date();
         }
       } catch (error) {
         console.warn('Invalid date from WAQI API:', data.time?.s, error);
-        lastUpdated = new Date(); // Fallback to current date
+        lastUpdated = new Date();
       }
 
-      // Generate unique ID from URL to prevent duplicates
       const rawId = `waqi-${data.city.url.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}`;
-      // Ensure uniqueness by appending counter if needed
       let uniqueId = rawId;
       let counter = 1;
       while (seenIds.has(uniqueId)) {
@@ -288,11 +246,100 @@ export function normalizeWAQIReadings(
         isPrimary: false,
         aqiCategory: level,
         aqiColor: color,
-        pollutantValue: pm25, // Default to PM2.5
+        pollutantValue: pm25,
         pollutantType: 'pm2_5',
-        // Add WAQI-specific data including forecast
         waqiData: data,
         forecastData: forecastData.length > 0 ? forecastData : undefined,
       };
     });
+}
+
+// Calculates map bounds and center for auto-zoom functionality
+export function calculateMapBounds(
+  readings: Array<{
+    latitude?: number;
+    longitude?: number;
+    siteDetails?: {
+      approximate_latitude?: number;
+      approximate_longitude?: number;
+    };
+  }>
+): {
+  center: { longitude: number; latitude: number };
+  zoom: number;
+} | null {
+  if (!readings || readings.length === 0) {
+    return null;
+  }
+
+  const coordinates = readings
+    .map(reading => {
+      if (
+        reading.latitude !== undefined &&
+        reading.latitude !== null &&
+        reading.longitude !== undefined &&
+        reading.longitude !== null
+      ) {
+        return { lat: reading.latitude, lng: reading.longitude };
+      }
+      if (
+        reading.siteDetails?.approximate_latitude !== undefined &&
+        reading.siteDetails?.approximate_latitude !== null &&
+        reading.siteDetails?.approximate_longitude !== undefined &&
+        reading.siteDetails?.approximate_longitude !== null
+      ) {
+        return {
+          lat: reading.siteDetails.approximate_latitude,
+          lng: reading.siteDetails.approximate_longitude,
+        };
+      }
+      return null;
+    })
+    .filter((coord): coord is { lat: number; lng: number } => coord !== null);
+
+  if (coordinates.length === 0) {
+    return null;
+  }
+
+  if (coordinates.length === 1) {
+    return {
+      center: {
+        longitude: coordinates[0].lng,
+        latitude: coordinates[0].lat,
+      },
+      zoom: 16,
+    };
+  }
+
+  const lngs = coordinates.map(c => c.lng);
+  const lats = coordinates.map(c => c.lat);
+
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+
+  const centerLng = (minLng + maxLng) / 2;
+  const centerLat = (minLat + maxLat) / 2;
+
+  const lngSpan = maxLng - minLng;
+  const latSpan = maxLat - minLat;
+  const maxSpan = Math.max(lngSpan, latSpan);
+
+  // Mapbox zoom levels: 0 (world) to 22 (building level)
+  let zoom: number;
+  if (maxSpan < 0.01) zoom = 17;
+  else if (maxSpan < 0.05) zoom = 15;
+  else if (maxSpan < 0.2) zoom = 13;
+  else if (maxSpan < 0.5) zoom = 12;
+  else if (maxSpan < 1) zoom = 11;
+  else zoom = 10;
+
+  return {
+    center: {
+      longitude: centerLng,
+      latitude: centerLat,
+    },
+    zoom,
+  };
 }

@@ -247,7 +247,7 @@ const OrganizationRequestsPage = () => {
                     size="sm"
                     variant="filled"
                     onClick={() => handleApprove(item._id)}
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-green-600 hover:bg-green-700 text-white whitespace-nowrap"
                   >
                     Approve
                   </Button>
@@ -255,6 +255,7 @@ const OrganizationRequestsPage = () => {
                     size="sm"
                     variant="outlined"
                     onClick={() => handleReject(item._id)}
+                    className="whitespace-nowrap"
                   >
                     Reject
                   </Button>

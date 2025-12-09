@@ -109,16 +109,7 @@ export class ApiClient {
 
         // Log outgoing requests at debug level (dev only)
         // Only compute expensive data size when debug logging is actually enabled
-        if (process.env.NODE_ENV === 'development') {
-          logger.debug('API Request', {
-            method: config.method?.toUpperCase(),
-            url: config.url,
-            baseURL: config.baseURL,
-            timeout: config.timeout,
-            hasData: !!config.data,
-            dataSize: config.data ? safeStringify(config.data).length : 0,
-          });
-        }
+        // API request logging removed to reduce console noise
 
         if (this.authType === AuthType.JWT) {
           // JWT tokens are set via setAuthToken() method
@@ -139,19 +130,7 @@ export class ApiClient {
       response => {
         // Log successful responses at debug level (dev only)
         // Only compute expensive data size when debug logging is actually enabled
-        if (process.env.NODE_ENV === 'development') {
-          logger.debug('API Response Success', {
-            method: response.config.method?.toUpperCase(),
-            url: response.config.url,
-            status: response.status,
-            statusText: response.statusText,
-            duration:
-              Date.now() -
-              ((response.config as RequestConfigWithMetadata).metadata
-                ?.startTime || Date.now()),
-            dataSize: safeStringify(response.data).length,
-          });
-        }
+        // API response logging removed to reduce console noise
 
         return response;
       },

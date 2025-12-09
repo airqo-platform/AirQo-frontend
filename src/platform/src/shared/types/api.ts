@@ -1338,3 +1338,29 @@ export interface UpdateGroupDetailsResponse {
   message: string;
   group: GroupDetails;
 }
+
+// User Statistics Types
+export interface UserStatisticsUser {
+  userName: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  _id: string;
+}
+
+export interface UserStatisticsCategory {
+  number: number;
+  details: UserStatisticsUser[];
+}
+
+export interface UserStatistics {
+  users: UserStatisticsCategory;
+  active_users: UserStatisticsCategory;
+  api_users: UserStatisticsCategory;
+}
+
+export interface GetUserStatisticsResponse {
+  success: boolean;
+  message: string;
+  users_stats: UserStatistics;
+}

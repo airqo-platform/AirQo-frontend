@@ -127,12 +127,17 @@ export class DeviceService {
 
   // Get grids summary - authenticated endpoint
   async getGridsSummaryAuthenticated(
-    params: GridsSummaryParams = {}
+    params: GridsSummaryParams = {},
+    cohort_id?: string
   ): Promise<GridsSummaryResponse> {
     await this.ensureAuthenticated();
+    const queryParams: Record<string, any> = { ...params };
+    if (cohort_id) {
+      queryParams.cohort_id = cohort_id;
+    }
     const response = await this.authenticatedClient.get<
       GridsSummaryResponse | ApiErrorResponse
-    >('/devices/grids/summary', { params });
+    >('/devices/grids/summary', { params: queryParams });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -144,11 +149,16 @@ export class DeviceService {
 
   // Get grids summary - API token endpoint
   async getGridsSummaryWithToken(
-    params: GridsSummaryParams = {}
+    params: GridsSummaryParams = {},
+    cohort_id?: string
   ): Promise<GridsSummaryResponse> {
+    const queryParams: Record<string, any> = { ...params };
+    if (cohort_id) {
+      queryParams.cohort_id = cohort_id;
+    }
     const response = await this.serverClient.get<
       GridsSummaryResponse | ApiErrorResponse
-    >('/devices/grids/summary', { params });
+    >('/devices/grids/summary', { params: queryParams });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -159,11 +169,17 @@ export class DeviceService {
   }
 
   // Get countries list - authenticated endpoint
-  async getCountriesAuthenticated(): Promise<CountriesResponse> {
+  async getCountriesAuthenticated(
+    cohort_id?: string
+  ): Promise<CountriesResponse> {
     await this.ensureAuthenticated();
+    const params: Record<string, string> = {};
+    if (cohort_id) {
+      params.cohort_id = cohort_id;
+    }
     const response = await this.authenticatedClient.get<
       CountriesResponse | ApiErrorResponse
-    >('/devices/grids/countries');
+    >('/devices/grids/countries', { params });
     const data = response.data;
 
     if ('success' in data && !data.success) {
@@ -174,11 +190,18 @@ export class DeviceService {
   }
 
   // Get map readings - authenticated endpoint
-  async getMapReadingsAuthenticated(): Promise<MapReadingsResponse> {
+  async getMapReadingsAuthenticated(
+    cohort_id?: string
+  ): Promise<MapReadingsResponse> {
     await this.ensureAuthenticated();
+    const params: Record<string, string> = {};
+    if (cohort_id) {
+      params.cohort_id = cohort_id;
+    }
+
     const response = await this.authenticatedClient.get<
       MapReadingsResponse | ApiErrorResponse
-    >('/devices/readings/map');
+    >('/devices/readings/map', { params });
     const data = response.data;
 
     if ('success' in data && !data.success) {

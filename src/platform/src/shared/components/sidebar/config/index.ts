@@ -12,6 +12,7 @@ import {
   AqSettings01,
   AqData,
   AqKey01,
+  AqBarChart01,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -108,11 +109,18 @@ const orgSidebarConfig: NavGroup[] = [
         href: '/org/dashboard',
         icon: AqHomeSmile,
       },
+
       {
         id: 'bulk-export',
         label: 'Bulk Data Export',
         href: '/org/data-export',
         icon: AqDownload01,
+      },
+      {
+        id: 'map',
+        label: 'Map',
+        href: '/org/map',
+        icon: AqGlobe05,
       },
     ],
   },
@@ -164,6 +172,12 @@ const adminSidebarConfig: NavGroup[] = [
         label: 'Roles & Permissions',
         href: '/admin/roles',
         icon: AqShield02,
+      },
+      {
+        id: 'admin-statistics',
+        label: 'User Statistics',
+        href: '/admin/statistics',
+        icon: AqBarChart01,
       },
     ],
   },
@@ -221,6 +235,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Roles & Permissions',
             href: '/admin/roles',
             description: 'Manage roles and permissions',
+          },
+          {
+            id: 'admin-statistics',
+            label: 'User Statistics',
+            href: '/admin/statistics',
+            description: 'View user statistics',
           },
           {
             id: 'admin-org-settings',

@@ -35,6 +35,7 @@ interface LocationsListProps {
   className?: string;
   searchQuery?: string;
   selectedLocationId?: string;
+  cohort_id?: string;
 }
 
 export const LocationsList: React.FC<LocationsListProps> = ({
@@ -43,10 +44,12 @@ export const LocationsList: React.FC<LocationsListProps> = ({
   className,
   searchQuery = '',
   selectedLocationId,
+  cohort_id,
 }) => {
   const { sites, isLoading, isLoadingMore, loadMore, hasNextPage } =
     useSitesByCountry({
       country: selectedCountry === 'all' ? undefined : selectedCountry,
+      cohort_id,
     });
 
   const { results: photonResults, isLoading: isPhotonLoading } =

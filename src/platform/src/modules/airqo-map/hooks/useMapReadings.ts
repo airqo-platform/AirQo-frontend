@@ -15,18 +15,33 @@ export interface UseMapReadingsResult {
 
 /**
  * Hook for fetching map readings data
+ * @param cohort_id - Optional comma-separated cohort IDs for filtering
  */
-export function useMapReadings(): UseMapReadingsResult {
+export function useMapReadings(
+  cohort_id?: string | null
+): UseMapReadingsResult {
   const [readings, setReadings] = useState<MapReading[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchReadings = async () => {
+    // If cohort_id is null, it means we are waiting for it to be determined (e.g. in org flow)
+    if (cohort_id === null) {
+      return;
+    }
+
+    // If cohort_id is empty string, it means we checked and there are no cohorts, so no readings
+    if (cohort_id === '') {
+      setReadings([]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
       const response: MapReadingsResponse =
-        await deviceService.getMapReadingsAuthenticated();
+        await deviceService.getMapReadingsAuthenticated(cohort_id);
       setReadings(response.measurements);
     } catch (err) {
       setError(
@@ -39,7 +54,8 @@ export function useMapReadings(): UseMapReadingsResult {
 
   useEffect(() => {
     fetchReadings();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cohort_id]);
 
   return {
     readings,

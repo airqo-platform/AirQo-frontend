@@ -10,16 +10,24 @@ import {
   clearSelectedLocation,
 } from '../../shared/store/selectedLocationSlice';
 import type { RootState } from '../../shared/store';
-import type {
-  AirQualityReading,
-  ClusterData,
-} from '@/modules/airqo-map/components/map/MapNodes';
+import type { AirQualityReading } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
-import { normalizeMapReadings } from './utils/dataNormalization';
-import citiesData from './data/cities.json';
+import {
+  normalizeMapReadings,
+  calculateMapBounds,
+} from './utils/dataNormalization';
+// import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
 
-const MapPage = () => {
+interface MapPageProps {
+  cohortId?: string;
+  isOrganizationFlow?: boolean;
+}
+
+const MapPage: React.FC<MapPageProps> = ({
+  cohortId,
+  isOrganizationFlow = false,
+}) => {
   const dispatch = useDispatch();
   const posthog = usePostHog();
   const selectedLocation = useSelector(
@@ -41,8 +49,10 @@ const MapPage = () => {
   );
 
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCountry, setSelectedCountry] =
-    React.useState<string>('uganda');
+  const [selectedCountry, setSelectedCountry] = React.useState<string>(
+    // For user flow: default to 'uganda', for org flow: wait for dynamic selection
+    isOrganizationFlow ? '' : 'uganda'
+  );
   const [locationDetailsLoading, setLocationDetailsLoading] =
     React.useState(false);
   const [flyToLocation, setFlyToLocation] = React.useState<
@@ -60,10 +70,8 @@ const MapPage = () => {
     'pm2_5' | 'pm10'
   >('pm2_5');
 
-  // Ref to store timeout ID for flyToLocation cleanup
   const flyToTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Cleanup timeout on unmount
   React.useEffect(() => {
     return () => {
       if (flyToTimeoutRef.current) {
@@ -72,7 +80,6 @@ const MapPage = () => {
     };
   }, []);
 
-  // Track map view
   React.useEffect(() => {
     posthog?.capture('map_viewed');
     trackEvent('map_viewed');
@@ -82,24 +89,39 @@ const MapPage = () => {
     setSelectedPollutant(pollutant);
   };
 
-  // Use the new hooks
   const { setCountry } = useSitesByCountry({
     country: selectedCountry,
+    cohort_id: cohortId,
   });
-  const { readings, isLoading: mapDataLoading, refetch } = useMapReadings();
+  const {
+    readings,
+    isLoading: mapDataLoading,
+    refetch,
+  } = useMapReadings(cohortId);
 
-  // WAQI data for major cities - progressive loading to optimize performance
+  // Disable WAQI data loading - keep logic for future enablement
   const allCities = React.useMemo(() => {
-    return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
+    // Temporarily disabled WAQI data loading
+    // if (isOrganizationFlow) return [];
+    // if (cohortId) return [];
+    // return citiesData.map(city => city.toLowerCase().replace(/\s+/g, ' '));
+    return [];
   }, []);
 
-  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500); // Load 10 cities per batch with 500ms delay
+  const { citiesReadings: waqiReadings } = useWAQICities(allCities, 10, 500);
 
-  // Normalize map readings - prioritize AirQo data
   const normalizedReadings = React.useMemo(() => {
     const airqoReadings = normalizeMapReadings(readings, selectedPollutant);
+
+    if (isOrganizationFlow) {
+      return airqoReadings;
+    }
+
+    if (cohortId) {
+      return airqoReadings;
+    }
+
     const combined = [...airqoReadings, ...waqiReadings];
-    // Remove duplicates based on ID to prevent React key conflicts
     const seenIds = new Set<string>();
     return combined.filter(reading => {
       if (seenIds.has(reading.id)) {
@@ -108,7 +130,40 @@ const MapPage = () => {
       seenIds.add(reading.id);
       return true;
     });
-  }, [readings, waqiReadings, selectedPollutant]);
+  }, [readings, waqiReadings, selectedPollutant, cohortId, isOrganizationFlow]);
+
+  const hasAutoZoomedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (
+      isOrganizationFlow &&
+      normalizedReadings.length > 0 &&
+      !hasAutoZoomedRef.current &&
+      !mapDataLoading
+    ) {
+      const bounds = calculateMapBounds(normalizedReadings);
+      if (bounds) {
+        setFlyToLocation({
+          longitude: bounds.center.longitude,
+          latitude: bounds.center.latitude,
+          zoom: bounds.zoom,
+        });
+
+        if (flyToTimeoutRef.current) {
+          clearTimeout(flyToTimeoutRef.current);
+        }
+        flyToTimeoutRef.current = setTimeout(() => {
+          setFlyToLocation(undefined);
+          flyToTimeoutRef.current = null;
+        }, 1500);
+
+        hasAutoZoomedRef.current = true;
+      }
+    }
+
+    if (cohortId) {
+      hasAutoZoomedRef.current = false;
+    }
+  }, [isOrganizationFlow, normalizedReadings, mapDataLoading, cohortId]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -139,7 +194,7 @@ const MapPage = () => {
         setFlyToLocation({
           longitude: locationData.longitude,
           latitude: locationData.latitude,
-          zoom: 10, // Reduced zoom level for better overview
+          zoom: 10,
         });
 
         if (flyToTimeoutRef.current) {
@@ -157,7 +212,7 @@ const MapPage = () => {
           setFlyToLocation({
             longitude: reading.siteDetails.approximate_longitude,
             latitude: reading.siteDetails.approximate_latitude,
-            zoom: 10, // Reduced zoom level
+            zoom: 10,
           });
 
           if (flyToTimeoutRef.current) {
@@ -177,7 +232,6 @@ const MapPage = () => {
   };
 
   const handleNodeClick = async (reading: AirQualityReading) => {
-    console.log('Node clicked:', reading);
     setLocationDetailsLoading(true);
 
     try {
@@ -198,8 +252,7 @@ const MapPage = () => {
     }
   };
 
-  const handleClusterClick = (cluster: ClusterData) => {
-    console.log('Cluster clicked:', cluster);
+  const handleClusterClick = () => {
     setSelectedLocationId(null);
   };
 
@@ -209,9 +262,7 @@ const MapPage = () => {
 
   return (
     <>
-      {/* Desktop Layout */}
       <div className="hidden md:flex h-full overflow-visible shadow rounded">
-        {/* Left Sidebar */}
         <div className="flex-shrink-0 md:ml-2 h-full">
           <MapSidebar
             onSearch={handleSearch}
@@ -224,10 +275,11 @@ const MapPage = () => {
             onBackToList={handleBackToList}
             locationDetailsLoading={locationDetailsLoading}
             selectedPollutant={selectedPollutant}
+            cohort_id={cohortId}
+            isOrganizationFlow={isOrganizationFlow}
           />
         </div>
 
-        {/* Right Map Area */}
         <div className="flex-1 min-w-0 h-full">
           <EnhancedMap
             airQualityData={normalizedReadings}
@@ -242,9 +294,7 @@ const MapPage = () => {
         </div>
       </div>
 
-      {/* Mobile/Tablet Layout */}
       <div className="flex flex-col h-full md:hidden">
-        {/* Map Area - Top 1/3 */}
         <div className="h-1/2 flex-shrink-0">
           <EnhancedMap
             airQualityData={normalizedReadings}
@@ -258,7 +308,6 @@ const MapPage = () => {
           />
         </div>
 
-        {/* Sidebar Area - Bottom 2/3 */}
         <div className="flex-1 min-h-0">
           <MapSidebar
             className="h-full rounded-none"
@@ -271,6 +320,8 @@ const MapPage = () => {
             selectedLocationId={selectedLocationId}
             onBackToList={handleBackToList}
             selectedPollutant={selectedPollutant}
+            cohort_id={cohortId}
+            isOrganizationFlow={isOrganizationFlow}
           />
         </div>
       </div>

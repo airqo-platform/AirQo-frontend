@@ -13,6 +13,8 @@ interface CountryListProps {
   selectedCountry?: string;
   onCountrySelect?: (countryCode: string) => void;
   className?: string;
+  cohort_id?: string;
+  isOrganizationFlow?: boolean;
 }
 
 const CountryListSkeleton: React.FC<{ className?: string }> = ({
@@ -42,14 +44,72 @@ export const CountryList: React.FC<CountryListProps> = ({
   selectedCountry = 'uganda',
   onCountrySelect,
   className,
+  cohort_id,
+  isOrganizationFlow = false,
 }) => {
-  const { countries: countriesData, isLoading, error } = useCountries();
+  const {
+    countries: countriesData,
+    isLoading,
+    error,
+  } = useCountries(cohort_id);
+
+  // Track if we've already auto-selected to prevent infinite loops
+  const hasAutoSelectedRef = React.useRef(false);
+  const hasHandledErrorRef = React.useRef(false);
 
   // Transform CountryData to Country format using utility function
   const countries: Country[] = React.useMemo(() => {
     return normalizeCountries(countriesData || []);
   }, [countriesData]);
 
+  // IMPORTANT: All hooks must be called before any conditional returns
+  // Auto-select first country ONLY for organization flow when list loads and no country is selected
+  React.useEffect(() => {
+    if (
+      isOrganizationFlow &&
+      !isLoading &&
+      !error &&
+      countries.length > 1 &&
+      !selectedCountry &&
+      !hasAutoSelectedRef.current
+    ) {
+      // Select the first real country (skip 'all' at index 0)
+      const firstCountry = countries[1];
+      if (firstCountry && onCountrySelect) {
+        hasAutoSelectedRef.current = true;
+        onCountrySelect(firstCountry.code);
+      }
+    }
+  }, [
+    isOrganizationFlow,
+    countries,
+    isLoading,
+    error,
+    selectedCountry,
+    onCountrySelect,
+  ]);
+
+  // Handle error state - notify parent to clear country selection (only for org flow)
+  React.useEffect(() => {
+    if (
+      isOrganizationFlow &&
+      error &&
+      onCountrySelect &&
+      !hasHandledErrorRef.current
+    ) {
+      // Pass empty string to prevent fetching data with wrong country
+      hasHandledErrorRef.current = true;
+      onCountrySelect('');
+    }
+  }, [isOrganizationFlow, error, onCountrySelect]);
+
+  // Reset refs when cohort_id changes (switching organizations)
+  React.useEffect(() => {
+    hasAutoSelectedRef.current = false;
+    hasHandledErrorRef.current = false;
+  }, [cohort_id]);
+
+  // NOW we can safely return early after all hooks are called
   if (isLoading) {
     return <CountryListSkeleton className={className} />;
   }

@@ -64,13 +64,14 @@ export const useSitesSummaryWithToken = (
 // Authenticated grids summary hook
 export const useGridsSummary = (
   params: GridsSummaryParams = {},
+  cohort_id?: string,
   enabled = true
 ) => {
-  const key = enabled ? ['grids/summary', params] : null;
+  const key = enabled ? ['grids/summary', params, cohort_id] : null;
 
   return useSWR<GridsSummaryResponse>(
     key,
-    () => deviceService.getGridsSummaryAuthenticated(params),
+    () => deviceService.getGridsSummaryAuthenticated(params, cohort_id),
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
@@ -81,13 +82,14 @@ export const useGridsSummary = (
 // Token-based grids summary hook
 export const useGridsSummaryWithToken = (
   params: GridsSummaryParams = {},
+  cohort_id?: string,
   enabled = true
 ) => {
-  const key = enabled ? ['grids/summary/token', params] : null;
+  const key = enabled ? ['grids/summary/token', params, cohort_id] : null;
 
   return useSWR<GridsSummaryResponse>(
     key,
-    () => deviceService.getGridsSummaryWithToken(params),
+    () => deviceService.getGridsSummaryWithToken(params, cohort_id),
     {
       revalidateOnFocus: false,
       dedupingInterval: 5000,
