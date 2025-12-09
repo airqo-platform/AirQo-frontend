@@ -35,24 +35,16 @@ export default function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     // Determine active module based on current pathname
-    if (pathname.startsWith('/admin/')) {
-      // Distinguish between network management and platform admin
-      if (pathname.startsWith('/admin/networks')) {
-        setActiveModule('network-mgmt');
-      } else {
-        setActiveModule('admin');
-      }
-    } else if (
-      pathname.startsWith('/devices/overview') ||
-      pathname.startsWith('/cohorts')
-    ) {
-      setActiveModule('org-devices');
-    } else if (
+    if (
+      pathname.startsWith('/admin/') ||
+      pathname.startsWith('/cohorts') ||
       pathname.startsWith('/sites') ||
       pathname.startsWith('/grids')
     ) {
-      // Sites and grids could be in either org-devices or network-mgmt
-      // Default to org-devices, but this could be refined based on context
+      setActiveModule('admin');
+    } else if (
+      pathname.startsWith('/devices/overview')
+    ) {
       setActiveModule('org-devices');
     } else {
       // Default to devices module (home, my-devices, claim)
@@ -72,7 +64,6 @@ export default function Layout({ children }: LayoutProps) {
     const moduleRoutes: Record<string, string> = {
       devices: '/home',
       'org-devices': '/devices/overview',
-      'network-mgmt': '/admin/networks',
       admin: '/admin/shipping',
     };
 

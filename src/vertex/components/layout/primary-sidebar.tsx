@@ -1,12 +1,23 @@
 'use client';
 
-import type React from 'react';
-import { X, LayoutGrid, ShieldCheck, Building2, Network } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, LayoutGrid, ShieldCheck, Building2, Network, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { NavItem } from './NavItem';
 import { useUserContext } from '@/core/hooks/useUserContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useRouter, usePathname } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 interface PrimarySidebarProps {
   isOpen: boolean;
@@ -21,8 +32,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   activeModule,
   onModuleChange: handleModuleChange,
 }) => {
+  const router = useRouter();
+  const pathname = usePathname();
   const { userScope, isOrganisationScope, getContextPermissions } = useUserContext();
   const permissions = getContextPermissions();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   return (
     <>
@@ -62,30 +77,136 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
             onClick={() => handleModuleChange('devices')}
           />
 
-          {/* Network Management - visible to users with network permissions */}
+          {/* Administrative Panel - visible to users with admin permissions */}
           {permissions.canViewNetworks && (
-            <NavItem
-              item={{
-                href: '/admin/networks',
-                icon: Network,
-                label: 'Network Management',
-                activeOverride: activeModule === 'network-mgmt',
-              }}
-              onClick={() => handleModuleChange('network-mgmt')}
-            />
-          )}
+            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen} modal={false}>
+              <DropdownMenuTrigger asChild>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className="w-full"
+                  onMouseEnter={() => {
+                    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                    setIsDropdownOpen(true);
+                  }}
+                  onMouseLeave={() => {
+                    timeoutRef.current = setTimeout(() => setIsDropdownOpen(false), 200);
+                  }}
+                >
+                  <NavItem
+                    item={{
+                      href: '#', // Force dropdown usage
+                      icon: ShieldCheck,
+                      label: 'Administrative Panel',
+                      activeOverride: activeModule === 'admin',
+                      endIcon: isDropdownOpen ? ChevronDown : ChevronRight,
+                    }}
+                    onClick={(e) => { e?.preventDefault(); }}
+                  />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                side="right"
+                className="w-64 ml-2 z-[1001]"
+                align="start"
+                onMouseEnter={() => {
+                  if (timeoutRef.current) clearTimeout(timeoutRef.current);
+                }}
+                onMouseLeave={() => {
+                  timeoutRef.current = setTimeout(() => setIsDropdownOpen(false), 200);
+                }}
+              >
+                <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider">
+                  Administrative Panel
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
 
-          {/* Platform Administration - visible to super admins */}
-          {permissions.canViewNetworks && (
-            <NavItem
-              item={{
-                href: '/admin/shipping',
-                icon: ShieldCheck,
-                label: 'Platform Administration',
-                activeOverride: activeModule === 'admin',
-              }}
-              onClick={() => handleModuleChange('admin')}
-            />
+                <DropdownMenuItem
+                    onClick={() => {
+                      handleModuleChange('admin');
+                      router.push('/admin/networks');
+                      setIsDropdownOpen(false);
+                    }}
+                    className={cn(
+                      "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                      pathname.startsWith('/admin/networks') && "bg-blue-50 text-blue-700"
+                    )}
+                  >
+                    <span className="font-medium">Networks</span>
+                    <span className={cn("text-xs", pathname.startsWith('/admin/networks') ? "text-blue-500" : "text-muted-foreground")}>
+                      Manage and configure networks
+                    </span>
+                  </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    handleModuleChange('admin');
+                    router.push('/cohorts');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={cn(
+                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                    pathname.startsWith('/cohorts') && "bg-blue-50 text-blue-700"
+                  )}
+                >
+                  <span className="font-medium">Cohorts</span>
+                  <span className={cn("text-xs", pathname.startsWith('/cohorts') ? "text-blue-500" : "text-muted-foreground")}>
+                    Group devices for analytics
+                  </span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    handleModuleChange('admin');
+                    router.push('/sites');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={cn(
+                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                    pathname.startsWith('/sites') && "bg-blue-50 text-blue-700"
+                  )}
+                >
+                  <span className="font-medium">Sites</span>
+                  <span className={cn("text-xs", pathname.startsWith('/sites') ? "text-blue-500" : "text-muted-foreground")}>
+                    Manage location deployments
+                  </span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    handleModuleChange('admin');
+                    router.push('/grids');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={cn(
+                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                    pathname.startsWith('/grids') && "bg-blue-50 text-blue-700"
+                  )}
+                >
+                  <span className="font-medium">Grids</span>
+                  <span className={cn("text-xs", pathname.startsWith('/grids') ? "text-blue-500" : "text-muted-foreground")}>
+                    Configure spatial grids
+                  </span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    handleModuleChange('admin');
+                    router.push('/admin/shipping');
+                    setIsDropdownOpen(false);
+                  }}
+                  className={cn(
+                    "flex flex-col items-start gap-1 p-3 cursor-pointer",
+                    pathname.startsWith('/admin/shipping') && "bg-blue-50 text-blue-700"
+                  )}
+                >
+                  <span className="font-medium">Shipping</span>
+                  <span className={cn("text-xs", pathname.startsWith('/admin/shipping') ? "text-blue-500" : "text-muted-foreground")}>
+                    Track device logistics
+                  </span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </nav>
       </motion.aside>
