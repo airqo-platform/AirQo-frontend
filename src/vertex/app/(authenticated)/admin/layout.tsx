@@ -18,7 +18,7 @@ export default function AdminLayout({
 }) {
     return (
         <RouteGuard
-            roles={["AIRQO_SUPER_ADMIN", "AIRQO_ADMIN"]}
+            roles={["AIRQO_SUPER_ADMIN", "AIRQO_ADMIN", "AIRQO_NETWORK_ADMIN"]}
             allowedContexts={['airqo-internal']}
         >
             {children}

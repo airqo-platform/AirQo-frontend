@@ -64,6 +64,14 @@ export const PERMISSIONS = {
     DELETE: 'DEVICE_DELETE',
     CLAIM: 'DEVICE_CLAIM'
   },
+
+  // Network permissions
+  NETWORK: {
+    VIEW: 'NETWORK_VIEW',
+    CREATE: 'NETWORK_CREATE',
+    EDIT: 'NETWORK_EDIT',
+    DELETE: 'NETWORK_DELETE',
+  },
   
   // Site permissions
   SITE: {
@@ -140,6 +148,21 @@ export const ROLES = {
     systemWide: false,
     canManageAllOrganizations: false,
     description: 'Full organization control within assigned organization',
+  },
+
+  AIRQO_NETWORK_ADMIN: {
+    name: 'AIRQO_NETWORK_ADMIN',
+    displayName: 'AirQo Network Administrator',
+    permissions: [
+      ...Object.values(PERMISSIONS.NETWORK),
+      ...Object.values(PERMISSIONS.DEVICE),
+      ...Object.values(PERMISSIONS.SITE),
+      ...Object.values(PERMISSIONS.ANALYTICS),
+    ],
+    canOverrideOrganization: false,
+    systemWide: true,
+    canManageAllOrganizations: true,
+    description: 'Specialized role for managing networks',
   },
   
   ORG_ADMIN: {
@@ -253,6 +276,8 @@ export const PERMISSION_CATEGORIES = {
   SITE_MANAGEMENT: Object.values(PERMISSIONS.SITE),
   
   ANALYTICS_AND_DATA: Object.values(PERMISSIONS.ANALYTICS),
+
+  NETWORK_MANAGEMENT: Object.values(PERMISSIONS.NETWORK),
   
   SETTINGS_AND_CONFIGURATION: Object.values(PERMISSIONS.SETTINGS),
 } as const;
@@ -268,6 +293,7 @@ export type Permission =
   | typeof PERMISSIONS.DEVICE[keyof typeof PERMISSIONS.DEVICE]
   | typeof PERMISSIONS.SITE[keyof typeof PERMISSIONS.SITE]
   | typeof PERMISSIONS.ANALYTICS[keyof typeof PERMISSIONS.ANALYTICS]
+  | typeof PERMISSIONS.NETWORK[keyof typeof PERMISSIONS.NETWORK]
   | typeof PERMISSIONS.SETTINGS[keyof typeof PERMISSIONS.SETTINGS];
 
 export type RoleName = keyof typeof ROLES;
@@ -351,13 +377,10 @@ export const LEGACY_PERMISSION_MAP: Record<string, Permission | Permission[]> = 
 
   // Old organization permissions
   CREATE_UPDATE_AND_DELETE_NETWORKS: [
-    PERMISSIONS.ORGANIZATION.VIEW,
-    PERMISSIONS.ORGANIZATION.CREATE,
-    PERMISSIONS.ORGANIZATION.UPDATE,
-    PERMISSIONS.ORGANIZATION.DELETE,
-    PERMISSIONS.GROUP.CREATE,
-    PERMISSIONS.GROUP.EDIT,
-    PERMISSIONS.GROUP.DELETE,
+    PERMISSIONS.NETWORK.VIEW,
+    PERMISSIONS.NETWORK.CREATE,
+    PERMISSIONS.NETWORK.EDIT,
+    PERMISSIONS.NETWORK.DELETE,
   ],
 
   // Old organization/approvals

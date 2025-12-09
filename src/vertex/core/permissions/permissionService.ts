@@ -251,6 +251,7 @@ class PermissionService {
       ...Object.values(PERMISSIONS.DEVICE),
       ...Object.values(PERMISSIONS.SITE),
       ...Object.values(PERMISSIONS.ANALYTICS),
+      ...Object.values(PERMISSIONS.NETWORK),
       ...Object.values(PERMISSIONS.SETTINGS),
     ];
 
@@ -404,6 +405,11 @@ class PermissionService {
       [PERMISSIONS.SITE.CREATE]: "Create new sites",
       [PERMISSIONS.SITE.UPDATE]: "Update site information",
       [PERMISSIONS.SITE.DELETE]: "Delete sites",
+
+      [PERMISSIONS.NETWORK.VIEW]: "View network information",
+      [PERMISSIONS.NETWORK.CREATE]: "Create new networks",
+      [PERMISSIONS.NETWORK.EDIT]: "Edit network details",
+      [PERMISSIONS.NETWORK.DELETE]: "Delete networks",
 
       [PERMISSIONS.ANALYTICS.DASHBOARD_VIEW]: "View dashboard",
       [PERMISSIONS.ANALYTICS.ANALYTICS_VIEW]: "View analytics and reports",
