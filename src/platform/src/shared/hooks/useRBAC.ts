@@ -253,6 +253,17 @@ export const useRBAC = () => {
     );
   };
 
+  /**
+   * Check if user is AIRQO_SUPER_ADMIN with @airqo.net email
+   */
+  const isAirQoSuperAdminWithEmail = (): boolean => {
+    const hasRole = allRoles.some(
+      role => role.toUpperCase() === 'AIRQO_SUPER_ADMIN'
+    );
+    const hasValidEmail = !!user?.email?.toLowerCase().endsWith('@airqo.net');
+    return hasRole && hasValidEmail;
+  };
+
   return {
     // Data
     userRoles,
@@ -286,6 +297,7 @@ export const useRBAC = () => {
     isAdmin,
     isSuperAdmin,
     canAccessAdminPanel,
+    isAirQoSuperAdminWithEmail,
 
     // Active group permission checks
     hasPermissionInActiveGroup,

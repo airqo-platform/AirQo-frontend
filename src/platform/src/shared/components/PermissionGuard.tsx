@@ -32,6 +32,9 @@ interface PermissionGuardProps {
   // Special check for AIRQO admin (role + email domain)
   requireAirQoAdmin?: boolean;
 
+  // Special check for AIRQO SUPER ADMIN (role + email domain)
+  requireAirQoSuperAdmin?: boolean;
+
   // Custom access check function
   customCheck?: () => boolean;
 
@@ -57,6 +60,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
   requiredAllRoles,
   requiredRolesInActiveGroup,
   requireAirQoAdmin = false,
+  requireAirQoSuperAdmin = false,
   customCheck,
   loadingComponent,
   accessDeniedTitle,
@@ -71,6 +75,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     hasAllPermissionsInActiveGroup,
     hasRoleInActiveGroup,
     canAccessAdminPanel,
+    isAirQoSuperAdminWithEmail,
     isLoading,
     error,
   } = useRBAC();
@@ -87,6 +92,11 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
 
     // Check AIRQO admin requirement
     if (requireAirQoAdmin && !canAccessAdminPanel()) {
+      return false;
+    }
+
+    // Check AIRQO SUPER ADMIN requirement
+    if (requireAirQoSuperAdmin && !isAirQoSuperAdminWithEmail()) {
       return false;
     }
 
@@ -140,6 +150,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     error,
     customCheck,
     requireAirQoAdmin,
+    requireAirQoSuperAdmin,
     requiredPermissions,
     requiredAllPermissions,
     requiredPermissionsInActiveGroup,
@@ -155,6 +166,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
     hasRole,
     hasRoleInActiveGroup,
     canAccessAdminPanel,
+    isAirQoSuperAdminWithEmail,
   ]);
 
   // Show loading state while checking permissions
@@ -183,6 +195,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
 export const AdminPageGuard: React.FC<{
   children: React.ReactNode;
   requireAirQoAdmin?: boolean;
+  requireAirQoSuperAdmin?: boolean;
   requiredPermissions?: string[];
   requiredPermissionsInActiveGroup?: string[];
   requiredAllPermissionsInActiveGroup?: string[];
@@ -192,6 +205,7 @@ export const AdminPageGuard: React.FC<{
 }> = ({
   children,
   requireAirQoAdmin = false, // Default to not requiring AIRQO admin for admin pages
+  requireAirQoSuperAdmin = false,
   requiredPermissions,
   requiredPermissionsInActiveGroup,
   requiredAllPermissionsInActiveGroup,
@@ -202,6 +216,7 @@ export const AdminPageGuard: React.FC<{
   return (
     <PermissionGuard
       requireAirQoAdmin={requireAirQoAdmin}
+      requireAirQoSuperAdmin={requireAirQoSuperAdmin}
       requiredPermissions={requiredPermissions}
       requiredPermissionsInActiveGroup={requiredPermissionsInActiveGroup}
       requiredAllPermissionsInActiveGroup={requiredAllPermissionsInActiveGroup}

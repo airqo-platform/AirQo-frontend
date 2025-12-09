@@ -15,7 +15,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   onItemClick,
   className,
 }) => {
-  const { hasRole } = useRBAC();
+  const { hasRole, isAirQoSuperAdminWithEmail } = useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
@@ -28,7 +28,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
         items: group.items.filter(item => {
           // Hide admin dashboard if user doesn't have AIRQO_SUPER_ADMIN role
           if (item.id === 'admin-dashboard') {
-            return hasRole('AIRQO_SUPER_ADMIN');
+            return isAirQoSuperAdminWithEmail();
           }
           // Hide statistics, clients, and org-requests if user doesn't have AIRQO_SUPER_ADMIN role
           if (
@@ -38,7 +38,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
               'admin-org-requests',
             ].includes(item.id)
           ) {
-            return hasRole('AIRQO_SUPER_ADMIN');
+            return isAirQoSuperAdminWithEmail();
           }
           return true;
         }),
@@ -57,7 +57,7 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     }
 
     return config;
-  }, [flow, orgSlug, hasRole]);
+  }, [flow, orgSlug, hasRole, isAirQoSuperAdminWithEmail]);
 
   return (
     <div className={cn('flex-1 py-6', className)}>
