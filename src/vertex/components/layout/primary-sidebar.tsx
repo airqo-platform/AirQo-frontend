@@ -62,20 +62,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
             onClick={() => handleModuleChange('devices')}
           />
 
-          {/* Organisation Devices - visible to users with organisation scope */}
-          {isOrganisationScope && (
-            <NavItem
-              item={{
-                href: '/devices/overview',
-                icon: Building2,
-                label: 'Organisation Devices',
-                activeOverride: activeModule === 'org-devices',
-              }}
-              onClick={() => handleModuleChange('org-devices')}
-            />
-          )}
-
-          {/* Network Management - visible to users with network permissions */}
+          {/* Network Management - visible to AirQo internal users with network permissions */}
           {isOrganisationScope && permissions.canViewNetworks && (
             <NavItem
               item={{

@@ -117,22 +117,17 @@ export const useUserContext = (): UserContextState => {
   const isExternalOrg = userContext === 'external-org';
 
   // Determine user scope based on permissions
-  // Only AirQo internal users can have 'organisation' scope
+  // External orgs ALWAYS use organisation scope
+  // Only AirQo uses permission-based personal vs organisation scope
   const userScope = useMemo(() => {
-    if (userContext !== 'airqo-internal') {
-      return 'personal';
+    // External organisations ALWAYS use organisation scope
+    if (userContext === 'external-org') {
+      return 'organisation';
     }
     
-    // Check if user has any organizational permissions
-    // Permissions can be true, false, or null (loading), so we explicitly check for true
-    const hasOrgPermissions = 
-      Boolean(canViewSites) ||
-      Boolean(canViewNetworks) ||
-      Boolean(isSuperAdmin) ||
-      Boolean(isSystemAdmin);
-    
-    return hasOrgPermissions ? 'organisation' : 'personal';
-  }, [userContext, canViewSites, canViewNetworks, isSuperAdmin, isSystemAdmin]);
+    // AirQo internal context and Personal context use personal scope
+    return 'personal';
+  }, [userContext]);
 
   const isPersonalScope = userScope === 'personal';
   const isOrganisationScope = userScope === 'organisation';
@@ -181,7 +176,8 @@ export const useUserContext = (): UserContextState => {
           showCohorts: canViewDevices,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
-          showMyDevices: false,
+          // My Devices only shows for personal scope, regardless of role
+          showMyDevices: userScope === 'personal',
           showDeviceOverview: canViewDevices,
           showClaimDevice: true,
           showDeployDevice: true,
@@ -197,6 +193,7 @@ export const useUserContext = (): UserContextState => {
           showCohorts: false,
           showUserManagement: canViewUserManagement,
           showAccessControl: canViewAccessControl,
+          // External orgs always use organisation scope, so no My Devices
           showMyDevices: false,
           showDeviceOverview: canViewDevices,
           showClaimDevice: true,

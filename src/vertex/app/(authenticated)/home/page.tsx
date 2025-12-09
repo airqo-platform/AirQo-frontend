@@ -48,7 +48,7 @@ const WelcomePage = () => {
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const user = useAppSelector((state) => state.user.userDetails);
   const router = useRouter();
-  const { userContext, hasError, error } = useUserContext();
+  const { userContext, userScope, hasError, error } = useUserContext();
 
   const allActions = [
     {
@@ -80,16 +80,18 @@ const WelcomePage = () => {
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
 
+  // Use userScope to determine which devices to fetch
+  // Personal scope = my devices, Organisation scope = org devices
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
     limit: 1,
-    enabled: userContext !== "personal", // Only fetch for org contexts
+    enabled: userScope === 'organisation',
   });
 
   const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
     user?._id || "",
     undefined,
     {
-      enabled: !!user?._id && userContext === "personal", // Only fetch for personal context
+      enabled: !!user?._id && userScope === 'personal',
     }
   );
 
@@ -111,8 +113,8 @@ const WelcomePage = () => {
 
   // 2. Loading state - show loading UI while data is being fetched
   const isLoading =
-    (userContext === "personal" && isLoadingMyDevices) ||
-    (userContext !== "personal" && isLoadingGroupDevices);
+    (userScope === 'personal' && isLoadingMyDevices) ||
+    (userScope === 'organisation' && isLoadingGroupDevices);
 
   if (isLoading) {
     return (
@@ -143,7 +145,7 @@ const WelcomePage = () => {
   }
 
   // 3. Empty state - check AFTER loading is complete but BEFORE main UI
-  const hasNoDevices = userContext === "personal"
+  const hasNoDevices = userScope === 'personal'
     ? myDevicesData?.devices?.length === 0
     : groupDevices.length === 0;
 

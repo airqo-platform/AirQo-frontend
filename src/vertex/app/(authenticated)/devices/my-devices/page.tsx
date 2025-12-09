@@ -21,14 +21,16 @@ const MyDevicesPage = () => {
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
-  const { isPersonalContext, isExternalOrg } = useUserContext();
+  const { isPersonalContext, isExternalOrg, userScope } = useUserContext();
 
+  // My Devices ALWAYS shows personal devices when userScope is 'personal'
+  // When userScope is 'organisation', it shows org devices for external orgs
   const {
     data: myDevicesData,
     isLoading: isLoadingMyDevices,
     error: myDevicesError,
   } = useMyDevices(userDetails?._id || "", activeGroup?._id, {
-    enabled: isPersonalContext,
+    enabled: userScope === 'personal',
   });
 
   const {
@@ -36,16 +38,15 @@ const MyDevicesPage = () => {
     isLoading: isLoadingOrgDevices,
     error: orgDevicesError,
   } = useDevices({
-    enabled: isExternalOrg,
+    enabled: userScope === 'organisation',
   });
 
-  const devices = isPersonalContext
+  // Personal scope = my devices, Organisation scope = org devices
+  const devices = userScope === 'personal'
     ? myDevicesData?.devices || []
-    : isExternalOrg
-      ? orgDevices
-      : [];
-  const isLoading = isPersonalContext ? isLoadingMyDevices : isLoadingOrgDevices;
-  const error = isPersonalContext ? myDevicesError : orgDevicesError;
+    : orgDevices;
+  const isLoading = userScope === 'personal' ? isLoadingMyDevices : isLoadingOrgDevices;
+  const error = userScope === 'personal' ? myDevicesError : orgDevicesError;
 
   if (error) {
     return (

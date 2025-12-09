@@ -95,20 +95,20 @@ const StatCard = ({
 };
 
 export const DashboardStatsCards = () => {
-  const { userDetails, activeGroup, userContext } = useAppSelector(
+  const { userDetails, activeGroup, userScope } = useAppSelector(
     (state) => state.user
   );
 
-  const isPersonalContext = userContext === "personal";
+  const isPersonalScope = userScope === 'personal';
 
-  // Use useMyDevices for personal context
+  // Use useMyDevices for personal scope
   const myDevicesQuery = useMyDevices(userDetails?._id || "", activeGroup?._id, {
-    enabled: isPersonalContext,
+    enabled: isPersonalScope,
   });
 
-  // Use useDeviceCount for airqo-internal and external-org contexts
+  // Use useDeviceCount for organisation scope
   const deviceCountQuery = useDeviceCount({
-    enabled: !isPersonalContext,
+    enabled: userScope === 'organisation',
   });
 
   const calculateDeviceStats = useCallback((devices: Device[]) => {
@@ -133,7 +133,7 @@ export const DashboardStatsCards = () => {
     };
   }, []);
 
-  const isLoading = isPersonalContext
+  const isLoading = isPersonalScope
     ? myDevicesQuery.isLoading
     : deviceCountQuery.isLoading;
 
@@ -143,7 +143,7 @@ export const DashboardStatsCards = () => {
     let pendingDeployments = 0;
     let recentAlerts = 0;
 
-    if (isPersonalContext) {
+    if (isPersonalScope) {
       const myDevicesData = myDevicesQuery.data;
       if (myDevicesData) {
         totalMonitors = myDevicesData.total_devices || 0;
@@ -176,7 +176,7 @@ export const DashboardStatsCards = () => {
       recentAlerts,
     };
   }, [
-    isPersonalContext,
+    isPersonalScope,
     myDevicesQuery.data,
     deviceCountQuery.data,
     calculateDeviceStats,
@@ -188,7 +188,7 @@ export const DashboardStatsCards = () => {
         <StatCard
           title="Total Devices"
           value={metrics.totalMonitors}
-          description={`All ${isPersonalContext ? "your" : "organization"
+          description={`All ${isPersonalScope ? "your" : "organization"
             } devices`}
           icon={<AqCollocation className="w-6 h-6 text-primary" />}
           isLoading={isLoading}

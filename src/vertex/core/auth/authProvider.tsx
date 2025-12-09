@@ -71,15 +71,20 @@ function determineInitialUserSetup(
   let defaultGroup: Group | undefined;
   let defaultNetwork: Network | undefined;
 
+  // Restore user's last selected group if it exists and is still valid
   if (activeGroup) {
     if (filteredGroups.some((g) => g._id === activeGroup._id)) {
       defaultGroup = activeGroup;
     }
   }
 
-  if (!defaultGroup) {
-    // Prioritize AirQo as the default group for ALL users
+  // Only default to AirQo if no persisted activeGroup (first-time login)
+  if (!defaultGroup && !activeGroup) {
+    // First-time login: prioritize AirQo as the default  
     defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
+  } else if (!defaultGroup) {
+    // activeGroup existed but is no longer valid - use first available
+    defaultGroup = filteredGroups[0];
   }
 
   if (defaultGroup && filteredNetworks.length > 0) {
@@ -89,7 +94,13 @@ function determineInitialUserSetup(
 
   let initialUserContext: 'personal' | 'airqo-internal' | 'external-org' = 'personal';
   if (defaultGroup) {
-    initialUserContext = defaultGroup.grp_title.toLowerCase() === 'airqo' && isAirQoStaff ? 'airqo-internal' : 'external-org';
+    // AirQo organization ALWAYS uses airqo-internal context
+    // Regardless of staff status - permissions control access
+    if (defaultGroup.grp_title.toLowerCase() === 'airqo') {
+      initialUserContext = 'airqo-internal';
+    } else {
+      initialUserContext = 'external-org';
+    }
   }
 
   return { defaultGroup, defaultNetwork, initialUserContext };
@@ -161,6 +172,8 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === 'authenticated' && isAuthRoute && activeGroup && isInitialized) {
+      // All users land on /home (personal devices view)
+      // Module visibility is controlled by permissions in the sidebar
       logger.debug('[ActiveGroupGuard] Redirecting authenticated user to /home');
       router.push('/home');
     }

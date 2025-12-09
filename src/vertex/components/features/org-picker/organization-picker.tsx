@@ -57,7 +57,8 @@ const OrganizationPicker: React.FC = () => {
 
       setIsModalOpen(false);
 
-      // Navigate to home after state is set
+      // All users navigate to /home (personal devices view)
+      // Sidebar modules control access to org-level features
       router.push("/home");
     } catch (error) {
       console.error("Error switching organization:", error);

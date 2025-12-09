@@ -105,7 +105,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const router = useRouter();
     const user = useAppSelector(state => state.user.userDetails);
 
-    const { isPersonalContext, isAirQoInternal, isExternalOrg, activeGroup } = useUserContext();
+    const { isPersonalContext, isAirQoInternal, isExternalOrg, activeGroup, userScope } = useUserContext();
 
     const { data: groupCohortIds } = useGroupCohorts(activeGroup?._id, {
         enabled: !isPersonalContext && !!activeGroup?._id,
@@ -348,7 +348,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         label: 'Go to Devices',
                         onClick: () => {
                             handleClose();
-                            const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
+                            const redirectPath = userScope === 'personal' ? '/devices/my-devices' : '/devices/overview';
                             router.push(redirectPath);
                         }
                     }
@@ -364,7 +364,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                         onClick: () => {
                             handleClose();
                             if (hasSuccessfulClaims) {
-                                const redirectPath = isPersonalContext ? '/devices/my-devices' : '/devices/overview';
+                                const redirectPath = userScope === 'personal' ? '/devices/my-devices' : '/devices/overview';
                                 router.push(redirectPath);
                             }
                         }
