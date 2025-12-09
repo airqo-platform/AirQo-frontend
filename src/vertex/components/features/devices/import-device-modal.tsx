@@ -12,15 +12,17 @@ import { useNetworks } from "@/core/hooks/useNetworks";
 interface ImportDeviceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  prefilledNetwork?: string;
 }
 
 const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   open,
   onOpenChange,
+  prefilledNetwork,
 }) => {
   const [formData, setFormData] = useState({
     long_name: "",
-    network: "",
+    network: prefilledNetwork || "",
     category: DEVICE_CATEGORIES[0].value,
     serial_number: "",
     description: "",
@@ -97,7 +99,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     if (!open) {
       setFormData({
         long_name: "",
-        network: "",
+        network: prefilledNetwork || "",
         category: DEVICE_CATEGORIES[0].value,
         serial_number: "",
         description: "",
@@ -108,7 +110,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       setErrors({});
       setShowMore(false);
     }
-  }, [open]);
+  }, [open, prefilledNetwork]);
 
   return (
     <ReusableDialog
