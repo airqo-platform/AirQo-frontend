@@ -21,7 +21,7 @@ const MyDevicesPage = () => {
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
 
-  const { isPersonalContext, isExternalOrg, userScope } = useUserContext();
+  const { userScope } = useUserContext();
 
   // My Devices ALWAYS shows personal devices when userScope is 'personal'
   // When userScope is 'organisation', it shows org devices for external orgs

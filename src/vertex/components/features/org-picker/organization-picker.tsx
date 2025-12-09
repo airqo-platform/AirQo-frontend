@@ -26,7 +26,7 @@ const OrganizationPicker: React.FC = () => {
   const userGroups = useAppSelector((state) => state.user.userGroups);
   const userContext = useAppSelector((state) => state.user.userContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isPersonalContext, isLoading } = useUserContext();
+  const { isLoading } = useUserContext();
 
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];

@@ -11,9 +11,8 @@ import {
 import { CustomDialogContent } from "@/components/ui/custom-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AqPlus, AqSearchMd, AqUser02 } from '@airqo/icons-react';
+import { AqPlus, AqSearchMd } from '@airqo/icons-react';
 import type { Group } from "@/app/types/users";
-import logger from "@/lib/logger";
 import { UserContext } from "@/core/redux/slices/userSlice";
 
 interface OrganizationModalProps {

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, LayoutGrid, ShieldCheck, Building2, Network, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, LayoutGrid, ShieldCheck, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
@@ -10,7 +10,6 @@ import { useUserContext } from '@/core/hooks/useUserContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -35,7 +34,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
 }) => {
   const router = useRouter();
   const pathname = usePathname();
-  const { userScope, isOrganisationScope, getContextPermissions } = useUserContext();
+  const { getContextPermissions } = useUserContext();
   const permissions = getContextPermissions();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);

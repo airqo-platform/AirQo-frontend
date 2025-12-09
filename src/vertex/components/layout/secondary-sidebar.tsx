@@ -17,7 +17,6 @@ import { ROUTE_LINKS } from '@/core/routes';
 import Card from '../shared/card/CardWrapper';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NavItem } from './NavItem';
-import SubMenu from './sub-menu';
 
 interface SecondarySidebarProps {
   isCollapsed: boolean;
@@ -47,9 +46,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   toggleSidebar,
   activeModule,
 }) => {
-  const { getSidebarConfig, getContextPermissions, isPersonalContext, isExternalOrg, isLoading } =
+  const { getContextPermissions, isPersonalContext, isExternalOrg, isLoading } =
     useUserContext();
-  const sidebarConfig = getSidebarConfig();
   const contextPermissions = getContextPermissions();
 
   return (
