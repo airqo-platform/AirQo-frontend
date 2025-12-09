@@ -103,6 +103,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   onMouseLeave={() => {
                     timeoutRef.current = setTimeout(() => setIsDropdownOpen(false), 200);
                   }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsDropdownOpen(!isDropdownOpen);
+                    }
+                  }}
                 >
                   <NavItem
                     item={{
@@ -234,6 +240,12 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                   }}
                   onMouseLeave={() => {
                     recentTimeoutRef.current = setTimeout(() => setIsRecentOpen(false), 200);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setIsRecentOpen(!isRecentOpen);
+                    }
                   }}
                 >
                   <NavItem
