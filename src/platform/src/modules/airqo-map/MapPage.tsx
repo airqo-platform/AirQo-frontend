@@ -249,7 +249,6 @@ const MapPage: React.FC<MapPageProps> = ({
   };
 
   const handleNodeClick = async (reading: AirQualityReading) => {
-    console.log('Node clicked:', reading);
     setLocationDetailsLoading(true);
 
     try {
@@ -271,7 +270,6 @@ const MapPage: React.FC<MapPageProps> = ({
   };
 
   const handleClusterClick = (cluster: ClusterData) => {
-    console.log('Cluster clicked:', cluster);
     setSelectedLocationId(null);
   };
 
