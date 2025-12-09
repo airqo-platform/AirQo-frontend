@@ -49,8 +49,10 @@ const MapPage: React.FC<MapPageProps> = ({
   );
 
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [selectedCountry, setSelectedCountry] =
-    React.useState<string>('uganda');
+  const [selectedCountry, setSelectedCountry] = React.useState<string>(
+    // For user flow: default to 'uganda', for org flow: wait for dynamic selection
+    isOrganizationFlow ? '' : 'uganda'
+  );
   const [locationDetailsLoading, setLocationDetailsLoading] =
     React.useState(false);
   const [flyToLocation, setFlyToLocation] = React.useState<
@@ -254,6 +256,7 @@ const MapPage: React.FC<MapPageProps> = ({
             locationDetailsLoading={locationDetailsLoading}
             selectedPollutant={selectedPollutant}
             cohort_id={cohortId}
+            isOrganizationFlow={isOrganizationFlow}
           />
         </div>
 
@@ -302,6 +305,7 @@ const MapPage: React.FC<MapPageProps> = ({
             onBackToList={handleBackToList}
             selectedPollutant={selectedPollutant}
             cohort_id={cohortId}
+            isOrganizationFlow={isOrganizationFlow}
           />
         </div>
       </div>

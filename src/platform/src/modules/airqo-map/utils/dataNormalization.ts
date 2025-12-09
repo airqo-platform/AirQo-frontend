@@ -20,15 +20,15 @@ export interface Location {
 
 /**
  * Transforms API country data to UI display format
- * Adds "All" option first, sorts with Uganda prioritized, and formats country codes
+ * Adds "All" option first, sorts countries with Uganda prioritized for user flow consistency
  */
 export function normalizeCountries(countriesData: CountryData[]): Country[] {
   const transformedCountries: Country[] = [
     { code: 'all', name: 'All', flag: '🌍' },
   ];
 
-  if (countriesData) {
-    // Sort countries with Uganda first
+  if (countriesData && countriesData.length > 0) {
+    // Sort countries with Uganda first for user flow, then alphabetically
     const sortedCountries = [...countriesData].sort((a, b) => {
       if (a.country.toLowerCase() === 'uganda') return -1;
       if (b.country.toLowerCase() === 'uganda') return 1;

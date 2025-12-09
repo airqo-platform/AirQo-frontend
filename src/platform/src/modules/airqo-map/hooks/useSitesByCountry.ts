@@ -30,10 +30,10 @@ export interface UseSitesByCountryResult {
 
 /**
  * Hook for fetching sites by country with pagination support
- * Default country is "Uganda", limit is 6
+ * Country is determined dynamically from the countries list
  */
 export function useSitesByCountry({
-  country = 'Uganda',
+  country,
   enabled = true,
   initialLimit = 6,
   cohort_id,
