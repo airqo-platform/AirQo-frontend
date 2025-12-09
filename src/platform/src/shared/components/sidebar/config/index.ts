@@ -12,6 +12,7 @@ import {
   AqSettings01,
   AqData,
   AqKey01,
+  AqBarChart01,
   // AqUsers01,
   // AqSettings01,
   // AqShield01,
@@ -171,6 +172,12 @@ const adminSidebarConfig: NavGroup[] = [
         href: '/admin/roles',
         icon: AqShield02,
       },
+      {
+        id: 'admin-statistics',
+        label: 'User Statistics',
+        href: '/admin/statistics',
+        icon: AqBarChart01,
+      },
     ],
   },
   {
@@ -227,6 +234,12 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'Roles & Permissions',
             href: '/admin/roles',
             description: 'Manage roles and permissions',
+          },
+          {
+            id: 'admin-statistics',
+            label: 'User Statistics',
+            href: '/admin/statistics',
+            description: 'View user statistics',
           },
           {
             id: 'admin-org-settings',

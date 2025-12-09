@@ -28,6 +28,7 @@ import type {
   SendGroupInviteResponse,
   UpdateGroupDetailsRequest,
   UpdateGroupDetailsResponse,
+  GetUserStatisticsResponse,
 } from '../types/api';
 
 export class UserService {
@@ -341,6 +342,21 @@ export class UserService {
     }
 
     return data as UpdateGroupDetailsResponse;
+  }
+
+  // Get user statistics - authenticated endpoint
+  async getUserStatistics(): Promise<GetUserStatisticsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetUserStatisticsResponse | ApiErrorResponse
+    >('/users/stats');
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get user statistics');
+    }
+
+    return data as GetUserStatisticsResponse;
   }
 }
 

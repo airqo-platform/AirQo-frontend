@@ -129,6 +129,19 @@ export const GlobalSidebar: React.FC = () => {
           return {
             ...item,
             href,
+            subroutes: item.subroutes?.filter(subroute => {
+              // Hide statistics, clients, and org-requests subroutes if user doesn't have AIRQO_SUPER_ADMIN role
+              if (
+                [
+                  'admin-statistics',
+                  'admin-clients',
+                  'admin-org-requests',
+                ].includes(subroute.id)
+              ) {
+                return hasRole('AIRQO_SUPER_ADMIN');
+              }
+              return true;
+            }),
           };
         })
     );

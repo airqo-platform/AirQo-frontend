@@ -30,6 +30,16 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           if (item.id === 'admin-dashboard') {
             return hasRole('AIRQO_SUPER_ADMIN');
           }
+          // Hide statistics, clients, and org-requests if user doesn't have AIRQO_SUPER_ADMIN role
+          if (
+            [
+              'admin-statistics',
+              'admin-clients',
+              'admin-org-requests',
+            ].includes(item.id)
+          ) {
+            return hasRole('AIRQO_SUPER_ADMIN');
+          }
           return true;
         }),
       }));

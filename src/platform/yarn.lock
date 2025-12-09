@@ -2981,6 +2981,11 @@ json5@^1.0.2:
   dependencies:
     minimist "^1.2.0"
 
+jspdf-autotable@^5.0.2:
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/jspdf-autotable/-/jspdf-autotable-5.0.2.tgz#bcf7aa2ff9eb46a2db6aa8c0407ab86c0a6c7b96"
+  integrity sha512-YNKeB7qmx3pxOLcNeoqAv3qTS7KuvVwkFe5AduCawpop3NOkBUtqDToxNc225MlNecxT4kP2Zy3z/y/yvGdXUQ==
+
 jspdf@^3.0.3:
   version "3.0.3"
   resolved "https://registry.npmjs.org/jspdf/-/jspdf-3.0.3.tgz"
