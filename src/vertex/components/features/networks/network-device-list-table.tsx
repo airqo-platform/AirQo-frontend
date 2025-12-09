@@ -11,7 +11,8 @@ import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unass
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 interface NetworkDevicesTableProps {
-    networkName: string; // The network name to fetch devices for
+    networkName: string;
+    networkId: string;
     itemsPerPage?: number;
     onDeviceClick?: (device: Device) => void;
     className?: string;
@@ -19,6 +20,7 @@ interface NetworkDevicesTableProps {
 
 export default function NetworkDevicesTable({
     networkName,
+    networkId,
     itemsPerPage = 25,
     onDeviceClick,
     className,
@@ -60,7 +62,7 @@ export default function NetworkDevicesTable({
     const handleDeviceClick = (item: unknown) => {
         const device = item as Device;
         if (onDeviceClick) onDeviceClick(device);
-        else router.push(`/devices/overview/${device._id}`);
+        else router.push(`/admin/networks/${networkId}/devices/${device._id}`);
     };
 
     const handleAssignSuccess = () => {

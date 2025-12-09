@@ -108,6 +108,7 @@ export default function NetworkDetailsPage() {
                         <div className="space-y-4">
                             <NetworkDevicesTable
                                 networkName={network.net_name}
+                                networkId={network._id}
                             />
                         </div>
                     </div>
