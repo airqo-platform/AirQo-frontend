@@ -1,5 +1,5 @@
 # Use Node.js Alpine image for smaller size
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Install dependencies needed for node-gyp
 RUN apk add --no-cache libc6-compat
@@ -12,14 +12,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies for build)
-RUN npm ci
+RUN npm ci --legacy-peer-deps
 
 # Copy all files
 COPY . .
 
 # Disable telemetry and set production environment
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
 
 # Build the application
 RUN npm run build
@@ -34,7 +34,7 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Install production dependencies only
 COPY package*.json ./
-RUN npm ci --only=production && \
+RUN npm ci --legacy-peer-deps --omit=dev && \
     npm cache clean --force
 
 # Copy built application from builder
@@ -53,9 +53,9 @@ USER nextjs
 EXPOSE 3000
 
 # Set environment variables
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-ENV NODE_ENV production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+ENV NODE_ENV=production
 
 # Start the application using Next.js start command
 CMD ["npm", "start"]

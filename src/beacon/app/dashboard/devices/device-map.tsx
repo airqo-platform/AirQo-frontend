@@ -19,6 +19,12 @@ interface Device {
     aqi_category?: string
     aqi_color?: string
     no2?: number
+    site_name?: string
+  }
+  location?: {
+    location_name?: string
+    admin_level_city?: string
+    admin_level_country?: string
   }
 }
 
@@ -119,6 +125,13 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
           const pm10Value = device.latest_reading?.pm10 !== undefined && device.latest_reading?.pm10 !== null ? 
             Number(device.latest_reading.pm10).toFixed(1) : 'No data';
 
+          // Get location name with fallbacks
+          const locationName = device.latest_reading?.site_name || 
+                              device.location?.location_name || 
+                              device.location?.admin_level_city || 
+                              device.location?.admin_level_country || 
+                              'Unknown location';
+
           // Add popup with device info
           marker.bindPopup(`
             <div style="min-width: 200px;">
@@ -138,14 +151,12 @@ export default function DeviceMap({ devices = [], selectedDeviceId }: DeviceMapP
                   ? `
                 <p style="margin: 0 0 5px;">PM2.5: ${pm25Value} μg/m³</p>
                 <p style="margin: 0 0 5px;">PM10: ${pm10Value} μg/m³</p>
+                <p style="margin: 0 0 5px;">Location: ${locationName}</p>
                 ${device.latest_reading?.aqi_category ? 
                   `<p style="margin: 0 0 5px;">AQI: ${device.latest_reading.aqi_category}</p>` : ''}
               `
                   : ""
               }
-              <div style="margin-top: 10px; text-align: center;">
-                <a href="/dashboard/devices/${device.id}" style="display: inline-block; padding: 5px 10px; background-color: #2563EB; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">View Details</a>
-              </div>
             </div>
           `)
 
