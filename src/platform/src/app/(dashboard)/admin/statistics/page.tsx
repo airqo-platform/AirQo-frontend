@@ -306,7 +306,7 @@ const UserStatisticsPage: React.FC = () => {
 const ProtectedUserStatisticsPage: React.FC = () => {
   return (
     <PermissionGuard
-      requiredPermissions={['ANALYTICS_VIEW', 'ANALYTICS_EXPORT']}
+      requiredAllPermissions={['ANALYTICS_VIEW', 'ANALYTICS_EXPORT']}
       requiredRoles={['AIRQO_SUPER_ADMIN']}
       accessDeniedTitle="Access Denied"
       accessDeniedMessage="You need both ANALYTICS_VIEW and ANALYTICS_EXPORT permissions, and the AIRQO_SUPER_ADMIN role, to view user statistics."

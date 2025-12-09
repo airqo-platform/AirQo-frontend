@@ -327,7 +327,7 @@ export function calculateMapBounds(
   const maxSpan = Math.max(lngSpan, latSpan);
 
   // Mapbox zoom levels: 0 (world) to 22 (building level)
-  let zoom = 13;
+  let zoom: number;
   if (maxSpan < 0.01) zoom = 17;
   else if (maxSpan < 0.05) zoom = 15;
   else if (maxSpan < 0.2) zoom = 13;
