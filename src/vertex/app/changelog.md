@@ -15,6 +15,7 @@ Introduced a dedicated **Network Details Page** for comprehensive network manage
 <summary><strong>Improvements (5)</strong></summary>
 
 - **Network Details Page**: New route `/admin/networks/[id]` displaying network info and a dedicated device list.
+- **Recently Visited**: Added a smart "Recently Visited" sidebar item that tracks user navigation history (persisted locally) and aggregates deep links (e.g. Network Details) up to their parent module for efficient backtracking.
 - **Unified Device Layout**: Extracted device details logic into `DeviceDetailsLayout`, creating a consistent experience across Standard and Admin views.
 - **Correct Navigation**: Admin table now routes to `/admin/networks/[id]/devices/[deviceId]`, preserving admin context.
 - **Bulk Actions**: Added "Assign to Cohort" and "Remove from Cohort" bulk actions to the network device list.
@@ -27,6 +28,7 @@ Introduced a dedicated **Network Details Page** for comprehensive network manage
 
 - Created `src/vertex/app/(authenticated)/admin/networks/[id]/page.tsx`
 - Created `src/vertex/app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx`
+- Created `src/vertex/core/hooks/useRecentlyVisited.ts`
 - Created `src/vertex/components/features/devices/device-details-layout.tsx`
 - Created `src/vertex/components/features/networks/network-device-list-table.tsx`
 - Added `useNetworkDevices` hook to `useNetworks.ts`.
@@ -40,6 +42,8 @@ Introduced a dedicated **Network Details Page** for comprehensive network manage
 - `app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx` (New)
 - `components/features/devices/device-details-layout.tsx` (New)
 - `components/features/networks/network-device-list-table.tsx` (New)
+- `core/hooks/useRecentlyVisited.ts` (New)
+- `components/layout/primary-sidebar.tsx`
 - `core/hooks/useNetworks.ts`
 - `app/(authenticated)/devices/overview/[id]/page.tsx`
 
