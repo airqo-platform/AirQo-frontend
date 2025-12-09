@@ -40,7 +40,6 @@ export default function ClientPaginatedNetworksTable({
         await navigator.clipboard.writeText(text);
         ReusableToast({ message: "Network ID copied", type: "SUCCESS" });
       } catch (err) {
-        console.error("Failed to copy:", err);
         ReusableToast({ message: "Failed to copy ID", type: "ERROR" });
       }
     }

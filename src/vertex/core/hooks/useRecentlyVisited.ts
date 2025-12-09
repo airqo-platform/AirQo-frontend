@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAppSelector } from '@/core/redux/hooks';
 import { usePathname } from 'next/navigation';
 import { ROUTE_LINKS } from '@/core/routes';
+import ReusableToast from '@/components/shared/toast/ReusableToast';
 
 export interface RecentPage {
   label: string;
@@ -63,7 +64,7 @@ export const useRecentlyVisited = () => {
         setVisitedPages([]);
       }
     } catch (error) {
-      console.error('Failed to load recently visited pages:', error);
+      ReusableToast({ message: "Failed to load recently visited pages", type: "ERROR" });
     } finally {
       setIsLoaded(true);
     }

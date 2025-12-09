@@ -12,6 +12,7 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 const formatTitle = (title: string) => {
   if (!title) return "";
@@ -59,7 +60,7 @@ const OrganizationPicker: React.FC = () => {
       // Sidebar modules control access to org-level features
       router.push("/home");
     } catch (error) {
-      console.error("Error switching organization:", error);
+      ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
     } finally {
       setTimeout(() => {
         dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
