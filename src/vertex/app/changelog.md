@@ -4,6 +4,49 @@
 
 ---
 
+## Version 1.17.0
+**Released:** December 09, 2025
+
+### Network Details & Admin Device Views
+
+Introduced a dedicated **Network Details Page** for comprehensive network management and established a unified **Admin Device Details** view, streamlining navigation and device operations within the admin panel.
+
+<details>
+<summary><strong>Improvements (5)</strong></summary>
+
+- **Network Details Page**: New route `/admin/networks/[id]` displaying network info and a dedicated device list.
+- **Unified Device Layout**: Extracted device details logic into `DeviceDetailsLayout`, creating a consistent experience across Standard and Admin views.
+- **Correct Navigation**: Admin table now routes to `/admin/networks/[id]/devices/[deviceId]`, preserving admin context.
+- **Bulk Actions**: Added "Assign to Cohort" and "Remove from Cohort" bulk actions to the network device list.
+- **Quick Actions**: Added "Add AirQo Device" and "Import Device" buttons with pre-filled network context.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- Created `src/vertex/app/(authenticated)/admin/networks/[id]/page.tsx`
+- Created `src/vertex/app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx`
+- Created `src/vertex/components/features/devices/device-details-layout.tsx`
+- Created `src/vertex/components/features/networks/network-device-list-table.tsx`
+- Added `useNetworkDevices` hook to `useNetworks.ts`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/(authenticated)/admin/networks/[id]/page.tsx` (New)
+- `app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx` (New)
+- `components/features/devices/device-details-layout.tsx` (New)
+- `components/features/networks/network-device-list-table.tsx` (New)
+- `core/hooks/useNetworks.ts`
+- `app/(authenticated)/devices/overview/[id]/page.tsx`
+
+</details>
+
+---
+
 ## Version 1.16.0
 **Released:** December 09, 2025
 
