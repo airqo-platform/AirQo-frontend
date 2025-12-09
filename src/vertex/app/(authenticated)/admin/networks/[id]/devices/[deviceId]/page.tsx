@@ -7,8 +7,15 @@ import { PERMISSIONS } from "@/core/permissions/constants";
 
 export default function AdminNetworkDeviceDetailsPage() {
     const params = useParams();
-    // Ensure we extract deviceId correctly matching the folder structure [deviceId]
-    const deviceId = params?.deviceId as string;
+    const deviceId = params?.deviceId;
+
+    if (!deviceId || typeof deviceId !== 'string') {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <p className="text-muted-foreground">Invalid device ID</p>
+            </div>
+        );
+    }
 
     return (
         <RouteGuard permission={PERMISSIONS.NETWORK.VIEW}>
