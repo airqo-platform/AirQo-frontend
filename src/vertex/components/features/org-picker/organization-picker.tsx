@@ -24,7 +24,6 @@ const OrganizationPicker: React.FC = () => {
   const queryClient = useQueryClient();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
-  const userContext = useAppSelector((state) => state.user.userContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { isLoading } = useUserContext();
 
@@ -95,7 +94,6 @@ const OrganizationPicker: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         userGroups={validUserGroups}
         activeGroup={activeGroup}
-        userContext={userContext}
         onOrganizationChange={handleOrganizationChange}
       />
     </>

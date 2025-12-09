@@ -13,14 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AqPlus, AqSearchMd } from '@airqo/icons-react';
 import type { Group } from "@/app/types/users";
-import { UserContext } from "@/core/redux/slices/userSlice";
 
 interface OrganizationModalProps {
   isOpen: boolean;
   onClose: () => void;
   userGroups?: Group[];
   activeGroup: Group | null;
-  userContext: UserContext | null;
   onOrganizationChange: (group: Group) => void;
 }
 
@@ -36,7 +34,6 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   onClose,
   userGroups,
   activeGroup,
-  userContext,
   onOrganizationChange,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");

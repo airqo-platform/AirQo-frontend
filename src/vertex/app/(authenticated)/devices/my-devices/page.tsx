@@ -23,8 +23,6 @@ const MyDevicesPage = () => {
 
   const { userScope } = useUserContext();
 
-  // My Devices ALWAYS shows personal devices when userScope is 'personal'
-  // When userScope is 'organisation', it shows org devices for external orgs
   const {
     data: myDevicesData,
     isLoading: isLoadingMyDevices,
@@ -41,7 +39,6 @@ const MyDevicesPage = () => {
     enabled: userScope === 'organisation',
   });
 
-  // Personal scope = my devices, Organisation scope = org devices
   const devices = userScope === 'personal'
     ? myDevicesData?.devices || []
     : orgDevices;
