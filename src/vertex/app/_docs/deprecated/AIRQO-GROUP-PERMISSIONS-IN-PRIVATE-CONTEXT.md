@@ -1,4 +1,4 @@
-> **NOTE**: This document describes the specific solution for Private Context permissions. For the complete system architecture regarding Scopes and Contexts, please refer to [ACCESS-CONTROL-ARCHITECTURE.md](./ACCESS-CONTROL-ARCHITECTURE.md).
+> **NOTE**: This document describes the specific solution for Private Context permissions. For the complete system architecture regarding Scopes and Contexts, please refer to [ACCESS-CONTROL-ARCHITECTURE.md](../internal/ACCESS-CONTROL-ARCHITECTURE.md).
 
 # Using AirQo Group Permissions in Private Context
 
