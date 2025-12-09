@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { useDispatch } from "react-redux";
 import { clearForbiddenState } from "@/core/redux/slices/userSlice";
 import OopsIcon from "@/public/icons/Errors/OopsIcon";
