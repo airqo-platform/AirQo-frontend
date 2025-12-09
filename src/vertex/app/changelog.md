@@ -4,6 +4,44 @@
 
 ---
 
+## Version 1.19.0
+**Released:** December 09, 2025
+
+### Administrative Access Refactor & Shipping Controls
+
+Refined access control for the administrative panel and introduced granular permissions for shipping operations, ensuring a secure and streamlined management experience.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Sidebar Access**: "Administrative Panel" is now visible to all key admin roles (`AIRQO_SUPER_ADMIN`, `AIRQO_ADMIN`, `AIRQO_NETWORK_ADMIN`) regardless of network view permissions.
+- **Smart Dropdowns**: Sidebar items are now context-aware. If a user lacks permission for a specific section (e.g. Shipping), the item is disabled and shows a helpful tooltip explaining the missing permission.
+- **Shipping Security**: Introduced explicit `SHIPPING` permissions (`VIEW`, `CREATE`, `EDIT`, `DELETE`) to granularly control access to device logistics.
+- **Route Protection**: The Shipping Management page is now strictly protected by a `RouteGuard`, redirecting unauthorized users.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Added `SHIPPING` permission constants and assigned them to admin roles.
+- Refactored `primary-sidebar.tsx` with a reusable `AdminDropdownItem` component for consistent behavior and tooltip logic.
+- Updated `useUserContext` to expose `canViewShipping`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/permissions/constants.ts`
+- `core/hooks/useUserContext.ts`
+- `components/layout/primary-sidebar.tsx`
+- `app/(authenticated)/admin/shipping/page.tsx`
+
+</details>
+
+---
+
 ## Version 1.18.0
 **Released:** December 09, 2025
 
