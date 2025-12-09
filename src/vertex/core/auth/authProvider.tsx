@@ -34,57 +34,57 @@ import logger from '@/lib/logger';
 function filterGroupsAndNetworks(
   userInfo: UserDetails
 ): { groups: Group[]; networks: Network[] } {
-  const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
-  if (isAirQoStaff) {
-    return {
-      groups: userInfo.groups || [],
-      networks: userInfo.networks || [],
-    };
-  }
-
-  const filteredGroups = (userInfo.groups || []).filter(
-    (group) => group.grp_title.toLowerCase() !== 'airqo'
-  );
-  const filteredNetworks = (userInfo.networks || []).filter(
-    (network) => network.net_name.toLowerCase() !== 'airqo'
-  );
-
-  return { groups: filteredGroups, networks: filteredNetworks };
+  // Return all groups and networks regardless of staff status
+  // AirQo should be visible to all users as the default organization
+  return {
+    groups: userInfo.groups || [],
+    networks: userInfo.networks || [],
+  };
 }
 
 function determineInitialUserSetup(
   userInfo: UserDetails,
   filteredGroups: Group[],
   filteredNetworks: Network[],
-  userContext: 'personal' | 'airqo-internal' | 'external-org' | null,
+  userContext: 'personal' | 'external-org' | null,
   activeGroup: Group | null,
 ): {
   defaultNetwork?: Network;
   defaultGroup?: Group;
-  initialUserContext: 'personal' | 'airqo-internal' | 'external-org';
+  initialUserContext: 'personal' | 'external-org';
 } {
-  const isAirQoStaff = !!userInfo.email?.endsWith('@airqo.net');
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {
-    return { initialUserContext: 'personal' };
+    // Check if we can upgrade "Personal Mode" to "Personal Mode with AirQo Group"
+    // This happens if the user has the AirQo group in their list
+    const airqoGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
+    if (airqoGroup) {
+      // We have an AirQo group, so we let the logic fall through to default selection
+      // which will pick it up below
+    } else {
+      // Truly isolated user without AirQo group
+      return { initialUserContext: 'personal' };
+    }
   }
 
   let defaultGroup: Group | undefined;
   let defaultNetwork: Network | undefined;
 
+  // Restore user's last selected group if it exists and is still valid
   if (activeGroup) {
     if (filteredGroups.some((g) => g._id === activeGroup._id)) {
       defaultGroup = activeGroup;
     }
   }
 
-  if (!defaultGroup) {
-    if (isAirQoStaff) {
-      defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
-    } else {
-      defaultGroup = filteredGroups[0];
-    }
+  // Only default to AirQo if no persisted activeGroup (first-time login)
+  if (!defaultGroup && !activeGroup) {
+    // First-time login: prioritize AirQo as the default  
+    defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
+  } else if (!defaultGroup) {
+    // activeGroup existed but is no longer valid - use first available
+    defaultGroup = filteredGroups[0];
   }
 
   if (defaultGroup && filteredNetworks.length > 0) {
@@ -92,9 +92,15 @@ function determineInitialUserSetup(
     defaultNetwork = filteredNetworks.find((n) => n.net_name.toLowerCase() === groupTitle) || filteredNetworks[0];
   }
 
-  let initialUserContext: 'personal' | 'airqo-internal' | 'external-org' = 'personal';
+  let initialUserContext: 'personal' | 'external-org' = 'personal';
   if (defaultGroup) {
-    initialUserContext = defaultGroup.grp_title.toLowerCase() === 'airqo' && isAirQoStaff ? 'airqo-internal' : 'external-org';
+    // AirQo organization uses personal context
+    // Regardless of staff status - permissions control access in the sidebar
+    if (defaultGroup.grp_title.toLowerCase() === 'airqo') {
+      initialUserContext = 'personal';
+    } else {
+      initialUserContext = 'external-org';
+    }
   }
 
   return { defaultGroup, defaultNetwork, initialUserContext };
@@ -166,6 +172,8 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === 'authenticated' && isAuthRoute && activeGroup && isInitialized) {
+      // All users land on /home (personal devices view)
+      // Module visibility is controlled by permissions in the sidebar
       logger.debug('[ActiveGroupGuard] Redirecting authenticated user to /home');
       router.push('/home');
     }
@@ -542,7 +550,7 @@ function AutoLogoutHandler() {
       clearInterval(intervalId);
       if (throttleTimer) clearTimeout(throttleTimer);
     };
-  }, [session, logout, updateActivity]);
+  }, [session, logout, updateActivity, INACTIVITY_LIMIT]);
 
   return null;
 }

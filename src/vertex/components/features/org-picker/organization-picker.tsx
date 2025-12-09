@@ -12,6 +12,7 @@ import { UserContext } from "@/core/redux/slices/userSlice";
 import { AqGrid01 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
 
 const formatTitle = (title: string) => {
   if (!title) return "";
@@ -24,70 +25,42 @@ const OrganizationPicker: React.FC = () => {
   const queryClient = useQueryClient();
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const userGroups = useAppSelector((state) => state.user.userGroups);
-  const userContext = useAppSelector((state) => state.user.userContext);
-  const isAirQoStaff = useAppSelector((state) => state.user.isAirQoStaff);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { isPersonalContext, isLoading } = useUserContext();
+  const { isLoading } = useUserContext();
 
   const validUserGroups = useMemo(() => {
     if (!Array.isArray(userGroups)) return [];
 
-    const filteredGroups = userGroups.filter(
+    return userGroups.filter(
       (group): group is Group => !!(group && group._id && group.grp_title)
     );
+  }, [userGroups]);
 
-    if (!isAirQoStaff) {
-      return filteredGroups.filter(
-        (group) => group.grp_title.toLowerCase() !== "airqo"
-      );
-    }
-    return filteredGroups;
-  }, [userGroups, isAirQoStaff]);
-
-  const handleOrganizationChange = async (group: Group | "private") => {
+  const handleOrganizationChange = async (group: Group) => {
     dispatch(setOrganizationSwitching({
       isSwitching: true,
-      switchingTo: group === "private" ? "Private Mode" : group.grp_title
+      switchingTo: group.grp_title
     }));
 
-    let newContext: UserContext;
-    if (group === "private") {
-      newContext = "personal";
-    } else {
-      newContext =
-        group.grp_title.toLowerCase() === "airqo"
-          ? "airqo-internal"
-          : "external-org";
-    }
-
-    if (newContext === "airqo-internal" && !isAirQoStaff) {
-      dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
-      return;
-    }
+    const newContext: UserContext =
+      group.grp_title.toLowerCase() === "airqo"
+        ? "personal"
+        : "external-org";
 
     try {
       await queryClient.cancelQueries();
       await queryClient.invalidateQueries();
 
-      if (group === "private") {
-        dispatch(setActiveGroup(null));
-        dispatch(setUserContext("personal"));
-      } else {
-        if (group.grp_title.toLowerCase() === "airqo") {
-          dispatch(setActiveGroup(group));
-          dispatch(setUserContext("airqo-internal"));
-        } else {
-          dispatch(setActiveGroup(group));
-          dispatch(setUserContext("external-org"));
-        }
-      }
+      dispatch(setActiveGroup(group));
+      dispatch(setUserContext(newContext));
 
       setIsModalOpen(false);
 
-      // Navigate to home after state is set
+      // All users navigate to /home (personal devices view)
+      // Sidebar modules control access to org-level features
       router.push("/home");
-    } catch (error) {
-      console.error("Error switching organization:", error);
+    } catch {
+      ReusableToast({ message: "Failed to switch organization", type: "ERROR" });
     } finally {
       setTimeout(() => {
         dispatch(setOrganizationSwitching({ isSwitching: false, switchingTo: "" }));
@@ -96,9 +69,6 @@ const OrganizationPicker: React.FC = () => {
   };
 
   const getDisplayTitle = () => {
-    if (isPersonalContext) {
-      return "PRIVATE MODE";
-    }
     return formatTitle(activeGroup?.grp_title || "") || "Select Organization";
   };
 
@@ -125,8 +95,6 @@ const OrganizationPicker: React.FC = () => {
         onClose={() => setIsModalOpen(false)}
         userGroups={validUserGroups}
         activeGroup={activeGroup}
-        userContext={userContext}
-        isAirQoStaff={isAirQoStaff}
         onOrganizationChange={handleOrganizationChange}
       />
     </>

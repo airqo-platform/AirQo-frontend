@@ -7,38 +7,42 @@ import { AqPlus } from '@airqo/icons-react';
 import { PrepareShippingModal } from '@/components/features/shipping/PrepareShippingModal';
 import ShippingBatchesTable from '@/components/features/shipping/ShippingBatchesTable';
 import { Skeleton } from "@/components/ui/skeleton";
+import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
+import { PERMISSIONS } from "@/core/permissions/constants";
 
 const ShippingPage = () => {
     const [showPrepareModal, setShowPrepareModal] = useState(false);
 
     return (
-        <div className="p-6 space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Device Shipping Management</h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">Manage device shipping status and labels</p>
+        <RouteGuard permission={PERMISSIONS.SHIPPING.VIEW}>
+            <div className="p-6 space-y-6">
+                <div className="flex justify-between items-center">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Device Shipping Management</h1>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Manage device shipping status and labels</p>
+                    </div>
+                    <ReusableButton
+                        onClick={() => setShowPrepareModal(true)}
+                        Icon={AqPlus}
+                    >
+                        Prepare New Batch
+                    </ReusableButton>
                 </div>
-                <ReusableButton
-                    onClick={() => setShowPrepareModal(true)}
-                    Icon={AqPlus}
-                >
-                    Prepare New Batch
-                </ReusableButton>
-            </div>
 
-            <div className="mt-6">
-                <ShippingStatus />
-            </div>
+                <div className="mt-6">
+                    <ShippingStatus />
+                </div>
 
-            <div className="mt-6">
-                <ShippingBatchesTable />
-            </div>
+                <div className="mt-6">
+                    <ShippingBatchesTable />
+                </div>
 
-            <PrepareShippingModal
-                isOpen={showPrepareModal}
-                onClose={() => setShowPrepareModal(false)}
-            />
-        </div>
+                <PrepareShippingModal
+                    isOpen={showPrepareModal}
+                    onClose={() => setShowPrepareModal(false)}
+                />
+            </div>
+        </RouteGuard>
     );
 };
 

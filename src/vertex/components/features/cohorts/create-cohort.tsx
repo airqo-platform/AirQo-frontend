@@ -116,7 +116,7 @@ export function CreateCohortDialog({
           setDeviceSearch("");
 
           if (andNavigate && response?.cohort?._id) {
-            router.push(`/cohorts/${response.cohort._id}`);
+            router.push(`/admin/cohorts/${response.cohort._id}`);
           } else {
             onOpenChange(false);
           }

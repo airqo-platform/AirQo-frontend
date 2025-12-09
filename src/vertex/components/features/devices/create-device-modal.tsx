@@ -11,11 +11,13 @@ import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput"
 interface CreateDeviceModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  networkName?: string;
 }
 
 const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   open,
   onOpenChange,
+  networkName,
 }) => {
   const [formData, setFormData] = useState({
     long_name: "",
@@ -47,7 +49,9 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       return;
     }
 
-    if (!activeNetwork?.net_name) {
+    const effectiveNetworkName = networkName || activeNetwork?.net_name;
+
+    if (!effectiveNetworkName) {
       setErrors({ general: "No active network found" });
       return;
     }
@@ -57,7 +61,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         long_name: formData.long_name.trim(),
         category: formData.category,
         description: formData.description.trim() || undefined,
-        network: activeNetwork.net_name,
+        network: effectiveNetworkName,
       });
 
       // Reset form and close modal
@@ -109,7 +113,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       isOpen={open}
       onClose={handleClose}
       title="Add AirQo Device"
-      subtitle={`Network: ${activeNetwork?.net_name}`}
+      subtitle={`Network: ${networkName || activeNetwork?.net_name}`}
       size="md"
       primaryAction={{
         label: createDevice.isPending ? "Adding..." : "Add Device",

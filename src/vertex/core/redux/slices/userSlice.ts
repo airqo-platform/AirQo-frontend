@@ -7,7 +7,8 @@ import type {
   Group,
 } from "@/app/types/users";
 
-export type UserContext = 'personal' | 'airqo-internal' | 'external-org';
+export type UserContext = 'personal' | 'external-org';
+export type UserScope = 'personal' | 'organisation';
 
 interface ForbiddenState {
   isForbidden: boolean;
@@ -26,7 +27,7 @@ interface UserState {
   isInitialized: boolean;
   activeGroup: Group | null;
   userContext: UserContext | null;
-  isAirQoStaff: boolean;
+  userScope: UserScope | null;
   canSwitchContext: boolean;
   forbidden: ForbiddenState;
   organizationSwitching: {
@@ -46,7 +47,7 @@ const initialState: UserState = {
   isInitialized: false,
   activeGroup: null,
   userContext: null,
-  isAirQoStaff: false,
+  userScope: null,
   canSwitchContext: false,
   forbidden: {
     isForbidden: false,
@@ -61,31 +62,59 @@ const initialState: UserState = {
   isLoggingOut: false,
 };
 
+// Helper function to determine user scope based on permissions
+// NOTE: This requires permissions to be calculated, so it should be called 
+// in components/hooks that have access to permission state, not in Redux reducers
+const determineUserScope = (
+  userContext: UserContext | null,
+  permissions: {
+    canViewSites?: boolean | null;
+    canViewNetworks?: boolean | null;
+    isSuperAdmin?: boolean | null;
+    isSystemAdmin?: boolean | null;
+  }
+): UserScope => {
+  // No special handling needed for personal context or permissions yet
+  // This function might be deprecated or simplified if we rely solely on SidebarConfig logic
+  return 'personal';
+  
+  // Determine if user has any organizational permissions
+  const hasOrgPermissions = 
+    permissions.canViewSites === true ||
+    permissions.canViewNetworks === true ||
+    permissions.isSuperAdmin === true ||
+    permissions.isSystemAdmin === true;
+  
+  return hasOrgPermissions ? 'organisation' : 'personal';
+};
+
 // Helper function to determine user context
 const determineUserContext = (
   userDetails: UserDetails | null,
   activeGroup: Group | null,
   userGroups: Group[] | null | undefined
-): { context: UserContext; isAirQoStaff: boolean; canSwitchContext: boolean } => {
+): { context: UserContext; canSwitchContext: boolean } => {
   
-  const isAirQoStaff = userDetails?.email?.endsWith('@airqo.net') || false;
   const hasMultipleOrgs = Array.isArray(userGroups) && userGroups.length > 1;
-  const canSwitchContext = isAirQoStaff && hasMultipleOrgs;
+  // Allow context switching for any user with multiple organizations
+  const canSwitchContext = hasMultipleOrgs;
 
   if (!userDetails || !activeGroup) {
-    return { context: 'personal', isAirQoStaff, canSwitchContext };
+    return { context: 'personal', canSwitchContext };
   }
 
   const isAirQoOrg = activeGroup.grp_title?.toLowerCase() === 'airqo';
 
   let context: UserContext;
   if (isAirQoOrg) {
-    context = isAirQoStaff ? 'airqo-internal' : 'personal';
+    // AirQo organization now uses personal context with elevated permissions
+    // The active airqo group allows RBAC checks to pass
+    context = 'personal';
   } else {
     context = 'external-org';
   }
 
-  return { context, isAirQoStaff, canSwitchContext };
+  return { context, canSwitchContext };
 };
 
 const userSlice = createSlice({
@@ -104,13 +133,12 @@ const userSlice = createSlice({
       state.userGroups = action.payload.groups || [];
       
       // Update context when user details change
-      const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+      const { context, canSwitchContext } = determineUserContext(
         action.payload,
         state.activeGroup,
         action.payload.groups || []
       );
       state.userContext = context;
-      state.isAirQoStaff = isAirQoStaff;
       state.canSwitchContext = canSwitchContext;
     },
     setActiveNetwork(state: UserState, action: PayloadAction<Network>) {
@@ -132,7 +160,7 @@ const userSlice = createSlice({
       state.availableNetworks = [];
       state.currentRole = null;
       state.userContext = null;
-      state.isAirQoStaff = false;
+      state.userScope = null;
       state.canSwitchContext = false;
       state.isInitialized = false;
     },
@@ -143,6 +171,26 @@ const userSlice = createSlice({
       state.activeGroup = action.payload;
       
       if (!action.payload) {
+        // For ALL users (staff or external), "Personal Mode" means using the AirQo group with personal scope.
+        // We find the AirQo group from their userGroups and set it as active.
+        const airqoGroup = state.userGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
+
+        if (airqoGroup) {
+          state.activeGroup = airqoGroup;
+          // Determine context immediately with the new group
+          const { context, canSwitchContext } = determineUserContext(
+            state.userDetails,
+            airqoGroup,
+            state.userGroups
+          );
+          state.userContext = context;
+          state.canSwitchContext = canSwitchContext;
+          return;
+        }
+
+        // If no AirQo group is found, fall back to null group (true Personal Mode)
+        // This handles edge cases where a user might not belong to AirQo
+        state.activeGroup = null;
         state.userContext = 'personal';
         state.canSwitchContext = false;
         // When activeGroup is null, activeNetwork should also be null
@@ -151,13 +199,12 @@ const userSlice = createSlice({
         return;
       }
       
-      const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+      const { context, canSwitchContext } = determineUserContext(
         state.userDetails,
         action.payload,
         state.userGroups
       );
       state.userContext = context;
-      state.isAirQoStaff = isAirQoStaff;
       state.canSwitchContext = canSwitchContext;
     },
     setUserGroups(state, action: PayloadAction<Group[]>) {
@@ -165,25 +212,16 @@ const userSlice = createSlice({
       state.userGroups = groups;
       
       // Update context when user groups change
-      const { context, isAirQoStaff, canSwitchContext } = determineUserContext(
+      const { context, canSwitchContext } = determineUserContext(
         state.userDetails,
         state.activeGroup,
         groups
       );
       state.userContext = context;
-      state.isAirQoStaff = isAirQoStaff;
       state.canSwitchContext = canSwitchContext;
     },
     // New action to manually set context (for context switching)
     setUserContext(state, action: PayloadAction<UserContext>) {
-      const { isAirQoStaff } = state;
-      
-      // Validate context change
-      if (action.payload === 'airqo-internal' && !isAirQoStaff) {
-        console.error('Unauthorized context change attempt: non-staff user trying to access airqo-internal');
-        return; // Prevent the change
-      }
-      
       state.userContext = action.payload;
     },
     // Forbidden state actions
