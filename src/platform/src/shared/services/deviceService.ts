@@ -189,17 +189,16 @@ export class DeviceService {
     return data as CountriesResponse;
   }
 
-  // Get map readings - authenticated endpoint
-  async getMapReadingsAuthenticated(
+  // Get map readings - API token endpoint
+  async getMapReadingsWithToken(
     cohort_id?: string
   ): Promise<MapReadingsResponse> {
-    await this.ensureAuthenticated();
     const params: Record<string, string> = {};
     if (cohort_id) {
       params.cohort_id = cohort_id;
     }
 
-    const response = await this.authenticatedClient.get<
+    const response = await this.serverClient.get<
       MapReadingsResponse | ApiErrorResponse
     >('/devices/readings/map', { params });
     const data = response.data;
