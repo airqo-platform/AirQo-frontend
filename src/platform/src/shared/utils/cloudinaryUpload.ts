@@ -75,15 +75,10 @@ export async function uploadToCloudinary(
   const formData = new FormData();
   formData.append('file', file);
 
-  // Add folder structure
+  // Add folder structure (using 'folder' parameter instead of 'public_id' for unsigned uploads)
   if (options.folder) {
     const sanitizedFolder = sanitizeFolder(options.folder);
-    const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 8);
-    // Do not include extension in public_id to avoid double extensions in URLs
-    // Cloudinary will add the extension based on the file format
-    const publicId = `${sanitizedFolder}/${timestamp}_${randomId}`;
-    formData.append('public_id', publicId);
+    formData.append('folder', sanitizedFolder);
   }
 
   // Add tags
