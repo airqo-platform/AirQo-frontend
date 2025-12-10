@@ -19,10 +19,10 @@ class CountriesApiResponse {
 
   factory CountriesApiResponse.fromJson(Map<String, dynamic> json) =>
       CountriesApiResponse(
-        success: json["success"],
-        message: json["message"],
+        success: json["success"] ?? false,
+        message: json["message"] ?? "",
         countries: List<CountryData>.from(
-            json["countries"].map((x) => CountryData.fromJson(x))),
+            (json["countries"] ?? []).map((x) => CountryData.fromJson(x))),
       );
 
   Map<String, dynamic> toJson() => {
@@ -44,9 +44,11 @@ class CountryData {
   });
 
   factory CountryData.fromJson(Map<String, dynamic> json) => CountryData(
-        country: json["country"],
-        sites: json["sites"],
-        flagUrl: json["flag_url"],
+        country: json["country"] ?? "",
+        sites: json["sites"] is int
+            ? json["sites"]
+            : int.tryParse(json["sites"]?.toString() ?? "") ?? 0,
+        flagUrl: json["flag_url"] ?? "",
       );
 
   Map<String, dynamic> toJson() => {
