@@ -63,7 +63,7 @@ export default function GridsTable({
   const handleRowClick = (item: unknown) => {
     const grid = item as Grid;
     if (onGridClick) onGridClick(grid);
-    else if (grid._id) router.push(`/grids/${grid._id}`);
+    else if (grid._id) router.push(`/admin/grids/${grid._id}`);
   };
 
   const data: TableGrid[] = useMemo(() => (grids || [])

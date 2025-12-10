@@ -20,7 +20,7 @@ export default function Layout({ children }: LayoutProps) {
   const [isPrimarySidebarOpen, setIsPrimarySidebarOpen] = useState(false);
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] =
     useState(false);
-  const [activeModule, setActiveModule] = useState('network');
+  const [activeModule, setActiveModule] = useState('devices');
   const pathname = usePathname();
   const router = useRouter();
 
@@ -34,10 +34,18 @@ export default function Layout({ children }: LayoutProps) {
   const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
-    if (pathname.startsWith('/admin/')) {
+    // Determine active module based on current pathname
+    if (
+      pathname.startsWith('/admin/')
+    ) {
       setActiveModule('admin');
+    } else if (
+      pathname.startsWith('/devices/overview')
+    ) {
+      setActiveModule('org-devices');
     } else {
-      setActiveModule('network');
+      // Default to devices module (home, my-devices, claim)
+      setActiveModule('devices');
     }
   }, [pathname]);
 
@@ -49,11 +57,14 @@ export default function Layout({ children }: LayoutProps) {
     setActiveModule(module);
     setIsPrimarySidebarOpen(false);
 
-    if (module === 'admin') {
-      router.push('/admin/shipping');
-    } else {
-      router.push('/home');
-    }
+    // Navigate to module default route
+    const moduleRoutes: Record<string, string> = {
+      devices: '/home',
+      'org-devices': '/devices/overview',
+      admin: '/admin/shipping',
+    };
+
+    router.push(moduleRoutes[module] || '/home');
   };
 
   const toggleSecondarySidebar = () => {

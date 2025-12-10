@@ -251,7 +251,9 @@ class PermissionService {
       ...Object.values(PERMISSIONS.DEVICE),
       ...Object.values(PERMISSIONS.SITE),
       ...Object.values(PERMISSIONS.ANALYTICS),
+      ...Object.values(PERMISSIONS.NETWORK),
       ...Object.values(PERMISSIONS.SETTINGS),
+      ...Object.values(PERMISSIONS.SHIPPING),
     ];
 
     return orgPermissions.includes(permission);
@@ -405,6 +407,11 @@ class PermissionService {
       [PERMISSIONS.SITE.UPDATE]: "Update site information",
       [PERMISSIONS.SITE.DELETE]: "Delete sites",
 
+      [PERMISSIONS.NETWORK.VIEW]: "View network information",
+      [PERMISSIONS.NETWORK.CREATE]: "Create new networks",
+      [PERMISSIONS.NETWORK.EDIT]: "Edit network details",
+      [PERMISSIONS.NETWORK.DELETE]: "Delete networks",
+
       [PERMISSIONS.ANALYTICS.DASHBOARD_VIEW]: "View dashboard",
       [PERMISSIONS.ANALYTICS.ANALYTICS_VIEW]: "View analytics and reports",
       [PERMISSIONS.ANALYTICS.ANALYTICS_EXPORT]: "Export analytics data",
@@ -415,6 +422,11 @@ class PermissionService {
       [PERMISSIONS.SETTINGS.VIEW]: "View system settings",
       [PERMISSIONS.SETTINGS.EDIT]: "Edit system settings",
       [PERMISSIONS.SETTINGS.GROUP_SETTINGS]: "Manage group-specific settings",
+
+      [PERMISSIONS.SHIPPING.VIEW]: "View shipping information",
+      [PERMISSIONS.SHIPPING.CREATE]: "Create shipping requests",
+      [PERMISSIONS.SHIPPING.EDIT]: "Edit shipping details",
+      [PERMISSIONS.SHIPPING.DELETE]: "Delete shipping records",
     };
 
     return descriptions[permission] || "Permission description not available";

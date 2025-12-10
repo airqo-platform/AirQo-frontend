@@ -363,7 +363,7 @@ const DeployDeviceComponent = ({
   onDeploymentError
 }: DeployDeviceComponentProps) => {
   const queryClient = useQueryClient();
-  const { isPersonalContext, userDetails } = useUserContext();
+  const { userScope, userDetails } = useUserContext();
   const { devices: allDevices } = useDevices();
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
@@ -384,23 +384,23 @@ const DeployDeviceComponent = ({
   // Use external availableDevices if provided, otherwise use internal filtering
   const filteredAirQoDevices = React.useMemo(() => {
     if (externalAvailableDevices.length > 0) return externalAvailableDevices;
-    if (isPersonalContext) return [];
+    if (userScope === 'personal') return [];
     return allDevices.filter(
       (dev: { status?: string }) => dev.status === "not deployed" || dev.status === "recalled"
     );
-  }, [externalAvailableDevices, isPersonalContext, allDevices]);
+  }, [externalAvailableDevices, userScope, allDevices]);
 
   // Fetch claimed devices for personal context
   const { data: claimedDevices = [], isLoading: isLoadingClaimedDevices, refetch: refetchDevices } = useQuery({
     queryKey: ['claimedDevices'],
     queryFn: fetchClaimedDevices,
-    enabled: isPersonalContext, // Only fetch when in personal context
+    enabled: userScope === 'personal', // Only fetch when in personal scope
     refetchOnWindowFocus: true,
   });
 
-  // Choose which devices to show based on context
-  const availableDevices = isPersonalContext ? claimedDevices : filteredAirQoDevices;
-  const isLoadingDevices = isPersonalContext ? isLoadingClaimedDevices : false;
+  // Choose which devices to show based on scope
+  const availableDevices = userScope === 'personal' ? claimedDevices : filteredAirQoDevices;
+  const isLoadingDevices = userScope === 'personal' ? isLoadingClaimedDevices : false;
 
   const devicesForSelection = React.useMemo(() => {
     if (prefilledDevice) {
@@ -416,12 +416,12 @@ const DeployDeviceComponent = ({
     return availableDevices;
   }, [prefilledDevice, availableDevices]);
 
-  // When returning from claim page, refresh device list (only for personal context)
+  // When returning from claim page, refresh device list (only for personal scope)
   React.useEffect(() => {
-    if (isPersonalContext) {
+    if (userScope === 'personal') {
       refetchDevices();
     }
-  }, [isPersonalContext, refetchDevices]);
+  }, [userScope, refetchDevices]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;

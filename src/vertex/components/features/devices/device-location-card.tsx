@@ -21,7 +21,7 @@ export function DeviceLocationCard({ device }: DeviceLocationCardProps) {
 
   const handleEditLocation = () => {
     if (device.site_id) {
-      router.push(`/sites/${device.site_id}`);
+      router.push(`/admin/sites/${device.site_id}`);
     }
   };
 

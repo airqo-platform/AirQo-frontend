@@ -6,7 +6,7 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
  * Admin Layout
  * 
  * This layout wraps all admin pages with a RouteGuard to ensure
- * that only AIRQO ADMIN users in the airqo-internal context
+ * that only AIRQO ADMIN users in the personal context (with airqo group active)
  * can access admin features.
  * 
  * Applies to all pages in the /admin/* routes.
@@ -18,8 +18,8 @@ export default function AdminLayout({
 }) {
     return (
         <RouteGuard
-            roles={["AIRQO_SUPER_ADMIN", "AIRQO_ADMIN"]}
-            allowedContexts={['airqo-internal']}
+            roles={["AIRQO_SUPER_ADMIN", "AIRQO_ADMIN", "AIRQO_NETWORK_ADMIN"]}
+            allowedContexts={['personal']}
         >
             {children}
         </RouteGuard>
