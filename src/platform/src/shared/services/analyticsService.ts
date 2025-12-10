@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ApiClient, createAuthenticatedClient } from './apiClient';
+import {
+  ApiClient,
+  createAuthenticatedClient,
+  createServerClient,
+} from './apiClient';
 import { getSession } from 'next-auth/react';
 import type {
   AnalyticsChartRequest,
@@ -12,9 +16,11 @@ import type {
 
 export class AnalyticsService {
   private authenticatedClient: ApiClient;
+  private serverClient: ApiClient;
 
   constructor() {
     this.authenticatedClient = createAuthenticatedClient();
+    this.serverClient = createServerClient();
   }
 
   private async ensureAuthenticated() {
@@ -43,8 +49,7 @@ export class AnalyticsService {
   async getRecentReadings(
     request: RecentReadingRequest
   ): Promise<RecentReadingsResponse> {
-    await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.get<RecentReadingsResponse>(
+    const response = await this.serverClient.get<RecentReadingsResponse>(
       `/devices/readings/recent?site_id=${request.site_id}`
     );
     return response.data;

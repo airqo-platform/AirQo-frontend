@@ -41,7 +41,7 @@ export function useMapReadings(
       setIsLoading(true);
       setError(null);
       const response: MapReadingsResponse =
-        await deviceService.getMapReadingsAuthenticated(cohort_id);
+        await deviceService.getMapReadingsWithToken(cohort_id);
       setReadings(response.measurements);
     } catch (err) {
       setError(
