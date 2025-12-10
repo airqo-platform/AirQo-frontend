@@ -28,8 +28,8 @@ export default function DevicesTable({
   const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
-  const { userContext } = useUserContext();
-  const isInternalView = userContext === "airqo-internal";
+  const { userContext, activeGroup } = useUserContext();
+  const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
 
   const {
     pagination,

@@ -2,6 +2,7 @@ import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
 import { adminService } from '../services/adminService';
+import { userService } from '../services/userService';
 
 // Get organization requests
 export const useOrganizationRequests = () => {
@@ -214,6 +215,18 @@ export const useUnassignUsersFromRole = () => {
       onSuccess: () => {
         mutate(key => typeof key === 'string' && key.startsWith('admin/'));
       },
+    }
+  );
+};
+
+// Get user statistics
+export const useUserStatistics = () => {
+  return useSWR(
+    'admin/user-statistics',
+    () => userService.getUserStatistics(),
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
   );
 };

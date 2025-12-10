@@ -28,6 +28,7 @@ import type {
   SendGroupInviteResponse,
   UpdateGroupDetailsRequest,
   UpdateGroupDetailsResponse,
+  GetUserStatisticsResponse,
 } from '../types/api';
 
 export class UserService {
@@ -246,16 +247,28 @@ export class UserService {
     groupId: string
   ): Promise<GetGroupJoinRequestsResponse> {
     await this.ensureAuthenticated();
-    const response = await this.authenticatedClient.get<
-      GetGroupJoinRequestsResponse | ApiErrorResponse
-    >(`/users/requests/groups/${groupId}`);
-    const data = response.data;
+    try {
+      const response = await this.authenticatedClient.get<
+        GetGroupJoinRequestsResponse | ApiErrorResponse
+      >(`/users/requests/groups/${groupId}`);
+      const data = response.data;
 
-    if ('success' in data && !data.success) {
-      throw new Error(data.message || 'Failed to get group join requests');
+      if ('success' in data && !data.success) {
+        throw new Error(data.message || 'Failed to get group join requests');
+      }
+
+      return data as GetGroupJoinRequestsResponse;
+    } catch (error: any) {
+      // If the error has response data with success: true, return it
+      if (
+        error.response?.data &&
+        'success' in error.response.data &&
+        error.response.data.success
+      ) {
+        return error.response.data as GetGroupJoinRequestsResponse;
+      }
+      throw error;
     }
-
-    return data as GetGroupJoinRequestsResponse;
   }
 
   // Get group details - authenticated endpoint
@@ -341,6 +354,21 @@ export class UserService {
     }
 
     return data as UpdateGroupDetailsResponse;
+  }
+
+  // Get user statistics - authenticated endpoint
+  async getUserStatistics(): Promise<GetUserStatisticsResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.get<
+      GetUserStatisticsResponse | ApiErrorResponse
+    >('/users/stats');
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to get user statistics');
+    }
+
+    return data as GetUserStatisticsResponse;
   }
 }
 

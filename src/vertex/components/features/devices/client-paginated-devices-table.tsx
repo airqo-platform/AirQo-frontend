@@ -30,8 +30,8 @@ export default function ClientPaginatedDevicesTable({
   hiddenColumns = [],
 }: ClientPaginatedDevicesTableProps) {
   const router = useRouter();
-  const { userContext } = useUserContext();
-  const isInternalView = userContext === "airqo-internal";
+  const { userContext, activeGroup } = useUserContext();
+  const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
 
   const handleDeviceClick = (item: unknown) => {
     const device = item as Device;

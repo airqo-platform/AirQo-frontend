@@ -23,7 +23,7 @@ export const GlobalSidebar: React.FC = () => {
   const sidebarRef = useRef<HTMLDivElement>(null);
   const previousActiveElement = useRef<Element | null>(null);
   const { activeGroup } = useUserActions();
-  const { hasRole, hasPermission } = useRBAC();
+  const { hasPermission, isAirQoSuperAdminWithEmail } = useRBAC();
   const [imageError, setImageError] = React.useState(false);
 
   // Helper function to determine if current group is AirQo
@@ -120,7 +120,7 @@ export const GlobalSidebar: React.FC = () => {
           let href = item.href;
           // Change Administrative Panel href based on permissions
           if (item.id === 'admin-panel') {
-            href = hasRole('AIRQO_SUPER_ADMIN')
+            href = isAirQoSuperAdminWithEmail()
               ? '/admin/org-requests'
               : '/admin/members';
           } else {
@@ -129,10 +129,23 @@ export const GlobalSidebar: React.FC = () => {
           return {
             ...item,
             href,
+            subroutes: item.subroutes?.filter(subroute => {
+              // Hide statistics, clients, and org-requests subroutes if user doesn't have AIRQO_SUPER_ADMIN role
+              if (
+                [
+                  'admin-statistics',
+                  'admin-clients',
+                  'admin-org-requests',
+                ].includes(subroute.id)
+              ) {
+                return isAirQoSuperAdminWithEmail();
+              }
+              return true;
+            }),
           };
         })
     );
-  }, [flow, orgSlug, hasRole, hasPermission]);
+  }, [flow, orgSlug, hasPermission, isAirQoSuperAdminWithEmail]);
 
   // Focus management
   useEffect(() => {

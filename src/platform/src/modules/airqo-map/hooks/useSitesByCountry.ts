@@ -4,6 +4,7 @@ import { deviceService } from '../../../shared/services/deviceService';
 import type {
   SitesSummaryResponse,
   SitesSummaryParams,
+  CohortSitesResponse,
 } from '../../../shared/types/api';
 import { formatCountryForApi } from '../utils/dataNormalization';
 
@@ -11,6 +12,7 @@ export interface UseSitesByCountryParams {
   country?: string;
   enabled?: boolean;
   initialLimit?: number;
+  cohort_id?: string;
 }
 
 export interface UseSitesByCountryResult {
@@ -29,12 +31,13 @@ export interface UseSitesByCountryResult {
 
 /**
  * Hook for fetching sites by country with pagination support
- * Default country is "Uganda", limit is 6
+ * Country is determined dynamically from the countries list
  */
 export function useSitesByCountry({
-  country = 'Uganda',
+  country,
   enabled = true,
   initialLimit = 6,
+  cohort_id,
 }: UseSitesByCountryParams = {}): UseSitesByCountryResult {
   const [sites, setSites] = useState<Record<string, unknown>[]>([]);
   const [totalSites, setTotalSites] = useState(0);
@@ -71,13 +74,25 @@ export function useSitesByCountry({
           ...params,
         };
 
-        // If country is undefined, don't include it in params (shows all sites)
         if (currentCountry) {
           queryParams.country = formatCountryForApi(currentCountry);
         }
 
-        const response: SitesSummaryResponse =
-          await deviceService.getSitesSummaryAuthenticated(queryParams);
+        let response: SitesSummaryResponse | CohortSitesResponse;
+
+        if (cohort_id) {
+          const cohortIds = cohort_id.split(',');
+          response = await deviceService.getCohortSites(
+            { cohort_ids: cohortIds },
+            {
+              ...queryParams,
+              search: queryParams.search,
+            }
+          );
+        } else {
+          response =
+            await deviceService.getSitesSummaryAuthenticated(queryParams);
+        }
 
         if (append) {
           setSites(prev => [...prev, ...response.sites]);
@@ -98,7 +113,7 @@ export function useSitesByCountry({
         }
       }
     },
-    [enabled, initialLimit, currentCountry]
+    [enabled, initialLimit, currentCountry, cohort_id]
   );
 
   const loadMore = useCallback(() => {
@@ -140,7 +155,8 @@ export function useSitesByCountry({
 
   useEffect(() => {
     fetchSites({}, false);
-  }, [fetchSites, currentCountry, enabled]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentCountry, enabled, cohort_id]);
 
   return {
     sites,

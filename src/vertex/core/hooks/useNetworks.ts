@@ -5,9 +5,12 @@ import {
   CreateNetworkPayload,
   CreateNetworkResponse,
 } from "@/core/apis/networks";
+import { DeviceListingOptions } from "./useDevices";
+import { devices } from "../apis/devices";
 import { AxiosError } from "axios";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
 import { getApiErrorMessage } from "../utils/getApiErrorMessage";
+import type { DevicesSummaryResponse } from "@/app/types/devices";
 
 interface ErrorResponse {
   message: string;
@@ -76,4 +79,48 @@ export const useCreateNetwork = (options: UseCreateNetworkOptions = {}) => {
       }
     },
   });
+};
+
+export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
+  const { page = 1, limit = 100, search, sortBy, order, network } = options;
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const skip = (safePage - 1) * safeLimit;
+
+  const queryKey = [
+    "network-devices",
+    { page, limit, search, sortBy, order, network },
+  ];
+
+  const devicesQuery = useQuery<
+    DevicesSummaryResponse,
+    AxiosError<ErrorResponse>
+  >({
+    queryKey,
+    queryFn: async () => {
+      if (!network) {
+        throw new Error("Network is required");
+      }
+      return devices.getDevicesSummaryApi({
+        limit: safeLimit,
+        skip,
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(order && { order }),
+        network: network,
+      });
+    },
+    enabled: !!network,
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
+  });
+
+  return {
+    data: devicesQuery.data,
+    devices: devicesQuery.data?.devices || [],
+    meta: devicesQuery.data?.meta,
+    isLoading: devicesQuery.isLoading,
+    isFetching: devicesQuery.isFetching,
+    error: devicesQuery.error,
+  };
 };

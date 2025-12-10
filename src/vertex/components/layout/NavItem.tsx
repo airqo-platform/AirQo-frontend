@@ -12,12 +12,13 @@ export interface NavItemType {
   disabled?: boolean;
   badge?: string | number;
   activeOverride?: boolean;
+  endIcon?: React.ElementType;
 }
 
 export interface NavItemProps {
   item: NavItemType;
   isCollapsed?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: React.MouseEvent) => void;
   className?: string;
 }
 
@@ -52,7 +53,7 @@ export const NavItem = React.memo<NavItemProps>(
         <div className="relative flex items-center justify-center">
           <Link
             href={item.href}
-            onClick={onClick}
+            onClick={(e) => onClick && onClick(e)}
             className={cn(
               baseStyles,
               'w-10 h-10 rounded-lg justify-center',
@@ -82,7 +83,7 @@ export const NavItem = React.memo<NavItemProps>(
 
         <Link
           href={item.href}
-          onClick={onClick}
+          onClick={(e) => onClick && onClick(e)}
           className={cn(
             baseStyles,
             'w-full gap-3 py-2.5 px-3 rounded-lg',
@@ -105,8 +106,14 @@ export const NavItem = React.memo<NavItemProps>(
             </h3>
           </div>
 
+          {item.endIcon && (
+            <div className={cn("flex items-center justify-center w-5 h-5 ml-auto", iconColor)}>
+              <item.endIcon className="w-4 h-4" />
+            </div>
+          )}
+
           {item.badge && (
-            <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs text-white bg-red-500 rounded-full flex-shrink-0">
+            <span className="flex items-center justify-center h-5 min-w-[20px] px-1.5 text-xs text-white bg-red-500 rounded-full flex-shrink-0 ml-2">
               {item.badge}
             </span>
           )}

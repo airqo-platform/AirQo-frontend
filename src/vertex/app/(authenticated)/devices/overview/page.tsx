@@ -13,7 +13,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useRouter } from "next/navigation";
 
 export default function DevicesPage() {
-  const { isAirQoInternal, isExternalOrg } = useUserContext();
+  const { isPersonalContext, isExternalOrg } = useUserContext();
   const [isCreateDeviceOpen, setCreateDeviceOpen] = useState(false);
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
   const router = useRouter();
@@ -32,7 +32,7 @@ export default function DevicesPage() {
             </p>
           </div>
           <div className="flex gap-2">
-            {isAirQoInternal && (
+            {isPersonalContext && (
               <>
                 <ReusableButton
                   disabled={!canUpdateDevice}

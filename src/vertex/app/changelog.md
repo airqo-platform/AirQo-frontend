@@ -4,6 +4,218 @@
 
 ---
 
+## Version 1.19.0
+**Released:** December 09, 2025
+
+### Administrative Access Refactor & Shipping Controls
+
+Refined access control for the administrative panel and introduced granular permissions for shipping operations, ensuring a secure and streamlined management experience.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Sidebar Access**: "Administrative Panel" is now visible to all key admin roles (`AIRQO_SUPER_ADMIN`, `AIRQO_ADMIN`, `AIRQO_NETWORK_ADMIN`) regardless of network view permissions.
+- **Smart Dropdowns**: Sidebar items are now context-aware. If a user lacks permission for a specific section (e.g. Shipping), the item is disabled and shows a helpful tooltip explaining the missing permission.
+- **Shipping Security**: Introduced explicit `SHIPPING` permissions (`VIEW`, `CREATE`, `EDIT`, `DELETE`) to granularly control access to device logistics.
+- **Route Protection**: The Shipping Management page is now strictly protected by a `RouteGuard`, redirecting unauthorized users.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Added `SHIPPING` permission constants and assigned them to admin roles.
+- Refactored `primary-sidebar.tsx` with a reusable `AdminDropdownItem` component for consistent behavior and tooltip logic.
+- Updated `useUserContext` to expose `canViewShipping`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/permissions/constants.ts`
+- `core/hooks/useUserContext.ts`
+- `components/layout/primary-sidebar.tsx`
+- `app/(authenticated)/admin/shipping/page.tsx`
+
+</details>
+
+---
+
+## Version 1.18.0
+**Released:** December 09, 2025
+
+### Unified Forbidden Access UI
+
+Standardized the "Access Denied" experience across the application by introducing a reusable `ForbiddenError` component, ensuring consistent UI for both full-page and inline error states.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Reusable Forbidden UI**: Extracted the "Oops! Access Denied" UI into a standalone `ForbiddenError` component for use anywhere in the app.
+- **Consistent styling**: `RouteGuard` now renders the exact same friendly error UI as the full page version instead of a basic card.
+- **UI Enhancement**: Upgraded the "Go back" button to use the standardized `ReusableButton` component.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- Created `src/vertex/components/ui/forbidden-error.tsx`.
+- Refactored `src/vertex/components/ui/forbidden-page.tsx` to wrap the new reusable component.
+- Updated `src/vertex/components/layout/accessConfig/route-guard.tsx` to render `ForbiddenError` centered in a container.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/ui/forbidden-error.tsx` (New)
+- `components/ui/forbidden-page.tsx`
+- `components/layout/accessConfig/route-guard.tsx`
+- `app/changelog.md`
+
+</details>
+
+---
+
+## Version 1.17.0
+**Released:** December 09, 2025
+
+### Network Details & Admin Device Views
+
+Introduced a dedicated **Network Details Page** for comprehensive network management and established a unified **Admin Device Details** view, streamlining navigation and device operations within the admin panel.
+
+<details>
+<summary><strong>Improvements (6)</strong></summary>
+
+- **Network Details Page**: New route `/admin/networks/[id]` displaying network info and a dedicated device list.
+- **Recently Visited**: Added a smart "Recently Visited" sidebar item that tracks user navigation history (persisted locally) and aggregates deep links (e.g. Network Details) up to their parent module for efficient backtracking.
+- **Unified Device Layout**: Extracted device details logic into `DeviceDetailsLayout`, creating a consistent experience across Standard and Admin views.
+- **Correct Navigation**: Admin table now routes to `/admin/networks/[id]/devices/[deviceId]`, preserving admin context.
+- **Bulk Actions**: Added "Assign to Cohort" and "Remove from Cohort" bulk actions to the network device list.
+- **Quick Actions**: Added "Add AirQo Device" and "Import Device" buttons with pre-filled network context.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (6)</strong></summary>
+
+- Created `src/vertex/app/(authenticated)/admin/networks/[id]/page.tsx`
+- Created `src/vertex/app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx`
+- Created `src/vertex/core/hooks/useRecentlyVisited.ts`
+- Created `src/vertex/components/features/devices/device-details-layout.tsx`
+- Created `src/vertex/components/features/networks/network-device-list-table.tsx`
+- Added `useNetworkDevices` hook to `useNetworks.ts`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8)</strong></summary>
+
+- `app/(authenticated)/admin/networks/[id]/page.tsx` (New)
+- `app/(authenticated)/admin/networks/[id]/devices/[deviceId]/page.tsx` (New)
+- `components/features/devices/device-details-layout.tsx` (New)
+- `components/features/networks/network-device-list-table.tsx` (New)
+- `core/hooks/useRecentlyVisited.ts` (New)
+- `components/layout/primary-sidebar.tsx`
+- `core/hooks/useNetworks.ts`
+- `app/(authenticated)/devices/overview/[id]/page.tsx`
+
+</details>
+
+---
+
+## Version 1.16.0
+**Released:** December 09, 2025
+
+### Route Centralization & Admin Panel Consolidation
+
+Centralized application route definitions and consolidated administrative navigation to improve maintainability and user experience.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Centralized Route Constants**: Introduced `ROUTE_LINKS` constant to manage all application paths from a single source of truth, eliminating hardcoded strings.
+- **Consolidated Admin Panel**: Created a unified "Administrative Panel" dropdown in the primary sidebar, decluttering the navigation and grouping related admin tasks (Networks, Cohorts, Sites, Grids, Shipping).
+- **File Migration**: Successfully migrated `cohorts`, `sites`, and `grids` pages to the `/admin` directory, ensuring clearer project structure and route organization.
+- **Enhanced Context Routing**: Updated `useContextAwareRouting` and `useUserContext` to robustly handle the new consolidated admin structure and ensure correct visibility based on user roles and permissions.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- Created `src/vertex/core/routes.ts` for centralized route management.
+- Refactored `primary-sidebar.tsx` and `secondary-sidebar.tsx` to utilize `ROUTE_LINKS`.
+- Updated `useContextAwareRouting.ts` to map new `ROUTE_LINKS` to sidebar configuration keys.
+- Extended `useUserContext` state to track `showNetworks` and `showShipping` visibility.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/routes.ts` (New)
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `core/hooks/useContextAwareRouting.ts`
+- `core/hooks/useUserContext.ts`
+
+</details>
+
+---
+
+## Version 1.15.0
+**Released:** December 09, 2025
+
+### Network Management Role & Scoped Navigation
+
+Refined application scoping to enforce strict personal view for AirQo staff and introduced a dedicated `AIRQO_NETWORK_ADMIN` role for granular control over network management features.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Context vs Scope Architecture**: Shifted application logic from relying on raw contexts (e.g. `airqo-internal`) to abstract scopes (`personal` vs `organisation`). This decoupling ensures that internal staff now operate within a standard "Personal" scope, fixing inconsistencies where staff were treated as organization admins in their own private workspace.
+- **Strict Scope Enforcement**: `organisation` scope is now exclusive to external organizations. AirQo internal users default to `personal` scope for a consistent "My Workspace" experience.
+- **Granular Access Control**: Replaced generic admin checks with specific `NETWORK` permissions (VIEW, CREATE, EDIT, DELETE).
+- **Dedicated Role**: Introduced `AIRQO_NETWORK_ADMIN` role for specialized network managers, decoupling this power from general system admins.
+- **Legacy Compatibility**: Automatically maps old `CREATE_UPDATE_AND_DELETE_NETWORKS` permissions to the new granular system.
+
+</details>
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **New Role**: `AIRQO_NETWORK_ADMIN` with full network management capabilities.
+- **Permission Categories**: Added `NETWORK` category to permission service with clear UI descriptions.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- Refactored `useUserContext` to enforce `personal` scope for `airqo-internal` context.
+- Updated `constants.ts` with new permissions and role definitions.
+- Enhanced `permissionService.ts` to recognize and describe network permissions.
+- Fixed sidebar visibility logic to rely purely on permission checks rather than scope state.
+- Removed redundant `isAirQoStaff` flag and logic, enabling context switching for all multi-organization users.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/hooks/useUserContext.ts`
+- `core/permissions/constants.ts`
+- `core/permissions/permissionService.ts`
+- `components/layout/primary-sidebar.tsx`
+- `app/(authenticated)/admin/layout.tsx`
+
+</details>
+
+---
+
 ## Version 1.14.0
 **Released:** December 06, 2025
 
