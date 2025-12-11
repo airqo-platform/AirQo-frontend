@@ -58,9 +58,55 @@ const GoogleTranslate = () => {
       attributeFilter: ['style', 'class'],
     });
 
+    // Add global click listener to handle navigation when translated
+    const handleLinkClick = (e: MouseEvent) => {
+      // Check if translation is active via cookie
+      const cookies = document.cookie.split('; ');
+      const googtransCookie = cookies.find((row) =>
+        row.trim().startsWith('googtrans='),
+      );
+
+      // If no translation cookie, or it's set to English/English (default), we don't need to interfere
+      if (!googtransCookie) return;
+
+      const cookieValue = googtransCookie.split('=')[1].trim();
+      if (cookieValue === '/en/en' || cookieValue === '/auto/en') return;
+
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+
+      if (!anchor) return;
+      if (anchor.target === '_blank') return;
+
+      // Check if it's a valid href
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      // Skip anchor links, mailto, tel, javascript:
+      if (
+        href.startsWith('#') ||
+        href.startsWith('mailto:') ||
+        href.startsWith('tel:') ||
+        href.startsWith('javascript:')
+      )
+        return;
+
+      // Check if it's an external link
+      if (href.startsWith('http') && !href.startsWith(window.location.origin))
+        return;
+
+      // If we are here, it's an internal navigation. Force reload to avoid React hydration issues.
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = href;
+    };
+
+    document.addEventListener('click', handleLinkClick, true);
+
     return () => {
       clearInterval(interval);
       observer.disconnect();
+      document.removeEventListener('click', handleLinkClick, true);
     };
   }, []);
 
