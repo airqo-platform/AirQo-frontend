@@ -4,7 +4,12 @@ import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch, useSelector } from '@/hooks';
 import { externalService } from '@/services/apiService';
@@ -399,6 +404,11 @@ const EngagementDialog = () => {
       <DialogContent
         className={`${mainConfig.containerClass} max-h-[90vh] !p-0 overflow-x-hidden overflow-y-auto md:overflow-hidden`}
       >
+        <DialogTitle className="sr-only">Get Involved</DialogTitle>
+        <DialogDescription className="sr-only">
+          Choose how you&apos;d like to engage with AirQo - as a partner,
+          policymaker, community champion, researcher, or developer.
+        </DialogDescription>
         <div className="flex flex-col lg:flex-row">
           {/* Left Side - Breadcrumb and Text with Animation */}
           <motion.div
