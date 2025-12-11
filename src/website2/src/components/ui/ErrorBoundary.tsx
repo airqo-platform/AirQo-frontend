@@ -2,6 +2,10 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 import logger from '@/utils/logger';
+import {
+  getSessionStorageItem,
+  setSessionStorageItem,
+} from '@/utils/storageUtils';
 
 import CustomButton from './CustomButton';
 
@@ -74,12 +78,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
           error.message.includes('Minified React error');
 
         if (isDomError) {
-          const lastReload = sessionStorage.getItem('gt_reload_ts');
+          const lastReload = getSessionStorageItem<string>('gt_reload_ts');
           const now = Date.now();
 
           // Prevent infinite loops: only reload if last reload was > 10 seconds ago
-          if (!lastReload || now - parseInt(lastReload) > 10000) {
-            sessionStorage.setItem('gt_reload_ts', now.toString());
+          if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+            setSessionStorageItem('gt_reload_ts', now.toString());
             window.location.reload();
             return;
           }

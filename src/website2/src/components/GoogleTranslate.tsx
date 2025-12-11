@@ -60,6 +60,18 @@ const GoogleTranslate = () => {
 
     // Add global click listener to handle navigation when translated
     const handleLinkClick = (e: MouseEvent) => {
+      // Ignore non-primary or modified clicks, and events already handled
+      if (
+        e.defaultPrevented ||
+        e.button !== 0 ||
+        e.metaKey ||
+        e.ctrlKey ||
+        e.shiftKey ||
+        e.altKey
+      ) {
+        return;
+      }
+
       // Check if translation is active via cookie
       const cookies = document.cookie.split('; ');
       const googtransCookie = cookies.find((row) =>
@@ -69,11 +81,11 @@ const GoogleTranslate = () => {
       // If no translation cookie, or it's set to English/English (default), we don't need to interfere
       if (!googtransCookie) return;
 
-      const cookieValue = googtransCookie.split('=')[1].trim();
+      const cookieValue = googtransCookie.split('=')[1]?.trim();
       if (cookieValue === '/en/en' || cookieValue === '/auto/en') return;
 
-      const target = e.target as HTMLElement;
-      const anchor = target.closest('a');
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest('a');
 
       if (!anchor) return;
       if (anchor.target === '_blank') return;
