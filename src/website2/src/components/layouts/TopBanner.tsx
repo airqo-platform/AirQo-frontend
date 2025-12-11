@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
+import { FaXTwitter } from 'react-icons/fa6';
 
 import LanguageModal from '@/components/dialogs/LanguageModal';
 import GoogleTranslate from '@/components/GoogleTranslate';
@@ -9,8 +11,8 @@ import { Language, languages } from '@/utils/languages';
 const TopBanner = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<Language>(
-    languages[0],
-  ); // Default to English
+    languages.find((l) => l.code === 'en-GB') || languages[0],
+  ); // Default to English UK
 
   useEffect(() => {
     // Check for existing google translate cookie
@@ -50,7 +52,45 @@ const TopBanner = () => {
     <>
       <GoogleTranslate />
       <div className="w-full bg-blue-50 border-b border-blue-100">
-        <div className="container mx-auto max-w-5xl px-2 flex justify-end items-center py-1">
+        <div className="container mx-auto max-w-5xl px-2 flex justify-between items-center py-1">
+          <div className="flex items-center space-x-4">
+            <a
+              href="https://www.facebook.com/AirQo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
+              aria-label="Follow us on Facebook"
+            >
+              <FaFacebookF size={14} />
+            </a>
+            <a
+              href="https://x.com/AirQoProject"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
+              aria-label="Follow us on Twitter"
+            >
+              <FaXTwitter size={14} />
+            </a>
+            <a
+              href="https://www.linkedin.com/company/airqo/mycompany/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
+              aria-label="Follow us on LinkedIn"
+            >
+              <FaLinkedinIn size={14} />
+            </a>
+            <a
+              href="https://www.youtube.com/channel/UCx7YtV55TcqKGeKsDdT5_XQ"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 bg-blue-50 rounded-full p-2 hover:bg-blue-200 transition-all"
+              aria-label="Subscribe to our YouTube channel"
+            >
+              <FaYoutube size={14} />
+            </a>
+          </div>
           <button
             onClick={() => setIsModalOpen(true)}
             className="flex items-center space-x-2 text-gray-700 hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-md px-3 py-1.5 text-sm"

@@ -11,10 +11,17 @@ export const languages: Language[] = [
   // Default
   {
     code: 'en',
-    name: 'English',
+    name: 'English (US)',
+    flag: '🇺🇸',
+    country: 'United States',
+    region: 'Global',
+  },
+  {
+    code: 'en-GB',
+    name: 'English (UK)',
     flag: '🇬🇧',
-    country: 'Pan-African',
-    region: 'Africa',
+    country: 'United Kingdom',
+    region: 'Europe',
   },
 
   // Africa
@@ -109,6 +116,20 @@ export const languages: Language[] = [
     name: 'Russian',
     flag: '🇷🇺',
     country: 'Russia',
+    region: 'Europe',
+  },
+  {
+    code: 'sv',
+    name: 'Swedish',
+    flag: '🇸🇪',
+    country: 'Sweden',
+    region: 'Europe',
+  },
+  {
+    code: 'fi',
+    name: 'Finnish',
+    flag: '🇫🇮',
+    country: 'Finland',
     region: 'Europe',
   },
 
