@@ -4,6 +4,36 @@
 
 ---
 
+## Version 1.20.0
+**Released:** December 11, 2025
+
+### Strict Admin Panel Restriction
+
+Restricted visibility of the "Administrative Panel" to strictly enforce role-based access. The permission-based override has been removed to ensure only specific AirQo administrative roles can access this sensitive area.
+
+<details>
+<summary><strong>Improvements (1)</strong></summary>
+
+- **Strict Role Enforcement**: Removed the lenient `NETWORK_VIEW` permission check. Access is now exclusively granted to users with `AIRQO_SUPER_ADMIN`, `AIRQO_ADMIN`, or `AIRQO_NETWORK_ADMIN` roles.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (1)</strong></summary>
+
+- Modified `primary-sidebar.tsx` to remove the `permissions.canViewNetworks` condition from the `canViewAdminPanel` logic.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `components/layout/primary-sidebar.tsx`
+
+</details>
+
+---
+
 ## Version 1.19.0
 **Released:** December 09, 2025
 
