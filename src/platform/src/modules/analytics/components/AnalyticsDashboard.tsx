@@ -22,6 +22,7 @@ import type { SiteData } from '../types';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -192,19 +193,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     );
   }
 
-  // Helper to get environment-aware URL
-  const getUrl = (baseUrl: string): string => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    if (isProduction) return baseUrl;
-    try {
-      const url = new URL(baseUrl);
-      url.hostname = `staging-${url.hostname}`;
-      return url.toString();
-    } catch {
-      return baseUrl;
-    }
-  };
-
   // Check if all site cards have no data (organization info is private)
   const hasNoDataForAllSites =
     !isInitialLoading &&
@@ -222,7 +210,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
               Your organization&apos;s data is private. Update visibility
               settings in{' '}
               <Link
-                href={getUrl('https://vertex.airqo.net')}
+                href={getEnvironmentAwareUrl('https://vertex.airqo.net')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"

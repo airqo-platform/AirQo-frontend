@@ -12,10 +12,8 @@ import {
 import type { RootState } from '../../shared/store';
 import type { AirQualityReading } from '@/modules/airqo-map/components/map/MapNodes';
 import type { MapReading } from '../../shared/types/api';
-import {
-  normalizeMapReadings,
-  calculateMapBounds,
-} from './utils/dataNormalization';
+import { normalizeMapReadings } from './utils/dataNormalization';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 // import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
 import { InfoBanner } from '@/shared/components/ui/banner';
@@ -100,19 +98,6 @@ const MapPage: React.FC<MapPageProps> = ({
     refetch,
   } = useMapReadings(cohortId);
 
-  // Helper to get environment-aware URL
-  const getUrl = (baseUrl: string): string => {
-    const isProduction = process.env.NODE_ENV === 'production';
-    if (isProduction) return baseUrl;
-    try {
-      const url = new URL(baseUrl);
-      url.hostname = `staging-${url.hostname}`;
-      return url.toString();
-    } catch {
-      return baseUrl;
-    }
-  };
-
   // Check if map data is completely empty (organization info is private)
   const hasNoMapData =
     !mapDataLoading && readings.length === 0 && isOrganizationFlow;
@@ -149,39 +134,6 @@ const MapPage: React.FC<MapPageProps> = ({
       return true;
     });
   }, [readings, waqiReadings, selectedPollutant, cohortId, isOrganizationFlow]);
-
-  const hasAutoZoomedRef = React.useRef(false);
-  React.useEffect(() => {
-    if (
-      isOrganizationFlow &&
-      normalizedReadings.length > 0 &&
-      !hasAutoZoomedRef.current &&
-      !mapDataLoading
-    ) {
-      const bounds = calculateMapBounds(normalizedReadings);
-      if (bounds) {
-        setFlyToLocation({
-          longitude: bounds.center.longitude,
-          latitude: bounds.center.latitude,
-          zoom: bounds.zoom,
-        });
-
-        if (flyToTimeoutRef.current) {
-          clearTimeout(flyToTimeoutRef.current);
-        }
-        flyToTimeoutRef.current = setTimeout(() => {
-          setFlyToLocation(undefined);
-          flyToTimeoutRef.current = null;
-        }, 1500);
-
-        hasAutoZoomedRef.current = true;
-      }
-    }
-
-    if (cohortId) {
-      hasAutoZoomedRef.current = false;
-    }
-  }, [isOrganizationFlow, normalizedReadings, mapDataLoading, cohortId]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -308,7 +260,7 @@ const MapPage: React.FC<MapPageProps> = ({
                   <>
                     Your organization&apos;s information is set to private. Use{' '}
                     <a
-                      href={getUrl('https://vertex.airqo.net')}
+                      href={getEnvironmentAwareUrl('https://vertex.airqo.net')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 underline"
@@ -347,7 +299,7 @@ const MapPage: React.FC<MapPageProps> = ({
                   <>
                     Your organization&apos;s information is set to private. Use{' '}
                     <a
-                      href={getUrl('https://vertex.airqo.net')}
+                      href={getEnvironmentAwareUrl('https://vertex.airqo.net')}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 underline"

@@ -232,6 +232,13 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     if (status === 'authenticated') {
       setHasLoggedOutForExpiration(false);
       setHasHandledUnauthorized(false);
+      // Clear any stale unauthorized counters
+      try {
+        localStorage.removeItem('unauthorized_count');
+        localStorage.removeItem('last_unauthorized');
+      } catch {
+        // Ignore localStorage errors
+      }
     }
   }, [status]);
 
