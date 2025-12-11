@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tooltip } from 'flowbite-react';
 import { IoChevronDown, IoChevronUp } from 'react-icons/io5';
 import { cn } from '@/shared/lib/utils';
@@ -21,7 +21,13 @@ export const MapLegend: React.FC<MapLegendProps> = ({
   defaultCollapsed = false,
   pollutant = 'pm2_5',
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    // Check if on mobile (width < 768px) and default to collapsed
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768 || defaultCollapsed;
+    }
+    return defaultCollapsed;
+  });
 
   // Convert POLLUTANT_RANGES to displayable format
   const getPollutantRanges = (pollutantType: PollutantType) => {
@@ -55,6 +61,19 @@ export const MapLegend: React.FC<MapLegendProps> = ({
   };
 
   const ranges = getPollutantRanges(pollutant);
+
+  // Handle window resize to update collapsed state on mobile/desktop switch
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== 'undefined') {
+        const isMobile = window.innerWidth < 768;
+        setIsCollapsed(prev => isMobile || defaultCollapsed);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [defaultCollapsed]);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);

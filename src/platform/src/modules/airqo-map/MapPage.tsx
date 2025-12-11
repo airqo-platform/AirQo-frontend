@@ -18,6 +18,7 @@ import {
 } from './utils/dataNormalization';
 // import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
+import { InfoBanner } from '@/shared/components/ui/banner';
 
 interface MapPageProps {
   cohortId?: string;
@@ -98,6 +99,23 @@ const MapPage: React.FC<MapPageProps> = ({
     isLoading: mapDataLoading,
     refetch,
   } = useMapReadings(cohortId);
+
+  // Helper to get environment-aware URL
+  const getUrl = (baseUrl: string): string => {
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction) return baseUrl;
+    try {
+      const url = new URL(baseUrl);
+      url.hostname = `staging-${url.hostname}`;
+      return url.toString();
+    } catch {
+      return baseUrl;
+    }
+  };
+
+  // Check if map data is completely empty (organization info is private)
+  const hasNoMapData =
+    !mapDataLoading && readings.length === 0 && isOrganizationFlow;
 
   // Disable WAQI data loading - keep logic for future enablement
   const allCities = React.useMemo(() => {
@@ -280,7 +298,31 @@ const MapPage: React.FC<MapPageProps> = ({
           />
         </div>
 
-        <div className="flex-1 min-w-0 h-full">
+        <div className="flex-1 min-w-0 h-full relative">
+          {/* Info Banner for Private Organization Data */}
+          {hasNoMapData && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[10000] w-full max-w-2xl px-4">
+              <InfoBanner
+                title="Map data unavailable"
+                message={
+                  <>
+                    Your organization&apos;s information is set to private. Use{' '}
+                    <a
+                      href={getUrl('https://vertex.airqo.net')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Vertex
+                    </a>{' '}
+                    to manage data visibility and make it public to view air
+                    quality measurements.
+                  </>
+                }
+                className="shadow-lg bg-white/95 backdrop-blur-sm z-[10000] border-blue-200"
+              />
+            </div>
+          )}
           <EnhancedMap
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}
@@ -295,7 +337,31 @@ const MapPage: React.FC<MapPageProps> = ({
       </div>
 
       <div className="flex flex-col h-full md:hidden">
-        <div className="h-1/2 flex-shrink-0">
+        <div className="h-1/2 flex-shrink-0 relative">
+          {/* Info Banner for Private Organization Data */}
+          {hasNoMapData && (
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full px-4">
+              <InfoBanner
+                title="Map data unavailable"
+                message={
+                  <>
+                    Your organization&apos;s information is set to private. Use{' '}
+                    <a
+                      href={getUrl('https://vertex.airqo.net')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Vertex
+                    </a>{' '}
+                    to manage data visibility and make it public to view air
+                    quality measurements.
+                  </>
+                }
+                className="shadow-lg bg-white/95 backdrop-blur-sm border-blue-200 text-sm"
+              />
+            </div>
+          )}
           <EnhancedMap
             airQualityData={normalizedReadings}
             onNodeClick={handleNodeClick}

@@ -56,7 +56,12 @@ export const MapLayout: React.FC<MainLayoutProps> = ({
             )}
 
             {/* Main Content Area - Full Height for Map */}
-            <div className="flex flex-col flex-1 min-h-0">
+            <div
+              className={cn(
+                'flex flex-col flex-1 min-h-0',
+                showBottomNav && 'pb-[65px] md:pb-0'
+              )}
+            >
               <div className="flex-1 flex flex-col">
                 {userLoading ? (
                   <div className="flex items-center justify-center flex-1">
