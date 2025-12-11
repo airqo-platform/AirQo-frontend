@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
-import TopBanner from '@/components/layouts/TopBanner';
 import { CustomButton } from '@/components/ui';
 
 const ExplorePage = () => {
@@ -28,7 +27,6 @@ const ExplorePage = () => {
 
   return (
     <div className="bg-gray-300 min-h-screen flex flex-col">
-      <TopBanner />
       <div className="flex-1 flex justify-center items-center px-4">
         <div className="max-w-5xl w-full bg-white shadow-md relative overflow-hidden lg:h-[600px]">
           {/* Close Button */}

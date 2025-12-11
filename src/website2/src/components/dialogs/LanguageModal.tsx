@@ -32,7 +32,7 @@ const LanguageModal: React.FC<LanguageModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 overflow-hidden">
+      <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0 overflow-hidden notranslate">
         <DialogHeader className="p-6 pb-2">
           <DialogTitle className="text-2xl font-bold text-gray-900">
             Select Language
