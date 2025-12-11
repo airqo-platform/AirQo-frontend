@@ -6,7 +6,6 @@ import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import LanguageModal from '@/components/dialogs/LanguageModal';
-import GoogleTranslate from '@/components/GoogleTranslate';
 import { getFlagUrl, Language, languages } from '@/utils/languages';
 
 const TopBanner = () => {
@@ -26,12 +25,14 @@ const TopBanner = () => {
     const googtrans = getCookie('googtrans');
     if (googtrans) {
       const langCode = googtrans.split('/').pop();
-      const foundLang = languages.find((l) => l.code === langCode);
-      if (foundLang) {
-        setSelectedLanguage(foundLang);
+      if (langCode) {
+        const foundLang = languages.find((l) => l.code === langCode);
+        if (foundLang) {
+          setSelectedLanguage(foundLang);
+        }
       }
     }
-  }, []);
+  }, []); // Empty dependency array - only run once on mount
 
   const handleLanguageSelect = (lang: Language) => {
     setSelectedLanguage(lang);
@@ -51,7 +52,6 @@ const TopBanner = () => {
 
   return (
     <>
-      <GoogleTranslate />
       <div className="w-full bg-blue-50 border-b border-blue-100">
         <div className="container mx-auto max-w-5xl px-2 flex justify-between items-center py-1">
           <div className="flex items-center space-x-4">
