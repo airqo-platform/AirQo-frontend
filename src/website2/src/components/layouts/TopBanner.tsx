@@ -17,9 +17,9 @@ const TopBanner = () => {
   useEffect(() => {
     // Check for existing google translate cookie
     const getCookie = (name: string): string | undefined => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      const cookies = document.cookie.split(';');
+      const cookie = cookies.find((c) => c.trim().startsWith(`${name}=`));
+      return cookie ? cookie.split('=')[1] : undefined;
     };
 
     const googtrans = getCookie('googtrans');
@@ -48,11 +48,34 @@ const TopBanner = () => {
 
     // Set the google translate cookie with the format /auto/target_lang
     const cookieValue = `/auto/${lang.code}`;
-    const domain = window.location.hostname.replace(/^www\./, '');
+    const hostname = window.location.hostname;
 
-    // Set cookie for both domain and without domain (for localhost)
-    document.cookie = `googtrans=${cookieValue}; path=/; domain=${domain}; max-age=31536000`;
-    document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+    // Helper to delete cookie with specific domain
+    const deleteCookie = (name: string, domain?: string) => {
+      document.cookie = `${name}=; path=/; domain=${domain}; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
+      document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
+    };
+
+    // 1. Aggressively clear existing cookies to avoid conflicts
+    // Clear for current hostname, root domain, and all parent domains
+    const domains = hostname.split('.');
+    while (domains.length > 0) {
+      const d = domains.join('.');
+      deleteCookie('googtrans', d);
+      deleteCookie('googtrans', `.${d}`);
+      domains.shift();
+    }
+    deleteCookie('googtrans'); // Clear without domain
+
+    // 2. Set new cookie
+    if (hostname === 'localhost') {
+      document.cookie = `googtrans=${cookieValue}; path=/; max-age=31536000`;
+    } else {
+      // Set on the current domain with a leading dot to support subdomains
+      // This ensures it's treated as a domain cookie
+      const domain = hostname.replace(/^www\./, '');
+      document.cookie = `googtrans=${cookieValue}; path=/; domain=.${domain}; max-age=31536000`;
+    }
 
     // Reload the page to apply translation
     window.location.reload();
