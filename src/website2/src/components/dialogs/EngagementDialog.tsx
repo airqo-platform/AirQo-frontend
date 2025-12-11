@@ -7,8 +7,8 @@ import { FiArrowLeft } from 'react-icons/fi';
 import {
   Dialog,
   DialogContent,
-  DialogTitle,
   DialogDescription,
+  DialogTitle,
 } from '@/components/ui/dialog';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch, useSelector } from '@/hooks';
