@@ -9,6 +9,7 @@ import { UserDataFetcher } from './UserDataFetcher';
 import { selectActiveGroup, selectLoggingOut } from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
+import logger from '@/shared/lib/logger';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -81,7 +82,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         url?.startsWith('/devices/readings/recent') ||
         url?.startsWith('/devices/readings/map')
       ) {
-        console.log(
+        logger.info(
           '401 on readings API - not logging out, likely permission issue for specific sites'
         );
         return;
@@ -105,7 +106,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
         if (accountDeleted === 'true') {
           // Account was deleted, clear flags and logout immediately
-          console.log('Account deletion detected, logging out...');
+          logger.info('Account deletion detected, logging out...');
           setHasHandledUnauthorized(true);
           try {
             localStorage.removeItem('account_deleted');
@@ -150,7 +151,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         // Get fresh session data
         const freshSession = await getSession();
         if (freshSession && freshSession.user) {
-          console.log(
+          logger.warn(
             '401 received but session is valid - likely permissions issue or account deleted'
           );
           // If we get here and have made multiple 401 calls recently, it might be account deletion
@@ -167,7 +168,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
           if (now - lastUnauthorized < 30000 && unauthorizedCount >= 2) {
             // 30 seconds, 3+ calls
-            console.log(
+            logger.warn(
               'Multiple 401s with valid session - possible account deletion, logging out...'
             );
             setHasHandledUnauthorized(true);
@@ -191,7 +192,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         }
 
         // Session is expired, logout
-        console.log('Session expired, logging out...');
+        logger.info('Session expired, logging out...');
         setHasHandledUnauthorized(true);
         toast.error(
           'Session Expired',
@@ -244,7 +245,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       !isLoggingOut &&
       !hasHandledUnauthorized
     ) {
-      console.log('Status unauthenticated on protected route, logging out');
+      logger.info('Status unauthenticated on protected route, logging out');
       setHasLoggedOutForExpiration(true);
       logout();
     }
