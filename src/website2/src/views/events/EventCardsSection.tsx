@@ -71,10 +71,8 @@ const EventCardsSection: React.FC<{
                   <Image
                     src={imageSrc}
                     alt={event.title || 'Event image'}
-                    layout="fill"
-                    objectFit="cover"
-                    objectPosition="center"
-                    className="rounded-t-lg transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
+                    fill
+                    className="object-cover object-center rounded-t-lg transition-transform duration-500 ease-in-out transform hover:scale-110 cursor-pointer"
                   />
 
                   {/* Status badge */}

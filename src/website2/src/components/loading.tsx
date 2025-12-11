@@ -17,7 +17,7 @@ const Loading: React.FC<LoadingProps> = ({
   return (
     <div className={containerClasses}>
       <span
-        className="loader"
+        className="loading-spinner"
         style={{
           width:
             size === 'small' ? '24px' : size === 'medium' ? '36px' : '48px',
@@ -26,12 +26,12 @@ const Loading: React.FC<LoadingProps> = ({
         }}
       ></span>
       <style jsx>{`
-        .loader {
+        .loading-spinner {
           display: inline-block;
           position: relative;
         }
-        .loader::after,
-        .loader::before {
+        .loading-spinner::after,
+        .loading-spinner::before {
           content: '';
           width: 100%;
           height: 100%;
@@ -43,7 +43,7 @@ const Loading: React.FC<LoadingProps> = ({
           box-sizing: border-box;
           animation: animloader 2s ease-in-out infinite;
         }
-        .loader::after {
+        .loading-spinner::after {
           animation-delay: 1s;
         }
 

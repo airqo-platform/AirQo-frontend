@@ -33,6 +33,7 @@ const ExplorePage = () => {
           <Link
             href="/"
             className="absolute top-4 right-4 text-gray-600 hover:text-gray-800 p-2"
+            aria-label="Close and return to home"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -112,8 +113,8 @@ const ExplorePage = () => {
                       <Image
                         src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911841/website/photos/OurProducts/MobileApp/Home___Open_Card___Open_Health_Alerts_cvzvnz.png"
                         alt="AirQo App"
-                        layout="fill"
-                        objectFit="contain"
+                        fill
+                        className="object-contain"
                         priority
                       />
                     </div>
@@ -136,8 +137,8 @@ const ExplorePage = () => {
                       <Image
                         src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728918807/website/photos/explore/air-quality-platform_s8c3su.svg"
                         alt="Air Quality Analytics"
-                        layout="fill"
-                        objectFit="contain"
+                        fill
+                        className="object-contain"
                         priority
                       />
                     </div>

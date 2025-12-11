@@ -69,9 +69,9 @@ The `languages.ts` file contains the list of supported languages:
 
 ```typescript
 export const languages = [
-  { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'en-GB', name: 'English (UK)', flag: '🇬🇧' },
-  // ... more languages
+  { code: 'en', name: 'English (US)', flag: 'us' },
+  { code: 'en-GB', name: 'English (UK)', flag: 'gb' },
+  // ...more languages, using ISO 3166-1 alpha-2 country codes for `flag`
 ];
 ```
 
@@ -397,7 +397,7 @@ interface GoogleTranslateProps {
 interface LanguageModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onLanguageSelect: (language: string) => void;
+  onSelectLanguage: (language: Language) => void;
 }
 ```
 

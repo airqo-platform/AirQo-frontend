@@ -29,9 +29,8 @@ const NoData: React.FC<NoDataProps> = ({
         <Image
           src={imageSrc || Image_404}
           alt={altText}
-          layout="fill"
-          objectFit="contain"
-          className="mx-auto"
+          fill
+          className="object-contain mx-auto"
         />
       </div>
 
