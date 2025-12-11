@@ -1,12 +1,13 @@
 'use client';
 
+import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { FaFacebookF, FaLinkedinIn, FaYoutube } from 'react-icons/fa';
 import { FaXTwitter } from 'react-icons/fa6';
 
 import LanguageModal from '@/components/dialogs/LanguageModal';
 import GoogleTranslate from '@/components/GoogleTranslate';
-import { Language, languages } from '@/utils/languages';
+import { getFlagUrl, Language, languages } from '@/utils/languages';
 
 const TopBanner = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -97,11 +98,26 @@ const TopBanner = () => {
             aria-label="Select language"
           >
             <span
-              className="text-xl"
+              className="flex items-center justify-center w-5 h-4 overflow-hidden rounded border border-gray-200"
               role="img"
               aria-label={selectedLanguage.country}
             >
-              {selectedLanguage.flag}
+              <Image
+                src={getFlagUrl(selectedLanguage.flag)}
+                alt={`${selectedLanguage.country} flag`}
+                width={20}
+                height={16}
+                className="object-cover"
+                unoptimized
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.innerHTML = `<span class="flex items-center justify-center w-full h-full bg-blue-100 text-blue-600 font-semibold text-[9px] rounded border border-blue-200">${selectedLanguage.code.split('-')[0].toUpperCase()}</span>`;
+                  }
+                }}
+              />
             </span>
             <span className="font-medium">{selectedLanguage.name}</span>
           </button>

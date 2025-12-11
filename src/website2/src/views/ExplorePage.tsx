@@ -146,7 +146,13 @@ const ExplorePage = () => {
                     An interactive air quality analytics platform
                   </p>
                   <CustomButton
-                    onClick={() => window.open('https://analytics.airqo.net/')}
+                    onClick={() =>
+                      window.open(
+                        'https://analytics.airqo.net/',
+                        '_blank',
+                        'noopener,noreferrer',
+                      )
+                    }
                     className="text-white"
                   >
                     Air Quality Analytics

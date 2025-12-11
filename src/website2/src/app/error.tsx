@@ -56,11 +56,12 @@ export default function GlobalError({
               Try Again
             </CustomButton>
 
-            <Link href="/">
-              <CustomButton className="bg-gray-600 text-white">
-                Go to Homepage
-              </CustomButton>
-            </Link>
+            <CustomButton
+              className="bg-gray-600 text-white"
+              onClick={() => (window.location.href = '/')}
+            >
+              Go to Homepage
+            </CustomButton>
           </div>
 
           <div className="mt-8 text-sm text-gray-500">

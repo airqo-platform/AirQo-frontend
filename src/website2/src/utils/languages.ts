@@ -1,10 +1,15 @@
 export interface Language {
   code: string;
   name: string;
-  flag: string;
+  flag: string; // ISO country code for flag (e.g., 'us', 'gb', 'fr')
   country: string;
   region: string;
 }
+
+// Helper function to get flag URL from country code
+export const getFlagUrl = (countryCode: string): string => {
+  return `https://flagcdn.com/w80/${countryCode.toLowerCase()}.png`;
+};
 
 // Curated list of languages based on AirQo's target regions
 export const languages: Language[] = [
@@ -12,14 +17,14 @@ export const languages: Language[] = [
   {
     code: 'en',
     name: 'English (US)',
-    flag: '🇺🇸',
+    flag: 'us',
     country: 'United States',
     region: 'Global',
   },
   {
     code: 'en-GB',
     name: 'English (UK)',
-    flag: '🇬🇧',
+    flag: 'gb',
     country: 'United Kingdom',
     region: 'Europe',
   },
@@ -28,50 +33,85 @@ export const languages: Language[] = [
   {
     code: 'fr',
     name: 'French',
-    flag: '🇫🇷',
+    flag: 'fr',
     country: 'France/Africa',
     region: 'Africa',
   },
   {
     code: 'sw',
     name: 'Swahili',
-    flag: '🇰🇪',
+    flag: 'ke',
     country: 'East Africa',
     region: 'Africa',
   },
   {
     code: 'ar',
     name: 'Arabic',
-    flag: '🇸🇦',
+    flag: 'sa',
     country: 'North Africa',
     region: 'Africa',
   },
   {
     code: 'pt',
     name: 'Portuguese',
-    flag: '🇵🇹',
+    flag: 'pt',
     country: 'Portugal/Africa',
     region: 'Africa',
   },
   {
     code: 'ha',
     name: 'Hausa',
-    flag: '🇳🇬',
+    flag: 'ng',
     country: 'West Africa',
     region: 'Africa',
   },
   {
     code: 'am',
     name: 'Amharic',
-    flag: '🇪🇹',
+    flag: 'et',
     country: 'Ethiopia',
     region: 'Africa',
   },
   {
     code: 'zu',
     name: 'Zulu',
-    flag: '🇿🇦',
+    flag: 'za',
     country: 'Southern Africa',
+    region: 'Africa',
+  },
+  {
+    code: 'yo',
+    name: 'Yoruba',
+    flag: 'ng',
+    country: 'Nigeria',
+    region: 'Africa',
+  },
+  {
+    code: 'ig',
+    name: 'Igbo',
+    flag: 'ng',
+    country: 'Nigeria',
+    region: 'Africa',
+  },
+  {
+    code: 'so',
+    name: 'Somali',
+    flag: 'so',
+    country: 'Somalia',
+    region: 'Africa',
+  },
+  {
+    code: 'rw',
+    name: 'Kinyarwanda',
+    flag: 'rw',
+    country: 'Rwanda',
+    region: 'Africa',
+  },
+  {
+    code: 'mg',
+    name: 'Malagasy',
+    flag: 'mg',
+    country: 'Madagascar',
     region: 'Africa',
   },
 
@@ -79,56 +119,56 @@ export const languages: Language[] = [
   {
     code: 'es',
     name: 'Spanish',
-    flag: '🇪🇸',
+    flag: 'es',
     country: 'Spain/S.America',
     region: 'Europe',
   },
   {
     code: 'de',
     name: 'German',
-    flag: '🇩🇪',
+    flag: 'de',
     country: 'Germany',
     region: 'Europe',
   },
   {
     code: 'it',
     name: 'Italian',
-    flag: '🇮🇹',
+    flag: 'it',
     country: 'Italy',
     region: 'Europe',
   },
   {
     code: 'pl',
     name: 'Polish',
-    flag: '🇵🇱',
+    flag: 'pl',
     country: 'Poland',
     region: 'Europe',
   },
   {
     code: 'nl',
     name: 'Dutch',
-    flag: '🇳🇱',
+    flag: 'nl',
     country: 'Netherlands',
     region: 'Europe',
   },
   {
     code: 'ru',
     name: 'Russian',
-    flag: '🇷🇺',
+    flag: 'ru',
     country: 'Russia',
     region: 'Europe',
   },
   {
     code: 'sv',
     name: 'Swedish',
-    flag: '🇸🇪',
+    flag: 'se',
     country: 'Sweden',
     region: 'Europe',
   },
   {
     code: 'fi',
     name: 'Finnish',
-    flag: '🇫🇮',
+    flag: 'fi',
     country: 'Finland',
     region: 'Europe',
   },
@@ -137,37 +177,37 @@ export const languages: Language[] = [
   {
     code: 'zh-CN',
     name: 'Chinese (Simplified)',
-    flag: '🇨🇳',
+    flag: 'cn',
     country: 'China',
     region: 'Asia',
   },
-  { code: 'hi', name: 'Hindi', flag: '🇮🇳', country: 'India', region: 'Asia' },
+  { code: 'hi', name: 'Hindi', flag: 'in', country: 'India', region: 'Asia' },
   {
     code: 'ja',
     name: 'Japanese',
-    flag: '🇯🇵',
+    flag: 'jp',
     country: 'Japan',
     region: 'Asia',
   },
   {
     code: 'ko',
     name: 'Korean',
-    flag: '🇰🇷',
+    flag: 'kr',
     country: 'South Korea',
     region: 'Asia',
   },
-  { code: 'th', name: 'Thai', flag: '🇹🇭', country: 'Thailand', region: 'Asia' },
+  { code: 'th', name: 'Thai', flag: 'th', country: 'Thailand', region: 'Asia' },
   {
     code: 'vi',
     name: 'Vietnamese',
-    flag: '🇻🇳',
+    flag: 'vn',
     country: 'Vietnam',
     region: 'Asia',
   },
   {
     code: 'id',
     name: 'Indonesian',
-    flag: '🇮🇩',
+    flag: 'id',
     country: 'Indonesia',
     region: 'Asia',
   },

@@ -405,5 +405,4 @@ interface LanguageModalProps {
 
 This Google Translate integration provides a robust, user-friendly way to make your website accessible to a global audience. By following this documentation, you can ensure proper setup, configuration, and maintenance of the translation functionality.
 
-For additional support or questions, refer to the Google Translate documentation or contact the development team.</content>
-<filePath="d:\projects\AirQo project\AirQo-frontend\src\website2\docs\GOOGLE_TRANSLATE_INTEGRATION.md
+For additional support or questions, refer to the Google Translate documentation or contact the development team.

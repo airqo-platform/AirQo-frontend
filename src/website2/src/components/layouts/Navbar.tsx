@@ -246,7 +246,7 @@ const Navbar: React.FC = () => {
           </div>
           {/* Mobile Navigation */}
           {menuOpen && (
-            <div className="absolute top-[107px] left-0 w-full bg-white shadow-lg p-4 md:hidden z-40">
+            <div className="absolute top-full left-0 w-full bg-white shadow-lg p-4 md:hidden z-40">
               {Object.entries(menuItems).map(([title, items]) => (
                 <div key={title} className="mb-4">
                   <button
