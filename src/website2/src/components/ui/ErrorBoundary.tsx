@@ -2,6 +2,10 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 
 import logger from '@/utils/logger';
+import {
+  getSessionStorageItem,
+  setSessionStorageItem,
+} from '@/utils/storageUtils';
 
 import CustomButton from './CustomButton';
 
@@ -58,6 +62,34 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       userAgent: typeof window !== 'undefined' ? navigator.userAgent : 'SSR',
       url: typeof window !== 'undefined' ? window.location.href : 'SSR',
     });
+
+    // Auto-recovery for Google Translate related errors
+    if (typeof window !== 'undefined') {
+      const isTranslated =
+        document.cookie.includes('googtrans=') ||
+        document.body.classList.contains('translated-ltr') ||
+        document.body.classList.contains('translated-rtl');
+
+      if (isTranslated) {
+        const isDomError =
+          error.message.includes('removeChild') ||
+          error.message.includes('insertBefore') ||
+          error.message.includes('Hydration') ||
+          error.message.includes('Minified React error');
+
+        if (isDomError) {
+          const lastReload = getSessionStorageItem<string>('gt_reload_ts');
+          const now = Date.now();
+
+          // Prevent infinite loops: only reload if last reload was > 10 seconds ago
+          if (!lastReload || now - parseInt(lastReload, 10) > 10000) {
+            setSessionStorageItem('gt_reload_ts', now.toString());
+            window.location.reload();
+            return;
+          }
+        }
+      }
+    }
 
     this.setState({ errorInfo });
   }

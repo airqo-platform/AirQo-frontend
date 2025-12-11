@@ -50,6 +50,19 @@ const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
     return null; // selectedEvent ? normalizeForumEventData(selectedEvent) : null;
   }, []);
 
+  // Provide the selected event to the context
+  const forumData = React.useMemo(
+    () => ({
+      selectedEvent,
+      normalizedData,
+      eventTitles: [], // Not needed for individual event pages
+      isLoading: false,
+      isError: !!detailsError,
+      error: detailsError ? 'Failed to load forum event' : undefined,
+    }),
+    [selectedEvent, normalizedData, detailsError],
+  );
+
   // Handle loading states
   if (detailsLoading) {
     return (
@@ -88,14 +101,7 @@ const ForumEventLayout: React.FC<ForumEventLayoutProps> = ({ children }) => {
   }
 
   // Provide the selected event to the context
-  const forumData = {
-    selectedEvent,
-    normalizedData,
-    eventTitles: [], // Not needed for individual event pages
-    isLoading: false,
-    isError: !!detailsError,
-    error: detailsError ? 'Failed to load forum event' : undefined,
-  };
+  // (Moved up to avoid conditional hook call)
 
   return (
     <ForumDataProvider data={forumData}>

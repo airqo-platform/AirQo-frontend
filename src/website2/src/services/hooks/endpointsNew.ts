@@ -223,6 +223,12 @@ export const useForumEventDetails = (uniqueTitle: string | null) =>
       ? () => forumEventsService.getForumEventDetails(uniqueTitle)
       : null,
     uniqueTitle ? `forumEventDetails/${uniqueTitle}` : null,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      dedupingInterval: 3600000, // 1 hour
+    },
   );
 
 export const useForumEventTitles = (params?: {
