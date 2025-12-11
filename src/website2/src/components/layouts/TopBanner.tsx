@@ -26,7 +26,15 @@ const TopBanner = () => {
     if (googtrans) {
       const langCode = googtrans.split('/').pop();
       if (langCode) {
-        const foundLang = languages.find((l) => l.code === langCode);
+        // Try exact match first
+        let foundLang = languages.find((l) => l.code === langCode);
+
+        // If not found, try matching the primary language code (e.g., 'pt' from 'pt-PT')
+        if (!foundLang && langCode.includes('-')) {
+          const primaryCode = langCode.split('-')[0];
+          foundLang = languages.find((l) => l.code === primaryCode);
+        }
+
         if (foundLang) {
           setSelectedLanguage(foundLang);
         }
@@ -52,7 +60,7 @@ const TopBanner = () => {
 
   return (
     <>
-      <div className="w-full bg-blue-50 border-b border-blue-100">
+      <div className="w-full bg-blue-50 border-b border-blue-100 notranslate">
         <div className="container mx-auto max-w-5xl px-2 flex justify-between items-center py-1">
           <div className="flex items-center space-x-4">
             <a
