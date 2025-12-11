@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import React, { useState } from 'react';
 import { FiArrowLeft } from 'react-icons/fi';
 
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch, useSelector } from '@/hooks';
 import { externalService } from '@/services/apiService';
