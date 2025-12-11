@@ -1,9 +1,8 @@
 'use client';
-import { motion, useAnimation } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
@@ -98,28 +97,7 @@ const menuItems: MenuItems = {
   ],
 };
 
-// Custom hook to track scroll direction
-function useScrollDirection() {
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(
-    null,
-  );
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrollDirection(currentScrollY > lastScrollY ? 'down' : 'up');
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
-  return scrollDirection;
-}
-
-// Helper component for rendering dropdown items
+// Helper component for rendering dropdown items with translation support
 const DropdownMenuContent: React.FC<{ title: string; items: MenuItem[] }> = ({
   title,
   items,
@@ -143,9 +121,13 @@ const DropdownMenuContent: React.FC<{ title: string; items: MenuItem[] }> = ({
                     href={item.href}
                     className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition"
                   >
-                    <div className="font-medium">{item.title}</div>
+                    <div className="font-medium translate-element">
+                      {item.title}
+                    </div>
                     {item.description && (
-                      <div className="text-gray-500">{item.description}</div>
+                      <div className="text-gray-500 translate-element">
+                        {item.description}
+                      </div>
                     )}
                   </Link>
                 </NavigationMenuLink>
@@ -162,8 +144,7 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
-  const scrollDirection = useScrollDirection();
-  const controls = useAnimation();
+
   const toggleMenu = useCallback(() => setMenuOpen((prev) => !prev), []);
   const toggleExpandedMenu = useCallback(
     (menuName: string) =>
@@ -176,152 +157,138 @@ const Navbar: React.FC = () => {
     setExpandedMenu(null);
   }, []);
 
-  useEffect(() => {
-    if (scrollDirection === 'down') {
-      controls.start({ y: '-100%', transition: { duration: 0.3 } });
-    } else if (scrollDirection === 'up') {
-      controls.start({ y: '0%', transition: { duration: 0.3 } });
-    }
-  }, [scrollDirection, controls]);
-
   return (
-    <motion.nav
-      animate={controls}
-      className="w-full bg-white sticky top-0 left-0 z-50"
-    >
-      {/* <NotificationBanner /> */}
-      <nav className="w-full bg-white p-4">
-        <div
-          className={`flex items-center justify-between ${mainConfig.containerClass}`}
+    <nav className="w-full bg-white p-4 sticky top-0 z-50 shadow-sm">
+      <div
+        className={`flex items-center justify-between ${mainConfig.containerClass}`}
+      >
+        {/* Logo Section */}
+        <Link
+          href={`${mainConfig.homePageUrl}`}
+          passHref
+          className="flex items-center"
         >
-          {/* Logo Section */}
-          <Link
-            href={`${mainConfig.homePageUrl}`}
-            passHref
-            className="flex items-center"
-          >
-            <Image
-              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
-              alt="AirQo"
-              width={71}
-              height={48}
-              className="h-10 w-auto cursor-pointer"
-            />
-          </Link>
+          <Image
+            src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+            alt="AirQo"
+            width={71}
+            height={48}
+            className="h-10 w-auto cursor-pointer"
+          />
+        </Link>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className="text-gray-800 focus:outline-none md:hidden"
-          >
-            {menuOpen ? <RiCloseFill size={24} /> : <TbMenu size={30} />}
-          </button>
+        {/* Mobile Menu Button */}
+        <button
+          onClick={toggleMenu}
+          className="text-gray-800 focus:outline-none md:hidden"
+        >
+          {menuOpen ? <RiCloseFill size={24} /> : <TbMenu size={30} />}
+        </button>
 
-          {/* Desktop Navigation */}
-          <NavigationMenu className="hidden md:flex space-x-6 items-center">
-            <NavigationMenuList className="space-x-3">
-              {Object.entries(menuItems).map(([title, items]) => (
-                <NavigationMenuItem key={title}>
-                  <NavigationMenuTrigger className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors">
-                    {title}
-                  </NavigationMenuTrigger>
-                  <DropdownMenuContent title={title} items={items} />
-                </NavigationMenuItem>
-              ))}
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'engagement',
-                    label: 'get_involved',
-                  });
-                  dispatch(openModal());
-                }}
-                className="text-blue-600 bg-blue-50 transition rounded-none"
-              >
-                Get involved
-              </CustomButton>
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'navigation',
-                    label: 'explore_data',
-                  });
-                  router.push('/explore-data');
-                }}
-                className="rounded-none"
-              >
-                Explore data
-              </CustomButton>
-            </NavigationMenuList>
-            <NavigationMenuViewport />
-          </NavigationMenu>
+        {/* Desktop Navigation */}
+        <NavigationMenu className="hidden md:flex space-x-6 items-center">
+          <NavigationMenuList className="space-x-3">
+            {Object.entries(menuItems).map(([title, items]) => (
+              <NavigationMenuItem key={title}>
+                <NavigationMenuTrigger className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element">
+                  {title}
+                </NavigationMenuTrigger>
+                <DropdownMenuContent title={title} items={items} />
+              </NavigationMenuItem>
+            ))}
+            <CustomButton
+              onClick={() => {
+                trackEvent({
+                  action: 'button_click',
+                  category: 'engagement',
+                  label: 'get_involved',
+                });
+                dispatch(openModal());
+              }}
+              className="text-blue-600 bg-blue-50 transition rounded-none"
+            >
+              Get involved
+            </CustomButton>
+            <CustomButton
+              onClick={() => {
+                trackEvent({
+                  action: 'button_click',
+                  category: 'navigation',
+                  label: 'explore_data',
+                });
+                router.push('/explore-data');
+              }}
+              className="rounded-none"
+            >
+              Explore data
+            </CustomButton>
+          </NavigationMenuList>
+          <NavigationMenuViewport />
+        </NavigationMenu>
 
-          {/* Mobile Navigation */}
-          {menuOpen && (
-            <div className="absolute top-[107px] left-0 w-full bg-white shadow-lg p-4 md:hidden z-40">
-              {Object.entries(menuItems).map(([title, items]) => (
-                <div key={title} className="mb-4">
-                  <button
-                    onClick={() => toggleExpandedMenu(title)}
-                    className="text-gray-800 font-medium w-full text-left flex items-center justify-between"
-                  >
-                    {title}
-                    <TbChevronDown
-                      className={`ml-2 transition-transform duration-300 ${expandedMenu === title ? 'rotate-180' : 'rotate-0'}`}
-                    />
-                  </button>
-                  <div
-                    className={`overflow-hidden transition-max-height duration-300 ease-in-out ${expandedMenu === title ? 'max-h-screen' : 'max-h-0'}`}
-                  >
-                    {items.map((item) => (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={handleLinkClick}
-                        className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded"
-                      >
-                        {item.title}
-                      </Link>
-                    ))}
-                  </div>
+        {/* Mobile Navigation */}
+        {menuOpen && (
+          <div className="absolute top-[107px] left-0 w-full bg-white shadow-lg p-4 md:hidden z-40">
+            {Object.entries(menuItems).map(([title, items]) => (
+              <div key={title} className="mb-4">
+                <button
+                  onClick={() => toggleExpandedMenu(title)}
+                  className="text-gray-800 font-medium w-full text-left flex items-center justify-between translate-element"
+                >
+                  {title}
+                  <TbChevronDown
+                    className={`ml-2 transition-transform duration-300 ${expandedMenu === title ? 'rotate-180' : 'rotate-0'}`}
+                  />
+                </button>
+                <div
+                  className={`overflow-hidden transition-max-height duration-300 ease-in-out ${expandedMenu === title ? 'max-h-screen' : 'max-h-0'}`}
+                >
+                  {items.map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={handleLinkClick}
+                      className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded translate-element"
+                    >
+                      {item.title}
+                    </Link>
+                  ))}
                 </div>
-              ))}
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'engagement',
-                    label: 'get_involved',
-                  });
-                  dispatch(openModal());
-                  handleLinkClick();
-                }}
-                className="w-full text-blue-600 bg-blue-50 hover:bg-blue-100 transition rounded-none mb-2"
-              >
-                Get involved
-              </CustomButton>
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'navigation',
-                    label: 'explore_data',
-                  });
-                  router.push('/explore-data');
-                  handleLinkClick();
-                }}
-                className="w-full rounded-none"
-              >
-                Explore data
-              </CustomButton>
-            </div>
-          )}
-        </div>
-      </nav>
+              </div>
+            ))}
+            <CustomButton
+              onClick={() => {
+                trackEvent({
+                  action: 'button_click',
+                  category: 'engagement',
+                  label: 'get_involved',
+                });
+                dispatch(openModal());
+                handleLinkClick();
+              }}
+              className="w-full text-blue-600 bg-blue-50 hover:bg-blue-100 transition rounded-none mb-2"
+            >
+              Get involved
+            </CustomButton>
+            <CustomButton
+              onClick={() => {
+                trackEvent({
+                  action: 'button_click',
+                  category: 'navigation',
+                  label: 'explore_data',
+                });
+                router.push('/explore-data');
+                handleLinkClick();
+              }}
+              className="w-full rounded-none"
+            >
+              Explore data
+            </CustomButton>
+          </div>
+        )}
+      </div>
       {/* Removed clean-air-network tab navigation */}
-    </motion.nav>
+    </nav>
   );
 };
 

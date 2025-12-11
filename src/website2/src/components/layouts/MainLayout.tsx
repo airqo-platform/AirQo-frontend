@@ -8,6 +8,7 @@ import Footer from './Footer';
 import Highlight from './Highlight';
 import Navbar from './Navbar';
 import NewsLetter from './NewsLetter';
+import TopBanner from './TopBanner';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -21,10 +22,11 @@ const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
       {/* GitHub Ribbon */}
       <GitHubRibbon />
 
+      {/* Top Banner */}
+      <TopBanner />
+
       {/* Navbar */}
-      <header className="sticky top-0 z-50 bg-white">
-        <Navbar />
-      </header>
+      <Navbar />
 
       {/* Main Content */}
       <main className="flex-1 pb-8">
