@@ -308,17 +308,18 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       href: '/user/favorites',
       icon: AqStar06,
     },
-    {
-      id: 'map',
-      label: 'Map',
-      href: '/user/map',
-      icon: AqGlobe05,
-    },
+
     {
       id: 'bulk-export',
       label: 'Export',
       href: '/user/data-export',
       icon: AqDownload01,
+    },
+    {
+      id: 'map',
+      label: 'Map',
+      href: '/user/map',
+      icon: AqGlobe05,
     },
   ],
   organization: [
@@ -328,11 +329,18 @@ export const bottomNavItems: Record<'user' | 'organization', NavItem[]> = {
       href: '/org/dashboard', // Will be replaced with slug
       icon: AqHomeSmile,
     },
+
     {
       id: 'bulk-export',
       label: 'Export',
       href: '/org/data-export', // Will be replaced with slug
       icon: AqDownload01,
+    },
+    {
+      id: 'map',
+      label: 'Map',
+      href: '/org/map', // Will be replaced with slug
+      icon: AqGlobe05,
     },
     {
       id: 'profile',

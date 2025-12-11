@@ -9,6 +9,7 @@ import { UserDataFetcher } from './UserDataFetcher';
 import { selectActiveGroup, selectLoggingOut } from '@/shared/store/selectors';
 import { useLogout } from '@/shared/hooks/useLogout';
 import { toast } from '@/shared/components/ui/toast';
+import logger from '@/shared/lib/logger';
 
 // Component to guard and redirect based on active group for all pages
 function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
@@ -70,122 +71,143 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
   // Listen for unauthorized events from API client
-  const handleUnauthorized = useCallback(async () => {
-    // Don't handle unauthorized on auth routes (login, register, etc.)
-    if (isAuthRoute) return;
+  const handleUnauthorized = useCallback(
+    async (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { url } = (customEvent.detail as { url?: string }) || {};
 
-    // Prevent multiple unauthorized handling
-    if (hasHandledUnauthorized) return;
-
-    // Don't handle if we're already logging out
-    if (isLoggingOut) return;
-
-    // Check if account was deleted (set by account deletion confirmation page)
-    if (typeof window !== 'undefined') {
-      const accountDeleted = localStorage.getItem('account_deleted');
-      const deletionTimestamp = localStorage.getItem(
-        'account_deleted_timestamp'
-      );
-
-      if (accountDeleted === 'true') {
-        // Account was deleted, clear flags and logout immediately
-        console.log('Account deletion detected, logging out...');
-        setHasHandledUnauthorized(true);
-        try {
-          localStorage.removeItem('account_deleted');
-          localStorage.removeItem('account_deleted_timestamp');
-        } catch (error) {
-          console.warn('Error clearing account deletion flags:', error);
-        }
-        toast.error(
-          'Account Deleted',
-          'Your account has been deleted. You have been logged out.',
-          5000
+      // If it's the readings API or map readings API, don't logout - just log and return
+      // This can happen when user doesn't have access to specific sites but is still logged in
+      if (
+        url?.startsWith('/devices/readings/recent') ||
+        url?.startsWith('/devices/readings/map')
+      ) {
+        logger.info(
+          '401 on readings API - not logging out, likely permission issue for specific sites'
         );
-        logout();
         return;
       }
 
-      // Check if deletion flag is recent (within last 5 minutes) to avoid stale flags
-      if (deletionTimestamp) {
-        const timestamp = parseInt(deletionTimestamp, 10);
-        const now = Date.now();
-        const fiveMinutes = 5 * 60 * 1000;
+      // Don't handle unauthorized on auth routes (login, register, etc.)
+      if (isAuthRoute) return;
 
-        if (now - timestamp > fiveMinutes) {
-          // Clear stale deletion flags
+      // Prevent multiple unauthorized handling
+      if (hasHandledUnauthorized) return;
+
+      // Don't handle if we're already logging out
+      if (isLoggingOut) return;
+
+      // Check if account was deleted (set by account deletion confirmation page)
+      if (typeof window !== 'undefined') {
+        const accountDeleted = localStorage.getItem('account_deleted');
+        const deletionTimestamp = localStorage.getItem(
+          'account_deleted_timestamp'
+        );
+
+        if (accountDeleted === 'true') {
+          // Account was deleted, clear flags and logout immediately
+          logger.info('Account deletion detected, logging out...');
+          setHasHandledUnauthorized(true);
           try {
             localStorage.removeItem('account_deleted');
             localStorage.removeItem('account_deleted_timestamp');
           } catch (error) {
-            console.warn('Error clearing stale account deletion flags:', error);
+            console.warn('Error clearing account deletion flags:', error);
           }
-        }
-      }
-    }
-
-    // Check if session is expired before logging out
-    try {
-      await update();
-
-      // Get fresh session data
-      const freshSession = await getSession();
-      if (freshSession && freshSession.user) {
-        console.log(
-          '401 received but session is valid - likely permissions issue or account deleted'
-        );
-        // If we get here and have made multiple 401 calls recently, it might be account deletion
-        // Add a counter to detect potential account deletion scenario
-        const unauthorizedCount = parseInt(
-          localStorage.getItem('unauthorized_count') || '0',
-          10
-        );
-        const lastUnauthorized = parseInt(
-          localStorage.getItem('last_unauthorized') || '0',
-          10
-        );
-        const now = Date.now();
-
-        if (now - lastUnauthorized < 30000 && unauthorizedCount >= 2) {
-          // 30 seconds, 3+ calls
-          console.log(
-            'Multiple 401s with valid session - possible account deletion, logging out...'
-          );
-          setHasHandledUnauthorized(true);
           toast.error(
-            'Access Denied',
-            'Your access has been revoked. Please log in again.',
+            'Account Deleted',
+            'Your account has been deleted. You have been logged out.',
             5000
           );
           logout();
           return;
         }
 
-        // Update counters
-        localStorage.setItem(
-          'unauthorized_count',
-          (unauthorizedCount + 1).toString()
-        );
-        localStorage.setItem('last_unauthorized', now.toString());
+        // Check if deletion flag is recent (within last 5 minutes) to avoid stale flags
+        if (deletionTimestamp) {
+          const timestamp = parseInt(deletionTimestamp, 10);
+          const now = Date.now();
+          const fiveMinutes = 5 * 60 * 1000;
 
-        return;
+          if (now - timestamp > fiveMinutes) {
+            // Clear stale deletion flags
+            try {
+              localStorage.removeItem('account_deleted');
+              localStorage.removeItem('account_deleted_timestamp');
+            } catch (error) {
+              console.warn(
+                'Error clearing stale account deletion flags:',
+                error
+              );
+            }
+          }
+        }
       }
 
-      // Session is expired, logout
-      console.log('Session expired, logging out...');
-      setHasHandledUnauthorized(true);
-      toast.error(
-        'Session Expired',
-        'Your session has expired. Please log in again.',
-        5000
-      );
-      logout();
-    } catch (error) {
-      console.error('Error handling unauthorized event:', error);
-      setHasHandledUnauthorized(true);
-      logout();
-    }
-  }, [logout, update, isAuthRoute, hasHandledUnauthorized, isLoggingOut]);
+      // Check if session is expired before logging out
+      try {
+        await update();
+
+        // Get fresh session data
+        const freshSession = await getSession();
+        if (freshSession && freshSession.user) {
+          logger.warn(
+            '401 received but session is valid - likely permissions issue or account deleted'
+          );
+          // If we get here and have made multiple 401 calls recently, it might be account deletion
+          // Add a counter to detect potential account deletion scenario
+          const unauthorizedCount = parseInt(
+            localStorage.getItem('unauthorized_count') || '0',
+            10
+          );
+          const lastUnauthorized = parseInt(
+            localStorage.getItem('last_unauthorized') || '0',
+            10
+          );
+          const now = Date.now();
+
+          if (now - lastUnauthorized < 30000 && unauthorizedCount >= 2) {
+            // 30 seconds, 3+ calls
+            logger.warn(
+              'Multiple 401s with valid session - possible account deletion, logging out...'
+            );
+            setHasHandledUnauthorized(true);
+            toast.error(
+              'Access Denied',
+              'Your access has been revoked. Please log in again.',
+              5000
+            );
+            logout();
+            return;
+          }
+
+          // Update counters
+          localStorage.setItem(
+            'unauthorized_count',
+            (unauthorizedCount + 1).toString()
+          );
+          localStorage.setItem('last_unauthorized', now.toString());
+
+          return;
+        }
+
+        // Session is expired, logout
+        logger.info('Session expired, logging out...');
+        setHasHandledUnauthorized(true);
+        toast.error(
+          'Session Expired',
+          'Your session has expired. Please log in again.',
+          5000
+        );
+        logout();
+      } catch (error) {
+        console.error('Error handling unauthorized event:', error);
+        setHasHandledUnauthorized(true);
+        logout();
+      }
+    },
+    [logout, update, isAuthRoute, hasHandledUnauthorized, isLoggingOut]
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -210,6 +232,13 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     if (status === 'authenticated') {
       setHasLoggedOutForExpiration(false);
       setHasHandledUnauthorized(false);
+      // Clear any stale unauthorized counters
+      try {
+        localStorage.removeItem('unauthorized_count');
+        localStorage.removeItem('last_unauthorized');
+      } catch {
+        // Ignore localStorage errors
+      }
     }
   }, [status]);
 
@@ -223,7 +252,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       !isLoggingOut &&
       !hasHandledUnauthorized
     ) {
-      console.log('Status unauthenticated on protected route, logging out');
+      logger.info('Status unauthenticated on protected route, logging out');
       setHasLoggedOutForExpiration(true);
       logout();
     }

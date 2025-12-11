@@ -6,6 +6,8 @@ import { usePostHog } from 'posthog-js/react';
 import { QuickAccessCard, EmptyAnalyticsState } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
+import { InfoBanner } from '@/shared/components/ui/banner';
+import Link from 'next/link';
 import {
   useAnalyticsSiteCards,
   useAnalyticsPreferences,
@@ -20,6 +22,7 @@ import type { SiteData } from '../types';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -190,8 +193,37 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     );
   }
 
+  // Check if all site cards have no data (organization info is private)
+  const hasNoDataForAllSites =
+    !isInitialLoading &&
+    siteCards.length > 0 &&
+    siteCards.every(card => card.status === 'no-value');
+
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Info Banner for Private Organization Data */}
+      {hasNoDataForAllSites && (
+        <InfoBanner
+          title="Location card data unavailable"
+          message={
+            <>
+              Your organization&apos;s data is private. Update visibility
+              settings in{' '}
+              <Link
+                href={getEnvironmentAwareUrl('https://vertex.airqo.net')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Vertex
+              </Link>{' '}
+              to view measurements.
+            </>
+          }
+          className="mb-4"
+        />
+      )}
+
       {/* Quick Access Locations Card */}
       <QuickAccessCard
         sites={siteCards}
