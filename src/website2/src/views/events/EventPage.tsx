@@ -204,7 +204,9 @@ const EventPage: React.FC = () => {
 
       {/* Tabs Section */}
       <section
-        className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8`}
+        className={`${mainConfig.containerClass} w-full px-4 lg:px-0 mb-8 ${
+          selectedTab === 'past' ? 'pt-16' : ''
+        }`}
       >
         <div className="flex space-x-8 border-b border-gray-300">
           <button
