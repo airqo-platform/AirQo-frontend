@@ -56,8 +56,10 @@ const TopBanner = () => {
       document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT`;
     };
 
-    // 1. Aggressively clear existing cookies to avoid conflicts
-    // Clear for current hostname, root domain, and all parent domains
+    // 1. Aggressively clear existing cookies to avoid conflicts.
+    // We iterate through all domain levels to ensure no conflicting 'googtrans' cookies remain.
+    // This is critical because Google Translate can be sensitive to cookie domain scope (e.g., .airqo.net vs staging.airqo.net),
+    // and a more specific cookie might prevent the new language selection from taking effect.
     const domains = hostname.split('.');
     while (domains.length > 0) {
       const d = domains.join('.');
