@@ -7,6 +7,7 @@ declare global {
   interface Window {
     google: any;
     googleTranslateElementInit: any;
+    googleTranslateLoaded?: boolean;
   }
 }
 
@@ -15,6 +16,11 @@ const GoogleTranslate = () => {
 
   useEffect(() => {
     setMounted(true);
+
+    // Check if translation is already loaded
+    if (window.google?.translate) {
+      window.googleTranslateLoaded = true;
+    }
 
     // Aggressively hide Google Translate banner on mount and on any DOM changes
     const hideTranslateBanner = () => {
@@ -80,6 +86,9 @@ const GoogleTranslate = () => {
                 },
                 'google_translate_element'
               );
+              
+              // Mark as loaded
+              window.googleTranslateLoaded = true;
               
               // Aggressively hide banner
               const hideGoogleBanner = function() {

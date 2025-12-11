@@ -2,6 +2,7 @@
 import React from 'react';
 
 import GitHubRibbon from '@/components/GitHubRibbon';
+import PageTransitionWrapper from '@/components/PageTransitionWrapper';
 
 import ActionButtons from './ActionButtons';
 import Footer from './Footer';
@@ -25,21 +26,23 @@ const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
       <Navbar />
 
       {/* Main Content */}
-      <main className="flex-1 pb-8 pt-32">
-        {/* Optional full-width area inserted before the centered container */}
-        {topFullWidth}
+      <main className="flex-1 pb-8 pt-28">
+        <PageTransitionWrapper>
+          {/* Optional full-width area inserted before the centered container */}
+          {topFullWidth}
 
-        <div className="text-gray-700 w-full px-4 lg:px-0">{children}</div>
+          <div className="text-gray-700 w-full px-4 lg:px-0">{children}</div>
 
-        {/* Highlight Section */}
-        <section className="mt-32 mb-8">
-          <Highlight />
-        </section>
+          {/* Highlight Section */}
+          <section className="mt-32 mb-8">
+            <Highlight />
+          </section>
 
-        {/* Action Buttons Section */}
-        <section className="my-8">
-          <ActionButtons />
-        </section>
+          {/* Action Buttons Section */}
+          <section className="my-8">
+            <ActionButtons />
+          </section>
+        </PageTransitionWrapper>
       </main>
 
       <footer>

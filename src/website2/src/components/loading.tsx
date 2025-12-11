@@ -1,22 +1,40 @@
 'use client';
 import React from 'react';
 
-const Loading = () => {
+interface LoadingProps {
+  size?: 'small' | 'medium' | 'large';
+  fullScreen?: boolean;
+}
+
+const Loading: React.FC<LoadingProps> = ({
+  size = 'large',
+  fullScreen = false,
+}) => {
+  const containerClasses = fullScreen
+    ? 'flex items-center justify-center min-h-screen bg-white'
+    : 'flex items-center justify-center';
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <span className="loader"></span>
+    <div className={containerClasses}>
+      <span
+        className="loader"
+        style={{
+          width:
+            size === 'small' ? '24px' : size === 'medium' ? '36px' : '48px',
+          height:
+            size === 'small' ? '24px' : size === 'medium' ? '36px' : '48px',
+        }}
+      ></span>
       <style jsx>{`
         .loader {
-          width: 48px;
-          height: 48px;
           display: inline-block;
           position: relative;
         }
         .loader::after,
         .loader::before {
           content: '';
-          width: 48px;
-          height: 48px;
+          width: 100%;
+          height: 100%;
           border-radius: 50%;
           background: #145dff;
           position: absolute;
