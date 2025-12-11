@@ -4,6 +4,36 @@
 
 ---
 
+## Version 1.20.1
+**Released:** December 11, 2025
+
+### Fixed Logout Redirection
+
+Resolved a race condition where users were briefly redirected to the home page during the logout process.
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Logout Stability**: The application now strictly redirects to the login page after the session is successfully cleared, eliminating the "bounce" to the home page.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (1)</strong></summary>
+
+- Updated `useLogout` hook to strictly redirect to `/login` after session invalidation, ignoring callback URLs.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `core/hooks/useLogout.ts`
+
+</details>
+
+---
+
 ## Version 1.20.0
 **Released:** December 11, 2025
 
