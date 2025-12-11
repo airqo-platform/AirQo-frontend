@@ -292,7 +292,7 @@ const MapPage: React.FC<MapPageProps> = ({
         <div className="h-1/2 flex-shrink-0 relative">
           {/* Info Banner for Private Organization Data */}
           {hasNoMapData && (
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 w-full px-4">
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-[10000] w-full px-4">
               <InfoBanner
                 title="Map data unavailable"
                 message={
