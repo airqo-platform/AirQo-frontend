@@ -8,6 +8,7 @@ import 'package:airqo/src/app/dashboard/bloc/dashboard/dashboard_bloc.dart';
 import 'package:airqo/src/app/dashboard/bloc/forecast/forecast_bloc.dart';
 import 'package:airqo/src/app/dashboard/repository/dashboard_repository.dart';
 import 'package:airqo/src/app/dashboard/repository/forecast_repository.dart';
+import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/learn/bloc/kya_bloc.dart';
 import 'package:airqo/src/app/learn/repository/kya_repository.dart';
 import 'package:airqo/src/app/map/bloc/map_bloc.dart';
@@ -210,7 +211,17 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AutoUpdateService().initialize(navigatorKey);
+      _fetchCountries();
     });
+  }
+
+  void _fetchCountries() async {
+    try {
+      await CountryRepository().fetchCountries();
+      logInfo('Countries fetched successfully');
+    } catch (e) {
+      logError('Failed to fetch countries: $e');
+    }
   }
 
   @override

@@ -11,4 +11,6 @@ class ApiUtils {
   static String fetchLessons = "/api/v2/devices/kya/lessons";
 
   static String fetchForecasts = "/api/v2/predict/daily-forecast";
+
+  static String fetchCountries = "/api/v2/devices/grids/countries";
 }
