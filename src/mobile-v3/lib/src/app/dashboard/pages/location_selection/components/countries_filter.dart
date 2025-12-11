@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
+import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
@@ -7,28 +8,31 @@ class CountriesFilter extends StatelessWidget {
   final String currentFilter;
   final Function(String) onFilterSelected;
   final VoidCallback onResetFilter;
+  final String? userCountry;
 
   const CountriesFilter({
     super.key,
     required this.currentFilter,
     required this.onFilterSelected,
     required this.onResetFilter,
+    this.userCountry,
   });
-
-  // Countries list
-  static const List<CountryModel> countries = [
-    CountryModel("🇺🇬", "Uganda"),
-    CountryModel("🇰🇪", "Kenya"),
-    CountryModel("🇧🇮", "Burundi"),
-    CountryModel("🇬🇭", "Ghana"),
-    CountryModel("🇳🇬", "Nigeria"),
-    CountryModel("🇨🇲", "Cameroon"),
-    CountryModel("🇿🇦", "South Africa"),
-    CountryModel("🇲🇿", "Mozambique"),
-  ];
 
   @override
   Widget build(BuildContext context) {
+    List<CountryModel> countries = List.from(CountryRepository.countries);
+
+    if (userCountry != null && userCountry!.isNotEmpty) {
+      int userCountryIndex = countries.indexWhere(
+        (country) => country.countryName.toLowerCase() == userCountry!.toLowerCase()
+      );
+
+      if (userCountryIndex != -1) {
+        CountryModel userCountryModel = countries.removeAt(userCountryIndex);
+        countries.insert(0, userCountryModel);
+      }
+    }
+
     return SizedBox(
       height: 40,
       child: ListView(
@@ -42,8 +46,8 @@ class CountriesFilter extends StatelessWidget {
             backgroundColor: Theme.of(context).highlightColor,
             selectedColor: AppColors.primaryColor,
             labelStyle: TextStyle(
-              color: currentFilter == "All" 
-                  ? Colors.white 
+              color: currentFilter == "All"
+                  ? Colors.white
                   : Theme.of(context).textTheme.bodyMedium?.color,
             ),
           ),
