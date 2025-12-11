@@ -111,12 +111,16 @@ const VideoSection: React.FC<{
 
 VideoSection.displayName = 'VideoSection';
 
-const VideoModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  playerRef: React.RefObject<any>;
-}> = React.memo(({ isOpen, onClose, playerRef }) => (
+const VideoModal = React.forwardRef<
+  HTMLDivElement,
+  {
+    isOpen: boolean;
+    onClose: () => void;
+    playerRef: React.RefObject<any>;
+  }
+>(({ isOpen, onClose, playerRef }, ref) => (
   <motion.div
+    ref={ref}
     className="fixed inset-0 bg-black bg-opacity-70 z-[10000] flex items-center justify-center"
     variants={animations.backdrop}
     initial="hidden"
