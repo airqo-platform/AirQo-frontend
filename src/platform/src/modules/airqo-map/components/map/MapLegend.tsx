@@ -1,8 +1,9 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tooltip } from 'flowbite-react';
 import { IoChevronDown, IoChevronUp } from 'react-icons/io5';
 import { cn } from '@/shared/lib/utils';
+import { isMobile } from '@/shared/utils/responsive';
 import {
   POLLUTANT_RANGES,
   getAirQualityIcon,
@@ -21,7 +22,13 @@ export const MapLegend: React.FC<MapLegendProps> = ({
   defaultCollapsed = false,
   pollutant = 'pm2_5',
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    // Check if on mobile (width < 1024px) and default to collapsed
+    if (typeof window !== 'undefined') {
+      return isMobile(window.innerWidth) || defaultCollapsed;
+    }
+    return defaultCollapsed;
+  });
 
   // Convert POLLUTANT_RANGES to displayable format
   const getPollutantRanges = (pollutantType: PollutantType) => {
@@ -55,6 +62,28 @@ export const MapLegend: React.FC<MapLegendProps> = ({
   };
 
   const ranges = getPollutantRanges(pollutant);
+
+  // Handle window resize to update collapsed state on mobile/desktop switch
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    const handleResize = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          const mobile = isMobile(window.innerWidth);
+          // Only force collapse on mobile; preserve user preference on desktop
+          setIsCollapsed(prev => (mobile ? true : prev));
+        }
+      }, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);

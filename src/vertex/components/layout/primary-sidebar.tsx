@@ -94,14 +94,13 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
   const recentTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Determine if user can view Admin Panel (Role based OR Permission based)
+  // Determine if user can view Admin Panel (Role based ONLY)
   const canViewAdminPanel = React.useMemo(() => {
-    if (permissions.canViewNetworks) return true;
     if (!activeGroup?.role?.role_name) return false;
 
     const allowedRoles = ['AIRQO_SUPER_ADMIN', 'AIRQO_ADMIN', 'AIRQO_NETWORK_ADMIN'];
     return allowedRoles.includes(activeGroup.role.role_name);
-  }, [permissions.canViewNetworks, activeGroup]);
+  }, [activeGroup]);
 
   React.useEffect(() => {
     return () => {
