@@ -73,6 +73,9 @@ const LanguageModal: React.FC<LanguageModalProps> = ({
             </div>
           )}
         </div>
+        <div className="p-4 text-right text-xs text-gray-400">
+          Powered By Google
+        </div>
       </DialogContent>
     </Dialog>
   );
