@@ -91,7 +91,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     isCollapsed={isCollapsed}
                   />
                   <SidebarSectionHeading isCollapsed={isCollapsed}>
-                    My Network
+                    Personal assets
                   </SidebarSectionHeading>
                   <NavItem
                     item={{

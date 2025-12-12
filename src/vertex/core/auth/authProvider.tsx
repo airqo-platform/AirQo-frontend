@@ -410,7 +410,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
           );
           setHasHandledUnauthorized(true);
           ReusableToast({
-            message: 'Your access has been revoked. Please log in again.',
+            message: 'Your session has expired. Please log in again.', // more user-friendly message
             type: 'ERROR',
           });
           logout();
