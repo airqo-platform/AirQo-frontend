@@ -224,6 +224,7 @@ interface TableHeaderProps<T> {
   selectedCount: number;
   exportable: boolean;
   onExportClick: () => void;
+  hasData: boolean;
 }
 
 const TableHeader = <T extends TableItem>({
@@ -239,6 +240,7 @@ const TableHeader = <T extends TableItem>({
   selectedCount,
   exportable,
   onExportClick,
+  hasData,
 }: TableHeaderProps<T>) => {
   return (
     <div className="px-6 py-2 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20] rounded-t-lg shadow-sm">
@@ -258,6 +260,7 @@ const TableHeader = <T extends TableItem>({
               variant="outlined"
               className="text-sm h-8 px-3"
               Icon={AqDownload01}
+              disabled={!hasData}
             >
               Export
             </ReusableButton>
@@ -1294,6 +1297,7 @@ const ReusableTable = <T extends TableItem>({
           selectedCount={selectedItems.length}
           exportable={exportable}
           onExportClick={() => setIsExportModalOpen(true)}
+          hasData={serverSidePagination ? data.length > 0 : filteredData.length > 0}
         />
 
         {multiSelect && isAnySelected && (
