@@ -230,13 +230,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         });
     };
 
-    const onManualSubmit = async (data: ClaimDeviceFormData) => {
+    const onManualSubmit = (data: ClaimDeviceFormData) => {
         setPendingSingleClaim({ deviceId: data.device_id, claimToken: data.claim_token });
         setPreviousStep('manual-input');
         setStep('confirmation');
     };
 
     const handleConfirmSingleClaim = () => {
+        if (isPending) return;
         if (pendingSingleClaim) {
             handleClaimDevice(pendingSingleClaim.deviceId, pendingSingleClaim.claimToken);
         }
