@@ -19,12 +19,12 @@ const PartnersLayout: React.FC<PartnersLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen w-full flex flex-col">
       {/* Navbar */}
-      <header className="sticky top-0 z-50">
+      <header>
         <Navbar />
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">{children}</main>
+      <main className="flex-1 pt-20">{children}</main>
     </div>
   );
 };

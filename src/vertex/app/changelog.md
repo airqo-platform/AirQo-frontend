@@ -3,6 +3,242 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.22.0
+**Released:** December 12, 2025
+
+### Cohort Import & Enhanced Claim Flow
+
+Introduced a powerful "Import from Cohort" feature for bulk device claiming, refined the claim user experience with confirmation steps and tooltips, and expanded administrative capabilities for Site Device management.
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **Import from Cohort**: Users can now import devices directly by entering a Cohort ID. The system verifies the cohort and prefills the bulk claim form with all associated devices, requiring only claim tokens to proceed.
+- **Admin Site Device Details**: Added a dedicated device details page for the Admin Site context (`/admin/sites/[siteId]/devices/[deviceId]`), ensuring navigation remains within the admin scope.
+
+</details>
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Claim Confirmation**: Added a mandatory confirmation step for both single and bulk claims, displaying a clear warning about potential device recalls if devices are already deployed.
+- **Enhanced Tooltips**: Added interactive tooltips to "deployed" and "recalled" terms in the confirmation warning to clarify their definitions.
+- **Compact UI**: Refactored the claim method selection screen to use compact horizontal rows, ensuring all 3 options (Single, Bulk, Cohort) are visible without scrolling.
+- **Simplified Workflow**: Removed redundant device lists from the confirmation step in favor of concise summary strings (e.g., "You are about to claim 5 devices").
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **New Hook**: Added `useVerifyCohort` and `verifyCohortIdApi` to validate cohort IDs before import.
+- **Type Definitions**: Updated `Cohort` and `Device` types to support the new import flow.
+- **Lint Fixes**: Resolved unused variables and `any` type usage in `claim-device-modal.tsx`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `components/features/claim/claim-device-modal.tsx`
+- `core/apis/cohorts.ts`
+- `core/hooks/useCohorts.ts`
+- `app/(authenticated)/admin/sites/[id]/devices/[deviceId]/page.tsx` (New)
+- `app/(authenticated)/admin/sites/[id]/page.tsx`
+- `app/types/cohorts.ts`
+
+</details>
+
+---
+
+## Version 1.21.3
+**Released:** December 12, 2025
+
+### Session Stability & Critical Security Fix
+
+Resolved a critical issue causing "Multiple 401s" errors and forced logout loops by fixing how session tokens are validated and cached.
+
+<details>
+<summary><strong>Critical Fixes (3)</strong></summary>
+
+- **Proxy Cache Removed**: Removed an unsafe global session cache in the API proxy (`proxyClient.ts`) that was serving stale/expired tokens for up to 5 minutes, causing 401 errors even when the user's browser session was valid.
+- **Token Expiry Enforcement**: Updated NextAuth configuration to strictly validate the JWT `exp` (expiration) timestamp. Sessions now automatically invalidate the moment the token expires, ensuring a clean redirect to login instead of API failure loops.
+- **Status Logic Robustness**: Enhanced `getDeviceStatus` and `getSimpleStatus` to safely handle invalid dates without crashing or misreporting status.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **Removed Cache**: Deleted `SessionCache` class from `core/utils/proxyClient.ts` to ensure every API request gets a fresh session.
+- **Auth Options**: Updated `app/api/auth/[...nextauth]/options.ts` to include `exp` claim and return `user: null` on expiry.
+- **Type Definitions**: Augmented `types/next-auth.d.ts` and `app/types/users.ts` to include `exp` property.
+- **Status Utils**: Updated `core/utils/status.ts` with generic `isError` checks.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/utils/proxyClient.ts`
+- `app/api/auth/[...nextauth]/options.ts`
+- `core/utils/status.ts`
+- `types/next-auth.d.ts`
+- `app/types/users.ts`
+
+</details>
+
+---
+
+## Version 1.21.2
+**Released:** December 12, 2025
+
+### Contextual Site Editing
+
+Improved the Site Details page by splitting the generic "Edit Site" action into context-specific buttons for "Site Details" and "Mobile App Details".
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Contextual Actions**: Added dedicated "Edit" buttons to the footer of both the Site Details and Mobile App Details cards.
+- **Focused Dialogs**: Enhanced the edit dialog to show only the relevant fields for the selected section (General vs Mobile).
+- **Cleaner UI**: Removed the global "Edit Site" button to reduce ambiguity.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **Component Refactor**: Updated `EditSiteDetailsDialog` to support a `section` prop.
+- **UI Update**: Updated `SiteInformationCard` and `SiteMobileAppCard` to render footer actions.
+- **Page Logic**: Refactored `admin/sites/[id]/page.tsx` to handle section state.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/features/sites/edit-site-details-dialog.tsx`
+- `components/features/sites/site-information-card.tsx`
+- `components/features/sites/site-mobile-app-card.tsx`
+- `app/(authenticated)/admin/sites/[id]/page.tsx`
+
+</details>
+
+---
+
+## Version 1.21.1
+**Released:** December 12, 2025
+
+### Centralized Online Status Logic
+
+Refactored and unified the online status determination logic across the entire application, ensuring consistent visual indicators and definitions for Sites and Devices.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Unified Status Logic**: Devices and Sites now share the same "Operational", "Transmitting", "Data Available", and "Not Transmitting" status definitions.
+- **Consistent Visuals**: Standardized badge colors and icons across the Sites List, Devices List, and Status Cards.
+- **Helpful Tooltips**: Added informative tooltips to status chips in the Site Information Card, explaining what each status means (same as Device Status Card).
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **Shared Utility**: Created `src/vertex/core/utils/status.ts` to house `getDeviceStatus`, `getSimpleStatus`, `formatDisplayDate`, and status explanations.
+- **Refactored Components**: Updated `sites-list-table.tsx`, `table-columns.tsx`, `site-information-card.tsx`, and `online-status-card.tsx` to use the shared utility.
+- **Code Cleanup**: Removed duplicate status logic and date formatting functions from individual component files.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/utils/status.ts` (New)
+- `components/features/sites/sites-list-table.tsx`
+- `components/features/devices/utils/table-columns.tsx`
+- `components/features/sites/site-information-card.tsx`
+- `components/features/devices/online-status-card.tsx`
+
+</details>
+
+---
+
+
+## Version 1.21.0
+**Released:** December 12, 2025
+
+### Instant Home Page & Session Optimization
+
+Achieved an "Instant Load" experience for the Home Page by implementing Server-Side Session fetching and removing blocking UI checks. The dashboard now renders immediately upon login without any loading spinners.
+
+<details>
+<summary><strong>Improvements (6)</strong></summary>
+
+- **Instant Dashboard**: The Home Page now loads immediately after login, eliminating the ~3s "Session Loading" delay.
+- **Server-Side Session**: Implemented `getServerSession` to hydrate authentication state on the server, ensuring the client knows the user is logged in before the first render.
+- **Non-Blocking Layout**: Removed restrictive blocking checks in the main Layout, allowing the App Shell (Sidebar/Topbar) to render instantly while user details update in the background.
+- **Optimized Sidebar**: Refactored the Secondary Sidebar to default to the "Personal View" immediately, removing flickering skeleton loaders.
+- **Refined Loaders**: Updated Home Page skeletons to match design system colors and removed placeholder text for a cleaner loading state.
+- **Zero-State Fix**: Resolved an issue where the dashboard briefly displayed zero stats before showing the empty state.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (6)</strong></summary>
+
+- **SSR Implementation**: Updated `app/layout.tsx` to fetch session server-side and pass it to providers.
+- **Hard Login Redirect**: Changed login navigation to use `window.location.href` to force a server-side session refresh, guaranteeing instant state on the next page load.
+- **Removed Blocking Logic**: Deleted the `!userDetails` check in `components/layout/layout.tsx`.
+- **Parallel Data Fetching**: Updated `Home` page to use the session ID for immediate device fetching, running in parallel with user profile updates.
+- **Sidebar Defaulting**: Updated `secondary-sidebar.tsx` to fallback to the Personal view structure instead of showing skeletons when context is loading.
+- **Lighthouse CI**: Updated `lighthouserc.json` to test the public `/login` route instead of protected `/home` and relaxed assertions for auth-related performance metrics.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `app/layout.tsx`
+- `app/login/page.tsx`
+- `app/(authenticated)/home/page.tsx`
+- `components/layout/layout.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `middleware.ts`
+- `lighthouserc.json`
+
+</details>
+
+## Version 1.20.1
+**Released:** December 11, 2025
+
+### Fixed Logout Redirection
+
+Resolved a race condition where users were briefly redirected to the home page during the logout process.
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Logout Stability**: The application now strictly redirects to the login page after the session is successfully cleared, eliminating the "bounce" to the home page.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (1)</strong></summary>
+
+- Updated `useLogout` hook to strictly redirect to `/login` after session invalidation, ignoring callback URLs.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (1)</strong></summary>
+
+- `core/hooks/useLogout.ts`
+
+</details>
+
+---
 
 ## Version 1.20.0
 **Released:** December 11, 2025
@@ -1097,7 +1333,7 @@ No migration required. All new features work seamlessly with existing code.
 ## Contributors
 
 - AirQo Development Team
-- Last Updated: November 29, 2025
+- Last Updated: December 12, 2025
 
 ---
 

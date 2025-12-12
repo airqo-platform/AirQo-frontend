@@ -18,10 +18,10 @@ type ContactLayoutProps = {
 const ContactLayout: React.FC<ContactLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen w-full flex flex-col overflow-hidden">
-      <div className="w-full border-b border-gray-200 sticky top-0 z-50">
+      <div className="w-full border-b border-gray-200">
         <Navbar />
       </div>
-      <main>{children}</main>
+      <main className="pt-20">{children}</main>
     </div>
   );
 };

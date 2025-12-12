@@ -1,5 +1,4 @@
 'use client';
-import { motion, useAnimation } from 'framer-motion';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -8,20 +7,12 @@ import { RiCloseFill } from 'react-icons/ri';
 import { TbChevronDown, TbMenu } from 'react-icons/tb';
 
 import { CustomButton } from '@/components/ui';
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  NavigationMenuViewport,
-} from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import { useDispatch } from '@/hooks';
 import { openModal } from '@/store/slices/modalSlice';
 
 import { trackEvent } from '../GoogleAnalytics';
+import TopBanner from './TopBanner';
 // import NotificationBanner from './NotificationBanner';
 
 // Type definitions
@@ -98,34 +89,16 @@ const menuItems: MenuItems = {
   ],
 };
 
-// Custom hook to track scroll direction
-function useScrollDirection() {
-  const [scrollDirection, setScrollDirection] = useState<'up' | 'down' | null>(
-    null,
-  );
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setScrollDirection(currentScrollY > lastScrollY ? 'down' : 'up');
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
-
-  return scrollDirection;
-}
-
-// Helper component for rendering dropdown items
-const DropdownMenuContent: React.FC<{ title: string; items: MenuItem[] }> = ({
-  title,
-  items,
-}) => (
-  <NavigationMenuContent className="bg-white shadow-lg md:w-[400px] lg:w-[600px] text-sm rounded-md p-4">
-    <div className="text-gray-400 mb-4">{title}</div>
+// Helper component for rendering dropdown items with translation support
+const DropdownMenuContent: React.FC<{
+  title: string;
+  items: MenuItem[];
+  className?: string;
+}> = ({ title, items, className = '' }) => (
+  <div
+    className={`bg-white shadow-lg md:w-[400px] lg:w-[600px] text-sm rounded-md p-4 translate-element ${className}`}
+  >
+    <div className="text-gray-400 mb-4 translate-element">{title}</div>
     <div className="flex gap-8">
       {items
         .reduce<MenuItem[][]>((acc, item, idx) => {
@@ -138,23 +111,25 @@ const DropdownMenuContent: React.FC<{ title: string; items: MenuItem[] }> = ({
           <ul key={index} className="flex-1 space-y-3">
             {colItems.map((item) => (
               <li key={item.href}>
-                <NavigationMenuLink asChild>
-                  <Link
-                    href={item.href}
-                    className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition"
-                  >
-                    <div className="font-medium">{item.title}</div>
-                    {item.description && (
-                      <div className="text-gray-500">{item.description}</div>
-                    )}
-                  </Link>
-                </NavigationMenuLink>
+                <Link
+                  href={item.href}
+                  className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition translate-element"
+                >
+                  <div className="font-medium translate-element">
+                    {item.title}
+                  </div>
+                  {item.description && (
+                    <div className="text-gray-500 translate-element">
+                      {item.description}
+                    </div>
+                  )}
+                </Link>
               </li>
             ))}
           </ul>
         ))}
     </div>
-  </NavigationMenuContent>
+  </div>
 );
 
 const Navbar: React.FC = () => {
@@ -162,8 +137,9 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [expandedMenu, setExpandedMenu] = useState<string | null>(null);
-  const scrollDirection = useScrollDirection();
-  const controls = useAnimation();
+  const [isHidden, setIsHidden] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
   const toggleMenu = useCallback(() => setMenuOpen((prev) => !prev), []);
   const toggleExpandedMenu = useCallback(
     (menuName: string) =>
@@ -177,19 +153,28 @@ const Navbar: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (scrollDirection === 'down') {
-      controls.start({ y: '-100%', transition: { duration: 0.3 } });
-    } else if (scrollDirection === 'up') {
-      controls.start({ y: '0%', transition: { duration: 0.3 } });
-    }
-  }, [scrollDirection, controls]);
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsHidden(true);
+      } else if (currentScrollY < lastScrollY) {
+        setIsHidden(false);
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   return (
-    <motion.nav
-      animate={controls}
-      className="w-full bg-white sticky top-0 left-0 z-50"
+    <div
+      className={`w-full fixed top-0 z-50 shadow-sm transition-transform duration-300 ${
+        isHidden ? '-translate-y-full' : 'translate-y-0'
+      }`}
     >
-      {/* <NotificationBanner /> */}
+      {/* Top Banner */}
+      <TopBanner />
       <nav className="w-full bg-white p-4">
         <div
           className={`flex items-center justify-between ${mainConfig.containerClass}`}
@@ -218,54 +203,55 @@ const Navbar: React.FC = () => {
           </button>
 
           {/* Desktop Navigation */}
-          <NavigationMenu className="hidden md:flex space-x-6 items-center">
-            <NavigationMenuList className="space-x-3">
-              {Object.entries(menuItems).map(([title, items]) => (
-                <NavigationMenuItem key={title}>
-                  <NavigationMenuTrigger className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors">
-                    {title}
-                  </NavigationMenuTrigger>
-                  <DropdownMenuContent title={title} items={items} />
-                </NavigationMenuItem>
-              ))}
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'engagement',
-                    label: 'get_involved',
-                  });
-                  dispatch(openModal());
-                }}
-                className="text-blue-600 bg-blue-50 transition rounded-none"
-              >
-                Get involved
-              </CustomButton>
-              <CustomButton
-                onClick={() => {
-                  trackEvent({
-                    action: 'button_click',
-                    category: 'navigation',
-                    label: 'explore_data',
-                  });
-                  router.push('/explore-data');
-                }}
-                className="rounded-none"
-              >
-                Explore data
-              </CustomButton>
-            </NavigationMenuList>
-            <NavigationMenuViewport />
-          </NavigationMenu>
-
+          <div className="hidden md:flex space-x-6 items-center">
+            {Object.entries(menuItems).map(([title, items]) => (
+              <div key={title} className="relative group">
+                <button className="text-gray-800 font-medium hover:text-blue-600 text-sm transition-colors translate-element flex items-center">
+                  {title}
+                  <TbChevronDown className="ml-1 h-4 w-4" />
+                </button>
+                <DropdownMenuContent
+                  title={title}
+                  items={items}
+                  className="absolute top-full left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-50"
+                />
+              </div>
+            ))}
+            <CustomButton
+              onClick={() => {
+                trackEvent({
+                  action: 'button_click',
+                  category: 'engagement',
+                  label: 'get_involved',
+                });
+                dispatch(openModal());
+              }}
+              className="text-blue-600 bg-blue-50 transition rounded-none"
+            >
+              Get involved
+            </CustomButton>
+            <CustomButton
+              onClick={() => {
+                trackEvent({
+                  action: 'button_click',
+                  category: 'navigation',
+                  label: 'explore_data',
+                });
+                router.push('/explore-data');
+              }}
+              className="rounded-none"
+            >
+              Explore data
+            </CustomButton>
+          </div>
           {/* Mobile Navigation */}
           {menuOpen && (
-            <div className="absolute top-[107px] left-0 w-full bg-white shadow-lg p-4 md:hidden z-40">
+            <div className="absolute top-full left-0 w-full bg-white shadow-lg p-4 md:hidden z-40">
               {Object.entries(menuItems).map(([title, items]) => (
                 <div key={title} className="mb-4">
                   <button
                     onClick={() => toggleExpandedMenu(title)}
-                    className="text-gray-800 font-medium w-full text-left flex items-center justify-between"
+                    className="text-gray-800 font-medium w-full text-left flex items-center justify-between translate-element"
                   >
                     {title}
                     <TbChevronDown
@@ -280,7 +266,7 @@ const Navbar: React.FC = () => {
                         key={item.href}
                         href={item.href}
                         onClick={handleLinkClick}
-                        className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded"
+                        className="block px-4 py-2 text-gray-700 hover:bg-blue-50 transition rounded translate-element"
                       >
                         {item.title}
                       </Link>
@@ -319,9 +305,9 @@ const Navbar: React.FC = () => {
             </div>
           )}
         </div>
+        {/* Removed clean-air-network tab navigation */}
       </nav>
-      {/* Removed clean-air-network tab navigation */}
-    </motion.nav>
+    </div>
   );
 };
 

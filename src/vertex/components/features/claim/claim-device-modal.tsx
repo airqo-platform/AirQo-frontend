@@ -1,25 +1,27 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, Component, ReactNode } from 'react';
-import { CheckCircle2, Loader2, AlertCircle, Keyboard } from 'lucide-react';
+import { CheckCircle2, Loader2, AlertCircle, Smartphone, FileSpreadsheet, Database, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import { Form, FormField } from '@/components/ui/form';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppSelector } from '@/core/redux/hooks';
 import { useRouter } from 'next/navigation';
 import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
-import { useGroupCohorts } from '@/core/hooks/useCohorts';
+import { useGroupCohorts, useVerifyCohort } from '@/core/hooks/useCohorts';
+import { cohorts as cohortsApi } from '@/core/apis/cohorts';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
 import { DeviceEntryRow } from './DeviceEntryRow';
 import { BulkClaimResults } from './BulkClaimResults';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import { AqPlus } from '@airqo/icons-react';
+import { Device } from '@/app/types/devices';
 
 interface QRScannerErrorBoundaryProps {
     children: ReactNode;
@@ -79,7 +81,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
+export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -121,6 +123,12 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const [error, setError] = useState<string | null>(null);
 
     const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([]);
+    const [pendingSingleClaim, setPendingSingleClaim] = useState<{ deviceId: string; claimToken: string } | null>(null);
+    const [cohortIdInput, setCohortIdInput] = useState('');
+    const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
+    const [isImportingCohort, setIsImportingCohort] = useState(false);
+
+    const { mutateAsync: verifyCohort } = useVerifyCohort();
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -135,6 +143,10 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setStep('method-select');
         setError(null);
         setBulkDevices([]);
+        setPendingSingleClaim(null);
+        setCohortIdInput('');
+        setPreviousStep('method-select');
+        setIsImportingCohort(false);
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -217,8 +229,17 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         });
     };
 
-    const onManualSubmit = async (data: ClaimDeviceFormData) => {
-        handleClaimDevice(data.device_id, data.claim_token);
+    const onManualSubmit = (data: ClaimDeviceFormData) => {
+        setPendingSingleClaim({ deviceId: data.device_id, claimToken: data.claim_token });
+        setPreviousStep('manual-input');
+        setStep('confirmation');
+    };
+
+    const handleConfirmSingleClaim = () => {
+        if (isPending) return;
+        if (pendingSingleClaim) {
+            handleClaimDevice(pendingSingleClaim.deviceId, pendingSingleClaim.claimToken);
+        }
     };
 
     const handleBulkSubmit = () => {
@@ -240,6 +261,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         }
 
         setError(null);
+        setStep('bulk-confirmation');
+    };
+
+    const handleConfirmBulkClaim = () => {
+        if (!user?._id) return;
+
+        const validDevices = bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim());
+
         bulkClaimDevices({
             user_id: user._id,
             devices: validDevices,
@@ -293,16 +322,62 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         const parsed = parseQRCode(result);
 
         if (parsed) {
-            handleClaimDevice(parsed.deviceId, parsed.claimToken);
+            setPendingSingleClaim({ deviceId: parsed.deviceId, claimToken: parsed.claimToken });
+            setPreviousStep('qr-scan');
+            setStep('confirmation');
         } else {
             setError('Invalid QR code format. Please try manual entry.');
             setStep('manual-input');
         }
     };
 
+    const handleVerifyCohort = async () => {
+        if (!cohortIdInput.trim()) {
+            setError('Please enter a valid Cohort ID');
+            return;
+        }
+        setError(null);
+        setIsImportingCohort(true);
+
+        try {
+            const result = await verifyCohort(cohortIdInput);
+
+            if (result.success) {
+                try {
+                    const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
+                    const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
+
+                    if (cohort && Array.isArray(cohort.devices) && cohort.devices.length > 0) {
+                        const devices = cohort.devices.map((d: unknown) => {
+                            const device = d as Device;
+                            return {
+                                device_name: device.name || '',
+                                claim_token: ''
+                            };
+                        });
+                        setBulkDevices(devices);
+                        setStep('bulk-input');
+                    } else {
+                        setError('Cohort found but it has no devices assigned.');
+                    }
+                } catch (detailsErr: unknown) {
+                    const message = detailsErr instanceof Error ? detailsErr.message : 'Failed to fetch cohort devices';
+                    setError(message);
+                }
+            } else {
+                setError(result.message || 'Invalid Cohort ID');
+            }
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to verify Cohort ID';
+            setError(message);
+        } finally {
+            setIsImportingCohort(false);
+        }
+    };
+
     const getDialogConfig = () => {
         const baseConfig = {
-            title: 'Add AirQo Device',
+            title: 'Claim AirQo Device',
             showFooter: false,
             showCloseButton: true,
             preventBackdropClose: false,
@@ -320,6 +395,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     showFooter: true,
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
                 };
+            case 'cohort-import':
+                return {
+                    ...baseConfig,
+                    title: 'Import from Cohort',
+                    showFooter: true,
+                    primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Verify & Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
+                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
+                };
             case 'manual-input':
                 return {
                     ...baseConfig,
@@ -332,8 +415,24 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     ...baseConfig,
                     title: 'Add Multiple Devices',
                     showFooter: true,
-                    primaryAction: { label: isBulkPending ? 'Claiming...' : `Claim ${bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim()).length} Device(s)`, onClick: handleBulkSubmit, disabled: isBulkPending },
+                    primaryAction: { label: 'Review & Claim', onClick: handleBulkSubmit },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
+                };
+            case 'confirmation':
+                return {
+                    ...baseConfig,
+                    title: 'Confirm Claim',
+                    showFooter: true,
+                    primaryAction: { label: isPending ? 'Claiming...' : 'Confirm & Claim', onClick: handleConfirmSingleClaim, disabled: isPending },
+                    secondaryAction: { label: 'Cancel', onClick: () => setStep(previousStep), variant: 'outline' as const },
+                };
+            case 'bulk-confirmation':
+                return {
+                    ...baseConfig,
+                    title: 'Confirm Bulk Claim',
+                    showFooter: true,
+                    primaryAction: { label: isBulkPending ? 'Claiming...' : 'Confirm & Claim', onClick: handleConfirmBulkClaim, disabled: isBulkPending },
+                    secondaryAction: { label: 'Cancel', onClick: () => setStep('bulk-input'), variant: 'outline' as const },
                 };
             case 'claiming':
                 return { ...baseConfig, title: 'Claiming Device...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
@@ -399,17 +498,17 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 onClick={() => {
                                     setStep('qr-scan');
                                 }}
-                                className="flex flex-col items-start p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
                             >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                                        <Keyboard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                    </div>
-                                    <span className="font-semibold text-lg text-gray-900 dark:text-white">Add Single Device</span>
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
+                                    <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-11">
-                                    Scan a QR code or manually enter a Device ID.
-                                </span>
+                                <div>
+                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Single Device</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Scan a QR code or manually enter a Device ID.
+                                    </p>
+                                </div>
                             </button>
 
                             {/* Card B: Add Multiple Devices */}
@@ -417,17 +516,35 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 onClick={() => {
                                     setStep('bulk-input');
                                 }}
-                                className="flex flex-col items-start p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors text-left w-full group"
                             >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                                        <AqPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                    </div>
-                                    <span className="font-semibold text-lg text-gray-900 dark:text-white">Add Multiple Devices</span>
+                                <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-full group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors mr-4 shrink-0">
+                                    <FileSpreadsheet className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 </div>
-                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-11">
-                                    Upload a CSV file or enter a list of IDs for bulk setup.
-                                </span>
+                                <div>
+                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Multiple Devices</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Upload a CSV file or enter a list of IDs for bulk setup.
+                                    </p>
+                                </div>
+                            </button>
+
+                            {/* Card C: Import from Cohort */}
+                            <button
+                                onClick={() => {
+                                    setStep('cohort-import');
+                                }}
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-violet-500 dark:hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors text-left w-full group"
+                            >
+                                <div className="p-2 bg-violet-100 dark:bg-violet-900/40 rounded-full group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors mr-4 shrink-0">
+                                    <Database className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Import from Cohort</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Enter a Cohort ID to prefill devices.
+                                    </p>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -462,6 +579,32 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                             </button>
                         </div>
                     </QRScannerErrorBoundary>
+                )}
+
+                {step === 'cohort-import' && (
+                    <div className="space-y-6">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Enter the Cohort ID to automatically load its devices. You will only need to provide the claim tokens.
+                        </p>
+                        <div className="space-y-4">
+                            <ReusableInputField
+                                label="Cohort ID"
+                                placeholder="Enter Cohort ID"
+                                value={cohortIdInput}
+                                onChange={(e) => {
+                                    setCohortIdInput(e.target.value);
+                                    setError(null);
+                                }}
+                                error={error || undefined}
+                            />
+                        </div>
+                        {isImportingCohort && (
+                            <div className="flex items-center justify-center py-4">
+                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                                <span className="ml-2 text-sm text-gray-500">Verifying Cohort ID...</span>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {step === 'manual-input' && (
@@ -517,6 +660,86 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                             )}
                         </div>
                     </Form>
+                )}
+
+                {/* Confirmation Step */}
+                {step === 'confirmation' && pendingSingleClaim && (
+                    <div className="flex flex-col items-center justify-center py-6 px-4 space-y-4 text-center">
+                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-full">
+                            <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Confirm Device Claim
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
+                                Are you sure you want to claim this device?
+                            </p>
+                            <p className="text-sm text-amber-700 dark:text-amber-400 mt-3 max-w-sm mx-auto bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-900/50">
+                                <TooltipProvider delayDuration={0}>
+                                    Warning: If this device is currently{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p>Deployment triggers data transmission for a device</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    , it will be automatically{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    .
+                                </TooltipProvider>
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Bulk Confirmation Step */}
+                {step === 'bulk-confirmation' && (
+                    <div className="flex flex-col items-center justify-center py-6 px-4 space-y-4 text-center">
+                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-full">
+                            <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Confirm Bulk Claim
+                            </h3>
+                            <div className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
+                                You are about to claim <span className="font-semibold text-gray-900 dark:text-white">{bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim()).length}</span> devices.
+                            </div>
+                            <p className="text-sm text-amber-700 dark:text-amber-400 mt-3 max-w-sm mx-auto bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-900/50">
+                                <TooltipProvider delayDuration={0}>
+                                    Warning: Any devices currently{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p>Deployment triggers data transmission for a device</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    {' '}will be automatically{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    {' '}and added to your inventory.
+                                </TooltipProvider>
+                            </p>
+                        </div>
+                    </div>
                 )}
 
                 {step === 'claiming' && (
@@ -645,7 +868,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 {/* Add Device Button */}
                                 <div className="flex gap-3">
                                     <ReusableButton
-                                        Icon={AqPlus}
+                                        Icon={Plus}
                                         onClick={handleAddDevice}
                                         variant="outlined"
                                         className="flex-1"

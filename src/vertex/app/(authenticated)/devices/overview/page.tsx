@@ -40,7 +40,7 @@ export default function DevicesPage() {
                   Icon={Plus}
                   permission={PERMISSIONS.DEVICE.UPDATE}
                 >
-                  Add AirQo Device
+                  Claim AirQo Device
                 </ReusableButton>
 
                 <ReusableButton

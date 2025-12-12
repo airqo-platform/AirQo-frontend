@@ -116,6 +116,7 @@ export interface DecodedToken {
   rateLimit: number | null;
   lastLogin: string;
   iat: number;
+  exp?: number;
 }
 
 export interface CurrentRole {

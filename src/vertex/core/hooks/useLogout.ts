@@ -36,12 +36,11 @@ export const useLogout = (callbackUrl?: string) => {
 
       queryClient.clear();
 
-      await signOut({ callbackUrl: callbackUrl || '/login' });
+      await signOut({ redirect: false });
+      router.push('/login');
     } catch (error) {
       logger.error('Logout error:', { error });
-      router.push(callbackUrl || '/login');
-    } finally {
-      dispatch(setLoggingOut(false));
+      router.push('/login');
     }
   }, [isLoggingOut, dispatch, queryClient, router, callbackUrl]);
 

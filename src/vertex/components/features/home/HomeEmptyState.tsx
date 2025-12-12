@@ -31,7 +31,7 @@ const HomeEmptyState = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <ReusableButton onClick={() => setIsClaimModalOpen(true)} Icon={Plus}>
-                    Add AirQo Device
+                    Claim AirQo Device
                 </ReusableButton>
 
                 <ReusableButton

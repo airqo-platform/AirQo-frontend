@@ -11,9 +11,8 @@ const AppPromo = () => {
         <Image
           src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/explore/man-download-app_qg1pt2.png"
           alt="User using AirQo app"
-          layout="fill"
-          objectFit="cover"
-          className="w-full h-full"
+          fill
+          className="object-cover w-full h-full"
           loading="eager"
         />
       </div>

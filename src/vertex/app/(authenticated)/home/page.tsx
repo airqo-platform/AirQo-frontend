@@ -2,6 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
 import { PlusSquare, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
@@ -14,41 +15,45 @@ import { Skeleton } from "@/components/ui/skeleton";
 import HomeEmptyState from "@/components/features/home/HomeEmptyState";
 import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
 
+const StatsSkeleton = () => (
+  <div className="space-y-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+      {[1, 2, 3, 4].map((i) => (
+        <div key={i} className="md:col-span-1 lg:col-span-1">
+          <div className="rounded-lg bg-white dark:bg-gray-800 border p-6">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-12 w-12 rounded-xl" />
+                <div className="flex flex-col gap-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              </div>
+              <Skeleton className="h-10 w-16" />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
 // Lazy load stats cards
 const DashboardStatsCards = dynamic(
   () => import("@/components/features/dashboard/stats-cards").then(mod => ({ default: mod.DashboardStatsCards })),
   {
     ssr: false,
-    loading: () => (
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="md:col-span-1 lg:col-span-1">
-              <div className="rounded-lg bg-white dark:bg-gray-800 border p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="h-12 w-12 rounded-xl" />
-                    <div className="flex flex-col gap-2">
-                      <Skeleton className="h-4 w-24" />
-                      <Skeleton className="h-3 w-32" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-10 w-16" />
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    ),
+    loading: () => <StatsSkeleton />,
   }
 );
 
 const WelcomePage = () => {
+  const router = useRouter();
+  const { data: session } = useSession();
+  const { userContext, userScope, hasError, error } = useUserContext();
+
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const user = useAppSelector((state) => state.user.userDetails);
-  const router = useRouter();
-  const { userContext, userScope, hasError, error } = useUserContext();
 
   const allActions = [
     {
@@ -64,18 +69,18 @@ const WelcomePage = () => {
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
 
-  // Use userScope to determine which devices to fetch
-  // Personal scope = my devices, Organisation scope = org devices
+  const userId = (session?.user as { id?: string })?.id || user?._id;
+
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
     limit: 1,
     enabled: userScope === 'organisation',
   });
 
   const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
-    user?._id || "",
+    userId || "",
     undefined,
     {
-      enabled: !!user?._id && userScope === 'personal',
+      enabled: !!userId && userScope === 'personal',
     }
   );
 
@@ -103,21 +108,20 @@ const WelcomePage = () => {
   if (isLoading) {
     return (
       <div>
-        <DashboardWelcomeBanner />
         {/* Context Header Skeleton */}
-        <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-gradient-to-r from-primary to-primary/80 text-white p-8">
+        <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-white dark:bg-gray-800 border p-8">
           <div className="space-y-3">
-            <Skeleton className="h-10 w-3/4 bg-white/20" />
-            <Skeleton className="h-6 w-1/2 bg-white/20" />
+            <Skeleton className="h-10 w-3/4" />
+            <Skeleton className="h-6 w-1/2" />
           </div>
         </div>
         {/* Stats Cards Skeleton */}
         <div className="mb-10">
-          <DashboardStatsCards />
+          <StatsSkeleton />
         </div>
         {/* Quick Access Skeleton */}
         <div className="mb-10">
-          <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
+          <Skeleton className="h-7 w-32 mb-4" />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
             {[1, 2, 3].map((i) => (
               <Skeleton key={i} className="h-12 w-full" />
@@ -130,7 +134,7 @@ const WelcomePage = () => {
 
   // 3. Empty state - check AFTER loading is complete but BEFORE main UI
   const hasNoDevices = userScope === 'personal'
-    ? myDevicesData?.devices?.length === 0
+    ? (myDevicesData?.devices || []).length === 0
     : groupDevices.length === 0;
 
   if (hasNoDevices) {

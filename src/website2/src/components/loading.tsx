@@ -1,37 +1,64 @@
 'use client';
-import Image from 'next/image';
 import React from 'react';
 
-import TriangleImage from '../../public/assets/icons/airqo.png';
+interface LoadingProps {
+  size?: 'small' | 'medium' | 'large';
+  fullScreen?: boolean;
+}
 
-const Loading = () => {
+const Loading: React.FC<LoadingProps> = ({
+  size = 'large',
+  fullScreen = false,
+}) => {
+  const containerClasses = fullScreen
+    ? 'flex items-center justify-center min-h-screen bg-white'
+    : 'flex items-center justify-center';
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-white">
-      <div className="relative">
-        {/* Outer Wave Circles */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="absolute w-48 h-48 rounded-full bg-blue-500 opacity-30 animate-[ping_1.5s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
-          <div className="absolute w-64 h-64 rounded-full bg-blue-400 opacity-20 animate-[ping_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
-          <div className="absolute w-80 h-80 rounded-full bg-blue-300 opacity-10 animate-[ping_2.5s_cubic-bezier(0.4,0,0.6,1)_infinite]"></div>
-        </div>
+    <div className={containerClasses}>
+      <span
+        className="loading-spinner"
+        style={{
+          width:
+            size === 'small' ? '24px' : size === 'medium' ? '36px' : '48px',
+          height:
+            size === 'small' ? '24px' : size === 'medium' ? '36px' : '48px',
+        }}
+      ></span>
+      <style jsx>{`
+        .loading-spinner {
+          display: inline-block;
+          position: relative;
+        }
+        .loading-spinner::after,
+        .loading-spinner::before {
+          content: '';
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background: #145dff;
+          position: absolute;
+          left: 0;
+          top: 0;
+          box-sizing: border-box;
+          animation: animloader 2s ease-in-out infinite;
+        }
+        .loading-spinner::after {
+          animation-delay: 1s;
+        }
 
-        {/* Triangle Image with Overlay */}
-        <div className="relative w-32 h-32 flex items-center justify-center">
-          {/* Triangle Image */}
-          <Image
-            src={TriangleImage}
-            alt="AirQo Triangle"
-            layout="fill"
-            objectFit="contain"
-            className="text-blue-600 mix-blend-multiply"
-          />
-
-          {/* Text Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center top-6">
-            <span className="text-white font-bold text-2xl">AirQo</span>
-          </div>
-        </div>
-      </div>
+        @keyframes animloader {
+          0%,
+          100% {
+            transform: scale(0);
+            opacity: 1;
+          }
+          50% {
+            transform: scale(1);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 };

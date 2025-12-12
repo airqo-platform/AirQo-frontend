@@ -1,143 +1,22 @@
 import { Card } from "@/components/ui/card";
 import {
   Loader2,
-  Upload,
-  Database,
-  CheckCircle,
-  XCircle,
   AlertTriangle,
   Info,
 } from "lucide-react";
 import { useDeviceDetails } from "@/core/hooks/useDevices";
 import React from "react";
-import { add, format, isAfter, isValid, parseISO } from 'date-fns';
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Device } from "@/app/types/devices";
-
-/*
-  Helper types and functions
-*/
-type StatusLabel =
-  | "Operational"
-  | "Transmitting"
-  | "Data Available"
-  | "Not Transmitting"
-  | "Invalid Device Status";
-
-type StatusColor = "green" | "blue" | "yellow" | "gray" | "red" | "purple";
-
-interface PrimaryStatus {
-  label: StatusLabel;
-  color: StatusColor;
-  icon: React.ElementType;
-  description: string;
-}
-
-interface FormattedDate {
-  message: string;
-  isError: boolean;
-  errorType: "future" | "invalid" | null;
-}
-
-
-const getPrimaryStatus = (device: Device): PrimaryStatus => {
-  // 🟢 Best case: transmitting and data ready
-  if (device.rawOnlineStatus && device.isOnline) {
-    return {
-      label: "Operational",
-      color: "green",
-      icon: CheckCircle,
-      description: "Device transmitting • Data ready for use",
-    };
-  }
-
-  // 🔵 Device transmitting but waiting for calibration
-  if (device.rawOnlineStatus && !device.isOnline) {
-    return {
-      label: "Transmitting",
-      color: "blue",
-      icon: Upload,
-      description: "Receiving data • Processing calibration...",
-    };
-  }
-
-  // 🟡 Has recent calibrated data but not currently transmitting
-  if (!device.rawOnlineStatus && device.isOnline) {
-    return {
-      label: "Data Available",
-      color: "yellow",
-      icon: Database,
-      description: "Using recent data • Not currently transmitting",
-    };
-  }
-
-  // 🔴 Not transmitting and no recent data
-  // This is the default "else" case
-  return {
-    label: "Not Transmitting",
-    color: "gray",
-    icon: XCircle,
-    description: "No recent data from device",
-  };
-};
-
-const getDetailedExplanation = (
-  device: Device,
-  futureDateCheck?: FormattedDate | null
-): string => {
-  if (futureDateCheck?.errorType === "future") {
-    return `This is a device-level issue. The device reported an invalid future date: ${futureDateCheck.message}. This is likely due to a clock or configuration error.`;
-  }
-
-  const status = getPrimaryStatus(device);
-
-  switch (status.label) {
-    case "Operational":
-      return `Operational: The device is marked as transmitting (rawOnlineStatus: true) and its processed, calibrated data is also ready (isOnline: true).`;
-    case "Transmitting":
-      return `Transmitting: The device is sending new raw data (rawOnlineStatus: true), but the final calibrated data is still processing (isOnline: false). This is normal during data processing cycles.`;
-    case "Data Available":
-      return `Data Available: The device is not currently sending new raw data (rawOnlineStatus: false), but recently calibrated data (isOnline: true) is still available for use.`;
-    case "Not Transmitting":
-    default:
-      return "Not Transmitting: The device is not sending new raw data (rawOnlineStatus: false), and no recent calibrated data is available (isOnline: false). The device appears to be offline.";
-  }
-};
-
-const formatDisplayDate = (dateString: string): FormattedDate => {
-  const date = parseISO(dateString);
-
-  // Validate date
-  if (!isValid(date)) {
-    return { message: "Invalid date", isError: true, errorType: "invalid" };
-  }
-
-  // Now in UTC
-  const now = new Date();
-  const nowPlus5 = add(now, { minutes: 5 });
-
-  const formattedDate = format(date, "MMM d yyyy, h:mm a");
-
-  // Check if date is more than 5 minutes in the future
-  if (isAfter(date, nowPlus5)) {
-    return {
-      message: formattedDate,
-      isError: true,
-      errorType: "future",
-    };
-  }
-
-  return {
-    message: formattedDate,
-    isError: false,
-    errorType: null,
-  };
-};
+import {
+  formatDisplayDate,
+  getDeviceStatus,
+  getStatusExplanation,
+} from "@/core/utils/status";
 
 const statusColorClasses = {
   green: {
@@ -148,7 +27,7 @@ const statusColorClasses = {
   blue: {
     bg: "bg-blue-600",
     text: "text-blue-700",
-    border: "border-blue-6600",
+    border: "border-blue-600",
   },
   yellow: {
     bg: "bg-yellow-500",
@@ -192,9 +71,8 @@ const DateTooltipWrapper: React.FC<{ dateString: string; label: string }> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <span
-                className={`font-medium underline decoration-dotted cursor-help inline-flex items-center gap-1 ${
-                  isFutureError ? "text-purple-600" : "text-red-500"
-                }`}
+                className={`font-medium underline decoration-dotted cursor-help inline-flex items-center gap-1 ${isFutureError ? "text-purple-600" : "text-red-500"
+                  }`}
               >
                 <AlertTriangle className="w-4 h-4" />
                 <span>{formattedDate.message}</span>
@@ -261,24 +139,15 @@ const OnlineStatusCard: React.FC<OnlineStatusCardProps> = ({ deviceId }) => {
   const lastActiveCheck = device.lastActive
     ? formatDisplayDate(device.lastActive)
     : null;
-  const externalFutureDateError = lastActiveCheck?.errorType === "future";
 
-  let status: PrimaryStatus;
-  let colors;
-  const detailedExplanation = getDetailedExplanation(device, lastActiveCheck);
+  const status = getDeviceStatus(
+    device.isOnline,
+    device.rawOnlineStatus,
+    lastActiveCheck
+  );
 
-  if (externalFutureDateError) {
-    status = {
-      label: "Invalid Device Status",
-      color: "purple",
-      icon: AlertTriangle,
-      description: "Device reporting an invalid future date.",
-    };
-    colors = statusColorClasses.purple;
-  } else {
-    status = getPrimaryStatus(device);
-    colors = statusColorClasses[status.color];
-  }
+  const colors = statusColorClasses[status.color];
+  const detailedExplanation = getStatusExplanation(status.label, lastActiveCheck);
 
   const Icon = status.icon;
 

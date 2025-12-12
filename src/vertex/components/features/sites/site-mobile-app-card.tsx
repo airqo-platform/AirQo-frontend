@@ -1,6 +1,8 @@
 "use client";
 
 import { Card } from "@/components/ui/card";
+import { AqEdit01 } from "@airqo/icons-react";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface Site {
   search_name: string;
@@ -11,6 +13,7 @@ interface Site {
 
 interface SiteMobileAppCardProps {
   site: Site;
+  onEdit?: () => void;
 }
 
 const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -20,7 +23,7 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
   </div>
 );
 
-export const SiteMobileAppCard: React.FC<SiteMobileAppCardProps> = ({ site }) => {
+export const SiteMobileAppCard: React.FC<SiteMobileAppCardProps> = ({ site, onEdit }) => {
   return (
     <Card className="w-full rounded-lg bg-white flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
@@ -32,6 +35,17 @@ export const SiteMobileAppCard: React.FC<SiteMobileAppCardProps> = ({ site }) =>
           <DetailItem label="Country" value={site.country} />
         </div>
       </div>
+      {onEdit && (
+        <div className="border-t p-2 flex justify-end">
+          <ReusableButton
+            onClick={onEdit}
+            Icon={AqEdit01}
+            className="h-8 px-3 text-xs"
+          >
+            Edit
+          </ReusableButton>
+        </div>
+      )}
     </Card>
   );
 };

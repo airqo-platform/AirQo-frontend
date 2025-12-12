@@ -116,6 +116,15 @@ const PP_Page = () => {
             cookies. Just keep in mind that some of our services rely on cookies
             to function properly so rejecting them may affect their operations.
           </p>
+          <p>
+            We use Google Translate to provide language translation services on
+            our website. Google Translate may set cookies on your device to
+            remember your language preferences and improve translation quality.
+            Please note that Google Translate is a third-party service provided
+            by Google, and your use of this service is subject to Google&apos;s
+            Privacy Policy. We do not control or have access to the data
+            collected by Google through this service.
+          </p>
         </>
       ),
     },

@@ -9,6 +9,7 @@ import { ReactNode, Suspense } from 'react';
 import CookieConsent from '@/components/CookieConsent';
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
+import GoogleTranslate from '@/components/GoogleTranslate';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
@@ -217,6 +218,7 @@ export default async function RootLayout({
         </Script>
       </head>
       <body>
+        <GoogleTranslate />
         <ExternalLinkDecorator />
         <ErrorBoundary>
           <ReduxDataProvider>

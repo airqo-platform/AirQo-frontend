@@ -41,96 +41,12 @@ interface ExtendedSession {
   };
 }
 
-// Session cache implementation
-class SessionCache {
-  private cache = new Map<string, CacheEntry>();
-  private ttl = 5 * 60 * 1000; // 5 minutes
-  private maxSize = 50;
-  private cleanupInterval: NodeJS.Timeout | null = null;
-  private initialized = false;
+// Session cache removed - unsafe global state
 
-  init(): void {
-    if (this.initialized) return;
-    this.initialized = true;
 
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, 60000);
-
-    if (typeof process !== 'undefined') {
-      process.on('exit', () => this.clear());
-      process.on('SIGINT', () => this.clear());
-      process.on('SIGTERM', () => this.clear());
-    }
-  }
-
-  private cleanup(): void {
-    const now = Date.now();
-    const keysToDelete: string[] = [];
-
-    this.cache.forEach((value, key) => {
-      if (now - value.timestamp > this.ttl) {
-        keysToDelete.push(key);
-      }
-    });
-
-    keysToDelete.forEach((key) => this.cache.delete(key));
-
-    if (this.cache.size > this.maxSize) {
-      const entries = Array.from(this.cache.entries());
-      entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-
-      const toRemove = entries.slice(0, this.cache.size - this.maxSize);
-      toRemove.forEach(([key]) => this.cache.delete(key));
-    }
-  }
-
-  get(key: string): unknown {
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-
-    const now = Date.now();
-    if (now - entry.timestamp > this.ttl) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return entry.session;
-  }
-
-  set(key: string, session: unknown): void {
-    this.cache.set(key, {
-      session,
-      timestamp: Date.now(),
-    });
-  }
-
-  clear(): void {
-    this.cache.clear();
-    if (this.cleanupInterval) {
-      clearInterval(this.cleanupInterval);
-      this.cleanupInterval = null;
-    }
-  }
-}
-
-const sessionCache = new SessionCache();
-
-const getCachedSession = async (): Promise<ExtendedSession | null> => {
-  sessionCache.init();
-
-  const cacheKey = 'nextauth_session';
-  const cachedSession = sessionCache.get(cacheKey);
-
-  if (cachedSession) {
-    return cachedSession as ExtendedSession | null;
-  }
-
+const getSession = async (): Promise<ExtendedSession | null> => {
   try {
     const session = await getServerSession(authOptions);
-    if (session) {
-      sessionCache.set(cacheKey, session);
-    }
     return session as ExtendedSession | null;
   } catch (error: unknown) {
     logger.warn('Failed to get server session:', { error: error instanceof Error ? error.message : String(error) });
@@ -255,7 +171,7 @@ export const createProxyHandler = (options: ProxyOptions = {}) => {
 
       // Add JWT token if required
       if (requiresAuth) {
-        const session = await getCachedSession();
+        const session = await getSession();
         let authHeader: string | null = null;
 
         if (session?.user?.accessToken) {
