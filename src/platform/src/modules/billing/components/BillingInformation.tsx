@@ -1,11 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, Button, LoadingSpinner, toast } from '@/shared/components/ui';
 import Dialog from '@/shared/components/ui/dialog';
 import { AqEdit05, AqAlertTriangle } from '@airqo/icons-react';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import SettingsLayout from '@/modules/user-profile/components/SettingsLayout';
+import dynamic from 'next/dynamic';
+
+// @ts-expect-error - React types mismatch between next/dynamic and react-google-recaptcha
+const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), {
+  ssr: false,
+  loading: () => (
+    <div className="h-20 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+  ),
+});
+
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
 
 interface BillingInfo {
   paymentMethod?: {
@@ -54,6 +65,11 @@ const BillingInformation: React.FC = () => {
     expiryYear: '',
     cvv: '',
   });
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+
+  const handleRecaptchaChange = useCallback((token: string | null) => {
+    setRecaptchaToken(token);
+  }, []);
 
   useEffect(() => {
     fetchBillingInfo();
@@ -149,6 +165,12 @@ const BillingInformation: React.FC = () => {
   };
 
   const handleUpdatePaymentMethod = async () => {
+    // Check if reCAPTCHA is enabled
+    if (RECAPTCHA_SITE_KEY && !recaptchaToken) {
+      toast.error('Please complete the reCAPTCHA verification');
+      return;
+    }
+
     if (!validateCardNumber(paymentFormData.cardNumber)) {
       toast.error('Invalid card number');
       return;
@@ -178,6 +200,7 @@ const BillingInformation: React.FC = () => {
         },
         body: JSON.stringify({
           ...paymentFormData,
+          recaptchaToken,
         }),
       });
 
@@ -194,6 +217,7 @@ const BillingInformation: React.FC = () => {
           expiryYear: '',
           cvv: '',
         });
+        setRecaptchaToken(null);
       } else {
         toast.error(data.message || 'Failed to update payment method');
       }
@@ -502,6 +526,24 @@ const BillingInformation: React.FC = () => {
                     </p>
                   </div>
 
+                  {/* reCAPTCHA - Only show if site key is configured */}
+                  {RECAPTCHA_SITE_KEY ? (
+                    <div className="flex justify-center py-4">
+                      <ReCAPTCHA
+                        sitekey={RECAPTCHA_SITE_KEY}
+                        onChange={handleRecaptchaChange}
+                      />
+                    </div>
+                  ) : (
+                    <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-md">
+                      <p className="text-xs text-yellow-800 dark:text-yellow-200">
+                        ⚠️ reCAPTCHA not configured. Please add
+                        NEXT_PUBLIC_RECAPTCHA_SITE_KEY to your environment
+                        variables.
+                      </p>
+                    </div>
+                  )}
+
                   <div className="flex space-x-3 pt-4">
                     <Button
                       onClick={handleUpdatePaymentMethod}
@@ -521,6 +563,7 @@ const BillingInformation: React.FC = () => {
                           expiryYear: '',
                           cvv: '',
                         });
+                        setRecaptchaToken(null);
                       }}
                       disabled={updatingPayment}
                     >
