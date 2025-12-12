@@ -77,7 +77,7 @@ export default function LoginPage() {
       ReusableToast({ message, type: "ERROR" });
       setIsLoading(false);
     }
-  }, [router]);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-muted/30 p-4">

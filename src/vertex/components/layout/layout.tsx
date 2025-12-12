@@ -28,10 +28,7 @@ export default function Layout({ children }: LayoutProps) {
     state => state.user.organizationSwitching
   );
 
-  const isInitialized = useAppSelector(state => state.user.isInitialized);
-  const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
-  const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
     // Determine active module based on current pathname

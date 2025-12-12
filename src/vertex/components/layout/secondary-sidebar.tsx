@@ -46,7 +46,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   toggleSidebar,
   activeModule,
 }) => {
-  const { getContextPermissions, isPersonalContext, isExternalOrg, isLoading } =
+  const { getContextPermissions, isExternalOrg, isLoading } =
     useUserContext();
   const contextPermissions = getContextPermissions();
 

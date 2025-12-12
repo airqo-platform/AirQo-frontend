@@ -52,7 +52,7 @@ const WelcomePage = () => {
 
   const activeGroup = useAppSelector((state) => state.user.activeGroup);
   const user = useAppSelector((state) => state.user.userDetails);
-  
+
   const allActions = [
     {
       href: "/devices/claim",
@@ -67,7 +67,7 @@ const WelcomePage = () => {
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
 
-  const userId = (session?.user as any)?.id || user?._id;
+  const userId = (session?.user as { id?: string })?.id || user?._id;
 
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
     limit: 1,
