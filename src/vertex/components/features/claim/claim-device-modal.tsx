@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, Component, ReactNode } from 'react';
-import { CheckCircle2, Loader2, AlertCircle, Keyboard } from 'lucide-react';
+import { CheckCircle2, Loader2, AlertCircle, Keyboard, Database } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,7 +14,9 @@ import { useRouter } from 'next/navigation';
 import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
-import { useGroupCohorts } from '@/core/hooks/useCohorts';
+import { useGroupCohorts, useVerifyCohort } from '@/core/hooks/useCohorts';
+import { cohorts as cohortsApi } from '@/core/apis/cohorts';
+import { useQueryClient } from '@tanstack/react-query';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
 import { DeviceEntryRow } from './DeviceEntryRow';
@@ -80,7 +82,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results';
+export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -104,6 +106,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     initialStep = 'method-select',
 }) => {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const user = useAppSelector(state => state.user.userDetails);
 
     const { isPersonalContext, isExternalOrg, activeGroup, userScope } = useUserContext();
@@ -123,6 +126,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
     const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([]);
     const [pendingSingleClaim, setPendingSingleClaim] = useState<{ deviceId: string; claimToken: string } | null>(null);
+    const [cohortIdInput, setCohortIdInput] = useState('');
+
+    const { mutateAsync: verifyCohort, isPending: isVerifyingCohort } = useVerifyCohort();
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -138,6 +144,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setError(null);
         setBulkDevices([]);
         setPendingSingleClaim(null);
+        setCohortIdInput('');
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -319,6 +326,39 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         }
     };
 
+    const handleVerifyCohort = async () => {
+        if (!cohortIdInput.trim()) {
+            setError('Please enter a valid Cohort ID');
+            return;
+        }
+        setError(null);
+
+        try {
+            const result = await verifyCohort(cohortIdInput);
+
+            if (result.success) {
+                // Fetch cohort details to get devices
+                const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
+                const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
+
+                if (cohort && cohort.devices && cohort.devices.length > 0) {
+                    const devices = cohort.devices.map((d: any) => ({
+                        device_name: d.name || d, // Handle object or string
+                        claim_token: ''
+                    }));
+                    setBulkDevices(devices);
+                    setStep('bulk-input');
+                } else {
+                    setError('Cohort found but it has no devices assigned.');
+                }
+            } else {
+                setError(result.message || 'Invalid Cohort ID');
+            }
+        } catch (err: any) {
+            setError(err?.message || 'Failed to verify cohort');
+        }
+    };
+
     const getDialogConfig = () => {
         const baseConfig = {
             title: 'Claim AirQo Device',
@@ -337,6 +377,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     ...baseConfig,
                     title: 'Scan QR Code',
                     showFooter: true,
+                    secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
+                };
+            case 'cohort-import':
+                return {
+                    ...baseConfig,
+                    title: 'Import from Cohort',
+                    showFooter: true,
+                    primaryAction: { label: isVerifyingCohort ? 'Verifying...' : 'Verify & Import', onClick: handleVerifyCohort, disabled: isVerifyingCohort },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
                 };
             case 'manual-input':
@@ -434,17 +482,17 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 onClick={() => {
                                     setStep('qr-scan');
                                 }}
-                                className="flex flex-col items-start p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
                             >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                                        <Keyboard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                    </div>
-                                    <span className="font-semibold text-lg text-gray-900 dark:text-white">Add Single Device</span>
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
+                                    <Keyboard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-11">
-                                    Scan a QR code or manually enter a Device ID.
-                                </span>
+                                <div>
+                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Single Device</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Scan a QR code or manually enter a Device ID.
+                                    </p>
+                                </div>
                             </button>
 
                             {/* Card B: Add Multiple Devices */}
@@ -452,17 +500,35 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 onClick={() => {
                                     setStep('bulk-input');
                                 }}
-                                className="flex flex-col items-start p-6 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
                             >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors">
-                                        <AqPlus className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                    </div>
-                                    <span className="font-semibold text-lg text-gray-900 dark:text-white">Add Multiple Devices</span>
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
+                                    <AqPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <span className="text-sm text-gray-500 dark:text-gray-400 ml-11">
-                                    Upload a CSV file or enter a list of IDs for bulk setup.
-                                </span>
+                                <div>
+                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Multiple Devices</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Upload a CSV file or enter a list of IDs for bulk setup.
+                                    </p>
+                                </div>
+                            </button>
+
+                            {/* Card C: Import from Cohort */}
+                            <button
+                                onClick={() => {
+                                    setStep('cohort-import');
+                                }}
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
+                            >
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
+                                    <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-base text-gray-900 dark:text-white">Import from Cohort</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                        Enter a Cohort ID to prefill devices.
+                                    </p>
+                                </div>
                             </button>
                         </div>
                     </div>
@@ -497,6 +563,32 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                             </button>
                         </div>
                     </QRScannerErrorBoundary>
+                )}
+
+                {step === 'cohort-import' && (
+                    <div className="space-y-6">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                            Enter the Cohort ID to automatically load its devices. You will only need to provide the claim tokens.
+                        </p>
+                        <div className="space-y-4">
+                            <ReusableInputField
+                                label="Cohort ID"
+                                placeholder="Enter Cohort ID"
+                                value={cohortIdInput}
+                                onChange={(e) => {
+                                    setCohortIdInput(e.target.value);
+                                    setError(null);
+                                }}
+                                error={error || undefined}
+                            />
+                        </div>
+                        {isVerifyingCohort && (
+                            <div className="flex items-center justify-center py-4">
+                                <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
+                                <span className="ml-2 text-sm text-gray-500">Verifying Cohort ID...</span>
+                            </div>
+                        )}
+                    </div>
                 )}
 
                 {step === 'manual-input' && (
