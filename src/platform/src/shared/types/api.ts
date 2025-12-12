@@ -1364,3 +1364,77 @@ export interface GetUserStatisticsResponse {
   message: string;
   users_stats: UserStatistics;
 }
+
+// Subscription Types
+export type SubscriptionTier = 'Free' | 'Standard' | 'Premium';
+
+export interface SubscriptionPlan {
+  tier: SubscriptionTier;
+  name: string;
+  price: number;
+  currency: string;
+  features: string[];
+  limits: {
+    hourly: number;
+    daily: number;
+    monthly: number;
+  };
+}
+
+export interface UserSubscription {
+  tier: SubscriptionTier;
+  status: 'active' | 'inactive' | 'past_due' | 'cancelled';
+  startDate: string;
+  endDate?: string;
+  autoRenewal: boolean;
+  billingCycle: 'monthly' | 'annual';
+}
+
+export interface ApiUsage {
+  hourly: {
+    used: number;
+    limit: number;
+    resetTime: string;
+  };
+  daily: {
+    used: number;
+    limit: number;
+    resetTime: string;
+  };
+  monthly: {
+    used: number;
+    limit: number;
+    resetTime: string;
+  };
+}
+
+export interface GetSubscriptionResponse {
+  success: boolean;
+  message: string;
+  subscription: UserSubscription;
+  usage: ApiUsage;
+}
+
+export interface GetSubscriptionPlansResponse {
+  success: boolean;
+  message: string;
+  plans: SubscriptionPlan[];
+}
+
+// Payment Types
+export interface Transaction {
+  id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'completed' | 'failed' | 'refunded';
+  description: string;
+  date: string;
+  paymentMethod: string; // masked, e.g., **** **** **** 1234
+  reference: string;
+}
+
+export interface TransactionHistoryResponse {
+  success: boolean;
+  message: string;
+  transactions: Transaction[];
+}
