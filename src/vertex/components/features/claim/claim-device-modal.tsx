@@ -516,10 +516,10 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 onClick={() => {
                                     setStep('bulk-input');
                                 }}
-                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-green-500 dark:hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors text-left w-full group"
                             >
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-green-100 dark:group-hover:bg-green-900/40 transition-colors mr-4 shrink-0">
-                                    <FileSpreadsheet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-full group-hover:bg-green-200 dark:group-hover:bg-green-800 transition-colors mr-4 shrink-0">
+                                    <FileSpreadsheet className="w-5 h-5 text-green-600 dark:text-green-400" />
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Multiple Devices</h4>
@@ -534,10 +534,10 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 onClick={() => {
                                     setStep('cohort-import');
                                 }}
-                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
+                                className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-violet-500 dark:hover:border-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 transition-colors text-left w-full group"
                             >
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
-                                    <Database className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <div className="p-2 bg-violet-100 dark:bg-violet-900/40 rounded-full group-hover:bg-violet-200 dark:group-hover:bg-violet-800 transition-colors mr-4 shrink-0">
+                                    <Database className="w-5 h-5 text-violet-600 dark:text-violet-400" />
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-base text-gray-900 dark:text-white">Import from Cohort</h4>
