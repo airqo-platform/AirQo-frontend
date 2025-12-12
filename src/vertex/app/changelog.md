@@ -4,6 +4,46 @@
 
 ---
 
+## Version 1.21.0
+**Released:** December 12, 2025
+
+### Instant Home Page & Session Optimization
+
+Achieved an "Instant Load" experience for the Home Page by implementing Server-Side Session fetching and removing blocking UI checks. The dashboard now renders immediately upon login without any loading spinners.
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Instant Dashboard**: The Home Page now loads immediately after login, eliminating the ~3s "Session Loading" delay.
+- **Server-Side Session**: Implemented `getServerSession` to hydrate authentication state on the server, ensuring the client knows the user is logged in before the first render.
+- **Non-Blocking Layout**: Removed restrictive blocking checks in the main Layout, allowing the App Shell (Sidebar/Topbar) to render instantly while user details update in the background.
+- **Optimized Sidebar**: Refactored the Secondary Sidebar to default to the "Personal View" immediately, removing flickering skeleton loaders.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- **SSR Implementation**: Updated `app/layout.tsx` to fetch session server-side and pass it to providers.
+- **Hard Login Redirect**: Changed login navigation to use `window.location.href` to force a server-side session refresh, guaranteeing instant state on the next page load.
+- **Removed Blocking Logic**: Deleted the `!userDetails` check in `components/layout/layout.tsx`.
+- **Parallel Data Fetching**: Updated `Home` page to use the session ID for immediate device fetching, running in parallel with user profile updates.
+- **Sidebar Defaulting**: Updated `secondary-sidebar.tsx` to fallback to the Personal view structure instead of showing skeletons when context is loading.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/layout.tsx`
+- `app/login/page.tsx`
+- `app/(authenticated)/home/page.tsx`
+- `components/layout/layout.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `middleware.ts`
+
+</details>
+
 ## Version 1.20.1
 **Released:** December 11, 2025
 
