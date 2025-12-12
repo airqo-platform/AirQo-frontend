@@ -302,7 +302,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
     const getDialogConfig = () => {
         const baseConfig = {
-            title: 'Add AirQo Device',
+            title: 'Claim AirQo Device',
             showFooter: false,
             showCloseButton: true,
             preventBackdropClose: false,

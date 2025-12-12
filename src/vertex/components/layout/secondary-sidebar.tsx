@@ -137,7 +137,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     item={{
                       href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
                       icon: AqPackagePlus,
-                      label: 'Register Device',
+                      label: 'Claim Device',
                     }}
                     isCollapsed={isCollapsed}
                   />
@@ -177,7 +177,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     item={{
                       href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
                       icon: AqPackagePlus,
-                      label: 'Register Device',
+                      label: 'Claim Device',
                     }}
                     isCollapsed={isCollapsed}
                   />

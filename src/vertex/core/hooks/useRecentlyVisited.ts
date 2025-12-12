@@ -35,7 +35,7 @@ const getCanonicalRoute = (pathname: string): { label: string; href: string } | 
   
   if (pathname.includes('/devices/my-devices')) return { label: 'My Devices', href: ROUTE_LINKS.MY_DEVICES };
   if (pathname.includes('/devices/overview')) return { label: 'Device Overview', href: ROUTE_LINKS.ORG_ASSETS };
-  if (pathname.includes('/devices/claim')) return { label: 'Register Device', href: ROUTE_LINKS.ORG_REGISTER_DEVICE };
+  if (pathname.includes('/devices/claim')) return { label: 'Claim Device', href: ROUTE_LINKS.ORG_REGISTER_DEVICE };
 
   return null;
 };
