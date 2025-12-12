@@ -11,6 +11,7 @@ import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
+import CohortsEmptyState from "@/components/features/cohorts/CohortsEmptyState";
 
 type CohortRow = {
     id: string;
@@ -61,11 +62,13 @@ export default function CohortsPage() {
 
     const pageCount = meta?.totalPages ?? 0;
 
-    // Composite loading state
+    const isDeterminingIds = isExternalOrg && isLoadingGroupCohorts;
     const isLoading = isExternalOrg ? (isLoadingGroupCohorts || isFetchingCohorts) : isFetchingCohorts;
+    const showEmptyState = !isLoading && (!hasIdsToFetch || (cohorts && cohorts.length === 0));
 
-    // Composite error state
-    const displayError = (!hasIdsToFetch && !isLoading) ? null : error;
+    const tableLoading = isDeterminingIds || (hasIdsToFetch && isFetchingCohorts);
+
+    const displayError = (!hasIdsToFetch && !tableLoading) ? null : error;
 
     useEffect(() => {
         if (tableRef.current) {
@@ -111,6 +114,14 @@ export default function CohortsPage() {
         }
     ];
 
+    if (showEmptyState) {
+        return (
+            <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
+                <CohortsEmptyState />
+            </RouteGuard>
+        )
+    }
+
     return (
         <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
             <div className="space-y-6">
@@ -126,7 +137,7 @@ export default function CohortsPage() {
                         title="Your Cohorts"
                         data={rows}
                         columns={columns}
-                        loading={isLoading}
+                        loading={tableLoading}
                         onRowClick={(item: unknown) => {
                             const row = item as CohortRow;
                             if (row?.id) router.push(`/cohorts/${row.id}`)
