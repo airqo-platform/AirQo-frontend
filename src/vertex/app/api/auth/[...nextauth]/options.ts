@@ -94,8 +94,7 @@ export const options: NextAuthOptions = {
         const expirationTime = (token.exp as number) * 1000;
         if (Date.now() >= expirationTime) {
           // Token expired, invalidate session
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          return { ...session, user: null as any };
+          return { ...session, user: null };
         }
       }
 
