@@ -116,6 +116,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       href: ROUTE_LINKS.DEVICE_COHORTS,
                       icon: AqCollocation,
                       label: 'Cohorts',
+                      disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
                   />
@@ -159,7 +160,8 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     item={{
                       href: ROUTE_LINKS.DEVICE_COHORTS,
                       icon: AqCollocation,
-                      label: 'Cohorts'
+                      label: 'Cohorts',
+                      disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
                   />
