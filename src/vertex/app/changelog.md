@@ -3,6 +3,45 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.21.3
+**Released:** December 12, 2025
+
+### Session Stability & Critical Security Fix
+
+Resolved a critical issue causing "Multiple 401s" errors and forced logout loops by fixing how session tokens are validated and cached.
+
+<details>
+<summary><strong>Critical Fixes (3)</strong></summary>
+
+- **Proxy Cache Removed**: Removed an unsafe global session cache in the API proxy (`proxyClient.ts`) that was serving stale/expired tokens for up to 5 minutes, causing 401 errors even when the user's browser session was valid.
+- **Token Expiry Enforcement**: Updated NextAuth configuration to strictly validate the JWT `exp` (expiration) timestamp. Sessions now automatically invalidate the moment the token expires, ensuring a clean redirect to login instead of API failure loops.
+- **Status Logic Robustness**: Enhanced `getDeviceStatus` and `getSimpleStatus` to safely handle invalid dates without crashing or misreporting status.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **Removed Cache**: Deleted `SessionCache` class from `core/utils/proxyClient.ts` to ensure every API request gets a fresh session.
+- **Auth Options**: Updated `app/api/auth/[...nextauth]/options.ts` to include `exp` claim and return `user: null` on expiry.
+- **Type Definitions**: Augmented `types/next-auth.d.ts` and `app/types/users.ts` to include `exp` property.
+- **Status Utils**: Updated `core/utils/status.ts` with generic `isError` checks.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/utils/proxyClient.ts`
+- `app/api/auth/[...nextauth]/options.ts`
+- `core/utils/status.ts`
+- `types/next-auth.d.ts`
+- `app/types/users.ts`
+
+</details>
+
+---
+
 ## Version 1.21.2
 **Released:** December 12, 2025
 
