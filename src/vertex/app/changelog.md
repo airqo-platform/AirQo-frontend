@@ -12,7 +12,7 @@
 Achieved an "Instant Load" experience for the Home Page by implementing Server-Side Session fetching and removing blocking UI checks. The dashboard now renders immediately upon login without any loading spinners.
 
 <details>
-<summary><strong>Improvements (4)</strong></summary>
+<summary><strong>Improvements (6)</strong></summary>
 
 - **Instant Dashboard**: The Home Page now loads immediately after login, eliminating the ~3s "Session Loading" delay.
 - **Server-Side Session**: Implemented `getServerSession` to hydrate authentication state on the server, ensuring the client knows the user is logged in before the first render.

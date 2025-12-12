@@ -20,6 +20,7 @@ import Image from 'next/image';
 import Card from '../shared/card/CardWrapper';
 import { useLogout } from '@/core/hooks/useLogout';
 import AppDropdown from './AppDropdown';
+import { useSession } from 'next-auth/react';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -32,6 +33,9 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const currentUser = useAppSelector(state => state.user.userDetails);
   const logout = useLogout();
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const user = (session?.user as any) || currentUser;
 
   useEffect(() => {
     if (darkMode) {
@@ -72,17 +76,20 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
 
   // Get user initials for avatar fallback
   const getInitials = () => {
-    if (!currentUser) return 'U';
-    return `${currentUser.firstName?.charAt(0) || ''}${currentUser.lastName?.charAt(0) || ''
-      }`.toUpperCase();
+    if (!user) return 'U';
+    const first = user.firstName || '';
+    const last = user.lastName || '';
+    return `${first.charAt(0) || ''}${last.charAt(0) || ''}`.toUpperCase();
   };
 
   // Format user name
   const getUserName = () => {
-    if (!currentUser) return 'User';
+    if (!user) return 'User';
     return (
-      `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() ||
-      currentUser.userName
+      `${user.firstName || ''} ${user.lastName || ''}`.trim() ||
+      user.userName ||
+      user.email ||
+      'User'
     );
   };
 
@@ -118,7 +125,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={currentUser?.profilePicture || ''}
+                      src={user?.profilePicture || user?.image || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
@@ -131,7 +138,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <div className="flex items-center">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={currentUser?.profilePicture || ''}
+                      src={user?.profilePicture || user?.image || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
@@ -145,7 +152,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                         : getUserName()}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {currentUser?.email}
+                      {user?.email || user?.userName}
                     </p>
                   </div>
                 </div>
