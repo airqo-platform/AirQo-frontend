@@ -5,6 +5,7 @@ import { Card, Button, LoadingSpinner, toast } from '@/shared/components/ui';
 import { AqEdit05 } from '@airqo/icons-react';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import SettingsLayout from '@/modules/user-profile/components/SettingsLayout';
+import PaymentMethodForm from './PaymentMethodForm';
 
 interface BillingInfo {
   paymentMethod?: {
@@ -30,6 +31,7 @@ const BillingInformation: React.FC = () => {
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
+  const [paymentFormOpen, setPaymentFormOpen] = useState(false);
   const [formData, setFormData] = useState<BillingInfo>({});
 
   useEffect(() => {
@@ -79,16 +81,13 @@ const BillingInformation: React.FC = () => {
     }
   };
 
-  const handleAddPaymentMethod = async () => {
-    try {
-      // This would typically open a payment provider's interface (like Stripe Checkout)
-      toast.info('Opening payment method setup...');
-      // Redirect to payment setup or open modal
-      window.location.href = '/api/payments/setup-payment-method';
-    } catch (error) {
-      console.error('Error setting up payment method:', error);
-      toast.error(getUserFriendlyErrorMessage(error));
-    }
+  const handleAddPaymentMethod = () => {
+    setPaymentFormOpen(true);
+  };
+
+  const handlePaymentMethodSuccess = () => {
+    fetchBillingInfo();
+    toast.success('Payment method updated successfully');
   };
 
   if (loading) {
@@ -100,173 +99,131 @@ const BillingInformation: React.FC = () => {
   }
 
   return (
-    <SettingsLayout
-      title="Billing Information"
-      description="Manage your payment methods and billing details"
-    >
-      <div className="space-y-6">
-        {/* Payment Method */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-              Payment Method
-            </h3>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleAddPaymentMethod}
-              Icon={AqEdit05}
-            >
-              {billingInfo?.paymentMethod ? 'Update' : 'Add Payment Method'}
-            </Button>
-          </div>
-
-          {billingInfo?.paymentMethod ? (
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">
-                      {billingInfo.paymentMethod.brand?.toUpperCase() || 'CARD'}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {billingInfo.paymentMethod.type === 'card'
-                        ? 'Credit/Debit Card'
-                        : 'Payment Method'}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      •••• •••• •••• {billingInfo.paymentMethod.last4}
-                    </p>
-                    {billingInfo.paymentMethod.expiryMonth &&
-                      billingInfo.paymentMethod.expiryYear && (
-                        <p className="text-xs text-gray-500 dark:text-gray-500">
-                          Expires {billingInfo.paymentMethod.expiryMonth}/
-                          {billingInfo.paymentMethod.expiryYear}
-                        </p>
-                      )}
-                  </div>
-                </div>
-              </div>
-            </Card>
-          ) : (
-            <Card className="p-6 border-dashed">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  No payment method on file
-                </p>
-                <Button onClick={handleAddPaymentMethod}>
-                  Add Payment Method
-                </Button>
-              </div>
-            </Card>
-          )}
-        </div>
-
-        {/* Billing Address */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-              Billing Address
-            </h3>
-            {!editing && billingInfo?.billingAddress && (
+    <>
+      <SettingsLayout
+        title="Billing Information"
+        description="Manage your payment methods and billing details"
+      >
+        <div className="space-y-6">
+          {/* Payment Method */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                Payment Method
+              </h3>
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => setEditing(true)}
+                onClick={handleAddPaymentMethod}
                 Icon={AqEdit05}
               >
-                Edit
+                {billingInfo?.paymentMethod ? 'Update' : 'Add Payment Method'}
               </Button>
+            </div>
+
+            {billingInfo?.paymentMethod ? (
+              <Card className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded flex items-center justify-center">
+                      <span className="text-white text-2xl">💳</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {billingInfo.paymentMethod.type === 'card'
+                          ? 'Credit/Debit Card'
+                          : 'Payment Method'}
+                      </p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        •••• •••• •••• {billingInfo.paymentMethod.last4}
+                      </p>
+                      {billingInfo.paymentMethod.expiryMonth &&
+                        billingInfo.paymentMethod.expiryYear && (
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            Expires {billingInfo.paymentMethod.expiryMonth}/
+                            {billingInfo.paymentMethod.expiryYear}
+                          </p>
+                        )}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ) : (
+              <Card className="p-6 border-dashed">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    No payment method on file
+                  </p>
+                  <Button onClick={handleAddPaymentMethod}>
+                    Add Payment Method
+                  </Button>
+                </div>
+              </Card>
             )}
           </div>
 
-          {editing ? (
-            <Card className="p-4">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name || ''}
-                    onChange={e =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                </div>
+          {/* Billing Address */}
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                Billing Address
+              </h3>
+              {!editing && billingInfo?.billingAddress && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setEditing(true)}
+                  Icon={AqEdit05}
+                >
+                  Edit
+                </Button>
+              )}
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email || ''}
-                    onChange={e =>
-                      setFormData({ ...formData, email: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Address Line 1
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.billingAddress?.line1 || ''}
-                    onChange={e =>
-                      setFormData({
-                        ...formData,
-                        billingAddress: {
-                          ...formData.billingAddress,
-                          line1: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Address Line 2
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.billingAddress?.line2 || ''}
-                    onChange={e =>
-                      setFormData({
-                        ...formData,
-                        billingAddress: {
-                          ...formData.billingAddress,
-                          line2: e.target.value,
-                        },
-                      })
-                    }
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+            {editing ? (
+              <Card className="p-4">
+                <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      City
+                      Full Name
                     </label>
                     <input
                       type="text"
-                      value={formData.billingAddress?.city || ''}
+                      value={formData.name || ''}
+                      onChange={e =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email || ''}
+                      onChange={e =>
+                        setFormData({ ...formData, email: e.target.value })
+                      }
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Address Line 1
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.billingAddress?.line1 || ''}
                       onChange={e =>
                         setFormData({
                           ...formData,
                           billingAddress: {
                             ...formData.billingAddress,
-                            city: e.target.value,
+                            line1: e.target.value,
                           },
                         })
                       }
@@ -276,135 +233,185 @@ const BillingInformation: React.FC = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      State/Province
+                      Address Line 2
                     </label>
                     <input
                       type="text"
-                      value={formData.billingAddress?.state || ''}
+                      value={formData.billingAddress?.line2 || ''}
                       onChange={e =>
                         setFormData({
                           ...formData,
                           billingAddress: {
                             ...formData.billingAddress,
-                            state: e.target.value,
+                            line2: e.target.value,
                           },
                         })
                       }
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        City
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.billingAddress?.city || ''}
+                        onChange={e =>
+                          setFormData({
+                            ...formData,
+                            billingAddress: {
+                              ...formData.billingAddress,
+                              city: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        State/Province
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.billingAddress?.state || ''}
+                        onChange={e =>
+                          setFormData({
+                            ...formData,
+                            billingAddress: {
+                              ...formData.billingAddress,
+                              state: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Postal Code
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.billingAddress?.postalCode || ''}
+                        onChange={e =>
+                          setFormData({
+                            ...formData,
+                            billingAddress: {
+                              ...formData.billingAddress,
+                              postalCode: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Country
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.billingAddress?.country || ''}
+                        onChange={e =>
+                          setFormData({
+                            ...formData,
+                            billingAddress: {
+                              ...formData.billingAddress,
+                              country: e.target.value,
+                            },
+                          })
+                        }
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-3 pt-4">
+                    <Button onClick={handleUpdate}>Save Changes</Button>
+                    <Button
+                      variant="outlined"
+                      onClick={() => {
+                        setEditing(false);
+                        setFormData(billingInfo || {});
+                      }}
+                    >
+                      Cancel
+                    </Button>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Postal Code
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.billingAddress?.postalCode || ''}
-                      onChange={e =>
-                        setFormData({
-                          ...formData,
-                          billingAddress: {
-                            ...formData.billingAddress,
-                            postalCode: e.target.value,
-                          },
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                      Country
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.billingAddress?.country || ''}
-                      onChange={e =>
-                        setFormData({
-                          ...formData,
-                          billingAddress: {
-                            ...formData.billingAddress,
-                            country: e.target.value,
-                          },
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                    />
-                  </div>
+              </Card>
+            ) : billingInfo?.billingAddress ? (
+              <Card className="p-4">
+                <div className="text-sm">
+                  {billingInfo.name && (
+                    <p className="font-medium text-gray-900 dark:text-white mb-1">
+                      {billingInfo.name}
+                    </p>
+                  )}
+                  {billingInfo.email && (
+                    <p className="text-gray-600 dark:text-gray-400 mb-2">
+                      {billingInfo.email}
+                    </p>
+                  )}
+                  {billingInfo.billingAddress.line1 && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {billingInfo.billingAddress.line1}
+                    </p>
+                  )}
+                  {billingInfo.billingAddress.line2 && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {billingInfo.billingAddress.line2}
+                    </p>
+                  )}
+                  <p className="text-gray-600 dark:text-gray-400">
+                    {[
+                      billingInfo.billingAddress.city,
+                      billingInfo.billingAddress.state,
+                      billingInfo.billingAddress.postalCode,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </p>
+                  {billingInfo.billingAddress.country && (
+                    <p className="text-gray-600 dark:text-gray-400">
+                      {billingInfo.billingAddress.country}
+                    </p>
+                  )}
                 </div>
-
-                <div className="flex space-x-3 pt-4">
-                  <Button onClick={handleUpdate}>Save Changes</Button>
-                  <Button
-                    variant="outlined"
-                    onClick={() => {
-                      setEditing(false);
-                      setFormData(billingInfo || {});
-                    }}
-                  >
-                    Cancel
+              </Card>
+            ) : (
+              <Card className="p-6 border-dashed">
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    No billing address on file
+                  </p>
+                  <Button onClick={() => setEditing(true)}>
+                    Add Billing Address
                   </Button>
                 </div>
-              </div>
-            </Card>
-          ) : billingInfo?.billingAddress ? (
-            <Card className="p-4">
-              <div className="text-sm">
-                {billingInfo.name && (
-                  <p className="font-medium text-gray-900 dark:text-white mb-1">
-                    {billingInfo.name}
-                  </p>
-                )}
-                {billingInfo.email && (
-                  <p className="text-gray-600 dark:text-gray-400 mb-2">
-                    {billingInfo.email}
-                  </p>
-                )}
-                {billingInfo.billingAddress.line1 && (
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {billingInfo.billingAddress.line1}
-                  </p>
-                )}
-                {billingInfo.billingAddress.line2 && (
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {billingInfo.billingAddress.line2}
-                  </p>
-                )}
-                <p className="text-gray-600 dark:text-gray-400">
-                  {[
-                    billingInfo.billingAddress.city,
-                    billingInfo.billingAddress.state,
-                    billingInfo.billingAddress.postalCode,
-                  ]
-                    .filter(Boolean)
-                    .join(', ')}
-                </p>
-                {billingInfo.billingAddress.country && (
-                  <p className="text-gray-600 dark:text-gray-400">
-                    {billingInfo.billingAddress.country}
-                  </p>
-                )}
-              </div>
-            </Card>
-          ) : (
-            <Card className="p-6 border-dashed">
-              <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  No billing address on file
-                </p>
-                <Button onClick={() => setEditing(true)}>
-                  Add Billing Address
-                </Button>
-              </div>
-            </Card>
-          )}
+              </Card>
+            )}
+          </div>
         </div>
-      </div>
-    </SettingsLayout>
+      </SettingsLayout>
+
+      {/* Payment Method Form Modal */}
+      <PaymentMethodForm
+        isOpen={paymentFormOpen}
+        onClose={() => setPaymentFormOpen(false)}
+        onSuccess={handlePaymentMethodSuccess}
+        existingMethod={billingInfo?.paymentMethod}
+      />
+    </>
   );
 };
 

@@ -7,6 +7,7 @@ export { default as SubscriptionManagement } from './components/SubscriptionMana
 export { default as BillingInformation } from './components/BillingInformation';
 export { default as UsageStats } from './components/UsageStats';
 export { default as CheckoutDialog } from './components/CheckoutDialog';
+export { default as PaymentMethodForm } from './components/PaymentMethodForm';
 export type {
   Transaction,
   TransactionHistoryResponse,
