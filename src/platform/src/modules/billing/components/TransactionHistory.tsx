@@ -66,9 +66,10 @@ const TransactionHistory: React.FC = () => {
         }),
     },
     {
-      key: 'description',
-      label: 'Description',
+      key: 'reference',
+      label: 'ID',
       sortable: true,
+      render: (value: unknown, item: Transaction) => item.reference,
     },
     {
       key: 'amount',
@@ -95,21 +96,30 @@ const TransactionHistory: React.FC = () => {
       ),
     },
     {
-      key: 'reference',
-      label: 'Reference',
-      render: (value: unknown, item: Transaction) => item.reference,
-    },
-    {
-      key: 'actions',
-      label: 'Actions',
+      key: 'receipt',
+      label: 'Receipt',
       render: (value: unknown, item: Transaction) => (
         <Button
           size="sm"
           variant="ghost"
           Icon={AqDownload01}
           onClick={() => handleDownloadReceipt(item)}
-          className="p-1 h-6 w-6"
+          className="p-1 h-6 w-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           aria-label="Download receipt"
+        />
+      ),
+    },
+    {
+      key: 'invoice',
+      label: 'Invoice',
+      render: (value: unknown, item: Transaction) => (
+        <Button
+          size="sm"
+          variant="ghost"
+          Icon={AqDownload01}
+          onClick={() => handleDownloadInvoice(item)}
+          className="p-1 h-6 w-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+          aria-label="Download invoice"
         />
       ),
     },
@@ -121,26 +131,20 @@ const TransactionHistory: React.FC = () => {
     alert(`Downloading receipt for transaction ${transaction.reference}`);
   };
 
+  const handleDownloadInvoice = (transaction: Transaction) => {
+    // In a real implementation, this would download the actual invoice
+    // For now, just show a message
+    alert(`Downloading invoice for transaction ${transaction.reference}`);
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold">Payment history</h3>
-        <Button
-          size="sm"
-          variant="outlined"
-          Icon={AqDownload01}
-          onClick={() => window.print()}
-        >
-          Download all
-        </Button>
-      </div>
-
       <ServerSideTable
         data={transactions as TransactionTableItem[]}
         columns={columns}
         loading={loading}
         error={error}
-        title=""
+        title="Payment history"
         showClientPagination={true}
         className="border rounded-lg"
       />
