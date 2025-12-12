@@ -3,6 +3,32 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.1
+**Released:** December 12, 2025
+
+### Legacy Architecture Cleanup
+
+Removed deprecated navigation modules to strictly align with the new Access Control Architecture.
+
+<details>
+<summary><strong>Fixes (3)</strong></summary>
+
+- **Removed `org-devices`**: Deleted the legacy "Organisation Devices" module that duplicated functionality now handled by the standard Device module in Personal/Organization scopes.
+- **Removed `network-mgmt`**: Deleted the legacy "Network Management" module that was replaced by the consolidated "Administrative Panel".
+- **Strict Layout Logic**: Updated `layout.tsx` to stop forcing the `org-devices` view, ensuring the application consistently uses the unified `devices` module.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `components/layout/secondary-sidebar.tsx`
+- `components/layout/layout.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.0
 **Released:** December 12, 2025
 
