@@ -31,8 +31,8 @@ export default function NetworkDetailsCard({
             <CardContent className="pt-6">
                 <div className="flex justify-between items-start">
                     <div className="space-y-1">
-                        <h2 className="text-2xl font-bold tracking-tight capitalize">
-                            {name}
+                        <h2 className="text-2xl font-bold tracking-tight uppercase">
+                            {name} Network
                         </h2>
                         <div className="flex flex-col gap-1">
                             <span className="text-sm text-muted-foreground flex items-center gap-2">
