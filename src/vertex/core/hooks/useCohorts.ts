@@ -25,7 +25,11 @@ export interface CohortListingOptions {
   cohort_id?: string[];
 }
 
-export const useCohorts = (options: CohortListingOptions = {}) => {
+export const useCohorts = (
+  options: CohortListingOptions = {},
+  queryOptions?: { enabled?: boolean }
+) => {
+  const { enabled = true } = queryOptions || {};
   const { page = 1, limit = 25, search, sortBy, order } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
@@ -49,6 +53,7 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
     },
     staleTime: 300_000,
     refetchOnWindowFocus: false,
+    enabled,
   });
 
   return {

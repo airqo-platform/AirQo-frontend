@@ -50,15 +50,19 @@ export default function CohortsPage() {
 
     // 3. Conditional Fetching
     const hasIdsToFetch = targetCohortIds && targetCohortIds.length > 0;
+    const shouldFetchCohorts = hasIdsToFetch && !(isExternalOrg && isLoadingGroupCohorts);
 
-    const { cohorts, meta, isFetching: isFetchingCohorts, error } = useCohorts({
-        page: pagination.pageIndex + 1,
-        limit: pagination.pageSize,
-        search: searchTerm,
-        sortBy: sorting[0]?.id,
-        order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
-        cohort_id: hasIdsToFetch ? targetCohortIds : ["EMPTY_SCOPE_GUARD"],
-    });
+    const { cohorts, meta, isFetching: isFetchingCohorts, error } = useCohorts(
+        {
+            page: pagination.pageIndex + 1,
+            limit: pagination.pageSize,
+            search: searchTerm,
+            sortBy: sorting[0]?.id,
+            order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+            cohort_id: hasIdsToFetch ? targetCohortIds : undefined,
+        },
+        { enabled: shouldFetchCohorts }
+    );
 
     const pageCount = meta?.totalPages ?? 0;
 
