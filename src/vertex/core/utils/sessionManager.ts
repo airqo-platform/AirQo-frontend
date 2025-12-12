@@ -10,5 +10,4 @@ export const clearSessionData = () => {
   localStorage.removeItem('userContext');
   localStorage.removeItem("recentOrganizations");
   localStorage.removeItem("persist:user");
-  localStorage.removeItem("vertex_visited_pages");
 };
