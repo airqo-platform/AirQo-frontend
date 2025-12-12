@@ -25,9 +25,8 @@ const ContentGridSkeleton = () => (
 export default function CohortDetailsPage() {
     const router = useRouter();
     const params = useParams();
-    const rawCohortId = params?.id;
-    // ensure strings are passed to hooks, but invalid ones are caught by the guard later
-    const cohortId = typeof rawCohortId === "string" ? rawCohortId : "";
+    const params = useParams();
+    const cohortId = typeof params?.id === "string" ? params.id : "";
 
     const { data: cohort, isLoading, error } = useCohortDetails(cohortId, { enabled: !!cohortId });
 
@@ -55,7 +54,7 @@ export default function CohortDetailsPage() {
 
     const devices = useMemo(() => cohort?.devices || [], [cohort]);
 
-    if (!rawCohortId || typeof rawCohortId !== "string") {
+    if (!cohortId) {
         return (
             <div className="flex items-center justify-center min-h-[50vh]">
                 <p className="text-muted-foreground">Invalid cohort ID</p>
