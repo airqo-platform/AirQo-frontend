@@ -159,4 +159,23 @@ export const cohorts = {
       throw error;
     }
   },
+
+  verifyCohortIdApi: async (cohortId: string) => {
+    try {
+      if (!cohortId?.trim()) {
+        throw new Error('Cohort ID is required');
+      }
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts/verify/${cohortId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data as {
+        success: boolean;
+        message: string;
+        errors?: { message: string };
+      };
+    } catch (error) {
+      throw error;
+    }
+  },
 };

@@ -7,7 +7,8 @@ import {
   Wifi,
   QrCode,
   HelpCircle,
-  CheckCircle2
+  CheckCircle2,
+  Database
 } from "lucide-react";
 import ClaimDeviceModal, { FlowStep } from "@/components/features/claim/claim-device-modal";
 import { useUserContext } from "@/core/hooks/useUserContext";
@@ -46,7 +47,7 @@ const DeviceClaimingPage = () => {
         </div>
 
         {/* Main Action Cards - The "Intent" Selection */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Option A: Single Device (Smartphone/QR Context) */}
           <button
             onClick={() => handleOpenModal('qr-scan')}
@@ -84,6 +85,26 @@ const DeviceClaimingPage = () => {
             </p>
             <span className="text-sm font-medium text-green-600 dark:text-green-400 group-hover:underline mt-auto">
               Import Batch &rarr;
+            </span>
+          </button>
+
+          {/* Option C: Import from Cohort */}
+          <button
+            onClick={() => handleOpenModal('cohort-import')}
+            className="flex flex-col text-left p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-violet-500 dark:hover:border-violet-400 hover:shadow-md transition-all group"
+          >
+            <div className="w-12 h-12 bg-violet-100 dark:bg-violet-900/30 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Database className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              Import from Cohort
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              Connect pre-provisioned device groups.
+              Enter a Cohort ID to setup multiple devices instantly.
+            </p>
+            <span className="text-sm font-medium text-violet-600 dark:text-violet-400 group-hover:underline mt-auto">
+              Verify & Import &rarr;
             </span>
           </button>
         </div>

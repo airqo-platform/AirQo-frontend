@@ -373,3 +373,12 @@ export const useAssignCohortsToUser = () => {
     },
   });
 };
+
+export const useVerifyCohort = () => {
+  return useMutation({
+    mutationFn: async (cohortId: string) => {
+      if (!cohortId) throw new Error('Cohort ID is required');
+      return await cohortsApi.verifyCohortIdApi(cohortId);
+    },
+  });
+};

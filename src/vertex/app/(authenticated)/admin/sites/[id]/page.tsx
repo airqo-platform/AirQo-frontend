@@ -82,6 +82,9 @@ export default function SiteDetailsPage() {
               isLoading={isLoading}
               error={error}
               hiddenColumns={["site", "groups"]}
+              onDeviceClick={(device) => {
+                router.push(`/admin/sites/${siteId}/devices/${device._id}`);
+              }}
             />
           </div>
           <EditSiteDetailsDialog

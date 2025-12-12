@@ -3,6 +3,54 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.22.0
+**Released:** December 12, 2025
+
+### Cohort Import & Enhanced Claim Flow
+
+Introduced a powerful "Import from Cohort" feature for bulk device claiming, refined the claim user experience with confirmation steps and tooltips, and expanded administrative capabilities for Site Device management.
+
+<details>
+<summary><strong>Features Added (2)</strong></summary>
+
+- **Import from Cohort**: Users can now import devices directly by entering a Cohort ID. The system verifies the cohort and prefills the bulk claim form with all associated devices, requiring only claim tokens to proceed.
+- **Admin Site Device Details**: Added a dedicated device details page for the Admin Site context (`/admin/sites/[siteId]/devices/[deviceId]`), ensuring navigation remains within the admin scope.
+
+</details>
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Claim Confirmation**: Added a mandatory confirmation step for both single and bulk claims, displaying a clear warning about potential device recalls if devices are already deployed.
+- **Enhanced Tooltips**: Added interactive tooltips to "deployed" and "recalled" terms in the confirmation warning to clarify their definitions.
+- **Compact UI**: Refactored the claim method selection screen to use compact horizontal rows, ensuring all 3 options (Single, Bulk, Cohort) are visible without scrolling.
+- **Simplified Workflow**: Removed redundant device lists from the confirmation step in favor of concise summary strings (e.g., "You are about to claim 5 devices").
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **New Hook**: Added `useVerifyCohort` and `verifyCohortIdApi` to validate cohort IDs before import.
+- **Type Definitions**: Updated `Cohort` and `Device` types to support the new import flow.
+- **Lint Fixes**: Resolved unused variables and `any` type usage in `claim-device-modal.tsx`.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `components/features/claim/claim-device-modal.tsx`
+- `core/apis/cohorts.ts`
+- `core/hooks/useCohorts.ts`
+- `app/(authenticated)/admin/sites/[id]/devices/[deviceId]/page.tsx` (New)
+- `app/(authenticated)/admin/sites/[id]/page.tsx`
+- `app/types/cohorts.ts`
+
+</details>
+
+---
+
 ## Version 1.21.3
 **Released:** December 12, 2025
 
