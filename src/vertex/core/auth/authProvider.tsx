@@ -272,7 +272,9 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     if (data === prevData) return;
 
     if (!data?.users || data.users.length === 0) {
-      logger.warn('[UserDataFetcher] Data received but no users found');
+      if (!isLoggingOut) {
+        logger.warn('[UserDataFetcher] Data received but no users found');
+      }
       return;
     }
 

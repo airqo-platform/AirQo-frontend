@@ -15,6 +15,8 @@ import ReusableButton from "@/components/shared/button/ReusableButton"
 import ReusableToast from "@/components/shared/toast/ReusableToast"
 import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
+import { useAppDispatch } from "@/core/redux/hooks";
+import { setLoggingOut } from "@/core/redux/slices/userSlice";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -33,14 +35,18 @@ export default function LoginPage() {
     },
   })
 
+  const dispatch = useAppDispatch();
   const isMounted = useRef(true);
+
   useEffect(() => {
     isMounted.current = true;
     router.prefetch("/home");
+    // Reset logout state when login page mounts - this ensures suppression flags persist until we land here
+    dispatch(setLoggingOut(false));
     return () => {
       isMounted.current = false;
     };
-  }, [router]);
+  }, [router, dispatch]);
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
