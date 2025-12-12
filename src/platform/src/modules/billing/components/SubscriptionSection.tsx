@@ -52,8 +52,7 @@ const SubscriptionSection: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <LoadingSpinner size={32} />
-        <span className="ml-2">Loading subscription details...</span>
+        <LoadingSpinner />
       </div>
     );
   }
