@@ -99,16 +99,20 @@ export const options: NextAuthOptions = {
       }
 
       if (token) {
-        session.user.id = token.id as string;
-        session.user.accessToken = token.accessToken as string;
-        session.user.userName = token.userName as string;
-        session.user.organization = token.organization as string;
-        session.user.privilege = token.privilege as string;
-        session.user.firstName = token.firstName as string;
-        session.user.lastName = token.lastName as string;
-        session.user.country = token.country as string;
-        session.user.timezone = token.timezone as string;
-        session.user.phoneNumber = token.phoneNumber as string;
+        session.user = {
+          ...session.user,
+          id: token.id as string,
+          accessToken: token.accessToken as string,
+          userName: token.userName as string,
+          organization: token.organization as string,
+          privilege: token.privilege as string,
+          firstName: token.firstName as string,
+          lastName: token.lastName as string,
+          country: token.country as string,
+          timezone: token.timezone as string,
+          phoneNumber: token.phoneNumber as string,
+          exp: token.exp,
+        };
       }
       return session;
     }
