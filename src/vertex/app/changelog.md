@@ -3,6 +3,43 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.21.2
+**Released:** December 12, 2025
+
+### Contextual Site Editing
+
+Improved the Site Details page by splitting the generic "Edit Site" action into context-specific buttons for "Site Details" and "Mobile App Details".
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Contextual Actions**: Added dedicated "Edit" buttons to the footer of both the Site Details and Mobile App Details cards.
+- **Focused Dialogs**: Enhanced the edit dialog to show only the relevant fields for the selected section (General vs Mobile).
+- **Cleaner UI**: Removed the global "Edit Site" button to reduce ambiguity.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **Component Refactor**: Updated `EditSiteDetailsDialog` to support a `section` prop.
+- **UI Update**: Updated `SiteInformationCard` and `SiteMobileAppCard` to render footer actions.
+- **Page Logic**: Refactored `admin/sites/[id]/page.tsx` to handle section state.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/features/sites/edit-site-details-dialog.tsx`
+- `components/features/sites/site-information-card.tsx`
+- `components/features/sites/site-mobile-app-card.tsx`
+- `app/(authenticated)/admin/sites/[id]/page.tsx`
+
+</details>
+
+---
+
 ## Version 1.21.1
 **Released:** December 12, 2025
 
@@ -42,6 +79,7 @@ Refactored and unified the online status determination logic across the entire a
 ---
 
 
+## Version 1.21.0
 **Released:** December 12, 2025
 
 ### Instant Home Page & Session Optimization
