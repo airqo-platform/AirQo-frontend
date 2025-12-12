@@ -98,7 +98,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       href: ROUTE_LINKS.MY_DEVICES,
                       icon: AqMonitor,
                       label: 'My Devices',
-                      disabled: !contextPermissions.canViewDevices && isExternalOrg, // Allow access in personal/default mode
+                      disabled: false,
                     }}
                     isCollapsed={isCollapsed}
                   />
