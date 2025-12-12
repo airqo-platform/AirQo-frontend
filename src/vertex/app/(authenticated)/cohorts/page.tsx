@@ -112,7 +112,9 @@ export default function CohortsPage() {
             label: "Date created",
             sortable: true,
             render: (value) => {
+                if (!value) return "-";
                 const date = new Date(value as string);
+                if (isNaN(date.getTime())) return "-";
                 return format(date, "MMM d yyyy, h:mm a");
             }
         }
