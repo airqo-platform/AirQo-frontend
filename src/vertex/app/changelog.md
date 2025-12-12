@@ -18,6 +18,8 @@ Achieved an "Instant Load" experience for the Home Page by implementing Server-S
 - **Server-Side Session**: Implemented `getServerSession` to hydrate authentication state on the server, ensuring the client knows the user is logged in before the first render.
 - **Non-Blocking Layout**: Removed restrictive blocking checks in the main Layout, allowing the App Shell (Sidebar/Topbar) to render instantly while user details update in the background.
 - **Optimized Sidebar**: Refactored the Secondary Sidebar to default to the "Personal View" immediately, removing flickering skeleton loaders.
+- **Refined Loaders**: Updated Home Page skeletons to match design system colors and removed placeholder text for a cleaner loading state.
+- **Zero-State Fix**: Resolved an issue where the dashboard briefly displayed zero stats before showing the empty state.
 
 </details>
 
