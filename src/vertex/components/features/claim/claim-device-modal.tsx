@@ -8,6 +8,7 @@ import { z } from 'zod';
 import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import { Form, FormField } from '@/components/ui/form';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAppSelector } from '@/core/redux/hooks';
 import { useRouter } from 'next/navigation';
 import { QRScanner } from '../devices/qr-scanner';
@@ -79,7 +80,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'claiming' | 'success' | 'bulk-input' | 'bulk-claiming' | 'bulk-results';
+export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -121,6 +122,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const [error, setError] = useState<string | null>(null);
 
     const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([]);
+    const [pendingSingleClaim, setPendingSingleClaim] = useState<{ deviceId: string; claimToken: string } | null>(null);
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -135,6 +137,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setStep('method-select');
         setError(null);
         setBulkDevices([]);
+        setPendingSingleClaim(null);
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -218,7 +221,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const onManualSubmit = async (data: ClaimDeviceFormData) => {
-        handleClaimDevice(data.device_id, data.claim_token);
+        setPendingSingleClaim({ deviceId: data.device_id, claimToken: data.claim_token });
+        setStep('confirmation');
+    };
+
+    const handleConfirmSingleClaim = () => {
+        if (pendingSingleClaim) {
+            handleClaimDevice(pendingSingleClaim.deviceId, pendingSingleClaim.claimToken);
+        }
     };
 
     const handleBulkSubmit = () => {
@@ -240,6 +250,14 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         }
 
         setError(null);
+        setStep('bulk-confirmation');
+    };
+
+    const handleConfirmBulkClaim = () => {
+        if (!user?._id) return;
+
+        const validDevices = bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim());
+
         bulkClaimDevices({
             user_id: user._id,
             devices: validDevices,
@@ -293,7 +311,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         const parsed = parseQRCode(result);
 
         if (parsed) {
-            handleClaimDevice(parsed.deviceId, parsed.claimToken);
+            setPendingSingleClaim({ deviceId: parsed.deviceId, claimToken: parsed.claimToken });
+            setStep('confirmation');
         } else {
             setError('Invalid QR code format. Please try manual entry.');
             setStep('manual-input');
@@ -332,8 +351,24 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     ...baseConfig,
                     title: 'Add Multiple Devices',
                     showFooter: true,
-                    primaryAction: { label: isBulkPending ? 'Claiming...' : `Claim ${bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim()).length} Device(s)`, onClick: handleBulkSubmit, disabled: isBulkPending },
+                    primaryAction: { label: 'Review & Claim', onClick: handleBulkSubmit },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
+                };
+            case 'confirmation':
+                return {
+                    ...baseConfig,
+                    title: 'Confirm Claim',
+                    showFooter: true,
+                    primaryAction: { label: isPending ? 'Claiming...' : 'Confirm & Claim', onClick: handleConfirmSingleClaim, disabled: isPending },
+                    secondaryAction: { label: 'Cancel', onClick: () => setStep('manual-input'), variant: 'outline' as const },
+                };
+            case 'bulk-confirmation':
+                return {
+                    ...baseConfig,
+                    title: 'Confirm Bulk Claim',
+                    showFooter: true,
+                    primaryAction: { label: isBulkPending ? 'Claiming...' : 'Confirm & Claim', onClick: handleConfirmBulkClaim, disabled: isBulkPending },
+                    secondaryAction: { label: 'Cancel', onClick: () => setStep('bulk-input'), variant: 'outline' as const },
                 };
             case 'claiming':
                 return { ...baseConfig, title: 'Claiming Device...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
@@ -517,6 +552,86 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                             )}
                         </div>
                     </Form>
+                )}
+
+                {/* Confirmation Step */}
+                {step === 'confirmation' && pendingSingleClaim && (
+                    <div className="flex flex-col items-center justify-center py-6 px-4 space-y-4 text-center">
+                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-full">
+                            <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Confirm Device Claim
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
+                                Are you sure you want to claim this device?
+                            </p>
+                            <p className="text-sm text-amber-700 dark:text-amber-400 mt-3 max-w-sm mx-auto bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-900/50">
+                                <TooltipProvider delayDuration={0}>
+                                    Warning: If this device is currently{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</span>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p>Deployment triggers data transmission for a device</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    , it will be automatically{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</span>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    .
+                                </TooltipProvider>
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Bulk Confirmation Step */}
+                {step === 'bulk-confirmation' && (
+                    <div className="flex flex-col items-center justify-center py-6 px-4 space-y-4 text-center">
+                        <div className="p-3 bg-amber-100 dark:bg-amber-900/40 rounded-full">
+                            <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                Confirm Bulk Claim
+                            </h3>
+                            <div className="text-sm text-gray-600 dark:text-gray-300 max-w-sm mx-auto">
+                                You are about to claim <span className="font-semibold text-gray-900 dark:text-white">{bulkDevices.filter(d => d.device_name.trim() && d.claim_token.trim()).length}</span> devices.
+                            </div>
+                            <p className="text-sm text-amber-700 dark:text-amber-400 mt-3 max-w-sm mx-auto bg-amber-50 dark:bg-amber-900/20 p-3 rounded-lg border border-amber-100 dark:border-amber-900/50">
+                                <TooltipProvider delayDuration={0}>
+                                    Warning: Any devices currently{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</span>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p>Deployment triggers data transmission for a device</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    {' '}will be automatically{' '}
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</span>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top">
+                                            <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    {' '}and added to your inventory.
+                                </TooltipProvider>
+                            </p>
+                        </div>
+                    </div>
                 )}
 
                 {step === 'claiming' && (
