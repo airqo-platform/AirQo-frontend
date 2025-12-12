@@ -162,6 +162,9 @@ export const cohorts = {
 
   verifyCohortIdApi: async (cohortId: string) => {
     try {
+      if (!cohortId?.trim()) {
+        throw new Error('Cohort ID is required');
+      }
       const response = await createSecureApiClient().get(
         `/devices/cohorts/verify/${cohortId}`,
         { headers: { 'X-Auth-Type': 'JWT' } }

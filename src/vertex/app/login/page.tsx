@@ -60,7 +60,7 @@ export default function LoginPage() {
       if (!isMounted.current) return;
 
       if (result?.ok) {
-        ReusableToast({ message: "Login successful! Redirecting...", type: "SUCCESS" });
+        ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
 
         window.location.href = "/home";
       } else {
