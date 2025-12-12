@@ -28,10 +28,7 @@ export default function Layout({ children }: LayoutProps) {
     state => state.user.organizationSwitching
   );
 
-  const isInitialized = useAppSelector(state => state.user.isInitialized);
-  const isAuthenticated = useAppSelector(state => state.user.isAuthenticated);
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
-  const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
     // Determine active module based on current pathname
@@ -71,18 +68,10 @@ export default function Layout({ children }: LayoutProps) {
     setIsSecondarySidebarCollapsed(!isSecondarySidebarCollapsed);
   };
 
-  // Show loading state when:
-  // 1. Not initialized, not authenticated, or logging out
-  // 2. Authenticated and initialized but context is still loading AND we don't have persisted user data
-  // This prevents showing loading screen when user returns after inactivity,
-  // as we have persisted data and can render immediately while background refetch happens
-  const shouldShowInitialLoading =
-    !isInitialized ||
-    !isAuthenticated ||
-    isLoggingOut ||
-    (isAuthenticated && isInitialized && !userDetails);
-
-  if (shouldShowInitialLoading) {
+  // Only show loading state when explicitly logging out
+  // We trust AuthWrapper to handle authentication state
+  // and we show skeletons for missing data instead of blocking the whole UI
+  if (isLoggingOut) {
     return (
       <div className="flex justify-center items-center overflow-hidden min-h-screen h-screen bg-background">
         <SessionLoadingState />

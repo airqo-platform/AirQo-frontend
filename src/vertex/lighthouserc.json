@@ -3,7 +3,7 @@
         "collect": {
             "startServerCommand": "npm start",
             "url": [
-                "http://localhost:3000/home"
+                "http://localhost:3000/login"
             ],
             "numberOfRuns": 3
         },
@@ -58,6 +58,9 @@
                         "minScore": 0.9
                     }
                 ],
+                "bf-cache": "warn",
+                "redirects": "warn",
+                "document-latency-insight": "warn",
                 "interactive": [
                     "warn",
                     {

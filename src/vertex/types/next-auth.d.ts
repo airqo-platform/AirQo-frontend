@@ -3,7 +3,7 @@ import { JWT, DefaultJWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
-    user: {
+    user?: ({
       id: string;
       accessToken: string;
       userName: string;
@@ -14,7 +14,8 @@ declare module 'next-auth' {
       country: string;
       timezone: string;
       phoneNumber: string;
-    } & DefaultSession['user'];
+      exp?: number;
+    } & DefaultSession['user']) | null;
   }
 
   interface User extends DefaultUser {
@@ -27,6 +28,7 @@ declare module 'next-auth' {
     country: string;
     timezone: string;
     phoneNumber: string;
+    exp?: number;
   }
 }
 
@@ -41,5 +43,6 @@ declare module 'next-auth/jwt' {
     country: string;
     timezone: string;
     phoneNumber: string;
+    exp?: number;
   }
 }

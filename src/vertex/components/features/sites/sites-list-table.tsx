@@ -5,6 +5,11 @@ import { Site } from "@/app/types/sites";
 import { useSites } from "@/core/hooks/useSites";
 import { useMemo, useRef, useEffect } from "react";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
+import {
+  badgeColorClasses,
+  formatDisplayDate,
+  getSimpleStatus,
+} from "@/core/utils/status";
 
 interface SitesTableProps {
   itemsPerPage?: number;
@@ -121,14 +126,24 @@ export default function SitesTable({
     {
       key: "isOnline",
       label: "Status",
-      render: (isOnline) => {
-        const status = Boolean(isOnline);
+      render: (isOnline, item) => {
+        // Cast item to Site to access lastActive
+        const site = item as unknown as Site;
+        const lastActiveCheck = site.lastActive
+          ? formatDisplayDate(site.lastActive)
+          : null;
+
+        const status = getSimpleStatus(site.isOnline, lastActiveCheck);
+        const colors = badgeColorClasses[status.color];
+        const Icon = status.icon;
+
         return (
           <span
-            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-              }`}
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
+            title={status.description}
           >
-            {status ? "Online" : "Offline"}
+            <Icon className="w-4 h-4 mr-1" />
+            {status.label}
           </span>
         );
       },

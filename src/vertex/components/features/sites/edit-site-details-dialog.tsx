@@ -40,9 +40,15 @@ interface EditSiteDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   site: Site;
+  section: "general" | "mobile";
 }
 
-export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDetailsDialogProps) {
+export function EditSiteDetailsDialog({
+  open,
+  onOpenChange,
+  site,
+  section,
+}: EditSiteDetailsDialogProps) {
   const { mutate: updateSite, isPending } = useUpdateSiteDetails();
 
   const form = useForm<SiteFormValues>({
@@ -85,15 +91,20 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
     };
 
     const numericFields = new Set(["latitude", "longitude", "altitude"]);
-    const transformedData = Object.entries(fieldMapping).reduce((acc, [formField, apiField]) => {
-      if (dirtyFields[formField as keyof typeof dirtyFields]) {
-        const v = values[formField as keyof SiteFormValues];
-        acc[apiField] = numericFields.has(formField)
-          ? (v ? Number(v as string) : undefined)
-          : (v as string | undefined);
-      }
-      return acc;
-    }, {} as Record<string, string | number | undefined>);
+    const transformedData = Object.entries(fieldMapping).reduce(
+      (acc, [formField, apiField]) => {
+        if (dirtyFields[formField as keyof typeof dirtyFields]) {
+          const v = values[formField as keyof SiteFormValues];
+          acc[apiField] = numericFields.has(formField)
+            ? v
+              ? Number(v as string)
+              : undefined
+            : (v as string | undefined);
+        }
+        return acc;
+      },
+      {} as Record<string, string | number | undefined>
+    );
 
     if (Object.keys(transformedData).length === 0) {
       toast.error("No fields have been modified");
@@ -105,7 +116,7 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
       {
         onSuccess: () => {
           onOpenChange(false);
-        }
+        },
       }
     );
   }
@@ -114,7 +125,7 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
     <ReusableDialog
       isOpen={open}
       onClose={() => onOpenChange(false)}
-      title="Edit Site Details"
+      title={section === "general" ? "Edit Site Details" : "Edit Mobile App Details"}
       size="3xl"
       primaryAction={{
         label: isPending ? "Saving..." : "Save Changes",
@@ -130,25 +141,136 @@ export function EditSiteDetailsDialog({ open, onOpenChange, site }: EditSiteDeta
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4  p-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField control={form.control} name="name" render={({ field, fieldState }) => (<ReusableInputField label="Site Name *" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="description" render={({ field, fieldState }) => (<ReusableInputField label="Description" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="latitude" render={({ field, fieldState }) => (<ReusableInputField label="Latitude *" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="longitude" render={({ field, fieldState }) => (<ReusableInputField label="Longitude *" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="parish" render={({ field, fieldState }) => (<ReusableInputField label="Parish" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="subCounty" render={({ field, fieldState }) => (<ReusableInputField label="Sub County" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="district" render={({ field, fieldState }) => (<ReusableInputField label="District" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="region" render={({ field, fieldState }) => (<ReusableInputField label="Region" {...field} error={fieldState.error?.message} />)} />
-            <FormField control={form.control} name="altitude" render={({ field, fieldState }) => (<ReusableInputField label="Altitude" {...field} error={fieldState.error?.message} />)} />
-          </div>
-
-          <div>
-            <h3 className="text-lg font-medium mb-2 mt-4 border-t pt-4">Mobile App Details</h3>
+          {section === "general" && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField control={form.control} name="search_name" render={({ field, fieldState }) => (<ReusableInputField label="Editable Name" {...field} error={fieldState.error?.message} />)} />
-              <FormField control={form.control} name="location_name" render={({ field, fieldState }) => (<ReusableInputField label="Editable Description" {...field} error={fieldState.error?.message} />)} />
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Site Name *"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Description"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="latitude"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Latitude *"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="longitude"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Longitude *"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="parish"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Parish"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="subCounty"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Sub County"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="district"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="District"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="region"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Region"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="altitude"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Altitude"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
             </div>
-          </div>
+          )}
+
+          {section === "mobile" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="search_name"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Editable Name"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="location_name"
+                render={({ field, fieldState }) => (
+                  <ReusableInputField
+                    label="Editable Description"
+                    {...field}
+                    error={fieldState.error?.message}
+                  />
+                )}
+              />
+            </div>
+          )}
         </form>
       </Form>
     </ReusableDialog>
