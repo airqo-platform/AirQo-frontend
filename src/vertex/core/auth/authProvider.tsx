@@ -187,10 +187,11 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   const isLoggingOut = useAppSelector((state) => state.user.isLoggingOut);
 
   const userId = useMemo(() => {
+    if (isLoggingOut) return null;
     return session?.user && 'id' in session.user
       ? (session.user as { id: string }).id
       : null;
-  }, [session?.user]);
+  }, [session?.user, isLoggingOut]);
 
   // React Query handles offline-first behavior automatically
   const { data, error, isLoading, isError, fetchStatus } = useUserDetails(userId);
