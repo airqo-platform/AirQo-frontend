@@ -4,6 +4,7 @@ import React from 'react';
 import { Card } from '@/shared/components/ui';
 import SubscriptionSection from './components/SubscriptionSection';
 import TransactionHistory from './components/TransactionHistory';
+import UsageStats from './components/UsageStats';
 
 const BillingModule: React.FC = () => {
   return (
@@ -22,6 +23,8 @@ const BillingModule: React.FC = () => {
 
         <SubscriptionSection />
       </Card>
+
+      <UsageStats />
 
       <TransactionHistory />
     </div>

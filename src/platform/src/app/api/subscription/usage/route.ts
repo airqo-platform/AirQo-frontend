@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import type { UserSubscription, ApiUsage } from '@/shared/types/api';
+import type { ApiUsage } from '@/shared/types/api';
 
 // Helper function to get reset time based on period
 const getResetTime = (period: 'hourly' | 'daily' | 'monthly'): string => {
@@ -26,17 +26,9 @@ const getResetTime = (period: 'hourly' | 'daily' | 'monthly'): string => {
   return resetTime.toISOString();
 };
 
-// Dummy subscription data
-const dummySubscription: UserSubscription = {
-  tier: 'Free',
-  status: 'active',
-  startDate: '2025-01-01T00:00:00Z',
-  autoRenewal: true,
-  billingCycle: 'monthly',
-};
-
-// Generate usage data based on subscription tier
-const getUsageData = (tier: string): ApiUsage => {
+// Dummy usage data based on subscription tier
+// In production, this would be fetched from the database
+const getDummyUsage = (tier: string = 'Free'): ApiUsage => {
   const limits = {
     Free: { hourly: 10, daily: 100, monthly: 1000 },
     Standard: { hourly: 100, daily: 1000, monthly: 10000 },
@@ -68,24 +60,27 @@ const getUsageData = (tier: string): ApiUsage => {
   };
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // In a real implementation, this would fetch from database
-    // based on authenticated user
-    const usage = getUsageData(dummySubscription.tier);
+    // In a real implementation:
+    // 1. Get user from auth session
+    // 2. Fetch their subscription tier from database
+    // 3. Fetch their actual API usage from logs/metrics
 
-    const response = {
+    const { searchParams } = new URL(request.url);
+    const tier = searchParams.get('tier') || 'Free';
+
+    const usage = getDummyUsage(tier);
+
+    return NextResponse.json({
       success: true,
-      message: 'Subscription retrieved successfully',
-      subscription: dummySubscription,
+      message: 'Usage statistics retrieved successfully',
       usage,
-    };
-
-    return NextResponse.json(response);
+    });
   } catch (error) {
-    console.error('Error fetching subscription:', error);
+    console.error('Error fetching usage statistics:', error);
     return NextResponse.json(
-      { success: false, message: 'Failed to retrieve subscription' },
+      { success: false, message: 'Failed to retrieve usage statistics' },
       { status: 500 }
     );
   }
