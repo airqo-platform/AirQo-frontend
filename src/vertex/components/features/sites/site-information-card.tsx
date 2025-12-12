@@ -1,21 +1,12 @@
 "use client";
 
+import { Site } from "@/app/types/sites";
 import { Card } from "@/components/ui/card";
-
-interface Site {
-  name: string;
-  description: string;
-  network: string;
-  latitude: number;
-  longitude: number;
-  parish: string;
-  sub_county: string;
-  district: string;
-  region: string;
-  altitude: number;
-  distance_to_nearest_road?: number;
-  isOnline: boolean;
-}
+import {
+  badgeColorClasses,
+  formatDisplayDate,
+  getSimpleStatus,
+} from "@/core/utils/status";
 
 interface SiteInformationCardProps {
   site: Site;
@@ -31,6 +22,14 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 );
 
 export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }) => {
+  const lastActiveCheck = site.lastActive
+    ? formatDisplayDate(site.lastActive)
+    : null;
+
+  const status = getSimpleStatus(site.isOnline, lastActiveCheck);
+  const colors = badgeColorClasses[status.color];
+  const Icon = status.icon;
+
   return (
     <Card className="w-full rounded-lg bg-white flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
@@ -51,10 +50,10 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }
             <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Status</div>
             <div className="text-base font-normal">
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${site.isOnline ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
-                  }`}
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
               >
-                {site.isOnline ? "Online" : "Offline"}
+                <Icon className="w-4 h-4 mr-1" />
+                {status.label}
               </span>
             </div>
           </div>
