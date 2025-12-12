@@ -5,6 +5,7 @@ import ClientLayout from './client-layout';
 import { Inter } from 'next/font/google';
 import { getServerSession } from "next-auth/next";
 import { options } from "@/app/api/auth/[...nextauth]/options";
+import logger from '@/lib/logger';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -64,7 +65,12 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await getServerSession(options);
+  let session = null;
+  try {
+    session = await getServerSession(options);
+  } catch (error) {
+    logger.error("Failed to fetch session:", { error });
+  }
 
   return (
     <html lang="en" className={inter.className}>
