@@ -25,17 +25,11 @@ const ContentGridSkeleton = () => (
 export default function CohortDetailsPage() {
     const router = useRouter();
     const params = useParams();
-    const cohortId = params?.id;
+    const rawCohortId = params?.id;
+    // ensure strings are passed to hooks, but invalid ones are caught by the guard later
+    const cohortId = typeof rawCohortId === "string" ? rawCohortId : "";
 
-    if (!cohortId || typeof cohortId !== "string") {
-        return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <p className="text-muted-foreground">Invalid cohort ID</p>
-            </div>
-        );
-    }
-
-    const { data: cohort, isLoading, error } = useCohortDetails(cohortId);
+    const { data: cohort, isLoading, error } = useCohortDetails(cohortId, { enabled: !!cohortId });
 
     const [cohortDetails, setCohortDetails] = useState<{
         name: string;
@@ -60,6 +54,14 @@ export default function CohortDetailsPage() {
     }, [cohort]);
 
     const devices = useMemo(() => cohort?.devices || [], [cohort]);
+
+    if (!rawCohortId || typeof rawCohortId !== "string") {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <p className="text-muted-foreground">Invalid cohort ID</p>
+            </div>
+        );
+    }
 
     return (
         <RouteGuard permission={PERMISSIONS.DEVICE.VIEW}>
