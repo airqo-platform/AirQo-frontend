@@ -16,13 +16,13 @@ import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { useGroupCohorts, useVerifyCohort } from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
-import { Device } from '@/app/types/cohorts';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
 import { DeviceEntryRow } from './DeviceEntryRow';
 import { BulkClaimResults } from './BulkClaimResults';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { AqPlus } from '@airqo/icons-react';
+import { Device } from '@/app/types/devices';
 
 interface QRScannerErrorBoundaryProps {
     children: ReactNode;
