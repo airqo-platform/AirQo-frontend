@@ -681,7 +681,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     Warning: If this device is currently{' '}
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</span>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</button>
                                         </TooltipTrigger>
                                         <TooltipContent side="top">
                                             <p>Deployment triggers data transmission for a device</p>
@@ -690,7 +690,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     , it will be automatically{' '}
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</span>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</button>
                                         </TooltipTrigger>
                                         <TooltipContent side="top">
                                             <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
@@ -721,7 +721,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     Warning: Any devices currently{' '}
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</span>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">deployed</button>
                                         </TooltipTrigger>
                                         <TooltipContent side="top">
                                             <p>Deployment triggers data transmission for a device</p>
@@ -730,7 +730,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                     {' '}will be automatically{' '}
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <span className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</span>
+                                            <button type="button" className="underline decoration-dashed decoration-amber-500/50 underline-offset-4 cursor-help font-medium">recalled</button>
                                         </TooltipTrigger>
                                         <TooltipContent side="top">
                                             <p className="max-w-xs">Recalling removes a device from a Site (e.g., for repair) without deleting it from your inventory.</p>
