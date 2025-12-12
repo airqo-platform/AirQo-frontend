@@ -36,10 +36,6 @@ export default function Layout({ children }: LayoutProps) {
       pathname.startsWith('/admin/')
     ) {
       setActiveModule('admin');
-    } else if (
-      pathname.startsWith('/devices/overview')
-    ) {
-      setActiveModule('org-devices');
     } else {
       // Default to devices module (home, my-devices, claim)
       setActiveModule('devices');
@@ -57,7 +53,6 @@ export default function Layout({ children }: LayoutProps) {
     // Navigate to module default route
     const moduleRoutes: Record<string, string> = {
       devices: '/home',
-      'org-devices': '/devices/overview',
       admin: '/admin/shipping',
     };
 
