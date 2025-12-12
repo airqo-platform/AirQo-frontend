@@ -43,6 +43,7 @@ export const options: NextAuthOptions = {
               country: decoded.country || '',
               timezone: decoded.timezone || '',
               phoneNumber: decoded.phoneNumber || '',
+              exp: decoded.exp,
             };
           }
           
@@ -82,11 +83,21 @@ export const options: NextAuthOptions = {
         token.country = user.country;
         token.timezone = user.timezone;
         token.phoneNumber = user.phoneNumber;
+        token.exp = (user as any).exp;
       }
       return token;
     },
     
     async session({ session, token }) {
+      // Check if token is expired
+      if (token.exp) {
+        const expirationTime = (token.exp as number) * 1000;
+        if (Date.now() >= expirationTime) {
+          // Token expired, invalidate session
+          return { ...session, user: null as any };
+        }
+      }
+
       if (token) {
         session.user.id = token.id as string;
         session.user.accessToken = token.accessToken as string;
