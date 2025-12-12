@@ -3,6 +3,45 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.0
+**Released:** December 12, 2025
+
+### Cohort Management & UI Polish
+
+Launched the full **Cohort Management** interface, enabling users to view and manage device groups with scope-aware context (Personal vs Organization). Also polished the UI with robust empty states and smarter table controls.
+
+<details>
+<summary><strong>Features & Improvements (4)</strong></summary>
+
+- **Cohort List View**: specialized page (`/cohorts`) displaying all cohorts with real-time device counts and creation dates.
+- **Scope-Aware Fetching**: Automatically switches between Personal and Organizational cohort data based on the user's active view.
+- **Smart Empty States**: Implemented `CohortsEmptyState` to guide users when no cohorts exist, matching the design of the Home dashboard.
+- **Smarter Tables**: Updated `ReusableTable` to automatically disable the Export button when there is no data to export, improving UX.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **New Route**: Added `app/(authenticated)/cohorts/page.tsx` with optimized loading states and error handling.
+- **Sidebar Update**: Added "Cohorts" under the "Data Access & Visibility" section in the secondary sidebar.
+- **Refactored Hook**: Enhanced `useCohorts` to strictly respect the `userScope` (Personal/Organization) for data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `app/(authenticated)/cohorts/page.tsx` (New)
+- `components/features/cohorts/CohortsEmptyState.tsx` (New)
+- `components/layout/secondary-sidebar.tsx`
+- `components/shared/table/ReusableTable.tsx`
+- `core/hooks/useCohorts.ts`
+
+</details>
+
+---
+
 ## Version 1.22.0
 **Released:** December 12, 2025
 
