@@ -94,12 +94,15 @@ export const getSimpleStatus = (
   futureDateCheck?: FormattedDate | null
 ): PrimaryStatus => {
   // 1. Handle future date error first.
-  if (futureDateCheck?.errorType === "future") {
+  if (futureDateCheck?.isError) {
     return {
       label: "Invalid Date",
       color: "purple",
       icon: AlertTriangle,
-      description: "Reporting an invalid future date.",
+      description:
+        futureDateCheck.errorType === "future"
+          ? "Reporting an invalid future date."
+          : "Reporting an invalid date.",
     };
   }
 
@@ -131,12 +134,15 @@ export const getDeviceStatus = (
   futureDateCheck?: FormattedDate | null
 ): PrimaryStatus => {
   // 1. Handle future date error first.
-  if (futureDateCheck?.errorType === "future") {
+  if (futureDateCheck?.isError) {
     return {
       label: "Invalid Date",
       color: "purple",
       icon: AlertTriangle,
-      description: "Device reporting an invalid future date.",
+      description:
+        futureDateCheck.errorType === "future"
+          ? "Device reporting an invalid future date."
+          : "Device reporting an invalid date.",
     };
   }
 
