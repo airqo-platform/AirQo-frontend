@@ -16,7 +16,7 @@ import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { useGroupCohorts, useVerifyCohort } from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
-import { useQueryClient } from '@tanstack/react-query';
+import { Device } from '@/app/types/cohorts';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
 import { DeviceEntryRow } from './DeviceEntryRow';
@@ -106,7 +106,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     initialStep = 'method-select',
 }) => {
     const router = useRouter();
-    const queryClient = useQueryClient();
     const user = useAppSelector(state => state.user.userDetails);
 
     const { isPersonalContext, isExternalOrg, activeGroup, userScope } = useUserContext();
@@ -342,8 +341,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
 
                 if (cohort && cohort.devices && cohort.devices.length > 0) {
-                    const devices = cohort.devices.map((d: any) => ({
-                        device_name: d.name || d, // Handle object or string
+                    const devices = cohort.devices.map((d: Device) => ({
+                        device_name: d.name,
                         claim_token: ''
                     }));
                     setBulkDevices(devices);
@@ -354,8 +353,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             } else {
                 setError(result.message || 'Invalid Cohort ID');
             }
-        } catch (err: any) {
-            setError(err?.message || 'Failed to verify cohort');
+        } catch (err: unknown) {
+            const message = err instanceof Error ? err.message : 'Failed to verify cohort';
+            setError(message);
         }
     };
 
