@@ -8,9 +8,7 @@ import { format, isValid, parseISO } from "date-fns";
 import {
   badgeColorClasses,
   formatDisplayDate,
-  FormattedDate,
   getDeviceStatus,
-  PrimaryStatus,
 } from "@/core/utils/status";
 
 export type TableDevice = TableItem<unknown> & Device;
