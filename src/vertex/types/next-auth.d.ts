@@ -27,6 +27,7 @@ declare module 'next-auth' {
     country: string;
     timezone: string;
     phoneNumber: string;
+    exp?: number;
   }
 }
 
@@ -41,5 +42,6 @@ declare module 'next-auth/jwt' {
     country: string;
     timezone: string;
     phoneNumber: string;
+    exp?: number;
   }
 }

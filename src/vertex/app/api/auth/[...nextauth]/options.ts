@@ -83,7 +83,7 @@ export const options: NextAuthOptions = {
         token.country = user.country;
         token.timezone = user.timezone;
         token.phoneNumber = user.phoneNumber;
-        token.exp = (user as any).exp;
+        token.exp = user.exp;
       }
       return token;
     },
@@ -94,6 +94,7 @@ export const options: NextAuthOptions = {
         const expirationTime = (token.exp as number) * 1000;
         if (Date.now() >= expirationTime) {
           // Token expired, invalidate session
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return { ...session, user: null as any };
         }
       }
