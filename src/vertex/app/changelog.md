@@ -3,8 +3,45 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.21.1
+**Released:** December 12, 2025
 
-## Version 1.21.0
+### Centralized Online Status Logic
+
+Refactored and unified the online status determination logic across the entire application, ensuring consistent visual indicators and definitions for Sites and Devices.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Unified Status Logic**: Devices and Sites now share the same "Operational", "Transmitting", "Data Available", and "Not Transmitting" status definitions.
+- **Consistent Visuals**: Standardized badge colors and icons across the Sites List, Devices List, and Status Cards.
+- **Helpful Tooltips**: Added informative tooltips to status chips in the Site Information Card, explaining what each status means (same as Device Status Card).
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **Shared Utility**: Created `src/vertex/core/utils/status.ts` to house `getDeviceStatus`, `getSimpleStatus`, `formatDisplayDate`, and status explanations.
+- **Refactored Components**: Updated `sites-list-table.tsx`, `table-columns.tsx`, `site-information-card.tsx`, and `online-status-card.tsx` to use the shared utility.
+- **Code Cleanup**: Removed duplicate status logic and date formatting functions from individual component files.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/utils/status.ts` (New)
+- `components/features/sites/sites-list-table.tsx`
+- `components/features/devices/utils/table-columns.tsx`
+- `components/features/sites/site-information-card.tsx`
+- `components/features/devices/online-status-card.tsx`
+
+</details>
+
+---
+
+
 **Released:** December 12, 2025
 
 ### Instant Home Page & Session Optimization
