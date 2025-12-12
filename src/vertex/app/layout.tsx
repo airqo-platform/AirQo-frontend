@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import ClientLayout from './client-layout';
 import { Inter } from 'next/font/google';
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth/next";
 import { options } from "@/app/api/auth/[...nextauth]/options";
 
 const inter = Inter({
