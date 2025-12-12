@@ -23,6 +23,7 @@ export interface CohortListingOptions {
   sortBy?: string;
   order?: 'asc' | 'desc';
   cohort_id?: string[];
+  enabled?: boolean;
 }
 
 export const useCohorts = (

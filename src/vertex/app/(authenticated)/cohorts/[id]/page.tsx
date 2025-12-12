@@ -25,7 +25,6 @@ const ContentGridSkeleton = () => (
 export default function CohortDetailsPage() {
     const router = useRouter();
     const params = useParams();
-    const params = useParams();
     const cohortId = typeof params?.id === "string" ? params.id : "";
 
     const { data: cohort, isLoading, error } = useCohortDetails(cohortId, { enabled: !!cohortId });
