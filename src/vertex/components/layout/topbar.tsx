@@ -21,6 +21,7 @@ import Card from '../shared/card/CardWrapper';
 import { useLogout } from '@/core/hooks/useLogout';
 import AppDropdown from './AppDropdown';
 import { useSession } from 'next-auth/react';
+import type { UserDetails } from '@/app/types/users';
 
 interface TopbarProps {
   onMenuClick: () => void;
@@ -35,7 +36,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const router = useRouter();
   const { data: session } = useSession();
 
-  const user = (session?.user as any) || currentUser;
+  const user = (session?.user as unknown as Partial<UserDetails> & { image?: string | null }) || currentUser;
 
   useEffect(() => {
     if (darkMode) {
