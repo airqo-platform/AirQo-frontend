@@ -8,6 +8,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { AqEdit01 } from "@airqo/icons-react";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 import {
   badgeColorClasses,
   formatDisplayDate,
@@ -17,6 +19,7 @@ import {
 
 interface SiteInformationCardProps {
   site: Site;
+  onEdit?: () => void;
 }
 
 const DetailItem = ({ label, value }: { label: string; value: React.ReactNode }) => (
@@ -28,7 +31,7 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
   </div>
 );
 
-export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }) => {
+export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, onEdit }) => {
   const lastActiveCheck = site.lastActive
     ? formatDisplayDate(site.lastActive)
     : null;
@@ -76,6 +79,17 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }
           </div>
         </div>
       </div>
+      {onEdit && (
+        <div className="border-t p-2 flex justify-end">
+          <ReusableButton
+            onClick={onEdit}
+            Icon={AqEdit01}
+            className="h-8 px-3 text-xs"
+          >
+            Edit
+          </ReusableButton>
+        </div>
+      )}
     </Card>
   );
 };
