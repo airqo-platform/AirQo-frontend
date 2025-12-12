@@ -5,7 +5,6 @@ import { ChevronRight, ChevronLeft } from 'lucide-react';
 import {
   AqHomeSmile,
   AqMonitor,
-  AqUser03,
   AqAirQlouds,
   AqMarkerPin01,
   AqPackagePlus,
@@ -15,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
 import { ROUTE_LINKS } from '@/core/routes';
 import Card from '../shared/card/CardWrapper';
-import { Skeleton } from '@/components/ui/skeleton';
 import { NavItem } from './NavItem';
 
 interface SecondarySidebarProps {
@@ -46,7 +44,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
   toggleSidebar,
   activeModule,
 }) => {
-  const { getContextPermissions, isExternalOrg, isLoading } =
+  const { getContextPermissions, isExternalOrg } =
     useUserContext();
   const contextPermissions = getContextPermissions();
 
@@ -334,27 +332,6 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
             </>
           )}
         </Card>
-
-        {/* Account Section at the bottom */}
-        <div className="mt-auto">
-          <SidebarSectionHeading isCollapsed={isCollapsed}>
-            Account
-          </SidebarSectionHeading>
-          {isLoading ? (
-            <div className="p-2">
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : (
-            <NavItem
-              item={{
-                href: '#', // Path doesnt existsSync, temporal placeholder
-                icon: AqUser03,
-                label: 'Profile',
-              }}
-              isCollapsed={isCollapsed}
-            />
-          )}
-        </div>
       </div>
     </aside >
   );

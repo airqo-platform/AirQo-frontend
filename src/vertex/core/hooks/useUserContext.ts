@@ -206,6 +206,18 @@ export const useUserContext = (): UserContextState => {
   };
 
   const getContextPermissions = () => {
+    if (isLoading) {
+      return {
+        canViewDevices: false,
+        canViewSites: false,
+        canViewUserManagement: false,
+        canViewAccessControl: false,
+        canViewOrganizations: false,
+        canViewNetworks: false,
+        canViewShipping: false,
+      };
+    }
+
     if (userContext === 'personal') {
       return {
         // Return full permissions object for personal context
