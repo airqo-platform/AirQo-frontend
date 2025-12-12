@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect, Component, ReactNode } from 'react';
-import { CheckCircle2, Loader2, AlertCircle, Keyboard, Database } from 'lucide-react';
+import { CheckCircle2, Loader2, AlertCircle, Smartphone, FileSpreadsheet, Database, Plus } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -21,7 +21,6 @@ import { FileUploadParser } from './FileUploadParser';
 import { DeviceEntryRow } from './DeviceEntryRow';
 import { BulkClaimResults } from './BulkClaimResults';
 import ReusableButton from '@/components/shared/button/ReusableButton';
-import { AqPlus } from '@airqo/icons-react';
 import { Device } from '@/app/types/devices';
 
 interface QRScannerErrorBoundaryProps {
@@ -502,7 +501,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
                             >
                                 <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
-                                    <Keyboard className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                    <Smartphone className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Single Device</h4>
@@ -519,8 +518,8 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 }}
                                 className="flex items-center p-4 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left w-full group"
                             >
-                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-blue-200 dark:group-hover:bg-blue-800 transition-colors mr-4 shrink-0">
-                                    <AqPlus className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/40 rounded-full group-hover:bg-green-100 dark:group-hover:bg-green-900/40 transition-colors mr-4 shrink-0">
+                                    <FileSpreadsheet className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
                                     <h4 className="font-semibold text-base text-gray-900 dark:text-white">Add Multiple Devices</h4>
@@ -869,7 +868,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 {/* Add Device Button */}
                                 <div className="flex gap-3">
                                     <ReusableButton
-                                        Icon={AqPlus}
+                                        Icon={Plus}
                                         onClick={handleAddDevice}
                                         variant="outlined"
                                         className="flex-1"
