@@ -192,8 +192,10 @@ export const getStatusExplanation = (
   statusLabel: StatusLabelStrings,
   futureDateCheck?: FormattedDate | null
 ): string => {
-  if (futureDateCheck?.errorType === "future") {
-    return `This is a device-level issue. The device reported an invalid future date: ${futureDateCheck.message}. This is likely due to a clock or configuration error.`;
+  if (futureDateCheck?.isError) {
+    return futureDateCheck.errorType === "future"
+      ? `This is a device-level issue. The device reported an invalid future date: ${futureDateCheck.message}. This is likely due to a clock or configuration error.`
+      : `This is a device-level issue. The device reported an invalid date: ${futureDateCheck.message}.`;
   }
 
   switch (statusLabel) {
@@ -204,7 +206,7 @@ export const getStatusExplanation = (
     case "Data Available":
       return `Data Available: The device is not currently sending new raw data (rawOnlineStatus: false), but recently calibrated data (isOnline: true) is still available for use.`;
     case "Not Transmitting":
-      return "Not Transmitting: The device is not sending new raw data (rawOnlineStatus: false), and no recent calibrated data is available (isOnline: false). The device appears to be offline.";
+      return "Not Transmitting: The device is not sending new raw data, and no recent calibrated data is available. The device appears to be offline.";
     case "Invalid Date":
       return "Invalid Date: The device is reporting a date timestamp that is not valid.";
     default:
