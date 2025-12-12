@@ -147,7 +147,7 @@ export const getDeviceStatus = (
   }
 
   // 2. Operational: Transmitting and Online
-  if (rawOnlineStatus && isOnline) {
+  if (rawOnlineStatus === true && isOnline) {
     return {
       label: "Operational",
       color: "green",
@@ -157,7 +157,7 @@ export const getDeviceStatus = (
   }
 
   // 3. Transmitting: Transmitting but Offline (calibration/processing)
-  if (rawOnlineStatus && !isOnline) {
+  if (rawOnlineStatus === true && !isOnline) {
     return {
       label: "Transmitting",
       color: "blue",
@@ -167,7 +167,7 @@ export const getDeviceStatus = (
   }
 
   // 4. Data Available: Not Transmitting but Online (using recent calibrated data)
-  if (!rawOnlineStatus && isOnline) {
+  if (rawOnlineStatus === false && isOnline) {
     return {
       label: "Data Available",
       color: "yellow",
