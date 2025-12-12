@@ -126,6 +126,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const [bulkDevices, setBulkDevices] = useState<Array<{ device_name: string; claim_token: string }>>([]);
     const [pendingSingleClaim, setPendingSingleClaim] = useState<{ deviceId: string; claimToken: string } | null>(null);
     const [cohortIdInput, setCohortIdInput] = useState('');
+    const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
 
     const { mutateAsync: verifyCohort, isPending: isVerifyingCohort } = useVerifyCohort();
 
@@ -144,6 +145,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setBulkDevices([]);
         setPendingSingleClaim(null);
         setCohortIdInput('');
+        setPreviousStep('method-select');
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -228,6 +230,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
     const onManualSubmit = async (data: ClaimDeviceFormData) => {
         setPendingSingleClaim({ deviceId: data.device_id, claimToken: data.claim_token });
+        setPreviousStep('manual-input');
         setStep('confirmation');
     };
 
@@ -318,6 +321,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
 
         if (parsed) {
             setPendingSingleClaim({ deviceId: parsed.deviceId, claimToken: parsed.claimToken });
+            setPreviousStep('qr-scan');
             setStep('confirmation');
         } else {
             setError('Invalid QR code format. Please try manual entry.');
@@ -408,7 +412,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     title: 'Confirm Claim',
                     showFooter: true,
                     primaryAction: { label: isPending ? 'Claiming...' : 'Confirm & Claim', onClick: handleConfirmSingleClaim, disabled: isPending },
-                    secondaryAction: { label: 'Cancel', onClick: () => setStep('manual-input'), variant: 'outline' as const },
+                    secondaryAction: { label: 'Cancel', onClick: () => setStep(previousStep), variant: 'outline' as const },
                 };
             case 'bulk-confirmation':
                 return {
