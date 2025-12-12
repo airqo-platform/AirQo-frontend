@@ -127,8 +127,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const [pendingSingleClaim, setPendingSingleClaim] = useState<{ deviceId: string; claimToken: string } | null>(null);
     const [cohortIdInput, setCohortIdInput] = useState('');
     const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
+    const [isImportingCohort, setIsImportingCohort] = useState(false);
 
-    const { mutateAsync: verifyCohort, isPending: isVerifyingCohort } = useVerifyCohort();
+    const { mutateAsync: verifyCohort } = useVerifyCohort();
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -146,6 +147,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setPendingSingleClaim(null);
         setCohortIdInput('');
         setPreviousStep('method-select');
+        setIsImportingCohort(false);
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -335,31 +337,41 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             return;
         }
         setError(null);
+        setIsImportingCohort(true);
 
         try {
             const result = await verifyCohort(cohortIdInput);
 
             if (result.success) {
-                // Fetch cohort details to get devices
-                const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
-                const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
+                try {
+                    const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
+                    const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
 
-                if (cohort && cohort.devices && cohort.devices.length > 0) {
-                    const devices = cohort.devices.map((d: Device) => ({
-                        device_name: d.name,
-                        claim_token: ''
-                    }));
-                    setBulkDevices(devices);
-                    setStep('bulk-input');
-                } else {
-                    setError('Cohort found but it has no devices assigned.');
+                    if (cohort && Array.isArray(cohort.devices) && cohort.devices.length > 0) {
+                        const devices = cohort.devices.map((d: unknown) => {
+                            const device = d as Device;
+                            return {
+                                device_name: device.name || '',
+                                claim_token: ''
+                            };
+                        });
+                        setBulkDevices(devices);
+                        setStep('bulk-input');
+                    } else {
+                        setError('Cohort found but it has no devices assigned.');
+                    }
+                } catch (detailsErr: unknown) {
+                    const message = detailsErr instanceof Error ? detailsErr.message : 'Failed to fetch cohort devices';
+                    setError(message);
                 }
             } else {
                 setError(result.message || 'Invalid Cohort ID');
             }
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'Failed to verify cohort';
+            const message = err instanceof Error ? err.message : 'Failed to verify Cohort ID';
             setError(message);
+        } finally {
+            setIsImportingCohort(false);
         }
     };
 
@@ -388,7 +400,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     ...baseConfig,
                     title: 'Import from Cohort',
                     showFooter: true,
-                    primaryAction: { label: isVerifyingCohort ? 'Verifying...' : 'Verify & Import', onClick: handleVerifyCohort, disabled: isVerifyingCohort },
+                    primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Verify & Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
                 };
             case 'manual-input':
@@ -586,7 +598,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                                 error={error || undefined}
                             />
                         </div>
-                        {isVerifyingCohort && (
+                        {isImportingCohort && (
                             <div className="flex items-center justify-center py-4">
                                 <Loader2 className="w-6 h-6 text-blue-600 animate-spin" />
                                 <span className="ml-2 text-sm text-gray-500">Verifying Cohort ID...</span>
