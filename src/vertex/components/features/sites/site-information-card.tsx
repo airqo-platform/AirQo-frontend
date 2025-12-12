@@ -3,9 +3,16 @@
 import { Site } from "@/app/types/sites";
 import { Card } from "@/components/ui/card";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   badgeColorClasses,
   formatDisplayDate,
   getSimpleStatus,
+  getStatusExplanation,
 } from "@/core/utils/status";
 
 interface SiteInformationCardProps {
@@ -29,6 +36,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }
   const status = getSimpleStatus(site.isOnline, lastActiveCheck);
   const colors = badgeColorClasses[status.color];
   const Icon = status.icon;
+  const explanation = getStatusExplanation(status.label, lastActiveCheck);
 
   return (
     <Card className="w-full rounded-lg bg-white flex flex-col">
@@ -49,12 +57,21 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site }
           <div>
             <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Status</div>
             <div className="text-base font-normal">
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colors}`}
-              >
-                <Icon className="w-4 h-4 mr-1" />
-                {status.label}
-              </span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium cursor-help ${colors}`}
+                    >
+                      <Icon className="w-4 h-4 mr-1" />
+                      {status.label}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs text-xs">{explanation}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
           </div>
         </div>
