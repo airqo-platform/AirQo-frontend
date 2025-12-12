@@ -22,6 +22,7 @@ export interface CohortListingOptions {
   search?: string;
   sortBy?: string;
   order?: 'asc' | 'desc';
+  cohort_id?: string[];
 }
 
 export const useCohorts = (options: CohortListingOptions = {}) => {
@@ -34,7 +35,7 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
     CohortsSummaryResponse,
     AxiosError<ErrorResponse>
   >({
-    queryKey: ['cohorts', { page, limit, search, sortBy, order }],
+    queryKey: ['cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id }],
     queryFn: () => {
       const params: GetCohortsSummaryParams = {
         limit: safeLimit,
@@ -42,6 +43,7 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
         ...(search && { search }),
         ...(sortBy && { sortBy }),
         ...(order && { order }),
+        ...(options.cohort_id && { cohort_id: options.cohort_id }),
       };
       return cohortsApi.getCohortsSummary(params);
     },

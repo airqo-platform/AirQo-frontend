@@ -108,6 +108,17 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                     }}
                     isCollapsed={isCollapsed}
                   />
+                  <SidebarSectionHeading isCollapsed={isCollapsed}>
+                    Data Access & Visibility
+                  </SidebarSectionHeading>
+                  <NavItem
+                    item={{
+                      href: ROUTE_LINKS.DEVICE_COHORTS,
+                      icon: AqCollocation,
+                      label: 'Cohorts',
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
                 </>
               ) : (
                 /* Organization Scope View (External & Internal) */
@@ -138,6 +149,18 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                       href: ROUTE_LINKS.ORG_REGISTER_DEVICE,
                       icon: AqPackagePlus,
                       label: 'Claim Device',
+                    }}
+                    isCollapsed={isCollapsed}
+                  />
+                  <SidebarSectionHeading isCollapsed={isCollapsed}>
+                    Data Access & Visibility
+                  </SidebarSectionHeading>
+                  <NavItem
+                    item={{
+                      href: ROUTE_LINKS.DEVICE_COHORTS,
+                      icon: AqCollocation,
+                      label: 'Cohorts',
+                      disabled: !contextPermissions.canViewDevices,
                     }}
                     isCollapsed={isCollapsed}
                   />

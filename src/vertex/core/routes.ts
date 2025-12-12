@@ -9,4 +9,5 @@ export const ROUTE_LINKS = {
   ORG_OVERVIEW: '/home',
   ORG_ASSETS: '/devices/overview',
   ORG_REGISTER_DEVICE: '/devices/claim',
+  DEVICE_COHORTS: '/cohorts',
 };
