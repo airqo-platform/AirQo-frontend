@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { useSession, SessionProvider, getSession } from 'next-auth/react';
+import type { Session } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAppSelector, useAppDispatch } from '@/core/redux/hooks';
@@ -56,14 +57,9 @@ function determineInitialUserSetup(
   const isManualPersonalMode = userContext === 'personal' && !activeGroup;
 
   if (isManualPersonalMode) {
-    // Check if we can upgrade "Personal Mode" to "Personal Mode with AirQo Group"
-    // This happens if the user has the AirQo group in their list
     const airqoGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
     if (airqoGroup) {
-      // We have an AirQo group, so we let the logic fall through to default selection
-      // which will pick it up below
     } else {
-      // Truly isolated user without AirQo group
       return { initialUserContext: 'personal' };
     }
   }
@@ -71,19 +67,15 @@ function determineInitialUserSetup(
   let defaultGroup: Group | undefined;
   let defaultNetwork: Network | undefined;
 
-  // Restore user's last selected group if it exists and is still valid
   if (activeGroup) {
     if (filteredGroups.some((g) => g._id === activeGroup._id)) {
       defaultGroup = activeGroup;
     }
   }
 
-  // Only default to AirQo if no persisted activeGroup (first-time login)
   if (!defaultGroup && !activeGroup) {
-    // First-time login: prioritize AirQo as the default  
     defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
   } else if (!defaultGroup) {
-    // activeGroup existed but is no longer valid - use first available
     defaultGroup = filteredGroups[0];
   }
 
@@ -94,8 +86,6 @@ function determineInitialUserSetup(
 
   let initialUserContext: 'personal' | 'external-org' = 'personal';
   if (defaultGroup) {
-    // AirQo organization uses personal context
-    // Regardless of staff status - permissions control access in the sidebar
     if (defaultGroup.grp_title.toLowerCase() === 'airqo') {
       initialUserContext = 'personal';
     } else {
@@ -172,8 +162,6 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === 'authenticated' && isAuthRoute && activeGroup && isInitialized) {
-      // All users land on /home (personal devices view)
-      // Module visibility is controlled by permissions in the sidebar
       logger.debug('[ActiveGroupGuard] Redirecting authenticated user to /home');
       router.push('/home');
     }
@@ -253,8 +241,6 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isError || !error) return;
 
-    // With networkMode: 'offlineFirst', React Query differentiates
-    // between network errors and actual failures
     logger.error('[UserDataFetcher] Error fetching user details', {
       error: getApiErrorMessage(error),
       isOnline,
@@ -478,8 +464,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [status, isAuthRoute, router, isLoggingOut]);
 
-  // Only block render while NextAuth is initializing
-  if (status === 'loading') {
+  // Check if we have a session from SSR or client fetch
+  const hasSession = !!session;
+
+  // Only block render if we are truly loading AND have no session data yet
+  if (status === 'loading' && !hasSession) {
     return <SessionLoadingState />;
   }
 
@@ -563,7 +552,7 @@ export function AuthProvider({
   session,
 }: {
   children: React.ReactNode;
-  session?: ExtendedSession;
+  session?: Session | null;
 }) {
   return (
     <SessionProvider session={session} refetchOnWindowFocus={false} refetchInterval={0}>

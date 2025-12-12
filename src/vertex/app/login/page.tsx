@@ -56,7 +56,7 @@ export default function LoginPage() {
       if (result?.ok) {
         ReusableToast({ message: "Login successful! Redirecting...", type: "SUCCESS" });
 
-        router.push("/home");
+        window.location.href = "/home";
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {

@@ -3,6 +3,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 import ClientLayout from './client-layout';
 import { Inter } from 'next/font/google';
+import { getServerSession } from "next-auth";
+import { options } from "@/app/api/auth/[...nextauth]/options";
 
 const inter = Inter({
   subsets: ['latin'],
@@ -57,14 +59,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await getServerSession(options);
+
   return (
     <html lang="en" className={inter.className}>
-      <ClientLayout>{children}</ClientLayout>
+      <ClientLayout session={session}>{children}</ClientLayout>
     </html>
   );
 }

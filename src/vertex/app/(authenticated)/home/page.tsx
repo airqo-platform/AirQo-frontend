@@ -2,6 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
 import { PlusSquare, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
@@ -45,11 +46,13 @@ const DashboardStatsCards = dynamic(
 );
 
 const WelcomePage = () => {
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
-  const user = useAppSelector((state) => state.user.userDetails);
   const router = useRouter();
+  const { data: session } = useSession();
   const { userContext, userScope, hasError, error } = useUserContext();
 
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+  const user = useAppSelector((state) => state.user.userDetails);
+  
   const allActions = [
     {
       href: "/devices/claim",
@@ -64,18 +67,18 @@ const WelcomePage = () => {
   const permissionsToCheck = allActions.map((action) => action.permission);
   const permissionsMap = usePermissions(permissionsToCheck);
 
-  // Use userScope to determine which devices to fetch
-  // Personal scope = my devices, Organisation scope = org devices
+  const userId = (session?.user as any)?.id || user?._id;
+
   const { devices: groupDevices, isLoading: isLoadingGroupDevices } = useDevices({
     limit: 1,
     enabled: userScope === 'organisation',
   });
 
   const { data: myDevicesData, isLoading: isLoadingMyDevices } = useMyDevices(
-    user?._id || "",
+    userId || "",
     undefined,
     {
-      enabled: !!user?._id && userScope === 'personal',
+      enabled: !!userId && userScope === 'personal',
     }
   );
 

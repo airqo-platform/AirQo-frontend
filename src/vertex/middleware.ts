@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 
 export default withAuth(
   function middleware(req) {
-    // If user is authenticated and hitting root /, redirect to /home
-    // The 'authorized' callback below ensures we only get here if authenticated
     if (req.nextUrl.pathname === "/") {
       return NextResponse.redirect(new URL("/home", req.url));
     }
@@ -12,7 +10,7 @@ export default withAuth(
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token, // User needs a token to pass
+      authorized: ({ token }) => !!token,
     },
     pages: {
       signIn: "/login",
@@ -21,5 +19,15 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public files with extensions
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)',
+  ],
 };
