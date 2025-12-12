@@ -1,5 +1,8 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { ApiUsage } from '@/shared/types/api';
+
+// Force dynamic rendering for this API route
+export const dynamic = 'force-dynamic';
 
 // Helper function to get reset time based on period
 const getResetTime = (period: 'hourly' | 'daily' | 'monthly'): string => {
@@ -60,14 +63,14 @@ const getDummyUsage = (tier: string = 'Free'): ApiUsage => {
   };
 };
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     // In a real implementation:
     // 1. Get user from auth session
     // 2. Fetch their subscription tier from database
     // 3. Fetch their actual API usage from logs/metrics
 
-    const { searchParams } = new URL(request.url);
+    const searchParams = request.nextUrl.searchParams;
     const tier = searchParams.get('tier') || 'Free';
 
     const usage = getDummyUsage(tier);

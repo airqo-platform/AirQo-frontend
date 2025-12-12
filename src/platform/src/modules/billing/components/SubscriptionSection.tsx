@@ -4,18 +4,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, Button, LoadingSpinner } from '@/shared/components/ui';
 import { AqCheck } from '@airqo/icons-react';
 import { formatDate } from '@/shared/utils';
-import type {
-  UserSubscription,
-  SubscriptionPlan,
-  ApiUsage,
-} from '@/shared/types/api';
+import type { UserSubscription, SubscriptionPlan } from '@/shared/types/api';
 import CheckoutDialog from './CheckoutDialog';
 
 const SubscriptionSection: React.FC = () => {
   const [subscription, setSubscription] = useState<UserSubscription | null>(
     null
   );
-  const [usage, setUsage] = useState<ApiUsage | null>(null);
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false);
@@ -31,7 +26,6 @@ const SubscriptionSection: React.FC = () => {
         const subData = await subResponse.json();
         if (subData.success) {
           setSubscription(subData.subscription);
-          setUsage(subData.usage);
         }
 
         // Fetch available plans
