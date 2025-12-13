@@ -3,6 +3,31 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.4
+**Released:** December 13, 2025
+
+### Device Connection URL
+
+Added a new "Device Connection URL" field to support external device integrations, available during device import and in the device details view.
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **Device Connection URL**: Added a new input field (`api_code`) to the **Import Device** modal and **Device Details** (Edit Mode), allowing users to link devices to their external data source URLs (e.g., IQAir).
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `components/features/devices/import-device-modal.tsx`
+- `components/features/devices/device-details-modal.tsx`
+
+</details>
+
+---
 ## Version 1.23.3
 **Released:** December 13, 2025
 
