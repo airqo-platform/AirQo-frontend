@@ -3,8 +3,9 @@
  * Handles all stock management operations
  */
 
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
+import authService from './api-service';
 import { 
   ItemsStock,
   ItemsStockCreate,
@@ -16,10 +17,47 @@ import {
 
 class StockService {
   private readonly baseUrl: string;
+  private readonly apiPrefix: string;
 
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
+    this.apiPrefix = config.apiPrefix || '/api/v1';
+  }
+
+  /**
+   * Get the appropriate endpoint based on environment
+   */
+  private getEndpoint(path: string): string {
+    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+  }
+
+  /**
+   * Get auth headers - skip for localhost
+   */
+  private getAuthHeaders(): Record<string, string> {
+    if (config.isLocalhost) {
+      return {};
+    }
+    
+    const token = authService.getToken();
+    if (token) {
+      return { 'Authorization': token };
+    }
+    return {};
+  }
+
+  /**
+   * Get axios config with auth headers
+   */
+  private getAxiosConfig(additionalConfig?: AxiosRequestConfig): AxiosRequestConfig {
+    return {
+      ...additionalConfig,
+      headers: {
+        ...this.getAuthHeaders(),
+        ...additionalConfig?.headers,
+      },
+    };
   }
 
   /**
@@ -44,11 +82,12 @@ class StockService {
       if (params?.low_stock_threshold !== undefined) queryParams.append('low_stock_threshold', params.low_stock_threshold.toString());
       if (params?.return_list !== undefined) queryParams.append('return_list', params.return_list.toString());
 
+      const endpoint = this.getEndpoint('/items-stock');
       const url = queryParams.toString() 
-        ? `${this.baseUrl}/items-stock?${queryParams.toString()}`
-        : `${this.baseUrl}/items-stock`;
+        ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+        : `${this.baseUrl}${endpoint}`;
 
-      const response = await axios.get(url);
+      const response = await axios.get(url, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error('Error fetching stock items:', error);
@@ -61,8 +100,10 @@ class StockService {
    */
   async getItemById(itemId: string, historyLimit: number = 50): Promise<ItemsStockWithHistory> {
     try {
+      const endpoint = this.getEndpoint(`/items-stock/${itemId}`);
       const response = await axios.get(
-        `${this.baseUrl}/items-stock/${itemId}?history_limit=${historyLimit}`
+        `${this.baseUrl}${endpoint}?history_limit=${historyLimit}`,
+        this.getAxiosConfig()
       );
       return response.data;
     } catch (error) {
@@ -76,7 +117,8 @@ class StockService {
    */
   async createItem(data: ItemsStockCreate): Promise<ItemsStock> {
     try {
-      const response = await axios.post(`${this.baseUrl}/items-stock`, data);
+      const endpoint = this.getEndpoint('/items-stock');
+      const response = await axios.post(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error('Error creating stock item:', error);
@@ -89,7 +131,8 @@ class StockService {
    */
   async updateItem(itemId: string, data: ItemsStockUpdate): Promise<ItemsStock> {
     try {
-      const response = await axios.put(`${this.baseUrl}/items-stock/${itemId}`, data);
+      const endpoint = this.getEndpoint(`/items-stock/${itemId}`);
+      const response = await axios.put(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error(`Error updating stock item ${itemId}:`, error);
@@ -102,8 +145,10 @@ class StockService {
    */
   async getLowStockItems(threshold: number = 10): Promise<ItemsStockResponse> {
     try {
+      const endpoint = this.getEndpoint('/items-stock');
       const response = await axios.get(
-        `${this.baseUrl}/items-stock?low_stock_threshold=${threshold}`
+        `${this.baseUrl}${endpoint}?low_stock_threshold=${threshold}`,
+        this.getAxiosConfig()
       );
       return response.data;
     } catch (error) {
