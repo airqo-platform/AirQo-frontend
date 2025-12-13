@@ -29,6 +29,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     device_number: "",
     writeKey: "",
     readKey: "",
+    api_code: "",
   });
 
   const [showMore, setShowMore] = useState(false);
@@ -48,6 +49,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
     if (!formData.serial_number.trim()) {
       newErrors.serial_number = "Serial number is required";
+    }
+
+    if (!formData.api_code?.trim()) {
+      newErrors.api_code = "Device Connection URL is required";
     }
 
     setErrors(newErrors);
@@ -106,6 +111,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         device_number: "",
         writeKey: "",
         readKey: "",
+        api_code: "",
       });
       setErrors({});
       setShowMore(false);
@@ -187,6 +193,16 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           onChange={(e) => handleInputChange("serial_number", e.target.value)}
           placeholder="Enter serial number"
           error={errors.serial_number}
+          required
+        />
+
+        <ReusableInputField
+          label="Device Connection URL"
+          id="api_code"
+          value={formData.api_code}
+          onChange={(e) => handleInputChange("api_code", e.target.value)}
+          placeholder="https://api.mair.com/v1/12345"
+          error={errors.api_code}
           required
         />
 

@@ -50,6 +50,7 @@ const deviceUpdateSchema = z.object({
   isOnline: z.boolean().optional(),
   createdAt: z.string().optional(),
   nextMaintenance: z.string().optional(),
+  api_code: z.string().optional(),
 });
 
 type DeviceUpdateFormData = z.infer<typeof deviceUpdateSchema>;
@@ -81,6 +82,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
       height: device?.height || undefined,
       powerType: device?.powerType || undefined,
       claim_status: device?.claim_status || undefined,
+      api_code: device?.api_code || "",
     },
   });
 
@@ -106,6 +108,7 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
         height: device.height || undefined,
         powerType: device.powerType || undefined,
         claim_status: device.claim_status || undefined,
+        api_code: device.api_code || "",
       });
     }
   }, [device, form]);
@@ -398,6 +401,23 @@ const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({ open, device, o
                       error={fieldState.error?.message}
                       rows={1}
                       placeholder="Device description..."
+                      {...field}
+                    />
+                  )}
+                />
+              </div>
+              <div className="lg:col-span-2">
+                <FormField
+                  control={form.control}
+                  name="api_code"
+                  render={({ field, fieldState }) => (
+                    <ReusableInputField
+                      label="Device Connection URL"
+                      disabled={isLoading}
+                      readOnly={!isEditMode}
+                      showCopyButton={true}
+                      error={fieldState.error?.message}
+                      placeholder="https://device.iqair.com/..."
                       {...field}
                     />
                   )}
