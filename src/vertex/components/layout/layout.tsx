@@ -11,6 +11,7 @@ import SessionLoadingState from './loading/session-loading';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
 import { OrganizationSetupBanner } from './OrganizationSetupBanner';
+import { setLastActiveModule } from '@/core/utils/userPreferences';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -29,18 +30,23 @@ export default function Layout({ children }: LayoutProps) {
   );
 
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
+  const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
     // Determine active module based on current pathname
+    const email = userDetails?.email || userDetails?.userName;
+
     if (
       pathname.startsWith('/admin/')
     ) {
       setActiveModule('admin');
+      setLastActiveModule('admin', email);
     } else {
       // Default to devices module (home, my-devices, claim)
       setActiveModule('devices');
+      setLastActiveModule('devices', email);
     }
-  }, [pathname]);
+  }, [pathname, userDetails]);
 
   const handleModuleChange = (module: string) => {
     if (module === activeModule) {
@@ -48,12 +54,16 @@ export default function Layout({ children }: LayoutProps) {
       return;
     }
     setActiveModule(module);
+
+    const email = userDetails?.email || userDetails?.userName;
+    setLastActiveModule(module, email);
+
     setIsPrimarySidebarOpen(false);
 
     // Navigate to module default route
     const moduleRoutes: Record<string, string> = {
       devices: '/home',
-      admin: '/admin/shipping',
+      admin: '/admin/networks',
     };
 
     router.push(moduleRoutes[module] || '/home');

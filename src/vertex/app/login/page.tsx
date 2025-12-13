@@ -17,6 +17,7 @@ import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
 import { setLoggingOut } from "@/core/redux/slices/userSlice";
+import { getLastActiveModule } from "@/core/utils/userPreferences";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -62,7 +63,12 @@ export default function LoginPage() {
       if (result?.ok) {
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
 
-        window.location.href = "/home";
+        const lastModule = getLastActiveModule(values.userName);
+        let redirectUrl = "/home";
+        if (lastModule === 'admin') {
+          redirectUrl = "/admin/networks";
+        }
+        window.location.href = redirectUrl;
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {
