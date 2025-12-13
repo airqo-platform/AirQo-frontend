@@ -4,7 +4,10 @@ import { config } from '@/lib/config'
 export async function GET() {
     try {
       // Connect to your FastAPI backend
-      const response = await fetch(`${config.apiUrl}/valid-device-locations`, {
+      const endpoint = config.isLocalhost 
+        ? '/valid-device-locations' 
+        : `${config.apiPrefix || '/api/v1'}/beacon/valid-device-locations`
+      const response = await fetch(`${config.apiUrl}${endpoint}`, {
         cache: 'no-store'
       })
   
