@@ -3,6 +3,50 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.3
+**Released:** December 13, 2025
+
+### User-Specific Admin Module Redirection
+
+Implemented intelligent login redirection that remembers each user's last active module (Device Management or Administrative Panel) and redirects them accordingly, with strict user isolation to prevent state leakage on shared devices.
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **Smart Login Redirection**: Users are now automatically redirected to their last active module upon login. If a user was last viewing the Administrative Panel before logout, they'll return directly to `/admin/networks`. Otherwise, they'll go to the default Home page. This preference is strictly isolated per user email, ensuring no cross-contamination when multiple users share the same browser.
+
+</details>
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **UI Flash Prevention**: Optimized the layout initialization to prevent visual "flashing" between modules during login by reading the pathname immediately on mount.
+- **Logout State Capture**: Enhanced logout flow to explicitly save the user's current module before session cleanup, ensuring preferences are always preserved.
+- **Pre-Authentication Check**: Login now reads the user's preference before authentication completes, eliminating timing gaps that caused brief navigation flashes.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **New Utility**: Created `core/utils/userPreferences.ts` with `getLastActiveModule` and `setLastActiveModule` functions that use user-specific localStorage keys (`lastActiveModule_${email}`).
+- **Layout Optimization**: Modified `layout.tsx` to initialize `activeModule` state based on the current pathname and only update state when the module actually changes, preventing unnecessary re-renders.
+- **Logout Enhancement**: Updated `useLogout.ts` to save the current module preference before clearing session data.
+- **Login Refactor**: Modified login flow to read preference before authentication and removed prefetch logic that contributed to visual flashing.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/utils/userPreferences.ts` (New)
+- `core/hooks/useLogout.ts`
+- `components/layout/layout.tsx`
+- `app/login/page.tsx`
+
+</details>
+
+---
 ## Version 1.23.2
 **Released:** December 13, 2025
 
