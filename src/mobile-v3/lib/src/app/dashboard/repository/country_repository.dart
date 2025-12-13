@@ -8,14 +8,14 @@ class CountryRepository extends BaseRepository {
   static const String _cacheKey = 'countries';
 
   static final List<CountryModel> _defaultCountries = [
-    CountryModel("🇺🇬", "Uganda"),
-    CountryModel("🇰🇪", "Kenya"),
-    CountryModel("🇧🇮", "Burundi"),
-    CountryModel("🇬🇭", "Ghana"),
-    CountryModel("🇳🇬", "Nigeria"),
-    CountryModel("🇨🇲", "Cameroon"),
-    CountryModel("🇿🇦", "South Africa"),
-    CountryModel("🇲🇿", "Mozambique"),
+    CountryModel("🇺🇬", "Uganda", sites: 1),
+    CountryModel("🇰🇪", "Kenya", sites: 1),
+    CountryModel("🇧🇮", "Burundi", sites: 1),
+    CountryModel("🇬🇭", "Ghana", sites: 1),
+    CountryModel("🇳🇬", "Nigeria", sites: 1),
+    CountryModel("🇨🇲", "Cameroon", sites: 1),
+    CountryModel("🇿🇦", "South Africa", sites: 1),
+    CountryModel("🇲🇿", "Mozambique", sites: 1),
   ];
 
   static List<CountryModel>? _memoryCache;
@@ -44,7 +44,7 @@ class CountryRepository extends BaseRepository {
           final countries = countriesResponse.countries.map((countryData) {
             final countryName = countryData.formattedCountryName;
             final flag = CountryModel.getFlagFromCountryName(countryName);
-            return CountryModel(flag, countryName);
+            return CountryModel(flag, countryName, sites: countryData.sites);
           }).toList();
 
           countries.sort((a, b) => a.countryName.compareTo(b.countryName));
@@ -90,6 +90,7 @@ class CountryRepository extends BaseRepository {
             .map((item) => CountryModel(
                   item['flag'] as String,
                   item['countryName'] as String,
+                  sites: item['sites'] as int? ?? 0,
                 ))
             .toList();
         return countries;
@@ -109,6 +110,7 @@ class CountryRepository extends BaseRepository {
             .map((c) => {
                   'flag': c.flag,
                   'countryName': c.countryName,
+                  'sites': c.sites,
                 })
             .toList(),
         toJson: (data) => {'countries': data},
@@ -120,6 +122,25 @@ class CountryRepository extends BaseRepository {
 
   static List<CountryModel> get countries {
     return _memoryCache ?? _defaultCountries;
+  }
+
+  /// Returns only countries that have active measurements
+  static List<CountryModel> getActiveCountries(Set<String> activeCountryNames) {
+    if (activeCountryNames.isEmpty) {
+      return countries.where((country) => country.sites > 0).toList();
+    }
+
+    return countries
+        .where((country) => activeCountryNames.contains(country.countryName))
+        .toList();
+  }
+
+  /// Extracts active country names from measurements
+  static Set<String> extractActiveCountryNames(List<dynamic> measurements) {
+    return measurements
+        .where((m) => m.siteDetails?.country != null)
+        .map((m) => m.siteDetails!.country! as String)
+        .toSet();
   }
 
   static Future<void> clearCache() async {

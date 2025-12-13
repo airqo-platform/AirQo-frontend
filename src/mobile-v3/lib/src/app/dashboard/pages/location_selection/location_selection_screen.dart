@@ -9,6 +9,7 @@ import 'package:airqo/src/app/dashboard/pages/location_selection/components/loca
 import 'package:airqo/src/app/dashboard/pages/location_selection/utils/location_helpers.dart';
 import 'package:airqo/src/app/dashboard/pages/location_selection/components/location_search_bar.dart';
 import 'package:airqo/src/app/dashboard/repository/user_preferences_repository.dart';
+import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
@@ -425,6 +426,12 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     });
   }
 
+  Set<String> _getActiveCountries() {
+    final activeCountries = CountryRepository.extractActiveCountryNames(allMeasurements);
+    loggy.info('Active countries extracted from ${allMeasurements.length} measurements: $activeCountries');
+    return activeCountries;
+  }
+
   bool _checkForHtmlError(String message) {
     return message.contains("<html>") ||
         message.contains("<!DOCTYPE") ||
@@ -528,6 +535,7 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
           currentFilter: currentFilter,
           onFilterSelected: _filterByCountry,
           onResetFilter: _resetFilter,
+          activeCountries: _getActiveCountries(),
         ),
         if (showLocationLimitError)
           Padding(

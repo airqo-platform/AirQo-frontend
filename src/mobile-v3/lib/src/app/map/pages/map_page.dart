@@ -21,6 +21,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:loggy/loggy.dart';
 
 class MapScreen extends StatefulWidget {
@@ -48,6 +49,7 @@ class _MapScreenState extends State<MapScreen>
   List<Measurement> localSearchResults = [];
   List<Measurement> nearbyMeasurements = [];
   Position? userPosition;
+  String? userCountry;
 
   List<Marker> markers = [];
   bool isInitializing = true;
@@ -365,7 +367,25 @@ class _MapScreenState extends State<MapScreen>
           userPosition = position;
         });
       }
-      
+
+      try {
+        final placemarks = await placemarkFromCoordinates(
+          position.latitude,
+          position.longitude,
+        );
+
+        if (placemarks.isNotEmpty && placemarks.first.country != null) {
+          final country = placemarks.first.country!;
+          if (mounted) {
+            setState(() {
+              userCountry = country;
+            });
+          }
+        }
+      } catch (e) {
+        loggy.warning('Failed to get country from coordinates: $e');
+      }
+
       _updateNearbyMeasurements();
     } catch (e) {
       loggy.error('Failed to get user location: $e');
@@ -458,7 +478,10 @@ class _MapScreenState extends State<MapScreen>
   Widget build(BuildContext context) {
     super.build(context);
 
-    final List<CountryModel> countries = CountryRepository.countries;
+    final Set<String> activeCountryNames =
+        CountryRepository.extractActiveCountryNames(allMeasurements);
+    final List<CountryModel> countries =
+        CountryRepository.getActiveCountries(activeCountryNames);
 
     final List<Map<String, String>> airQualityData = [
       {
@@ -1240,9 +1263,8 @@ class _MapScreenState extends State<MapScreen>
                                             onTap: () => filterByCountry(
                                                 countries[index].countryName,
                                                 allMeasurements),
-                                            // You can add user country logic here if needed
-                                            // isUserCountry: widget.userCountry?.toLowerCase() ==
-                                            //     countries[index].countryName.toLowerCase(),
+                                            isUserCountry: userCountry?.toLowerCase() ==
+                                                countries[index].countryName.toLowerCase(),
                                           ),
                                         );
                                       })
