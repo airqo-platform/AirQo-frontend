@@ -11,6 +11,7 @@ import SessionLoadingState from './loading/session-loading';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
 import { OrganizationSetupBanner } from './OrganizationSetupBanner';
+
 import { setLastActiveModule } from '@/core/utils/userPreferences';
 
 interface LayoutProps {
@@ -21,8 +22,8 @@ export default function Layout({ children }: LayoutProps) {
   const [isPrimarySidebarOpen, setIsPrimarySidebarOpen] = useState(false);
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] =
     useState(false);
-  const [activeModule, setActiveModule] = useState('devices');
   const pathname = usePathname();
+  const [activeModule, setActiveModule] = useState(pathname?.startsWith('/admin/') ? 'admin' : 'devices');
   const router = useRouter();
 
   const { isSwitching, switchingTo } = useAppSelector(
@@ -34,19 +35,19 @@ export default function Layout({ children }: LayoutProps) {
 
   useEffect(() => {
     // Determine active module based on current pathname
-    const email = userDetails?.email || userDetails?.userName;
+    const newModule = pathname.startsWith('/admin/') ? 'admin' : 'devices';
 
-    if (
-      pathname.startsWith('/admin/')
-    ) {
-      setActiveModule('admin');
-      setLastActiveModule('admin', email);
-    } else {
-      // Default to devices module (home, my-devices, claim)
-      setActiveModule('devices');
-      setLastActiveModule('devices', email);
+    // Only update state AND save if it's actually changing
+    if (newModule !== activeModule) {
+      setActiveModule(newModule);
+
+      // Save preference when module changes
+      const email = userDetails?.email || userDetails?.userName;
+      if (email) {
+        setLastActiveModule(newModule, email);
+      }
     }
-  }, [pathname, userDetails]);
+  }, [pathname, activeModule, userDetails]);
 
   const handleModuleChange = (module: string) => {
     if (module === activeModule) {
@@ -54,10 +55,6 @@ export default function Layout({ children }: LayoutProps) {
       return;
     }
     setActiveModule(module);
-
-    const email = userDetails?.email || userDetails?.userName;
-    setLastActiveModule(module, email);
-
     setIsPrimarySidebarOpen(false);
 
     // Navigate to module default route

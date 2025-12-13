@@ -41,16 +41,20 @@ export default function LoginPage() {
 
   useEffect(() => {
     isMounted.current = true;
-    router.prefetch("/home");
     // Reset logout state when login page mounts - this ensures suppression flags persist until we land here
     dispatch(setLoggingOut(false));
     return () => {
       isMounted.current = false;
     };
-  }, [router, dispatch]);
+  }, [dispatch]);
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
+
+    // Read preference BEFORE authentication to avoid timing issues
+    const lastModule = getLastActiveModule(values.userName);
+    const redirectUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+
     try {
       const result = await signIn("credentials", {
         redirect: false,
@@ -62,12 +66,6 @@ export default function LoginPage() {
 
       if (result?.ok) {
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
-
-        const lastModule = getLastActiveModule(values.userName);
-        let redirectUrl = "/home";
-        if (lastModule === 'admin') {
-          redirectUrl = "/admin/networks";
-        }
         window.location.href = redirectUrl;
       } else {
         let message = "Login failed. Please check your credentials.";
