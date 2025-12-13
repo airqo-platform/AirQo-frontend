@@ -3,8 +3,9 @@
  * Handles all stock management operations
  */
 
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
+import authService from './api-service';
 import { 
   ItemsStock,
   ItemsStockCreate,
@@ -29,6 +30,34 @@ class StockService {
    */
   private getEndpoint(path: string): string {
     return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
+  }
+
+  /**
+   * Get auth headers - skip for localhost
+   */
+  private getAuthHeaders(): Record<string, string> {
+    if (config.isLocalhost) {
+      return {};
+    }
+    
+    const token = authService.getToken();
+    if (token) {
+      return { 'Authorization': token };
+    }
+    return {};
+  }
+
+  /**
+   * Get axios config with auth headers
+   */
+  private getAxiosConfig(additionalConfig?: AxiosRequestConfig): AxiosRequestConfig {
+    return {
+      ...additionalConfig,
+      headers: {
+        ...this.getAuthHeaders(),
+        ...additionalConfig?.headers,
+      },
+    };
   }
 
   /**
@@ -58,7 +87,7 @@ class StockService {
         ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
         : `${this.baseUrl}${endpoint}`;
 
-      const response = await axios.get(url);
+      const response = await axios.get(url, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error('Error fetching stock items:', error);
@@ -73,7 +102,8 @@ class StockService {
     try {
       const endpoint = this.getEndpoint(`/items-stock/${itemId}`);
       const response = await axios.get(
-        `${this.baseUrl}${endpoint}?history_limit=${historyLimit}`
+        `${this.baseUrl}${endpoint}?history_limit=${historyLimit}`,
+        this.getAxiosConfig()
       );
       return response.data;
     } catch (error) {
@@ -88,7 +118,7 @@ class StockService {
   async createItem(data: ItemsStockCreate): Promise<ItemsStock> {
     try {
       const endpoint = this.getEndpoint('/items-stock');
-      const response = await axios.post(`${this.baseUrl}${endpoint}`, data);
+      const response = await axios.post(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error('Error creating stock item:', error);
@@ -102,7 +132,7 @@ class StockService {
   async updateItem(itemId: string, data: ItemsStockUpdate): Promise<ItemsStock> {
     try {
       const endpoint = this.getEndpoint(`/items-stock/${itemId}`);
-      const response = await axios.put(`${this.baseUrl}${endpoint}`, data);
+      const response = await axios.put(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error(`Error updating stock item ${itemId}:`, error);
@@ -117,7 +147,8 @@ class StockService {
     try {
       const endpoint = this.getEndpoint('/items-stock');
       const response = await axios.get(
-        `${this.baseUrl}${endpoint}?low_stock_threshold=${threshold}`
+        `${this.baseUrl}${endpoint}?low_stock_threshold=${threshold}`,
+        this.getAxiosConfig()
       );
       return response.data;
     } catch (error) {
