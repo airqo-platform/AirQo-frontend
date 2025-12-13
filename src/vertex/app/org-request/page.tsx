@@ -146,7 +146,7 @@ const RequestOrganizationPage = () => {
                     form.clearErrors('organization_slug');
                 }
 
-            } catch (err) {
+            } catch {
                 if (slug !== form.getValues('organization_slug')) return;
                 setSlugCheck({
                     status: 'error',
@@ -295,9 +295,13 @@ const RequestOrganizationPage = () => {
             form.reset();
             handleClearLogo();
             setSlugCheck({ status: 'idle' });
-        } catch (error: any) {
+        } catch (error) {
+            let message = 'Failed to submit request';
+            if (error instanceof Error) {
+                message = error.message;
+            }
             ReusableToast({
-                message: error.message || 'Failed to submit request',
+                message,
                 type: 'ERROR',
             });
         } finally {
@@ -358,7 +362,7 @@ const RequestOrganizationPage = () => {
                                             placeholder="Select Type"
                                             required
                                             {...field}
-                                            onChange={(e: any) => {
+                                            onChange={(e) => {
                                                 const val = e.target ? e.target.value : e;
                                                 field.onChange(val);
                                             }}
@@ -382,7 +386,7 @@ const RequestOrganizationPage = () => {
                                             placeholder="Select a country"
                                             required
                                             {...field}
-                                            onChange={(e: any) => {
+                                            onChange={(e) => {
                                                 const val = e.target ? e.target.value : e;
                                                 field.onChange(val);
                                             }}
