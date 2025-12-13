@@ -258,8 +258,6 @@ class CacheManager with UiLoggy {
 
       final jsonData = cachedData.toJson(toJson);
       await box.put(key, json.encode(jsonData));
-
-      loggy.info('Data cached successfully: ${boxName.toString()}/$key');
     } catch (e) {
       loggy.error('Error caching data: $e');
     }
@@ -280,9 +278,6 @@ class CacheManager with UiLoggy {
 
       final decoded = json.decode(cachedJson);
       final cachedData = CachedData<T>.fromJson(decoded, fromJson);
-
-      loggy.info(
-          'Retrieved from cache: ${boxName.toString()}/$key (${DateTime.now().difference(cachedData.timestamp).inMinutes} minutes old)');
 
       return cachedData;
     } catch (e) {
@@ -317,7 +312,6 @@ class CacheManager with UiLoggy {
     try {
       final box = Hive.box(boxName.toString());
       await box.delete(key);
-      loggy.info('Deleted from cache: ${boxName.toString()}/$key');
     } catch (e) {
       loggy.error('Error deleting from cache: $e');
     }
@@ -327,7 +321,6 @@ class CacheManager with UiLoggy {
     try {
       final box = Hive.box(boxName.toString());
       await box.clear();
-      loggy.info('Cleared cache box: ${boxName.toString()}');
     } catch (e) {
       loggy.error('Error clearing cache box: $e');
     }
@@ -339,7 +332,6 @@ class CacheManager with UiLoggy {
       await clearBox(CacheBoxName.forecast);
       await clearBox(CacheBoxName.location);
       await clearBox(CacheBoxName.userPreferences);
-      loggy.info('Cleared all cache boxes');
     } catch (e) {
       loggy.error('Error clearing all cache boxes: $e');
     }

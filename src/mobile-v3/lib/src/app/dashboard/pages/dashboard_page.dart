@@ -237,12 +237,24 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                   child: DashboardHeader(),
                 ),
                 SliverToBoxAdapter(
-                  child: ViewSelector(
-                    currentView: currentView,
-                    selectedCountry: selectedCountry,
-                    onViewChanged: setView,
-                    isGuestUser: isGuest,
-                    userCountry: userCountry,
+                  child: BlocBuilder<DashboardBloc, DashboardState>(
+                    builder: (context, state) {
+                      Set<String>? activeCountries;
+                      if (state is DashboardLoaded &&
+                          state.response.measurements != null) {
+                        activeCountries = CountryRepository.extractActiveCountryNames(
+                            state.response.measurements!);
+                      }
+
+                      return ViewSelector(
+                        currentView: currentView,
+                        selectedCountry: selectedCountry,
+                        onViewChanged: setView,
+                        isGuestUser: isGuest,
+                        userCountry: userCountry,
+                        activeCountries: activeCountries,
+                      );
+                    },
                   ),
                 ),
                 SliverToBoxAdapter(
