@@ -31,7 +31,7 @@ import {
 import { Form, FormField } from '@/components/ui/form';
 import { PhoneNumberInput } from '@/components/ui/phone-input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { cloudinaryImageUpload } from '@/core/apis/cloudinary';
+import { uploadToCloudinary } from '@/core/apis/cloudinary';
 import { generateSlug } from '@/lib/validators';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput';
@@ -269,15 +269,10 @@ const RequestOrganizationPage = () => {
 
             // Upload logo if selected
             if (selectedLogoFile) {
-                const logoFormData = new FormData();
-                logoFormData.append('file', selectedLogoFile);
-                logoFormData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET || 'airqo_vertex');
-                logoFormData.append('folder', 'organization_profiles');
-                logoFormData.append('tags', 'organization');
-                logoFormData.append('tags', 'logo');
-
-                const result = await cloudinaryImageUpload(logoFormData);
-                if (result.error) throw new Error(result.error.message || 'Upload failed');
+                const result = await uploadToCloudinary(selectedLogoFile, {
+                    folder: 'organization_profiles',
+                    tags: ['organization', 'logo'],
+                });
                 logoUrl = result.secure_url;
             }
 
