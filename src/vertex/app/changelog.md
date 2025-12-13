@@ -3,6 +3,71 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.1
+**Released:** December 12, 2025
+
+### Legacy Architecture Cleanup
+
+Removed deprecated navigation modules to strictly align with the new Access Control Architecture.
+
+<details>
+<summary><strong>Fixes (3)</strong></summary>
+
+- **Removed `org-devices`**: Deleted the legacy "Organization Devices" module that duplicated functionality now handled by the standard Device module in Personal/Organization scopes.
+- **Removed `network-mgmt`**: Deleted the legacy "Network Management" module that was replaced by the consolidated "Administrative Panel".
+- **Strict Layout Logic**: Updated `layout.tsx` to stop forcing the `org-devices` view, ensuring the application consistently uses the unified `devices` module.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `components/layout/secondary-sidebar.tsx`
+- `components/layout/layout.tsx`
+
+</details>
+
+---
+
+## Version 1.23.0
+**Released:** December 12, 2025
+
+### Cohort Management & UI Polish
+
+Launched the full **Cohort Management** interface, enabling users to view and manage device groups with scope-aware context (Personal vs Organization). Also polished the UI with robust empty states and smarter table controls.
+
+<details>
+<summary><strong>Features & Improvements (4)</strong></summary>
+
+- **Cohort List View**: specialized page (`/cohorts`) displaying all cohorts with real-time device counts and creation dates.
+- **Scope-Aware Fetching**: Automatically switches between Personal and Organizational cohort data based on the user's active view.
+- **Smart Empty States**: Implemented `CohortsEmptyState` to guide users when no cohorts exist, matching the design of the Home dashboard.
+- **Smarter Tables**: Updated `ReusableTable` to automatically disable the Export button when there is no data to export, improving UX.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **New Route**: Added `app/(authenticated)/cohorts/page.tsx` with optimized loading states and error handling.
+- **Sidebar Update**: Added "Cohorts" under the "Data Access & Visibility" section in the secondary sidebar.
+- **Refactored Hook**: Enhanced `useCohorts` to strictly respect the `userScope` (Personal/Organization) for data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `app/(authenticated)/cohorts/page.tsx` (New)
+- `components/features/cohorts/CohortsEmptyState.tsx` (New)
+- `components/layout/secondary-sidebar.tsx`
+- `components/shared/table/ReusableTable.tsx`
+- `core/hooks/useCohorts.ts`
+
+</details>
+
+---
+
 ## Version 1.22.0
 **Released:** December 12, 2025
 
@@ -442,8 +507,8 @@ Refined application scoping to enforce strict personal view for AirQo staff and 
 <details>
 <summary><strong>Improvements (4)</strong></summary>
 
-- **Context vs Scope Architecture**: Shifted application logic from relying on raw contexts (e.g. `airqo-internal`) to abstract scopes (`personal` vs `organisation`). This decoupling ensures that internal staff now operate within a standard "Personal" scope, fixing inconsistencies where staff were treated as organization admins in their own private workspace.
-- **Strict Scope Enforcement**: `organisation` scope is now exclusive to external organizations. AirQo internal users default to `personal` scope for a consistent "My Workspace" experience.
+- **Context vs Scope Architecture**: Shifted application logic from relying on raw contexts (e.g. `airqo-internal`) to abstract scopes (`personal` vs `organization`). This decoupling ensures that internal staff now operate within a standard "Personal" scope, fixing inconsistencies where staff were treated as organization admins in their own private workspace.
+- **Strict Scope Enforcement**: `organization` scope is now exclusive to external organizations. AirQo internal users default to `personal` scope for a consistent "My Workspace" experience.
 - **Granular Access Control**: Replaced generic admin checks with specific `NETWORK` permissions (VIEW, CREATE, EDIT, DELETE).
 - **Dedicated Role**: Introduced `AIRQO_NETWORK_ADMIN` role for specialized network managers, decoupling this power from general system admins.
 - **Legacy Compatibility**: Automatically maps old `CREATE_UPDATE_AND_DELETE_NETWORKS` permissions to the new granular system.
@@ -1314,7 +1379,7 @@ All detailed documentation is now consolidated in this changelog. Original docum
 ### Code Quality Metrics
 - **Code Reduction**: 27% in `ShippingLabelPrintModal` (refactoring to `ReusableDialog`)
 - **Workflow Efficiency**: 60% reduction in steps for shipping management
-- **Test Coverage**: All features tested and verified
+
 
 ---
 

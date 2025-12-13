@@ -145,6 +145,9 @@ export default function CohortDetailsPage() {
                 isLoading={isLoading}
                 error={error}
                 hiddenColumns={["site", "groups"]}
+                onDeviceClick={(device) => {
+                  router.push(`/admin/cohorts/${cohortId}/devices/${device._id}`);
+                }}
               />
             </div>
             <CohortDetailsModal
