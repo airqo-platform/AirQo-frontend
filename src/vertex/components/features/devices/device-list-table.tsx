@@ -2,7 +2,7 @@ import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { Device } from "@/app/types/devices";
 import { useRouter } from "next/navigation";
 import ReusableTable from "@/components/shared/table/ReusableTable";
-import { useState, useMemo, useRef, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { UnassignCohortDevicesDialog } from "../cohorts/unassign-cohort-devices";
@@ -24,7 +24,6 @@ export default function DevicesTable({
   className,
 }: DevicesTableProps) {
   const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
   const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
@@ -47,13 +46,6 @@ export default function DevicesTable({
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
   });
-
-  // Scroll to top of table when page changes
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [pagination.pageIndex]);
 
   const pageCount = meta?.totalPages ?? 0;
 
@@ -96,7 +88,7 @@ export default function DevicesTable({
   const columns = useMemo(() => getColumns(isInternalView), [isInternalView]);
 
   return (
-    <div ref={tableRef} className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       <ReusableTable
         title="Devices"
         data={devicesWithId}
