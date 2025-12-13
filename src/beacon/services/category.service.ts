@@ -3,8 +3,9 @@
  * Handles all category management operations
  */
 
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
+import authService from './api-service';
 import { 
   Category,
   CategoryWithDevices,
@@ -31,6 +32,34 @@ class CategoryService {
   }
 
   /**
+   * Get auth headers - skip for localhost
+   */
+  private getAuthHeaders(): Record<string, string> {
+    if (config.isLocalhost) {
+      return {};
+    }
+    
+    const token = authService.getToken();
+    if (token) {
+      return { 'Authorization': token };
+    }
+    return {};
+  }
+
+  /**
+   * Get axios config with auth headers
+   */
+  private getAxiosConfig(additionalConfig?: AxiosRequestConfig): AxiosRequestConfig {
+    return {
+      ...additionalConfig,
+      headers: {
+        ...this.getAuthHeaders(),
+        ...additionalConfig?.headers,
+      },
+    };
+  }
+
+  /**
    * Get all categories
    */
   async getAllCategories(params?: CategoryListParams): Promise<Category[]> {
@@ -44,7 +73,7 @@ class CategoryService {
         ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
         : `${this.baseUrl}${endpoint}`;
 
-      const response = await axios.get(url);
+      const response = await axios.get(url, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error('Error fetching categories:', error);
@@ -76,7 +105,7 @@ class CategoryService {
         ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
         : `${this.baseUrl}${endpoint}`;
 
-      const response = await axios.get(url);
+      const response = await axios.get(url, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error(`Error fetching category ${categoryName}:`, error);
@@ -90,7 +119,7 @@ class CategoryService {
   async createCategory(data: CategoryCreate): Promise<Category> {
     try {
       const endpoint = this.getEndpoint('/categories');
-      const response = await axios.post(`${this.baseUrl}${endpoint}`, data);
+      const response = await axios.post(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error('Error creating category:', error);
@@ -104,7 +133,7 @@ class CategoryService {
   async updateCategory(categoryName: string, data: CategoryUpdate): Promise<Category> {
     try {
       const endpoint = this.getEndpoint(`/categories/${encodeURIComponent(categoryName)}`);
-      const response = await axios.patch(`${this.baseUrl}${endpoint}`, data);
+      const response = await axios.patch(`${this.baseUrl}${endpoint}`, data, this.getAxiosConfig());
       return response.data;
     } catch (error) {
       console.error(`Error updating category ${categoryName}:`, error);
@@ -118,7 +147,7 @@ class CategoryService {
   async deleteCategory(categoryName: string): Promise<void> {
     try {
       const endpoint = this.getEndpoint(`/categories/${encodeURIComponent(categoryName)}`);
-      await axios.delete(`${this.baseUrl}${endpoint}`);
+      await axios.delete(`${this.baseUrl}${endpoint}`, this.getAxiosConfig());
     } catch (error) {
       console.error(`Error deleting category ${categoryName}:`, error);
       throw error;

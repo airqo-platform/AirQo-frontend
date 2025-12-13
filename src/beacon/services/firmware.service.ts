@@ -3,8 +3,9 @@
  * Handles all firmware management operations
  */
 
-import axios from 'axios';
+import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
+import authService from './api-service';
 import { 
   FirmwareVersion, 
   FirmwareUploadData, 
@@ -32,6 +33,34 @@ class FirmwareService {
   }
 
   /**
+   * Get auth headers - skip for localhost
+   */
+  private getAuthHeaders(): Record<string, string> {
+    if (config.isLocalhost) {
+      return {};
+    }
+    
+    const token = authService.getToken();
+    if (token) {
+      return { 'Authorization': token };
+    }
+    return {};
+  }
+
+  /**
+   * Get axios config with auth headers
+   */
+  private getAxiosConfig(additionalConfig?: AxiosRequestConfig): AxiosRequestConfig {
+    return {
+      ...additionalConfig,
+      headers: {
+        ...this.getAuthHeaders(),
+        ...additionalConfig?.headers,
+      },
+    };
+  }
+
+  /**
    * Get all firmware versions
    */
   async getAllFirmwares(params?: FirmwareListParams): Promise<FirmwareVersion[]> {
@@ -42,7 +71,10 @@ class FirmwareService {
       if (params?.firmware_type) queryParams.append('firmware_type', params.firmware_type);
 
       const endpoint = this.getEndpoint('/firmware');
-      const response = await axios.get(`${this.baseUrl}${endpoint}?${queryParams.toString()}`);
+      const response = await axios.get(
+        `${this.baseUrl}${endpoint}?${queryParams.toString()}`,
+        this.getAxiosConfig()
+      );
       return response.data;
     } catch (error) {
       console.error('Error fetching firmware versions:', error);
@@ -57,7 +89,10 @@ class FirmwareService {
     try {
       const queryParams = firmware_type ? `?firmware_type=${firmware_type}` : '';
       const endpoint = this.getEndpoint('/firmware/latest');
-      const response = await axios.get(`${this.baseUrl}${endpoint}${queryParams}`);
+      const response = await axios.get(
+        `${this.baseUrl}${endpoint}${queryParams}`,
+        this.getAxiosConfig()
+      );
       return response.data;
     } catch (error) {
       console.error('Error fetching latest firmware:', error);
@@ -71,7 +106,10 @@ class FirmwareService {
   async getFirmwareById(firmwareId: string): Promise<FirmwareVersion> {
     try {
       const endpoint = this.getEndpoint(`/firmware/${firmwareId}`);
-      const response = await axios.get(`${this.baseUrl}${endpoint}`);
+      const response = await axios.get(
+        `${this.baseUrl}${endpoint}`,
+        this.getAxiosConfig()
+      );
       return response.data;
     } catch (error) {
       console.error('Error fetching firmware by ID:', error);
@@ -103,11 +141,11 @@ class FirmwareService {
       }
 
       const endpoint = this.getEndpoint('/firmware/upload');
-      const response = await axios.post(`${this.baseUrl}${endpoint}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      const response = await axios.post(
+        `${this.baseUrl}${endpoint}`,
+        formData,
+        this.getAxiosConfig({ headers: { 'Content-Type': 'multipart/form-data' } })
+      );
 
       return response.data;
     } catch (error) {
@@ -122,7 +160,11 @@ class FirmwareService {
   async updateFirmware(firmwareId: string, data: FirmwareUpdateData): Promise<FirmwareVersion> {
     try {
       const endpoint = this.getEndpoint(`/firmware/${firmwareId}`);
-      const response = await axios.patch(`${this.baseUrl}${endpoint}`, data);
+      const response = await axios.patch(
+        `${this.baseUrl}${endpoint}`,
+        data,
+        this.getAxiosConfig()
+      );
       return response.data;
     } catch (error) {
       console.error('Error updating firmware:', error);
@@ -147,9 +189,7 @@ class FirmwareService {
         throw new Error('Either firmware_id or firmware_version must be provided');
       }
 
-      const response = await axios.get(url, {
-        responseType: 'blob',
-      });
+      const response = await axios.get(url, this.getAxiosConfig({ responseType: 'blob' }));
 
       return response.data;
     } catch (error) {
