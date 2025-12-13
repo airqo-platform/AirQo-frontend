@@ -7,17 +7,6 @@ import '../models/countries_api_response.dart';
 class CountryRepository extends BaseRepository {
   static const String _cacheKey = 'countries';
 
-  static final List<CountryModel> _defaultCountries = [
-    CountryModel("🇺🇬", "Uganda", sites: 1),
-    CountryModel("🇰🇪", "Kenya", sites: 1),
-    CountryModel("🇧🇮", "Burundi", sites: 1),
-    CountryModel("🇬🇭", "Ghana", sites: 1),
-    CountryModel("🇳🇬", "Nigeria", sites: 1),
-    CountryModel("🇨🇲", "Cameroon", sites: 1),
-    CountryModel("🇿🇦", "South Africa", sites: 1),
-    CountryModel("🇲🇿", "Mozambique", sites: 1),
-  ];
-
   static List<CountryModel>? _memoryCache;
 
   Future<List<CountryModel>> fetchCountries() async {
@@ -62,8 +51,8 @@ class CountryRepository extends BaseRepository {
         return cachedData;
       }
 
-      loggy.warning('No cached countries available, using defaults');
-      return _defaultCountries;
+      loggy.warning('No countries available - API and cache both failed');
+      return [];
     } catch (e) {
       loggy.error('Error fetching countries: $e');
 
@@ -73,7 +62,8 @@ class CountryRepository extends BaseRepository {
         return cachedData;
       }
 
-      return _defaultCountries;
+      loggy.warning('No countries available - exception occurred and no cache');
+      return [];
     }
   }
 
@@ -121,7 +111,7 @@ class CountryRepository extends BaseRepository {
   }
 
   static List<CountryModel> get countries {
-    return _memoryCache ?? _defaultCountries;
+    return _memoryCache ?? [];
   }
 
   /// Returns only countries that have active measurements
