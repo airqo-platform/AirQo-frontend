@@ -12,6 +12,7 @@ import { CustomDialogContent } from "@/components/ui/custom-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AqPlus, AqSearchMd } from '@airqo/icons-react';
+import { useRouter } from "next/navigation";
 import type { Group } from "@/app/types/users";
 
 interface OrganizationModalProps {
@@ -36,6 +37,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   activeGroup,
   onOrganizationChange,
 }) => {
+  const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [recentGroups, setRecentGroups] = useState<Group[]>([]);
 
@@ -83,9 +85,7 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   }, [userGroups, searchTerm]);
 
   const handleCreateNew = () => {
-    const baseUrl = process.env.NEXT_PUBLIC_ANALYTICS_URL || 'https://analytics.airqo.net';
-    const url = `${baseUrl.replace(/\/$/, '')}/create-organization`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    router.push('/org-request');
     onClose();
   }
 
