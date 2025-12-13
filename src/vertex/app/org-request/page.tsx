@@ -26,7 +26,6 @@ import {
 } from '@/components/ui/card';
 import { PhoneNumberInput } from '@/components/ui/phone-input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { useToast } from '@/hooks/use-toast';
 import { cloudinaryImageUpload } from '@/core/apis/cloudinary';
 import {
     validateEmail,
@@ -37,6 +36,7 @@ import {
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput';
 import ReusableButton from '@/components/shared/button/ReusableButton';
+import ReusableToast from '@/components/shared/toast/ReusableToast';
 
 interface FormData {
     organization_name: string;
@@ -84,7 +84,6 @@ const RequestOrganizationPage = () => {
     const [logoPreview, setLogoPreview] = useState<string>('');
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
 
     // Country options for dropdown
     const countryOptions = useMemo(() => {
@@ -250,19 +249,18 @@ const RequestOrganizationPage = () => {
 
     const handleGenerateSlug = () => {
         if (!formData.organization_name.trim()) {
-            toast({
-                title: 'Organization name required',
-                description: 'Please enter an organization name first to generate a slug.',
-                variant: 'destructive',
+            ReusableToast({
+                message: 'Organization name required',
+                type: 'ERROR',
             });
             return;
         }
 
         const generatedSlug = generateSlug(formData.organization_name);
         setFormData(prev => ({ ...prev, organization_slug: generatedSlug }));
-        toast({
-            title: 'Slug generated',
-            description: 'Slug has been generated from organization name.',
+        ReusableToast({
+            message: 'Slug generated',
+            type: 'SUCCESS',
         });
     };
 
@@ -278,10 +276,9 @@ const RequestOrganizationPage = () => {
             'image/svg+xml',
         ];
         if (!allowedTypes.includes(file.type)) {
-            toast({
-                title: 'Invalid file type',
-                description: 'Please select a valid image file (PNG, JPG, GIF, or SVG).',
-                variant: 'destructive',
+            ReusableToast({
+                message: 'Invalid file type',
+                type: 'ERROR',
             });
             return;
         }
@@ -289,10 +286,9 @@ const RequestOrganizationPage = () => {
         // Validate file size (5MB limit)
         const maxSize = 5 * 1024 * 1024; // 5MB in bytes
         if (file.size > maxSize) {
-            toast({
-                title: 'File too large',
-                description: 'Please select an image smaller than 5MB.',
-                variant: 'destructive',
+            ReusableToast({
+                message: 'File too large',
+                type: 'ERROR',
             });
             return;
         }
@@ -305,9 +301,9 @@ const RequestOrganizationPage = () => {
         if (logoPreview) URL.revokeObjectURL(logoPreview);
         setLogoPreview(previewUrl);
 
-        toast({
-            title: 'Logo selected',
-            description: 'Logo has been selected and will be uploaded when you submit the form.',
+        ReusableToast({
+            message: 'Logo selected',
+            type: 'SUCCESS',
         });
     };
 
@@ -316,10 +312,9 @@ const RequestOrganizationPage = () => {
 
         // Validate slug availability
         if (slugCheck.status !== 'available') {
-            toast({
-                title: 'Invalid slug',
-                description: 'Please ensure your organization slug is available.',
-                variant: 'destructive',
+            ReusableToast({
+                message: 'Invalid slug',
+                type: 'ERROR',
             });
             return;
         }
@@ -355,9 +350,9 @@ const RequestOrganizationPage = () => {
             // Submit organization request
             await createRequest(submitData);
 
-            toast({
-                title: 'Request submitted successfully',
-                description: 'Your organization request has been submitted for review.',
+            ReusableToast({
+                message: 'Your organization request has been submitted for review.',
+                type: 'SUCCESS',
             });
 
             // Reset form
@@ -380,10 +375,9 @@ const RequestOrganizationPage = () => {
             setLogoPreview('');
             setSlugCheck({ status: 'idle' });
         } catch (error: any) {
-            toast({
-                title: 'Submission failed',
-                description: error.message || 'Failed to submit request',
-                variant: 'destructive',
+            ReusableToast({
+                message: error.message || 'Failed to submit request',
+                type: 'ERROR',
             });
         } finally {
             setLogoUploading(false);
