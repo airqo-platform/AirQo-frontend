@@ -13,6 +13,8 @@ import { useNetworks } from "@/core/hooks/useNetworks";
 import { useAppSelector } from "@/core/redux/hooks";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
+import ReusableToast from "@/components/shared/toast/ReusableToast";
+import { DeviceNameCohortParser } from "./DeviceNameCohortParser";
 import {
   Form,
   FormControl,
@@ -106,6 +108,52 @@ export function CreateCohortDialog({
     onOpenChange(false);
   };
 
+  const handleDeviceImport = (deviceNames: string[]) => {
+    // Convert device names to device IDs by finding matches in deviceOptions
+    const matchedIds = deviceNames
+      .map(name => {
+        const nameLower = name.toLowerCase();
+        // Try exact match first
+        let match = deviceOptions.find(d => d.label.toLowerCase() === nameLower);
+
+        // If no exact match, try contains match
+        if (!match) {
+          match = deviceOptions.find(d => d.label.toLowerCase().includes(nameLower));
+        }
+
+        return match?.value;
+      })
+      .filter(Boolean) as string[];
+
+    if (matchedIds.length === 0) {
+      ReusableToast({
+        message: 'No matching devices found. Please ensure the devices exist in the selected network.',
+        type: 'WARNING',
+      });
+      return;
+    }
+
+    // Merge with existing selections
+    const currentDevices = form.getValues('devices');
+    const uniqueDevices = Array.from(new Set([...currentDevices, ...matchedIds]));
+    form.setValue('devices', uniqueDevices);
+
+    const importedCount = matchedIds.length;
+    const notFoundCount = deviceNames.length - importedCount;
+
+    if (notFoundCount > 0) {
+      ReusableToast({
+        message: `Imported ${importedCount} device${importedCount !== 1 ? 's' : ''}. ${notFoundCount} not found.`,
+        type: 'WARNING',
+      });
+    } else {
+      ReusableToast({
+        message: `Successfully imported ${importedCount} device${importedCount !== 1 ? 's' : ''}`,
+        type: 'SUCCESS',
+      });
+    }
+  };
+
   function onSubmit(values: z.infer<typeof formSchema>) {
     createCohort(
       { name: values.name, network: values.network, deviceIds: values.devices },
@@ -169,7 +217,12 @@ export function CreateCohortDialog({
                 label="Network"
                 id="network"
                 value={field.value}
-                onChange={(e) => field.onChange(e.target.value)}
+                onChange={(e) => {
+                  field.onChange(e.target.value);
+                  if (e.target.value) {
+                    form.clearErrors("network");
+                  }
+                }}
                 error={form.formState.errors.network?.message}
                 required
                 placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
@@ -188,9 +241,21 @@ export function CreateCohortDialog({
             name="devices"
             render={({ field }) => (
               <FormItem className="space-y-2">
-                <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                  Select Device(s) <span className="text-red-500">*</span>
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Select Device(s) <span className="text-red-500">*</span>
+                  </label>
+                  <DeviceNameCohortParser
+                    onDevicesParsed={handleDeviceImport}
+                    shouldBlock={!selectedNetwork}
+                    onBlock={() => {
+                      form.setError('network', {
+                        type: 'manual',
+                        message: 'Please select a network before importing devices.',
+                      });
+                    }}
+                  />
+                </div>
                 <FormControl>
                   <MultiSelectCombobox
                     options={deviceOptions}
