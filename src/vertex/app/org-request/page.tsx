@@ -7,6 +7,9 @@ import React, {
     useRef,
     useMemo,
 } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
     AqCheckCircle,
     AqXCircle,
@@ -24,35 +27,38 @@ import {
     CardTitle,
     CardContent,
 } from '@/components/ui/card';
+import { Form, FormField } from '@/components/ui/form';
 import { PhoneNumberInput } from '@/components/ui/phone-input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { cloudinaryImageUpload } from '@/core/apis/cloudinary';
-import {
-    validateEmail,
-    validateSlug,
-    validatePhone,
-    generateSlug,
-} from '@/lib/validators';
+import { generateSlug } from '@/lib/validators';
 import ReusableInputField from '@/components/shared/inputfield/ReusableInputField';
 import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
 
-interface FormData {
-    organization_name: string;
-    organization_slug: string;
-    contact_email: string;
-    contact_name: string;
-    contact_phone: string;
-    use_case: string;
-    organization_type: string;
-    country: string;
-    branding_settings: {
-        logo_url: string;
-        primary_color: string;
-        secondary_color: string;
-    };
-}
+// Define Zod Schema
+const requestOrganizationSchema = z.object({
+    organization_name: z.string().min(1, 'Organization name is required'),
+    organization_slug: z
+        .string()
+        .min(1, 'Slug is required')
+        .min(3, 'Slug must be at least 3 characters')
+        .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase, numbers, or hyphens only'),
+    contact_email: z.string().min(1, 'Email is required').email('Invalid email address'),
+    contact_name: z.string().min(1, 'Contact name is required'),
+    contact_phone: z.string().min(1, 'Phone number is required'),
+    use_case: z.string().min(1, 'Use case is required').min(1, 'Use case is required'),
+    organization_type: z.string().min(1, 'Organization type is required'),
+    country: z.string().min(1, 'Country is required'),
+    branding_settings: z.object({
+        logo_url: z.string().optional(),
+        primary_color: z.string().min(1, 'Primary color is required'),
+        secondary_color: z.string().min(1, 'Secondary color is required'),
+    }),
+});
+
+type RequestOrganizationFormData = z.infer<typeof requestOrganizationSchema>;
 
 interface SlugCheckState {
     status: 'idle' | 'checking' | 'available' | 'unavailable' | 'error';
@@ -60,19 +66,23 @@ interface SlugCheckState {
 }
 
 const RequestOrganizationPage = () => {
-    const [formData, setFormData] = useState<FormData>({
-        organization_name: '',
-        organization_slug: '',
-        contact_email: '',
-        contact_name: '',
-        contact_phone: '',
-        use_case: '',
-        organization_type: 'government',
-        country: '',
-        branding_settings: {
-            logo_url: '',
-            primary_color: '#004080',
-            secondary_color: '#FFFFFF',
+    // Form initialization
+    const form = useForm<RequestOrganizationFormData>({
+        resolver: zodResolver(requestOrganizationSchema),
+        defaultValues: {
+            organization_name: '',
+            organization_slug: '',
+            contact_email: '',
+            contact_name: '',
+            contact_phone: '',
+            use_case: '',
+            organization_type: 'government',
+            country: '',
+            branding_settings: {
+                logo_url: '',
+                primary_color: '#004080',
+                secondary_color: '#FFFFFF',
+            },
         },
     });
 
@@ -85,21 +95,15 @@ const RequestOrganizationPage = () => {
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Watch values for side effects
+    const watchedSlug = form.watch('organization_slug');
+    const brandingPrimary = form.watch('branding_settings.primary_color');
+    const brandingSecondary = form.watch('branding_settings.secondary_color');
+
     // Country options for dropdown
     const countryOptions = useMemo(() => {
         return countryList().getData();
     }, []);
-
-    // Validation state
-    const [validationErrors, setValidationErrors] = useState<{
-        organization_name?: string;
-        organization_slug?: string;
-        contact_email?: string;
-        contact_name?: string;
-        contact_phone?: string;
-        use_case?: string;
-        country?: string;
-    }>({});
 
     const { mutateAsync: createRequest, isPending: isCreating } =
         useCreateOrganizationRequest();
@@ -117,70 +121,44 @@ const RequestOrganizationPage = () => {
             setSlugCheck({ status: 'checking' });
 
             try {
-                const current = slug;
-                // React Query mutateAsync takes the argument directly
-                const response = await checkSlug(current);
+                const response = await checkSlug(slug);
 
-                // Ignore stale results
-                if (current !== formData.organization_slug) return;
+                // Ignore stale results if slug changed quickly
+                if (slug !== form.getValues('organization_slug')) return;
+
                 setSlugCheck({
                     status: response.available ? 'available' : 'unavailable',
                     message: response.available
                         ? 'Slug is available!'
                         : 'Slug is not available',
                 });
+
+                // If unavailable, set form error
+                if (!response.available) {
+                    form.setError('organization_slug', { message: 'Slug is already taken' });
+                } else {
+                    form.clearErrors('organization_slug');
+                }
+
             } catch (err) {
-                if (slug !== formData.organization_slug) return;
+                if (slug !== form.getValues('organization_slug')) return;
                 setSlugCheck({
                     status: 'error',
                     message: 'Failed to check slug availability',
                 });
             }
         },
-        [checkSlug, formData.organization_slug]
+        [checkSlug, form]
     );
-
-    // Real-time validation effects
-    useEffect(() => {
-        const error = validateEmail(formData.contact_email);
-        setValidationErrors(prev => ({
-            ...prev,
-            contact_email: error || undefined,
-        }));
-    }, [formData.contact_email]);
-
-    useEffect(() => {
-        if (formData.organization_slug.trim()) {
-            const error = validateSlug(formData.organization_slug);
-            setValidationErrors(prev => ({
-                ...prev,
-                organization_slug: error || undefined,
-            }));
-        } else {
-            setValidationErrors(prev => ({ ...prev, organization_slug: undefined }));
-        }
-    }, [formData.organization_slug]);
-
-    useEffect(() => {
-        if (formData.contact_phone) {
-            const error = validatePhone(formData.contact_phone);
-            setValidationErrors(prev => ({
-                ...prev,
-                contact_phone: error || undefined,
-            }));
-        } else {
-            setValidationErrors(prev => ({ ...prev, contact_phone: undefined }));
-        }
-    }, [formData.contact_phone]);
 
     // Real-time slug checking with debounce
     useEffect(() => {
         const timeoutId = setTimeout(() => {
-            debouncedSlugCheck(formData.organization_slug);
+            debouncedSlugCheck(watchedSlug);
         }, 500);
 
         return () => clearTimeout(timeoutId);
-    }, [formData.organization_slug, debouncedSlugCheck]);
+    }, [watchedSlug, debouncedSlugCheck]);
 
     // Cleanup object URLs to prevent memory leaks
     useEffect(() => {
@@ -189,49 +167,11 @@ const RequestOrganizationPage = () => {
         };
     }, [logoPreview]);
 
-    const handleInputChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target;
-        if (name.includes('.')) {
-            const [parent, child] = name.split('.');
-            setFormData(prev => ({
-                ...prev,
-                [parent]: {
-                    ...(prev[parent as keyof typeof prev] as Record<string, unknown>),
-                    [child]: value,
-                },
-            }));
-        } else {
-            setFormData(prev => ({
-                ...prev,
-                [name]: value,
-            }));
-        }
-    };
-
-    const handleSelectChange = (e: { target: { value: string | number | readonly string[]; name?: string } }) => {
-        const { name, value } = e.target;
-        if (name) {
-            setFormData(prev => ({
-                ...prev,
-                [name]: String(value),
-            }));
-        }
-    };
-
     const handleClearLogo = () => {
         setSelectedLogoFile(null);
         if (logoPreview) URL.revokeObjectURL(logoPreview);
         setLogoPreview('');
-        // Clear any existing URL from form data
-        setFormData(prev => ({
-            ...prev,
-            branding_settings: {
-                ...prev.branding_settings,
-                logo_url: '',
-            },
-        }));
+        form.setValue('branding_settings.logo_url', '');
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -239,25 +179,19 @@ const RequestOrganizationPage = () => {
         fileInputRef.current?.click();
     };
 
-    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = e.target.value;
-        setFormData(prev => ({
-            ...prev,
-            contact_phone: val || '',
-        }));
-    };
-
     const handleGenerateSlug = () => {
-        if (!formData.organization_name.trim()) {
+        const name = form.getValues('organization_name');
+        if (!name.trim()) {
             ReusableToast({
                 message: 'Organization name required',
                 type: 'ERROR',
             });
+            form.trigger('organization_name');
             return;
         }
 
-        const generatedSlug = generateSlug(formData.organization_name);
-        setFormData(prev => ({ ...prev, organization_slug: generatedSlug }));
+        const generatedSlug = generateSlug(name);
+        form.setValue('organization_slug', generatedSlug, { shouldValidate: true, shouldDirty: true });
         ReusableToast({
             message: 'Slug generated',
             type: 'SUCCESS',
@@ -307,14 +241,17 @@ const RequestOrganizationPage = () => {
         });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const onSubmit = async (data: RequestOrganizationFormData) => {
+        // Validate slug availability final check
+        if (slugCheck.status === 'unavailable') {
+            form.setError('organization_slug', { message: 'Slug is already taken' });
+            return;
+        }
 
-        // Validate slug availability
-        if (slugCheck.status !== 'available') {
+        if (slugCheck.status === 'checking') {
             ReusableToast({
-                message: 'Invalid slug',
-                type: 'ERROR',
+                message: 'Please wait for slug check to complete',
+                type: 'INFO',
             });
             return;
         }
@@ -338,11 +275,11 @@ const RequestOrganizationPage = () => {
                 logoUrl = result.secure_url;
             }
 
-            // Prepare form data with uploaded logo URL
+            // Update data with logo URL
             const submitData = {
-                ...formData,
+                ...data,
                 branding_settings: {
-                    ...formData.branding_settings,
+                    ...data.branding_settings,
                     logo_url: logoUrl,
                 },
             };
@@ -356,23 +293,8 @@ const RequestOrganizationPage = () => {
             });
 
             // Reset form
-            setFormData({
-                organization_name: '',
-                organization_slug: '',
-                contact_email: '',
-                contact_name: '',
-                contact_phone: '',
-                use_case: '',
-                organization_type: 'government',
-                country: '',
-                branding_settings: {
-                    logo_url: '',
-                    primary_color: '#004080',
-                    secondary_color: '#FFFFFF',
-                },
-            });
-            setSelectedLogoFile(null);
-            setLogoPreview('');
+            form.reset();
+            handleClearLogo();
             setSlugCheck({ status: 'idle' });
         } catch (error: any) {
             ReusableToast({
@@ -382,19 +304,6 @@ const RequestOrganizationPage = () => {
         } finally {
             setLogoUploading(false);
         }
-    };
-
-    const isFormValid = () => {
-        return (
-            formData.organization_name.trim() &&
-            formData.organization_slug.trim() &&
-            formData.contact_email.trim() &&
-            formData.contact_name.trim() &&
-            formData.contact_phone.trim() &&
-            formData.use_case.trim() &&
-            formData.country.trim() &&
-            slugCheck.status === 'available'
-        );
     };
 
     return (
@@ -411,197 +320,277 @@ const RequestOrganizationPage = () => {
                 </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-                {/* Organization Details */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            Organization Details
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <ReusableInputField
-                                label="Organization Name"
-                                name="organization_name"
-                                value={formData.organization_name}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="Enter organization name"
-                            />
-
-                            <ReusableSelectInput
-                                label="Organization Type"
-                                name="organization_type"
-                                value={formData.organization_type}
-                                onChange={handleSelectChange}
-                                placeholder="Select Type"
-                                required
-                            >
-                                <option value="government">Government</option>
-                                <option value="academic">Academic/Research</option>
-                                <option value="ngo">NGO/Non-profit</option>
-                                <option value="private">Private Sector</option>
-                                <option value="other">Other</option>
-                            </ReusableSelectInput>
-
-                            <ReusableSelectInput
-                                label="Country"
-                                name="country"
-                                value={formData.country}
-                                onChange={handleSelectChange}
-                                placeholder="Select a country"
-                                required
-                            >
-                                {countryOptions.map((option) => (
-                                    <option key={option.value} value={option.label}>
-                                        {option.label}
-                                    </option>
-                                ))}
-                            </ReusableSelectInput>
-                        </div>
-
-                        {/* Organization Slug Section */}
-                        <div className="space-y-3">
-                            <div className="flex flex-row items-end gap-3">
-                                <ReusableInputField
-                                    containerClassName="flex-1"
-                                    label="Organization Slug"
-                                    name="organization_slug"
-                                    value={formData.organization_slug}
-                                    onChange={handleInputChange}
-                                    required
-                                    placeholder="organization-slug"
-                                    error={validationErrors.organization_slug}
-                                    description="This will be used in your URL. Lowercase, numbers, hyphens only."
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                    {/* Organization Details */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                Organization Details
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="organization_name"
+                                    render={({ field, fieldState }) => (
+                                        <ReusableInputField
+                                            label="Organization Name"
+                                            placeholder="Enter organization name"
+                                            required
+                                            {...field}
+                                            error={fieldState.error?.message}
+                                        />
+                                    )}
                                 />
 
-                                <div>
-                                    <ReusableButton
-                                        type="button"
-                                        variant="outlined"
-                                        onClick={handleGenerateSlug}
-                                        className="mb-[1.5rem]" // Align with input
-                                    >
-                                        Generate Slug
-                                    </ReusableButton>
+                                <FormField
+                                    control={form.control}
+                                    name="organization_type"
+                                    render={({ field, fieldState }) => (
+                                        <ReusableSelectInput
+                                            label="Organization Type"
+                                            placeholder="Select Type"
+                                            required
+                                            {...field}
+                                            onChange={(e: any) => {
+                                                const val = e.target ? e.target.value : e;
+                                                field.onChange(val);
+                                            }}
+                                            error={fieldState.error?.message}
+                                        >
+                                            <option value="government">Government</option>
+                                            <option value="academic">Academic/Research</option>
+                                            <option value="ngo">NGO/Non-profit</option>
+                                            <option value="private">Private Sector</option>
+                                            <option value="other">Other</option>
+                                        </ReusableSelectInput>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="country"
+                                    render={({ field, fieldState }) => (
+                                        <ReusableSelectInput
+                                            label="Country"
+                                            placeholder="Select a country"
+                                            required
+                                            {...field}
+                                            onChange={(e: any) => {
+                                                const val = e.target ? e.target.value : e;
+                                                field.onChange(val);
+                                            }}
+                                            error={fieldState.error?.message}
+                                        >
+                                            {countryOptions.map((option) => (
+                                                <option key={option.value} value={option.label}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </ReusableSelectInput>
+                                    )}
+                                />
+                            </div>
+
+                            {/* Organization Slug Section */}
+                            <div className="space-y-3">
+                                <div className="flex flex-row items-end gap-3">
+                                    <FormField
+                                        control={form.control}
+                                        name="organization_slug"
+                                        render={({ field, fieldState }) => (
+                                            <ReusableInputField
+                                                containerClassName="flex-1"
+                                                label="Organization Slug"
+                                                placeholder="organization-slug"
+                                                description="This will be used in your URL. Lowercase, numbers, hyphens only."
+                                                required
+                                                {...field}
+                                                error={fieldState.error?.message}
+                                            />
+                                        )}
+                                    />
+
+                                    <div>
+                                        <ReusableButton
+                                            type="button"
+                                            variant="outlined"
+                                            onClick={handleGenerateSlug}
+                                            className="mb-[1.5rem]" // Align with input
+                                        >
+                                            Generate Slug
+                                        </ReusableButton>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm h-5 pl-1">
+                                    {slugCheck.status === 'checking' && (
+                                        <>
+                                            <LoadingSpinner size={16} />
+                                            <span className="text-muted-foreground">
+                                                Checking availability...
+                                            </span>
+                                        </>
+                                    )}
+                                    {slugCheck.status === 'available' && (
+                                        <>
+                                            <AqCheckCircle className="w-4 h-4 text-green-500" />
+                                            <span className="text-green-600">
+                                                {slugCheck.message}
+                                            </span>
+                                        </>
+                                    )}
+                                    {slugCheck.status === 'unavailable' && (
+                                        <>
+                                            <AqXCircle className="w-4 h-4 text-red-500" />
+                                            <span className="text-red-600">{slugCheck.message}</span>
+                                        </>
+                                    )}
+                                    {slugCheck.status === 'error' && (
+                                        <>
+                                            <AqXCircle className="w-4 h-4 text-red-500" />
+                                            <span className="text-red-600">{slugCheck.message}</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 text-sm h-5 pl-1">
-                                {slugCheck.status === 'checking' && (
-                                    <>
-                                        <LoadingSpinner size={16} />
-                                        <span className="text-muted-foreground">
-                                            Checking availability...
-                                        </span>
-                                    </>
+                            <FormField
+                                control={form.control}
+                                name="use_case"
+                                render={({ field, fieldState }) => (
+                                    <ReusableInputField
+                                        as="textarea"
+                                        label="Use Case"
+                                        placeholder="Describe how you plan to use this organization platform..."
+                                        rows={4}
+                                        required
+                                        {...field}
+                                        error={fieldState.error?.message}
+                                    />
                                 )}
-                                {slugCheck.status === 'available' && (
-                                    <>
-                                        <AqCheckCircle className="w-4 h-4 text-green-500" />
-                                        <span className="text-green-600">
-                                            {slugCheck.message}
-                                        </span>
-                                    </>
-                                )}
-                                {slugCheck.status === 'unavailable' && (
-                                    <>
-                                        <AqXCircle className="w-4 h-4 text-red-500" />
-                                        <span className="text-red-600">{slugCheck.message}</span>
-                                    </>
-                                )}
-                                {slugCheck.status === 'error' && (
-                                    <>
-                                        <AqXCircle className="w-4 h-4 text-red-500" />
-                                        <span className="text-red-600">{slugCheck.message}</span>
-                                    </>
-                                )}
+                            />
+                        </CardContent>
+                    </Card>
+
+                    {/* Contact Information */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Contact Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="contact_name"
+                                    render={({ field, fieldState }) => (
+                                        <ReusableInputField
+                                            label="Contact Name"
+                                            placeholder="Enter full name"
+                                            required
+                                            {...field}
+                                            error={fieldState.error?.message}
+                                        />
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="contact_email"
+                                    render={({ field, fieldState }) => (
+                                        <ReusableInputField
+                                            label="Contact Email"
+                                            type="email"
+                                            placeholder="contact@organization.com"
+                                            required
+                                            {...field}
+                                            error={fieldState.error?.message}
+                                        />
+                                    )}
+                                />
                             </div>
-                        </div>
 
-                        <ReusableInputField
-                            as="textarea"
-                            label="Use Case"
-                            name="use_case"
-                            value={formData.use_case}
-                            onChange={handleInputChange}
-                            required
-                            rows={4}
-                            placeholder="Describe how you plan to use this organization platform..."
-                        />
-                    </CardContent>
-                </Card>
+                            <div className="max-w-md">
+                                <FormField
+                                    control={form.control}
+                                    name="contact_phone"
+                                    render={({ field, fieldState }) => (
+                                        <PhoneNumberInput
+                                            label="Contact Phone"
+                                            placeholder="Enter phone number"
+                                            required
+                                            value={field.value}
+                                            onChange={field.onChange}
+                                            error={fieldState.error?.message}
+                                        />
+                                    )}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                {/* Contact Information */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Contact Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <ReusableInputField
-                                label="Contact Name"
-                                name="contact_name"
-                                value={formData.contact_name}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="Enter full name"
-                            />
+                    {/* Branding Settings */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Branding Settings (Optional)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                {/* Left: Image preview + upload actions */}
+                                <div className="space-y-3">
+                                    <label className="block text-sm font-medium text-foreground">
+                                        Organization Logo
+                                    </label>
 
-                            <ReusableInputField
-                                label="Contact Email"
-                                name="contact_email"
-                                type="email"
-                                value={formData.contact_email}
-                                onChange={handleInputChange}
-                                required
-                                placeholder="contact@organization.com"
-                                error={validationErrors.contact_email}
-                            />
-                        </div>
+                                    <div className="bg-card border rounded-lg p-3 flex flex-col items-center gap-3">
+                                        {logoPreview ? (
+                                            <div className="w-full flex flex-col items-center">
+                                                <div className="w-36 h-36 rounded-lg overflow-hidden border bg-white shadow-sm flex items-center justify-center">
+                                                    <Image
+                                                        src={logoPreview}
+                                                        alt="Logo preview"
+                                                        width={144}
+                                                        height={144}
+                                                        className="object-contain max-h-full max-w-full"
+                                                        unoptimized
+                                                    />
+                                                </div>
 
-                        <div className="max-w-md">
-                            <PhoneNumberInput
-                                label="Contact Phone"
-                                value={formData.contact_phone}
-                                onChange={handlePhoneChange}
-                                required
-                                placeholder="Enter phone number"
-                                error={validationErrors.contact_phone}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+                                                <div className="flex gap-2 mt-3">
+                                                    <input
+                                                        ref={fileInputRef}
+                                                        type="file"
+                                                        accept="image/*,.svg"
+                                                        onChange={handleLogoUpload}
+                                                        className="hidden"
+                                                    />
+                                                    <ReusableButton
+                                                        type="button"
+                                                        variant="outlined"
+                                                        className="py-1 px-3 h-8 text-xs"
+                                                        onClick={handleLogoUploadClick}
+                                                    >
+                                                        Change
+                                                    </ReusableButton>
 
-                {/* Branding Settings */}
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Branding Settings (Optional)</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                            {/* Left: Image preview + upload actions */}
-                            <div className="space-y-3">
-                                <label className="block text-sm font-medium text-foreground">
-                                    Organization Logo
-                                </label>
-
-                                <div className="bg-card border rounded-lg p-3 flex flex-col items-center gap-3">
-                                    {logoPreview ? (
-                                        <div className="w-full flex flex-col items-center">
-                                            <div className="w-36 h-36 rounded-lg overflow-hidden border bg-white shadow-sm flex items-center justify-center">
-                                                <Image
-                                                    src={logoPreview}
-                                                    alt="Logo preview"
-                                                    width={144}
-                                                    height={144}
-                                                    className="object-contain max-h-full max-w-full"
-                                                    unoptimized
-                                                />
+                                                    <ReusableButton
+                                                        type="button"
+                                                        variant="text"
+                                                        className="py-1 px-3 h-8 text-xs"
+                                                        onClick={handleClearLogo}
+                                                    >
+                                                        Remove
+                                                    </ReusableButton>
+                                                </div>
                                             </div>
+                                        ) : (
+                                            <div className="w-full flex flex-col items-center">
+                                                <div className="w-36 h-36 rounded-lg border-2 border-dashed border-muted-foreground flex items-center justify-center bg-muted/10">
+                                                    <AqImage01 className="w-9 h-9 text-muted-foreground" />
+                                                </div>
 
-                                            <div className="flex gap-2 mt-3">
                                                 <input
                                                     ref={fileInputRef}
                                                     type="file"
@@ -611,152 +600,152 @@ const RequestOrganizationPage = () => {
                                                 />
                                                 <ReusableButton
                                                     type="button"
-                                                    variant="outlined"
-                                                    className="py-1 px-3 h-8 text-xs" // Match size="sm" equivalent
+                                                    variant="filled"
+                                                    className="mt-2 py-1 px-3 h-8 text-xs"
                                                     onClick={handleLogoUploadClick}
                                                 >
-                                                    Change
+                                                    Upload Logo
                                                 </ReusableButton>
 
-                                                <ReusableButton
-                                                    type="button"
-                                                    variant="text"
-                                                    className="py-1 px-3 h-8 text-xs"
-                                                    onClick={handleClearLogo}
-                                                >
-                                                    Remove
-                                                </ReusableButton>
+                                                <p className="text-xs text-muted-foreground mt-2">
+                                                    PNG, JPG, GIF, or SVG up to 5MB
+                                                </p>
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div className="w-full flex flex-col items-center">
-                                            <div className="w-36 h-36 rounded-lg border-2 border-dashed border-muted-foreground flex items-center justify-center bg-muted/10">
-                                                <AqImage01 className="w-9 h-9 text-muted-foreground" />
-                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
-                                            <input
-                                                ref={fileInputRef}
-                                                type="file"
-                                                accept="image/*,.svg"
-                                                onChange={handleLogoUpload}
-                                                className="hidden"
+                                {/* Right: Colors and preview */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-foreground mb-2">
+                                            Primary Color
+                                        </label>
+                                        <div className="flex items-start gap-3">
+                                            <FormField
+                                                control={form.control}
+                                                name="branding_settings.primary_color"
+                                                render={({ field }) => (
+                                                    <input
+                                                        type="color"
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                        className="w-12 h-10 rounded border cursor-pointer p-0.5 bg-background mt-1"
+                                                    />
+                                                )}
                                             />
-                                            <ReusableButton
-                                                type="button"
-                                                variant="filled"
-                                                className="mt-2 py-1 px-3 h-8 text-xs"
-                                                onClick={handleLogoUploadClick}
+                                            <FormField
+                                                control={form.control}
+                                                name="branding_settings.primary_color"
+                                                render={({ field, fieldState }) => (
+                                                    <ReusableInputField
+                                                        containerClassName="flex-1"
+                                                        placeholder="#004080"
+                                                        {...field}
+                                                        error={fieldState.error?.message}
+                                                    />
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-foreground mb-2">
+                                            Secondary Color
+                                        </label>
+                                        <div className="flex items-start gap-3">
+                                            <FormField
+                                                control={form.control}
+                                                name="branding_settings.secondary_color"
+                                                render={({ field }) => (
+                                                    <input
+                                                        type="color"
+                                                        value={field.value}
+                                                        onChange={field.onChange}
+                                                        className="w-12 h-10 rounded border cursor-pointer p-0.5 bg-background mt-1"
+                                                    />
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="branding_settings.secondary_color"
+                                                render={({ field, fieldState }) => (
+                                                    <ReusableInputField
+                                                        containerClassName="flex-1"
+                                                        placeholder="#FFFFFF"
+                                                        {...field}
+                                                        error={fieldState.error?.message}
+                                                    />
+                                                )}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Live badge preview */}
+                                    <div className="mt-2">
+                                        <label className="block text-sm font-medium text-foreground mb-2">
+                                            Live Preview
+                                        </label>
+                                        <div className="flex items-center gap-4 border p-3 rounded-lg bg-card">
+                                            <div
+                                                className="w-12 h-12 rounded flex items-center justify-center border shadow-sm"
+                                                style={{
+                                                    background: brandingPrimary || '#004080',
+                                                }}
                                             >
-                                                Upload Logo
-                                            </ReusableButton>
-
-                                            <p className="text-xs text-muted-foreground mt-2">
-                                                PNG, JPG, GIF, or SVG up to 5MB
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Right: Colors and preview */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-foreground mb-2">
-                                        Primary Color
-                                    </label>
-                                    <div className="flex items-start gap-3">
-                                        <input
-                                            type="color"
-                                            name="branding_settings.primary_color"
-                                            value={formData.branding_settings.primary_color}
-                                            onChange={handleInputChange}
-                                            className="w-12 h-10 rounded border cursor-pointer p-0.5 bg-background mt-1"
-                                        />
-                                        <ReusableInputField
-                                            containerClassName="flex-1"
-                                            name="branding_settings.primary_color"
-                                            value={formData.branding_settings.primary_color}
-                                            onChange={handleInputChange}
-                                            placeholder="#004080"
-                                        />
-                                    </div>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-foreground mb-2">
-                                        Secondary Color
-                                    </label>
-                                    <div className="flex items-start gap-3">
-                                        <input
-                                            type="color"
-                                            name="branding_settings.secondary_color"
-                                            value={formData.branding_settings.secondary_color}
-                                            onChange={handleInputChange}
-                                            className="w-12 h-10 rounded border cursor-pointer p-0.5 bg-background mt-1"
-                                        />
-                                        <ReusableInputField
-                                            containerClassName="flex-1"
-                                            name="branding_settings.secondary_color"
-                                            value={formData.branding_settings.secondary_color}
-                                            onChange={handleInputChange}
-                                            placeholder="#FFFFFF"
-                                        />
-                                    </div>
-                                </div>
-
-                                {/* Live badge preview */}
-                                <div className="mt-2">
-                                    <label className="block text-sm font-medium text-foreground mb-2">
-                                        Live Preview
-                                    </label>
-                                    <div className="flex items-center gap-4 border p-3 rounded-lg bg-card">
-                                        <div
-                                            className="w-12 h-12 rounded flex items-center justify-center border shadow-sm"
-                                            style={{
-                                                background: formData.branding_settings.primary_color,
-                                            }}
-                                        >
-                                            {logoPreview ? (
-                                                <Image
-                                                    src={logoPreview}
-                                                    alt="logo small"
-                                                    width={36}
-                                                    height={36}
-                                                    className="object-contain max-h-full max-w-full"
-                                                    unoptimized
-                                                />
-                                            ) : (
-                                                <AqImage01 className="w-6 h-6 text-white mix-blend-difference" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium">
-                                                Example Organization
-                                            </p>
-                                            <p className="text-xs text-muted-foreground">
-                                                Colors and logo preview for quick check
-                                            </p>
+                                                {logoPreview ? (
+                                                    <Image
+                                                        src={logoPreview}
+                                                        alt="logo small"
+                                                        width={36}
+                                                        height={36}
+                                                        className="object-contain max-h-full max-w-full"
+                                                        unoptimized
+                                                    />
+                                                ) : (
+                                                    <AqImage01 className="w-6 h-6 text-white mix-blend-difference" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold text-sm">Organization Name</h4>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                                                        Admin
+                                                    </span>
+                                                    <span
+                                                        className="h-2 w-2 rounded-full"
+                                                        style={{
+                                                            background: brandingSecondary || '#FFFFFF',
+                                                            border: '1px solid #e5e7eb'
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
 
-                {/* Submit Button */}
-                <div className="flex justify-end pt-6">
-                    <ReusableButton
-                        type="submit"
-                        variant="filled"
-                        disabled={isCreating || logoUploading || !isFormValid()}
-                        loading={isCreating || logoUploading}
-                        className="min-w-[200px] h-11"
-                    >
-                        {logoUploading ? 'Uploading Logo...' : isCreating ? 'Submitting...' : 'Submit Request'}
-                    </ReusableButton>
-                </div>
-            </form>
+                    {/* Submit Button */}
+                    <div className="flex justify-end pt-4">
+                        <ReusableButton
+                            type="submit"
+                            variant="filled"
+                            disabled={isCreating || logoUploading}
+                            loading={isCreating || logoUploading}
+                            className="min-w-[200px] h-11"
+                        >
+                            {logoUploading
+                                ? 'Uploading Logo...'
+                                : isCreating
+                                    ? 'Submitting...'
+                                    : 'Submit Request'}
+                        </ReusableButton>
+                    </div>
+                </form>
+            </Form>
         </div>
     );
 };
