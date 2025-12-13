@@ -94,7 +94,8 @@ export default function UsersPage() {
       
       console.log("Fetching users with headers:", headers)
       
-      const response = await fetch(`${ config.apiUrl}/users/`, { headers })
+      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
+      const response = await fetch(`${config.apiUrl}${apiPath}`, { headers })
 
       if (response.status === 401 || response.status === 403) {
         throw new Error("Could not validate credentials. Please log in again.")
@@ -156,7 +157,8 @@ export default function UsersPage() {
         return
       }
       
-      const response = await fetch(`${ config.apiUrl}/users/`, {
+      const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
+      const response = await fetch(`${config.apiUrl}${apiPath}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

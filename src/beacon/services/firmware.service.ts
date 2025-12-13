@@ -16,10 +16,19 @@ import {
 
 class FirmwareService {
   private readonly baseUrl: string;
+  private readonly apiPrefix: string;
 
   constructor() {
     // Use centralized config for API URL
     this.baseUrl = config.beaconApiUrl;
+    this.apiPrefix = config.apiPrefix || '/api/v1';
+  }
+
+  /**
+   * Get the appropriate endpoint based on environment
+   */
+  private getEndpoint(path: string): string {
+    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`;
   }
 
   /**
@@ -32,7 +41,8 @@ class FirmwareService {
       if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
       if (params?.firmware_type) queryParams.append('firmware_type', params.firmware_type);
 
-      const response = await axios.get(`${this.baseUrl}/firmware?${queryParams.toString()}`);
+      const endpoint = this.getEndpoint('/firmware');
+      const response = await axios.get(`${this.baseUrl}${endpoint}?${queryParams.toString()}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching firmware versions:', error);
@@ -46,7 +56,8 @@ class FirmwareService {
   async getLatestFirmware(firmware_type?: FirmwareType): Promise<FirmwareVersion> {
     try {
       const queryParams = firmware_type ? `?firmware_type=${firmware_type}` : '';
-      const response = await axios.get(`${this.baseUrl}/firmware/latest${queryParams}`);
+      const endpoint = this.getEndpoint('/firmware/latest');
+      const response = await axios.get(`${this.baseUrl}${endpoint}${queryParams}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching latest firmware:', error);
@@ -59,7 +70,8 @@ class FirmwareService {
    */
   async getFirmwareById(firmwareId: string): Promise<FirmwareVersion> {
     try {
-      const response = await axios.get(`${this.baseUrl}/firmware/${firmwareId}`);
+      const endpoint = this.getEndpoint(`/firmware/${firmwareId}`);
+      const response = await axios.get(`${this.baseUrl}${endpoint}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching firmware by ID:', error);
@@ -90,7 +102,8 @@ class FirmwareService {
         }
       }
 
-      const response = await axios.post(`${this.baseUrl}/firmware/upload`, formData, {
+      const endpoint = this.getEndpoint('/firmware/upload');
+      const response = await axios.post(`${this.baseUrl}${endpoint}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -108,7 +121,8 @@ class FirmwareService {
    */
   async updateFirmware(firmwareId: string, data: FirmwareUpdateData): Promise<FirmwareVersion> {
     try {
-      const response = await axios.patch(`${this.baseUrl}/firmware/${firmwareId}`, data);
+      const endpoint = this.getEndpoint(`/firmware/${firmwareId}`);
+      const response = await axios.patch(`${this.baseUrl}${endpoint}`, data);
       return response.data;
     } catch (error) {
       console.error('Error updating firmware:', error);
@@ -124,9 +138,11 @@ class FirmwareService {
       let url: string;
       
       if (params.firmware_id) {
-        url = `${this.baseUrl}/firmware/${params.firmware_id}/download/${params.file_type}`;
+        const endpoint = this.getEndpoint(`/firmware/${params.firmware_id}/download/${params.file_type}`);
+        url = `${this.baseUrl}${endpoint}`;
       } else if (params.firmware_version) {
-        url = `${this.baseUrl}/firmware/download?firmware_version=${params.firmware_version}&file_type=${params.file_type}`;
+        const endpoint = this.getEndpoint('/firmware/download');
+        url = `${this.baseUrl}${endpoint}?firmware_version=${params.firmware_version}&file_type=${params.file_type}`;
       } else {
         throw new Error('Either firmware_id or firmware_version must be provided');
       }

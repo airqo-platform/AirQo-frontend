@@ -17,13 +17,18 @@ export default function HealthTipsSection({ deviceId, readingKey, airQuality }) 
         setLoading(true)
         setError(null)
 
+        // Helper function to get the correct API path
+        const getApiPath = (path: string) => {
+          return config.isLocalhost ? path : `${config.apiPrefix || '/api/v1'}/beacon${path}`
+        }
+
         let endpoint
         if (readingKey) {
-          endpoint = `${config.apiUrl}/health-tips/reading/${readingKey}`
+          endpoint = `${config.apiUrl}${getApiPath(`/health-tips/reading/${readingKey}`)}`
         } else if (deviceId) {
-          endpoint = `${config.apiUrl}/health-tips/device/${deviceId}`
+          endpoint = `${config.apiUrl}${getApiPath(`/health-tips/device/${deviceId}`)}`
         } else if (airQuality) {
-          endpoint = `${config.apiUrl}/health-tips/category/${encodeURIComponent(airQuality)}`
+          endpoint = `${config.apiUrl}${getApiPath(`/health-tips/category/${encodeURIComponent(airQuality)}`)}`
         } else {
           setHealthTips([])
           setLoading(false)

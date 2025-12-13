@@ -119,7 +119,8 @@ export default function AlertsPage() {
       setIsLoading(true)
       
       // Using the devices-detail endpoint to get maintenance history
-      const response = await fetch(`${config.apiUrl}/api/v1/beacon/devices`, {
+      const apiPath = config.isLocalhost ? '/devices' : '/api/v1/beacon/devices'
+      const response = await fetch(`${config.apiUrl}${apiPath}`, {
         headers: {
           'Authorization': authService.getToken() || '',
           'Content-Type': 'application/json'
