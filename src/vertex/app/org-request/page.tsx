@@ -16,6 +16,7 @@ import {
     AqImage01,
 } from '@airqo/icons-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import countryList from 'react-select-country-list';
 import {
     useCreateOrganizationRequest,
@@ -36,6 +37,8 @@ import ReusableInputField from '@/components/shared/inputfield/ReusableInputFiel
 import ReusableSelectInput from '@/components/shared/select/ReusableSelectInput';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
+import ReusableDialog from '@/components/shared/dialog/ReusableDialog';
+import { CheckCircle2 } from 'lucide-react';
 
 // Define Zod Schema
 const requestOrganizationSchema = z.object({
@@ -66,6 +69,8 @@ interface SlugCheckState {
 }
 
 const RequestOrganizationPage = () => {
+    const router = useRouter();
+
     // Form initialization
     const form = useForm<RequestOrganizationFormData>({
         resolver: zodResolver(requestOrganizationSchema),
@@ -92,6 +97,7 @@ const RequestOrganizationPage = () => {
     const [logoUploading, setLogoUploading] = useState(false);
     const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string>('');
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -287,10 +293,8 @@ const RequestOrganizationPage = () => {
             // Submit organization request
             await createRequest(submitData);
 
-            ReusableToast({
-                message: 'Your organization request has been submitted for review.',
-                type: 'SUCCESS',
-            });
+            // Show success modal instead of toast
+            setShowSuccessModal(true);
 
             // Reset form
             form.reset();
@@ -304,6 +308,11 @@ const RequestOrganizationPage = () => {
         } finally {
             setLogoUploading(false);
         }
+    };
+
+    const handleSuccessClose = () => {
+        setShowSuccessModal(false);
+        router.push('/');
     };
 
     return (
@@ -746,6 +755,30 @@ const RequestOrganizationPage = () => {
                     </div>
                 </form>
             </Form>
+
+            {/* Success Modal */}
+            <ReusableDialog
+                isOpen={showSuccessModal}
+                onClose={handleSuccessClose}
+                title="Request Submitted Successfully!"
+                showCloseButton={false}
+                preventBackdropClose={true}
+                primaryAction={{
+                    label: 'Go to Home',
+                    onClick: handleSuccessClose,
+                }}
+            >
+                <div className="flex flex-col items-center justify-center py-6 px-4 space-y-4 text-center">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                            Your request for a new organization has been submitted. Our team will review your application and get back to you shortly.
+                        </p>
+                    </div>
+                </div>
+            </ReusableDialog>
         </div>
     );
 };
