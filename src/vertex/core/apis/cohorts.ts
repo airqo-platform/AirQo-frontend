@@ -8,6 +8,7 @@ export interface GetCohortsSummaryParams {
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
+  cohort_id?: string[];
 }
 
 export const cohorts = {
@@ -22,6 +23,9 @@ export const cohorts = {
       if (search) queryParams.set("search", search);
       if (sortBy) queryParams.set("sortBy", sortBy);
       if (sortBy && order) queryParams.set("order", order);
+      if (params.cohort_id && params.cohort_id.length > 0) {
+        queryParams.set("cohort_id", params.cohort_id.join(","));
+      }
 
       const response = await createSecureApiClient().get(
         `/devices/cohorts/summary?${queryParams.toString()}`,
@@ -155,6 +159,25 @@ export const cohorts = {
         }
       );
       return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  verifyCohortIdApi: async (cohortId: string) => {
+    try {
+      if (!cohortId?.trim()) {
+        throw new Error('Cohort ID is required');
+      }
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts/verify/${cohortId}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data as {
+        success: boolean;
+        message: string;
+        errors?: { message: string };
+      };
     } catch (error) {
       throw error;
     }

@@ -9,16 +9,20 @@ const Toaster = dynamic(
 );
 import Providers from "./providers"
 
+import { Session } from "next-auth";
+
 export default function ClientLayout({
   children,
+  session
 }: {
   children: React.ReactNode;
+  session: Session | null;
 }) {
   return (
     <body
       className="min-h-screen bg-background antialiased"
     >
-      <Providers>{children}</Providers>
+      <Providers session={session}>{children}</Providers>
       <Toaster />
     </body>
   )

@@ -9,4 +9,7 @@ export const clearSessionData = () => {
   localStorage.removeItem('userGroups');
   localStorage.removeItem('userContext');
   localStorage.removeItem("recentOrganizations");
+  localStorage.removeItem("persist:user");
+  localStorage.removeItem("unauthorized_count");
+  localStorage.removeItem("last_unauthorized");
 };

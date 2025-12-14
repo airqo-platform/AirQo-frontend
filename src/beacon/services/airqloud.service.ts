@@ -107,10 +107,39 @@ export interface AirQloudPerformanceData {
 }
 
 class AirQloudService {
-  private baseUrl: string
+  private readonly baseUrl: string
+  private readonly apiPrefix: string
 
   constructor() {
     this.baseUrl = config.apiUrl
+    this.apiPrefix = config.apiPrefix || '/api/v1'
+  }
+
+  /**
+   * Get the appropriate endpoint based on environment
+   */
+  private getEndpoint(path: string): string {
+    return config.isLocalhost ? path : `${this.apiPrefix}/beacon${path}`
+  }
+
+  /**
+   * Get auth headers - skip for localhost
+   */
+  private getAuthHeaders(): Record<string, string> {
+    if (config.isLocalhost) {
+      return { 'Content-Type': 'application/json' }
+    }
+    
+    // Import authService dynamically to avoid circular dependencies
+    const authService = require('./api-service').default
+    const token = authService.getToken()
+    if (token) {
+      return { 
+        'Content-Type': 'application/json',
+        'Authorization': token 
+      }
+    }
+    return { 'Content-Type': 'application/json' }
   }
 
   /**
@@ -128,14 +157,13 @@ class AirQloudService {
     if (params.search) queryParams.append('search', params.search)
     if (params.performance_days) queryParams.append('performance_days', params.performance_days.toString())
 
-    const url = `${this.baseUrl}/airqlouds?${queryParams.toString()}`
+    const endpoint = this.getEndpoint('/airqlouds')
+    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
     
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
       })
 
       if (!response.ok) {
@@ -164,14 +192,13 @@ class AirQloudService {
     if (params.country) queryParams.append('country', params.country)
     if (params.search) queryParams.append('search', params.search)
 
-    const url = `${this.baseUrl}/airqlouds?${queryParams.toString()}`
+    const endpoint = this.getEndpoint('/airqlouds')
+    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
     
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
       })
 
       if (!response.ok) {
@@ -193,14 +220,13 @@ class AirQloudService {
     airqloudId: string, 
     performanceDays: number = 14
   ): Promise<AirQloudWithPerformance> {
-    const url = `${this.baseUrl}/airqlouds/${airqloudId}?include_performance=true&performance_days=${performanceDays}`
+    const endpoint = this.getEndpoint(`/airqlouds/${airqloudId}`)
+    const url = `${this.baseUrl}${endpoint}?include_performance=true&performance_days=${performanceDays}`
     
     try {
       const response = await fetch(url, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
       })
 
       if (!response.ok) {
@@ -219,14 +245,13 @@ class AirQloudService {
    * Create a new AirQloud
    */
   async createAirQloud(payload: CreateAirQloudPayload): Promise<CreateAirQloudResponse> {
-    const url = `${this.baseUrl}/airqlouds/`
+    const endpoint = this.getEndpoint('/airqlouds/')
+    const url = `${this.baseUrl}${endpoint}`
     
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
         body: JSON.stringify(payload),
       })
 
@@ -253,7 +278,8 @@ class AirQloudService {
     visibility?: boolean,
     columnMappings?: ColumnMapping
   ): Promise<CreateAirQloudWithDevicesResponse> {
-    const url = `${this.baseUrl}/airqlouds/create-with-devices`
+    const endpoint = this.getEndpoint('/airqlouds/create-with-devices')
+    const url = `${this.baseUrl}${endpoint}`
     
     try {
       const formData = new FormData()
@@ -284,8 +310,13 @@ class AirQloudService {
         formData.append('column_mappings', JSON.stringify(transformedMappings))
       }
 
+      // For FormData, don't set Content-Type header - browser will set it with boundary
+      const authHeaders = this.getAuthHeaders()
+      delete (authHeaders as any)['Content-Type']
+      
       const response = await fetch(url, {
         method: 'POST',
+        headers: authHeaders,
         body: formData,
       })
 
@@ -310,14 +341,13 @@ class AirQloudService {
     end: string
     ids: string[]
   }): Promise<AirQloudPerformanceData[]> {
-    const url = `${this.baseUrl}/performance/airqloud`
+    const endpoint = this.getEndpoint('/performance/airqloud')
+    const url = `${this.baseUrl}${endpoint}`
     
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: this.getAuthHeaders(),
         body: JSON.stringify(params),
       })
 

@@ -13,7 +13,9 @@ const NetworkStatusBanner = dynamic(
   { ssr: false }
 );
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+import { Session } from "next-auth";
+
+export default function Providers({ children, session }: { children: React.ReactNode, session: Session | null }) {
   const [queryClient] = useState(
     () =>
       new QueryClient({
@@ -30,7 +32,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <QueryClientProvider client={queryClient}>
-          <AuthProvider>
+          <AuthProvider session={session}>
             {children}
             {process.env.NODE_ENV !== "production" && (
               <ReactQueryDevtools initialIsOpen={false} />

@@ -14,6 +14,7 @@ class ViewSelector extends StatefulWidget {
   final Function(DashboardView view, {String? country}) onViewChanged;
   final bool isGuestUser;
   final String? userCountry;
+  final Set<String>? activeCountries;
 
   const ViewSelector({
     super.key,
@@ -22,6 +23,7 @@ class ViewSelector extends StatefulWidget {
     required this.onViewChanged,
     this.isGuestUser = false,
     this.userCountry,
+    this.activeCountries,
   });
 
   @override
@@ -43,7 +45,8 @@ class _ViewSelectorState extends State<ViewSelector> {
   @override
   void didUpdateWidget(ViewSelector oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.userCountry != widget.userCountry) {
+    if (oldWidget.userCountry != widget.userCountry ||
+        oldWidget.activeCountries != widget.activeCountries) {
       _sortCountries();
     }
     if (oldWidget.currentView != widget.currentView) {
@@ -52,7 +55,8 @@ class _ViewSelectorState extends State<ViewSelector> {
   }
 
   void _sortCountries() {
-    sortedCountries = List.from(CountryRepository.countries);
+    sortedCountries = CountryRepository.getActiveCountries(
+        widget.activeCountries ?? {});
 
     final userCountry = widget.userCountry;
     if (userCountry != null && userCountry.isNotEmpty) {

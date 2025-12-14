@@ -13,6 +13,7 @@ import { usePermission } from "@/core/hooks/usePermissions";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { UnassignCohortDevicesDialog } from "@/components/features/cohorts/unassign-cohort-devices";
+import CohortMeasurementsApiCard from "@/components/features/cohorts/cohort-measurements-api-card";
 
 // Loading skeleton for content grid
 const ContentGridSkeleton = () => (
@@ -73,7 +74,7 @@ export default function CohortDetailsPage() {
           <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
             Back
           </ReusableButton>
-          
+
         </div>
         <AssignCohortDevicesDialog
           open={showAssignDialog}
@@ -107,6 +108,7 @@ export default function CohortDetailsPage() {
                 onShowDetailsModal={handleOpenDetails}
                 loading={isLoading}
               />
+              <CohortMeasurementsApiCard cohortId={cohortId} />
             </div>
 
             {/* Devices list */}
@@ -143,6 +145,9 @@ export default function CohortDetailsPage() {
                 isLoading={isLoading}
                 error={error}
                 hiddenColumns={["site", "groups"]}
+                onDeviceClick={(device) => {
+                  router.push(`/admin/cohorts/${cohortId}/devices/${device._id}`);
+                }}
               />
             </div>
             <CohortDetailsModal

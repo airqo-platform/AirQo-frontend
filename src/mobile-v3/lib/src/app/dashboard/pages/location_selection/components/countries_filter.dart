@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/dashboard/models/country_model.dart';
 import 'package:airqo/src/app/dashboard/repository/country_repository.dart';
 import 'package:airqo/src/app/dashboard/widgets/countries_chip.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 
-class CountriesFilter extends StatelessWidget {
+class CountriesFilter extends StatelessWidget with UiLoggy {
   final String currentFilter;
   final Function(String) onFilterSelected;
   final VoidCallback onResetFilter;
   final String? userCountry;
+  final Set<String>? activeCountries;
 
   const CountriesFilter({
     super.key,
@@ -16,11 +18,20 @@ class CountriesFilter extends StatelessWidget {
     required this.onFilterSelected,
     required this.onResetFilter,
     this.userCountry,
+    this.activeCountries,
   });
 
   @override
   Widget build(BuildContext context) {
-    List<CountryModel> countries = List.from(CountryRepository.countries);
+    List<CountryModel> countries = CountryRepository.getActiveCountries(
+        activeCountries ?? {});
+
+    loggy.info(
+        'CountriesFilter: Active=${activeCountries?.length ?? 0}, Filtered=${countries.length}');
+    if (activeCountries != null && activeCountries!.isNotEmpty) {
+      loggy.info('Active countries: $activeCountries');
+      loggy.info('Countries to display in tabs: ${countries.map((c) => c.countryName).toList()}');
+    }
 
     if (userCountry != null && userCountry!.isNotEmpty) {
       int userCountryIndex = countries.indexWhere(

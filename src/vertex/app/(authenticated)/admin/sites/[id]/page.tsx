@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AqArrowLeft, AqEdit01 } from "@airqo/icons-react";
+import { AqArrowLeft } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useSiteDetails } from "@/core/hooks/useSites";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,14 +12,6 @@ import { SiteInformationCard } from "@/components/features/sites/site-informatio
 import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-card";
 import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-details-dialog";
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
-
-const ActionButtonsSkeleton = () => (
-  <div className="flex gap-1">
-    <div className="h-9 w-24 bg-gray-200 rounded animate-pulse" />
-    <div className="h-9 w-32 bg-gray-200 rounded animate-pulse" />
-    <div className="h-9 w-36 bg-gray-200 rounded animate-pulse" />
-  </div>
-);
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -34,7 +26,9 @@ export default function SiteDetailsPage() {
   const siteId = params.id as string;
   const { data: site, isLoading, error } = useSiteDetails(siteId);
   const router = useRouter();
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editSection, setEditSection] = useState<"general" | "mobile" | null>(
+    null
+  );
 
   if (error) {
     return (
@@ -51,15 +45,13 @@ export default function SiteDetailsPage() {
   return (
     <div>
       <div className="mb-6 flex justify-between items-center">
-        <ReusableButton variant="text" onClick={() => router.back()} Icon={AqArrowLeft}>
+        <ReusableButton
+          variant="text"
+          onClick={() => router.back()}
+          Icon={AqArrowLeft}
+        >
           Back
         </ReusableButton>
-        {isLoading ? (
-          <ActionButtonsSkeleton />
-        ) : !site ? null : (<ReusableButton onClick={() => setIsEditDialogOpen(true)} Icon={AqEdit01}>
-          Edit Site
-        </ReusableButton>
-        )}
       </div>
 
       {isLoading ? (
@@ -72,10 +64,16 @@ export default function SiteDetailsPage() {
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             <div className="lg:col-span-2">
-              <SiteInformationCard site={site} />
+              <SiteInformationCard
+                site={site}
+                onEdit={() => setEditSection("general")}
+              />
             </div>
             <div className="lg:col-span-1">
-              <SiteMobileAppCard site={site} />
+              <SiteMobileAppCard
+                site={site}
+                onEdit={() => setEditSection("mobile")}
+              />
             </div>
           </div>
           <div className="mt-6">
@@ -84,12 +82,19 @@ export default function SiteDetailsPage() {
               isLoading={isLoading}
               error={error}
               hiddenColumns={["site", "groups"]}
+              onDeviceClick={(device) => {
+                router.push(`/admin/sites/${siteId}/devices/${device._id}`);
+              }}
             />
           </div>
-          <EditSiteDetailsDialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} site={site} />
+          <EditSiteDetailsDialog
+            open={!!editSection}
+            onOpenChange={(open) => !open && setEditSection(null)}
+            site={site}
+            section={editSection || "general"}
+          />
         </>
       )}
-
     </div>
   );
 }

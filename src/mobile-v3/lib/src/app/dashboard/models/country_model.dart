@@ -1,8 +1,9 @@
 class CountryModel {
   final String flag;
   final String countryName;
+  final int sites;
 
-  const CountryModel(this.flag, this.countryName);
+  const CountryModel(this.flag, this.countryName, {this.sites = 0});
 
   static String getFlagFromCountryName(String countryName) {
     final flagMap = {

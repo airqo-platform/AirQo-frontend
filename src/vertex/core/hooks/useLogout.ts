@@ -41,8 +41,6 @@ export const useLogout = (callbackUrl?: string) => {
     } catch (error) {
       logger.error('Logout error:', { error });
       router.push('/login');
-    } finally {
-      dispatch(setLoggingOut(false));
     }
   }, [isLoggingOut, dispatch, queryClient, router, callbackUrl]);
 

@@ -22,9 +22,15 @@ export interface CohortListingOptions {
   search?: string;
   sortBy?: string;
   order?: 'asc' | 'desc';
+  cohort_id?: string[];
+  enabled?: boolean;
 }
 
-export const useCohorts = (options: CohortListingOptions = {}) => {
+export const useCohorts = (
+  options: CohortListingOptions = {},
+  queryOptions?: { enabled?: boolean }
+) => {
+  const { enabled = true } = queryOptions || {};
   const { page = 1, limit = 25, search, sortBy, order } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
@@ -34,7 +40,7 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
     CohortsSummaryResponse,
     AxiosError<ErrorResponse>
   >({
-    queryKey: ['cohorts', { page, limit, search, sortBy, order }],
+    queryKey: ['cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id }],
     queryFn: () => {
       const params: GetCohortsSummaryParams = {
         limit: safeLimit,
@@ -42,11 +48,13 @@ export const useCohorts = (options: CohortListingOptions = {}) => {
         ...(search && { search }),
         ...(sortBy && { sortBy }),
         ...(order && { order }),
+        ...(options.cohort_id && { cohort_id: options.cohort_id }),
       };
       return cohortsApi.getCohortsSummary(params);
     },
     staleTime: 300_000,
     refetchOnWindowFocus: false,
+    enabled,
   });
 
   return {
@@ -370,6 +378,15 @@ export const useAssignCohortsToUser = () => {
         message: `Failed to assign cohorts: ${getApiErrorMessage(error)}`,
         type: 'ERROR',
       });
+    },
+  });
+};
+
+export const useVerifyCohort = () => {
+  return useMutation({
+    mutationFn: async (cohortId: string) => {
+      if (!cohortId) throw new Error('Cohort ID is required');
+      return await cohortsApi.verifyCohortIdApi(cohortId);
     },
   });
 };

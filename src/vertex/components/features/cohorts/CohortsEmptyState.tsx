@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, Upload } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { AqCollocation } from '@airqo/icons-react';
 import dynamic from 'next/dynamic';
@@ -11,7 +11,7 @@ const ClaimDeviceModal = dynamic(
     { ssr: false }
 );
 
-const HomeEmptyState = () => {
+const CohortsEmptyState = () => {
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
     return (
@@ -21,26 +21,16 @@ const HomeEmptyState = () => {
             </div>
 
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                No Devices Found
+                No Cohorts Found
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400 max-w-md mb-8">
-                Add your AirQo devices or import existing devices from an external device
-                network to begin tracking your device fleet.
+                Get started by claiming widespread AirQo devices to automatically create your first device cohort.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <ReusableButton onClick={() => setIsClaimModalOpen(true)} Icon={Plus}>
                     Claim AirQo Device
-                </ReusableButton>
-
-                <ReusableButton
-                    variant="outlined"
-                    disabled
-                    title="Import feature coming soon"
-                    Icon={Upload}
-                >
-                    Import Existing Device
                 </ReusableButton>
             </div>
 
@@ -53,4 +43,4 @@ const HomeEmptyState = () => {
     );
 };
 
-export default HomeEmptyState;
+export default CohortsEmptyState;
