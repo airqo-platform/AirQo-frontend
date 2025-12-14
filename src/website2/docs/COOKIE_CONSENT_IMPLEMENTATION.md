@@ -216,29 +216,24 @@ const preference = getItemWithExpiry('user_preference');
 To test the implementation:
 
 1. **First Visit**:
-
    - Cookie banner should appear at bottom
    - No GA tracking until consent given
 
 2. **Accept All**:
-
    - Banner disappears permanently
    - GA tracking starts
    - Preference saved to localStorage
 
 3. **Customize**:
-
    - Can toggle individual cookie types
    - Preferences saved on "Save Preferences"
 
 4. **Dismiss**:
-
    - Banner hides for 7 days
    - No tracking enabled
    - Re-appears after 7 days
 
 5. **Return Visit**:
-
    - Banner doesn't show if choice made
    - Previous consent preferences applied
 
