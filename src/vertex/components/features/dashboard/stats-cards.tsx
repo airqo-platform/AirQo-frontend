@@ -11,6 +11,7 @@ import {
 } from "@airqo/icons-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useCallback } from "react";
+import { useUserContext } from "@/core/hooks/useUserContext";
 import { Device } from "@/app/types/devices";
 
 interface StatCardProps {
@@ -95,9 +96,8 @@ const StatCard = ({
 };
 
 export const DashboardStatsCards = () => {
-  const { userDetails, activeGroup, userScope } = useAppSelector(
-    (state) => state.user
-  );
+  const { activeGroup } = useAppSelector((state) => state.user);
+  const { userScope, userDetails } = useUserContext();
 
   const isPersonalScope = userScope === 'personal';
 
