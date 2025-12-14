@@ -185,7 +185,7 @@ export const useCreateCohortWithDevices = () => {
     },
     onSuccess: (resp, variables) => {
       ReusableToast({
-        message: `${variables.name} created${variables.deviceIds?.length ? ' and devices assigned' : ''}.`,
+        message: `${variables.name} created`,
         type: 'SUCCESS',
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });

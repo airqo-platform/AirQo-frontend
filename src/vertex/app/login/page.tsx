@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -25,7 +24,6 @@ const loginSchema = z.object({
 })
 
 export default function LoginPage() {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof loginSchema>>({

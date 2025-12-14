@@ -4,6 +4,12 @@ import React, { useRef, useState } from 'react';
 import { FileSpreadsheet } from 'lucide-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface ParsedFileData {
     headers: string[];
@@ -133,20 +139,24 @@ const DeviceNameColumnMapper: React.FC<DeviceNameColumnMapperProps> = ({
 interface DeviceNameCohortParserProps {
     onDevicesParsed: (deviceNames: string[]) => void;
     shouldBlock?: boolean;
+    tooltipMessage?: string;
     onBlock?: () => void;
 }
 
-export const DeviceNameCohortParser: React.FC<DeviceNameCohortParserProps> = ({
+export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
     onDevicesParsed,
     shouldBlock = false,
+    tooltipMessage,
     onBlock
 }) => {
     const [isImporting, setIsImporting] = useState(false);
     const [filePreview, setFilePreview] = useState<ParsedFileData | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleLinkClick = () => {
-        // Validate condition is met before opening file picker
+    const handleLinkClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
         if (shouldBlock) {
             onBlock?.();
             return;
@@ -262,11 +272,6 @@ export const DeviceNameCohortParser: React.FC<DeviceNameCohortParserProps> = ({
             return;
         }
 
-        ReusableToast({
-            message: `Imported ${deviceNames.length} device name${deviceNames.length !== 1 ? 's' : ''}`,
-            type: 'SUCCESS',
-        });
-
         onDevicesParsed(deviceNames);
         setFilePreview(null);
     };
@@ -276,7 +281,7 @@ export const DeviceNameCohortParser: React.FC<DeviceNameCohortParserProps> = ({
     };
 
     return (
-        <>
+        <TooltipProvider>
             {filePreview && (
                 <DeviceNameColumnMapper
                     filePreview={filePreview}
@@ -293,15 +298,30 @@ export const DeviceNameCohortParser: React.FC<DeviceNameCohortParserProps> = ({
                 className="hidden"
             />
 
-            <button
-                type="button"
-                onClick={handleLinkClick}
-                disabled={isImporting}
-                className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
-            >
-                <FileSpreadsheet className="w-3.5 h-3.5" />
-                {isImporting ? 'Processing...' : 'Import from CSV'}
-            </button>
-        </>
+            {shouldBlock && tooltipMessage ? (
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <span tabIndex={0} className="cursor-not-allowed opacity-50 flex items-center gap-1.5">
+                            <FileSpreadsheet className="w-3.5 h-3.5" />
+                            <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">Import from CSV</span>
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{tooltipMessage}</p>
+                    </TooltipContent>
+                </Tooltip>
+            ) : (
+                <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handleLinkClick}
+                    disabled={isImporting}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
+                >
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    {isImporting ? 'Processing...' : 'Import from CSV'}
+                </button>
+            )}
+        </TooltipProvider>
     );
 };

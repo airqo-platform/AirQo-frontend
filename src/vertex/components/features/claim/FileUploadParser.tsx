@@ -292,11 +292,6 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
             return;
         }
 
-        ReusableToast({
-            message: `Imported ${devices.length} device${devices.length !== 1 ? 's' : ''}`,
-            type: 'SUCCESS',
-        });
-
         onFilesParsed(devices);
         setFilePreview(null);
     };

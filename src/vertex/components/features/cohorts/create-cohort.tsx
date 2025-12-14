@@ -11,11 +11,10 @@ import { MultiSelectCombobox } from "@/components/ui/multi-select";
 import { useDevices } from "@/core/hooks/useDevices";
 import { useCreateCohortWithDevices } from "@/core/hooks/useCohorts";
 import { useNetworks } from "@/core/hooks/useNetworks";
-import { useAppSelector } from "@/core/redux/hooks";
 import ReusableInputField from "@/components/shared/inputfield/ReusableInputField";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
-import { DeviceNameCohortParser } from "./DeviceNameCohortParser";
+import { DeviceNameParser } from "./device-name-parser";
 import {
   Form,
   FormControl,
@@ -25,6 +24,8 @@ import {
 } from "@/components/ui/form";
 
 export type PreselectedDevice = { value: string; label: string };
+
+const EMPTY_PRESELECTED_DEVICES: PreselectedDevice[] = [];
 
 interface CreateCohortDialogProps {
   open: boolean;
@@ -52,8 +53,7 @@ export function CreateCohortDialog({
   onOpenChange,
   onSuccess,
   onError,
-  andNavigate = true,
-  preselectedDevices = [],
+  preselectedDevices = EMPTY_PRESELECTED_DEVICES,
 }: CreateCohortDialogProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -85,18 +85,7 @@ export function CreateCohortDialog({
     }));
   }, [devices]);
 
-  const activeNetwork = useAppSelector((state) => state.user.activeNetwork);
   const router = useRouter();
-
-  useEffect(() => {
-    // Only clear if we are in the form step, essentially acting as "new network selected"
-    if (step === 'form') {
-      form.setValue("devices", []);
-      setDeviceSearch("");
-    }
-    // We only want to run this when selectedNetwork changes, but we need step to be safe
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedNetwork, form]);
 
   useEffect(() => {
     if (open) {
@@ -108,8 +97,10 @@ export function CreateCohortDialog({
       setDeviceSearch("");
       setStep("form");
       setCreatedCohort(null);
+
     }
-  }, [open, activeNetwork, preselectedDevices, form]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, preselectedDevices]);
 
   const { mutate: createCohort, isPending } = useCreateCohortWithDevices();
 
@@ -165,11 +156,6 @@ export function CreateCohortDialog({
       ReusableToast({
         message: `Imported ${importedCount} device${importedCount !== 1 ? 's' : ''}. ${notFoundCount} not found.`,
         type: 'WARNING',
-      });
-    } else {
-      ReusableToast({
-        message: `Successfully imported ${importedCount} device${importedCount !== 1 ? 's' : ''}`,
-        type: 'SUCCESS',
       });
     }
   };
@@ -289,9 +275,8 @@ export function CreateCohortDialog({
                   value={field.value}
                   onChange={(e) => {
                     field.onChange(e.target.value);
-                    if (e.target.value) {
-                      form.clearErrors("network");
-                    }
+                    form.setValue("devices", []);
+                    setDeviceSearch("");
                   }}
                   error={form.formState.errors.network?.message}
                   required
@@ -315,12 +300,10 @@ export function CreateCohortDialog({
                     <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                       Select Device(s) <span className="text-red-500">*</span>
                     </label>
-                    <DeviceNameCohortParser
+                    <DeviceNameParser
                       onDevicesParsed={handleDeviceImport}
                       shouldBlock={!selectedNetwork}
-                      onBlock={() => {
-                        form.trigger("network");
-                      }}
+                      tooltipMessage="Please select a network first"
                     />
                   </div>
                   <FormControl>
