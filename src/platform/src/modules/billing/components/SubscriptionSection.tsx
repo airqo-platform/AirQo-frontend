@@ -77,9 +77,14 @@ const SubscriptionSection: React.FC = () => {
                       {subscription.tier} Plan
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {subscription.tier === 'Free'
-                        ? 'Free forever'
-                        : `$${subscription.tier === 'Standard' ? '29.99' : '79.99'}/month`}
+                      {(() => {
+                        const plan = plans.find(
+                          p => p.tier === subscription.tier
+                        );
+                        return subscription.tier === 'Free' || !plan
+                          ? 'Free forever'
+                          : `${plan.currency || '$'}${plan.price}/month`;
+                      })()}
                     </p>
                   </div>
                 </div>
@@ -103,11 +108,16 @@ const SubscriptionSection: React.FC = () => {
                       Next billing date
                     </span>
                     <span className="font-medium">
-                      {formatDate(new Date(), {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
+                      {formatDate(
+                        subscription.endDate
+                          ? new Date(subscription.endDate)
+                          : new Date(),
+                        {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        }
+                      )}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm mt-2">

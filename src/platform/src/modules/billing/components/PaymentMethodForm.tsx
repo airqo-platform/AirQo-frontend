@@ -103,23 +103,29 @@ const PaymentMethodForm: React.FC<PaymentMethodFormProps> = ({
     const expiryMonth = parseInt(formData.expiryMonth, 10);
 
     if (
+      !Number.isFinite(expiryYear) ||
+      !Number.isFinite(expiryMonth) ||
+      expiryMonth < 1 ||
+      expiryMonth > 12 ||
       expiryYear < currentYear ||
       (expiryYear === currentYear && expiryMonth < currentMonth)
     ) {
-      toast.error('Card has expired');
+      toast.error('Invalid expiry date');
       return;
     }
 
     try {
       setLoading(true);
 
+      // TODO: Replace with Stripe Elements or Paystack hosted fields for tokenization
+      // Do not send raw PAN and CVV to backend
       const response = await fetch('/api/payments/update-card', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          ...formData,
+          paymentToken: 'token-from-provider', // Replace with actual token
           recaptchaToken,
         }),
       });

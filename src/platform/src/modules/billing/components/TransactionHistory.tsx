@@ -21,6 +21,9 @@ const TransactionHistory: React.FC = () => {
     const fetchTransactions = async () => {
       try {
         const response = await fetch('/api/payments');
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
         const data: TransactionHistoryResponse = await response.json();
         if (data.success) {
           setTransactions(data.transactions);
@@ -28,7 +31,11 @@ const TransactionHistory: React.FC = () => {
           setError(data.message);
         }
       } catch (err) {
-        setError('Failed to load transaction history');
+        setError(
+          err instanceof Error
+            ? err.message
+            : 'Failed to load transaction history'
+        );
         console.error('Error fetching transactions:', err);
       } finally {
         setLoading(false);

@@ -1,11 +1,19 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import { Input, Select } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui';
 import type { SubscriptionPlan } from '@/shared/types/api';
 import { countries } from 'countries-list';
+
+// @ts-expect-error - React types mismatch between next/dynamic and react-google-recaptcha
+const ReCAPTCHA = dynamic(() => import('react-google-recaptcha'), {
+  ssr: false,
+});
+
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || '';
 
 interface CheckoutDialogProps {
   isOpen: boolean;
@@ -26,6 +34,11 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
   const [country, setCountry] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+
+  const handleRecaptchaChange = useCallback((token: string | null) => {
+    setRecaptchaToken(token);
+  }, []);
 
   // Country options sorted alphabetically
   const countryOptions = useMemo(() => {
@@ -57,14 +70,39 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
   const handleSubmit = async () => {
     if (!plan) return;
 
+    // Check if reCAPTCHA is enabled
+    if (RECAPTCHA_SITE_KEY && !recaptchaToken) {
+      toast.error('Please complete the reCAPTCHA verification');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      // Simulate payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Call actual payment API endpoint
+      const response = await fetch('/api/payments/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId: plan.tier,
+          cardNumber,
+          expiryDate,
+          cvv,
+          cardholderName,
+          billingAddress: { fullName, country, addressLine1 },
+          recaptchaToken,
+        }),
+      });
 
-      // In a real implementation, this would call a payment gateway
-      // For now, just show success
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.message || 'Payment failed');
+      }
+
       toast.success(`Successfully upgraded to ${plan.name}!`);
 
       // Reset form
@@ -75,10 +113,15 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
       setFullName('');
       setCountry('');
       setAddressLine1('');
+      setRecaptchaToken(null);
 
       onClose();
     } catch (error) {
-      toast.error('Payment failed. Please try again.');
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Payment failed. Please try again.'
+      );
       console.error('Payment error:', error);
     } finally {
       setIsProcessing(false);
@@ -335,6 +378,21 @@ const CheckoutDialog: React.FC<CheckoutDialogProps> = ({
           Your payment information is secure and encrypted. We comply with PCI
           DSS standards.
         </div>
+
+        {/* reCAPTCHA - Only show if site key is configured */}
+        {RECAPTCHA_SITE_KEY ? (
+          <div className="mt-4">
+            <ReCAPTCHA
+              sitekey={RECAPTCHA_SITE_KEY}
+              onChange={handleRecaptchaChange}
+            />
+          </div>
+        ) : (
+          <div className="mt-4 p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded">
+            ⚠️ reCAPTCHA not configured. Please add
+            NEXT_PUBLIC_RECAPTCHA_SITE_KEY to your environment variables.
+          </div>
+        )}
       </div>
     </ReusableDialog>
   );
