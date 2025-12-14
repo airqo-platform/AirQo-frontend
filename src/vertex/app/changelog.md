@@ -6,9 +6,9 @@
 ## Version 1.23.4
 **Released:** December 13, 2025
 
-### Device Connection URL
+### Device Connection URL & Enhanced Cohort Creation
 
-Added a new "Device Connection URL" field to support external device integrations, available during device import and in the device details view.
+Added a new "Device Connection URL" field to support external device integrations, and upgraded the Cohort Creation flow with confirmation and success steps.
 
 <details>
 <summary><strong>Features Added (1)</strong></summary>
@@ -18,12 +18,20 @@ Added a new "Device Connection URL" field to support external device integration
 </details>
 
 <details>
-<summary><strong>Files Modified (4)</strong></summary>
+<summary><strong>Improvements (1)</strong></summary>
+
+- **Cohort Creation Flow**: Added dedicated **Confirmation** and **Success** steps to the Create Cohort dialog, providing a safer and more polished user experience.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
 
 - `core/apis/devices.ts`
 - `core/hooks/useDevices.ts`
 - `components/features/devices/import-device-modal.tsx`
 - `components/features/devices/device-details-modal.tsx`
+- `components/features/cohorts/create-cohort.tsx`
 
 </details>
 
