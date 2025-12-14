@@ -250,7 +250,9 @@ export class PreferencesService {
     try {
       const response = await this.authenticatedClient.put<
         UpdateOrganizationGroupThemeResponse | ApiErrorResponse
-      >(`/users/preferences/theme/organization/group/${groupId}`, data);
+      >(`/users/preferences/theme/organization/group/${groupId}`, {
+        theme: data,
+      });
       const result = response.data;
 
       if ('success' in result && !result.success) {
