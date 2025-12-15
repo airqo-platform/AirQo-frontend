@@ -1,9 +1,15 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { AqUploadCloud02 } from '@airqo/icons-react';
+import { FileSpreadsheet } from 'lucide-react';
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export interface ParsedFileData {
     headers: string[];
@@ -11,13 +17,13 @@ export interface ParsedFileData {
     fileName: string;
 }
 
-interface BulkClaimColumnMapperProps {
+interface DeviceNameColumnMapperProps {
     filePreview: ParsedFileData;
-    onConfirm: (deviceNameColumn: number, claimTokenColumn: number) => void;
+    onConfirm: (deviceNameColumn: number) => void;
     onCancel: () => void;
 }
 
-export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
+const DeviceNameColumnMapper: React.FC<DeviceNameColumnMapperProps> = ({
     filePreview,
     onConfirm,
     onCancel,
@@ -25,36 +31,17 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
     const [deviceNameColumn, setDeviceNameColumn] = useState<number>(() => {
         // Auto-detect device name column
         const index = filePreview.headers.findIndex(h =>
-            /device.*name|name|device.*id|device/i.test(h.toLowerCase())
+            /device.*name|name|device.*id|device|long.*name|device_name/i.test(h.toLowerCase())
         );
         return index !== -1 ? index : 0;
     });
-
-    const [claimTokenColumn, setClaimTokenColumn] = useState<number>(() => {
-        // Auto-detect claim token column
-        const index = filePreview.headers.findIndex(h =>
-            /claim.*token|token|claim/i.test(h.toLowerCase())
-        );
-        return index !== -1 ? index : filePreview.headers.length > 1 ? 1 : 0;
-    });
-
-    const handleConfirm = () => {
-        if (deviceNameColumn === claimTokenColumn) {
-            ReusableToast({
-                message: 'Device name and claim token must be in different columns',
-                type: 'ERROR',
-            });
-            return;
-        }
-        onConfirm(deviceNameColumn, claimTokenColumn);
-    };
 
     return (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
                 <div className="p-6 border-b border-gray-200 dark:border-gray-700">
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Map Columns for Device Claiming
+                        Map Device Name Column
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         File: {filePreview.fileName}
@@ -63,43 +50,25 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
 
                 <div className="p-6 overflow-auto flex-1">
                     <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                        Please select which columns contain the device names and claim tokens:
+                        Please select which column contains the device names:
                     </p>
 
-                    {/* Column Selectors */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div>
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
-                                Device Name Column
-                            </label>
-                            <select
-                                value={deviceNameColumn}
-                                onChange={(e) => setDeviceNameColumn(Number(e.target.value))}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
-                            >
-                                {filePreview.headers.map((header, index) => (
-                                    <option key={index} value={index}>
-                                        {header}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
-                                Claim Token Column
-                            </label>
-                            <select
-                                value={claimTokenColumn}
-                                onChange={(e) => setClaimTokenColumn(Number(e.target.value))}
-                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
-                            >
-                                {filePreview.headers.map((header, index) => (
-                                    <option key={index} value={index}>
-                                        {header}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+                    {/* Column Selector */}
+                    <div className="mb-6">
+                        <label className="text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 block">
+                            Device Name Column
+                        </label>
+                        <select
+                            value={deviceNameColumn}
+                            onChange={(e) => setDeviceNameColumn(Number(e.target.value))}
+                            className="w-full max-w-md px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-primary"
+                        >
+                            {filePreview.headers.map((header, index) => (
+                                <option key={index} value={index}>
+                                    {header}
+                                </option>
+                            ))}
+                        </select>
                     </div>
 
                     {/* Preview Table */}
@@ -110,17 +79,14 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
                                     {filePreview.headers.map((header, index) => (
                                         <th
                                             key={index}
-                                            className={`px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm font-medium ${index === deviceNameColumn || index === claimTokenColumn
+                                            className={`px-4 py-2 border-b border-gray-200 dark:border-gray-700 text-sm font-medium ${index === deviceNameColumn
                                                 ? 'bg-primary/10 text-primary'
                                                 : 'text-gray-900 dark:text-gray-100'
                                                 }`}
                                         >
                                             {header}
                                             {index === deviceNameColumn && (
-                                                <span className="ml-2 text-xs">(Device)</span>
-                                            )}
-                                            {index === claimTokenColumn && (
-                                                <span className="ml-2 text-xs">(Token)</span>
+                                                <span className="ml-2 text-xs">(Device Name)</span>
                                             )}
                                         </th>
                                     ))}
@@ -139,8 +105,7 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
                                         {row.map((cell, cellIndex) => (
                                             <td
                                                 key={cellIndex}
-                                                className={`px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-700 ${cellIndex === deviceNameColumn ||
-                                                    cellIndex === claimTokenColumn
+                                                className={`px-4 py-2 text-sm border-b border-gray-200 dark:border-gray-700 ${cellIndex === deviceNameColumn
                                                     ? 'bg-primary/10 font-medium text-primary'
                                                     : 'text-gray-700 dark:text-gray-300'
                                                     }`}
@@ -162,22 +127,45 @@ export const BulkClaimColumnMapper: React.FC<BulkClaimColumnMapperProps> = ({
                     <ReusableButton onClick={onCancel} variant="outlined">
                         Cancel
                     </ReusableButton>
-                    <ReusableButton onClick={handleConfirm}>Import Devices</ReusableButton>
+                    <ReusableButton onClick={() => onConfirm(deviceNameColumn)}>
+                        Import Devices
+                    </ReusableButton>
                 </div>
             </div>
         </div>
     );
 };
 
-interface FileUploadParserProps {
-    onFilesParsed: (devices: Array<{ device_name: string; claim_token: string }>) => void;
-    variant?: 'button' | 'dropzone';
+interface DeviceNameCohortParserProps {
+    onDevicesParsed: (deviceNames: string[]) => void;
+    shouldBlock?: boolean;
+    tooltipMessage?: string;
+    onBlock?: () => void;
 }
 
-export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParsed, variant = 'button' }) => {
+export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
+    onDevicesParsed,
+    shouldBlock = false,
+    tooltipMessage,
+    onBlock
+}) => {
     const [isImporting, setIsImporting] = useState(false);
     const [filePreview, setFilePreview] = useState<ParsedFileData | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleLinkClick = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (shouldBlock) {
+            onBlock?.();
+            return;
+        }
+
+        if (!isImporting) {
+            fileInputRef.current?.click();
+        }
+    };
 
     const handleFileImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -217,6 +205,11 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
                                 return cellStr || `Column ${index + 1}`;
                             });
                             setFilePreview({ headers, data: parsedData, fileName: file.name });
+                        } else {
+                            ReusableToast({
+                                message: 'The file appears to be empty.',
+                                type: 'WARNING',
+                            });
                         }
                         setIsImporting(false);
                     },
@@ -243,6 +236,11 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
                             return cellStr || `Column ${index + 1}`;
                         });
                         setFilePreview({ headers, data: parsedData, fileName: file.name });
+                    } else {
+                        ReusableToast({
+                            message: 'The file appears to be empty.',
+                            type: 'WARNING',
+                        });
                     }
                     setIsImporting(false);
                 };
@@ -263,36 +261,28 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
         e.target.value = '';
     };
 
-    const handleConfirmImport = (deviceNameColumn: number, claimTokenColumn: number) => {
+    const handleConfirmImport = (deviceNameColumn: number) => {
         if (!filePreview) return;
 
-        const devices = filePreview.data
+        const deviceNames = filePreview.data
             .slice(1)
             .map((row) => {
                 const deviceName = row[deviceNameColumn];
-                const claimToken = row[claimTokenColumn];
-                return {
-                    device_name:
-                        typeof deviceName === 'string'
-                            ? deviceName.trim()
-                            : String(deviceName || '').trim(),
-                    claim_token:
-                        typeof claimToken === 'string'
-                            ? claimToken.trim()
-                            : String(claimToken || '').trim(),
-                };
+                return typeof deviceName === 'string'
+                    ? deviceName.trim()
+                    : String(deviceName || '').trim();
             })
-            .filter((device) => device.device_name.length > 0 && device.claim_token.length > 0);
+            .filter((name) => name.length > 0);
 
-        if (devices.length === 0) {
+        if (deviceNames.length === 0) {
             ReusableToast({
-                message: 'No valid devices found in the selected columns',
+                message: 'No valid device names found in the selected column',
                 type: 'ERROR',
             });
             return;
         }
 
-        onFilesParsed(devices);
+        onDevicesParsed(deviceNames);
         setFilePreview(null);
     };
 
@@ -301,9 +291,9 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
     };
 
     return (
-        <>
+        <TooltipProvider>
             {filePreview && (
-                <BulkClaimColumnMapper
+                <DeviceNameColumnMapper
                     filePreview={filePreview}
                     onConfirm={handleConfirmImport}
                     onCancel={handleCancelImport}
@@ -318,35 +308,30 @@ export const FileUploadParser: React.FC<FileUploadParserProps> = ({ onFilesParse
                 className="hidden"
             />
 
-            {variant === 'dropzone' ? (
-                <div
-                    onClick={() => !isImporting && fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer transition-colors w-full ${isImporting
-                            ? 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed'
-                            : 'border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-blue-500 dark:hover:border-blue-400'
-                        }`}
-                >
-                    <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-full mb-3">
-                        <AqUploadCloud02 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white">
-                        {isImporting ? 'Processing file...' : 'Click to upload or drag and drop'}
-                    </span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        CSV or Excel files (max 5MB)
-                    </span>
-                </div>
+            {shouldBlock && tooltipMessage ? (
+                <Tooltip delayDuration={0}>
+                    <TooltipTrigger asChild>
+                        <span tabIndex={0} className="cursor-not-allowed opacity-50 flex items-center gap-1.5">
+                            <FileSpreadsheet className="w-3.5 h-3.5" />
+                            <span className="text-sm text-blue-600 dark:text-blue-400 font-medium">Import from CSV</span>
+                        </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>{tooltipMessage}</p>
+                    </TooltipContent>
+                </Tooltip>
             ) : (
-                <ReusableButton
-                    Icon={AqUploadCloud02}
-                    onClick={() => fileInputRef.current?.click()}
+                <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handleLinkClick}
                     disabled={isImporting}
-                    loading={isImporting}
-                    variant="outlined"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5"
                 >
-                    Import File
-                </ReusableButton>
+                    <FileSpreadsheet className="w-3.5 h-3.5" />
+                    {isImporting ? 'Processing...' : 'Import from CSV'}
+                </button>
             )}
-        </>
+        </TooltipProvider>
     );
 };

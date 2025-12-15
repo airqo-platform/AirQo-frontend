@@ -622,7 +622,7 @@ const ReusableTable = <T extends TableItem>({
   onSortingChange,
   onSearchChange,
   searchTerm: searchTermProp,
-  stickyHeader = true,
+  stickyHeader = false,
   exportable = true,
   onExport,
 }: ReusableTableProps<T>) => {
@@ -726,23 +726,25 @@ const ReusableTable = <T extends TableItem>({
   }, [searchTerm]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (searchInput !== searchTerm) {
-        if (serverSidePagination) {
+    if (searchInput !== searchTerm) {
+      if (serverSidePagination) {
+        const t = setTimeout(() => {
           onSearchChange?.(searchInput);
-          return;
-        }
-
-        if (tableId) { // client-side with URL persistence
-          updateUrlState({ search: searchInput, page: 1 });
-        } else {
-          setLocalSearchTerm(searchInput);
-          if (!serverSidePagination) setLocalCurrentPage(1);
-        }
+        }, 400);
+        return () => clearTimeout(t);
       }
-    }, 300); // 300ms debounce delay
 
-    return () => clearTimeout(timer);
+      if (tableId) {
+        const t = setTimeout(() => {
+          updateUrlState({ search: searchInput, page: 1 });
+        }, 400);
+
+        return () => clearTimeout(t);
+      } else {
+        setLocalSearchTerm(searchInput);
+        if (!serverSidePagination) setLocalCurrentPage(1);
+      }
+    }
   }, [
     searchInput,
     searchTerm,
@@ -1315,7 +1317,7 @@ const ReusableTable = <T extends TableItem>({
       <div className="relative flex-1 overflow-hidden">
         {/* Table Header (thead) - Sticky within the scrollable area */}
         {!loading && (
-          <div className="sticky top-0 z-10 bg-white dark:bg-[#1d1f20]">
+          <div className={`${stickyHeader ? 'sticky top-0 z-20' : ''} bg-white dark:bg-[#1d1f20]`}>
             <div
               ref={theadScrollRef}
               className="overflow-x-auto overflow-y-hidden scrollbar-hide"
@@ -1489,7 +1491,7 @@ ReusableTable.defaultProps = {
   multiSelect: false,
   actions: [],
   tableId: undefined,
-  stickyHeader: true,
+  stickyHeader: false,
 };
 
 export default ReusableTable;

@@ -12,6 +12,8 @@ import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
 import { OrganizationSetupBanner } from './OrganizationSetupBanner';
 
+import { setLastActiveModule } from '@/core/utils/userPreferences';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -20,8 +22,10 @@ export default function Layout({ children }: LayoutProps) {
   const [isPrimarySidebarOpen, setIsPrimarySidebarOpen] = useState(false);
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] =
     useState(false);
-  const [activeModule, setActiveModule] = useState('devices');
   const pathname = usePathname();
+  const [activeModule, setActiveModule] = useState<'devices' | 'admin'>(
+    pathname?.startsWith('/admin/') ? 'admin' : 'devices',
+  );
   const router = useRouter();
 
   const { isSwitching, switchingTo } = useAppSelector(
@@ -29,31 +33,37 @@ export default function Layout({ children }: LayoutProps) {
   );
 
   const isLoggingOut = useAppSelector(state => state.user.isLoggingOut);
+  const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
-    // Determine active module based on current pathname
-    if (
-      pathname.startsWith('/admin/')
-    ) {
-      setActiveModule('admin');
-    } else {
-      // Default to devices module (home, my-devices, claim)
-      setActiveModule('devices');
+    if (!pathname) return;
+
+    const newModule: 'devices' | 'admin' = pathname.startsWith('/admin/')
+      ? 'admin'
+      : 'devices';
+
+    // Only update state if it's actually changing
+    setActiveModule(prev => (prev === newModule ? prev : newModule));
+
+    // Save preference when module changes
+    const email = userDetails?.email || userDetails?.userName;
+    if (email) {
+      setLastActiveModule(newModule, email);
     }
-  }, [pathname]);
+  }, [pathname, userDetails]);
 
   const handleModuleChange = (module: string) => {
     if (module === activeModule) {
       setIsPrimarySidebarOpen(false);
       return;
     }
-    setActiveModule(module);
+    // Don't set state here - let the URL change drive it
     setIsPrimarySidebarOpen(false);
 
     // Navigate to module default route
     const moduleRoutes: Record<string, string> = {
       devices: '/home',
-      admin: '/admin/shipping',
+      admin: '/admin/networks',
     };
 
     router.push(moduleRoutes[module] || '/home');

@@ -526,6 +526,7 @@ export const useImportDevice = () => {
       readKey?: string;
       description?: string;
       serial_number: string;
+      api_code?: string;
     }
   >({
     mutationFn: devices.importDevice,

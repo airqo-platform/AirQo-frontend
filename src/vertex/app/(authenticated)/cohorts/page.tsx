@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { format } from 'date-fns';
 import { Badge } from "@/components/ui/badge";
@@ -23,8 +23,7 @@ type CohortRow = {
 
 export default function CohortsPage() {
     const router = useRouter();
-    const tableRef = useRef<HTMLDivElement>(null);
-
+    
     const {
         pagination, setPagination,
         searchTerm, setSearchTerm,
@@ -73,12 +72,6 @@ export default function CohortsPage() {
     const tableLoading = isDeterminingIds || (hasIdsToFetch && isFetchingCohorts);
 
     const displayError = (!hasIdsToFetch && !tableLoading) ? null : error;
-
-    useEffect(() => {
-        if (tableRef.current) {
-            tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-    }, [pagination.pageIndex]);
 
     const rows: CohortRow[] = useMemo(() => (cohorts || []).map((c: Cohort) => ({
         ...c,
@@ -138,7 +131,7 @@ export default function CohortsPage() {
                     </p>
                 </div>
 
-                <div ref={tableRef}>
+                <div>
                     <ReusableTable
                         title="Your Cohorts"
                         data={rows}
