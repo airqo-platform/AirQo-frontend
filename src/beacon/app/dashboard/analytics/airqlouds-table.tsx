@@ -15,13 +15,17 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Label } from "@/components/ui/label"
+import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
   Tooltip,
   TooltipContent,
@@ -86,9 +90,17 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
   const [searchTerm, setSearchTerm] = useState("")
   const [sortBy, setSortBy] = useState<keyof ProcessedAirQloud>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
+  const [trackingFilter, setTrackingFilter] = useState<"tracked" | "untracked">("tracked")
   const [rawData, setRawData] = useState<AirQloudWithPerformance[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [editingAirQloud, setEditingAirQloud] = useState<ProcessedAirQloud | null>(null)
+  const [editIsTracked, setEditIsTracked] = useState(false)
+  const [editCountry, setEditCountry] = useState("")
+  const [isUpdating, setIsUpdating] = useState(false)
 
   // Fetch data from API
   useEffect(() => {
@@ -123,9 +135,14 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     return rawData.map(processAirQloudData)
   }, [rawData])
 
-  // Sorted data (no filtering here since search is done server-side)
+  // Filter and sort data
   const sortedData = useMemo(() => {
-    const sorted = [...processedAirQlouds]
+    // Filter by tracking status (active/inactive)
+    const filtered = processedAirQlouds.filter(aq => 
+      trackingFilter === "tracked" ? aq.isActive : !aq.isActive
+    )
+    
+    const sorted = [...filtered]
     
     sorted.sort((a, b) => {
       const aValue = a[sortBy]
@@ -150,7 +167,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     })
 
     return sorted
-  }, [processedAirQlouds, sortBy, sortOrder])
+  }, [processedAirQlouds, sortBy, sortOrder, trackingFilter])
 
   const handleSort = (column: keyof ProcessedAirQloud) => {
     if (column === sortBy) {
@@ -165,11 +182,54 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     router.push(`/dashboard/analytics/${airqloudId}`)
   }
 
-  const getStatusBadge = (isActive: boolean) => {
-    return isActive ? (
-      <Badge className="bg-green-500">Active</Badge>
+  const openEditDialog = (e: React.MouseEvent, airqloud: ProcessedAirQloud) => {
+    e.stopPropagation() // Prevent row click
+    setEditingAirQloud(airqloud)
+    setEditIsTracked(airqloud.isActive)
+    setEditCountry(airqloud.location || "")
+    setEditDialogOpen(true)
+  }
+
+  const handleUpdateAirQloud = async () => {
+    if (!editingAirQloud) return
+    
+    setIsUpdating(true)
+    try {
+      await airQloudService.updateAirQloud(editingAirQloud.id, {
+        is_active: editIsTracked,
+        country: editCountry || null
+      })
+      // Refresh data after update
+      const data = await airQloudService.getAirQlouds({
+        include_performance: true,
+        performance_days: performanceDays,
+        search: searchTerm || undefined,
+      })
+      setRawData(data)
+      setEditDialogOpen(false)
+    } catch (err) {
+      console.error('Error updating AirQloud:', err)
+    } finally {
+      setIsUpdating(false)
+    }
+  }
+
+  const getStatusBadge = (airqloud: ProcessedAirQloud) => {
+    return airqloud.isActive ? (
+      <Badge 
+        className="bg-green-500 cursor-pointer hover:bg-green-600 transition-colors"
+        onClick={(e) => openEditDialog(e, airqloud)}
+      >
+        Tracked
+      </Badge>
     ) : (
-      <Badge variant="secondary">Inactive</Badge>
+      <Badge 
+        variant="secondary" 
+        className="cursor-pointer hover:bg-gray-300 transition-colors"
+        onClick={(e) => openEditDialog(e, airqloud)}
+      >
+        Untracked
+      </Badge>
     )
   }
 
@@ -284,18 +344,12 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
               className="pl-8"
             />
           </div>
-          <Select value={sortBy} onValueChange={(value) => setSortBy(value as keyof ProcessedAirQloud)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="uptime">Uptime</SelectItem>
-              <SelectItem value="onlinePercentage">Online %</SelectItem>
-              <SelectItem value="numberOfDevices">Devices</SelectItem>
-              <SelectItem value="errorMargin">Error Margin</SelectItem>
-            </SelectContent>
-          </Select>
+          <Tabs value={trackingFilter} onValueChange={(value) => setTrackingFilter(value as "tracked" | "untracked")}>
+            <TabsList>
+              <TabsTrigger value="tracked">Tracked</TabsTrigger>
+              <TabsTrigger value="untracked">Untracked</TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </CardHeader>
       <CardContent>
@@ -348,21 +402,23 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                       <ArrowUpDown className="ml-2 h-4 w-4" />
                     </Button>
                   </TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Tracking</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {sortedData.map((airqloud) => {
-                  const isDataLoading = airqloud.uptime === null && airqloud.errorMargin === null
+                  const isInactive = !airqloud.isActive
+                  const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
+                  const showNoDataMessage = isInactive || hasNoData
                   
                   return (
                     <TableRow 
                       key={airqloud.id}
-                      className={isDataLoading 
+                      className={showNoDataMessage 
                         ? "opacity-60" 
                         : "cursor-pointer hover:bg-muted/50 transition-colors"
                       }
-                      onClick={isDataLoading ? undefined : () => handleRowClick(airqloud.id)}
+                      onClick={showNoDataMessage ? undefined : () => handleRowClick(airqloud.id)}
                     >
                       <TableCell>
                         <div className="flex items-center justify-between">
@@ -372,11 +428,13 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                               <div className="text-sm text-muted-foreground">{airqloud.location}</div>
                             )}
                           </div>
-                          {!isDataLoading && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
+                          {!showNoDataMessage && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                         </div>
                       </TableCell>
                       <TableCell>
-                        {isDataLoading ? (
+                        {isInactive ? (
+                          <span className="text-muted-foreground italic">Inactive - Not tracked</span>
+                        ) : hasNoData ? (
                           <span className="text-muted-foreground italic">Data loading...</span>
                         ) : (
                           <UptimeMiniGraph 
@@ -389,7 +447,9 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                         <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
                       </TableCell>
                       <TableCell>
-                        {isDataLoading ? (
+                        {isInactive ? (
+                          <span className="text-muted-foreground italic">Inactive - Not tracked</span>
+                        ) : hasNoData ? (
                           <span className="text-muted-foreground italic">Data loading...</span>
                         ) : airqloud.errorMargin !== null ? (
                           <span
@@ -407,7 +467,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                           <span className="text-muted-foreground">N/A</span>
                         )}
                       </TableCell>
-                      <TableCell>{getStatusBadge(airqloud.isActive)}</TableCell>
+                      <TableCell>{getStatusBadge(airqloud)}</TableCell>
                     </TableRow>
                   )
                 })}
@@ -416,6 +476,57 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
           </div>
         )}
       </CardContent>
+
+      {/* Edit AirQloud Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit AirQloud</DialogTitle>
+            <DialogDescription>
+              Update tracking status and country for {editingAirQloud?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="tracking-status" className="font-medium">
+                  Tracking Status
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {editIsTracked ? "Currently tracking this AirQloud" : "Not tracking this AirQloud"}
+                </p>
+              </div>
+              <Switch
+                id="tracking-status"
+                checked={editIsTracked}
+                onCheckedChange={setEditIsTracked}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                placeholder="Enter country (optional)"
+                value={editCountry}
+                onChange={(e) => setEditCountry(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setEditDialogOpen(false)}
+              disabled={isUpdating}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleUpdateAirQloud} disabled={isUpdating}>
+              {isUpdating ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

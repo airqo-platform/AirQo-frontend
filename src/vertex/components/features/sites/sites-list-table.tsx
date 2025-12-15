@@ -8,7 +8,7 @@ import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import {
   badgeColorClasses,
   formatDisplayDate,
-  getSimpleStatus,
+  getDeviceStatus,
 } from "@/core/utils/status";
 
 interface SitesTableProps {
@@ -125,7 +125,11 @@ export default function SitesTable({
           ? formatDisplayDate(site.lastActive)
           : null;
 
-        const status = getSimpleStatus(site.isOnline, lastActiveCheck);
+        const status = getDeviceStatus(
+          site.isOnline,
+          site.rawOnlineStatus,
+          lastActiveCheck
+        );
         const colors = badgeColorClasses[status.color];
         const Icon = status.icon;
 

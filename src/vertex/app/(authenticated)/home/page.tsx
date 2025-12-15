@@ -3,17 +3,18 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
-import { PlusSquare, AlertTriangle } from "lucide-react";
+import { Plus, Upload, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
-import { useRouter } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { Skeleton } from "@/components/ui/skeleton";
 import HomeEmptyState from "@/components/features/home/HomeEmptyState";
 import { useDevices, useMyDevices } from "@/core/hooks/useDevices";
+import ContextHeader from "@/components/features/home/context-header";
+import NetworkVisibilityCard from "@/components/features/home/network-visibility-card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const StatsSkeleton = () => (
   <div className="space-y-4">
@@ -47,26 +48,19 @@ const DashboardStatsCards = dynamic(
   }
 );
 
-const WelcomePage = () => {
-  const router = useRouter();
-  const { data: session } = useSession();
-  const { userContext, userScope, hasError, error } = useUserContext();
+const ClaimDeviceModal = dynamic(
+  () => import("@/components/features/claim/claim-device-modal"),
+  { ssr: false }
+);
 
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+const WelcomePage = () => {
+  const { data: session } = useSession();
+  const { userContext, userScope, hasError, error, isLoading: isLoadingUserContext } = useUserContext();
+  const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
+
   const user = useAppSelector((state) => state.user.userDetails);
 
-  const allActions = [
-    {
-      href: "/devices/claim",
-      label: "Claim Device",
-      permission: PERMISSIONS.DEVICE.UPDATE,
-      showInPersonal: true,
-      showInAirQoInternal: true,
-      showInExternalOrg: true,
-    }
-  ];
-
-  const permissionsToCheck = allActions.map((action) => action.permission);
+  const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
   const permissionsMap = usePermissions(permissionsToCheck);
 
   const userId = (session?.user as { id?: string })?.id || user?._id;
@@ -103,7 +97,7 @@ const WelcomePage = () => {
   // 2. Loading state - show loading UI while data is being fetched
   const isLoading =
     (userScope === 'personal' && isLoadingMyDevices) ||
-    (userScope === 'organisation' && isLoadingGroupDevices);
+    (userScope === 'organisation' && isLoadingGroupDevices) || isLoadingUserContext;
 
   if (isLoading) {
     return (
@@ -145,91 +139,79 @@ const WelcomePage = () => {
   // MAIN UI - Only renders when we have data to show
   // ============================================================
 
-  const getContextTitle = () => {
-    switch (userContext) {
-      case "personal":
-        return "your space";
-      case "external-org":
-        return activeGroup?.grp_title.split("_").join(" ") || "Organization";
-      default:
-        return "Dashboard";
-    }
-  };
-
-  const getContextDescription = () => {
-    switch (userContext) {
-      case "personal":
-        return "Manage and monitor your personal devices. You can switch to an organisation view anytime";
-      case "external-org":
-        return `View and manage all devices linked to your organisation`;
-      default:
-        return "Welcome to your dashboard";
-    }
-  };
-
   // Filter actions based on context
-  const getContextActions = () => {
-    return allActions.filter((action) => {
-      switch (userContext) {
-        case "personal":
-          return action.showInPersonal;
-        case "external-org":
-          return action.showInExternalOrg;
-        default:
-          return true;
-      }
-    });
-  };
+  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
 
-  const actions = getContextActions();
+  // Determine if action is visible in current context
+  const showClaimDevice = (() => {
+    switch (userContext) {
+      case "personal":
+        return true;
+      case "external-org":
+        return true;
+      default:
+        return true;
+    }
+  })();
 
   return (
     <div>
-      <DashboardWelcomeBanner />
+      <ContextHeader />
 
-      {/* Context Header */}
-      <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-gradient-to-r from-primary to-primary/80 text-white p-8">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-3xl lg:text-4xl font-bold mb-2 text-white">
-            You&apos;re in{" "}
-            <span className="capitalize">{getContextTitle()}! 👋</span>
-          </h1>
-        </div>
-        <p className="mt-2 text-lg text-white/90 max-w-2xl">
-          {getContextDescription()}
-        </p>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="mb-10">
-        <DashboardStatsCards />
-      </div>
-
-      {/* Quick Access Buttons */}
-      {actions.length > 0 && (
-        <div className="mb-10">
-          <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
-            {actions.map((action) => {
-              const hasPermission = permissionsMap[action.permission];
-              return (
-                <ReusableButton
-                  key={action.href}
-                  variant="outlined"
-                  className="w-full"
-                  padding="p-3"
-                  disabled={!hasPermission}
-                  permission={action.permission}
-                  onClick={() => router.push(action.href)}
-                  Icon={PlusSquare}
-                >
-                  {action.label}
-                </ReusableButton>
-              );
-            })}
+      {showClaimDevice && (
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h1 className="text-2xl">Home</h1>
+          <div className="flex gap-3">
+            <ReusableButton
+              variant="filled"
+              disabled={!canClaimDevice}
+              permission={PERMISSIONS.DEVICE.UPDATE}
+              onClick={() => setIsClaimModalOpen(true)}
+              Icon={Plus}
+            >
+              Claim AirQo Device
+            </ReusableButton>
+            <ReusableButton
+              variant="outlined"
+              disabled={true}
+              title="Import feature coming soon"
+              Icon={Upload}
+            >
+              Import Existing Device
+            </ReusableButton>
           </div>
         </div>
       )}
+
+      <div className="mb-3">
+        <Accordion type="multiple" defaultValue={['stats', 'visibility']} className="space-y-4">
+          <AccordionItem value="stats" className="bg-white dark:bg-transparent border rounded-lg px-6">
+            <AccordionTrigger className="hover:no-underline py-4">
+              <h2 className="text-xl">Device Health</h2>
+            </AccordionTrigger>
+            <AccordionContent className="pb-6 pt-2">
+              <DashboardStatsCards />
+            </AccordionContent>
+          </AccordionItem>
+
+          {userContext === 'external-org' && (
+            <AccordionItem value="visibility" className="bg-white dark:bg-transparent border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline py-4">
+                <h2 className="text-xl">Device Visibility</h2>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2">
+                <NetworkVisibilityCard />
+              </AccordionContent>
+            </AccordionItem>
+          )}
+        </Accordion>
+      </div>
+
+      <ClaimDeviceModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        redirectOnSuccess={true}
+      />
     </div>
   );
 };
