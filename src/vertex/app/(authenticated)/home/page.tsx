@@ -6,7 +6,6 @@ import { useSession } from "next-auth/react";
 import { Plus, Upload, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
-import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
 import ReusableButton from "@/components/shared/button/ReusableButton";
@@ -157,8 +156,6 @@ const WelcomePage = () => {
 
   return (
     <div>
-      <DashboardWelcomeBanner />
-
       <ContextHeader />
 
       {showClaimDevice && (
