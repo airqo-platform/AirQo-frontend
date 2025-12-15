@@ -188,9 +188,10 @@ export const DashboardStatsCards = () => {
         // Using approximate mapping based on standard fields
         return {
           total: summary.deployed + summary.undeployed + summary.recalled,
-          operational: summary.online, // Approx
-          transmitting: 0, // No direct mapping in current count API for "Transmitting"
-          notTransmitting: summary.offline, // Approx
+          operational: summary.online,
+          // TODO: API doesn't provide transmitting status for org scope yet
+          transmitting: null, // Explicitly null to indicate unavailable
+          notTransmitting: summary.offline,
         };
       }
     }
@@ -241,7 +242,7 @@ export const DashboardStatsCards = () => {
 
         <StatCard
           title="Transmitting"
-          value={metrics.transmitting}
+          value={metrics.transmitting ?? "N/A"}
           description={getStatusExplanation("Transmitting")}
           icon={<AqMonitor className="w-6 h-6" />}
           isLoading={isLoading}
