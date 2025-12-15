@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Globe, Lock, AlertTriangle } from 'lucide-react';
+import { Globe, Lock } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { useCohorts, useGroupCohorts } from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
@@ -113,12 +113,6 @@ const NetworkVisibilityCard = () => {
     // UI States
     const isPrivate = !isChecked; // State A
 
-    // State A: Private
-    // Icon: Lock (Gray/Dark Blue), Headline: "Your network is Private", Description: "Your sensors are hidden..."
-
-    // State B: Public
-    // Icon: Globe (Green/Blue), Headline: "Your network is Public", Description: "Your sensors are visible..."
-
     return (
         <>
             <div className="pt-2">
@@ -206,15 +200,6 @@ const NetworkVisibilityCard = () => {
                             : "You are about to make your entire network private. Your data will only be visible to your organization and will not appear on the public map."
                         }
                     </p>
-
-                    {targetVisibility && (
-                        <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-md border border-yellow-100 dark:border-yellow-800 flex gap-3">
-                            <AlertTriangle className="w-5 h-5 text-yellow-600 dark:text-yellow-500 shrink-0 mt-0.5" />
-                            <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                                <span className="font-semibold">GPS Note:</span> Ensure your devices have correct locations before proceeding.
-                            </div>
-                        </div>
-                    )}
                 </div>
             </ReusableDialog>
         </>
