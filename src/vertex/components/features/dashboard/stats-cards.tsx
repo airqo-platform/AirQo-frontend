@@ -200,7 +200,7 @@ export const DashboardStatsCards = () => {
     return {
       total: 0,
       operational: 0,
-      transmitting: 0,
+      transmitting: isPersonalScope ? 0 : null,
       notTransmitting: 0,
     };
   }, [
