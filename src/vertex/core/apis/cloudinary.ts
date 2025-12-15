@@ -41,28 +41,34 @@ const validateFile = (file: File) => {
   }
 };
 
-const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
-const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+const getCloudinaryConfig = () => {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+  const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
 
-if (!CLOUD_NAME) {
-  throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_NAME is missing in environment variables.');
-}
+  if (!cloudName) {
+    throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_NAME is missing in environment variables.');
+  }
 
-if (!UPLOAD_PRESET) {
-  throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_PRESET is missing in environment variables.');
-}
+  if (!uploadPreset) {
+    throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_PRESET is missing in environment variables.');
+  }
 
-const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}`;
+  return {
+    cloudinaryUrl: `https://api.cloudinary.com/v1_1/${cloudName}`,
+    uploadPreset,
+  };
+};
 
 export const uploadToCloudinary = async (
   file: File,
   options: CloudinaryUploadOptions = {}
 ): Promise<CloudinaryUploadResult> => {
   validateFile(file);
+  const { cloudinaryUrl, uploadPreset } = getCloudinaryConfig();
 
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', UPLOAD_PRESET);
+  formData.append('upload_preset', uploadPreset);
 
   if (options.folder) {
     formData.append('folder', options.folder);
@@ -92,6 +98,7 @@ export const uploadToCloudinary = async (
 
 // Maintain backward compatibility if needed, or deprecate
 export const cloudinaryImageUpload = async (formData: any) => {
+  const { cloudinaryUrl } = getCloudinaryConfig();
   return await fetch(`${cloudinaryUrl}/image/upload`, {
     method: 'POST',
     body: formData,
