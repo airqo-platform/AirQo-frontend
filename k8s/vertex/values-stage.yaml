@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-stage-vertex
-  tag: stage-2699ec36-1765776266
+  tag: stage-57bf63a4-1765828967
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
