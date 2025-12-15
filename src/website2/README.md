@@ -131,7 +131,6 @@ The backend for this project is built with Django and is maintained in the [airq
 We welcome contributions from the open source community. To help you get started, please follow these steps:
 
 1. **Fork and Clone:**
-
    - Fork the repository on GitHub.
    - Clone your fork to your local machine:
      ```bash
@@ -139,20 +138,17 @@ We welcome contributions from the open source community. To help you get started
      ```
 
 2. **Create a Branch:**
-
    - Create a feature or bug-fix branch:
      ```bash
      git checkout -b feature/your-feature-name
      ```
 
 3. **Make Your Changes:**
-
    - Follow the coding standards and guidelines established in the project.
    - Update documentation as needed.
    - Test your changes locally to ensure everything works as expected.
 
 4. **Commit and Push:**
-
    - Commit your changes with a clear commit message:
      ```bash
      git commit -m "Description of your changes"

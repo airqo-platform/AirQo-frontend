@@ -89,6 +89,13 @@ const TopBanner = () => {
         <div className="container mx-auto max-w-5xl px-2 flex justify-between items-center py-1">
           <div className="flex items-center space-x-4">
             <a
+              href="mailto:info@airqo.net"
+              className="hidden md:block text-blue-600 font-medium text-sm hover:text-blue-800 transition-colors"
+              aria-label="Contact us via email"
+            >
+              (info@airqo.net)
+            </a>
+            <a
               href="https://www.facebook.com/AirQo"
               target="_blank"
               rel="noopener noreferrer"
