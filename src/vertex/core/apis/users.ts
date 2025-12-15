@@ -70,27 +70,4 @@ export const users = {
       throw error;
     }
   },
-  createOrganizationRequestApi: async (data: any) => {
-    try {
-      const response = await createSecureApiClient().post(
-        `/users/org-requests`,
-        data,
-        { headers: { "X-Auth-Type": "JWT" } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-  checkSlugAvailabilityApi: async (slug: string) => {
-    try {
-      const response = await createSecureApiClient().get(
-        `/users/org-requests/slug-availability/${slug}`,
-        { headers: { "X-Auth-Type": "JWT" } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
 };
