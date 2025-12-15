@@ -147,7 +147,9 @@ export const DashboardStatsCards = () => {
     ).length;
 
     const notTransmitting = devices.filter(
-      (d) => d.rawOnlineStatus === false && d.isOnline === false
+      (d) =>
+        (d.rawOnlineStatus === false || d.rawOnlineStatus === undefined) &&
+        d.isOnline === false
     ).length;
 
     return {
