@@ -206,7 +206,7 @@ export const DashboardStatsCards = () => {
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
         <StatCard
-          title="Total Monitors"
+          title="Total Devices"
           value={metrics.total}
           description={`All devices assigned to ${isPersonalScope ? "your" : "organization"
             } account.`}
