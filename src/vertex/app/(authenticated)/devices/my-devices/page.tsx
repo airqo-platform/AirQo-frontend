@@ -47,7 +47,10 @@ const MyDevicesPage = () => {
   const isLoading = userScope === 'personal' ? isLoadingMyDevices : isLoadingOrgDevices;
   const error = userScope === 'personal' ? myDevicesError : orgDevicesError;
   const searchParams = useSearchParams();
-  const statusFilter = searchParams.get("status");
+  const rawStatus = searchParams.get("status");
+  const statusFilter = ["operational", "transmitting", "not_transmitting"].includes(rawStatus || "")
+    ? rawStatus
+    : null;
 
   const filteredDevices = React.useMemo(() => {
     if (!devices) return [];
