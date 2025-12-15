@@ -93,6 +93,7 @@ const StatCard = ({
         }}
         role={onClick ? "button" : undefined}
         tabIndex={onClick ? 0 : undefined}
+        aria-label={onClick ? `View ${title.toLowerCase()} devices` : undefined}
       >
         <CardContent className="flex flex-col h-full justify-between p-4 gap-4">
           <div className="flex items-start justify-between">
