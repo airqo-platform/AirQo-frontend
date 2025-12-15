@@ -56,19 +56,12 @@ const MyDevicesPage = () => {
         return device.rawOnlineStatus === true && device.isOnline === true;
       }
 
-      if (statusFilter === "needs_attention") {
-        const isNotTransmitting = device.rawOnlineStatus === false;
+      if (statusFilter === "transmitting") {
+        return device.rawOnlineStatus === true && device.isOnline === false;
+      }
 
-        let isInvalidDate = false;
-        if (device.lastActive) {
-          const lastActiveTime = new Date(device.lastActive).getTime();
-          const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
-          if (lastActiveTime > fiveMinutesFromNow) {
-            isInvalidDate = true;
-          }
-        }
-
-        return isNotTransmitting || isInvalidDate;
+      if (statusFilter === "not_transmitting") {
+        return device.rawOnlineStatus === false && device.isOnline === false;
       }
 
       return true;
