@@ -3,6 +3,55 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.5
+**Released:** December 15, 2025
+
+### Dashboard UX & Status Alignment
+
+Overhauled the Home dashboard to improve usability and implemented strict logic alignment for device statuses across the platform.
+
+<details>
+<summary><strong>Feature Updates (3)</strong></summary>
+
+- **Dashboard Redesign**: 
+    - Moved primary actions ("Claim AirQo Device", "Import Device") to a dedicated header bar for visibility.
+    - Added a **"Device Health"** accordion containing Refactored Stats Cards.
+    - Added a dismissable "Welcome" context header to save screen space.
+    - Removed the bottom "Quick Access" section.
+- **Global Claim Modal**: The "Claim AirQo Device" button now opens the claim modal directly on the dashboard instead of redirecting to a separate page.
+- **Network Visibility**: Dedicated **Visibility Card** (External Orgs) with clear "Public" vs "Private" toggle states and safety confirmation.
+
+</details>
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Stats Logic Alignment**: 
+    - Updated Dashboard Stats Cards to strictly match documentation: **Operational** (Green), **Transmitting** (Blue), **Not Transmitting** (Gray).
+    - Removed ambiguous "Needs Attention" categories.
+    - Status colors are now applied to **icons** instead of card backgrounds for a cleaner look.
+- **Site Status Consistency**: 
+    - Updated Sites to use the same 4-state logic (`Operational`, `Transmitting`, `Data Available`, `Not Transmitting`) as Devices.
+    - Added tooltips to explain statuses in Site details.
+- **Filtering**: 
+    - Updated device list filtering to support new status query parameters (`?status=transmitting`, etc.).
+
+</details>
+
+<details>
+<summary><strong>Files Modified (6)</strong></summary>
+
+- `app/(authenticated)/home/page.tsx`
+- `components/features/dashboard/stats-cards.tsx`
+- `components/features/home/context-header.tsx`
+- `components/features/home/network-visibility-card.tsx`
+- `components/features/devices/device-list-table.tsx`
+- `core/utils/status.ts`
+
+</details>
+
+---
+
 ## Version 1.23.4
 **Released:** December 13, 2025
 
