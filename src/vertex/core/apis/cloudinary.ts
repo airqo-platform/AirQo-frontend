@@ -75,7 +75,7 @@ export const uploadToCloudinary = async (
   }
 
   if (options.tags?.length) {
-    options.tags.forEach((tag) => formData.append('tags', tag));
+    formData.append('tags', options.tags.join(','));
   }
 
   try {
