@@ -14,6 +14,7 @@ export interface Site {
   site_codes: string[];
   site_tags: string[];
   isOnline: boolean;
+  rawOnlineStatus?: boolean;
   formatted_name: string;
   location_name: string;
   search_name: string;

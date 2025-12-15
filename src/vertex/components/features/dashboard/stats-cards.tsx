@@ -3,62 +3,77 @@
 import { useMyDevices, useDeviceCount } from "@/core/hooks/useDevices";
 import { useAppSelector } from "@/core/redux/hooks";
 import { Card, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
 import {
   AqMonitor,
   AqCollocation,
   AqWifiOff,
-  AqAlertCircle,
 } from "@airqo/icons-react";
+import { Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useCallback } from "react";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { Device } from "@/app/types/devices";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { getStatusExplanation } from "@/core/utils/status";
 
 interface StatCardProps {
   title: string;
   value: number | string;
-  subtitle?: string;
   description?: string;
   icon: React.ReactNode;
   isLoading?: boolean;
-  variant?: "default" | "success" | "warning" | "destructive";
+  variant?: "default" | "success" | "warning" | "destructive" | "info" | "primary";
+  onClick?: () => void;
 }
 
 const StatCard = ({
   title,
   value,
-  subtitle,
   description,
   icon,
   isLoading,
   variant = "default",
+  onClick,
 }: StatCardProps) => {
-  const getVariantStyles = useCallback(() => {
+  const getContainerStyles = useCallback(() => {
+    const baseStyles = "rounded-lg border bg-white dark:bg-gray-800 relative overflow-hidden p-0";
+    const interactiveStyles = onClick ? "cursor-pointer transition-all hover:shadow-md hover:border-primary/20" : "";
+    return `${baseStyles} ${interactiveStyles}`;
+  }, [onClick]);
+
+  const getIconColor = useCallback(() => {
     switch (variant) {
       case "success":
-        return "border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800";
+        return "text-green-500 bg-green-50 dark:bg-green-900/10";
       case "warning":
-        return "border-yellow-200 bg-yellow-50 dark:bg-yellow-950/20 dark:border-yellow-800";
+        return "text-yellow-500 bg-yellow-50 dark:bg-yellow-900/10";
       case "destructive":
-        return "border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800";
+        return "text-red-500 bg-red-50 dark:bg-red-900/10";
+      case "info":
+        return "text-blue-500 bg-blue-50 dark:bg-blue-900/10";
+      case "primary":
+        return "text-primary bg-primary/10";
       default:
-        return "rounded-lg max-w-5xl mx-auto bg-[#E9F7EF] group border-0 bg-white dark:bg-gray-800 relative overflow-hidden p-0";
+        return "text-gray-500 bg-gray-50 dark:bg-gray-900/10";
     }
   }, [variant]);
 
   if (isLoading) {
     return (
       <div className="md:col-span-1 lg:col-span-1">
-        <Card className={getVariantStyles()}>
-          <CardContent className="flex flex-col h-full justify-center p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-2 flex-1">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-8 w-16" />
-                {subtitle && <Skeleton className="h-3 w-32" />}
-              </div>
-              <Skeleton className="h-12 w-12 rounded-full" />
+        <Card className={getContainerStyles()}>
+          <CardContent className="flex flex-col h-full justify-between p-6 gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-24" />
+              {description && <Skeleton className="h-4 w-4 rounded-full" />}
             </div>
+            <Skeleton className="h-10 w-16" />
           </CardContent>
         </Card>
       </div>
@@ -67,25 +82,46 @@ const StatCard = ({
 
   const cardContent = (
     <div className="md:col-span-1 lg:col-span-1">
-      <Card className={getVariantStyles()}>
-        <CardContent className="flex flex-col h-full justify-center p-6">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                {icon}
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  {title}
-                </span>
-                <span className="text-xs text-gray-400 dark:text-gray-500 max-w-24 w-full">
-                  {description}
-                </span>
-              </div>
+      <Card
+        className={getContainerStyles()}
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (onClick && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        aria-label={onClick ? `View ${title.toLowerCase()} devices` : undefined}
+      >
+        <CardContent className="flex flex-col h-full justify-between p-4 gap-4">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-2">
+              <h5 className="text-md">
+                {title}
+              </h5>
+              {description && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-gray-400 cursor-help hover:text-primary transition-colors" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-xs text-xs">{description}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </div>
-            <span className="text-4xl font-extrabold text-gray-900 dark:text-white text-right">
+          </div>
+          <div className="flex items-end justify-between">
+            <span className="text-3xl font-bold text-primary">
               {value}
             </span>
+            <div className={`p-2 rounded-xl ${getIconColor()}`}>
+              {icon}
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -111,25 +147,28 @@ export const DashboardStatsCards = () => {
     enabled: userScope === 'organisation',
   });
 
-  const calculateDeviceStats = useCallback((devices: Device[]) => {
-    const online = devices.filter(
-      (device) => device.isOnline || device.status === "online"
+  const calculateMetrics = useCallback((devices: Device[]) => {
+    const total = devices.length;
+
+    const operational = devices.filter(
+      (d) => d.rawOnlineStatus === true && d.isOnline === true
     ).length;
-    const offline = devices.filter(
-      (device) => !device.isOnline || device.status === "offline"
+
+    const transmitting = devices.filter(
+      (d) => d.rawOnlineStatus === true && d.isOnline === false
+    ).length;
+
+    const notTransmitting = devices.filter(
+      (d) =>
+        (d.rawOnlineStatus === false || d.rawOnlineStatus === undefined) &&
+        d.isOnline === false
     ).length;
 
     return {
-      total: devices.length,
-      online,
-      offline,
-      maintenance: {
-        due: devices.filter((device) => device.maintenance_status === "due")
-          .length,
-        overdue: devices.filter(
-          (device) => device.maintenance_status === "overdue"
-        ).length,
-      },
+      total,
+      operational,
+      transmitting,
+      notTransmitting,
     };
   }, []);
 
@@ -138,84 +177,88 @@ export const DashboardStatsCards = () => {
     : deviceCountQuery.isLoading;
 
   const metrics = useMemo(() => {
-    let totalMonitors = 0;
-    let activeMonitors = 0;
-    let pendingDeployments = 0;
-    let recentAlerts = 0;
-
     if (isPersonalScope) {
       const myDevicesData = myDevicesQuery.data;
       if (myDevicesData) {
-        totalMonitors = myDevicesData.total_devices || 0;
-
-        const deviceStats = calculateDeviceStats(
-          myDevicesData.devices || []
-        );
-        activeMonitors = deviceStats.online;
-        pendingDeployments = myDevicesData.devices?.filter(
-          (device) =>
-            device.claim_status === "claimed" && device.status !== "deployed"
-        ).length || 0;
-        recentAlerts =
-          deviceStats.maintenance.overdue;
+        return calculateMetrics(myDevicesData.devices || []);
       }
     } else {
       const summary = deviceCountQuery.data?.summary;
       if (summary) {
-        totalMonitors = summary.deployed + summary.undeployed + summary.recalled;
-        activeMonitors = summary.online;
-        pendingDeployments = summary.undeployed;
-        recentAlerts = summary.maintenance_overdue;
+        // Fallback or mapping for Org scope (until API supports strict fields better)
+        // Using approximate mapping based on standard fields
+        return {
+          total: summary.deployed + summary.undeployed + summary.recalled,
+          operational: summary.online,
+          // TODO: API doesn't provide transmitting status for org scope yet
+          transmitting: null, // Explicitly null to indicate unavailable
+          notTransmitting: summary.offline,
+        };
       }
     }
 
     return {
-      totalMonitors,
-      activeMonitors,
-      pendingDeployments,
-      recentAlerts,
+      total: 0,
+      operational: 0,
+      transmitting: isPersonalScope ? 0 : null,
+      notTransmitting: 0,
     };
   }, [
     isPersonalScope,
     myDevicesQuery.data,
     deviceCountQuery.data,
-    calculateDeviceStats,
+    calculateMetrics,
   ]);
+
+  const router = useRouter();
+
+  const handleNavigation = (queryString: string) => {
+    const basePath = isPersonalScope ? "/devices/my-devices" : "/devices/overview";
+    router.push(`${basePath}${queryString}`);
+  };
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
         <StatCard
           title="Total Devices"
-          value={metrics.totalMonitors}
-          description={`All ${isPersonalScope ? "your" : "organization"
-            } devices`}
-          icon={<AqCollocation className="w-6 h-6 text-primary" />}
+          value={metrics.total}
+          description={`All devices assigned to ${isPersonalScope ? "your" : "organization"
+            } account.`}
+          icon={<AqCollocation className="w-6 h-6" />}
           isLoading={isLoading}
+          onClick={() => handleNavigation('')}
+          variant="primary"
         />
 
         <StatCard
-          title="Active Devices"
-          value={metrics.activeMonitors}
-          description="Devices sending data"
-          icon={<AqMonitor className="w-6 h-6 text-primary" />}
+          title="Operational"
+          value={metrics.operational}
+          description={getStatusExplanation("Operational")}
+          icon={<AqMonitor className="w-6 h-6" />}
           isLoading={isLoading}
+          onClick={() => handleNavigation('?status=operational')}
+          variant="success"
         />
 
         <StatCard
-          title="Needs Deployment"
-          value={metrics.pendingDeployments}
-          description="Claimed devices not yet deployed"
-          icon={<AqWifiOff className="w-6 h-6 text-primary" />}
+          title="Transmitting"
+          value={metrics.transmitting ?? "N/A"}
+          description={getStatusExplanation("Transmitting")}
+          icon={<AqMonitor className="w-6 h-6" />}
           isLoading={isLoading}
+          onClick={() => handleNavigation('?status=transmitting')}
+          variant="info"
         />
 
         <StatCard
-          title="Recent Alerts"
-          value={metrics.recentAlerts}
-          description="Devices needing maintenance"
-          icon={<AqAlertCircle className="w-6 h-6 text-primary" />}
+          title="Not Transmitting"
+          value={metrics.notTransmitting}
+          description={getStatusExplanation("Not Transmitting")}
+          icon={<AqWifiOff className="w-6 h-6" />}
           isLoading={isLoading}
+          onClick={() => handleNavigation('?status=not_transmitting')}
+          variant="default"
         />
       </div>
     </div>

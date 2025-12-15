@@ -52,7 +52,7 @@ interface ErrorResponse {
   };
 }
 
-export interface DeviceListingOptions {
+export type DeviceListingOptions = Partial<Device> & {
   page?: number;
   limit?: number;
   search?: string;
@@ -60,7 +60,7 @@ export interface DeviceListingOptions {
   order?: 'asc' | 'desc';
   network?: string;
   enabled?: boolean;
-}
+};
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
@@ -74,15 +74,18 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     }
   );
 
-  const { page = 1, limit = 100, search, sortBy, order, network } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network, enabled: _enabled, ...rest } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
+  // Combine known params with dynamic rest params for the query key
+  const queryParams = { page, limit, search, sortBy, order, network, ...rest };
+
   const queryKey = [
     'devices',
     activeGroup?.grp_title,
-    { page, limit, search, sortBy, order, network },
+    queryParams,
     groupCohortIds,
   ];
 
@@ -100,6 +103,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
           ...(sortBy && { sortBy }),
           ...(order && { order }),
           ...(network && { network }),
+          ...rest,
         };
         return devices.getDevicesSummaryApi(params);
       }
@@ -117,6 +121,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
         ...(sortBy && { sortBy }),
         ...(order && { order }),
         ...(network && { network }),
+        ...rest,
       });
     },
     enabled:

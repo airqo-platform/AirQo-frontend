@@ -15,11 +15,16 @@ import {
   setInitialized,
   logout as logoutAction,
   setUserContext,
+  initializeUserData,
 } from '@/core/redux/slices/userSlice';
 import { users } from '@/core/apis/users';
 import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
 import ReusableToast from '@/components/shared/toast/ReusableToast';
 import SessionLoadingState from '@/components/layout/loading/session-loading';
+import {
+  getLastActiveGroupId,
+  setLastActiveGroupId,
+} from '@/core/utils/userPreferences';
 import type {
   Network,
   Group,
@@ -48,7 +53,9 @@ function determineInitialUserSetup(
   filteredGroups: Group[],
   filteredNetworks: Network[],
   userContext: 'personal' | 'external-org' | null,
+
   activeGroup: Group | null,
+  lastActiveGroupId: string | null,
 ): {
   defaultNetwork?: Network;
   defaultGroup?: Group;
@@ -59,6 +66,7 @@ function determineInitialUserSetup(
   if (isManualPersonalMode) {
     const airqoGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo');
     if (airqoGroup) {
+      // Logic for manual personal mode
     } else {
       return { initialUserContext: 'personal' };
     }
@@ -67,12 +75,22 @@ function determineInitialUserSetup(
   let defaultGroup: Group | undefined;
   let defaultNetwork: Network | undefined;
 
+  // 1. Try to restore from activeGroup (Redux state)
   if (activeGroup) {
     if (filteredGroups.some((g) => g._id === activeGroup._id)) {
       defaultGroup = activeGroup;
     }
   }
 
+  // 2. Try to restore from lastActiveGroupId (Persistent User Preference)
+  if (!defaultGroup && lastActiveGroupId) {
+    const lastGroup = filteredGroups.find((g) => g._id === lastActiveGroupId);
+    if (lastGroup) {
+      defaultGroup = lastGroup;
+    }
+  }
+
+  // 3. Fallback to AirQo or first available group
   if (!defaultGroup && !activeGroup) {
     defaultGroup = filteredGroups.find((g) => g.grp_title.toLowerCase() === 'airqo') || filteredGroups[0];
   } else if (!defaultGroup) {
@@ -291,23 +309,26 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
         filteredGroups,
         filteredNetworks,
         userContext,
-        activeGroup
+        activeGroup,
+        getLastActiveGroupId(userInfo._id)
       );
 
-    dispatch(setUserDetails(userInfo));
-    dispatch(setUserGroups(filteredGroups));
-    dispatch(setAvailableNetworks(filteredNetworks));
-
-    if (defaultNetwork) {
-      dispatch(setActiveNetwork(defaultNetwork));
-    }
-    dispatch(setActiveGroup(defaultGroup || null));
-    dispatch(setUserContext(initialUserContext));
-
-    if (!isInitialized) {
-      dispatch(setInitialized());
-    }
+    dispatch(initializeUserData({
+      userDetails: userInfo,
+      groups: filteredGroups,
+      availableNetworks: filteredNetworks,
+      activeGroup: defaultGroup || null,
+      activeNetwork: defaultNetwork,
+      userContext: initialUserContext,
+    }));
   }, [data, dispatch, isInitialized, userContext, activeGroup]);
+
+  // Persist the active group whenever it changes
+  useEffect(() => {
+    if (activeGroup?._id && cachedUser?._id) {
+      setLastActiveGroupId(cachedUser._id, activeGroup._id);
+    }
+  }, [activeGroup, cachedUser]);
 
   // Check if user has no groups and should be logged out
   useEffect(() => {

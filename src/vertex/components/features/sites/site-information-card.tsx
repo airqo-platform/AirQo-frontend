@@ -13,7 +13,7 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import {
   badgeColorClasses,
   formatDisplayDate,
-  getSimpleStatus,
+  getDeviceStatus,
   getStatusExplanation,
 } from "@/core/utils/status";
 
@@ -36,7 +36,11 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
     ? formatDisplayDate(site.lastActive)
     : null;
 
-  const status = getSimpleStatus(site.isOnline, lastActiveCheck);
+  const status = getDeviceStatus(
+    site.isOnline,
+    site.rawOnlineStatus,
+    lastActiveCheck
+  );
   const colors = badgeColorClasses[status.color];
   const Icon = status.icon;
   const explanation = getStatusExplanation(status.label, lastActiveCheck);
