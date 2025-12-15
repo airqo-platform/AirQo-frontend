@@ -23,7 +23,9 @@ export default function Layout({ children }: LayoutProps) {
   const [isSecondarySidebarCollapsed, setIsSecondarySidebarCollapsed] =
     useState(false);
   const pathname = usePathname();
-  const [activeModule, setActiveModule] = useState(pathname?.startsWith('/admin/') ? 'admin' : 'devices');
+  const [activeModule, setActiveModule] = useState<'devices' | 'admin'>(
+    pathname?.startsWith('/admin/') ? 'admin' : 'devices',
+  );
   const router = useRouter();
 
   const { isSwitching, switchingTo } = useAppSelector(
@@ -34,27 +36,28 @@ export default function Layout({ children }: LayoutProps) {
   const userDetails = useAppSelector(state => state.user.userDetails);
 
   useEffect(() => {
-    // Determine active module based on current pathname
-    const newModule = pathname.startsWith('/admin/') ? 'admin' : 'devices';
+    if (!pathname) return;
 
-    // Only update state AND save if it's actually changing
-    if (newModule !== activeModule) {
-      setActiveModule(newModule);
+    const newModule: 'devices' | 'admin' = pathname.startsWith('/admin/')
+      ? 'admin'
+      : 'devices';
 
-      // Save preference when module changes
-      const email = userDetails?.email || userDetails?.userName;
-      if (email) {
-        setLastActiveModule(newModule, email);
-      }
+    // Only update state if it's actually changing
+    setActiveModule(prev => (prev === newModule ? prev : newModule));
+
+    // Save preference when module changes
+    const email = userDetails?.email || userDetails?.userName;
+    if (email) {
+      setLastActiveModule(newModule, email);
     }
-  }, [pathname, activeModule, userDetails]);
+  }, [pathname, userDetails]);
 
   const handleModuleChange = (module: string) => {
     if (module === activeModule) {
       setIsPrimarySidebarOpen(false);
       return;
     }
-    setActiveModule(module);
+    // Don't set state here - let the URL change drive it
     setIsPrimarySidebarOpen(false);
 
     // Navigate to module default route
