@@ -86,7 +86,7 @@ const StatCard = ({
         <CardContent className="flex flex-col h-full justify-between p-4 gap-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <h5 className="text-md text-gray-500 dark:text-gray-400">
+              <h5 className="text-md">
                 {title}
               </h5>
               {description && (
