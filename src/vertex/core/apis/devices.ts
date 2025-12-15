@@ -88,29 +88,25 @@ export interface MaintenanceActivitiesResponse {
   site_activities: MaintenanceActivity[];
 }
 
-export interface GetDevicesSummaryParams {
-  network?: string;
-  group?: string;
+export type GetDevicesSummaryParams = Partial<Device> & {
   limit?: number;
   skip?: number;
   search?: string;
   sortBy?: string;
   order?: "asc" | "desc";
-}
+  group?: string;
+};
 
 export const devices = {
   getDevicesSummaryApi: async (params: GetDevicesSummaryParams) => {
     try {
-      const { network, group, limit, skip, search, sortBy, order } = params;
       const queryParams = new URLSearchParams();
 
-      if (network) queryParams.set("network", network);
-      if (group) queryParams.set("group", group);
-      if (limit !== undefined) queryParams.set("limit", String(limit));
-      if (skip !== undefined) queryParams.set("skip", String(skip));
-      if (search) queryParams.set("search", search);
-      if (sortBy) queryParams.set("sortBy", sortBy);
-      if (sortBy && order) queryParams.set("order", order);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.set(key, String(value));
+        }
+      });
 
       const response = await jwtApiClient.get<DevicesSummaryResponse>(
         `/devices/summary?${queryParams.toString()}`,
@@ -122,7 +118,7 @@ export const devices = {
     }
   },
 
-  getDevicesByCohorts: async (params: {
+  getDevicesByCohorts: async (params: Partial<Device> & {
     cohort_ids: string[];
     limit?: number;
     skip?: number;
@@ -134,7 +130,7 @@ export const devices = {
       const { cohort_ids, ...rest } = params;
       const queryParams = new URLSearchParams();
       Object.entries(rest).forEach(([key, value]) => {
-        if (value !== undefined) {
+        if (value !== undefined && value !== null) {
           queryParams.set(key, String(value));
         }
       });

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -44,6 +44,36 @@ const MyDevicesPage = () => {
     : orgDevices;
   const isLoading = userScope === 'personal' ? isLoadingMyDevices : isLoadingOrgDevices;
   const error = userScope === 'personal' ? myDevicesError : orgDevicesError;
+  const searchParams = useSearchParams();
+  const statusFilter = searchParams.get("status");
+
+  const filteredDevices = React.useMemo(() => {
+    if (!devices) return [];
+    if (!statusFilter) return devices;
+
+    return devices.filter((device) => {
+      if (statusFilter === "operational") {
+        return device.rawOnlineStatus === true && device.isOnline === true;
+      }
+
+      if (statusFilter === "needs_attention") {
+        const isNotTransmitting = device.rawOnlineStatus === false;
+
+        let isInvalidDate = false;
+        if (device.lastActive) {
+          const lastActiveTime = new Date(device.lastActive).getTime();
+          const fiveMinutesFromNow = Date.now() + 5 * 60 * 1000;
+          if (lastActiveTime > fiveMinutesFromNow) {
+            isInvalidDate = true;
+          }
+        }
+
+        return isNotTransmitting || isInvalidDate;
+      }
+
+      return true;
+    });
+  }, [devices, statusFilter]);
 
   if (error) {
     return (
@@ -99,7 +129,14 @@ const MyDevicesPage = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-semibold">My Devices</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold">My Devices</h1>
+              {statusFilter && (
+                <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                  Filtered: {statusFilter.replace("_", " ")}
+                </span>
+              )}
+            </div>
             <p className="text-muted-foreground">
               Manage your personal and shared devices
             </p>
@@ -130,7 +167,7 @@ const MyDevicesPage = () => {
         {userDetails?._id && <OrphanedDevicesAlert userId={userDetails._id} />}
 
         <ClientPaginatedDevicesTable
-          devices={devices}
+          devices={filteredDevices}
           isLoading={isLoading}
           error={error}
         />

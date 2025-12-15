@@ -1,6 +1,6 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { Device } from "@/app/types/devices";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ReusableTable from "@/components/shared/table/ReusableTable";
 import { useState, useMemo } from "react";
 import { AssignCohortDevicesDialog } from "@/components/features/cohorts/assign-cohort-devices";
@@ -30,6 +30,22 @@ export default function DevicesTable({
   const { userContext, activeGroup } = useUserContext();
   const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
 
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status");
+
+  const filterOptions = useMemo(() => {
+    if (status === "operational") {
+      return { rawOnlineStatus: true, isOnline: true };
+    }
+    if (status === "transmitting") {
+      return { rawOnlineStatus: true, isOnline: false };
+    }
+    if (status === "not_transmitting") {
+      return { rawOnlineStatus: false, isOnline: false };
+    }
+    return {};
+  }, [status]);
+
   const {
     pagination,
     setPagination,
@@ -45,6 +61,7 @@ export default function DevicesTable({
     search: searchTerm,
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    ...filterOptions,
   });
 
   const pageCount = meta?.totalPages ?? 0;

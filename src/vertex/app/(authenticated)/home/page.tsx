@@ -174,9 +174,9 @@ const WelcomePage = () => {
 
       <div className="mb-10">
         <Accordion type="multiple" defaultValue={['stats', 'visibility']} className="space-y-4">
-          <AccordionItem value="stats" className="bg-white dark:bg-gray-800 border rounded-lg px-6">
+          <AccordionItem value="stats" className="bg-white dark:bg-transparent border rounded-lg px-6">
             <AccordionTrigger className="hover:no-underline py-4">
-              <span className="text-lg font-semibold">System Overview</span>
+              <span className="text-lg font-semibold">Device Health</span>
             </AccordionTrigger>
             <AccordionContent className="pb-6 pt-2">
               <DashboardStatsCards />
@@ -184,9 +184,9 @@ const WelcomePage = () => {
           </AccordionItem>
 
           {userContext === 'external-org' && (
-            <AccordionItem value="visibility" className="bg-white dark:bg-gray-800 border rounded-lg px-6">
+            <AccordionItem value="visibility" className="bg-white dark:bg-transparent border rounded-lg px-6">
               <AccordionTrigger className="hover:no-underline py-4">
-                <span className="text-lg font-semibold">Network Visibility</span>
+                <span className="text-lg font-semibold">Device Visibility</span>
               </AccordionTrigger>
               <AccordionContent className="pb-6 pt-2">
                 <NetworkVisibilityCard />
