@@ -8,11 +8,12 @@ import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
-import { CalendarIcon, Search } from "lucide-react"
+import { CalendarIcon, Search, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { useToast } from "@/components/ui/use-toast"
 import { airQloudService, type AirQloudBasic } from "@/services/airqloud.service"
 import { deviceApiService } from "@/services/device-api.service"
 import type { Device } from "@/types/api.types"
@@ -43,6 +44,7 @@ interface SelectedItem {
 }
 
 export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysing }: AnalyticsFiltersProps) {
+  const { toast } = useToast()
   const [filterType, setFilterType] = useState<"airqlouds" | "devices">("airqlouds")
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const [selectedItemsMap, setSelectedItemsMap] = useState<Map<string, SelectedItem>>(new Map())
@@ -147,8 +149,8 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   }, [filterType, searchTerm])
 
   const currentItems = filterType === "airqlouds" 
-    ? airqlouds.map(aq => ({ id: aq.id, name: aq.name }))
-    : devices.map(d => ({ id: d.device_id, name: d.device_name }))
+    ? airqlouds.map(aq => ({ id: aq.id, name: aq.name, isActive: aq.is_active }))
+    : devices.map(d => ({ id: d.device_id, name: d.device_name, isActive: true }))
 
   const handleFilterTypeChange = (value: "airqlouds" | "devices") => {
     setFilterType(value)
@@ -157,7 +159,17 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     notifyFilterChange(value, [], dateRange, timeRange, includeTime)
   }
 
-  const handleItemSelect = (itemId: string, itemName: string) => {
+  const handleItemSelect = (itemId: string, itemName: string, isActive: boolean = true) => {
+    // Check if trying to select an inactive airqloud
+    if (!isActive && filterType === "airqlouds") {
+      toast({
+        title: "Cannot select untracked AirQloud",
+        description: "You need to activate this AirQloud to track it. Go to the table below and click on 'Untracked' to enable tracking.",
+        variant: "destructive",
+      })
+      return
+    }
+
     let newMap = new Map(selectedItemsMap)
     let newSelection: string[]
     
@@ -268,26 +280,39 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                     Loading...
                   </div>
                 ) : filteredItems.length > 0 ? (
-                  filteredItems.map(item => (
-                    <div
-                      key={item.id}
-                      className={cn(
-                        "p-2 cursor-pointer hover:bg-accent transition-colors",
-                        selectedItems.includes(item.id) && "bg-accent"
-                      )}
-                      onClick={() => handleItemSelect(item.id, item.name)}
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          checked={selectedItems.includes(item.id)}
-                          onChange={() => {}}
-                          className="cursor-pointer"
-                        />
-                        <span className="text-sm">{item.name}</span>
+                  filteredItems.map(item => {
+                    const isInactive = filterType === "airqlouds" && !item.isActive
+                    return (
+                      <div
+                        key={item.id}
+                        className={cn(
+                          "p-2 cursor-pointer hover:bg-accent transition-colors",
+                          selectedItems.includes(item.id) && "bg-accent",
+                          isInactive && "opacity-60"
+                        )}
+                        onClick={() => handleItemSelect(item.id, item.name, item.isActive)}
+                      >
+                        <div className="flex items-center gap-2">
+                          {isInactive ? (
+                            <X className="h-4 w-4 text-red-500 flex-shrink-0" />
+                          ) : (
+                            <input
+                              type="checkbox"
+                              checked={selectedItems.includes(item.id)}
+                              onChange={() => {}}
+                              className="cursor-pointer"
+                            />
+                          )}
+                          <span className={cn("text-sm flex-1", isInactive && "text-muted-foreground")}>
+                            {item.name}
+                          </span>
+                          {isInactive && (
+                            <span className="text-xs text-red-500">Untracked</span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  })
                 ) : (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     No {filterType} found

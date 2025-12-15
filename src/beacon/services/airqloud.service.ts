@@ -57,6 +57,11 @@ export interface CreateAirQloudPayload {
   number_of_devices?: number
 }
 
+export interface UpdateAirQloudPayload {
+  is_active?: boolean
+  country?: string | null
+}
+
 export interface CreateAirQloudResponse {
   name: string
   country: string
@@ -360,6 +365,74 @@ class AirQloudService {
       return data
     } catch (error) {
       console.error('Error fetching AirQloud performance:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Sync AirQlouds from Platform API
+   */
+  async syncAirQlouds(params: {
+    force?: boolean
+    run_in_background?: boolean
+  } = {}): Promise<{ success: boolean; message: string; force: boolean }> {
+    const queryParams = new URLSearchParams()
+    
+    if (params.force !== undefined) {
+      queryParams.append('force', params.force.toString())
+    }
+    if (params.run_in_background !== undefined) {
+      queryParams.append('run_in_background', params.run_in_background.toString())
+    }
+
+    const endpoint = this.getEndpoint('/airqlouds/sync')
+    const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
+    
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error syncing AirQlouds:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Update an AirQloud (is_active status or country)
+   */
+  async updateAirQloud(
+    airqloudId: string,
+    payload: UpdateAirQloudPayload
+  ): Promise<AirQloudWithPerformance> {
+    const endpoint = this.getEndpoint(`/airqlouds/${airqloudId}`)
+    const url = `${this.baseUrl}${endpoint}`
+    
+    try {
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error(`Error updating AirQloud ${airqloudId}:`, error)
       throw error
     }
   }
