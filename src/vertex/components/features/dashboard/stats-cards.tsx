@@ -82,7 +82,18 @@ const StatCard = ({
 
   const cardContent = (
     <div className="md:col-span-1 lg:col-span-1">
-      <Card className={getContainerStyles()} onClick={onClick}>
+      <Card
+        className={getContainerStyles()}
+        onClick={onClick}
+        onKeyDown={(e) => {
+          if (onClick && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        role={onClick ? "button" : undefined}
+        tabIndex={onClick ? 0 : undefined}
+      >
         <CardContent className="flex flex-col h-full justify-between p-4 gap-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
