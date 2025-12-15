@@ -8,7 +8,7 @@
  * PRESET SECURITY SETTINGS:
  * The 'NEXT_PUBLIC_CLOUDINARY_PRESET' must be configured in the Cloudinary Dashboard as "Unsigned".
  * For security, strictly enforce the following in the preset settings:
- * 1. Allowed Formats: Restrict to ['jpg', 'png', 'gif', 'svg', 'webp']
+ * 1. Allowed Formats: Restrict to ['jpg', 'png', 'gif', 'webp']
  * 2. Incoming Transformation: Resize/limit dimensions if necessary
  * 3. Media Analysis & moderations: Enable if needed
  * 4. Folder: Restrict to specific folders if possible
@@ -28,13 +28,13 @@ export interface CloudinaryUploadResult {
   [key: string]: any;
 }
 
-const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
+const VALID_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 const validateFile = (file: File) => {
   if (!file) throw new Error('No file provided');
   if (!VALID_IMAGE_TYPES.includes(file.type)) {
-    throw new Error('Invalid file type. Please upload an image (JPEG, PNG, GIF, SVG, WEBP).');
+    throw new Error('Invalid file type. Please upload an image (JPEG, PNG, GIF, WEBP).');
   }
   if (file.size > MAX_FILE_SIZE) {
     throw new Error('File size too large. Maximum size is 10MB.');
