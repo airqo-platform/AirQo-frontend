@@ -10,7 +10,7 @@ import OrganizationLoadingState from './loading/org-loading';
 import SessionLoadingState from './loading/session-loading';
 import ErrorBoundary from '../shared/ErrorBoundary';
 import Footer from './Footer';
-import { OrganizationSetupBanner } from './OrganizationSetupBanner';
+import { OrganizationSetupBanner } from './organization-setup-banner';
 
 import { setLastActiveModule } from '@/core/utils/userPreferences';
 
