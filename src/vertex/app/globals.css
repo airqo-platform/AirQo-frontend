@@ -121,7 +121,6 @@ html {
     line-height: var(--heading-line-height);
     letter-spacing: var(--heading-letter-spacing);
     margin: 0;
-    padding: 0;
   }
 
   /* Individual heading sizes */
