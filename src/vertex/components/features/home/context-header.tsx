@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { X } from "lucide-react";
@@ -9,12 +9,32 @@ const ContextHeader = () => {
     const activeGroup = useAppSelector((state) => state.user.activeGroup);
     const [isVisible, setIsVisible] = useState(true);
 
+    const contextId = userContext === 'personal' ? 'personal' : activeGroup?._id;
+    const STORAGE_KEY = `header_dismissed_${contextId}`;
+
+    useEffect(() => {
+        if (!contextId) return;
+        const dismissed = localStorage.getItem(STORAGE_KEY);
+        if (dismissed === 'true') {
+            setIsVisible(false);
+        } else {
+            setIsVisible(true);
+        }
+    }, [contextId, STORAGE_KEY]);
+
+    const handleDismiss = () => {
+        setIsVisible(false);
+        if (contextId) {
+            localStorage.setItem(STORAGE_KEY, 'true');
+        }
+    };
+
     const getContextTitle = () => {
         switch (userContext) {
             case "personal":
                 return "your space";
             case "external-org":
-                return activeGroup?.grp_title.split("_").join(" ") || "Organization";
+                return activeGroup?.grp_title?.split("_").join(" ") || "Organization";
             default:
                 return "Dashboard";
         }
@@ -31,12 +51,13 @@ const ContextHeader = () => {
         }
     };
 
+    // Don't render if not visible or if contextId isn't ready yet (to prevent flash)
     if (!isVisible) return null;
 
     return (
         <div className="mb-8 relative overflow-hidden md:px-16 md:py-10 rounded-lg mx-auto bg-gradient-to-r from-primary to-primary/80 text-white p-8">
             <button
-                onClick={() => setIsVisible(false)}
+                onClick={handleDismiss}
                 className="absolute top-4 right-4 p-1 rounded-full hover:bg-white/20 transition-colors"
                 aria-label="Dismiss header"
             >
