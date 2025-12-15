@@ -7,7 +7,6 @@ import { Plus, Upload, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
-import { useRouter } from "next/navigation";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { usePermissions } from "@/core/hooks/usePermissions";
 import ReusableButton from "@/components/shared/button/ReusableButton";
@@ -56,7 +55,6 @@ const ClaimDeviceModal = dynamic(
 );
 
 const WelcomePage = () => {
-  const router = useRouter();
   const { data: session } = useSession();
   const { userContext, userScope, hasError, error } = useUserContext();
   const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
