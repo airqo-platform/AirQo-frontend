@@ -7,7 +7,7 @@ import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
 import { useCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useMemo } from "react";
 import { format } from 'date-fns';
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqPlus } from "@airqo/icons-react";
@@ -25,7 +25,6 @@ type CohortRow = {
 
 export default function CohortsPage() {
   const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
   const {
     pagination, setPagination,
     searchTerm, setSearchTerm,
@@ -46,12 +45,6 @@ export default function CohortsPage() {
   const [showCreateFromCohorts, setShowCreateFromCohorts] = useState(false);
   const [showAssignToGroup, setShowAssignToGroup] = useState(false);
   const [selectedCohortIds, setSelectedCohortIds] = useState<string[]>([]);
-
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [pagination.pageIndex]);
 
   const rows: CohortRow[] = useMemo(() => (cohorts || []).map((c: Cohort) => ({
     ...c,
@@ -131,7 +124,7 @@ export default function CohortsPage() {
           </ReusableButton>
         </div>
 
-        <div ref={tableRef}>
+        <div>
           <ReusableTable
             title="Cohorts"
             data={rows}

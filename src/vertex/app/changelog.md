@@ -3,6 +3,122 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+## Version 1.23.4
+**Released:** December 13, 2025
+
+### Device Connection URL & Enhanced Cohort Creation
+
+Added a new "Device Connection URL" field to support external device integrations, and upgraded the Cohort Creation flow with confirmation and success steps.
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **Device Connection URL**: Added a new input field (`api_code`) to the **Import Device** modal and **Device Details** (Edit Mode), allowing users to link devices to their external data source URLs (e.g., IQAir).
+
+</details>
+
+<details>
+<summary><strong>Improvements (1)</strong></summary>
+
+- **Cohort Creation Flow**: Added dedicated **Confirmation** and **Success** steps to the Create Cohort dialog, providing a safer and more polished user experience.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `components/features/devices/import-device-modal.tsx`
+- `components/features/devices/device-details-modal.tsx`
+- `components/features/cohorts/create-cohort.tsx`
+
+</details>
+
+---
+## Version 1.23.3
+**Released:** December 13, 2025
+
+### User-Specific Admin Module Redirection
+
+Implemented intelligent login redirection that remembers each user's last active module (Device Management or Administrative Panel) and redirects them accordingly, with strict user isolation to prevent state leakage on shared devices.
+
+<details>
+<summary><strong>Features Added (1)</strong></summary>
+
+- **Smart Login Redirection**: Users are now automatically redirected to their last active module upon login. If a user was last viewing the Administrative Panel before logout, they'll return directly to `/admin/networks`. Otherwise, they'll go to the default Home page. This preference is strictly isolated per user email, ensuring no cross-contamination when multiple users share the same browser.
+
+</details>
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **UI Flash Prevention**: Optimized the layout initialization to prevent visual "flashing" between modules during login by reading the pathname immediately on mount.
+- **Logout State Capture**: Enhanced logout flow to explicitly save the user's current module before session cleanup, ensuring preferences are always preserved.
+- **Pre-Authentication Check**: Login now reads the user's preference before authentication completes, eliminating timing gaps that caused brief navigation flashes.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **New Utility**: Created `core/utils/userPreferences.ts` with `getLastActiveModule` and `setLastActiveModule` functions that use user-specific localStorage keys (`lastActiveModule_${email}`).
+- **Layout Optimization**: Modified `layout.tsx` to initialize `activeModule` state based on the current pathname and only update state when the module actually changes, preventing unnecessary re-renders.
+- **Logout Enhancement**: Updated `useLogout.ts` to save the current module preference before clearing session data.
+- **Login Refactor**: Modified login flow to read preference before authentication and removed prefetch logic that contributed to visual flashing.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/utils/userPreferences.ts` (New)
+- `core/hooks/useLogout.ts`
+- `components/layout/layout.tsx`
+- `app/login/page.tsx`
+
+</details>
+
+---
+## Version 1.23.2
+**Released:** December 13, 2025
+
+### Table UX & Upload Enhancements
+
+Improved table user experience by removing intrusive autoscroll behavior and fixing sticky layout shifts, alongside robustness improvements for file uploads.
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Removed Autoscroll**: Removed the forced "scroll to top" behavior on table page changes, allowing users to maintain their scroll position.
+- **Stable Sticky Header**: Fixed a layout shift issue where the sticky header would disappear during loading, causing visual jumping.
+- **Robust Uploads**: Refactored Cloudinary upload utility to support custom folders, tags, and better error handling.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (2)</strong></summary>
+
+- **Refactored `ReusableTable`**: Updated to keep sticky header visible during loading and removed redundant header from `TableSkeleton` to prevent layout shifts.
+- **Cleaned Up `useEffect`**: Removed `tableRef.current.scrollIntoView` calls across multiple pages.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (8)</strong></summary>
+
+- `core/apis/cloudinary.ts`
+- `components/shared/table/ReusableTable.tsx`
+- `components/features/devices/device-list-table.tsx`
+- `components/features/networks/network-device-list-table.tsx`
+- `components/features/sites/sites-list-table.tsx`
+- `app/(authenticated)/cohorts/page.tsx`
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `components/features/grids/grids-list-table.tsx`
+
+</details>
+
+---
 ## Version 1.23.1
 **Released:** December 12, 2025
 

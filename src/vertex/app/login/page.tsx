@@ -3,7 +3,6 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod"
-import { useRouter } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -17,6 +16,7 @@ import logger from "@/lib/logger"
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import { useAppDispatch } from "@/core/redux/hooks";
 import { setLoggingOut } from "@/core/redux/slices/userSlice";
+import { getLastActiveModule } from "@/core/utils/userPreferences";
 
 const loginSchema = z.object({
   userName: z.string().email({ message: "Please enter a valid email address" }),
@@ -24,7 +24,6 @@ const loginSchema = z.object({
 })
 
 export default function LoginPage() {
-  const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
 
   const form = useForm<z.infer<typeof loginSchema>>({
@@ -40,16 +39,20 @@ export default function LoginPage() {
 
   useEffect(() => {
     isMounted.current = true;
-    router.prefetch("/home");
     // Reset logout state when login page mounts - this ensures suppression flags persist until we land here
     dispatch(setLoggingOut(false));
     return () => {
       isMounted.current = false;
     };
-  }, [router, dispatch]);
+  }, [dispatch]);
 
   const onSubmit = useCallback(async (values: z.infer<typeof loginSchema>) => {
     setIsLoading(true);
+
+    // Read preference BEFORE authentication to avoid timing issues
+    const lastModule = getLastActiveModule(values.userName);
+    const redirectUrl = lastModule === 'admin' ? '/admin/networks' : '/home';
+
     try {
       const result = await signIn("credentials", {
         redirect: false,
@@ -61,8 +64,7 @@ export default function LoginPage() {
 
       if (result?.ok) {
         ReusableToast({ message: "Welcome back!", type: "SUCCESS" });
-
-        window.location.href = "/home";
+        window.location.href = redirectUrl;
       } else {
         let message = "Login failed. Please check your credentials.";
         if (result?.error) {

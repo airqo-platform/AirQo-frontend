@@ -3,7 +3,7 @@ import ReusableTable, { TableColumn, TableItem } from "@/components/shared/table
 import { useRouter } from "next/navigation";
 import { Site } from "@/app/types/sites";
 import { useSites } from "@/core/hooks/useSites";
-import { useMemo, useRef, useEffect } from "react";
+import { useMemo } from "react";
 import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import {
   badgeColorClasses,
@@ -29,7 +29,6 @@ export default function SitesTable({
   className,
 }: SitesTableProps) {
   const router = useRouter();
-  const tableRef = useRef<HTMLDivElement>(null);
 
   const {
     pagination, setPagination,
@@ -44,13 +43,6 @@ export default function SitesTable({
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined
   });
-
-  // Scroll to top of table when page changes
-  useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  }, [pagination.pageIndex]);
 
   const pageCount = meta?.totalPages ?? 0;
 
@@ -151,7 +143,7 @@ export default function SitesTable({
   ];
 
   return (
-    <div ref={tableRef} className={`space-y-4 ${className}`}>
+    <div className={`space-y-4 ${className}`}>
       <ReusableTable
         title="Sites"
         data={sitesWithId}
