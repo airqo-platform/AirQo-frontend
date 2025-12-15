@@ -3,7 +3,7 @@
 import React from "react";
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
-import { PlusSquare, AlertTriangle } from "lucide-react";
+import { Plus, Upload, AlertTriangle } from "lucide-react";
 import { useAppSelector } from "@/core/redux/hooks";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import DashboardWelcomeBanner from "@/components/features/dashboard/DashboardWelcomeBanner";
@@ -50,25 +50,20 @@ const DashboardStatsCards = dynamic(
   }
 );
 
+const ClaimDeviceModal = dynamic(
+  () => import("@/components/features/claim/claim-device-modal"),
+  { ssr: false }
+);
+
 const WelcomePage = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const { userContext, userScope, hasError, error } = useUserContext();
+  const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
 
   const user = useAppSelector((state) => state.user.userDetails);
 
-  const allActions = [
-    {
-      href: "/devices/claim",
-      label: "Claim Device",
-      permission: PERMISSIONS.DEVICE.UPDATE,
-      showInPersonal: true,
-      showInAirQoInternal: true,
-      showInExternalOrg: true,
-    }
-  ];
-
-  const permissionsToCheck = allActions.map((action) => action.permission);
+  const permissionsToCheck = [PERMISSIONS.DEVICE.UPDATE];
   const permissionsMap = usePermissions(permissionsToCheck);
 
   const userId = (session?.user as { id?: string })?.id || user?._id;
@@ -148,35 +143,56 @@ const WelcomePage = () => {
   // ============================================================
 
   // Filter actions based on context
-  const getContextActions = () => {
-    return allActions.filter((action) => {
-      switch (userContext) {
-        case "personal":
-          return action.showInPersonal;
-        case "external-org":
-          return action.showInExternalOrg;
-        default:
-          return true;
-      }
-    });
-  };
+  const canClaimDevice = permissionsMap[PERMISSIONS.DEVICE.UPDATE];
 
-  const actions = getContextActions();
+  // Determine if action is visible in current context
+  const showClaimDevice = (() => {
+    switch (userContext) {
+      case "personal":
+        return true;
+      case "external-org":
+        return true;
+      default:
+        return true;
+    }
+  })();
 
   return (
     <div>
-
       <DashboardWelcomeBanner />
 
-      <div className="mb-8">
-        <ContextHeader />
-      </div>
+      <ContextHeader />
 
-      <div className="mb-10">
+      {showClaimDevice && (
+        <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+          <h1 className="text-2xl">Home</h1>
+          <div className="flex gap-3">
+            <ReusableButton
+              variant="filled"
+              disabled={!canClaimDevice}
+              permission={PERMISSIONS.DEVICE.UPDATE}
+              onClick={() => setIsClaimModalOpen(true)}
+              Icon={Plus}
+            >
+              Claim AirQo Device
+            </ReusableButton>
+            <ReusableButton
+              variant="outlined"
+              disabled={true}
+              title="Import feature coming soon"
+              Icon={Upload}
+            >
+              Import Existing Device
+            </ReusableButton>
+          </div>
+        </div>
+      )}
+
+      <div className="mb-3">
         <Accordion type="multiple" defaultValue={['stats', 'visibility']} className="space-y-4">
           <AccordionItem value="stats" className="bg-white dark:bg-transparent border rounded-lg px-6">
             <AccordionTrigger className="hover:no-underline py-4">
-              <h1 className="text-2xl">Device Health</h1>
+              <h2 className="text-xl">Device Health</h2>
             </AccordionTrigger>
             <AccordionContent className="pb-6 pt-2">
               <DashboardStatsCards />
@@ -186,9 +202,9 @@ const WelcomePage = () => {
           {userContext === 'external-org' && (
             <AccordionItem value="visibility" className="bg-white dark:bg-transparent border rounded-lg px-6">
               <AccordionTrigger className="hover:no-underline py-4">
-                <h1 className="text-2xl">Device Visibility</h1>
+                <h2 className="text-xl">Device Visibility</h2>
               </AccordionTrigger>
-              <AccordionContent className="pb-6 pt-2">
+              <AccordionContent className="pt-2">
                 <NetworkVisibilityCard />
               </AccordionContent>
             </AccordionItem>
@@ -196,34 +212,12 @@ const WelcomePage = () => {
         </Accordion>
       </div>
 
-      {/* Quick Access Buttons */}
-      {
-        actions.length > 0 && (
-          <div className="mb-10">
-            <h2 className="text-xl font-semibold mb-4">Quick Access</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5">
-              {actions.map((action) => {
-                const hasPermission = permissionsMap[action.permission];
-                return (
-                  <ReusableButton
-                    key={action.href}
-                    variant="outlined"
-                    className="w-full"
-                    padding="p-3"
-                    disabled={!hasPermission}
-                    permission={action.permission}
-                    onClick={() => router.push(action.href)}
-                    Icon={PlusSquare}
-                  >
-                    {action.label}
-                  </ReusableButton>
-                );
-              })}
-            </div>
-          </div>
-        )
-      }
-    </div >
+      <ClaimDeviceModal
+        isOpen={isClaimModalOpen}
+        onClose={() => setIsClaimModalOpen(false)}
+        redirectOnSuccess={true}
+      />
+    </div>
   );
 };
 
