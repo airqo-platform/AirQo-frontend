@@ -83,20 +83,9 @@ Implemented intelligent login redirection that remembers each user's last active
 ## Version 1.23.2
 **Released:** December 13, 2025
 
-### Organization Request & Table UX
+### Table UX & Upload Enhancements
 
-Introduced the **Organization Request Page**, a comprehensive multi-step form for new organizations to sign up. Also improved table user experience by removing intrusive autoscroll behavior and fixing sticky layout shifts.
-
-<details>
-<summary><strong>Features Added (1)</strong></summary>
-
-- **Organization Request Form**: A polished multi-step wizard (`/org-request`) allowing users to register new organizations. Features include:
-    - **Step-by-step validation**: Using Zod schema for robust data integrity.
-    - **Logo Upload**: Integrated Cloudinary image upload with preview and validation.
-    - **Dynamic Fields**: Context-aware inputs for organization type, category, and location.
-    - **Success Modal**: A clean confirmation modal upon successful submission.
-
-</details>
+Improved table user experience by removing intrusive autoscroll behavior and fixing sticky layout shifts, alongside robustness improvements for file uploads.
 
 <details>
 <summary><strong>Improvements (3)</strong></summary>
@@ -108,20 +97,16 @@ Introduced the **Organization Request Page**, a comprehensive multi-step form fo
 </details>
 
 <details>
-<summary><strong>Technical Changes (4)</strong></summary>
+<summary><strong>Technical Changes (2)</strong></summary>
 
-- **New Page**: Created `app/org-request/page.tsx` and associated layout.
-- **Form Architecture**: Implemented `useForm` with Zod resolver for the request flow.
 - **Refactored `ReusableTable`**: Updated to keep sticky header visible during loading and removed redundant header from `TableSkeleton` to prevent layout shifts.
 - **Cleaned Up `useEffect`**: Removed `tableRef.current.scrollIntoView` calls across multiple pages.
 
 </details>
 
 <details>
-<summary><strong>Files Modified (10)</strong></summary>
+<summary><strong>Files Modified (8)</strong></summary>
 
-- `app/org-request/page.tsx` (New)
-- `app/org-request/layout.tsx` (New)
 - `core/apis/cloudinary.ts`
 - `components/shared/table/ReusableTable.tsx`
 - `components/features/devices/device-list-table.tsx`
