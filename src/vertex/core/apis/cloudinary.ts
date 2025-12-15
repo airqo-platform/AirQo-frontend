@@ -1,3 +1,22 @@
+/*
+ * CLOUDINARY CONFIGURATION REQUIREMENTS
+ *
+ * This module requires the following environment variables:
+ * - NEXT_PUBLIC_CLOUDINARY_NAME: Your Cloudinary cloud name
+ * - NEXT_PUBLIC_CLOUDINARY_PRESET: An "Unsigned" upload preset
+ *
+ * PRESET SECURITY SETTINGS:
+ * The 'NEXT_PUBLIC_CLOUDINARY_PRESET' must be configured in the Cloudinary Dashboard as "Unsigned".
+ * For security, strictly enforce the following in the preset settings:
+ * 1. Allowed Formats: Restrict to ['jpg', 'png', 'gif', 'svg', 'webp']
+ * 2. Incoming Transformation: Resize/limit dimensions if necessary
+ * 3. Media Analysis & moderations: Enable if needed
+ * 4. Folder: Restrict to specific folders if possible
+ * 5. Tags: Limit auto-tagging if not needed
+ *
+ * DO NOT use a signed preset here as we are uploading directly from the client.
+ */
+
 export interface CloudinaryUploadOptions {
   folder?: string;
   tags?: string[];
@@ -22,7 +41,18 @@ const validateFile = (file: File) => {
   }
 };
 
-const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_NAME}`;
+const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+
+if (!CLOUD_NAME) {
+  throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_NAME is missing in environment variables.');
+}
+
+if (!UPLOAD_PRESET) {
+  throw new Error('Configuration Error: NEXT_PUBLIC_CLOUDINARY_PRESET is missing in environment variables.');
+}
+
+const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${CLOUD_NAME}`;
 
 export const uploadToCloudinary = async (
   file: File,
@@ -32,7 +62,7 @@ export const uploadToCloudinary = async (
 
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_PRESET || 'airqo_vertex');
+  formData.append('upload_preset', UPLOAD_PRESET);
 
   if (options.folder) {
     formData.append('folder', options.folder);
