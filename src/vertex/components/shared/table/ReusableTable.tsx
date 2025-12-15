@@ -728,8 +728,10 @@ const ReusableTable = <T extends TableItem>({
   useEffect(() => {
     if (searchInput !== searchTerm) {
       if (serverSidePagination) {
-        onSearchChange?.(searchInput);
-        return;
+        const t = setTimeout(() => {
+          onSearchChange?.(searchInput);
+        }, 400);
+        return () => clearTimeout(t);
       }
 
       if (tableId) {
