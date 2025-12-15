@@ -55,7 +55,7 @@ const ClaimDeviceModal = dynamic(
 
 const WelcomePage = () => {
   const { data: session } = useSession();
-  const { userContext, userScope, hasError, error } = useUserContext();
+  const { userContext, userScope, hasError, error, isLoading: isLoadingUserContext } = useUserContext();
   const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
 
   const user = useAppSelector((state) => state.user.userDetails);
@@ -97,7 +97,7 @@ const WelcomePage = () => {
   // 2. Loading state - show loading UI while data is being fetched
   const isLoading =
     (userScope === 'personal' && isLoadingMyDevices) ||
-    (userScope === 'organisation' && isLoadingGroupDevices);
+    (userScope === 'organisation' && isLoadingGroupDevices) || isLoadingUserContext;
 
   if (isLoading) {
     return (

@@ -21,3 +21,17 @@ export const setLastActiveModule = (module: string, identifier?: string) => {
     localStorage.setItem(PREFERENCE_KEYS.LAST_ACTIVE_MODULE, module);
   }
 };
+
+export const PREFERENCE_KEYS_GROUP = {
+  LAST_ACTIVE_GROUP_ID: 'lastActiveGroupId',
+};
+
+export const getLastActiveGroupId = (userId: string): string | null => {
+  if (typeof window === 'undefined' || !userId) return null;
+  return localStorage.getItem(`${PREFERENCE_KEYS_GROUP.LAST_ACTIVE_GROUP_ID}_${userId}`);
+};
+
+export const setLastActiveGroupId = (userId: string, groupId: string) => {
+  if (typeof window === 'undefined' || !userId || !groupId) return;
+  localStorage.setItem(`${PREFERENCE_KEYS_GROUP.LAST_ACTIVE_GROUP_ID}_${userId}`, groupId);
+};

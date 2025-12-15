@@ -39,9 +39,11 @@ const MyDevicesPage = () => {
     enabled: userScope === 'organisation',
   });
 
-  const devices = userScope === 'personal'
-    ? myDevicesData?.devices || []
-    : orgDevices;
+  const devices = React.useMemo(() => {
+    return userScope === 'personal'
+      ? myDevicesData?.devices || []
+      : orgDevices;
+  }, [userScope, myDevicesData?.devices, orgDevices]);
   const isLoading = userScope === 'personal' ? isLoadingMyDevices : isLoadingOrgDevices;
   const error = userScope === 'personal' ? myDevicesError : orgDevicesError;
   const searchParams = useSearchParams();
