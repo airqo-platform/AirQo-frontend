@@ -205,6 +205,11 @@ export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
                                 return cellStr || `Column ${index + 1}`;
                             });
                             setFilePreview({ headers, data: parsedData, fileName: file.name });
+                        } else {
+                            ReusableToast({
+                                message: 'The file appears to be empty.',
+                                type: 'WARNING',
+                            });
                         }
                         setIsImporting(false);
                     },
@@ -231,6 +236,11 @@ export const DeviceNameParser: React.FC<DeviceNameCohortParserProps> = ({
                             return cellStr || `Column ${index + 1}`;
                         });
                         setFilePreview({ headers, data: parsedData, fileName: file.name });
+                    } else {
+                        ReusableToast({
+                            message: 'The file appears to be empty.',
+                            type: 'WARNING',
+                        });
                     }
                     setIsImporting(false);
                 };
