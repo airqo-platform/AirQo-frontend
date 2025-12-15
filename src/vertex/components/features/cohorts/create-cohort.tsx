@@ -129,7 +129,9 @@ export function CreateCohortDialog({
 
         // If no exact match, try contains match
         if (!match) {
-          match = deviceOptions.find(d => d.label.toLowerCase().includes(nameLower));
+          match = deviceOptions.find(d =>
+            d.label.toLowerCase().includes(nameLower) && nameLower.length >= 3
+          );
         }
 
         return match?.value;
