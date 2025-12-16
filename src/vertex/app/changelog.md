@@ -15,11 +15,11 @@ Updated the Device Count API integration to support a modernized response struct
 <summary><strong>Feature Updates (2)</strong></summary>
 
 - **Data Available Status**: 
-    - Added a new **"Data Available"** status to the Dashboard Stats Cards (Yellow icon).
-    - Updated Device List filtering to support filtering by `?status=data_available`.
+  - Added a new **"Data Available"** status to the Dashboard Stats Cards (Yellow icon).
+  - Updated Device List filtering to support filtering by `?status=data_available`.
 - **Personal Scope Stats**: 
-    - The stats cards now use the API to fetch counts for the Personal scope (instead of client-side calculation), ensuring consistency with the Organization scope.
-    - Optimized logic to gracefully handle users with no cohorts (defaults to 0 without API calls).
+  - The stats cards now use the API to fetch counts for the Personal scope (instead of client-side calculation), ensuring consistency with the Organization scope.
+  - Optimized logic to gracefully handle users with no cohorts (defaults to 0 without API calls).
 
 </details>
 
