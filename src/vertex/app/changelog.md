@@ -3,6 +3,44 @@
 > **Note**: This changelog consolidates all recent improvements, features, and fixes to the AirQo Vertex frontend.
 
 ---
+
+## Version 1.23.6
+**Released:** December 16, 2025
+
+### Device Stats & Data Available Status
+
+Updated the Device Count API integration to support a modernized response structure and added support for the "Data Available" device status across the dashboard and device lists.
+
+<details>
+<summary><strong>Feature Updates (2)</strong></summary>
+
+- **Data Available Status**: 
+    - Added a new **"Data Available"** status to the Dashboard Stats Cards (Yellow icon).
+    - Updated Device List filtering to support filtering by `?status=data_available`.
+- **Personal Scope Stats**: 
+    - The stats cards now use the API to fetch counts for the Personal scope (instead of client-side calculation), ensuring consistency with the Organization scope.
+    - Optimized logic to gracefully handle users with no cohorts (defaults to 0 without API calls).
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **API Update**: Updated `devices.ts` and `useDevices.ts` to consume the new `total_monitors`, `operational`, `transmitting`, `not_transmitting`, `data_available` fields from the API.
+- **Hook Optimization**: Refactored `useDeviceCount` to support optional cohort IDs for personal scope and return `isLoading: false` immediately if no cohorts are provided.
+- **Component Update**: Updated `stats-cards.tsx` to handle the new API response structure and explicitly manage loading states for safer UI rendering.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `components/features/dashboard/stats-cards.tsx`
+- `components/features/devices/device-list-table.tsx`
+
+</details>
 ## Version 1.23.5
 **Released:** December 15, 2025
 
