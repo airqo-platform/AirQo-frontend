@@ -33,37 +33,6 @@ export default function DevicesPage() {
               Manage and organize your devices.
             </p>
           </div>
-          {status && (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-xs font-medium text-yellow-800 ml-4">
-              <span>
-                Status: <span className="capitalize">{status.replace(/_/g, " ")}</span>
-              </span>
-              <button
-                onClick={() => {
-                  const params = new URLSearchParams(searchParams.toString());
-                  params.delete("status");
-                  router.push(`?${params.toString()}`);
-                }}
-                className="p-0.5 hover:bg-yellow-200 rounded-full transition-colors"
-              >
-                <span className="sr-only">Clear filter</span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M18 6 6 18" />
-                  <path d="m6 6 12 12" />
-                </svg>
-              </button>
-            </div>
-          )}
           <div className="flex-1" />
           <div className="flex gap-2">
             {isPersonalContext && (

@@ -134,35 +134,9 @@ const MyDevicesPage = () => {
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-semibold">My Devices</h1>
               {statusFilter && (
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-yellow-50 border border-yellow-200 rounded-full text-xs font-medium text-yellow-800">
-                  <span>
-                    Status: <span className="capitalize">{statusFilter.replace(/_/g, " ")}</span>
-                  </span>
-                  <button
-                    onClick={() => {
-                      const params = new URLSearchParams(searchParams.toString());
-                      params.delete("status");
-                      router.push(`?${params.toString()}`);
-                    }}
-                    className="p-0.5 hover:bg-yellow-200 rounded-full transition-colors"
-                  >
-                    <span className="sr-only">Clear filter</span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M18 6 6 18" />
-                      <path d="m6 6 12 12" />
-                    </svg>
-                  </button>
-                </div>
+                <span className="text-sm px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                  Filtered: {statusFilter.replace("_", " ")}
+                </span>
               )}
             </div>
             <p className="text-muted-foreground">
