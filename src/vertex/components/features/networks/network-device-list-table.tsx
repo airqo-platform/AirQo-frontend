@@ -1,6 +1,6 @@
 
 import { Device } from "@/app/types/devices";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import ReusableTable from "@/components/shared/table/ReusableTable";
 import { useState, useMemo } from "react";
 import { useNetworkDevices } from "@/core/hooks/useNetworks";
@@ -39,6 +39,9 @@ export default function NetworkDevicesTable({
         setSorting,
     } = useServerSideTableState({ initialPageSize: itemsPerPage });
 
+    const searchParams = useSearchParams();
+    const status = searchParams.get("status");
+
     const { devices, meta, isFetching, isLoading, error } = useNetworkDevices({
         page: pagination.pageIndex + 1,
         limit: pagination.pageSize,
@@ -46,6 +49,7 @@ export default function NetworkDevicesTable({
         sortBy: sorting[0]?.id,
         order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
         network: networkName,
+        filterStatus: status || undefined,
     });
 
     const pageCount = meta?.totalPages ?? 0;

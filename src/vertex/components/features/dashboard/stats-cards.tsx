@@ -1,7 +1,6 @@
 "use client";
 
 import { useDeviceCount } from "@/core/hooks/useDevices";
-import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import {
   AqMonitor,
@@ -9,126 +8,10 @@ import {
   AqWifiOff,
   AqData,
 } from "@airqo/icons-react";
-import { Info } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useMemo, useCallback } from "react";
+import { useMemo } from "react";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { getStatusExplanation } from "@/core/utils/status";
-
-interface StatCardProps {
-  title: string;
-  value: number | string;
-  description?: string;
-  icon: React.ReactNode;
-  isLoading?: boolean;
-  variant?: "default" | "success" | "warning" | "destructive" | "info" | "primary";
-  onClick?: () => void;
-}
-
-const StatCard = ({
-  title,
-  value,
-  description,
-  icon,
-  isLoading,
-  variant = "default",
-  onClick,
-}: StatCardProps) => {
-  const getContainerStyles = useCallback(() => {
-    const baseStyles = "rounded-lg border bg-white dark:bg-gray-800 relative overflow-hidden p-0";
-    const interactiveStyles = onClick ? "cursor-pointer transition-all hover:shadow-md hover:border-primary/20" : "";
-    return `${baseStyles} ${interactiveStyles}`;
-  }, [onClick]);
-
-  const getIconColor = useCallback(() => {
-    switch (variant) {
-      case "success":
-        return "text-green-500 bg-green-50 dark:bg-green-900/10";
-      case "warning":
-        return "text-yellow-500 bg-yellow-50 dark:bg-yellow-900/10";
-      case "destructive":
-        return "text-red-500 bg-red-50 dark:bg-red-900/10";
-      case "info":
-        return "text-blue-500 bg-blue-50 dark:bg-blue-900/10";
-      case "primary":
-        return "text-primary bg-primary/10";
-      default:
-        return "text-gray-500 bg-gray-50 dark:bg-gray-900/10";
-    }
-  }, [variant]);
-
-  if (isLoading) {
-    return (
-      <div className="md:col-span-1 lg:col-span-1">
-        <Card className={getContainerStyles()}>
-          <CardContent className="flex flex-col h-full justify-between p-6 gap-4">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-24" />
-              {description && <Skeleton className="h-4 w-4 rounded-full" />}
-            </div>
-            <Skeleton className="h-10 w-16" />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const cardContent = (
-    <div className="md:col-span-1 lg:col-span-1">
-      <Card
-        className={getContainerStyles()}
-        onClick={onClick}
-        onKeyDown={(e) => {
-          if (onClick && (e.key === "Enter" || e.key === " ")) {
-            e.preventDefault();
-            onClick();
-          }
-        }}
-        role={onClick ? "button" : undefined}
-        tabIndex={onClick ? 0 : undefined}
-        aria-label={onClick ? `View ${title.toLowerCase()} devices` : undefined}
-      >
-        <CardContent className="flex flex-col h-full justify-between p-4 gap-4">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <h5 className="text-md">
-                {title}
-              </h5>
-              {description && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-gray-400 cursor-help hover:text-primary transition-colors" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-xs text-xs">{description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              )}
-            </div>
-          </div>
-          <div className="flex items-end justify-between">
-            <span className="text-3xl font-bold text-primary">
-              {value}
-            </span>
-            <div className={`p-2 rounded-xl ${getIconColor()}`}>
-              {icon}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-
-  return cardContent;
-};
+import { StatCard } from "./StatCard";
 
 export const DashboardStatsCards = () => {
   const { userScope, userDetails } = useUserContext();
@@ -188,6 +71,7 @@ export const DashboardStatsCards = () => {
           isLoading={isLoading}
           onClick={() => handleNavigation('')}
           variant="primary"
+          size="md"
         />
 
         <StatCard
@@ -198,6 +82,7 @@ export const DashboardStatsCards = () => {
           isLoading={isLoading}
           onClick={() => handleNavigation('?status=operational')}
           variant="success"
+          size="md"
         />
 
         <StatCard
@@ -208,6 +93,7 @@ export const DashboardStatsCards = () => {
           isLoading={isLoading}
           onClick={() => handleNavigation('?status=transmitting')}
           variant="info"
+          size="md"
         />
 
         <StatCard
@@ -218,6 +104,7 @@ export const DashboardStatsCards = () => {
           isLoading={isLoading}
           onClick={() => handleNavigation('?status=not_transmitting')}
           variant="default"
+          size="md"
         />
 
         <StatCard
@@ -228,6 +115,7 @@ export const DashboardStatsCards = () => {
           isLoading={isLoading}
           onClick={() => handleNavigation('?status=data_available')}
           variant="warning"
+          size="md"
         />
       </div>
     </div>

@@ -181,13 +181,18 @@ export const devices = {
   },
   getDeviceCountApi: async (params: {
     cohort_id?: string[];
+    network?: string;
   }): Promise<DeviceCountResponse> => {
     try {
-      const { cohort_id } = params;
+      const { cohort_id, network } = params;
       const queryParams = new URLSearchParams();
 
       if (cohort_id && cohort_id.length > 0) {
         queryParams.set("cohort_id", cohort_id.join(","));
+      }
+
+      if (network) {
+        queryParams.set("network", network);
       }
 
       const response = await jwtApiClient.get<DeviceCountResponse>(

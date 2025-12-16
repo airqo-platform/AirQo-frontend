@@ -82,14 +82,14 @@ export const useCreateNetwork = (options: UseCreateNetworkOptions = {}) => {
 };
 
 export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
-  const { page = 1, limit = 100, search, sortBy, order, network } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network, filterStatus } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
 
   const queryKey = [
     "network-devices",
-    { page, limit, search, sortBy, order, network },
+    { page, limit, search, sortBy, order, network, filterStatus },
   ];
 
   const devicesQuery = useQuery<
@@ -101,6 +101,20 @@ export const useNetworkDevices = (options: DeviceListingOptions = {}) => {
       if (!network) {
         throw new Error("Network is required");
       }
+
+      // Hybrid Strategy: If filterStatus is provided, use the status endpoint
+      if (filterStatus) {
+        return devices.getDevicesByStatusApi({
+          status: filterStatus,
+          limit: safeLimit,
+          skip,
+          ...(search && { search }),
+          ...(sortBy && { sortBy }),
+          ...(order && { order }),
+          network: network,
+        });
+      }
+
       return devices.getDevicesSummaryApi({
         limit: safeLimit,
         skip,

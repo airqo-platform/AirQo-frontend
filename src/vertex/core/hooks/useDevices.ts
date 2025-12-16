@@ -208,12 +208,12 @@ export const useMyDevices = (
   });
 };
 
-export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[] } = {}) => {
+export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[]; network?: string } = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const { enabled = true, cohortIds } = options;
+  const { enabled = true, cohortIds, network } = options;
   const isAirQoGroup = activeGroup?.grp_title === 'airqo';
 
-  const shouldFetchGroupCohorts = !cohortIds && !isAirQoGroup && !!activeGroup?._id && enabled;
+  const shouldFetchGroupCohorts = !cohortIds && !isAirQoGroup && !!activeGroup?._id && enabled && !network;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
@@ -226,15 +226,20 @@ export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[
 
   const isQueryEnabled =
     enabled &&
-    (isAirQoGroup || (!!effectiveCohortIds && effectiveCohortIds.length > 0));
+    (!!network || isAirQoGroup || (!!effectiveCohortIds && effectiveCohortIds.length > 0));
 
   const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       'deviceCount',
       activeGroup?._id,
       isAirQoGroup ? null : effectiveCohortIds,
+      network
     ],
     queryFn: () => {
+      if (network) {
+        return devices.getDeviceCountApi({ network });
+      }
+
       if (isAirQoGroup) {
         return devices.getDeviceCountApi({});
       }
