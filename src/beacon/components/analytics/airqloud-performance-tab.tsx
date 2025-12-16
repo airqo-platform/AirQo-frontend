@@ -145,7 +145,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
       setError(err.message || "Failed to load performance data")
       toast({
         title: "Error",
-        description: "Failed to load AirQloud performance data",
+        description: "Failed to load AirQloud (Cohort) performance data",
         variant: "destructive",
       })
     } finally {
@@ -257,7 +257,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>AirQloud Performance</CardTitle>
+              <CardTitle>AirQloud (Cohort) Performance</CardTitle>
               <CardDescription>
                 View performance metrics for {airqloudName}
               </CardDescription>
@@ -451,7 +451,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
           {!loading && performanceData.length === 0 && (
             <div className="text-center py-10 text-gray-500">
               <Activity className="h-10 w-10 mx-auto mb-2 text-gray-400" />
-              <p>No performance data available for this AirQloud.</p>
+              <p>No performance data available for this AirQloud (Cohort).</p>
               <p className="text-sm mt-2">Try selecting a different date range.</p>
             </div>
           )}

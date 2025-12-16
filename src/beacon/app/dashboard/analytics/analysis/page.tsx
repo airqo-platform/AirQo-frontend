@@ -635,7 +635,7 @@ export default function AnalysisResultsPage() {
           </div>
         </div>
         <Badge variant="outline" className="text-sm">
-          {data.length} AirQloud{data.length !== 1 ? 's' : ''} analysed
+          {data.length} AirQloud{data.length !== 1 ? 's' : ''} (Cohort{data.length !== 1 ? 's' : ''}) analysed
         </Badge>
       </div>
 
@@ -644,7 +644,7 @@ export default function AnalysisResultsPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total AirQlouds
+              Total AirQlouds (Cohorts)
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -694,7 +694,7 @@ export default function AnalysisResultsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <BarChart3 className="h-5 w-5" />
-            AirQloud Summary
+            AirQloud (Cohort) Summary
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -702,7 +702,7 @@ export default function AnalysisResultsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>AirQloud Name</TableHead>
+                  <TableHead>AirQloud (Cohort) Name</TableHead>
                   <TableHead>Average Uptime</TableHead>
                   <TableHead>Error Margin</TableHead>
                   <TableHead>Days of Data</TableHead>
@@ -733,7 +733,7 @@ export default function AnalysisResultsPage() {
       {/* Individual AirQloud Tabs */}
       <Card>
         <CardHeader>
-          <CardTitle>Individual AirQloud Details</CardTitle>
+          <CardTitle>Individual AirQloud (Cohort) Details</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs value={selectedTab} onValueChange={setSelectedTab}>
