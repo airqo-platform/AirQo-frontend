@@ -37,10 +37,15 @@ export const StatCard = ({
 }: StatCardProps) => {
     const getContainerStyles = useCallback(() => {
         const baseStyles = "rounded-lg border bg-white dark:bg-gray-800 relative overflow-hidden p-0 transition-all duration-200";
+        
+        if (isLoading) {
+            return baseStyles;
+        }
+
         const interactiveStyles = onClick ? "cursor-pointer hover:shadow-md hover:border-primary/50" : "";
         const activeStyles = isActive ? "ring-2 ring-primary border-primary shadow-md" : "";
         return cn(baseStyles, interactiveStyles, activeStyles);
-    }, [onClick, isActive]);
+    }, [onClick, isActive, isLoading]);
 
     const getIconColor = useCallback(() => {
         switch (variant) {
