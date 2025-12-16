@@ -4,6 +4,56 @@
 
 ---
 
+## Version 1.23.7
+**Released:** December 16, 2025
+
+### Network Stats & UI Refinements
+
+Enhanced the Network Details page with interactive statistics cards and refined the overall user experience with improved navigation and filtering logic.
+
+<details>
+<summary><strong>Feature Updates (3)</strong></summary>
+
+- **Network Stats Cards**: Added dedicated stats cards to the Network Details page (`/admin/networks/[id]`), offering a quick overview of device health specific to that network.
+- **Interactive Filtering**: Clicking on network stats cards (e.g., "Operational", "Transmitting") now automatically filters the device list below.
+- **Enhanced Table Filtering**: Added a robust "Filter" dropdown to device tables with support for clearing filters and visual indicators for active states.
+
+</details>
+
+<details>
+<summary><strong>Improvements (4)</strong></summary>
+
+- **Navigation Refinement**: Updated the "Back" button on the Network Details page to reliably redirect to the Networks list (`/admin/networks`) instead of relying on browser history.
+- **Reusable Stats Component**: Refactored `StatCard` into a fully reusable component with support for multiple sizes (`sm`, `md`, `lg`) and loading states.
+- **Loading State UX**: Disabled interactive elements (cursor, hover effects) on stats cards while they are loading to prevent confusion.
+- **Tooltips**: Added informative tooltips to Network Stats Cards to explain status definitions, mirroring the dashboard experience.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **API Optimization**: Updated `getDeviceCountApi` and related hooks to support network-specific filtering on the server side.
+- **Code Cleanup**: Standardized status parameters to kebab-case and removed unused variables across multiple components.
+- **Performance**: Optimized `AssignCohortDevicesDialog` and `DeployDeviceComponent` to prevent duplicate API calls during interactions.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (9)</strong></summary>
+
+- `app/(authenticated)/admin/networks/[id]/page.tsx`
+- `components/features/networks/NetworkStatsCards.tsx` (New)
+- `components/features/dashboard/StatCard.tsx` (Refactored)
+- `components/features/dashboard/stats-cards.tsx`
+- `components/features/devices/device-list-table.tsx`
+- `components/features/networks/network-device-list-table.tsx`
+- `core/apis/devices.ts`
+- `core/hooks/useDevices.ts`
+- `core/hooks/useNetworks.ts`
+
+</details>
+
 ## Version 1.23.6
 **Released:** December 16, 2025
 
