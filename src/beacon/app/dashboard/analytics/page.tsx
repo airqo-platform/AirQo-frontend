@@ -74,7 +74,7 @@ export default function AnalyticsPage() {
       
       toast({
         title: "Sync Triggered",
-        description: result.message || "AirQlouds sync has been triggered successfully.",
+        description: result.message || "AirQlouds (Cohorts) sync has been triggered successfully.",
       })
       
       // Refresh the table after a short delay to allow sync to complete
@@ -84,7 +84,7 @@ export default function AnalyticsPage() {
     } catch (error) {
       toast({
         title: "Sync Failed",
-        description: error instanceof Error ? error.message : "Failed to sync AirQlouds.",
+        description: error instanceof Error ? error.message : "Failed to sync AirQlouds (Cohorts).",
         variant: "destructive",
       })
     } finally {
@@ -105,7 +105,7 @@ export default function AnalyticsPage() {
     if (filterState.selectedItems.length === 0) {
       toast({
         title: "No Items Selected",
-        description: `Please select at least one ${filterState.filterType === 'airqlouds' ? 'AirQloud' : 'Device'} to analyse.`,
+        description: `Please select at least one ${filterState.filterType === 'airqlouds' ? 'AirQloud (Cohort)' : 'Device'} to analyse.`,
         variant: "destructive",
       })
       return
@@ -219,7 +219,7 @@ export default function AnalyticsPage() {
         
         toast({
           title: "Success",
-          description: `AirQloud "${response.airqloud.name}" created with ${response.devices_added} devices added successfully.`,
+          description: `AirQloud (Cohort) "${response.airqloud.name}" created with ${response.devices_added} devices added successfully.`,
           variant: "default",
         })
 
@@ -242,7 +242,7 @@ export default function AnalyticsPage() {
         
         toast({
           title: "Success",
-          description: `AirQloud "${response.name}" has been created successfully.`,
+          description: `AirQloud (Cohort) "${response.name}" has been created successfully.`,
           variant: "default",
         })
       }
@@ -254,7 +254,7 @@ export default function AnalyticsPage() {
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create AirQloud",
+        description: error instanceof Error ? error.message : "Failed to create AirQloud (Cohort)",
         variant: "destructive",
       })
     } finally {
@@ -277,7 +277,7 @@ export default function AnalyticsPage() {
           className="gap-2"
         >
           <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-          {isSyncing ? 'Syncing...' : 'Sync AirQlouds'}
+          {isSyncing ? 'Syncing...' : 'Sync AirQlouds (Cohorts)'}
         </Button>
       </div>
 
