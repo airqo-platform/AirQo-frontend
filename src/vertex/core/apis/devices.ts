@@ -144,6 +144,41 @@ export const devices = {
       throw error;
     }
   },
+
+  getDevicesByStatusApi: async (params: {
+    status: string;
+    cohort_id?: string[];
+    limit?: number;
+    skip?: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+    network?: string;
+  }) => {
+    try {
+      const { status, cohort_id, ...rest } = params;
+      const queryParams = new URLSearchParams();
+
+      if (cohort_id && cohort_id.length > 0) {
+        queryParams.set("cohort_id", cohort_id.join(","));
+      }
+
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.set(key, String(value));
+        }
+      });
+
+      const formattedStatus = status.replace(/_/g, '-').replace(/ /g, '-');
+      const response = await jwtApiClient.get<DevicesSummaryResponse>(
+        `/devices/status/${formattedStatus}?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   getDeviceCountApi: async (params: {
     cohort_id?: string[];
   }): Promise<DeviceCountResponse> => {

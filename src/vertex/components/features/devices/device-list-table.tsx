@@ -64,6 +64,7 @@ export default function DevicesTable({
     search: searchTerm,
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    filterStatus: status || undefined,
     ...filterOptions,
   });
 
