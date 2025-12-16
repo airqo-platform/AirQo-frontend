@@ -84,6 +84,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState<string>("")
   const [password, setPassword] = useState<string>("")
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false)
   const [error, setError] = useState<string>("")
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [pageReady, setPageReady] = useState<boolean>(false)
@@ -194,11 +195,15 @@ export default function LoginPage() {
         setEmail("")
         setPassword("")
         
-        // Redirect to dashboard
-        router.push("/dashboard/devices")
+        // Show transition screen
+        setIsLoading(false)
+        setIsTransitioning(true)
         
-        // Force refresh to ensure clean state
-        router.refresh()
+        // Small delay to show transition, then redirect
+        setTimeout(() => {
+          router.push("/dashboard/devices")
+          router.refresh()
+        }, 1500)
         
       } else if (response?.success === false) {
         setError(response.message || "Invalid credentials")
@@ -255,6 +260,57 @@ export default function LoginPage() {
         </div>
       )}
 
+      {/* Transition Screen - Shows after successful login */}
+      {isTransitioning && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center animate-in fade-in duration-300">
+          {/* Blurred 3D Background */}
+          <div className="absolute inset-0 blur-sm">
+            <div className="w-full h-full bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
+              {!modelFailed && (
+                <div className="w-full h-full opacity-80">
+                  <DeviceModel3D 
+                    onModelLoaded={() => {}} 
+                    onModelFailed={() => {}} 
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Dark overlay for better text contrast */}
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]"></div>
+          
+          {/* Content */}
+          <div className="relative z-10 flex flex-col items-center">
+            {/* Success checkmark animation */}
+            <div className="relative mb-8">
+              <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-300">
+                  <svg className="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            
+            {/* Welcome text */}
+            <div className="text-white text-3xl font-bold mb-3 animate-in slide-in-from-bottom duration-500 drop-shadow-lg">
+              Welcome Back!
+            </div>
+            <div className="text-white/90 text-lg mb-8 animate-in slide-in-from-bottom duration-500 delay-100 drop-shadow-md">
+              Preparing your dashboard...
+            </div>
+            
+            {/* Loading dots */}
+            <div className="flex space-x-2">
+              <div className="w-3 h-3 bg-white rounded-full animate-bounce shadow-lg" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-3 h-3 bg-white rounded-full animate-bounce shadow-lg" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-3 h-3 bg-white rounded-full animate-bounce shadow-lg" style={{ animationDelay: '300ms' }}></div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content - Hidden until ready */}
       <div className={`min-h-screen flex transition-opacity duration-500 ${pageReady ? 'opacity-100' : 'opacity-0'}`}>
         {/* Left side - 3D Model (hidden if model failed to load) */}
@@ -269,7 +325,6 @@ export default function LoginPage() {
                 onModelFailed={() => setModelFailed(true)} 
               />
             </Model3DErrorBoundary>
-            
             {/* Overlay text */}
             <div className="absolute bottom-10 left-10 right-10 text-white">
               <h1 className="text-5xl font-bold mb-4">AirQo Beacon</h1>
