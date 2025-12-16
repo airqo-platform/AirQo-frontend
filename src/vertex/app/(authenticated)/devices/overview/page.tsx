@@ -18,7 +18,6 @@ export default function DevicesPage() {
   const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const status = searchParams.get("status");
 
   // Permission checks
   const canUpdateDevice = usePermission(PERMISSIONS.DEVICE.UPDATE);
