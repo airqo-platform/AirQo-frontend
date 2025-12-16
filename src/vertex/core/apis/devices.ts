@@ -48,12 +48,11 @@ export interface DeviceStatusResponse {
 }
 
 export interface DeviceCountSummary {
-  deployed: number;
-  recalled: number;
-  undeployed: number;
-  online: number;
-  offline: number;
-  maintenance_overdue: number;
+  total_monitors: number;
+  operational: number;
+  transmitting: number;
+  not_transmitting: number;
+  data_available: number;
 }
 
 export interface DeviceCountResponse {

@@ -1,19 +1,18 @@
 "use client";
 
-import { useMyDevices, useDeviceCount } from "@/core/hooks/useDevices";
-import { useAppSelector } from "@/core/redux/hooks";
+import { useDeviceCount } from "@/core/hooks/useDevices";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import {
   AqMonitor,
   AqCollocation,
   AqWifiOff,
+  AqData,
 } from "@airqo/icons-react";
 import { Info } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useMemo, useCallback } from "react";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import { Device } from "@/app/types/devices";
 import {
   Tooltip,
   TooltipContent,
@@ -132,83 +131,43 @@ const StatCard = ({
 };
 
 export const DashboardStatsCards = () => {
-  const { activeGroup } = useAppSelector((state) => state.user);
   const { userScope, userDetails } = useUserContext();
 
   const isPersonalScope = userScope === 'personal';
 
-  // Use useMyDevices for personal scope
-  const myDevicesQuery = useMyDevices(userDetails?._id || "", activeGroup?._id, {
-    enabled: isPersonalScope,
-  });
+  const personalCohortIds = userDetails?.cohort_ids || [];
+  const shouldEnable = isPersonalScope ? personalCohortIds.length > 0 : true;
 
-  // Use useDeviceCount for organisation scope
+  // Use useDeviceCount for both scopes
+  // For personal scope, pass the user's cohort IDs
+  // If personal scope and no cohorts, the hook is disabled
   const deviceCountQuery = useDeviceCount({
-    enabled: userScope === 'organisation',
+    enabled: shouldEnable,
+    cohortIds: isPersonalScope ? personalCohortIds : undefined,
   });
 
-  const calculateMetrics = useCallback((devices: Device[]) => {
-    const total = devices.length;
-
-    const operational = devices.filter(
-      (d) => d.rawOnlineStatus === true && d.isOnline === true
-    ).length;
-
-    const transmitting = devices.filter(
-      (d) => d.rawOnlineStatus === true && d.isOnline === false
-    ).length;
-
-    const notTransmitting = devices.filter(
-      (d) =>
-        (d.rawOnlineStatus === false || d.rawOnlineStatus === undefined) &&
-        d.isOnline === false
-    ).length;
-
-    return {
-      total,
-      operational,
-      transmitting,
-      notTransmitting,
-    };
-  }, []);
-
-  const isLoading = isPersonalScope
-    ? myDevicesQuery.isLoading
-    : deviceCountQuery.isLoading;
+  const isLoading = shouldEnable ? deviceCountQuery.isLoading : false;
 
   const metrics = useMemo(() => {
-    if (isPersonalScope) {
-      const myDevicesData = myDevicesQuery.data;
-      if (myDevicesData) {
-        return calculateMetrics(myDevicesData.devices || []);
-      }
-    } else {
-      const summary = deviceCountQuery.data?.summary;
-      if (summary) {
-        // Fallback or mapping for Org scope (until API supports strict fields better)
-        // Using approximate mapping based on standard fields
-        return {
-          total: summary.deployed + summary.undeployed + summary.recalled,
-          operational: summary.online,
-          // TODO: API doesn't provide transmitting status for org scope yet
-          transmitting: null, // Explicitly null to indicate unavailable
-          notTransmitting: summary.offline,
-        };
-      }
+    const summary = deviceCountQuery.data?.summary;
+    if (summary) {
+      return {
+        total: summary.total_monitors,
+        operational: summary.operational,
+        transmitting: summary.transmitting,
+        notTransmitting: summary.not_transmitting,
+        dataAvailable: summary.data_available,
+      };
     }
 
     return {
       total: 0,
       operational: 0,
-      transmitting: isPersonalScope ? 0 : null,
+      transmitting: 0,
       notTransmitting: 0,
+      dataAvailable: 0,
     };
-  }, [
-    isPersonalScope,
-    myDevicesQuery.data,
-    deviceCountQuery.data,
-    calculateMetrics,
-  ]);
+  }, [deviceCountQuery.data]);
 
   const router = useRouter();
 
@@ -259,6 +218,16 @@ export const DashboardStatsCards = () => {
           isLoading={isLoading}
           onClick={() => handleNavigation('?status=not_transmitting')}
           variant="default"
+        />
+
+        <StatCard
+          title="Data Available"
+          value={metrics.dataAvailable}
+          description={getStatusExplanation("Data Available")}
+          icon={<AqData className="w-6 h-6" />}
+          isLoading={isLoading}
+          onClick={() => handleNavigation('?status=data_available')}
+          variant="warning"
         />
       </div>
     </div>

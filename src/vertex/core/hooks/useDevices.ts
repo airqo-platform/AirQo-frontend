@@ -179,46 +179,51 @@ export const useMyDevices = (
   });
 };
 
-export const useDeviceCount = (options: { enabled?: boolean } = {}) => {
+export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[] } = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const { enabled = true } = options;
+  const { enabled = true, cohortIds } = options;
   const isAirQoGroup = activeGroup?.grp_title === 'airqo';
+
+  const shouldFetchGroupCohorts = !cohortIds && !isAirQoGroup && !!activeGroup?._id && enabled;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
     {
-      enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
+      enabled: shouldFetchGroupCohorts,
     }
   );
+
+  const effectiveCohortIds = cohortIds || groupCohortIds;
+
+  const isQueryEnabled =
+    enabled &&
+    (isAirQoGroup || (!!effectiveCohortIds && effectiveCohortIds.length > 0));
 
   const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       'deviceCount',
       activeGroup?._id,
-      isAirQoGroup ? null : groupCohortIds,
+      isAirQoGroup ? null : effectiveCohortIds,
     ],
     queryFn: () => {
       if (isAirQoGroup) {
         return devices.getDeviceCountApi({});
       }
 
-      if (!groupCohortIds || groupCohortIds.length === 0) {
+      if (!effectiveCohortIds || effectiveCohortIds.length === 0) {
         return Promise.reject(new Error('Cohort IDs must be provided.'));
       }
-      return devices.getDeviceCountApi({ cohort_id: groupCohortIds });
+      return devices.getDeviceCountApi({ cohort_id: effectiveCohortIds });
     },
-    enabled:
-      !!activeGroup?.grp_title &&
-      (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)) &&
-      enabled,
+    enabled: isQueryEnabled,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
   });
 
   return {
     ...query,
-    isLoading: query.isLoading || (!isAirQoGroup && isLoadingCohorts),
-    isFetching: query.isFetching || (!isAirQoGroup && isLoadingCohorts),
+    isLoading: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isLoading),
+    isFetching: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isFetching),
   };
 };
 

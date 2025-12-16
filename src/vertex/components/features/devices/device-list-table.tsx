@@ -43,6 +43,9 @@ export default function DevicesTable({
     if (status === "not_transmitting") {
       return { rawOnlineStatus: false, isOnline: false };
     }
+    if (status === "data_available") {
+      return { rawOnlineStatus: false, isOnline: true };
+    }
     return {};
   }, [status]);
 
