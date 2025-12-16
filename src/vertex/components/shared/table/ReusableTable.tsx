@@ -225,6 +225,7 @@ interface TableHeaderProps<T> {
   exportable: boolean;
   onExportClick: () => void;
   hasData: boolean;
+  customHeaderContent?: ReactNode;
 }
 
 const TableHeader = <T extends TableItem>({
@@ -241,6 +242,7 @@ const TableHeader = <T extends TableItem>({
   exportable,
   onExportClick,
   hasData,
+  customHeaderContent,
 }: TableHeaderProps<T>) => {
   return (
     <div className="px-6 py-2 border-b bg-white border-gray-200 dark:border-gray-600 dark:bg-[#1d1f20] rounded-t-lg shadow-sm">
@@ -254,6 +256,7 @@ const TableHeader = <T extends TableItem>({
           )}
         </div>
         <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+          {customHeaderContent}
           {exportable && (
             <ReusableButton
               onClick={onExportClick}
@@ -562,6 +565,7 @@ interface ReusableTableProps<T extends TableItem> {
   searchTerm?: string;
   exportable?: boolean;
   onExport?: (format: 'csv', selectedColumns: string[]) => Promise<void>;
+  customHeaderContent?: ReactNode;
 }
 
 // Normalize any value to a searchable string
@@ -625,6 +629,7 @@ const ReusableTable = <T extends TableItem>({
   stickyHeader = false,
   exportable = true,
   onExport,
+  customHeaderContent,
 }: ReusableTableProps<T>) => {
   const router = useRouter();
   const pathname = usePathname();
@@ -1300,6 +1305,7 @@ const ReusableTable = <T extends TableItem>({
           exportable={exportable}
           onExportClick={() => setIsExportModalOpen(true)}
           hasData={serverSidePagination ? data.length > 0 : filteredData.length > 0}
+          customHeaderContent={customHeaderContent}
         />
 
         {multiSelect && isAnySelected && (

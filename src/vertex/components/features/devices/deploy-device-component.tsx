@@ -364,7 +364,7 @@ const DeployDeviceComponent = ({
 }: DeployDeviceComponentProps) => {
   const queryClient = useQueryClient();
   const { userScope, userDetails } = useUserContext();
-  const { devices: allDevices } = useDevices();
+  const { devices: allDevices } = useDevices({ enabled: userScope !== 'personal' });
   const [currentStep, setCurrentStep] = React.useState<number>(0);
   const [inputMode, setInputMode] = React.useState<'siteName' | 'coordinates'>('siteName');
 

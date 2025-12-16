@@ -131,7 +131,7 @@ function useOnlineStatus() {
     };
     const handleOffline = () => {
       setIsOnline(false);
-      logger.warn('[OnlineStatus] Connection lost');
+      logger.info('[OnlineStatus] Connection lost');
     };
 
     window.addEventListener('online', handleOnline);
@@ -291,7 +291,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
 
     if (!data?.users || data.users.length === 0) {
       if (!isLoggingOut) {
-        logger.warn('[UserDataFetcher] Data received but no users found');
+        logger.info('[UserDataFetcher] Data received but no users found');
       }
       return;
     }
@@ -344,7 +344,7 @@ function UserDataFetcher({ children }: { children: React.ReactNode }) {
     ) {
       const userGroups = cachedUser.groups || [];
       if (userGroups.length === 0) {
-        logger.warn(
+        logger.debug(
           '[UserDataFetcher] User has no groups and is not in personal mode, logging out',
           { userContext }
         );
@@ -376,7 +376,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     if (hasHandledUnauthorized) return;
     if (isLoggingOut) return;
 
-    logger.warn('[AuthWrapper] Handling unauthorized event');
+    logger.debug('[AuthWrapper] Handling unauthorized event');
 
     // Check for account deletion flag
     if (typeof window !== 'undefined') {
@@ -429,7 +429,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
         // Multiple 401s in short time = likely account deletion
         if (now - lastUnauthorized < 30000 && unauthorizedCount >= 2) {
-          logger.warn(
+          logger.info(
             '[AuthWrapper] Multiple 401s with valid session - possible account deletion'
           );
           setHasHandledUnauthorized(true);
@@ -447,7 +447,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
       }
 
       // Session refresh failed - token expired
-      logger.warn('[AuthWrapper] Session expired, logging out');
+      logger.info('[AuthWrapper] Session expired, logging out');
       setHasHandledUnauthorized(true);
       ReusableToast({
         message: 'Your session has expired. Please log in again.',
@@ -551,7 +551,7 @@ function AutoLogoutHandler() {
     const intervalId = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
       if (timeSinceLastActivity >= INACTIVITY_LIMIT) {
-        logger.warn('[AutoLogoutHandler] User inactive for 30 minutes, logging out');
+        logger.debug('[AutoLogoutHandler] User inactive for 30 minutes, logging out');
         logout();
       }
     }, 60 * 1000); // Check every minute

@@ -47,7 +47,7 @@ export function AssignCohortDevicesDialog({
   cohortId,
 }: AssignCohortDevicesDialogProps) {
   const { cohorts } = useCohorts();
-  const { devices: allDevices } = useDevices();
+  const { devices: allDevices } = useDevices({ enabled: open });
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
 
   const [createCohortModalOpen, setCreateCohortModalOpen] = useState(false);

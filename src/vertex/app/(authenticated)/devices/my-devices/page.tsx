@@ -48,7 +48,7 @@ const MyDevicesPage = () => {
   const error = userScope === 'personal' ? myDevicesError : orgDevicesError;
   const searchParams = useSearchParams();
   const rawStatus = searchParams.get("status");
-  const statusFilter = ["operational", "transmitting", "not_transmitting"].includes(rawStatus || "")
+  const statusFilter = ["operational", "transmitting", "not_transmitting", "data_available"].includes(rawStatus || "")
     ? rawStatus
     : null;
 
@@ -67,6 +67,10 @@ const MyDevicesPage = () => {
 
       if (statusFilter === "not_transmitting") {
         return device.rawOnlineStatus === false && device.isOnline === false;
+      }
+
+      if (statusFilter === "data_available") {
+        return device.rawOnlineStatus === false && device.isOnline === true;
       }
 
       return true;
