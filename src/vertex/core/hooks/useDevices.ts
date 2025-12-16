@@ -60,6 +60,7 @@ export type DeviceListingOptions = Partial<Device> & {
   order?: 'asc' | 'desc';
   network?: string;
   enabled?: boolean;
+  filterStatus?: string;
 };
 
 export const useDevices = (options: DeviceListingOptions = {}) => {
@@ -74,7 +75,7 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
     }
   );
 
-  const { page = 1, limit = 100, search, sortBy, order, network, enabled: _enabled, ...rest } = options;
+  const { page = 1, limit = 100, search, sortBy, order, network, enabled: _enabled, filterStatus, ...rest } = options;
   const safePage = Math.max(1, page);
   const safeLimit = Math.max(1, limit);
   const skip = (safePage - 1) * safeLimit;
@@ -95,6 +96,34 @@ export const useDevices = (options: DeviceListingOptions = {}) => {
   >({
     queryKey,
     queryFn: async () => {
+      // 1. Hybrid Strategy: If a generic status filter is provided, use the optimized status endpoint
+      if (options.filterStatus) {
+        const commonParams = {
+          status: options.filterStatus,
+          limit: safeLimit,
+          skip,
+          ...(search && { search }),
+          ...(sortBy && { sortBy }),
+          ...(order && { order }),
+          ...(network && { network }),
+          ...rest,
+        };
+
+        if (isAirQoGroup) {
+          // Admin view: status across all (or filtered network)
+          return devices.getDevicesByStatusApi(commonParams);
+        } else {
+          // Org view: status scoped by organization cohorts
+          if (!groupCohortIds || groupCohortIds.length === 0) {
+            throw new Error('Cohort IDs are not available for this organization.');
+          }
+          return devices.getDevicesByStatusApi({
+            ...commonParams,
+            cohort_id: groupCohortIds,
+          });
+        }
+      }
+
       if (isAirQoGroup) {
         const params: GetDevicesSummaryParams = {
           limit: safeLimit,
@@ -179,46 +208,56 @@ export const useMyDevices = (
   });
 };
 
-export const useDeviceCount = (options: { enabled?: boolean } = {}) => {
+export const useDeviceCount = (options: { enabled?: boolean; cohortIds?: string[]; network?: string } = {}) => {
   const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const { enabled = true } = options;
+  const { enabled = true, cohortIds, network } = options;
   const isAirQoGroup = activeGroup?.grp_title === 'airqo';
+
+  const shouldFetchGroupCohorts = !cohortIds && !isAirQoGroup && !!activeGroup?._id && enabled && !network;
 
   const { data: groupCohortIds, isLoading: isLoadingCohorts } = useGroupCohorts(
     activeGroup?._id,
     {
-      enabled: !isAirQoGroup && !!activeGroup?._id && enabled,
+      enabled: shouldFetchGroupCohorts,
     }
   );
+
+  const effectiveCohortIds = cohortIds || groupCohortIds;
+
+  const isQueryEnabled =
+    enabled &&
+    (!!network || isAirQoGroup || (!!effectiveCohortIds && effectiveCohortIds.length > 0));
 
   const query = useQuery<DeviceCountResponse, AxiosError<ErrorResponse>>({
     queryKey: [
       'deviceCount',
       activeGroup?._id,
-      isAirQoGroup ? null : groupCohortIds,
+      isAirQoGroup ? null : effectiveCohortIds,
+      network
     ],
     queryFn: () => {
+      if (network) {
+        return devices.getDeviceCountApi({ network });
+      }
+
       if (isAirQoGroup) {
         return devices.getDeviceCountApi({});
       }
 
-      if (!groupCohortIds || groupCohortIds.length === 0) {
+      if (!effectiveCohortIds || effectiveCohortIds.length === 0) {
         return Promise.reject(new Error('Cohort IDs must be provided.'));
       }
-      return devices.getDeviceCountApi({ cohort_id: groupCohortIds });
+      return devices.getDeviceCountApi({ cohort_id: effectiveCohortIds });
     },
-    enabled:
-      !!activeGroup?.grp_title &&
-      (isAirQoGroup || (!!groupCohortIds && groupCohortIds.length > 0)) &&
-      enabled,
+    enabled: isQueryEnabled,
     staleTime: 300_000, // 5 minutes
     refetchOnWindowFocus: false,
   });
 
   return {
     ...query,
-    isLoading: query.isLoading || (!isAirQoGroup && isLoadingCohorts),
-    isFetching: query.isFetching || (!isAirQoGroup && isLoadingCohorts),
+    isLoading: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isLoading),
+    isFetching: (shouldFetchGroupCohorts && isLoadingCohorts) || (isQueryEnabled && query.isFetching),
   };
 };
 

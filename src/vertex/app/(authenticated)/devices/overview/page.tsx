@@ -31,6 +31,7 @@ export default function DevicesPage() {
               Manage and organize your devices.
             </p>
           </div>
+          <div className="flex-1" />
           <div className="flex gap-2">
             {isPersonalContext && (
               <>

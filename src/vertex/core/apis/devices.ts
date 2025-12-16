@@ -48,12 +48,11 @@ export interface DeviceStatusResponse {
 }
 
 export interface DeviceCountSummary {
-  deployed: number;
-  recalled: number;
-  undeployed: number;
-  online: number;
-  offline: number;
-  maintenance_overdue: number;
+  total_monitors: number;
+  operational: number;
+  transmitting: number;
+  not_transmitting: number;
+  data_available: number;
 }
 
 export interface DeviceCountResponse {
@@ -145,15 +144,55 @@ export const devices = {
       throw error;
     }
   },
-  getDeviceCountApi: async (params: {
+
+  getDevicesByStatusApi: async (params: {
+    status: string;
     cohort_id?: string[];
-  }): Promise<DeviceCountResponse> => {
+    limit?: number;
+    skip?: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+    network?: string;
+  }) => {
     try {
-      const { cohort_id } = params;
+      const { status, cohort_id, ...rest } = params;
       const queryParams = new URLSearchParams();
 
       if (cohort_id && cohort_id.length > 0) {
         queryParams.set("cohort_id", cohort_id.join(","));
+      }
+
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.set(key, String(value));
+        }
+      });
+
+      const formattedStatus = status.replace(/_/g, '-').replace(/ /g, '-');
+      const response = await jwtApiClient.get<DevicesSummaryResponse>(
+        `/devices/status/${formattedStatus}?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getDeviceCountApi: async (params: {
+    cohort_id?: string[];
+    network?: string;
+  }): Promise<DeviceCountResponse> => {
+    try {
+      const { cohort_id, network } = params;
+      const queryParams = new URLSearchParams();
+
+      if (cohort_id && cohort_id.length > 0) {
+        queryParams.set("cohort_id", cohort_id.join(","));
+      }
+
+      if (network) {
+        queryParams.set("network", network);
       }
 
       const response = await jwtApiClient.get<DeviceCountResponse>(
