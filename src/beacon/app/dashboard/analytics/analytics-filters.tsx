@@ -163,8 +163,8 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
     // Check if trying to select an inactive airqloud
     if (!isActive && filterType === "airqlouds") {
       toast({
-        title: "Cannot select untracked AirQloud",
-        description: "You need to activate this AirQloud to track it. Go to the table below and click on 'Untracked' to enable tracking.",
+        title: "Cannot select untracked AirQloud (Cohort)",
+        description: "You need to activate this AirQloud (Cohort) to track it. Go to the table below and click on 'Untracked' to enable tracking.",
         variant: "destructive",
       })
       return
@@ -238,7 +238,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Airqloud Uptime Analysis</CardTitle>
+        <CardTitle>Airqloud (Cohort) Uptime Analysis</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -252,7 +252,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="airqlouds">AirQlouds</SelectItem>
+                  <SelectItem value="airqlouds">AirQlouds (Cohorts)</SelectItem>
                   <SelectItem value="devices">Devices</SelectItem>
                 </SelectContent>
               </Select>
@@ -261,7 +261,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
             {/* Search and Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Select {filterType === "airqlouds" ? "AirQlouds" : "Devices"}
+                Select {filterType === "airqlouds" ? "AirQlouds (Cohorts)" : "Devices"}
               </label>
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -517,7 +517,7 @@ export default function AnalyticsFilters({ onFilterChange, onAnalyse, isAnalysin
             {/* Selected Items Display */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
-                Selected {filterType === "airqlouds" ? "AirQlouds" : "Devices"} ({selectedItems.length})
+                Selected {filterType === "airqlouds" ? "AirQlouds (Cohorts)" : "Devices"} ({selectedItems.length})
               </label>
               <div className="border rounded-md p-3 min-h-[100px] max-h-[150px] overflow-y-auto">
                 {selectedItems.length > 0 ? (

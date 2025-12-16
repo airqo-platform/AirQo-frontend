@@ -52,9 +52,9 @@ class Model3DErrorBoundary extends Component<
   }
 }
 
-// Dynamically import the 3D component to avoid SSR issues with better error handling
+// Dynamically import the 3D component wrapper to avoid SSR issues
 const DeviceModel3D = dynamic(
-  () => import("@/components/device-model-3d").catch((error) => {
+  () => import("@/components/device-model-3d-wrapper").catch((error) => {
     console.error('Failed to load DeviceModel3D:', error)
     // Return a fallback component that signals readiness
     return {
@@ -91,18 +91,29 @@ export default function LoginPage() {
   
   /**
    * Check if on mobile and set page ready immediately (no 3D model on mobile)
+   * Also add a fallback timeout to ensure page becomes visible
    */
   useEffect(() => {
     // Check if screen is smaller than lg breakpoint (1024px)
     const checkMobile = () => {
       if (window.innerWidth < 1024) {
         setPageReady(true)
+        setModelFailed(true) // No 3D on mobile
       }
     }
     
     checkMobile()
     window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
+    
+    // Fallback: ensure page is visible after 3 seconds even if 3D fails
+    const fallbackTimer = setTimeout(() => {
+      setPageReady(true)
+    }, 3000)
+    
+    return () => {
+      window.removeEventListener('resize', checkMobile)
+      clearTimeout(fallbackTimer)
+    }
   }, [])
   
   /**
@@ -227,6 +238,20 @@ export default function LoginPage() {
           <Loader2 className="h-20 w-20 text-white animate-spin mb-6" />
           <div className="text-white text-2xl font-bold mb-2">AirQo Beacon</div>
           <div className="text-blue-100 text-lg">Loading devices...</div>
+        </div>
+      )}
+
+      {/* Login Progress Overlay - Shows during authentication */}
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-white/90 backdrop-blur-md rounded-2xl p-8 shadow-2xl flex flex-col items-center max-w-sm mx-4">
+            <div className="relative mb-6">
+              <div className="w-16 h-16 border-4 border-blue-200 rounded-full"></div>
+              <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+            </div>
+            <div className="text-gray-900 text-xl font-semibold mb-2">Signing you in...</div>
+            <div className="text-gray-500 text-sm text-center">Please wait while we verify your credentials</div>
+          </div>
         </div>
       )}
 

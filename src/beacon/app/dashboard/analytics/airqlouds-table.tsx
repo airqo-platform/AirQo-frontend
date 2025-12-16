@@ -115,7 +115,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
         })
         setRawData(data)
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch AirQlouds')
+        setError(err instanceof Error ? err.message : 'Failed to fetch AirQlouds (Cohorts)')
         console.error('Error fetching AirQlouds:', err)
       } finally {
         setIsLoading(false)
@@ -313,7 +313,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     return (
       <Card>
         <CardHeader>
-          <CardTitle>AirQlouds Performance</CardTitle>
+          <CardTitle>AirQlouds (Cohorts) Performance</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8 text-red-500">
@@ -328,7 +328,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>AirQlouds Performance</CardTitle>
+          <CardTitle>AirQlouds (Cohorts) Performance</CardTitle>
           <Button onClick={exportToCSV} variant="outline" size="sm">
             {/* <Download className="mr-2 h-4 w-4" /> */}
             Last 14 Days
@@ -338,7 +338,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
           <div className="relative flex-1">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search AirQlouds..."
+              placeholder="Search AirQlouds (Cohorts)..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-8"
@@ -356,7 +356,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
         {isLoading ? (
           <div className="text-center py-8 text-muted-foreground">Loading...</div>
         ) : sortedData.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">No AirQlouds found</div>
+          <div className="text-center py-8 text-muted-foreground">No AirQlouds (Cohorts) found</div>
         ) : (
           <div className="rounded-md border">
             <Table>
@@ -481,7 +481,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Edit AirQloud</DialogTitle>
+            <DialogTitle>Edit AirQloud (Cohort)</DialogTitle>
             <DialogDescription>
               Update tracking status and country for {editingAirQloud?.name}
             </DialogDescription>
@@ -493,7 +493,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
                   Tracking Status
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {editIsTracked ? "Currently tracking this AirQloud" : "Not tracking this AirQloud"}
+                  {editIsTracked ? "Currently tracking this AirQloud (Cohort)" : "Not tracking this AirQloud (Cohort)"}
                 </p>
               </div>
               <Switch
