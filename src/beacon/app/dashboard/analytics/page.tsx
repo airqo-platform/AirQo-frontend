@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { ExternalLink, Info } from "lucide-react"
 
 export default function AnalyticsPage() {
   const { toast } = useToast()
@@ -268,18 +269,35 @@ export default function AnalyticsPage() {
         <h1 className="text-3xl font-bold tracking-tight">AirQloud Uptime</h1>
       </div> */}
 
-      {/* Add Button with Dialog */}
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          onClick={handleSyncAirQlouds}
-          disabled={isSyncing}
-          className="gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
-          {isSyncing ? 'Syncing...' : 'Sync AirQlouds (Cohorts)'}
-        </Button>
-      </div>
+      {/* Info Card and Sync Button */}
+      <Card className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+        <CardContent className="flex items-center justify-between gap-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-blue-600 dark:text-blue-400">
+            <Info className="h-4 w-4 flex-shrink-0" />
+            <span>
+              AirQlouds (Cohorts) are created from{" "}
+              <a 
+                href="https://vertex.airqo.net" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 font-medium underline underline-offset-4 hover:text-blue-800 dark:hover:text-blue-200"
+              >
+                vertex.airqo.net
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            onClick={handleSyncAirQlouds}
+            disabled={isSyncing}
+            className="gap-2 flex-shrink-0"
+          >
+            <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync AirQlouds (Cohorts)'}
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* Filters Component */}
       <AnalyticsFilters 
