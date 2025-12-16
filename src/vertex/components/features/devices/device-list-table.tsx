@@ -260,6 +260,6 @@ export default function DevicesTable({
         selectedDevices={selectedDeviceObjects}
         onSuccess={handleUnassignSuccess}
       />
-    </div >
+    </div>
   );
 }
