@@ -28,17 +28,24 @@ const mapSettingsPersistConfig = {
   // Persist all map settings
 };
 
+const uiPersistConfig = {
+  key: 'ui',
+  storage,
+  whitelist: ['sidebarCollapsed'], // Only persist sidebar collapsed state
+};
+
 const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
 const persistedThemeReducer = persistReducer(themePersistConfig, themeReducer);
 const persistedMapSettingsReducer = persistReducer(
   mapSettingsPersistConfig,
   mapSettingsReducer
 );
+const persistedUIReducer = persistReducer(uiPersistConfig, uiReducer);
 
 export const store = configureStore({
   reducer: {
     theme: persistedThemeReducer,
-    ui: uiReducer,
+    ui: persistedUIReducer,
     user: persistedUserReducer,
     insights: insightsReducer,
     cohorts: cohortReducer,
