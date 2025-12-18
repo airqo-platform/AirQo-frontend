@@ -72,7 +72,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
         transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       >
         {/* allow the toggle button to visually overflow outside the Card by NOT clipping on the outer container */}
-        <Card className="flex flex-col h-full overflow-x-hidden overflow-y-auto">
+        <Card
+          className={cn(
+            'flex flex-col h-full',
+            isCollapsed
+              ? 'overflow-visible'
+              : 'overflow-x-hidden overflow-y-auto'
+          )}
+        >
           <motion.div
             className="absolute z-50 top-4 right-[-12px]"
             transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
