@@ -17,6 +17,7 @@ export const VideoTutorialDialog: React.FC<VideoTutorialDialogProps> = ({
   onClose,
 }) => {
   const videoRef = React.useRef<HTMLVideoElement>(null);
+  const [videoError, setVideoError] = React.useState(false);
 
   const handleClose = () => {
     if (videoRef.current) {
@@ -35,6 +36,7 @@ export const VideoTutorialDialog: React.FC<VideoTutorialDialogProps> = ({
       size="2xl"
       showCloseButton={true}
       preventBackdropClose={false}
+      maxHeight="max-h-[90vh]"
       contentClassName="p-0"
       contentAreaClassName="px-0 py-0"
       showFooter={true}
@@ -45,20 +47,45 @@ export const VideoTutorialDialog: React.FC<VideoTutorialDialogProps> = ({
       }}
     >
       <div className="relative w-full bg-black overflow-hidden">
-        <video
-          ref={videoRef}
-          className="w-full aspect-video object-cover"
-          controls
-          controlsList="nodownload"
-          preload="metadata"
-          poster="/images/Account/analyticsImage.webp"
-        >
-          <source
-            src="https://res.cloudinary.com/dbibjvyhm/video/upload/v1766068528/Analytics/videos/Data_Download_dcbaox.mp4"
-            type="video/mp4"
-          />
-          Your browser does not support the video tag.
-        </video>
+        {videoError ? (
+          <div className="flex items-center justify-center h-full aspect-video text-white">
+            <div className="text-center">
+              <p className="mb-4">
+                Video failed to load. Please check your internet connection and
+                try again.
+              </p>
+              <Button
+                onClick={() => setVideoError(false)}
+                variant="outlined"
+                className="text-white border-white hover:bg-white hover:text-black"
+              >
+                Retry
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            className="w-full aspect-video object-cover"
+            controls
+            controlsList="nodownload"
+            preload="metadata"
+            poster="/images/Account/analyticsImage.webp"
+            onError={e => {
+              console.error('Video load error:', e);
+              setVideoError(true);
+            }}
+            aria-label="Tutorial video demonstrating how to download air quality data"
+          >
+            <source
+              src="https://res.cloudinary.com/dbibjvyhm/video/upload/v1766068528/Analytics/videos/Data_Download_dcbaox.mp4"
+              type="video/mp4"
+            />
+            {/* Add track for captions if available */}
+            {/* <track kind="captions" srclang="en" label="English" src="path/to/captions.vtt" /> */}
+            Your browser does not support the video tag.
+          </video>
+        )}
       </div>
     </Dialog>
   );
