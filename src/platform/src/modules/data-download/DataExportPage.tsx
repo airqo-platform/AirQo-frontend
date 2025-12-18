@@ -8,6 +8,8 @@ import { DataExportPreview } from './components/DataExportPreview';
 import { DataExportHeader } from './components/DataExportHeader';
 import { DataExportTable } from './components/DataExportTable';
 import { DataExportBanner } from './components/DataExportBanner';
+import { DataExportHelpBanner } from './components/DataExportHelpBanner';
+import { VideoTutorialDialog } from './components/VideoTutorialDialog';
 import {
   CohortSitesResponse,
   CohortDevicesResponse,
@@ -83,6 +85,14 @@ const DataExportPage = () => {
     grid: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     gridType: 'countries' | 'cities';
   } | null>(null);
+  const [tutorialOpen, setTutorialOpen] = React.useState(false);
+  const [showHelpBanner, setShowHelpBanner] = React.useState(() => {
+    // Check if user has dismissed the banner before
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('hideDataExportHelpBanner') !== 'true';
+    }
+    return true;
+  });
 
   // Handle org flow: switch to sites tab if countries or cities is active
   React.useEffect(() => {
@@ -270,6 +280,13 @@ const DataExportPage = () => {
     setSelectedGridForSites(null);
   };
 
+  const handleDismissHelpBanner = () => {
+    setShowHelpBanner(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('hideDataExportHelpBanner', 'true');
+    }
+  };
+
   return (
     <div className="flex flex-col">
       {/* Page Header */}
@@ -305,6 +322,14 @@ const DataExportPage = () => {
         {/* Main Content */}
         <main className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
           <div className="gap-4 md:px-4 flex-col flex flex-1">
+            {/* Help Banner */}
+            {showHelpBanner && (
+              <DataExportHelpBanner
+                onShowTutorial={() => setTutorialOpen(true)}
+                onDismiss={handleDismissHelpBanner}
+              />
+            )}
+
             {/* Dynamic Banner Notification */}
             <DataExportBanner
               dateRange={dateRange}
@@ -440,6 +465,12 @@ const DataExportPage = () => {
           isDownloading={siteSelectionDownloading}
         />
       )}
+
+      {/* Video Tutorial Dialog */}
+      <VideoTutorialDialog
+        isOpen={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+      />
     </div>
   );
 };
