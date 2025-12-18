@@ -112,7 +112,7 @@ const orgSidebarConfig: NavGroup[] = [
 
       {
         id: 'bulk-export',
-        label: 'Bulk Data Export',
+        label: 'Visualization & Data Export',
         href: '/org/data-export',
         icon: AqDownload01,
       },
