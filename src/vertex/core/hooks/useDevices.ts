@@ -555,8 +555,8 @@ export const useCreateDevice = () => {
 
 export const useImportDevice = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const updateDeviceGroup = useUpdateDeviceGroup();
+  const userContext = useAppSelector((state) => state.user.userContext);
+  const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
   return useMutation<
     DeviceCreationResponse,
@@ -571,6 +571,8 @@ export const useImportDevice = () => {
       description?: string;
       serial_number: string;
       api_code?: string;
+      cohort_id?: string;
+      user_id: string;
     }
   >({
     mutationFn: devices.importDevice,
@@ -579,14 +581,19 @@ export const useImportDevice = () => {
         message: `${variables.long_name} has been imported.`,
         type: 'SUCCESS',
       });
-      if (data.created_device && activeGroup?.grp_title) {
-        updateDeviceGroup.mutate({
-          deviceId: data.created_device._id || '',
-          groupName: activeGroup.grp_title,
-        });
+
+      const isAirQoGroup = activeGroup?.grp_title?.toLowerCase() === 'airqo';
+
+      if (userContext === 'personal' && isAirQoGroup) {
+         // AirQo Admin
+        queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      } else if (userContext === 'external-org') {
+         // External Organization
+        queryClient.invalidateQueries({ queryKey: ['devices'] });
+      } else {
+         // Individual (Personal)
+        queryClient.invalidateQueries({ queryKey: ['myDevices'] });
       }
-      queryClient.invalidateQueries({ queryKey: ['devices'] });
-      queryClient.invalidateQueries({ queryKey: ['network-devices'] });
     },
     onError: error => {
       ReusableToast({

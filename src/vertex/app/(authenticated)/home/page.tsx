@@ -53,10 +53,16 @@ const ClaimDeviceModal = dynamic(
   { ssr: false }
 );
 
+const ImportDeviceModal = dynamic(
+  () => import("@/components/features/devices/import-device-modal"),
+  { ssr: false }
+);
+
 const WelcomePage = () => {
   const { data: session } = useSession();
   const { userContext, userScope, hasError, error, isLoading: isLoadingUserContext } = useUserContext();
   const [isClaimModalOpen, setIsClaimModalOpen] = React.useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = React.useState(false);
 
   const user = useAppSelector((state) => state.user.userDetails);
 
@@ -173,8 +179,7 @@ const WelcomePage = () => {
             </ReusableButton>
             <ReusableButton
               variant="outlined"
-              disabled={true}
-              title="Import feature coming soon"
+              onClick={() => setIsImportModalOpen(true)}
               Icon={Upload}
             >
               Import Existing Device
@@ -211,6 +216,10 @@ const WelcomePage = () => {
         isOpen={isClaimModalOpen}
         onClose={() => setIsClaimModalOpen(false)}
         redirectOnSuccess={true}
+      />
+      <ImportDeviceModal
+        open={isImportModalOpen}
+        onOpenChange={setIsImportModalOpen}
       />
     </div>
   );

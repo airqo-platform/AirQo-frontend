@@ -8,6 +8,9 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice } from "@/core/hooks/useDevices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { useNetworks } from "@/core/hooks/useNetworks";
+import { useUserContext } from "@/core/hooks/useUserContext";
+import { useGroupCohorts } from "@/core/hooks/useCohorts";
+import { useAppSelector } from "@/core/redux/hooks";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -37,6 +40,18 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const importDevice = useImportDevice();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
+  // Context awareness
+  const { userContext, activeGroup } = useUserContext();
+  const userDetails = useAppSelector((state) => state.user.userDetails);
+
+  // Fetch organization cohorts if we are in an organization context OR if we are AirQo Admin (personal context but activeGroup is AirQo)
+  const isAirQoGroup = activeGroup?.grp_title?.toLowerCase() === 'airqo';
+  const shouldFetchGroupCohorts = (userContext === 'external-org' || (userContext === 'personal' && isAirQoGroup)) && !!activeGroup?._id;
+
+  const { data: groupCohorts } = useGroupCohorts(activeGroup?._id, {
+    enabled: shouldFetchGroupCohorts,
+  });
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -59,6 +74,19 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const getCohortId = (): string | undefined => {
+    // 1. External Organization OR AirQo Admin: Use Group Cohort
+    if (((userContext === 'external-org') || (userContext === 'personal' && isAirQoGroup)) && groupCohorts && groupCohorts.length > 0) {
+      return groupCohorts[0];
+    }
+
+    // 2. Individual Personal User: Use Personal Cohort
+    else if (userContext === 'personal' && !isAirQoGroup && userDetails?.cohort_ids && userDetails.cohort_ids.length > 0) {
+      return userDetails.cohort_ids[0];
+    }
+    return undefined;
+  };
+
   const handleSubmit = () => {
     if (!validateForm()) {
       return;
@@ -73,9 +101,20 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       }
     });
 
+    // Add cohort_id if applicable
+    const cohortId = getCohortId();
+    const userId = userDetails?._id;
+
+    if (!userId) {
+      console.error("User ID is missing");
+      return;
+    }
+
     importDevice.mutate(
       {
         ...deviceDataToSend,
+        user_id: userId,
+        ...(cohortId && { cohort_id: cohortId }),
       },
       { onSuccess: () => onOpenChange(false) }
     );

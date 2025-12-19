@@ -422,6 +422,8 @@ export const devices = {
     description?: string;
     serial_number: string;
     api_code?: string;
+    cohort_id?: string;
+    user_id: string;
   }): Promise<DeviceCreationResponse> => {
     try {
       const response = await jwtApiClient.post(
