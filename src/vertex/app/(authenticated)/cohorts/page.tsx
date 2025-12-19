@@ -11,7 +11,7 @@ import { useServerSideTableState } from "@/core/hooks/useServerSideTableState";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import { useUserContext } from "@/core/hooks/useUserContext";
-import CohortsEmptyState from "@/components/features/cohorts/CohortsEmptyState";
+import CohortsEmptyState from "@/components/features/cohorts/cohorts-empty-state";
 
 type CohortRow = {
     id: string;

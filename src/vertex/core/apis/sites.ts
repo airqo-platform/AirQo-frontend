@@ -110,6 +110,37 @@ export const sites = {
       throw error;
     }
   },
+
+  getSitesByStatusApi: async (params: {
+    status: string;
+    limit?: number;
+    skip?: number;
+    search?: string;
+    sortBy?: string;
+    order?: "asc" | "desc";
+    network?: string;
+    group?: string;
+  }): Promise<SitesSummaryResponse> => {
+    try {
+      const { status, ...rest } = params;
+      const queryParams = new URLSearchParams();
+      
+      Object.entries(rest).forEach(([key, value]) => {
+        if (value !== undefined) {
+          queryParams.set(key, String(value));
+        }
+      });
+
+      const formattedStatus = status.replace(/_/g, '-').replace(/ /g, '-');
+      const response = await createSecureApiClient().get<SitesSummaryResponse>(
+        `/devices/sites/status/${formattedStatus}?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   createSite: async (data: {
     name: string;
     latitude: string;
