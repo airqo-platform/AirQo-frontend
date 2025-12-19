@@ -40,13 +40,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const importDevice = useImportDevice();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
-  // Context awareness
   const { userContext, activeGroup } = useUserContext();
   const userDetails = useAppSelector((state) => state.user.userDetails);
 
-  // Fetch organization cohorts if we are in an organization context OR if we are AirQo Admin (personal context but activeGroup is AirQo)
-  const isAirQoGroup = activeGroup?.grp_title?.toLowerCase() === 'airqo';
-  const shouldFetchGroupCohorts = (userContext === 'external-org' || (userContext === 'personal' && isAirQoGroup)) && !!activeGroup?._id;
+  const shouldFetchGroupCohorts = userContext === 'external-org' && !!activeGroup?._id;
 
   const { data: groupCohorts } = useGroupCohorts(activeGroup?._id, {
     enabled: shouldFetchGroupCohorts,
@@ -75,8 +72,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   };
 
   const getCohortId = (): string | undefined => {
-    // 1. External Organization OR AirQo Admin: Use Group Cohort
-    if (((userContext === 'external-org') || (userContext === 'personal' && isAirQoGroup)) && groupCohorts && groupCohorts.length > 0) {
+    if (userContext === 'external-org' && groupCohorts && groupCohorts.length > 0) {
       return groupCohorts[0];
     }
 
