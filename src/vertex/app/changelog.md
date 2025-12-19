@@ -4,6 +4,49 @@
 
 ---
 
+## Version 1.23.10
+**Released:** December 19, 2025
+
+### Cohort Import Refinements & Navigation Updates
+
+Streamlined the cohort assignment flow for external organizations and improved navigation for device claiming.
+
+<details>
+<summary><strong>Feature Updates (2)</strong></summary>
+
+- **Direct Cohort Assignment**: External Organizations now experience a seamless flow where verifying a Cohort ID directly triggers the assignment process, skipping the unnecessary bulk claim review step.
+- **Navigation Update**: The "Claim Device" button on the Device Overview page now directs users to the dedicated Claim page (`/devices/claim`) for a unified experience.
+
+</details>
+
+<details>
+<summary><strong>Improvements (3)</strong></summary>
+
+- **Transition UX**: Added a 3-second simulated delay to the cohort assignment success state to prevent UI flashing and provide reassuring feedback.
+- **Copy Refinement**: Updated button text from "Verify & Import" to "Import" on the Claim page for clarity.
+- **Success Feedback**: Enhanced the success message for cohort assignments to clearly indicate completion and offer a direct link to view devices.
+
+</details>
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Modal Stability**: Resolved a regression where the `ClaimDeviceModal` would reset to the initial step mid-flow due to unintended re-renders.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/(authenticated)/devices/claim/page.tsx`
+- `app/(authenticated)/devices/overview/page.tsx`
+- `components/features/claim/claim-device-modal.tsx`
+- `core/hooks/useCohorts.ts`
+
+</details>
+
+---
+
 ## Version 1.23.9
 **Released:** December 19, 2025
 
