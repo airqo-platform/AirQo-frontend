@@ -614,7 +614,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 {step === 'cohort-import' && (
                     <div className="space-y-6">
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Enter the Cohort ID to automatically load its devices. You will only need to provide the claim tokens.
+                            Enter the Cohort ID to automatically load its devices.
                         </p>
                         <div className="space-y-4">
                             <ReusableInputField
