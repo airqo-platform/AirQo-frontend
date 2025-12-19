@@ -80,10 +80,6 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       return groupCohorts[0];
     }
 
-    // 2. Individual Personal User: Use Personal Cohort
-    else if (userContext === 'personal' && !isAirQoGroup && userDetails?.cohort_ids && userDetails.cohort_ids.length > 0) {
-      return userDetails.cohort_ids[0];
-    }
     return undefined;
   };
 

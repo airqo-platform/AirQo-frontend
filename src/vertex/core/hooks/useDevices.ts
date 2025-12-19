@@ -4,6 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import {
   DeviceDetailsResponse,
   devices,
@@ -555,8 +556,11 @@ export const useCreateDevice = () => {
 
 export const useImportDevice = () => {
   const queryClient = useQueryClient();
+  const pathname = usePathname();
   const userContext = useAppSelector((state) => state.user.userContext);
-  const activeGroup = useAppSelector((state) => state.user.activeGroup);
+
+  // Determine active module based on pathname
+  const isAdminModule = pathname?.startsWith('/admin/');
 
   return useMutation<
     DeviceCreationResponse,
@@ -582,17 +586,19 @@ export const useImportDevice = () => {
         type: 'SUCCESS',
       });
 
-      const isAirQoGroup = activeGroup?.grp_title?.toLowerCase() === 'airqo';
-
-      if (userContext === 'personal' && isAirQoGroup) {
-         // AirQo Admin
+      // Refresh based on active module
+      if (isAdminModule) {
+        // Admin module: refresh network devices
         queryClient.invalidateQueries({ queryKey: ['network-devices'] });
-      } else if (userContext === 'external-org') {
-         // External Organization
-        queryClient.invalidateQueries({ queryKey: ['devices'] });
       } else {
-         // Individual (Personal)
-        queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+        // Devices module: check scope
+        if (userContext === 'external-org') {
+          // External organization: refresh devices
+          queryClient.invalidateQueries({ queryKey: ['devices'] });
+        } else {
+          // Personal scope: refresh my devices
+          queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+        }
       }
     },
     onError: error => {
