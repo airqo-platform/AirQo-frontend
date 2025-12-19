@@ -9,6 +9,7 @@ import {
 } from "@airqo/icons-react";
 import { StatCard } from "@/components/features/dashboard/stat-card";
 import { getStatusExplanation } from "@/core/utils/status";
+import { useMemo } from "react";
 import { useSiteStatistics } from "@/core/hooks/useSites";
 
 interface SiteStatsCardsProps {
@@ -16,7 +17,17 @@ interface SiteStatsCardsProps {
 }
 
 export const SiteStatsCards = ({ network }: SiteStatsCardsProps) => {
-    const { metrics, isLoading } = useSiteStatistics(network);
+    const { total, operational, transmitting, notTransmitting, dataAvailable, isLoading } = useSiteStatistics(network);
+
+    const metrics = useMemo(() => {
+        return {
+            total: total?.meta?.total ?? 0,
+            operational: operational?.meta?.total ?? 0,
+            transmitting: transmitting?.meta?.total ?? 0,
+            notTransmitting: notTransmitting?.meta?.total ?? 0,
+            dataAvailable: dataAvailable?.meta?.total ?? 0,
+        };
+    }, [total, operational, transmitting, notTransmitting, dataAvailable]);
 
     const router = useRouter();
     const searchParams = useSearchParams();

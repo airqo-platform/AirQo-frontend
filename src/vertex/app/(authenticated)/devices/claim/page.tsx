@@ -104,7 +104,7 @@ const DeviceClaimingPage = () => {
               Enter a Cohort ID to setup multiple devices instantly.
             </p>
             <span className="text-sm font-medium text-violet-600 dark:text-violet-400 group-hover:underline mt-auto">
-              Verify & Import &rarr;
+              Import &rarr;
             </span>
           </button>
         </div>
@@ -187,7 +187,6 @@ const DeviceClaimingPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         initialStep={initialStep}
-        redirectOnSuccess={true}
       />
     </div>
   );
