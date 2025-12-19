@@ -204,6 +204,17 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             ))}
         </ReusableSelectInput>
 
+        <div className="text-right">
+          <a
+            href="https://forms.gle/EjKHDrHhzma1xz187"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            Can't find your network? Request to add it here
+          </a>
+        </div>
+
         <ReusableSelectInput
           label="Category"
           id="category"
