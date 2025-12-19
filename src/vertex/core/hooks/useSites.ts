@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, useQueries } from "@tanstack/react-query";
 import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse, CreateSiteResponse } from "../apis/sites";
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
@@ -20,6 +20,7 @@ export interface SiteListingOptions {
   sortBy?: string;
   order?: "asc" | "desc";
   network?: string;
+  status?: string;
 }
 
 export const useSites = (options: SiteListingOptions = {}) => {
@@ -36,7 +37,7 @@ export const useSites = (options: SiteListingOptions = {}) => {
   const skip = (safePage - 1) * safeLimit;
 
   const sitesQuery = useQuery<SitesSummaryResponse, AxiosError<ErrorResponse>>({
-    queryKey: ["sites", network, activeGroup?.grp_title, { page, limit, search, sortBy, order }],
+    queryKey: ["sites", network, activeGroup?.grp_title, { page, limit, search, sortBy, order, status: options.status }],
     queryFn: async () => {
       if (isAirQoGroup) {
         const params: GetSitesSummaryParams = {
@@ -48,6 +49,13 @@ export const useSites = (options: SiteListingOptions = {}) => {
           ...(sortBy && { sortBy }),
           ...(order && { order }),
         };
+
+        if (options.status) {
+            return sites.getSitesByStatusApi({
+                status: options.status,
+                ...params
+            });
+        }
         return sites.getSitesSummary(params);
       }
 
@@ -78,6 +86,48 @@ export const useSites = (options: SiteListingOptions = {}) => {
     isFetching: sitesQuery.isFetching,
     error: sitesQuery.error,
   };
+};
+
+export const useSiteStatistics = (network?: string) => {
+    const activeGroup = useAppSelector((state) => state.user.activeGroup);
+
+    const totalQuery = useQuery({
+        queryKey: ["sites-count-total", network, activeGroup?.grp_title],
+        queryFn: () => sites.getSitesSummary({
+             network: network || "",
+             limit: 1
+        }),
+        enabled: !!activeGroup?.grp_title
+    });
+
+    const statuses = ['operational', 'transmitting', 'not-transmitting', 'data-available'];
+    
+    const statusQueries = useQueries({
+        queries: statuses.map(status => ({
+            queryKey: ["sites-count-status", status, network, activeGroup?.grp_title],
+            queryFn: () => sites.getSitesByStatusApi({
+                status: status,
+                network: network || "",
+                limit: 1
+            }),
+            enabled: !!activeGroup?.grp_title
+        }))
+    });
+
+    const isLoading = totalQuery.isLoading || statusQueries.some(q => q.isLoading);
+
+    const metrics = {
+        total: totalQuery.data?.meta.total || 0,
+        operational: statusQueries[0].data?.meta.total || 0,
+        transmitting: statusQueries[1].data?.meta.total || 0,
+        notTransmitting: statusQueries[2].data?.meta.total || 0,
+        dataAvailable: statusQueries[3].data?.meta.total || 0,
+    };
+
+    return {
+        metrics,
+        isLoading
+    };
 };
 
 export const useApproximateCoordinates = () => {

@@ -4,6 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
+import { usePathname } from 'next/navigation';
 import {
   DeviceDetailsResponse,
   devices,
@@ -555,8 +556,11 @@ export const useCreateDevice = () => {
 
 export const useImportDevice = () => {
   const queryClient = useQueryClient();
-  const activeGroup = useAppSelector(state => state.user.activeGroup);
-  const updateDeviceGroup = useUpdateDeviceGroup();
+  const pathname = usePathname();
+  const userContext = useAppSelector((state) => state.user.userContext);
+
+  // Determine active module based on pathname
+  const isAdminModule = pathname?.startsWith('/admin/');
 
   return useMutation<
     DeviceCreationResponse,
@@ -571,6 +575,8 @@ export const useImportDevice = () => {
       description?: string;
       serial_number: string;
       api_code?: string;
+      cohort_id?: string;
+      user_id: string;
     }
   >({
     mutationFn: devices.importDevice,
@@ -579,14 +585,19 @@ export const useImportDevice = () => {
         message: `${variables.long_name} has been imported.`,
         type: 'SUCCESS',
       });
-      if (data.created_device && activeGroup?.grp_title) {
-        updateDeviceGroup.mutate({
-          deviceId: data.created_device._id || '',
-          groupName: activeGroup.grp_title,
-        });
+
+      // Refresh based on active module
+      if (isAdminModule) {
+        queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      } else {
+        if (userContext === 'external-org') {
+          queryClient.invalidateQueries({ queryKey: ['devices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+        } else {
+          queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+        }
       }
-      queryClient.invalidateQueries({ queryKey: ['devices'] });
-      queryClient.invalidateQueries({ queryKey: ['network-devices'] });
     },
     onError: error => {
       ReusableToast({

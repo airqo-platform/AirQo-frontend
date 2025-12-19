@@ -1,6 +1,6 @@
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import ReusableTable, { TableColumn, TableItem } from "@/components/shared/table/ReusableTable";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Site } from "@/app/types/sites";
 import { useSites } from "@/core/hooks/useSites";
 import { useMemo } from "react";
@@ -29,6 +29,8 @@ export default function SitesTable({
   className,
 }: SitesTableProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const status = searchParams.get("status") || undefined;
 
   const {
     pagination, setPagination,
@@ -41,7 +43,8 @@ export default function SitesTable({
     limit: pagination.pageSize,
     search: searchTerm,
     sortBy: sorting[0]?.id,
-    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    status
   });
 
   const pageCount = meta?.totalPages ?? 0;

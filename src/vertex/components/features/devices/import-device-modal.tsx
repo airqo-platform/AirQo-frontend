@@ -8,6 +8,11 @@ import ReusableButton from "@/components/shared/button/ReusableButton";
 import { useImportDevice } from "@/core/hooks/useDevices";
 import { DEVICE_CATEGORIES } from "@/core/constants/devices";
 import { useNetworks } from "@/core/hooks/useNetworks";
+import { useUserContext } from "@/core/hooks/useUserContext";
+import { useGroupCohorts } from "@/core/hooks/useCohorts";
+import { useAppSelector } from "@/core/redux/hooks";
+import { usePathname } from "next/navigation";
+import logger from "@/lib/logger";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -37,6 +42,18 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const importDevice = useImportDevice();
   const { networks, isLoading: isLoadingNetworks } = useNetworks();
 
+  const { userContext, activeGroup } = useUserContext();
+  const userDetails = useAppSelector((state) => state.user.userDetails);
+
+  const shouldFetchGroupCohorts = userContext === 'external-org' && !!activeGroup?._id;
+
+  const { data: groupCohorts } = useGroupCohorts(activeGroup?._id, {
+    enabled: shouldFetchGroupCohorts,
+  });
+
+  const pathname = usePathname();
+  const isAdminPage = pathname?.startsWith('/admin/');
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -59,6 +76,14 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const getCohortId = (): string | undefined => {
+    if (userContext === 'external-org' && groupCohorts && groupCohorts.length > 0) {
+      return groupCohorts[0];
+    }
+
+    return undefined;
+  };
+
   const handleSubmit = () => {
     if (!validateForm()) {
       return;
@@ -66,16 +91,25 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
     const deviceDataToSend = { ...formData };
 
-    // Remove fields with empty values
     (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
       if (!deviceDataToSend[key]) {
         delete deviceDataToSend[key];
       }
     });
 
+    const cohortId = getCohortId();
+    const userId = userDetails?._id;
+
+    if (!userId) {
+      logger.warn("User ID is missing");
+      return;
+    }
+
     importDevice.mutate(
       {
         ...deviceDataToSend,
+        user_id: userId,
+        ...(cohortId && { cohort_id: cohortId }),
       },
       { onSuccess: () => onOpenChange(false) }
     );
@@ -137,7 +171,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         variant: "outline",
       }}
     >
-      <div className="space-y-4">
+      <div className="space-y-2">
         {errors.general && (
           <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
             {errors.general}
@@ -154,22 +188,40 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           required
         />
 
-        <ReusableSelectInput
-          label="Network"
-          id="network"
-          value={formData.network}
-          onChange={(e) => handleInputChange("network", e.target.value)}
-          error={errors.network}
-          required
-          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
-          disabled={isLoadingNetworks}
-        >
-          {networks.map((network) => (
-            <option key={network.net_name} value={network.net_name}>
-              {network.net_name}
-            </option>
-          ))}
-        </ReusableSelectInput>
+        <div>
+          <ReusableSelectInput
+            label="Network"
+            id="network"
+            value={formData.network}
+            onChange={(e) => handleInputChange("network", e.target.value)}
+            error={errors.network}
+            required
+            placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+            disabled={isLoadingNetworks}
+          >
+            {networks
+              .filter((network) => network.net_name.toLowerCase() !== 'airqo')
+              .map((network) => (
+                <option key={network.net_name} value={network.net_name}>
+                  {network.net_name}
+                </option>
+              ))}
+          </ReusableSelectInput>
+
+          {!isAdminPage && (
+            <div className="flex justify-end">
+              <ReusableButton
+                path="https://forms.gle/EjKHDrHhzma1xz187"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="text"
+                className="text-xs p-0 px-1 mt-1 h-auto"
+              >
+                Can&apos;t find your network?
+              </ReusableButton>
+            </div>
+          )}
+        </div>
 
         <ReusableSelectInput
           label="Category"

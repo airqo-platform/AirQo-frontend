@@ -11,7 +11,7 @@ import {
 import { useMemo } from "react";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { getStatusExplanation } from "@/core/utils/status";
-import { StatCard } from "./StatCard";
+import { StatCard } from "./stat-card";
 
 export const DashboardStatsCards = () => {
   const { userScope, userDetails } = useUserContext();

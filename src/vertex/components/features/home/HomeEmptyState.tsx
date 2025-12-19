@@ -11,8 +11,14 @@ const ClaimDeviceModal = dynamic(
     { ssr: false }
 );
 
+const ImportDeviceModal = dynamic(
+    () => import('../devices/import-device-modal'),
+    { ssr: false }
+);
+
 const HomeEmptyState = () => {
     const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
     return (
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center mt-8">
@@ -36,8 +42,7 @@ const HomeEmptyState = () => {
 
                 <ReusableButton
                     variant="outlined"
-                    disabled
-                    title="Import feature coming soon"
+                    onClick={() => setIsImportModalOpen(true)}
                     Icon={Upload}
                 >
                     Import Existing Device
@@ -48,6 +53,10 @@ const HomeEmptyState = () => {
                 isOpen={isClaimModalOpen}
                 onClose={() => setIsClaimModalOpen(false)}
                 redirectOnSuccess={true}
+            />
+            <ImportDeviceModal
+                open={isImportModalOpen}
+                onOpenChange={setIsImportModalOpen}
             />
         </div>
     );
