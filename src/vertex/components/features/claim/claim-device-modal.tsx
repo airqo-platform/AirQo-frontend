@@ -14,7 +14,8 @@ import { useRouter } from 'next/navigation';
 import { QRScanner } from '../devices/qr-scanner';
 import { useClaimDevice, useBulkClaimDevices } from '@/core/hooks/useDevices';
 import { useUserContext } from '@/core/hooks/useUserContext';
-import { useGroupCohorts, useVerifyCohort } from '@/core/hooks/useCohorts';
+import { getApiErrorMessage } from '@/core/utils/getApiErrorMessage';
+import { useGroupCohorts, useVerifyCohort, useAssignCohortsToGroup } from '@/core/hooks/useCohorts';
 import { cohorts as cohortsApi } from '@/core/apis/cohorts';
 import logger from '@/lib/logger';
 import { FileUploadParser } from './FileUploadParser';
@@ -81,7 +82,7 @@ const claimDeviceSchema = z.object({
 
 type ClaimDeviceFormData = z.infer<typeof claimDeviceSchema>;
 
-export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import';
+export type FlowStep = 'method-select' | 'manual-input' | 'qr-scan' | 'confirmation' | 'claiming' | 'success' | 'bulk-input' | 'bulk-confirmation' | 'bulk-claiming' | 'bulk-results' | 'cohort-import' | 'assigning-cohort';
 
 export interface ClaimedDeviceInfo {
     deviceId: string;
@@ -93,7 +94,6 @@ export interface ClaimDeviceModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: (deviceInfo: ClaimedDeviceInfo) => void;
-    redirectOnSuccess?: boolean;
     initialStep?: FlowStep;
 }
 
@@ -101,7 +101,6 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     isOpen,
     onClose,
     onSuccess,
-    redirectOnSuccess = true,
     initialStep = 'method-select',
 }) => {
     const router = useRouter();
@@ -127,8 +126,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     const [cohortIdInput, setCohortIdInput] = useState('');
     const [previousStep, setPreviousStep] = useState<FlowStep>('method-select');
     const [isImportingCohort, setIsImportingCohort] = useState(false);
+    const [isCohortAssignmentSuccess, setIsCohortAssignmentSuccess] = useState(false);
 
     const { mutateAsync: verifyCohort } = useVerifyCohort();
+
+    const { mutate: assignCohortsToGroup } = useAssignCohortsToGroup();
 
     const formMethods = useForm<ClaimDeviceFormData>({
         resolver: zodResolver(claimDeviceSchema),
@@ -147,6 +149,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setCohortIdInput('');
         setPreviousStep('method-select');
         setIsImportingCohort(false);
+        setIsCohortAssignmentSuccess(false);
     }, [formMethods]);
 
     const handleClose = useCallback(() => {
@@ -207,7 +210,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             setError(null);
             formMethods.reset();
         }
-    }, [isOpen, initialStep, formMethods]);
+        // We only want to reset when the modal opens.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen]);
 
     const handleClaimDevice = (deviceId: string, claimToken: string) => {
         if (!user?._id) {
@@ -343,6 +348,27 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             const result = await verifyCohort(cohortIdInput);
 
             if (result.success) {
+                if (isExternalOrg && activeGroup?._id) {
+                    setStep('assigning-cohort');
+                    assignCohortsToGroup({
+                        groupId: activeGroup._id,
+                        cohortIds: [cohortIdInput]
+                    }, {
+                        onSuccess: () => {
+                            setTimeout(() => {
+                                setIsCohortAssignmentSuccess(true);
+                                setStep('success');
+                            }, 3000);
+                        },
+                        onError: (err) => {
+                            setError(getApiErrorMessage(err));
+                            setStep('cohort-import');
+                        }
+                    });
+                    setIsImportingCohort(false);
+                    return;
+                }
+
                 try {
                     const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
                     const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
@@ -371,7 +397,9 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             const message = err instanceof Error ? err.message : 'Failed to verify Cohort ID';
             setError(message);
         } finally {
-            setIsImportingCohort(false);
+            if (!isExternalOrg) {
+                setIsImportingCohort(false);
+            }
         }
     };
 
@@ -400,9 +428,11 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     ...baseConfig,
                     title: 'Import from Cohort',
                     showFooter: true,
-                    primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Verify & Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
+                    primaryAction: { label: isImportingCohort ? 'Verifying...' : 'Import', onClick: handleVerifyCohort, disabled: isImportingCohort },
                     secondaryAction: { label: 'Back', onClick: () => setStep('method-select'), variant: 'outline' as const },
                 };
+            case 'assigning-cohort':
+                return { ...baseConfig, title: 'Assigning Cohort...', showCloseButton: false, preventBackdropClose: true, showFooter: false };
             case 'manual-input':
                 return {
                     ...baseConfig,
@@ -752,42 +782,46 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     </div>
                 )}
 
-                {step === 'success' && claimData?.device && (
+                {step === 'assigning-cohort' && (
+                    <div className="flex flex-col items-center justify-center py-8 space-y-4">
+                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                        <div className="text-center">
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Assigning Cohort</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Adding cohort devices to your organization...</p>
+                        </div>
+                    </div>
+                )}
+
+                {step === 'success' && (claimData?.device || isCohortAssignmentSuccess) && (
                     <div className="flex flex-col items-center justify-center py-8 space-y-4">
                         <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                             <CheckCircle2 className="w-8 h-8 text-green-600 dark:text-green-400" />
                         </div>
                         <div className="text-center">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Device Claimed Successfully!</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{redirectOnSuccess ? 'Redirecting you to your devices...' : 'You can now close this dialog.'}</p>
+                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                                {isCohortAssignmentSuccess ? 'Cohort Assigned Successfully!' : 'Device Claimed Successfully!'}
+                            </h3>
                         </div>
-                        <div className="w-full space-y-3 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Device Name:</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name || claimData.device.name}</span>
+
+                        {claimData?.device && (
+                            <div className="w-full space-y-3 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">Device Name:</span>
+                                    <span className="font-medium text-gray-900 dark:text-white">{claimData.device.long_name || claimData.device.name}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">Device ID:</span>
+                                    <span className="font-mono text-xs text-gray-900 dark:text-white">{claimData.device.name}</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-600 dark:text-gray-400">Status:</span>
+                                    <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        Claimed
+                                    </span>
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Device ID:</span>
-                                <span className="font-mono text-xs text-gray-900 dark:text-white">{claimData.device.name}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-gray-600 dark:text-gray-400">Status:</span>
-                                <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400">
-                                    <CheckCircle2 className="w-3 h-3" />
-                                    Claimed
-                                </span>
-                            </div>
-                        </div>
-                        <div className="w-full space-y-2 mt-2">
-                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Device claimed and added to your account</span>
-                            </div>
-                            <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Automatically added to your personal cohort</span>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 )}
 

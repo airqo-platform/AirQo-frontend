@@ -187,7 +187,6 @@ const DeviceClaimingPage = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         initialStep={initialStep}
-        redirectOnSuccess={true}
       />
     </div>
   );
