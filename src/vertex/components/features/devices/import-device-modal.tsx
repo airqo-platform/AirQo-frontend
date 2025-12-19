@@ -218,7 +218,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                 variant="text"
                 className="text-xs p-0 px-1 mt-1 h-auto"
               >
-                Can't find your network?
+                Can&apos;t find your network?
               </ReusableButton>
             </div>
           )}
