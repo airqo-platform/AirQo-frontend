@@ -11,6 +11,7 @@ import { useNetworks } from "@/core/hooks/useNetworks";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { useGroupCohorts } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
+import { usePathname } from "next/navigation";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -48,6 +49,9 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
   const { data: groupCohorts } = useGroupCohorts(activeGroup?._id, {
     enabled: shouldFetchGroupCohorts,
   });
+
+  const pathname = usePathname();
+  const isAdminPage = pathname?.startsWith('/admin/');
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -204,16 +208,18 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
             ))}
         </ReusableSelectInput>
 
-        <div className="text-right">
-          <a
-            href="https://forms.gle/EjKHDrHhzma1xz187"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
-          >
-            Can't find your network? Request to add it here
-          </a>
-        </div>
+        {!isAdminPage && (
+          <div className="text-right">
+            <a
+              href="https://forms.gle/EjKHDrHhzma1xz187"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              Can't find your network? Request to add it here
+            </a>
+          </div>
+        )}
 
         <ReusableSelectInput
           label="Category"
