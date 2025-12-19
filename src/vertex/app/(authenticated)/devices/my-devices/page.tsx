@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AqCollocation, AqPlus } from "@airqo/icons-react";
+import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useMyDevices, useDevices } from "@/core/hooks/useDevices";
@@ -10,6 +11,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import { useUserContext } from "@/core/hooks/useUserContext";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import { DeviceAssignmentModal } from "@/components/features/devices/device-assignment-modal";
+import ImportDeviceModal from "@/components/features/devices/import-device-modal";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 
@@ -20,6 +22,7 @@ const MyDevicesPage = () => {
   const router = useRouter();
   const { userDetails, activeGroup } = useAppSelector((state) => state.user);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [isImportDeviceOpen, setImportDeviceOpen] = useState(false);
 
   const { userScope } = useUserContext();
 
@@ -94,10 +97,19 @@ const MyDevicesPage = () => {
                 )}
               </p>
             </div>
-            <Button onClick={() => router.push("/devices/claim")}>
-              <AqPlus className="mr-2 h-4 w-4" />
-              Claim Device
-            </Button>
+            <div className="flex gap-2">
+              <Button onClick={() => router.push("/devices/claim")}>
+                <AqPlus className="mr-2 h-4 w-4" />
+                Claim Device
+              </Button>
+              <ReusableButton
+                variant="outlined"
+                onClick={() => setImportDeviceOpen(true)}
+                Icon={Upload}
+              >
+                Import Device
+              </ReusableButton>
+            </div>
           </div>
 
           {/* Empty State */}
@@ -144,13 +156,21 @@ const MyDevicesPage = () => {
             </p>
           </div>
           <div className="flex gap-2 items-center">
-            <Button
+            <ReusableButton
               onClick={() => router.push("/devices/claim")}
               disabled={isLoading}
+              Icon={AqPlus}
             >
-              <AqPlus className="mr-2 h-4 w-4" />
-              Claim Device
-            </Button>
+              Claim AirQo Device
+            </ReusableButton>
+            <ReusableButton
+              variant="outlined"
+              onClick={() => setImportDeviceOpen(true)}
+              disabled={isLoading}
+              Icon={Upload}
+            >
+              Import Existing Device
+            </ReusableButton>
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" disabled={isLoading}>
@@ -174,7 +194,11 @@ const MyDevicesPage = () => {
           error={error}
         />
 
-        {/* Device Assignment Modal */}
+        {/* Modals */}
+        <ImportDeviceModal
+          open={isImportDeviceOpen}
+          onOpenChange={setImportDeviceOpen}
+        />
         <DeviceAssignmentModal
           devices={devices}
           isLoadingDevices={isLoading}

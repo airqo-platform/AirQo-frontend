@@ -33,36 +33,24 @@ export default function DevicesPage() {
           </div>
           <div className="flex-1" />
           <div className="flex gap-2">
-            {isPersonalContext && (
-              <>
-                <ReusableButton
-                  disabled={!canUpdateDevice}
-                  onClick={() => setCreateDeviceOpen(true)}
-                  Icon={Plus}
-                  permission={PERMISSIONS.DEVICE.UPDATE}
-                >
-                  Claim AirQo Device
-                </ReusableButton>
+            <ReusableButton
+              disabled={!canUpdateDevice}
+              onClick={() => setCreateDeviceOpen(true)}
+              Icon={Plus}
+              permission={PERMISSIONS.DEVICE.CLAIM}
+            >
+              Claim AirQo Device
+            </ReusableButton>
 
-                <ReusableButton
-                  variant="outlined"
-                  disabled={!canUpdateDevice}
-                  onClick={() => setImportDeviceOpen(true)}
-                  Icon={Upload}
-                  permission={PERMISSIONS.DEVICE.UPDATE}
-                >
-                  Import Existing Device
-                </ReusableButton>
-              </>
-            )}
-            {isExternalOrg && (
-              <ReusableButton
-                onClick={() => router.push("/devices/claim")}
-                permission={PERMISSIONS.DEVICE.CLAIM}
-              >
-                Claim Device
-              </ReusableButton>
-            )}
+            <ReusableButton
+              variant="outlined"
+              disabled={!canUpdateDevice}
+              onClick={() => setImportDeviceOpen(true)}
+              Icon={Upload}
+              permission={PERMISSIONS.DEVICE.CLAIM}
+            >
+              Import Existing Device
+            </ReusableButton>
           </div>
         </div>
 
