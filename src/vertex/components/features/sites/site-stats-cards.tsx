@@ -1,6 +1,5 @@
 "use client";
 
-import { useDeviceCount } from "@/core/hooks/useDevices";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
     AqMonitor,
@@ -8,44 +7,16 @@ import {
     AqWifiOff,
     AqData,
 } from "@airqo/icons-react";
-import { useMemo } from "react";
 import { StatCard } from "@/components/features/dashboard/stat-card";
 import { getStatusExplanation } from "@/core/utils/status";
+import { useSiteStatistics } from "@/core/hooks/useSites";
 
-interface NetworkStatsCardsProps {
-    networkId: string;
-    networkName: string;
+interface SiteStatsCardsProps {
+    network?: string;
 }
 
-export const NetworkStatsCards = ({ networkName }: NetworkStatsCardsProps) => {
-    // Pass network name to useDeviceCount for filtering
-    const deviceCountQuery = useDeviceCount({
-        enabled: !!networkName,
-        network: networkName,
-    });
-
-    const isLoading = deviceCountQuery.isLoading;
-
-    const metrics = useMemo(() => {
-        const summary = deviceCountQuery.data?.summary;
-        if (summary) {
-            return {
-                total: summary.total_monitors,
-                operational: summary.operational,
-                transmitting: summary.transmitting,
-                notTransmitting: summary.not_transmitting,
-                dataAvailable: summary.data_available,
-            };
-        }
-
-        return {
-            total: 0,
-            operational: 0,
-            transmitting: 0,
-            notTransmitting: 0,
-            dataAvailable: 0,
-        };
-    }, [deviceCountQuery.data]);
+export const SiteStatsCards = ({ network }: SiteStatsCardsProps) => {
+    const { metrics, isLoading } = useSiteStatistics(network);
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -65,10 +36,10 @@ export const NetworkStatsCards = ({ networkName }: NetworkStatsCardsProps) => {
         <div className="space-y-4">
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 w-full">
                 <StatCard
-                    title="Total Devices"
+                    title="Total Sites"
                     value={metrics.total}
                     icon={<AqCollocation className="w-5 h-5" />}
-                    description={`All devices assigned to ${networkName} network.`}
+                    description={`All sites${network ? ` in ${network}` : ''}.`}
                     isLoading={isLoading}
                     onClick={() => handleFilter()}
                     variant="primary"
@@ -90,7 +61,7 @@ export const NetworkStatsCards = ({ networkName }: NetworkStatsCardsProps) => {
 
                 <StatCard
                     title="Transmitting"
-                    value={metrics.transmitting ?? "N/A"}
+                    value={metrics.transmitting}
                     icon={<AqMonitor className="w-5 h-5" />}
                     description={getStatusExplanation("Transmitting")}
                     isLoading={isLoading}
@@ -106,10 +77,10 @@ export const NetworkStatsCards = ({ networkName }: NetworkStatsCardsProps) => {
                     icon={<AqWifiOff className="w-5 h-5" />}
                     description={getStatusExplanation("Not Transmitting")}
                     isLoading={isLoading}
-                    onClick={() => handleFilter('not_transmitting')}
-                    variant="default"
+                    onClick={() => handleFilter('not-transmitting')}
+                    variant="default" // Using default (gray) for inactive/issue
                     size="sm"
-                    isActive={currentStatus === 'not_transmitting'}
+                    isActive={currentStatus === 'not-transmitting'}
                 />
 
                 <StatCard
@@ -118,10 +89,10 @@ export const NetworkStatsCards = ({ networkName }: NetworkStatsCardsProps) => {
                     icon={<AqData className="w-5 h-5" />}
                     description={getStatusExplanation("Data Available")}
                     isLoading={isLoading}
-                    onClick={() => handleFilter('data_available')}
+                    onClick={() => handleFilter('data-available')}
                     variant="warning"
                     size="sm"
-                    isActive={currentStatus === 'data_available'}
+                    isActive={currentStatus === 'data-available'}
                 />
             </div>
         </div>

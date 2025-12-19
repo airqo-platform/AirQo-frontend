@@ -2,6 +2,7 @@
 
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import SitesTable from "@/components/features/sites/sites-list-table";
+import { SiteStatsCards } from "@/components/features/sites/site-stats-cards";
 import dynamic from "next/dynamic";
 
 const CreateSiteForm = dynamic(() =>
@@ -29,9 +30,14 @@ export default function SitesPage() {
           </div>
         </div>
 
-        <div className="border rounded-lg">
-          <SitesTable
-          />
+        <div className="flex flex-col gap-6">
+          <div className="w-full">
+            <SiteStatsCards />
+          </div>
+
+          <div className="border rounded-lg">
+            <SitesTable />
+          </div>
         </div>
       </div>
     </RouteGuard>
