@@ -12,6 +12,7 @@ import { useUserContext } from "@/core/hooks/useUserContext";
 import { useGroupCohorts } from "@/core/hooks/useCohorts";
 import { useAppSelector } from "@/core/redux/hooks";
 import { usePathname } from "next/navigation";
+import logger from "@/lib/logger";
 
 interface ImportDeviceModalProps {
   open: boolean;
@@ -90,19 +91,17 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
     const deviceDataToSend = { ...formData };
 
-    // Remove fields with empty values
     (Object.keys(deviceDataToSend) as Array<keyof typeof deviceDataToSend>).forEach((key) => {
       if (!deviceDataToSend[key]) {
         delete deviceDataToSend[key];
       }
     });
 
-    // Add cohort_id if applicable
     const cohortId = getCohortId();
     const userId = userDetails?._id;
 
     if (!userId) {
-      console.error("User ID is missing");
+      logger.warn("User ID is missing");
       return;
     }
 
