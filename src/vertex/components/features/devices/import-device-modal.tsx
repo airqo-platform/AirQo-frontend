@@ -195,11 +195,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
           disabled={isLoadingNetworks}
         >
-          {networks.map((network) => (
-            <option key={network.net_name} value={network.net_name}>
-              {network.net_name}
-            </option>
-          ))}
+          {networks
+            .filter((network) => network.net_name.toLowerCase() !== 'airqo')
+            .map((network) => (
+              <option key={network.net_name} value={network.net_name}>
+                {network.net_name}
+              </option>
+            ))}
         </ReusableSelectInput>
 
         <ReusableSelectInput
