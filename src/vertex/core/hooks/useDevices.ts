@@ -588,16 +588,14 @@ export const useImportDevice = () => {
 
       // Refresh based on active module
       if (isAdminModule) {
-        // Admin module: refresh network devices
         queryClient.invalidateQueries({ queryKey: ['network-devices'] });
       } else {
-        // Devices module: check scope
         if (userContext === 'external-org') {
-          // External organization: refresh devices
           queryClient.invalidateQueries({ queryKey: ['devices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
         } else {
-          // Personal scope: refresh my devices
           queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
         }
       }
     },
