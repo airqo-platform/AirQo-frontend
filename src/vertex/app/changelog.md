@@ -4,9 +4,32 @@
 
 ---
 
-## Version 1.23.10
+## Version 1.23.11
 **Released:** December 19, 2025
 
+### Robust Site Statistics
+
+Fixed a critical regression in the Site Statistics component where missing metadata in API responses could cause the entire Sites page to crash.
+
+<details>
+<summary><strong>Fixes (1)</strong></summary>
+
+- **Crash Prevention**: Refactored the `SiteStatsCards` component to implement robust data handling similar to `NetworkStatsCards`. The UI now safely calculates metrics from raw API data using `useMemo`, ensuring that unexpected API responses (missing metadata) default to zero instead of unwrapping `undefined` values.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (2)</strong></summary>
+
+- `core/hooks/useSites.ts`
+- `components/features/sites/site-stats-cards.tsx`
+
+</details>
+
+---
+
+## Version 1.23.10
+**Released:** December 19, 2025
 ### Cohort Import Refinements & Navigation Updates
 
 Streamlined the cohort assignment flow for external organizations and improved navigation for device claiming.
