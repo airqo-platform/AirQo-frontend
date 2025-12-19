@@ -172,7 +172,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
         variant: "outline",
       }}
     >
-      <div className="space-y-4">
+      <div className="space-y-2">
         {errors.general && (
           <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
             {errors.general}
@@ -189,37 +189,40 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
           required
         />
 
-        <ReusableSelectInput
-          label="Network"
-          id="network"
-          value={formData.network}
-          onChange={(e) => handleInputChange("network", e.target.value)}
-          error={errors.network}
-          required
-          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
-          disabled={isLoadingNetworks}
-        >
-          {networks
-            .filter((network) => network.net_name.toLowerCase() !== 'airqo')
-            .map((network) => (
-              <option key={network.net_name} value={network.net_name}>
-                {network.net_name}
-              </option>
-            ))}
-        </ReusableSelectInput>
+        <div>
+          <ReusableSelectInput
+            label="Network"
+            id="network"
+            value={formData.network}
+            onChange={(e) => handleInputChange("network", e.target.value)}
+            error={errors.network}
+            required
+            placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+            disabled={isLoadingNetworks}
+          >
+            {networks
+              .filter((network) => network.net_name.toLowerCase() !== 'airqo')
+              .map((network) => (
+                <option key={network.net_name} value={network.net_name}>
+                  {network.net_name}
+                </option>
+              ))}
+          </ReusableSelectInput>
 
-        {!isAdminPage && (
-          <div className="text-right">
-            <a
-              href="https://forms.gle/EjKHDrHhzma1xz187"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              Can't find your network? Request to add it here
-            </a>
-          </div>
-        )}
+          {!isAdminPage && (
+            <div className="flex justify-end">
+              <ReusableButton
+                path="https://forms.gle/EjKHDrHhzma1xz187"
+                target="_blank"
+                rel="noopener noreferrer"
+                variant="text"
+                className="text-xs p-0 px-1 mt-1 h-auto"
+              >
+                Can't find your network?
+              </ReusableButton>
+            </div>
+          )}
+        </div>
 
         <ReusableSelectInput
           label="Category"
