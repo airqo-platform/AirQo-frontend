@@ -4,6 +4,41 @@
 
 ---
 
+## Version 1.23.8
+**Released:** December 19, 2025
+
+### Site Stats & Filtering
+
+Introduced interactive statistics cards to the Sites Admin page, allowing users to visualize and filter sites based on their operational status (Operational, Transmitting, Not Transmitting, Data Available).
+
+<details>
+<summary><strong>Feature Updates (2)</strong></summary>
+
+- **Site Stats Cards**: Added a new stats component to the Sites page (`/admin/sites`) displaying real-time counts for Total, Operational, Transmitting, Not Transmitting, and Data Available sites.
+- **Status Filtering**: Clicking on a stat card now filters the Sites table by that specific status, persisting the selection in the URL for shareability.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (3)</strong></summary>
+
+- **New API Endpoint**: Added `getSitesByStatusApi` to `sites.ts` to support fetching filtered site lists via the `/devices/sites/status/:status` endpoints.
+- **Parallel Stats Fetching**: Implemented `useSiteStatistics` hook using `useQueries` to fetch counts for all statuses in parallel.
+- **Hook Update**: Updated `useSites` to accept a `status` parameter and route requests to the appropriate tailored endpoint.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `app/(authenticated)/admin/sites/page.tsx`
+- `components/features/sites/site-stats-cards.tsx` (New)
+- `components/features/sites/sites-list-table.tsx`
+- `core/apis/sites.ts`
+- `core/hooks/useSites.ts`
+
+</details>
+
 ## Version 1.23.7
 **Released:** December 16, 2025
 
