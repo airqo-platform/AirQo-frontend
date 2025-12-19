@@ -58,12 +58,16 @@ Streamlined the cohort assignment flow for external organizations and improved n
 
 </details>
 
+
 <details>
-<summary><strong>Files Modified (4)</strong></summary>
+<summary><strong>Files Modified (7)</strong></summary>
 
 - `app/(authenticated)/devices/claim/page.tsx`
 - `app/(authenticated)/devices/overview/page.tsx`
+- `app/(authenticated)/home/page.tsx`
 - `components/features/claim/claim-device-modal.tsx`
+- `components/features/cohorts/cohorts-empty-state.tsx`
+- `components/features/home/HomeEmptyState.tsx`
 - `core/hooks/useCohorts.ts`
 
 </details>
