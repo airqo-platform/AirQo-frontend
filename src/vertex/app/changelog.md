@@ -9,14 +9,24 @@
 
 ### Intelligent Device Import & UX Refinements
 
-Refined the **Import Device** workflow with intelligent module-aware caching, streamlined cohort assignment for external organizations, and improved accessibility for new network requests. Updated navigation to expose import functionality directly within the **My Devices** view.
+Refined the **Import Device** workflow with intelligent module-aware caching, streamlined cohort assignment for external organizations, and simplified import logic for personal users. Also improved accessibility for new network requests and updated navigation.
 
 <details>
-<summary><strong>Feature Updates (3)</strong></summary>
+<summary><strong>Feature Updates (5)</strong></summary>
 
 - **Module-Aware Refresh**: The import process now intelligently detects the user's active module (`/admin` vs `/devices`) and refreshes the appropriate device list (`Network Devices` vs `My Devices`), eliminating the need for manual page reloads.
 - **Smart Cohort Assignment**: Simplified the default cohort logic to only auto-assign imports to a group cohort for **External Organizations**. Personal users (including AirQo staff) now import devices directly to their personal list without forced cohort association.
+- **Simplified Personal Import**: Individual users in the Personal scope now omit the `cohort_id` entirely during import, allowing the backend to automatically handle assignment to their personal cohort. This removes client-side complexity and ensures reliable assignment.
+- **Smart Cache Invalidation**: The application now intelligently invalidates both `['myDevices']` and `['devices']` caches for personal users after import, ensuring the UI always reflects the latest device list immediately.
 - **Network Request Flow**: Added a direct link ("Can't find your network?") to the import modal, allowing users to easily request new network additions via a dedicated form. This link is automatically hidden in administrative contexts.
+
+</details>
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Nested Validation Errors**: Fixed a parsing issue in `getApiErrorMessage.ts` that was ignoring simple string errors (e.g., `"serial_number": "must be unique"`), ensuring users see specific validation feedback instead of generic error messages.
+- **Navigation Reset**: Fixed an issue where the `import-device-modal` could retain old network selections by ensuring state is fully reset when the modal closes.
 
 </details>
 
@@ -29,24 +39,25 @@ Refined the **Import Device** workflow with intelligent module-aware caching, st
 </details>
 
 <details>
-<summary><strong>Technical Changes (3)</strong></summary>
+<summary><strong>Technical Changes (5)</strong></summary>
 
-- **Hook Update**: Refactored `useImportDevice` to utilize `usePathname` for module detection and added targeted cache invalidation for `['deviceCount']` to ensure dashboard stats update instantly.
-- **Modal Logic**: Updated `import-device-modal.tsx` to conditionally fetch cohorts only for external organization contexts.
+- **Hook Update**: Refactored `useImportDevice` to utilize `usePathname` for module detection and invalidate multiple query keys (including `['deviceCount']`) to ensure dashboard stats update instantly.
+- **Modal Logic**: Updated `import-device-modal.tsx` to conditionally fetch cohorts only for external organization contexts and strictly return `undefined` for personal cohort IDs.
 - **Component Reuse**: Implemented `ReusableButton` for the new network request link to ensure consistent styling and primary color inheritance.
+- **Utility Fix**: Enhanced `getApiErrorMessage` to handle `string` values within the `errors` object.
 
 </details>
 
 <details>
-<summary><strong>Files Modified (4)</strong></summary>
+<summary><strong>Files Modified (5)</strong></summary>
 
 - `core/hooks/useDevices.ts`
 - `components/features/devices/import-device-modal.tsx`
+- `core/utils/getApiErrorMessage.ts`
 - `app/(authenticated)/devices/my-devices/page.tsx`
 - `app/(authenticated)/devices/overview/page.tsx`
 
 </details>
-
 
 
 ## Version 1.23.8
