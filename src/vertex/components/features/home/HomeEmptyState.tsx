@@ -52,7 +52,6 @@ const HomeEmptyState = () => {
             <ClaimDeviceModal
                 isOpen={isClaimModalOpen}
                 onClose={() => setIsClaimModalOpen(false)}
-                redirectOnSuccess={true}
             />
             <ImportDeviceModal
                 open={isImportModalOpen}

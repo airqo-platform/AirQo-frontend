@@ -335,6 +335,10 @@ export const useAssignCohortsToGroup = () => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
+      queryClient.invalidateQueries({ queryKey: ['groupCohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+      queryClient.invalidateQueries({ queryKey: ['devices'] });
+      queryClient.invalidateQueries({ queryKey: ['myDevices'] });
     },
     onError: error => {
       ReusableToast({

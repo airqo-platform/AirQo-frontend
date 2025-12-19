@@ -116,16 +116,12 @@ export const useSiteStatistics = (network?: string) => {
 
     const isLoading = totalQuery.isLoading || statusQueries.some(q => q.isLoading);
 
-    const metrics = {
-        total: totalQuery.data?.meta.total || 0,
-        operational: statusQueries[0].data?.meta.total || 0,
-        transmitting: statusQueries[1].data?.meta.total || 0,
-        notTransmitting: statusQueries[2].data?.meta.total || 0,
-        dataAvailable: statusQueries[3].data?.meta.total || 0,
-    };
-
     return {
-        metrics,
+        total: totalQuery.data,
+        operational: statusQueries[0].data,
+        transmitting: statusQueries[1].data,
+        notTransmitting: statusQueries[2].data,
+        dataAvailable: statusQueries[3].data,
         isLoading
     };
 };

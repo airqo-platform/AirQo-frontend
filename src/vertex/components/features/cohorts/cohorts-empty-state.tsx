@@ -37,7 +37,6 @@ const CohortsEmptyState = () => {
             <ClaimDeviceModal
                 isOpen={isClaimModalOpen}
                 onClose={() => setIsClaimModalOpen(false)}
-                redirectOnSuccess={true}
             />
         </div>
     );
