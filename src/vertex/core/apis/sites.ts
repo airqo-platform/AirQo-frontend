@@ -37,6 +37,17 @@ export interface GetSitesSummaryParams {
   order?: "asc" | "desc";
 }
 
+export interface SitesSummaryCountResponse {
+  message: string;
+  summary: {
+    total_sites: number;
+    operational: number;
+    transmitting: number;
+    not_transmitting: number;
+    data_available: number;
+  };
+}
+
 interface UpdateSiteRequest {
   name?: string;
   description?: string;
@@ -206,6 +217,21 @@ export const sites = {
       const response = await createSecureApiClient().put(
         `/devices/sites/bulk`,
         data
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  getSitesSummaryCount: async (params: { network?: string }): Promise<SitesSummaryCountResponse> => {
+    try {
+      const { network } = params;
+      const queryParams = new URLSearchParams();
+      if (network) queryParams.set("network", network);
+
+      const response = await createSecureApiClient().get<SitesSummaryCountResponse>(
+        `/devices/sites/summary/count?${queryParams.toString()}`,
+        { headers: { "X-Auth-Type": "JWT" } }
       );
       return response.data;
     } catch (error) {
