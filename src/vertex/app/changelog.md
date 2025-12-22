@@ -4,6 +4,59 @@
 
 ---
 
+## Version 1.23.12
+**Released:** December 20, 2025
+
+### Site Statistics Optimization & Permission Enhancements
+
+Optimized site statistics implementation to use a dedicated summary endpoint and enhanced permission handling for shipping access with fallback permissions.
+
+<details>
+<summary><strong>Performance Improvements (1)</strong></summary>
+
+- **Efficient Stats Fetching**: Refactored site statistics to use the new `/devices/sites/summary/count` endpoint, replacing multiple parallel API calls with a single request. This significantly improves page load performance and reduces server load.
+
+</details>
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Flexible Shipping Access**: Added fallback permission logic for shipping access. Users with either `SHIPPING.VIEW` or `NETWORK.VIEW` permissions can now access the Shipping Management page, providing more flexible access control.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (1)</strong></summary>
+
+- **Organization Modal Redesign**: Completely refactored the Organization Switcher modal to use the standardized `ReusableDialog` component with improved visuals matching the design system, including dynamic subtitle showing available organizations count and proper vertical scrolling for long lists.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **API Update**: Added `getSitesSummaryCount` to `sites.ts` with corresponding `SitesSummaryCountResponse` interface.
+- **Hook Optimization**: Simplified `useSiteStatistics` to use a single query instead of multiple parallel queries.
+- **Permission System**: Enhanced `RouteGuard` to support multiple permissions via new `permissions` prop using OR logic.
+- **Component Refactor**: Migrated `organization-modal.tsx` from custom dialog implementation to `ReusableDialog` with proper flex layout for scrolling.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `core/apis/sites.ts`
+- `core/hooks/useSites.ts`
+- `components/features/sites/site-stats-cards.tsx`
+- `components/layout/accessConfig/route-guard.tsx`
+- `app/(authenticated)/admin/shipping/page.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/features/org-picker/organization-modal.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.11
 **Released:** December 19, 2025
 
