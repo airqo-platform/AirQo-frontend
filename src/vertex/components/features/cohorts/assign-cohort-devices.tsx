@@ -48,17 +48,43 @@ export function AssignCohortDevicesDialog({
   cohortId,
 }: AssignCohortDevicesDialogProps) {
   const { isExternalOrg, activeGroup } = useUserContext();
+  const [cohortSearch, setCohortSearch] = useState("");
+  const [debouncedCohortSearch, setDebouncedCohortSearch] = useState("");
 
-  const { cohorts: allCohorts } = useCohorts({ enabled: open && !isExternalOrg });
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedCohortSearch(cohortSearch);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [cohortSearch]);
+
+  const { cohorts: allCohorts, isFetching: isFetchingAllCohorts } = useCohorts({
+    enabled: open && !isExternalOrg,
+    search: debouncedCohortSearch,
+    limit: 100
+  });
+
   const { data: groupCohortIds } = useGroupCohorts(
     activeGroup?._id,
     { enabled: open && isExternalOrg && !!activeGroup?._id }
   );
 
-  const { cohorts: groupCohortsDetails } = useCohorts(
-    { cohort_id: groupCohortIds, enabled: open && isExternalOrg && !!groupCohortIds && groupCohortIds.length > 0 }
-  );
-  const cohorts = isExternalOrg ? groupCohortsDetails : allCohorts;
+  const { cohorts: searchedCohorts, isFetching: isFetchingGroupCohorts } = useCohorts({
+    enabled: open && isExternalOrg,
+    search: debouncedCohortSearch,
+    limit: 100
+  });
+
+  const filteredGroupCohorts = useMemo(() => {
+    if (!isExternalOrg || !groupCohortIds || groupCohortIds.length === 0) {
+      return searchedCohorts;
+    }
+    return searchedCohorts.filter(cohort => groupCohortIds.includes(cohort._id));
+  }, [isExternalOrg, searchedCohorts, groupCohortIds]);
+
+  const cohorts = isExternalOrg ? filteredGroupCohorts : allCohorts;
+  const isFetchingCohorts = isExternalOrg ? isFetchingGroupCohorts : isFetchingAllCohorts;
 
   const { devices: allDevices } = useDevices({ enabled: open });
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
@@ -95,6 +121,8 @@ export function AssignCohortDevicesDialog({
         cohortId: cohortId || "",
         devices: selectedDevices?.map((d) => d._id).filter((id): id is string => !!id) || [],
       });
+      setCohortSearch("");
+      setDebouncedCohortSearch("");
     }
   }, [open, selectedDevices, form, cohortId]);
 
@@ -193,6 +221,8 @@ export function AssignCohortDevicesDialog({
                       customActionLabel="Create New Cohort"
                       customActionIcon={AqPlus}
                       onCustomAction={handleCreateCohortAction}
+                      onSearchChange={setCohortSearch}
+                      isLoading={isFetchingCohorts}
                     />
                   </FormControl>
                   <FormMessage />
