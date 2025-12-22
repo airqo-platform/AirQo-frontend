@@ -4,6 +4,59 @@
 
 ---
 
+## Version 1.23.13
+**Released:** December 22, 2025
+
+### External Organization Permissions & Cohort Search Enhancements
+
+Implemented strict permission controls for external organizations and enhanced the cohort selection experience with server-side search, debouncing, and loading states.
+
+<details>
+<summary><strong>Feature Updates (3)</strong></summary>
+
+- **Organization-Scoped Cohorts**: External organization users now only see cohorts that belong to their organization when adding devices to cohorts. The system fetches organization cohort IDs and filters results client-side to ensure data isolation.
+- **Server-Side Cohort Search**: Implemented debounced server-side search (300ms delay) in the cohort selection ComboBox, allowing users to search across all cohorts while maintaining organization-level filtering for external users.
+- **Search Loading States**: Added 3 animated skeleton items to the cohort ComboBox during search, providing visual feedback while API requests are in progress.
+
+</details>
+
+<details>
+<summary><strong>Permission Restrictions (1)</strong></summary>
+
+- **Cohort Management Restrictions**: External organization users can now only **add devices to cohorts**, but cannot **remove devices from cohorts**. The "Remove from Cohort" action is hidden from device list table actions for external org contexts.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (2)</strong></summary>
+
+- **Smart Empty State Handling**: The cohort ComboBox now correctly shows/hides the "No cohorts found" message based on search results, preventing it from appearing alongside actual results.
+- **Smooth Search Experience**: Search now matches the polished experience of the cohorts table page with proper debouncing, preventing excessive API calls while maintaining responsive feedback.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- **ComboBox Enhancement**: Updated `combobox.tsx` to support server-side search via new `onSearchChange` and `isLoading` props, with `shouldFilter={false}` to disable internal Command filtering.
+- **Debounced Search**: Implemented proper debounce pattern using separate state for `cohortSearch` and `debouncedCohortSearch` with 300ms timeout.
+- **Organization Filtering**: Added `useGroupCohorts` hook integration to fetch organization-specific cohort IDs, then filter search results client-side using `useMemo`.
+- **Search Optimization**: Removed `cohort_id` parameter from search API calls to allow searching across all cohorts before client-side filtering for external orgs.
+- **Skeleton Component**: Integrated the `Skeleton` component to display loading placeholders during cohort data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/features/devices/device-list-table.tsx`
+- `components/features/cohorts/assign-cohort-devices.tsx`
+- `components/ui/combobox.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.12
 **Released:** December 20, 2025
 
