@@ -12,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useCohorts, useAssignDevicesToCohort } from "@/core/hooks/useCohorts";
+import { useCohorts, useAssignDevicesToCohort, useGroupCohorts } from "@/core/hooks/useCohorts";
 import { useDevices } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { AqPlus } from "@airqo/icons-react";
@@ -21,6 +21,7 @@ import { CreateCohortDialog, PreselectedDevice } from "./create-cohort";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
+import { useUserContext } from "@/core/hooks/useUserContext";
 
 interface AssignCohortDevicesDialogProps {
   open: boolean;
@@ -46,7 +47,19 @@ export function AssignCohortDevicesDialog({
   onSuccess,
   cohortId,
 }: AssignCohortDevicesDialogProps) {
-  const { cohorts } = useCohorts();
+  const { isExternalOrg, activeGroup } = useUserContext();
+
+  const { cohorts: allCohorts } = useCohorts({ enabled: open && !isExternalOrg });
+  const { data: groupCohortIds } = useGroupCohorts(
+    activeGroup?._id,
+    { enabled: open && isExternalOrg && !!activeGroup?._id }
+  );
+
+  const { cohorts: groupCohortsDetails } = useCohorts(
+    { cohort_id: groupCohortIds, enabled: open && isExternalOrg && !!groupCohortIds && groupCohortIds.length > 0 }
+  );
+  const cohorts = isExternalOrg ? groupCohortsDetails : allCohorts;
+
   const { devices: allDevices } = useDevices({ enabled: open });
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
 
