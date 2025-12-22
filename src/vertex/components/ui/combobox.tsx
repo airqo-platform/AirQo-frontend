@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Skeleton } from "@/components/ui/skeleton"
 
 interface ComboBoxOption {
   value: string
@@ -79,7 +80,6 @@ export function ComboBox({
   const handleInputChange = (newValue: string) => {
     setInputValue(newValue)
 
-    // If server-side search is enabled, call the callback
     if (onSearchChange) {
       onSearchChange(newValue)
     }
@@ -96,7 +96,6 @@ export function ComboBox({
     }
   }
 
-  // Only filter client-side if server-side search is not enabled
   const filteredOptions = onSearchChange
     ? options
     : options.filter((option) => option.label.toLowerCase().includes(inputValue.toLowerCase()))
@@ -128,7 +127,16 @@ export function ComboBox({
             onKeyDown={handleKeyDown}
           />
           <CommandList className="max-h-56">
-            {filteredOptions.length === 0 && (
+            {isLoading && (
+              <CommandGroup>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center px-2 py-1.5">
+                    <Skeleton className="h-4 w-full" />
+                  </div>
+                ))}
+              </CommandGroup>
+            )}
+            {!isLoading && filteredOptions.length === 0 && (
               <CommandEmpty>
                 {allowCustomInput ? (
                   <div className="py-2 text-center text-sm">
@@ -140,7 +148,7 @@ export function ComboBox({
                 )}
               </CommandEmpty>
             )}
-            {filteredOptions.length > 0 && (
+            {!isLoading && filteredOptions.length > 0 && (
               <CommandGroup>
                 {filteredOptions.map((option) => (
                   <CommandItem
