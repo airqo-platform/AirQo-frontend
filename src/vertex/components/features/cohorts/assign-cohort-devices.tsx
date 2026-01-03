@@ -65,7 +65,7 @@ export function AssignCohortDevicesDialog({
     limit: 100
   });
 
-  const { data: groupCohortIds } = useGroupCohorts(
+  const { data: groupCohortIds, isFetching: isFetchingCohortIds } = useGroupCohorts(
     activeGroup?._id,
     { enabled: open && isExternalOrg && !!activeGroup?._id }
   );
@@ -80,11 +80,12 @@ export function AssignCohortDevicesDialog({
     if (!isExternalOrg || !groupCohortIds || groupCohortIds.length === 0) {
       return searchedCohorts;
     }
-    return searchedCohorts.filter(cohort => groupCohortIds.includes(cohort._id));
+    const cohortIdSet = new Set(groupCohortIds);
+    return searchedCohorts.filter(cohort => cohortIdSet.has(cohort._id));
   }, [isExternalOrg, searchedCohorts, groupCohortIds]);
 
   const cohorts = isExternalOrg ? filteredGroupCohorts : allCohorts;
-  const isFetchingCohorts = isExternalOrg ? isFetchingGroupCohorts : isFetchingAllCohorts;
+  const isFetchingCohorts = isExternalOrg ? (isFetchingGroupCohorts || isFetchingCohortIds) : isFetchingAllCohorts;
 
   const { devices: allDevices } = useDevices({ enabled: open });
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
