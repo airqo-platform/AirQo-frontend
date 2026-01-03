@@ -71,7 +71,7 @@ export function AssignCohortDevicesDialog({
   );
 
   const { cohorts: searchedCohorts, isFetching: isFetchingGroupCohorts } = useCohorts({
-    enabled: open && isExternalOrg,
+    enabled: open && isExternalOrg && !!activeGroup?._id,
     search: debouncedCohortSearch,
     limit: 100
   });
