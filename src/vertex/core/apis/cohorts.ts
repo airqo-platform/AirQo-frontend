@@ -36,6 +36,30 @@ export const cohorts = {
       throw error;
     }
   },
+  getUserCohortsSummary: async (params: GetCohortsSummaryParams): Promise<CohortsSummaryResponse> => {
+    try {
+      const { network, limit, skip, search, sortBy, order } = params;
+      const queryParams = new URLSearchParams();
+
+      if (network) queryParams.set("network", network);
+      if (limit !== undefined) queryParams.set("limit", String(limit));
+      if (skip !== undefined) queryParams.set("skip", String(skip));
+      if (search) queryParams.set("search", search);
+      if (sortBy) queryParams.set("sortBy", sortBy);
+      if (sortBy && order) queryParams.set("order", order);
+      if (params.cohort_id && params.cohort_id.length > 0) {
+        queryParams.set("cohort_id", params.cohort_id.join(","));
+      }
+
+      const response = await createSecureApiClient().get(
+        `/devices/cohorts/users?${queryParams.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   getCohortDetailsApi: async (cohortId: string) => {
     try {
       const response = await createSecureApiClient().get(

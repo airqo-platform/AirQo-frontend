@@ -1,11 +1,12 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import { CreateCohortDialog } from "@/components/features/cohorts/create-cohort";
 import { RouteGuard } from "@/components/layout/accessConfig/route-guard";
 import ReusableTable, { TableColumn } from "@/components/shared/table/ReusableTable";
-import { useCohorts } from "@/core/hooks/useCohorts";
+import { useCohorts, useUserCohorts } from "@/core/hooks/useCohorts";
 import { Cohort } from "@/app/types/cohorts";
 import { useState, useMemo } from "react";
 import { format } from 'date-fns';
@@ -31,16 +32,35 @@ export default function CohortsPage() {
     sorting, setSorting
   } = useServerSideTableState({ initialPageSize: 25 });
 
-  const { cohorts, meta, isFetching, error } = useCohorts({
-    page: pagination.pageIndex + 1,
-    limit: pagination.pageSize,
-    search: searchTerm,
-    sortBy: sorting[0]?.id,
-    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+  const [view, setView] = useState<'organization' | 'user'>('organization');
+
+  // Fetch Organization Cohorts
+  const { cohorts: orgCohorts, meta: orgMeta, isFetching: isFetchingOrg, error: orgError } = useCohorts({
+    page: view === 'organization' ? pagination.pageIndex + 1 : 1,
+    limit: view === 'organization' ? pagination.pageSize : 1,
+    search: view === 'organization' ? searchTerm : undefined,
+    sortBy: view === 'organization' ? sorting[0]?.id : undefined,
+    order: view === 'organization' && sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    enabled: true
   });
 
+  // Fetch User Cohorts
+  const { cohorts: userCohorts, meta: userMeta, isFetching: isFetchingUser, error: userError } = useUserCohorts({
+    page: view === 'user' ? pagination.pageIndex + 1 : 1,
+    limit: view === 'user' ? pagination.pageSize : 1,
+    search: view === 'user' ? searchTerm : undefined,
+    sortBy: view === 'user' ? sorting[0]?.id : undefined,
+    order: view === 'user' && sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    enabled: true
+  });
+
+  const cohorts = view === 'organization' ? orgCohorts : userCohorts;
+  const meta = view === 'organization' ? orgMeta : userMeta;
+  const isFetching = view === 'organization' ? isFetchingOrg : isFetchingUser;
+  const error = view === 'organization' ? orgError : userError;
+
   const pageCount = meta?.totalPages ?? 0;
-  
+
   const [showCreateCohortModal, setShowCreateCohortModal] = useState(false);
   const [showCreateFromCohorts, setShowCreateFromCohorts] = useState(false);
   const [showAssignToGroup, setShowAssignToGroup] = useState(false);
@@ -112,6 +132,50 @@ export default function CohortsPage() {
             <p className="text-sm text-muted-foreground">
               Manage and organize your device cohorts
             </p>
+            <div className="flex gap-2 mt-4">
+              <button
+                onClick={() => {
+                  setView('organization');
+                  setPagination(prev => ({ ...prev, pageIndex: 0 }));
+                  setSearchTerm("");
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${view === 'organization'
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 border hover:bg-gray-50"
+                  }`}
+              >
+                Organization Cohorts
+                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs flex items-center justify-center ${view === 'organization' ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
+                  }`}>
+                  {isFetchingOrg && orgMeta?.total === undefined ? (
+                    <Skeleton className={`h-3 w-6 rounded-full ${view === 'organization' ? "bg-white/20" : "bg-gray-200"}`} />
+                  ) : (
+                    orgMeta?.total ?? 0
+                  )}
+                </span>
+              </button>
+              <button
+                onClick={() => {
+                  setView('user');
+                  setPagination(prev => ({ ...prev, pageIndex: 0 }));
+                  setSearchTerm("");
+                }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${view === 'user'
+                  ? "bg-blue-600 text-white"
+                  : "bg-white text-gray-700 border hover:bg-gray-50"
+                  }`}
+              >
+                User Cohorts
+                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs flex items-center justify-center ${view === 'user' ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
+                  }`}>
+                  {isFetchingUser && userMeta?.total === undefined ? (
+                    <Skeleton className={`h-3 w-6 rounded-full ${view === 'user' ? "bg-white/20" : "bg-gray-200"}`} />
+                  ) : (
+                    userMeta?.total ?? 0
+                  )}
+                </span>
+              </button>
+            </div>
           </div>
           <ReusableButton
             variant="filled"

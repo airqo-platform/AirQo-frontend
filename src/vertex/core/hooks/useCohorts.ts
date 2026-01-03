@@ -66,6 +66,46 @@ export const useCohorts = (
   };
 };
 
+export const useUserCohorts = (
+  options: CohortListingOptions = {},
+  queryOptions?: { enabled?: boolean }
+) => {
+  const { enabled = true } = queryOptions || {};
+  const { page = 1, limit = 25, search, sortBy, order } = options;
+  const safePage = Math.max(1, page);
+  const safeLimit = Math.max(1, limit);
+  const skip = (safePage - 1) * safeLimit;
+
+  const { data, isLoading, isFetching, error } = useQuery<
+    CohortsSummaryResponse,
+    AxiosError<ErrorResponse>
+  >({
+    queryKey: ['user-cohorts', { page, limit, search, sortBy, order, cohort_id: options.cohort_id }],
+    queryFn: () => {
+      const params: GetCohortsSummaryParams = {
+        limit: safeLimit,
+        skip,
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(order && { order }),
+        ...(options.cohort_id && { cohort_id: options.cohort_id }),
+      };
+      return cohortsApi.getUserCohortsSummary(params);
+    },
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
+    enabled,
+  });
+
+  return {
+    cohorts: data?.cohorts ?? [],
+    meta: data?.meta,
+    isLoading,
+    isFetching,
+    error: error as Error | null,
+  };
+};
+
 export const useGroupCohorts = (
   groupId?: string,
   options: { enabled?: boolean } = {}
