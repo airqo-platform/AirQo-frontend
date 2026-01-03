@@ -34,24 +34,34 @@ export default function CohortsPage() {
 
   const [view, setView] = useState<'organization' | 'user'>('organization');
 
-  // Fetch Organization Cohorts
-  const { cohorts: orgCohorts, meta: orgMeta, isFetching: isFetchingOrg, error: orgError } = useCohorts({
-    page: view === 'organization' ? pagination.pageIndex + 1 : 1,
-    limit: view === 'organization' ? pagination.pageSize : 1,
-    search: view === 'organization' ? searchTerm : undefined,
-    sortBy: view === 'organization' ? sorting[0]?.id : undefined,
-    order: view === 'organization' && sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
-    enabled: true
+  // Count Queries (Stable, always enabled, minimal payload, no search/sort)
+  const { meta: orgCountMeta, isFetching: isFetchingOrgCount } = useCohorts({
+    page: 1,
+    limit: 1,
   });
 
-  // Fetch User Cohorts
+  const { meta: userCountMeta, isFetching: isFetchingUserCount } = useUserCohorts({
+    page: 1,
+    limit: 1,
+  });
+
+  // Table Queries (Dynamic, enabled only when active)
+  const { cohorts: orgCohorts, meta: orgMeta, isFetching: isFetchingOrg, error: orgError } = useCohorts({
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+    search: searchTerm,
+    sortBy: sorting[0]?.id,
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    enabled: view === 'organization'
+  });
+
   const { cohorts: userCohorts, meta: userMeta, isFetching: isFetchingUser, error: userError } = useUserCohorts({
-    page: view === 'user' ? pagination.pageIndex + 1 : 1,
-    limit: view === 'user' ? pagination.pageSize : 1,
-    search: view === 'user' ? searchTerm : undefined,
-    sortBy: view === 'user' ? sorting[0]?.id : undefined,
-    order: view === 'user' && sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
-    enabled: true
+    page: pagination.pageIndex + 1,
+    limit: pagination.pageSize,
+    search: searchTerm,
+    sortBy: sorting[0]?.id,
+    order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+    enabled: view === 'user'
   });
 
   const cohorts = view === 'organization' ? orgCohorts : userCohorts;
@@ -139,19 +149,18 @@ export default function CohortsPage() {
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${view === 'organization'
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 border hover:bg-gray-50"
+                className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'organization'
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
                   }`}
               >
                 Organization Cohorts
-                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs flex items-center justify-center ${view === 'organization' ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
-                  }`}>
-                  {isFetchingOrg && orgMeta?.total === undefined ? (
-                    <Skeleton className={`h-3 w-6 rounded-full ${view === 'organization' ? "bg-white/20" : "bg-gray-200"}`} />
+                <span className="ml-1">
+                  ({isFetchingOrgCount && orgCountMeta?.total === undefined ? (
+                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'organization' ? "bg-white/20" : "bg-blue-100"}`} />
                   ) : (
-                    orgMeta?.total ?? 0
-                  )}
+                    orgCountMeta?.total ?? 0
+                  )})
                 </span>
               </button>
               <button
@@ -160,19 +169,18 @@ export default function CohortsPage() {
                   setPagination(prev => ({ ...prev, pageIndex: 0 }));
                   setSearchTerm("");
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${view === 'user'
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-gray-700 border hover:bg-gray-50"
+                className={`flex items-center gap-1 px-4 py-2 rounded-md text-sm font-medium transition-colors border ${view === 'user'
+                  ? "bg-blue-600 text-white border-blue-600"
+                  : "bg-white text-blue-600 border-blue-600 hover:bg-blue-50"
                   }`}
               >
                 User Cohorts
-                <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs flex items-center justify-center ${view === 'user' ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
-                  }`}>
-                  {isFetchingUser && userMeta?.total === undefined ? (
-                    <Skeleton className={`h-3 w-6 rounded-full ${view === 'user' ? "bg-white/20" : "bg-gray-200"}`} />
+                <span className="ml-1">
+                  ({isFetchingUserCount && userCountMeta?.total === undefined ? (
+                    <Skeleton className={`inline-block h-3 w-6 rounded-full ${view === 'user' ? "bg-white/20" : "bg-blue-100"}`} />
                   ) : (
-                    userMeta?.total ?? 0
-                  )}
+                    userCountMeta?.total ?? 0
+                  )})
                 </span>
               </button>
             </div>
