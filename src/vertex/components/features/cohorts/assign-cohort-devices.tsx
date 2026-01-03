@@ -12,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useCohorts, useAssignDevicesToCohort } from "@/core/hooks/useCohorts";
+import { useCohorts, useAssignDevicesToCohort, useGroupCohorts } from "@/core/hooks/useCohorts";
 import { useDevices } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { AqPlus } from "@airqo/icons-react";
@@ -21,6 +21,7 @@ import { CreateCohortDialog, PreselectedDevice } from "./create-cohort";
 import { Cohort } from "@/app/types/cohorts";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Device } from "@/app/types/devices";
+import { useUserContext } from "@/core/hooks/useUserContext";
 
 interface AssignCohortDevicesDialogProps {
   open: boolean;
@@ -46,7 +47,46 @@ export function AssignCohortDevicesDialog({
   onSuccess,
   cohortId,
 }: AssignCohortDevicesDialogProps) {
-  const { cohorts } = useCohorts();
+  const { isExternalOrg, activeGroup } = useUserContext();
+  const [cohortSearch, setCohortSearch] = useState("");
+  const [debouncedCohortSearch, setDebouncedCohortSearch] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedCohortSearch(cohortSearch);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [cohortSearch]);
+
+  const { cohorts: allCohorts, isFetching: isFetchingAllCohorts } = useCohorts({
+    enabled: open && !isExternalOrg,
+    search: debouncedCohortSearch,
+    limit: 100
+  });
+
+  const { data: groupCohortIds, isFetching: isFetchingCohortIds } = useGroupCohorts(
+    activeGroup?._id,
+    { enabled: open && isExternalOrg && !!activeGroup?._id }
+  );
+
+  const { cohorts: searchedCohorts, isFetching: isFetchingGroupCohorts } = useCohorts({
+    enabled: open && isExternalOrg && !!activeGroup?._id,
+    search: debouncedCohortSearch,
+    limit: 100
+  });
+
+  const filteredGroupCohorts = useMemo(() => {
+    if (!isExternalOrg || !groupCohortIds || groupCohortIds.length === 0) {
+      return searchedCohorts;
+    }
+    const cohortIdSet = new Set(groupCohortIds);
+    return searchedCohorts.filter(cohort => cohortIdSet.has(cohort._id));
+  }, [isExternalOrg, searchedCohorts, groupCohortIds]);
+
+  const cohorts = isExternalOrg ? filteredGroupCohorts : allCohorts;
+  const isFetchingCohorts = isExternalOrg ? (isFetchingGroupCohorts || isFetchingCohortIds) : isFetchingAllCohorts;
+
   const { devices: allDevices } = useDevices({ enabled: open });
   const { mutate: assignDevices, isPending: isAssigning } = useAssignDevicesToCohort();
 
@@ -82,6 +122,8 @@ export function AssignCohortDevicesDialog({
         cohortId: cohortId || "",
         devices: selectedDevices?.map((d) => d._id).filter((id): id is string => !!id) || [],
       });
+      setCohortSearch("");
+      setDebouncedCohortSearch("");
     }
   }, [open, selectedDevices, form, cohortId]);
 
@@ -180,6 +222,8 @@ export function AssignCohortDevicesDialog({
                       customActionLabel="Create New Cohort"
                       customActionIcon={AqPlus}
                       onCustomAction={handleCreateCohortAction}
+                      onSearchChange={setCohortSearch}
+                      isLoading={isFetchingCohorts}
                     />
                   </FormControl>
                   <FormMessage />

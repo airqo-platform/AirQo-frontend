@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient, useQueries } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { sites, ApproximateCoordinatesResponse, GetSitesSummaryParams, SitesSummaryResponse, CreateSiteResponse } from "../apis/sites";
 import { useGroupCohorts } from "./useCohorts";
 import { useAppSelector } from "../redux/hooks";
@@ -91,38 +91,17 @@ export const useSites = (options: SiteListingOptions = {}) => {
 export const useSiteStatistics = (network?: string) => {
     const activeGroup = useAppSelector((state) => state.user.activeGroup);
 
-    const totalQuery = useQuery({
-        queryKey: ["sites-count-total", network, activeGroup?.grp_title],
-        queryFn: () => sites.getSitesSummary({
-             network: network || "",
-             limit: 1
-        }),
-        enabled: !!activeGroup?.grp_title
+    const query = useQuery({
+        queryKey: ["sites-count-summary", network, activeGroup?.grp_title],
+        queryFn: () => sites.getSitesSummaryCount({ network: network || "" }),
+        enabled: !!activeGroup?.grp_title,
+        staleTime: 300_000, 
     });
-
-    const statuses = ['operational', 'transmitting', 'not-transmitting', 'data-available'];
-    
-    const statusQueries = useQueries({
-        queries: statuses.map(status => ({
-            queryKey: ["sites-count-status", status, network, activeGroup?.grp_title],
-            queryFn: () => sites.getSitesByStatusApi({
-                status: status,
-                network: network || "",
-                limit: 1
-            }),
-            enabled: !!activeGroup?.grp_title
-        }))
-    });
-
-    const isLoading = totalQuery.isLoading || statusQueries.some(q => q.isLoading);
 
     return {
-        total: totalQuery.data,
-        operational: statusQueries[0].data,
-        transmitting: statusQueries[1].data,
-        notTransmitting: statusQueries[2].data,
-        dataAvailable: statusQueries[3].data,
-        isLoading
+        summary: query.data?.summary,
+        isLoading: query.isLoading,
+        error: query.error
     };
 };
 

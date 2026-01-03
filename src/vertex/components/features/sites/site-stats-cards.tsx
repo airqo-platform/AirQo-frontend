@@ -17,17 +17,17 @@ interface SiteStatsCardsProps {
 }
 
 export const SiteStatsCards = ({ network }: SiteStatsCardsProps) => {
-    const { total, operational, transmitting, notTransmitting, dataAvailable, isLoading } = useSiteStatistics(network);
+    const { summary, isLoading } = useSiteStatistics(network);
 
     const metrics = useMemo(() => {
         return {
-            total: total?.meta?.total ?? 0,
-            operational: operational?.meta?.total ?? 0,
-            transmitting: transmitting?.meta?.total ?? 0,
-            notTransmitting: notTransmitting?.meta?.total ?? 0,
-            dataAvailable: dataAvailable?.meta?.total ?? 0,
+            total: summary?.total_sites ?? 0,
+            operational: summary?.operational ?? 0,
+            transmitting: summary?.transmitting ?? 0,
+            notTransmitting: summary?.not_transmitting ?? 0,
+            dataAvailable: summary?.data_available ?? 0,
         };
-    }, [total, operational, transmitting, notTransmitting, dataAvailable]);
+    }, [summary]);
 
     const router = useRouter();
     const searchParams = useSearchParams();

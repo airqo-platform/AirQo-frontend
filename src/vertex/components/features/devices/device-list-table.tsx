@@ -37,7 +37,7 @@ export default function DevicesTable({
   const [selectedDeviceObjects, setSelectedDeviceObjects] = useState<TableDevice[]>([]);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   const [showUnassignDialog, setShowUnassignDialog] = useState(false);
-  const { userContext, activeGroup } = useUserContext();
+  const { userContext, activeGroup, isExternalOrg } = useUserContext();
   const isInternalView = userContext === "personal" && activeGroup?.grp_title?.toLowerCase() === "airqo";
 
   const searchParams = useSearchParams();
@@ -137,7 +137,7 @@ export default function DevicesTable({
                 value: "assign_cohort",
                 handler: handleAddCohortDeviceActionSubmit,
               },
-              ...(selectedDeviceObjects.length > 0
+              ...(selectedDeviceObjects.length > 0 && !isExternalOrg
                 ? [{
                   label: "Remove from Cohort",
                   value: "unassign_cohort",

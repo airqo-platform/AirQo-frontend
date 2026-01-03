@@ -254,9 +254,9 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                 />
 
                 <AdminDropdownItem
-                  permission={!!permissions.canViewShipping}
+                  permission={!!permissions.canViewShipping || !!permissions.canViewNetworks}
                   permissionCode={PERMISSIONS.SHIPPING.VIEW}
-                  tooltipMessage="This action requires shipping view permission"
+                  tooltipMessage="This action requires shipping or network view permission"
                   onClick={() => {
                     handleModuleChange('admin');
                     router.push(ROUTE_LINKS.ADMIN_SHIPPING);
