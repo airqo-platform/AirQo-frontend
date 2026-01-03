@@ -52,6 +52,7 @@ export default function CohortsPage() {
     search: searchTerm,
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+  }, {
     enabled: view === 'organization'
   });
 
@@ -61,6 +62,7 @@ export default function CohortsPage() {
     search: searchTerm,
     sortBy: sorting[0]?.id,
     order: sorting.length ? (sorting[0]?.desc ? "desc" : "asc") : undefined,
+  }, {
     enabled: view === 'user'
   });
 
