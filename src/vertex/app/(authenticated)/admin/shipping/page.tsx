@@ -14,7 +14,7 @@ const ShippingPage = () => {
     const [showPrepareModal, setShowPrepareModal] = useState(false);
 
     return (
-        <RouteGuard permission={PERMISSIONS.SHIPPING.VIEW}>
+        <RouteGuard permissions={[PERMISSIONS.SHIPPING.VIEW, PERMISSIONS.NETWORK.VIEW]}>
             <div className="p-6 space-y-6">
                 <div className="flex justify-between items-center">
                     <div>

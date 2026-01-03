@@ -4,6 +4,164 @@
 
 ---
 
+## Version 1.23.14
+**Released:** January 03, 2026
+
+### Cohort Management Toggle & Performance
+
+Optimized large-scale cohort device assignment performance and introduced a dedicated toggle for managing User vs Organization cohorts with decoupled counts.
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Scope-Aware Cohort View**: Introduced a toggle on the Cohorts page (`/admin/cohorts`) allowing admins to switch between "Organization Cohorts" and "User Cohorts". Each view now displays an independent real-time count, styled with a distinct active/inactive design for clarity.
+
+</details>
+
+<details>
+<summary><strong>Performance Improvements (2)</strong></summary>
+
+- **Optimized Filtering**: Replaced O(n) array lookups with O(1) Set lookups in `assign-cohort-devices.tsx`, significantly improving filter performance when cross-referencing thousands of cohorts against organization permissions.
+- **Stable UI Counts**: Decoupled the data fetching logic for User/Org cohort counts from the main table data. This ensures that the counts on the toggle buttons remain stable and do not flicker or reload when searching or paginating the table.
+
+</details>
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Loading States**: Fixed an issue where the cohort assignment modal would display incomplete filtered results while background permissions were still loading. The UI now properly accounts for all loading states.
+- **Cache Consistency**: Implemented comprehensive cache invalidation for `['user-cohorts']` across all mutation hooks (create, update, assign/unassign), ensuring that the User Cohorts count is always accurate after any action.
+
+</details>
+
+<details>
+<summary><strong>UI Enhancements (2)</strong></summary>
+
+- **Refined Button Styles**: Updated the cohort toggle buttons to use a "Solid vs Outlined" style pattern (Blue background for active, transparent with border for inactive) for clearer state indication.
+- **Loading Skeletons**: Added inline skeleton loaders to button counts to provide visual feedback during data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `components/features/cohorts/assign-cohort-devices.tsx`
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `core/hooks/useCohorts.ts`
+- `core/apis/cohorts.ts`
+
+</details>
+
+---
+
+
+
+## Version 1.23.13
+**Released:** December 22, 2025
+
+### External Organization Permissions & Cohort Search Enhancements
+
+Implemented strict permission controls for external organizations and enhanced the cohort selection experience with server-side search, debouncing, and loading states.
+
+<details>
+<summary><strong>Feature Updates (3)</strong></summary>
+
+- **Organization-Scoped Cohorts**: External organization users now only see cohorts that belong to their organization when adding devices to cohorts. The system fetches organization cohort IDs and filters results client-side to ensure data isolation.
+- **Server-Side Cohort Search**: Implemented debounced server-side search (300ms delay) in the cohort selection ComboBox, allowing users to search across all cohorts while maintaining organization-level filtering for external users.
+- **Search Loading States**: Added 3 animated skeleton items to the cohort ComboBox during search, providing visual feedback while API requests are in progress.
+
+</details>
+
+<details>
+<summary><strong>Permission Restrictions (1)</strong></summary>
+
+- **Cohort Management Restrictions**: External organization users can now only **add devices to cohorts**, but cannot **remove devices from cohorts**. The "Remove from Cohort" action is hidden from device list table actions for external org contexts.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (2)</strong></summary>
+
+- **Smart Empty State Handling**: The cohort ComboBox now correctly shows/hides the "No cohorts found" message based on search results, preventing it from appearing alongside actual results.
+- **Smooth Search Experience**: Search now matches the polished experience of the cohorts table page with proper debouncing, preventing excessive API calls while maintaining responsive feedback.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (5)</strong></summary>
+
+- **ComboBox Enhancement**: Updated `combobox.tsx` to support server-side search via new `onSearchChange` and `isLoading` props, with `shouldFilter={false}` to disable internal Command filtering.
+- **Debounced Search**: Implemented proper debounce pattern using separate state for `cohortSearch` and `debouncedCohortSearch` with 300ms timeout.
+- **Organization Filtering**: Added `useGroupCohorts` hook integration to fetch organization-specific cohort IDs, then filter search results client-side using `useMemo`.
+- **Search Optimization**: Removed `cohort_id` parameter from search API calls to allow searching across all cohorts before client-side filtering for external orgs.
+- **Skeleton Component**: Integrated the `Skeleton` component to display loading placeholders during cohort data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/features/devices/device-list-table.tsx`
+- `components/features/cohorts/assign-cohort-devices.tsx`
+- `components/ui/combobox.tsx`
+
+</details>
+
+---
+
+## Version 1.23.12
+**Released:** December 20, 2025
+
+### Site Statistics Optimization & Permission Enhancements
+
+Optimized site statistics implementation to use a dedicated summary endpoint and enhanced permission handling for shipping access with fallback permissions.
+
+<details>
+<summary><strong>Performance Improvements (1)</strong></summary>
+
+- **Efficient Stats Fetching**: Refactored site statistics to use the new `/devices/sites/summary/count` endpoint, replacing multiple parallel API calls with a single request. This significantly improves page load performance and reduces server load.
+
+</details>
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Flexible Shipping Access**: Added fallback permission logic for shipping access. Users with either `SHIPPING.VIEW` or `NETWORK.VIEW` permissions can now access the Shipping Management page, providing more flexible access control.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Improvements (1)</strong></summary>
+
+- **Organization Modal Redesign**: Completely refactored the Organization Switcher modal to use the standardized `ReusableDialog` component with improved visuals matching the design system, including dynamic subtitle showing available organizations count and proper vertical scrolling for long lists.
+
+</details>
+
+<details>
+<summary><strong>Technical Changes (4)</strong></summary>
+
+- **API Update**: Added `getSitesSummaryCount` to `sites.ts` with corresponding `SitesSummaryCountResponse` interface.
+- **Hook Optimization**: Simplified `useSiteStatistics` to use a single query instead of multiple parallel queries.
+- **Permission System**: Enhanced `RouteGuard` to support multiple permissions via new `permissions` prop using OR logic.
+- **Component Refactor**: Migrated `organization-modal.tsx` from custom dialog implementation to `ReusableDialog` with proper flex layout for scrolling.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (7)</strong></summary>
+
+- `core/apis/sites.ts`
+- `core/hooks/useSites.ts`
+- `components/features/sites/site-stats-cards.tsx`
+- `components/layout/accessConfig/route-guard.tsx`
+- `app/(authenticated)/admin/shipping/page.tsx`
+- `components/layout/primary-sidebar.tsx`
+- `components/features/org-picker/organization-modal.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.11
 **Released:** December 19, 2025
 

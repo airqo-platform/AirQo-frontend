@@ -1,18 +1,11 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import {
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { CustomDialogContent } from "@/components/ui/custom-dialog";
-import { Button } from "@/components/ui/button";
+import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import { Input } from "@/components/ui/input";
-import { AqPlus, AqSearchMd } from '@airqo/icons-react';
+import { AqSearchRefraction } from '@airqo/icons-react';
 import type { Group } from "@/app/types/users";
+import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface OrganizationModalProps {
   isOpen: boolean;
@@ -96,10 +89,10 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     return (
       <div
         onClick={() => handleSelection(group)}
-        className={`flex items-center justify-between p-3 hover:bg-accent rounded-xl cursor-pointer ${isActive && "border border-blue-200 bg-blue-50/50"}`}
+        className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg cursor-pointer ${isActive && "border border-blue-200 bg-blue-50/50"}`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center uppercase text-sm">
+          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center uppercase text-sm">
             {group.grp_title.charAt(0)}
           </div>
           <div>
@@ -114,13 +107,6 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   const renderOrganizationList = (groups: Group[]) => {
     return (
       <div className="space-y-1 py-2">
-        {groups.length > 0 && (
-          <div className="px-1 mb-2 mt-3">
-            <h3 className="text-sm font-medium text-muted-foreground">
-              Available Organizations
-            </h3>
-          </div>
-        )}
         {groups.length > 0 ? (
           groups.map((group) => <OrganizationItem key={group._id} group={group} />)
         ) : (
@@ -133,38 +119,41 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <CustomDialogContent className="max-w-3xl h-[90vh] flex flex-col p-0 gap-0">
-        <DialogHeader className="p-6 pb-2 flex-shrink-0">
-          <DialogTitle className="flex items-center justify-between">
-            <span>Organizations</span>
-
-            <div className="flex items-center gap-2">
-              <Button onClick={handleCreateNew} className="text-xs"><AqPlus size={48} /> Request New Organization</Button>
-            </div>
-          </DialogTitle>
-        </DialogHeader>
-        <div className="px-6 pb-2 border-b flex-shrink-0">
-          <div className="relative w-full">
-            <AqSearchMd className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search organizations by name"
-              className="pl-10"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+    <ReusableDialog
+      isOpen={isOpen}
+      onClose={onClose}
+      size="lg"
+      title="Organizations"
+      subtitle={`${filteredGroups.length} of ${userGroups?.length || 0} available`}
+      maxHeight="max-h-[65vh]"
+      contentClassName="overflow-hidden flex flex-col"
+      contentAreaClassName="p-0 flex flex-col flex-1 min-h-0"
+      customFooter={
+        <div className="flex items-center justify-end gap-3 w-full px-4 py-4 border-t border-gray-200 dark:border-gray-700">
+          <ReusableButton onClick={onClose} variant="outlined">
+            Close
+          </ReusableButton>
+          <ReusableButton onClick={handleCreateNew}>
+            Request New Organization
+          </ReusableButton>
         </div>
-        <div className="flex-grow flex flex-col min-h-0 px-6 max-h-[450px] overflow-y-auto">
-          {renderOrganizationList(filteredGroups)}
+      }
+    >
+      <div className="px-4 py-4 flex-shrink-0">
+        <div className="relative w-full">
+          <AqSearchRefraction className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search organizations..."
+            className="pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-        <DialogFooter className="p-4 border-t flex-shrink-0">
-          <DialogClose asChild>
-            <Button variant="outline">Close</Button>
-          </DialogClose>
-        </DialogFooter>
-      </CustomDialogContent>
-    </Dialog>
+      </div>
+      <div className="px-4 flex-1 min-h-0 overflow-y-auto">
+        {renderOrganizationList(filteredGroups)}
+      </div>
+    </ReusableDialog>
   );
 };
 
