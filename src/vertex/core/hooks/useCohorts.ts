@@ -161,6 +161,7 @@ export const useUpdateCohortDetails = () => {
         queryKey: ['cohort-details', variables.cohortId],
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
     onError: error => {
       ReusableToast({
@@ -192,6 +193,7 @@ export const useCreateCohort = () => {
                 type: 'SUCCESS',
             });
             queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+            queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
         },
         onError: error => {
             ReusableToast({
@@ -229,6 +231,7 @@ export const useCreateCohortWithDevices = () => {
         type: 'SUCCESS',
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
     onError: error => {
       ReusableToast({
@@ -269,6 +272,7 @@ export const useCreateCohortFromCohorts = () => {
       queryClient.invalidateQueries({
         queryKey: ['cohorts', activeNetwork?.net_name],
       });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
     onError: error => {
       ReusableToast({
@@ -301,6 +305,7 @@ export const useAssignDevicesToCohort = () => {
         type: 'SUCCESS',
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
@@ -337,6 +342,7 @@ export const useUnassignDevicesFromCohort = () => {
         type: 'SUCCESS',
       });
       queryClient.invalidateQueries({ queryKey: ['cohorts'] });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
       queryClient.invalidateQueries({ queryKey: ['devices'], exact: false });
       queryClient.invalidateQueries({
         queryKey: ['cohort-details', variables.cohortId],
@@ -416,6 +422,7 @@ export const useAssignCohortsToUser = () => {
       queryClient.invalidateQueries({
         queryKey: ['my-devices'],
       });
+      queryClient.invalidateQueries({ queryKey: ['user-cohorts'] });
     },
     onError: error => {
       ReusableToast({
