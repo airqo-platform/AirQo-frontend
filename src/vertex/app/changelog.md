@@ -7,7 +7,7 @@
 ## Version 1.23.14
 **Released:** January 03, 2026
 
-### Cohort Management Toggle & Performance Performance
+### Cohort Management Toggle & Performance
 
 Optimized large-scale cohort device assignment performance and introduced a dedicated toggle for managing User vs Organization cohorts with decoupled counts.
 
@@ -43,7 +43,7 @@ Optimized large-scale cohort device assignment performance and introduced a dedi
 </details>
 
 <details>
-<summary><strong>Files Modified (3)</strong></summary>
+<summary><strong>Files Modified (4)</strong></summary>
 
 - `components/features/cohorts/assign-cohort-devices.tsx`
 - `app/(authenticated)/admin/cohorts/page.tsx`
