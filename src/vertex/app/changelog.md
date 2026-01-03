@@ -4,6 +4,58 @@
 
 ---
 
+## Version 1.23.14
+**Released:** January 03, 2026
+
+### Cohort Management Toggle & Performance Performance
+
+Optimized large-scale cohort device assignment performance and introduced a dedicated toggle for managing User vs Organization cohorts with decoupled counts.
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Scope-Aware Cohort View**: Introduced a toggle on the Cohorts page (`/admin/cohorts`) allowing admins to switch between "Organization Cohorts" and "User Cohorts". Each view now displays an independent real-time count, styled with a distinct active/inactive design for clarity.
+
+</details>
+
+<details>
+<summary><strong>Performance Improvements (2)</strong></summary>
+
+- **Optimized Filtering**: Replaced O(n) array lookups with O(1) Set lookups in `assign-cohort-devices.tsx`, significantly improving filter performance when cross-referencing thousands of cohorts against organization permissions.
+- **Stable UI Counts**: Decoupled the data fetching logic for User/Org cohort counts from the main table data. This ensures that the counts on the toggle buttons remain stable and do not flicker or reload when searching or paginating the table.
+
+</details>
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Loading States**: Fixed an issue where the cohort assignment modal would display incomplete filtered results while background permissions were still loading. The UI now properly accounts for all loading states.
+- **Cache Consistency**: Implemented comprehensive cache invalidation for `['user-cohorts']` across all mutation hooks (create, update, assign/unassign), ensuring that the User Cohorts count is always accurate after any action.
+
+</details>
+
+<details>
+<summary><strong>UI Enhancements (2)</strong></summary>
+
+- **Refined Button Styles**: Updated the cohort toggle buttons to use a "Solid vs Outlined" style pattern (Blue background for active, transparent with border for inactive) for clearer state indication.
+- **Loading Skeletons**: Added inline skeleton loaders to button counts to provide visual feedback during data fetching.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (3)</strong></summary>
+
+- `components/features/cohorts/assign-cohort-devices.tsx`
+- `app/(authenticated)/admin/cohorts/page.tsx`
+- `core/hooks/useCohorts.ts`
+- `core/apis/cohorts.ts`
+
+</details>
+
+---
+
+
+
 ## Version 1.23.13
 **Released:** December 22, 2025
 
