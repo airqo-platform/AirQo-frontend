@@ -25,7 +25,7 @@ const DetailItem = ({ label, value }: { label: string; value: React.ReactNode })
 
 export const SiteMobileAppCard: React.FC<SiteMobileAppCardProps> = ({ site, onEdit }) => {
   return (
-    <Card className="w-full rounded-lg bg-white flex flex-col">
+    <Card className="w-full rounded-lg flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Mobile App Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

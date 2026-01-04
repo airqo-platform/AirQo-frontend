@@ -46,7 +46,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
   const explanation = getStatusExplanation(status.label, lastActiveCheck);
 
   return (
-    <Card className="w-full rounded-lg bg-white flex flex-col">
+    <Card className="w-full rounded-lg flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Site Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
