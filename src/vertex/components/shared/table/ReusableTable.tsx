@@ -1297,7 +1297,7 @@ const ReusableTable = <T extends TableItem>({
   }, []);
 
   return (
-    <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] flex flex-col ${className}`}>
+    <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] border border-gray-200 dark:border-gray-600 flex flex-col ${className}`}>
       {/* 1. Header Section */}
       <div
         ref={stickyHeaderRef}
