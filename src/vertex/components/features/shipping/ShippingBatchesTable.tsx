@@ -19,7 +19,7 @@ const ShippingBatchesTable: React.FC = () => {
             key: 'batch_name',
             label: 'Batch Name',
             render: (value) => (
-                <span className="font-medium text-gray-900 dark:text-white">
+                <span className="font-medium uppercase text-gray-900 dark:text-white">
                     {value as string || 'Unnamed Batch'}
                 </span>
             )
