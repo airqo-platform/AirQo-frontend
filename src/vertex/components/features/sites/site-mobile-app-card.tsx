@@ -5,10 +5,10 @@ import { AqEdit01 } from "@airqo/icons-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 
 interface Site {
-  search_name: string;
-  location_name: string;
-  city: string;
-  country: string;
+  search_name?: string;
+  location_name?: string;
+  city?: string;
+  country?: string;
 }
 
 interface SiteMobileAppCardProps {
