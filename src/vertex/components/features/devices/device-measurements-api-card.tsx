@@ -10,7 +10,7 @@ interface DeviceMeasurementsApiCardProps {
 
 const DeviceMeasurementsApiCard: React.FC<DeviceMeasurementsApiCardProps> = ({ deviceId }) => {
   return (
-    <Card className="w-full rounded-lg bg-white flex flex-col gap-4 px-3 py-2">
+    <Card className="w-full rounded-lg flex flex-col gap-4 px-3 py-2">
       <h2 className="text-lg font-semibold mb-2">Device Measurements API</h2>
       {/* Recent Measurements */}
       <div className="flex flex-col gap-1">
@@ -25,7 +25,7 @@ const DeviceMeasurementsApiCard: React.FC<DeviceMeasurementsApiCardProps> = ({ d
             className="hover:bg-transparent"
             onClick={() => {
               navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/devices/${deviceId}/recent?token=YOUR_TOKEN`);
-              ReusableToast({message: "Copied", type: "SUCCESS"});
+              ReusableToast({ message: "Copied", type: "SUCCESS" });
             }}
           >
             <Copy className="w-4 h-4" />
@@ -45,7 +45,7 @@ const DeviceMeasurementsApiCard: React.FC<DeviceMeasurementsApiCardProps> = ({ d
             className="hover:bg-transparent"
             onClick={() => {
               navigator.clipboard.writeText(`https://api.airqo.net/api/v2/devices/measurements/devices/${deviceId}/historical?token=YOUR_TOKEN`);
-              ReusableToast({message: "Copied", type: "SUCCESS"});
+              ReusableToast({ message: "Copied", type: "SUCCESS" });
             }}
           >
             <Copy className="w-4 h-4" />

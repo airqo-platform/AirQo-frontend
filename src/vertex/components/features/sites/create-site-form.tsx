@@ -14,7 +14,7 @@ import { useAppSelector } from "@/core/redux/hooks";
 import "leaflet/dist/leaflet.css";
 import { useApproximateCoordinates, useCreateSite } from "@/core/hooks/useSites";
 import { AqPlus } from "@airqo/icons-react";
-import LocationAutocomplete from "@/components/LocationAutocomplete";
+import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { Label } from "@/components/ui/label";
 import { useNetworks } from "@/core/hooks/useNetworks";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";

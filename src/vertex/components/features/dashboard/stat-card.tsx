@@ -36,7 +36,7 @@ export const StatCard = ({
     isActive = false,
 }: StatCardProps) => {
     const getContainerStyles = useCallback(() => {
-        const baseStyles = "rounded-lg border bg-white dark:bg-gray-800 relative overflow-hidden p-0 transition-all duration-200";
+        const baseStyles = "rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 relative overflow-hidden p-0 transition-all duration-200";
         
         if (isLoading) {
             return baseStyles;

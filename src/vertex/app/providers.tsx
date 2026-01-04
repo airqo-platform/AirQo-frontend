@@ -7,6 +7,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { AuthProvider } from "@/core/auth/authProvider";
 import dynamic from 'next/dynamic';
+import { ThemeProvider } from "@/components/theme-provider";
 
 const NetworkStatusBanner = dynamic(
   () => import('@/components/features/network-status-banner'),
@@ -33,7 +34,14 @@ export default function Providers({ children, session }: { children: React.React
       <PersistGate loading={null} persistor={persistor}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider session={session}>
-            {children}
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+            </ThemeProvider>
             {process.env.NODE_ENV !== "production" && (
               <ReactQueryDevtools initialIsOpen={false} />
             )}

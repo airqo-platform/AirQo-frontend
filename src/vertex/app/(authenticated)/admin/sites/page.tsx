@@ -35,9 +35,7 @@ export default function SitesPage() {
             <SiteStatsCards />
           </div>
 
-          <div className="border rounded-lg">
-            <SitesTable />
-          </div>
+          <SitesTable />
         </div>
       </div>
     </RouteGuard>
