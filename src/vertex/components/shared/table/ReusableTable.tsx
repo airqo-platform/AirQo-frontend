@@ -730,8 +730,20 @@ const ReusableTable = <T extends TableItem>({
     setSearchInput(searchTerm);
   }, [searchTerm]);
 
+  // Helper to validate search input
+  const validateSearchInput = (input: string) => {
+    // Block URLs and common invalid patterns that might trigger WAFs or router loops
+    if (/https?:\/\/|www\./i.test(input)) return false;
+    return true;
+  };
+
   useEffect(() => {
     if (searchInput !== searchTerm) {
+      // Validate input before processing
+      if (!validateSearchInput(searchInput)) {
+        return;
+      }
+
       if (serverSidePagination) {
         const t = setTimeout(() => {
           onSearchChange?.(searchInput);
@@ -1285,7 +1297,7 @@ const ReusableTable = <T extends TableItem>({
   }, []);
 
   return (
-    <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] flex flex-col ${className}`}>
+    <div className={`shadow p-0 rounded-lg w-full bg-white dark:bg-[#1d1f20] border border-gray-200 dark:border-gray-600 flex flex-col ${className}`}>
       {/* 1. Header Section */}
       <div
         ref={stickyHeaderRef}

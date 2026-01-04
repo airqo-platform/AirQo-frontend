@@ -111,6 +111,11 @@ export function EditSiteDetailsDialog({
       return;
     }
 
+    if (!site._id) {
+      toast.error("Site ID is missing");
+      return;
+    }
+
     updateSite(
       { siteId: site._id, data: transformedData },
       {

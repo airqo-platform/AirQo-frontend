@@ -33,7 +33,7 @@ const RunDeviceTestCard: React.FC<RunDeviceTestCardProps> = ({ deviceNumber, get
   const statusFeed = useDeviceStatusFeed(deviceNumber);
 
   return (
-    <Card className="w-full rounded-lg bg-white md:col-span-2">
+    <Card className="w-full rounded-lg md:col-span-2">
       <div className="flex items-center justify-between px-3 py-2">
         <h2 className="text-lg font-semibold">Run Device Test</h2>
         <button

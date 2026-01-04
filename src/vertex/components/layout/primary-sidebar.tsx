@@ -53,12 +53,12 @@ const AdminDropdownItem: React.FC<AdminDropdownItemProps> = ({
       disabled={!permission}
       onClick={onClick}
       className={cn(
-        "flex flex-col items-start gap-1 p-3 cursor-pointer",
-        isActive && "bg-blue-50 text-blue-700"
+        "flex flex-col items-start gap-1 p-3 cursor-pointer outline-none transition-colors duration-200",
+        isActive ? "bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-500" : "hover:bg-accent dark:hover:bg-zinc-800"
       )}
     >
       <span className="font-medium">{label}</span>
-      <span className={cn("text-xs", isActive ? "text-blue-500" : "text-muted-foreground")}>
+      <span className={cn("text-xs", isActive ? "text-blue-500 dark:text-blue-400" : "text-muted-foreground dark:text-gray-400")}>
         {subLabel}
       </span>
     </DropdownMenuItem>

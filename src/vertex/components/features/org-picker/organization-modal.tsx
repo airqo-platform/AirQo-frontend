@@ -89,17 +89,17 @@ const OrganizationModal: React.FC<OrganizationModalProps> = ({
     return (
       <div
         onClick={() => handleSelection(group)}
-        className={`flex items-center justify-between p-2 hover:bg-accent rounded-lg cursor-pointer ${isActive && "border border-blue-200 bg-blue-50/50"}`}
+        className={`flex items-center justify-between p-2 hover:bg-accent dark:hover:bg-zinc-800 rounded-lg cursor-pointer transition-colors duration-200 ${isActive && "border border-blue-200 bg-blue-50/50 dark:bg-blue-900/20 dark:border-blue-800"}`}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center uppercase text-sm">
+          <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center uppercase text-sm font-medium text-blue-700 dark:text-blue-200">
             {group.grp_title.charAt(0)}
           </div>
           <div>
-            <p className="font-medium uppercase text-sm">{formatTitle(group.grp_title)}</p>
+            <p className="font-medium uppercase text-sm text-foreground">{formatTitle(group.grp_title)}</p>
           </div>
         </div>
-        {isActive && <div className="bg-blue-600 h-2 w-2 rounded-full" />}
+        {isActive && <div className="bg-blue-600 dark:bg-blue-500 h-2 w-2 rounded-full shadow-sm" />}
       </div>
     );
   };

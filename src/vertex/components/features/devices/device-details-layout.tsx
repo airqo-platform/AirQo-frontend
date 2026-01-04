@@ -18,6 +18,7 @@ import AddMaintenanceLogModal from "@/components/features/devices/add-maintenanc
 import { Device } from "@/app/types/devices";
 import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
+import DeviceCategoryCard from "@/components/features/devices/device-category-card";
 import { AqArrowLeft, AqSignal02, AqTool01 } from "@airqo/icons-react";
 
 const ActionButtonsSkeleton = () => (
@@ -146,6 +147,9 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                     </div>
                     <div className="break-inside-avoid mb-4 inline-block w-full order-4">
                         <MaintenanceStatusCard deviceId={deviceId} />
+                    </div>
+                    <div className="break-inside-avoid mb-4 inline-block w-full order-3">
+                        <DeviceCategoryCard device={device} />
                     </div>
                 </div>
             )}
