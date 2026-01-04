@@ -27,7 +27,7 @@ import { useDevices, useDeployDevice } from "@/core/hooks/useDevices";
 import { ComboBox } from "@/components/ui/combobox";
 import { Device } from "@/app/types/devices";
 import ReusableToast from "@/components/shared/toast/ReusableToast";
-import LocationAutocomplete from "@/components/LocationAutocomplete";
+import LocationAutocomplete from "@/components/features/location-autocomplete/LocationAutocomplete";
 import { useNetworks } from "@/core/hooks/useNetworks";
 const MiniMap = React.lazy(() => import("../mini-map/mini-map"));
 
