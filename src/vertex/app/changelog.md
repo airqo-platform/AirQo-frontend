@@ -22,11 +22,11 @@ Polished the application's comprehensive dark mode experience and introduced **c
 <summary><strong>UI Enhancements (3)</strong></summary>
 
 - **Dark Mode Styling**:
-    - **Sidebar**: Standardized active state navigation to use a branded dark blue theme (`dark:bg-blue-900/20`, `dark:text-blue-500`) across both Primary and Secondary sidebars, ensuring high contrast and consistency.
-    - **Topbar**: Aligned the menu button hover state with the `OrganizationPicker` styling (`dark:hover:bg-primary/10`) for a unified look.
-    - **Organization Modal**: Updated list items to use proper dark mode active states (`dark:bg-blue-900/20`) and text colors, preventing visibility issues on dark backgrounds.
-    - **Network Visibility**: Refined the **Network Visibility Card** and Home Accordion styling to ensure borders and separators render correctly in dark mode (`dark:border-gray-600`).
-    - **General UI**: Applied consistent dark mode border styling to various components including `Card`, `SiteInformationCard`, `CohortDetailCard`, and `SiteMobileAppCard`.
+  - **Sidebar**: Standardized active state navigation to use a branded dark blue theme (`dark:bg-blue-900/20`, `dark:text-blue-500`) across both Primary and Secondary sidebars, ensuring high contrast and consistency.
+  - **Topbar**: Aligned the menu button hover state with the `OrganizationPicker` styling (`dark:hover:bg-primary/10`) for a unified look.
+  - **Organization Modal**: Updated list items to use proper dark mode active states (`dark:bg-blue-900/20`) and text colors, preventing visibility issues on dark backgrounds.
+  - **Network Visibility**: Refined the **Network Visibility Card** and Home Accordion styling to ensure borders and separators render correctly in dark mode (`dark:border-gray-600`).
+  - **General UI**: Applied consistent dark mode border styling to various components including `Card`, `SiteInformationCard`, `CohortDetailCard`, and `SiteMobileAppCard`.
 - **Toggle Refinement**: Updated the secondary sidebar collapse toggle to support dark mode with appropriate background and border colors (`dark:bg-zinc-950`, `dark:border-gray-700`).
 
 </details>
@@ -35,9 +35,9 @@ Polished the application's comprehensive dark mode experience and introduced **c
 <summary><strong>Fixes (2)</strong></summary>
 
 - **Site Type Compatibility**:
-    - **Mobile App Card**: Updated the `SiteMobileAppCard` local interface to accept optional properties (`search_name`, `location_name`, etc.), resolving a TypeScript assignment error with the global `Site` type.
-    - **Robust Status Logic**: Updated `site-information-card.tsx` and `sites-list-table.tsx` to safely handle optional `isOnline` and `rawOnlineStatus` fields. preserved `undefined` values for `rawOnlineStatus` to respect semantic meaning (unknown status) rather than coercing to `false`.
-    - **Edit Site Validation**: Added a safety check in `edit-site-details-dialog.tsx` to ensure `siteId` is present before submission, preventing type errors.
+  - **Mobile App Card**: Updated the `SiteMobileAppCard` local interface to accept optional properties (`search_name`, `location_name`, etc.), resolving a TypeScript assignment error with the global `Site` type.
+  - **Robust Status Logic**: Updated `site-information-card.tsx` and `sites-list-table.tsx` to safely handle optional `isOnline` and `rawOnlineStatus` fields. preserved `undefined` values for `rawOnlineStatus` to respect semantic meaning (unknown status) rather than coercing to `false`.
+  - **Edit Site Validation**: Added a safety check in `edit-site-details-dialog.tsx` to ensure `siteId` is present before submission, preventing type errors.
 - **Lint Resolution**: Resolved an explicit `any` type in `client-paginated-sites-table.tsx` by correctly casting to the `Site` interface.
 
 </details>
