@@ -126,7 +126,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 >
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={user?.profilePicture || user?.image || ''}
+                      src={user?.profilePicture || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
@@ -139,7 +139,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                 <div className="flex items-center">
                   <Avatar className="h-10 w-10">
                     <AvatarImage
-                      src={user?.profilePicture || user?.image || ''}
+                      src={user?.profilePicture || ''}
                       alt={getUserName()}
                     />
                     <AvatarFallback className="bg-primary/10 text-primary">
