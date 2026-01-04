@@ -93,7 +93,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
           </div>
         </div>
 
-        <div className="border-t px-2 flex justify-end">
+        <div className="border-t border-t-gray-200 dark:border-t-gray-600 px-2 flex justify-end">
           <ReusableButton variant="text" onClick={onShowDetailsModal} Icon={AqEdit01} className="p-1 text-xs m-1">
             Edit details
           </ReusableButton>

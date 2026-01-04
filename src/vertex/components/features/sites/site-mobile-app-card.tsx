@@ -36,7 +36,7 @@ export const SiteMobileAppCard: React.FC<SiteMobileAppCardProps> = ({ site, onEd
         </div>
       </div>
       {onEdit && (
-        <div className="border-t p-2 flex justify-end">
+        <div className="border-t border-t-gray-200 dark:border-t-gray-600 p-2 flex justify-end">
           <ReusableButton
             onClick={onEdit}
             Icon={AqEdit01}

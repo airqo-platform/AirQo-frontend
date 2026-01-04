@@ -157,10 +157,9 @@ const NetworkVisibilityCard = () => {
                         </span>
                     </div>
                 </div>
-                <div className="border-t mt-6 flex justify-start -mx-6 px-6 pt-1">
+                <div className="border-t border-t-gray-200 dark:border-t-gray-600 mt-6 flex justify-start -mx-6 px-6 pt-1">
                     <ReusableButton
                         variant="text"
-                        className="text-muted-foreground hover:text-primary"
                         onClick={() => router.push('/cohorts')}
                     >
                         View Cohorts
