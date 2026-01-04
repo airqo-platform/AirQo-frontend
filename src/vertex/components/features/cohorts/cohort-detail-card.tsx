@@ -39,11 +39,11 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
   };
 
   if (loading) {
-    return <Card className="w-full rounded-lg bg-white flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
+    return <Card className="w-full rounded-lg flex flex-col justify-between items-center p-8"><Loader2 className="w-6 h-6 animate-spin" /></Card>;
   }
   return (
     <>
-      <Card className="w-full rounded-lg bg-white flex flex-col justify-between h-full">
+      <Card className="w-full rounded-lg flex flex-col justify-between h-full">
         <div className="px-3 py-2 flex flex-col gap-4">
           <h2 className="text-lg font-semibold">Cohort Details</h2>
 
