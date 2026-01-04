@@ -4,6 +4,65 @@
 
 ---
 
+## Version 1.23.15
+**Released:** January 04, 2026
+
+### Dark Mode & Type Safety Refinements
+
+Polished the application's comprehensive dark mode experience and introduced **cohort-level visibility controls**, alongside critical type safety improvements.
+
+<details>
+<summary><strong>Feature Updates (1)</strong></summary>
+
+- **Cohort Visibility Toggle**: Moved the visibility management (Public vs Private) directly onto the **Cohort Details Card**. Users can now toggle a cohort's visibility with a switch, complete with a confirmation dialog explaining the privacy implications.
+
+</details>
+
+<details>
+<summary><strong>UI Enhancements (3)</strong></summary>
+
+- **Dark Mode Styling**:
+    - **Sidebar**: Standardized active state navigation to use a branded dark blue theme (`dark:bg-blue-900/20`, `dark:text-blue-500`) across both Primary and Secondary sidebars, ensuring high contrast and consistency.
+    - **Topbar**: Aligned the menu button hover state with the `OrganizationPicker` styling (`dark:hover:bg-primary/10`) for a unified look.
+    - **Organization Modal**: Updated list items to use proper dark mode active states (`dark:bg-blue-900/20`) and text colors, preventing visibility issues on dark backgrounds.
+    - **Network Visibility**: Refined the **Network Visibility Card** and Home Accordion styling to ensure borders and separators render correctly in dark mode (`dark:border-gray-600`).
+    - **General UI**: Applied consistent dark mode border styling to various components including `Card`, `SiteInformationCard`, `CohortDetailCard`, and `SiteMobileAppCard`.
+- **Toggle Refinement**: Updated the secondary sidebar collapse toggle to support dark mode with appropriate background and border colors (`dark:bg-zinc-950`, `dark:border-gray-700`).
+
+</details>
+
+<details>
+<summary><strong>Fixes (2)</strong></summary>
+
+- **Site Type Compatibility**:
+    - **Mobile App Card**: Updated the `SiteMobileAppCard` local interface to accept optional properties (`search_name`, `location_name`, etc.), resolving a TypeScript assignment error with the global `Site` type.
+    - **Robust Status Logic**: Updated `site-information-card.tsx` and `sites-list-table.tsx` to safely handle optional `isOnline` and `rawOnlineStatus` fields by defaulting to `false`, preventing potential runtime crashes.
+- **Lint Resolution**: Resolved an explicit `any` type in `client-paginated-sites-table.tsx` by correctly casting to the `Site` interface.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (12)</strong></summary>
+
+- `components/layout/primary-sidebar.tsx`
+- `components/layout/secondary-sidebar.tsx`
+- `components/layout/NavItem.tsx`
+- `components/layout/topbar.tsx`
+- `components/features/org-picker/organization-modal.tsx`
+- `components/features/sites/site-mobile-app-card.tsx`
+- `components/features/sites/client-paginated-sites-table.tsx`
+- `components/features/home/network-visibility-card.tsx`
+- `components/features/home/page.tsx`
+- `components/ui/card.tsx`
+- `components/features/sites/site-information-card.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+
+</details>
+
+---
+
+
+
 ## Version 1.23.14
 **Released:** January 03, 2026
 
