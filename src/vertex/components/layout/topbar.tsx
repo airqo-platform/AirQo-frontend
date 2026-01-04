@@ -36,7 +36,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const router = useRouter();
   const { data: session } = useSession();
 
-  const user = (session?.user as unknown as Partial<UserDetails> & { image?: string | null }) || currentUser;
+  const user = currentUser || (session?.user as unknown as Partial<UserDetails> & { image?: string | null });
 
   useEffect(() => {
     if (darkMode) {
