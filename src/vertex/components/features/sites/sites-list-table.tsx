@@ -169,13 +169,7 @@ export default function SitesTable({
         sorting={sorting}
         onSortingChange={setSorting}
         searchable
-        actions={multiSelect ? [
-          {
-            label: "Export Selected",
-            value: "export",
-            handler: () => { },
-          },
-        ] : []}
+
         emptyState={
           error ? (
             <div className="flex flex-col items-center gap-2">

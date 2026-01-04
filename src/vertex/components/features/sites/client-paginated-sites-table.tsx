@@ -143,13 +143,7 @@ export default function ClientPaginatedSitesTable({
         onRowClick={handleSiteClick}
         multiSelect={multiSelect}
         onSelectedIdsChange={handleSelectedItemsChange}
-        actions={multiSelect ? [
-          {
-            label: "Export Selected",
-            value: "export",
-            handler: () => { },
-          },
-        ] : []}
+
         emptyState={
           error ? (
             <div className="flex flex-col items-center gap-2">
