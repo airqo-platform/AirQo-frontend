@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { AqCopy01, AqEdit01 } from "@airqo/icons-react";
