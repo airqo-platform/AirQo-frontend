@@ -37,12 +37,13 @@ Polished the application's comprehensive dark mode experience and introduced **c
 - **Site Type Compatibility**:
     - **Mobile App Card**: Updated the `SiteMobileAppCard` local interface to accept optional properties (`search_name`, `location_name`, etc.), resolving a TypeScript assignment error with the global `Site` type.
     - **Robust Status Logic**: Updated `site-information-card.tsx` and `sites-list-table.tsx` to safely handle optional `isOnline` and `rawOnlineStatus` fields by defaulting to `false`, preventing potential runtime crashes.
+    - **Edit Site Validation**: Added a safety check in `edit-site-details-dialog.tsx` to ensure `siteId` is present before submission, preventing type errors.
 - **Lint Resolution**: Resolved an explicit `any` type in `client-paginated-sites-table.tsx` by correctly casting to the `Site` interface.
 
 </details>
 
 <details>
-<summary><strong>Files Modified (12)</strong></summary>
+<summary><strong>Files Modified (13)</strong></summary>
 
 - `components/layout/primary-sidebar.tsx`
 - `components/layout/secondary-sidebar.tsx`
@@ -51,6 +52,7 @@ Polished the application's comprehensive dark mode experience and introduced **c
 - `components/features/org-picker/organization-modal.tsx`
 - `components/features/sites/site-mobile-app-card.tsx`
 - `components/features/sites/client-paginated-sites-table.tsx`
+- `components/features/sites/edit-site-details-dialog.tsx`
 - `components/features/home/network-visibility-card.tsx`
 - `components/features/home/page.tsx`
 - `components/ui/card.tsx`
