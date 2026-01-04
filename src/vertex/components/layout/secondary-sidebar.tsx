@@ -5,10 +5,10 @@ import { ChevronRight, ChevronLeft } from 'lucide-react';
 import {
   AqHomeSmile,
   AqMonitor,
-  AqAirQlouds,
   AqMarkerPin01,
   AqPackagePlus,
   AqCollocation,
+  AqBezierCurve02,
 } from '@airqo/icons-react';
 import { Button } from '@/components/ui/button';
 import { useUserContext } from '@/core/hooks/useUserContext';
@@ -58,12 +58,12 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
           variant="ghost"
           size="icon"
           onClick={toggleSidebar}
-          className={`absolute flex rounded-full top-4 -right-[6px] z-50 shadow-lg justify-center items-center border w-6 h-6 bg-white border-gray-200 text-gray-800 hover:shadow-xl transition-all duration-200`}
+          className={`absolute flex rounded-full top-4 -right-[6px] z-50 shadow-lg justify-center items-center border w-6 h-6 bg-white dark:bg-zinc-950 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 hover:shadow-xl transition-all duration-200`}
         >
           {isCollapsed ? (
-            <ChevronRight className="h-4 w-4 text-gray-700" />
+            <ChevronRight className="h-4 w-4 text-gray-700 dark:text-gray-200" />
           ) : (
-            <ChevronLeft className="h-4 w-4 text-gray-700" />
+            <ChevronLeft className="h-4 w-4 text-gray-700 dark:text-gray-200" />
           )}
         </Button>
         <Card
@@ -212,7 +212,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
               <NavItem
                 item={{
                   href: ROUTE_LINKS.GRIDS,
-                  icon: AqAirQlouds,
+                  icon: AqBezierCurve02,
                   label: 'Grids',
                   disabled: !contextPermissions.canViewSites,
                 }}
