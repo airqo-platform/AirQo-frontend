@@ -113,7 +113,7 @@ export default function ClientPaginatedSitesTable({
 
         const status = getDeviceStatus(
           site.isOnline || false,
-          site.rawOnlineStatus || false,
+          site.rawOnlineStatus,
           lastActiveCheck
         );
         const colors = badgeColorClasses[status.color];
