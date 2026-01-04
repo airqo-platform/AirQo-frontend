@@ -99,7 +99,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={onMenuClick}
-              className="inline-flex items-center justify-center focus:outline-none min-h-[32px] hover:bg-blue-50 p-2 rounded-md"
+              className="inline-flex items-center justify-center focus:outline-none min-h-[32px] hover:bg-blue-50 p-2 rounded-md transition-colors duration-200 dark:hover:bg-primary/10"
             >
               <span>
                 <AqMenu01 className="text-foreground" />
