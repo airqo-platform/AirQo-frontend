@@ -37,8 +37,8 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
     : null;
 
   const status = getDeviceStatus(
-    site.isOnline,
-    site.rawOnlineStatus,
+    site.isOnline || false,
+    site.rawOnlineStatus || false,
     lastActiveCheck
   );
   const colors = badgeColorClasses[status.color];

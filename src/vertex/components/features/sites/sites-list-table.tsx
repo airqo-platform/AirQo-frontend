@@ -129,8 +129,8 @@ export default function SitesTable({
           : null;
 
         const status = getDeviceStatus(
-          site.isOnline,
-          site.rawOnlineStatus,
+          site.isOnline || false,
+          site.rawOnlineStatus || false,
           lastActiveCheck
         );
         const colors = badgeColorClasses[status.color];

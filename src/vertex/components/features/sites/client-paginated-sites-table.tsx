@@ -106,14 +106,14 @@ export default function ClientPaginatedSitesTable({
       key: "isOnline",
       label: "Status",
       render: (isOnline, item) => {
-        const site = item as any;
+        const site = item as Site;
         const lastActiveCheck = site.lastActive
           ? formatDisplayDate(site.lastActive)
           : null;
 
         const status = getDeviceStatus(
-          site.isOnline,
-          site.rawOnlineStatus,
+          site.isOnline || false,
+          site.rawOnlineStatus || false,
           lastActiveCheck
         );
         const colors = badgeColorClasses[status.color];
