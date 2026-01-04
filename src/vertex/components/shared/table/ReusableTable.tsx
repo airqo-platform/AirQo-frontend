@@ -730,8 +730,20 @@ const ReusableTable = <T extends TableItem>({
     setSearchInput(searchTerm);
   }, [searchTerm]);
 
+  // Helper to validate search input
+  const validateSearchInput = (input: string) => {
+    // Block URLs and common invalid patterns that might trigger WAFs or router loops
+    if (/https?:\/\/|www\./i.test(input)) return false;
+    return true;
+  };
+
   useEffect(() => {
     if (searchInput !== searchTerm) {
+      // Validate input before processing
+      if (!validateSearchInput(searchInput)) {
+        return;
+      }
+
       if (serverSidePagination) {
         const t = setTimeout(() => {
           onSearchChange?.(searchInput);
