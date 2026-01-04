@@ -82,7 +82,7 @@ Polished the application's comprehensive dark mode experience and introduced
 - `components/features/sites/client-paginated-sites-table.tsx`
 - `components/features/sites/edit-site-details-dialog.tsx`
 - `components/features/home/network-visibility-card.tsx`
-- `components/features/home/page.tsx`
+- `app/(authenticated)/home/page.tsx`
 - `components/ui/card.tsx`
 - `components/features/sites/site-information-card.tsx`
 - `components/features/cohorts/cohort-detail-card.tsx`
