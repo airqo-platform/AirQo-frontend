@@ -1,43 +1,51 @@
-import type { Metadata } from 'next';
+'use client';
+
+import { usePathname } from 'next/navigation';
 import type React from 'react';
+import { useEffect, useState } from 'react';
 
 import MainLayout from '@/components/layouts/MainLayout';
 import mainConfig from '@/configs/mainConfigs';
+import AirQoDataPage from '@/views/legal/AirQoDataPage';
+import PP_Page from '@/views/legal/PP_Page';
+import PRP_Page from '@/views/legal/PRP_Page';
 import TabSection from '@/views/legal/Tabsection';
+import TOSPage from '@/views/legal/TOSPage';
 
-export const metadata: Metadata = {
-  title: {
-    template: '%s | AirQo Legal',
-    default: 'Legal Information & Policies | AirQo',
-  },
-  description:
-    "Access AirQo's comprehensive legal documentation, including Privacy Policy, Terms of Service, Data Usage Policy, and Payment Terms. Find detailed information about your rights and our obligations regarding air quality monitoring services.",
-  keywords:
-    'AirQo legal information, privacy policy, terms of service, data policy, payment terms, refund policy, air quality services terms, AirQo policies, legal documentation, user rights, data protection policy, service agreements',
-  robots: {
-    index: true,
-    follow: true,
-    nocache: false,
-    'max-snippet': 170,
-  },
-  other: {
-    'revisit-after': '30 days',
-    'dc.type': 'Legal Document',
-    'dc.language': 'en',
-    'dc.rights': 'Copyright AirQo, All Rights Reserved',
-  },
-};
+const LegalPageLayout: React.FC = () => {
+  const pathname = usePathname();
+  const [activeTab, setActiveTab] = useState('');
 
-type LegalPageLayoutProps = {
-  children: React.ReactNode;
-};
+  useEffect(() => {
+    if (pathname.includes('terms-of-service')) setActiveTab('terms-of-service');
+    else if (pathname.includes('privacy-policy'))
+      setActiveTab('privacy-policy');
+    else if (pathname.includes('airqo-data')) setActiveTab('airqo-data');
+    else if (pathname.includes('payment-refund-policy'))
+      setActiveTab('payment-refund-policy');
+    else setActiveTab('terms-of-service'); // default
+  }, [pathname]);
 
-const LegalPageLayout: React.FC<LegalPageLayoutProps> = ({ children }) => {
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'privacy-policy':
+        return <PP_Page />;
+      case 'terms-of-service':
+        return <TOSPage />;
+      case 'airqo-data':
+        return <AirQoDataPage />;
+      case 'payment-refund-policy':
+        return <PRP_Page />;
+      default:
+        return <TOSPage />;
+    }
+  };
+
   return (
     <MainLayout>
-      <TabSection />
+      <TabSection onTabChange={setActiveTab} />
       <main className={`${mainConfig.containerClass} legal-page-content`}>
-        {children}
+        {renderContent()}
       </main>
     </MainLayout>
   );

@@ -134,7 +134,7 @@ const EngagementDialog = () => {
 
   // Check if dialog was permanently dismissed
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.localStorage) {
       const dismissalData = localStorage.getItem('engagement_dialog_dismissed');
       if (dismissalData) {
         try {
@@ -167,7 +167,7 @@ const EngagementDialog = () => {
     setSubmissionError(null); // Reset error message
 
     // Mark as dismissed so it won't show again for 30 days
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && window.localStorage) {
       const dismissalData = {
         timestamp: Date.now(),
         expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days
