@@ -19,7 +19,7 @@ const CONSENT_BANNER_DISMISSED_KEY = 'airqo_consent_banner_dismissed';
  * Get current consent preferences from localStorage
  */
 export function getConsentPreferences(): ConsentPreferences | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !window.localStorage) return null;
 
   try {
     const stored = localStorage.getItem(CONSENT_KEY);
@@ -48,7 +48,7 @@ export function getConsentPreferences(): ConsentPreferences | null {
 export function setConsentPreferences(
   preferences: Omit<ConsentPreferences, 'timestamp'>,
 ): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !window.localStorage) return;
 
   try {
     const fullPreferences: ConsentPreferences = {

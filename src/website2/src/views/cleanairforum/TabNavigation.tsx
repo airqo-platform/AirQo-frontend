@@ -1,13 +1,13 @@
 // components/layouts/TabNavigation.tsx
 'use client';
 
-import Link from 'next/link';
-import { useParams, usePathname } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import React from 'react';
 
 const TabNavigation: React.FC = () => {
   const pathname = usePathname();
   const params = useParams();
+  const router = useRouter();
 
   // Get the uniqueTitle from the current URL params
   const uniqueTitle = params.uniqueTitle as string;
@@ -45,14 +45,18 @@ const TabNavigation: React.FC = () => {
     return `/clean-air-forum${href}`;
   };
 
+  const handleTabClick = (href: string) => {
+    router.push(buildHref(href));
+  };
+
   return (
     <div className="w-full py-10">
       <div className="w-full bg-gray-50 py-4 overflow-x-auto">
         <div className="max-w-5xl mx-auto flex flex-nowrap items-center space-x-6 px-4 lg:px-0">
           {tabs.map((link, index) => (
-            <Link
+            <button
               key={index}
-              href={buildHref(link.href)}
+              onClick={() => handleTabClick(link.href)}
               className={`relative flex-shrink-0 no-underline text-gray-700 hover:text-gray-900 transition ${
                 isActiveTab(link.href) ? 'font-semibold text-gray-900' : ''
               }`}
@@ -61,7 +65,7 @@ const TabNavigation: React.FC = () => {
               {isActiveTab(link.href) && (
                 <span className="absolute left-0 -bottom-2 h-[2px] w-full bg-gray-900" />
               )}
-            </Link>
+            </button>
           ))}
         </div>
       </div>

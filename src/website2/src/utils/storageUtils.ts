@@ -7,7 +7,7 @@
  * Safely get item from localStorage
  */
 export function getLocalStorageItem<T>(key: string): T | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !window.localStorage) return null;
 
   try {
     const item = localStorage.getItem(key);
@@ -22,7 +22,7 @@ export function getLocalStorageItem<T>(key: string): T | null {
  * Safely set item in localStorage
  */
 export function setLocalStorageItem<T>(key: string, value: T): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined' || !window.localStorage) return false;
 
   try {
     localStorage.setItem(key, JSON.stringify(value));
@@ -37,7 +37,7 @@ export function setLocalStorageItem<T>(key: string, value: T): boolean {
  * Safely remove item from localStorage
  */
 export function removeLocalStorageItem(key: string): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !window.localStorage) return;
 
   try {
     localStorage.removeItem(key);
@@ -50,7 +50,7 @@ export function removeLocalStorageItem(key: string): void {
  * Safely get item from sessionStorage
  */
 export function getSessionStorageItem<T>(key: string): T | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === 'undefined' || !window.sessionStorage) return null;
 
   try {
     const item = sessionStorage.getItem(key);
@@ -65,7 +65,7 @@ export function getSessionStorageItem<T>(key: string): T | null {
  * Safely set item in sessionStorage
  */
 export function setSessionStorageItem<T>(key: string, value: T): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined' || !window.sessionStorage) return false;
 
   try {
     sessionStorage.setItem(key, JSON.stringify(value));
@@ -80,7 +80,7 @@ export function setSessionStorageItem<T>(key: string, value: T): boolean {
  * Safely remove item from sessionStorage
  */
 export function removeSessionStorageItem(key: string): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined' || !window.sessionStorage) return;
 
   try {
     sessionStorage.removeItem(key);
@@ -93,7 +93,7 @@ export function removeSessionStorageItem(key: string): void {
  * Check if an item exists in localStorage
  */
 export function hasLocalStorageItem(key: string): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined' || !window.localStorage) return false;
 
   try {
     return localStorage.getItem(key) !== null;
@@ -106,7 +106,7 @@ export function hasLocalStorageItem(key: string): boolean {
  * Check if localStorage is available
  */
 export function isLocalStorageAvailable(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined' || !window.localStorage) return false;
 
   try {
     const testKey = '__storage_test__';
