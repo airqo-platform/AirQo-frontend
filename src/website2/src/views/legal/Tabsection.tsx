@@ -1,7 +1,6 @@
 'use client';
 
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import type React from 'react';
 
 import mainConfig from '@/configs/mainConfigs';
@@ -20,6 +19,18 @@ const tabs: Tab[] = [
 
 const TabSection: React.FC = () => {
   const pathname = usePathname();
+  const router = useRouter();
+
+  // Function to check if the tab is active based on the current pathname.
+  const isActiveTab = (value: string) => {
+    const pathSegments = pathname.split('/');
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    return lastSegment === value;
+  };
+
+  const handleTabClick = (value: string) => {
+    router.push(`/legal/${value}`);
+  };
 
   return (
     <div className="w-full bg-[#F2F1F6] pt-16 h-[250px] px-4 lg:px-0">
@@ -34,17 +45,17 @@ const TabSection: React.FC = () => {
         {/* Tabs */}
         <div className="flex border-b border-gray-200 overflow-x-auto w-full space-x-8">
           {tabs.map((tab) => (
-            <Link
+            <button
               key={tab.value}
-              href={`/legal/${tab.value}`}
+              onClick={() => handleTabClick(tab.value)}
               className={`pb-2 text-sm font-medium transition-colors duration-200 ${
-                pathname.includes(tab.value)
+                isActiveTab(tab.value)
                   ? 'text-black border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-black'
               }`}
             >
               {tab.label}
-            </Link>
+            </button>
           ))}
         </div>
       </div>
