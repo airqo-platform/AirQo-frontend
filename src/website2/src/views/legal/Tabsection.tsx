@@ -17,18 +17,18 @@ const tabs: Tab[] = [
   { label: 'Payment Terms & Refund Policy', value: 'payment-refund-policy' },
 ];
 
-interface TabSectionProps {
-  onTabChange?: (tab: string) => void;
-}
-
-const TabSection: React.FC<TabSectionProps> = ({ onTabChange }) => {
+const TabSection: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
 
+  // Function to check if the tab is active based on the current pathname.
+  const isActiveTab = (value: string) => {
+    const pathSegments = pathname.split('/');
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    return lastSegment === value;
+  };
+
   const handleTabClick = (value: string) => {
-    if (onTabChange) {
-      onTabChange(value);
-    }
     router.push(`/legal/${value}`);
   };
 
@@ -49,7 +49,7 @@ const TabSection: React.FC<TabSectionProps> = ({ onTabChange }) => {
               key={tab.value}
               onClick={() => handleTabClick(tab.value)}
               className={`pb-2 text-sm font-medium transition-colors duration-200 ${
-                pathname.includes(tab.value)
+                isActiveTab(tab.value)
                   ? 'text-black border-b-2 border-blue-600'
                   : 'text-gray-500 hover:text-black'
               }`}
