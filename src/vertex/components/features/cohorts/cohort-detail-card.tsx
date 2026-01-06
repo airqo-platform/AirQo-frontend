@@ -49,7 +49,15 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
 
           <div>
             <div className="text-xs text-muted-foreground uppercase font-medium tracking-wide mb-1">Cohort Name</div>
-            <div className="text-base font-normal break-all">{name || "-"}</div>
+            <div className="flex items-center gap-2">
+              <div className="text-base font-normal break-all">{name || "-"}</div>
+              <ReusableButton
+                variant="text"
+                onClick={onShowDetailsModal}
+                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-fit w-fit"
+                Icon={AqEdit01}
+              />
+            </div>
           </div>
 
           <div>
@@ -91,12 +99,6 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
               />
             </div>
           </div>
-        </div>
-
-        <div className="border-t border-t-gray-200 dark:border-t-gray-600 px-2 flex justify-end">
-          <ReusableButton variant="text" onClick={onShowDetailsModal} Icon={AqEdit01} className="p-1 text-xs m-1">
-            Edit details
-          </ReusableButton>
         </div>
       </Card>
 
