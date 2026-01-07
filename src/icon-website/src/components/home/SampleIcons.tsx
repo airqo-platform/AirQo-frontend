@@ -1,3 +1,4 @@
+// components/home/SampleIcons.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -11,12 +12,16 @@ export default function SampleIcons() {
 
   useEffect(() => {
     try {
+      // Fetch actual icons using the utility
       const all = AirQOIconsUtils.getAllIcons();
-      setIcons(all.slice(0, 6));
+      // Use the first 6 icons or a random sample
+      const sampleIcons = all.slice(0, 6);
+      setIcons(sampleIcons);
       setLoading(false);
     } catch (error) {
       console.error("Failed to load icons:", error);
       setLoading(false);
+      // Optionally set fallback icons if dynamic loading fails
     }
   }, []);
 
@@ -37,25 +42,24 @@ export default function SampleIcons() {
             ))
           : icons.map((icon, i) => (
               <motion.div
-                key={icon.name}
+                key={icon.name} // Use unique icon name
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.1 * i }}
                 className="flex flex-col items-center p-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
               >
                 <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-800">
+                  {/* Render the actual icon component */}
                   {icon.component && (
                     <icon.component
                       className="w-6 h-6"
                       style={{ color: modernBlue }}
-                      onError={() =>
-                        console.warn(`Failed to render icon: ${icon.name}`)
-                      }
+                      // onError is not a standard SVG prop, removing for cleaner code
                     />
                   )}
                 </div>
                 <span className="mt-2 text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
-                  {icon.name}
+                  {icon.name} {/* Display actual icon name */}
                 </span>
               </motion.div>
             ))}

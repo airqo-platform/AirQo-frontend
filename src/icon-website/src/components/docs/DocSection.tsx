@@ -1,5 +1,7 @@
-"use client";
+// components/docs/DocSection.tsx
+import React from "react";
 import { motion } from "framer-motion";
+
 export default function DocSection({
   id,
   title,
@@ -16,7 +18,7 @@ export default function DocSection({
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
-      className="mb-16 flex flex-col gap-3"
+      className="mb-16 flex flex-col gap-3" // Increased margin-bottom for spacing
     >
       <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
         {title}

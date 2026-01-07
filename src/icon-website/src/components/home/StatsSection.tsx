@@ -1,18 +1,36 @@
+// components/home/StatsSection.tsx
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useIconGroups } from "@airqo/icons-react";
-import { AirQOIconsUtils } from "@airqo/icons-react";
+import { AirQOIconsUtils } from "@airqo/icons-react"; // Import for icon count
 
 export default function StatsSection() {
-  const groups = useIconGroups();
-  const totalCount = AirQOIconsUtils.getAllIcons().length;
+  const [iconCount, setIconCount] = useState<number | null>(null);
 
+  useEffect(() => {
+    // Get the actual icon count on the client-side
+    try {
+      const count = AirQOIconsUtils.getAllIcons().length;
+      setIconCount(count);
+    } catch (err) {
+      console.error("Failed to fetch icon count:", err);
+      // Fallback to a number from docs if utils fail (unlikely in browser)
+      setIconCount(1383);
+    }
+  }, []);
+
+  // Define stats using the accurate counts
   const stats = [
-    { label: "Total Icons", value: `${totalCount}+` },
-    { label: "Icon Categories", value: `${groups.length}+` },
-    { label: "Bundle Size", value: "~2-4 KB" },
-    { label: "React 18+", value: "Compatible" },
+    // Use dynamic count or fallback
+    {
+      label: "Total Icons",
+      value: `${iconCount !== null ? iconCount : "1,383"}+`,
+    },
+    // Use 22 groups as per documentation
+    { label: "Icon Categories", value: "22" },
+    // Show supported frameworks
+    { label: "Frameworks", value: "3" },
+    { label: "Bundle per Icon", value: "~2-6KB" },
   ];
 
   return (

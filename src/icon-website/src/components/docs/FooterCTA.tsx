@@ -1,3 +1,6 @@
+// components/docs/FooterCTA.tsx
+import React from "react";
+
 const modernBlue = "#0A84FF";
 
 export default function FooterCTA() {
@@ -13,15 +16,15 @@ export default function FooterCTA() {
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <a
-            href="https://github.com/airqo-platform/airqo-libraries"
+            href="https://github.com/airqo-platform/airqo-libraries" // Update if needed
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-2 bg-white text-blue-600 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors shadow"
           >
             GitHub Repository
           </a>
           <a
-            href="https://github.com/airqo-platform/airqo-libraries/issues"
+            href="https://github.com/airqo-platform/airqo-libraries/issues" // Update if needed
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 border-2 border-white text-white px-6 py-3 rounded-lg hover:bg-white hover:text-blue-600 transition-colors"

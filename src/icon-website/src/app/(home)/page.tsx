@@ -10,18 +10,19 @@ import FooterSection from "@/components/home/FooterSection";
 const JSON_LD = {
   "@context": "https://schema.org",
   "@type": "Product",
-  name: "AirQO Icons",
-  description: "Free, beautiful, customizable React SVG icon library by AirQo.",
+  name: "AirQo Icons",
+  description:
+    "Free, beautiful, customizable multi-framework SVG icon library for React, Vue, and Flutter by AirQo.",
   brand: {
     "@type": "Brand",
-    name: "AirQO Platform",
+    name: "AirQo Platform",
     url: "https://airqo.net/",
   },
-  url: "https://airqo-icons.vercel.app",
-  image: "https://airqo-icons.vercel.app/airqo_logo.svg",
+  url: "https://aero-glyphs.vercel.app",
+  image: "https://aero-glyphs.vercel.app/airqo_logo.svg",
   author: {
     "@type": "Organization",
-    name: "AirQO Platform",
+    name: "AirQo Platform",
     url: "https://airqo.net/",
   },
 };
