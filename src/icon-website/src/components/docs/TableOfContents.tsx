@@ -4,6 +4,7 @@ import clsx from "clsx";
 
 export default function TableOfContents() {
   const [activeId, setActiveId] = useState<string>("");
+  const [search, setSearch] = useState("");
 
   const sections = [
     { id: "installation", title: "Installation" },
@@ -17,6 +18,10 @@ export default function TableOfContents() {
     { id: "examples", title: "Examples" },
     { id: "flutter", title: "Flutter Package" },
   ];
+
+  const filteredSections = sections.filter((s) =>
+    s.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -39,12 +44,19 @@ export default function TableOfContents() {
   }, []);
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-h-[calc(100vh-8rem)] overflow-y-auto">
+    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-h-[calc(100vh-5rem)] overflow-y-auto">
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
         Table of Contents
       </h3>
+      <input
+        type="text"
+        placeholder="Search sections..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="w-full mb-4 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      />
       <nav className="space-y-1">
-        {sections.map((s) => (
+        {filteredSections.map((s) => (
           <a
             key={s.id}
             href={`#${s.id}`}

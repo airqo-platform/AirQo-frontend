@@ -20,9 +20,6 @@ export default function DocsPage() {
       <DocHeader />
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
         <div className="lg:flex lg:gap-12">
-          <aside className="hidden lg:block lg:w-1/4 sticky top-24 self-start">
-            <TableOfContents />
-          </aside>
           <main className="lg:w-3/4 prose prose-lg dark:prose-invert max-w-none">
             <InstallationSection />
             <QuickStartSection />
@@ -36,6 +33,11 @@ export default function DocsPage() {
             <FlutterSection />
             <FooterCTA />
           </main>
+          <aside className="hidden lg:block lg:w-1/4">
+            <div className="sticky top-16">
+              <TableOfContents />
+            </div>
+          </aside>
         </div>
       </div>
     </div>
