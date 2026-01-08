@@ -778,7 +778,7 @@ jobs:
             --cpu=1000m \
             --memory=256Mi \
             --update-secrets=/etc/env/.env=sta-env-packages:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; pnpm run start" \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; node server.js" \
             --allow-unauthenticated
 
       - name: Get preview service url
