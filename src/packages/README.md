@@ -1,6 +1,6 @@
 # AirQo Icons Website
 
-> Beautiful multi-framework icon library website showcasing React, Vue, and Flutter packages
+> Beautiful multi-framework icon library website showcasing React, Vue, and Flutter packages.
 
 A comprehensive documentation and showcase website for the AirQo Icons library, featuring 1,383+ icons across 22 categories with support for React, Vue 3, and Flutter frameworks.
 
