@@ -1,47 +1,64 @@
-# Use official Node.js image as the base
+# ================================
+# Ultra-Optimized Multi-Stage Dockerfile for Next.js
+# ================================
+
+# ================================
+# Builder Stage - Build everything here
+# ================================
 FROM node:20-alpine AS builder
+
+# Enable corepack for pnpm
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Set working directory
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm
-
-# Copy package and lock files
+# Copy package files
 COPY package.json pnpm-lock.yaml ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
-# Build the Next.js app
+# Build the application
 RUN pnpm run build
 
-# Production image
-FROM node:20-alpine AS runner
+# ================================
+# Production Stage - Ultra minimal
+# ================================
+FROM node:20-alpine AS production
 
+# Install only curl for health checks
+RUN apk add --no-cache curl
+
+# Create non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Set working directory
 WORKDIR /app
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# Copy the standalone build (includes only production node_modules)
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
-# Copy only necessary files from builder
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/pnpm-lock.yaml ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/next.config.ts ./next.config.ts
-COPY --from=builder /app/next-env.d.ts ./next-env.d.ts
-COPY --from=builder /app/tsconfig.json ./tsconfig.json
+# Switch to non-root user
+USER nextjs
 
-# Set environment variables
+# Environment variables
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Expose port 3000
+# Expose port
 EXPOSE 3000
 
-# Start the Next.js app
-CMD ["pnpm", "start"]
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start the application
+CMD ["node", "server.js"]
