@@ -14,7 +14,7 @@ service:
 ingress:
   enabled: false
 nodeSelector:
-  role: high-mem
+  role: moderate-usage
 tolerations: {}
 resources:
   requests:
