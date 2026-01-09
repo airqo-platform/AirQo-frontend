@@ -1,4 +1,4 @@
-# AirQo Icons Website
+# AirQo Icons Website.
 
 > Beautiful multi-framework icon library website showcasing React, Vue, and Flutter packages.
 

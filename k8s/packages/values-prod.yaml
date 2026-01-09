@@ -1,7 +1,7 @@
 replicaCount: 2
 image:
   repository: eu.gcr.io/airqo-250220/airqo-packages
-  tag: packages
+  tag: latest
   pullPolicy: Always
 imagePullSecrets: []
 nameOverride: ''
