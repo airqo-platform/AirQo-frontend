@@ -32,6 +32,8 @@ class GridsService extends BaseApiService {
     } = {},
     options: ServiceOptions = {},
   ): Promise<GridsSummaryResponse> {
+    // Use destructuring with defaults to prevent undefined values from overriding defaults
+    // This ensures that if a caller passes { limit: undefined }, it doesn't wipe out the default limit of 30
     const {
       tenant = 'airqo',
       detailLevel = 'summary',
