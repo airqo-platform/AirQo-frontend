@@ -74,7 +74,7 @@ export default function UsersPage() {
     try {
       setLoading(true)
       setError(null)
-      
+
       let token
       try {
         token = getAuthToken()
@@ -83,7 +83,7 @@ export default function UsersPage() {
         setLoading(false)
         return
       }
-      
+
       // Try different authorization header formats
       const headers = {
         'Authorization': `Bearer ${token}`
@@ -91,25 +91,28 @@ export default function UsersPage() {
         // Uncomment the line below if the API expects a different format
         // 'Authorization': `Token ${token}`
       }
-      
-      console.log("Fetching users with headers:", headers)
-      
+
+      // Remove in production or use a debug utility
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Fetching users...")
+      }
+
       const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, { headers })
 
       if (response.status === 401 || response.status === 403) {
         throw new Error("Could not validate credentials. Please log in again.")
       }
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
         console.error("API Error:", response.status, errorData)
         throw new Error(errorData.detail || `Failed to fetch users: ${response.status}`)
       }
-      
+
       const data = await response.json()
       console.log("Fetched users data:", data)
-      
+
       // Handle different response formats
       if (Array.isArray(data)) {
         setUsers(data)
@@ -156,7 +159,7 @@ export default function UsersPage() {
         })
         return
       }
-      
+
       const apiPath = config.isLocalhost ? '/users/' : `${config.apiPrefix || '/api/v1'}/beacon/users/`
       const response = await fetch(`${config.apiUrl}${apiPath}`, {
         method: 'POST',
@@ -219,11 +222,11 @@ export default function UsersPage() {
     })
   }
 
-  useEffect(() => { 
-    fetchUsers() 
+  useEffect(() => {
+    fetchUsers()
   }, [])
 
-  const filteredUsers = users.filter(user => 
+  const filteredUsers = users.filter(user =>
     `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
@@ -284,12 +287,12 @@ export default function UsersPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              
+
               <Button onClick={fetchUsers} variant="outline" className="mr-2">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Refresh
               </Button>
-              
+
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <DialogTrigger asChild>
                   <Button>
@@ -301,58 +304,58 @@ export default function UsersPage() {
                   <DialogHeader>
                     <DialogTitle>Add New User</DialogTitle>
                   </DialogHeader>
-                  
+
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>First Name</Label>
-                        <Input 
+                        <Input
                           value={newUser.first_name}
-                          onChange={(e) => setNewUser({...newUser, first_name: e.target.value})}
+                          onChange={(e) => setNewUser({ ...newUser, first_name: e.target.value })}
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Last Name</Label>
-                        <Input 
+                        <Input
                           value={newUser.last_name}
-                          onChange={(e) => setNewUser({...newUser, last_name: e.target.value})}
+                          onChange={(e) => setNewUser({ ...newUser, last_name: e.target.value })}
                         />
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label>Email</Label>
-                      <Input 
+                      <Input
                         type="email"
                         value={newUser.email}
-                        onChange={(e) => setNewUser({...newUser, email: e.target.value})}
+                        onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
                       />
                     </div>
 
                     <div className="space-y-2">
                       <Label>Phone Number</Label>
-                      <Input 
+                      <Input
                         type="tel"
                         value={newUser.phone}
-                        onChange={(e) => setNewUser({...newUser, phone: e.target.value})}
+                        onChange={(e) => setNewUser({ ...newUser, phone: e.target.value })}
                         placeholder="Optional"
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label>Password</Label>
-                      <Input 
+                      <Input
                         type="password"
                         value={newUser.password}
-                        onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label>Role</Label>
-                      <Select 
+                      <Select
                         value={newUser.role}
-                        onValueChange={(value) => setNewUser({...newUser, role: value})}
+                        onValueChange={(value) => setNewUser({ ...newUser, role: value })}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select role" />
@@ -367,18 +370,18 @@ export default function UsersPage() {
                       </Select>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end gap-2">
-                    <Button 
+                    <Button
                       variant="outline"
                       onClick={handleCancel}
                     >
                       Cancel
                     </Button>
-                    <Button 
+                    <Button
                       onClick={handleAddUser}
-                      disabled={!newUser.first_name || !newUser.last_name || 
-                                !newUser.email || !newUser.password || !newUser.role}
+                      disabled={!newUser.first_name || !newUser.last_name ||
+                        !newUser.email || !newUser.password || !newUser.role}
                     >
                       Add User
                     </Button>
@@ -388,7 +391,7 @@ export default function UsersPage() {
             </div>
           </CardTitle>
         </CardHeader>
-        
+
         <CardContent>
           {error && !error.includes("credentials") ? (
             <div className="p-4 mb-4 text-red-700 bg-red-100 rounded-md">
@@ -396,7 +399,7 @@ export default function UsersPage() {
               <p>{error}</p>
             </div>
           ) : null}
-          
+
           {users.length === 0 && !loading && !error ? (
             <div className="py-6 text-center text-gray-500">
               <p>No users found. Add users to populate this table.</p>
@@ -412,7 +415,7 @@ export default function UsersPage() {
                   <TableHead>Joined</TableHead>
                 </TableRow>
               </TableHeader>
-              
+
               <TableBody>
                 {filteredUsers.map((user) => (
                   <TableRow key={user.id}>

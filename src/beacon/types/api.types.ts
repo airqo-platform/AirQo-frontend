@@ -9,6 +9,15 @@ export interface DeviceStatsSummary {
   offline: number
 }
 
+export interface DeviceSummaryResponse {
+  total_devices: number
+  active_airqlouds: number
+  tracked_devices: number
+  deployed_devices: number
+  tracked_online: number
+  tracked_offline: number
+}
+
 export interface DeviceDeployment {
   deployed: number
   not_deployed: number
@@ -260,14 +269,14 @@ export interface UIDevice {
   current_firmware?: string
   target_firmware?: string
   firmware_download_state?: string
-  
+
   // Latest reading data
   pm2_5?: number | null
   pm10?: number | null
   temperature?: number | null
   humidity?: number | null
   reading_timestamp?: string
-  
+
   // Nested structure (for new code)
   device: {
     id: string
@@ -311,3 +320,88 @@ export interface PaginatedUIDeviceResponse {
 // Transform functions types
 export type TransformDeviceStats = (stats: DeviceStatsResponse) => UIDeviceCounts
 export type TransformDeviceList = (devices: Device[]) => UIDevice[]
+
+// Maintenance API Types
+
+export interface MaintenanceFilter {
+  min: number
+  max: number
+}
+
+export interface MaintenanceFilters {
+  uptime?: MaintenanceFilter
+  error_margin?: MaintenanceFilter
+  country?: string
+  search?: string
+}
+
+export interface MaintenanceSort {
+  field: string
+  order: 'asc' | 'desc'
+}
+
+export interface MaintenanceStatsBody {
+  period_days: number
+  filters: MaintenanceFilters
+  sort?: MaintenanceSort
+  page: number
+  page_size: number
+}
+
+export interface AirQloudMaintenanceStats {
+  id: string
+  name: string
+  country: string | null
+  device_count: number
+  avg_uptime: number
+  avg_error_margin: number
+}
+
+export interface AirQloudStatsResponse {
+  total: number
+  page: number
+  page_size: number
+  items: AirQloudMaintenanceStats[]
+}
+
+export interface DeviceMaintenanceStats {
+  device_id: string
+  device_name: string
+  airqlouds: string[]
+  avg_uptime: number
+  avg_error_margin: number
+  avg_battery: number
+}
+
+export interface DeviceMaintenanceStatsResponse {
+  total: number
+  page: number
+  page_size: number
+  items: DeviceMaintenanceStats[]
+}
+
+export interface MaintenanceMapItem {
+  device_id: string
+  device_name: string
+  latitude: number
+  longitude: number
+  last_active: string | null
+  avg_uptime: number
+  avg_error_margin: number
+  airqlouds: string[]
+  site: {
+    _id: string
+    name: string
+    district: string | null
+    country: string
+    latitude: number
+    longitude: number
+  }
+}
+
+export type MaintenanceMapResponse = MaintenanceMapItem[]
+
+export interface MaintenanceAnalyticsResponse {
+  // Define properties based on usage or allow flexible structure for now if unknown
+  [key: string]: any
+}

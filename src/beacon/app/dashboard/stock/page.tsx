@@ -2,8 +2,8 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { 
-  Search, 
+import {
+  Search,
   PlusCircle,
   Edit,
   Package,
@@ -12,19 +12,23 @@ import {
   Minus,
   Plus,
   ArrowDown,
-  ArrowUp
+  ArrowUp,
+  FileDown
 } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogFooter 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
 } from '@/components/ui/dialog';
-import { 
+import {
   Table,
   TableBody,
   TableCell,
@@ -32,13 +36,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -61,6 +71,7 @@ const StockPage = () => {
   const [updateItemDialog, setUpdateItemDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Form states for new item
   const [newItemName, setNewItemName] = useState("");
@@ -105,7 +116,7 @@ const StockPage = () => {
 
   // Update item mutation
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string, data: ItemsStockUpdate }) => 
+    mutationFn: ({ id, data }: { id: string, data: ItemsStockUpdate }) =>
       stockService.updateItem(id, data),
     onSuccess: () => {
       toast({
@@ -161,16 +172,16 @@ const StockPage = () => {
     }
 
     setIsCreating(true);
-    
+
     try {
       const itemData: ItemsStockCreate = {
         name: newItemName.trim(),
         stock: newStock,
         unit: newUnit.trim(),
       };
-      
+
       await createItemMutation.mutateAsync(itemData);
-      
+
     } catch (err: any) {
       // Error is handled by the mutation
     } finally {
@@ -201,7 +212,7 @@ const StockPage = () => {
     }
 
     setIsUpdating(true);
-    
+
     try {
       let finalStock: number;
 
@@ -219,12 +230,12 @@ const StockPage = () => {
       const updateData: ItemsStockUpdate = {
         stock: finalStock,
       };
-      
-      await updateItemMutation.mutateAsync({ 
-        id: selectedItem.id, 
-        data: updateData 
+
+      await updateItemMutation.mutateAsync({
+        id: selectedItem.id,
+        data: updateData
       });
-      
+
     } catch (err: any) {
       // Error is handled by the mutation
     } finally {
@@ -242,9 +253,9 @@ const StockPage = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -286,6 +297,118 @@ const StockPage = () => {
     );
   };
 
+  const getAllItemsForExport = async () => {
+    try {
+      // Fetch a large number of items to ensure we get everything
+      // In a production environment with thousands of items, we should implement pagination looping
+      const response = await stockService.getAllItems({ page: 1, page_size: 1000 }) as ItemsStockResponse;
+      return response.items;
+    } catch (error) {
+      console.error("Error fetching items for export:", error);
+      toast({
+        title: "Export failed",
+        description: "Could not fetch data for export",
+        variant: "destructive",
+      });
+      return [];
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      const items = await getAllItemsForExport();
+      if (items.length === 0) return;
+
+      const exportData = items.map(item => ({
+        'Name': item.name,
+        'Unit': item.unit,
+        'Current Stock': item.stock,
+        'Updated Date': item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'N/A',
+        'Last Stock In Quantity': item.last_stock_addition || 0,
+        'Last Stock In Date': item.last_stocked_at ? new Date(item.last_stocked_at).toLocaleDateString() : 'N/A',
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Inventory");
+      XLSX.writeFile(workbook, `inventory_export_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+      toast({
+        title: "Export Successful",
+        description: "Inventory data exported to Excel",
+      });
+    } catch (error) {
+      console.error("Excel export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "An error occurred while exporting to Excel",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      const items = await getAllItemsForExport();
+      if (items.length === 0) return;
+
+      const doc = new jsPDF();
+
+      // Add title
+      doc.setFontSize(18);
+      doc.text("Inventory Report", 14, 22);
+
+      doc.setFontSize(11);
+      doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 30);
+
+      const tableColumn = [
+        "Name",
+        "Unit",
+        "Current Stock",
+        "Updated",
+        "Last Stock In (Qty)",
+        "Last Stock In (Date)"
+      ];
+
+      const tableRows = items.map(item => [
+        item.name,
+        item.unit,
+        item.stock.toString(),
+        item.updated_at ? new Date(item.updated_at).toLocaleDateString() : 'N/A',
+        (item.last_stock_addition || 0).toString(),
+        item.last_stocked_at ? new Date(item.last_stocked_at).toLocaleDateString() : 'N/A'
+      ]);
+
+      autoTable(doc, {
+        head: [tableColumn],
+        body: tableRows,
+        startY: 40,
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [66, 139, 202] }
+      });
+
+      doc.save(`inventory_report_${new Date().toISOString().split('T')[0]}.pdf`);
+
+      toast({
+        title: "Export Successful",
+        description: "Inventory data exported to PDF",
+      });
+    } catch (error) {
+      console.error("PDF export error:", error);
+      toast({
+        title: "Export Failed",
+        description: "An error occurred while exporting to PDF",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -294,9 +417,26 @@ const StockPage = () => {
           <h1 className="text-2xl font-bold text-gray-800">Stock Management</h1>
           <p className="text-gray-600 mt-1">Manage your inventory and track stock levels</p>
         </div>
-        <div className="mt-4 sm:mt-0">
+        <div className="flex items-center gap-2 mt-4 sm:mt-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="gap-2" disabled={isExporting}>
+                <FileDown className="h-4 w-4" />
+                {isExporting ? "Exporting..." : "Export"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleExportExcel}>
+                Export to Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportPDF}>
+                Export to PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           <Dialog open={newItemDialog} onOpenChange={setNewItemDialog}>
-            <Button 
+            <Button
               onClick={() => setNewItemDialog(true)}
               className="bg-blue-600 hover:bg-blue-700"
             >
@@ -520,13 +660,12 @@ const StockPage = () => {
                     setStockOperation('in');
                     setOperationType('added');
                   }}
-                  className={`flex-1 ${
-                    stockOperation === 'in' && operationType !== 'current'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : stockOperation === 'in'
+                  className={`flex-1 ${stockOperation === 'in' && operationType !== 'current'
+                    ? 'bg-green-600 hover:bg-green-700'
+                    : stockOperation === 'in'
                       ? 'bg-gray-600 hover:bg-gray-700'
                       : ''
-                  }`}
+                    }`}
                 >
                   <ArrowUp className="h-4 w-4 mr-2" />
                   Stock In
@@ -538,13 +677,12 @@ const StockPage = () => {
                     setStockOperation('out');
                     setOperationType('removed');
                   }}
-                  className={`flex-1 ${
-                    stockOperation === 'out' && operationType !== 'current'
-                      ? 'bg-red-600 hover:bg-red-700'
-                      : stockOperation === 'out'
+                  className={`flex-1 ${stockOperation === 'out' && operationType !== 'current'
+                    ? 'bg-red-600 hover:bg-red-700'
+                    : stockOperation === 'out'
                       ? 'bg-gray-600 hover:bg-gray-700'
                       : ''
-                  }`}
+                    }`}
                 >
                   <ArrowDown className="h-4 w-4 mr-2" />
                   Stock Out
@@ -573,11 +711,11 @@ const StockPage = () => {
 
               <div>
                 <Label htmlFor="update-stock-value">
-                  {operationType === 'current' 
-                    ? 'New Stock Level' 
+                  {operationType === 'current'
+                    ? 'New Stock Level'
                     : operationType === 'added'
-                    ? 'Quantity to Add'
-                    : 'Quantity to Remove'}
+                      ? 'Quantity to Add'
+                      : 'Quantity to Remove'}
                 </Label>
                 <Input
                   id="update-stock-value"
@@ -589,8 +727,8 @@ const StockPage = () => {
                     operationType === 'current'
                       ? 'Enter new stock level'
                       : operationType === 'added'
-                      ? 'Enter quantity to add'
-                      : 'Enter quantity to remove'
+                        ? 'Enter quantity to add'
+                        : 'Enter quantity to remove'
                   }
                 />
                 {operationType !== 'current' && (
