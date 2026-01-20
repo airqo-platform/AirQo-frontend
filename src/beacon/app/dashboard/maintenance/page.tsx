@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useMemo } from "react"
 import { BarChart3, Table as TableIcon, Map as MapIcon, AlertTriangle, Battery, WifiOff, CheckCircle2, Search, Globe } from "lucide-react"
 import { getAirQloudStats, getDeviceStatsMaintenance, getMaintenanceMapData } from "@/services/device-api.service"
-import { AirQloudStatsResponse, DeviceMaintenanceStatsResponse, MaintenanceMapResponse, MaintenanceMapItem } from "@/types/api.types"
+import { AirQloudStatsResponse, DeviceMaintenanceStatsResponse, MaintenanceMapResponse, MaintenanceMapItem, AirQloudMaintenanceStats } from "@/types/api.types"
 import { calculateNearestNeighborRoute, Coordinates, RoutePoint } from "@/utils/routing-utils"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowRight } from "lucide-react"
@@ -124,7 +124,7 @@ export default function MaintenancePage() {
 
 
     // Fetch Table Data (AirQlouds)
-    const fetchAirQloudTable = async () => {
+    const fetchAirQloudTable = React.useCallback(async () => {
         setLoadingAirQlouds(true)
         try {
             const response = await getAirQloudStats({
@@ -138,16 +138,19 @@ export default function MaintenancePage() {
                 page: airQloudPage,
                 page_size: airQloudPageSize
             })
-            setAirQloudStats(response)
+            // Only update if component is mounted (handled by usage in effect or ref check if needed, 
+            // but here we return the promise and handle cancellation in useEffect)
+            return response
         } catch (error) {
             console.error("Failed to fetch AirQloud table stats", error)
+            return null
         } finally {
             setLoadingAirQlouds(false)
         }
-    }
+    }, [tableAirQloudFilters, airQloudSortField, airQloudSortOrder, airQloudPage, airQloudPageSize])
 
     // Fetch Table Data (Devices)
-    const fetchDeviceTable = async () => {
+    const fetchDeviceTable = React.useCallback(async () => {
         setLoadingDevices(true)
         try {
             const response = await getDeviceStatsMaintenance({
@@ -162,26 +165,28 @@ export default function MaintenancePage() {
                 page: devicePage,
                 page_size: devicePageSize
             })
-            setDeviceStats(response)
+            return response
         } catch (error) {
             console.error("Failed to fetch Device table stats", error)
+            return null
         } finally {
             setLoadingDevices(false)
         }
-    }
+    }, [tableDeviceFilters, deviceSortField, deviceSortOrder, devicePage, devicePageSize])
 
     // Fetch Map Data
-    const fetchMapData = async () => {
+    const fetchMapData = React.useCallback(async () => {
         setLoadingMap(true)
         try {
             const response = await getMaintenanceMapData(14)
-            setMapData(response)
+            return response
         } catch (error) {
             console.error("Failed to fetch Map data", error)
+            return null
         } finally {
             setLoadingMap(false)
         }
-    }
+    }, [])
 
     // --- ROUTING LOGIC ---
     const calculateRoute = () => {
@@ -236,25 +241,43 @@ export default function MaintenancePage() {
 
     // Fetch tables only when in table view and relevant state changes
     useEffect(() => {
+        let cancelled = false;
         if (view === 'tables') {
-            fetchAirQloudTable()
+            fetchAirQloudTable().then((res) => {
+                if (!cancelled && res) setAirQloudStats(res)
+            })
         }
-    }, [view, tableAirQloudFilters, airQloudPage, airQloudSortField, airQloudSortOrder])
+        return () => { cancelled = true; }
+    }, [view, fetchAirQloudTable])
 
     useEffect(() => {
+        let cancelled = false;
         if (view === 'tables') {
-            fetchDeviceTable()
+            fetchDeviceTable().then((res) => {
+                if (!cancelled && res) setDeviceStats(res)
+            })
         }
-    }, [view, tableDeviceFilters, devicePage, deviceSortField, deviceSortOrder])
+        return () => { cancelled = true; }
+    }, [view, fetchDeviceTable])
 
     // Fetch map data when entering map view
     useEffect(() => {
+        let cancelled = false;
         if (view === 'map') {
-            if (!mapData) fetchMapData();
+            if (!mapData) {
+                fetchMapData().then((res) => {
+                    if (!cancelled && res) setMapData(res)
+                })
+            }
             // Also fetch AirQloud stats for the sidebar if not present
-            if (!airQloudStats) fetchAirQloudTable();
+            if (!airQloudStats) {
+                fetchAirQloudTable().then((res) => {
+                    if (!cancelled && res) setAirQloudStats(res)
+                })
+            }
         }
-    }, [view])
+        return () => { cancelled = true; }
+    }, [view, mapData, airQloudStats, fetchMapData, fetchAirQloudTable])
 
     // Handlers for AirQloud Table
     const handleAirQloudSort = (field: string) => {
@@ -616,7 +639,7 @@ export default function MaintenancePage() {
                                     >
                                         <div className="font-semibold text-sm">All AirQlouds</div>
                                     </button>
-                                    {airQloudStats?.items?.map((aq: any) => (
+                                    {airQloudStats?.items?.map((aq: AirQloudMaintenanceStats) => (
                                         <button
                                             key={aq.id || aq.name}
                                             onClick={() => {

@@ -100,10 +100,10 @@ export default function AirQloudMaintenanceTable({
                                     {item.device_count}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {((item.avg_uptime / 24) * 100).toFixed(1)}%
+                                    {item.avg_uptime != null ? ((item.avg_uptime / 24) * 100).toFixed(1) : '—'}%
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {item.avg_error_margin.toFixed(2)}%
+                                    {item.avg_error_margin != null ? item.avg_error_margin.toFixed(2) : '—'}%
                                 </td>
                             </tr>
                         ))}

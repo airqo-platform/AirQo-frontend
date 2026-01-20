@@ -211,6 +211,7 @@ class AirQloudService {
     if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
     if (params.country) queryParams.append('country', params.country)
     if (params.search) queryParams.append('search', params.search)
+    if (params.is_active !== undefined) queryParams.append('is_active', params.is_active.toString())
 
     const endpoint = this.getEndpoint('/airqlouds')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`

@@ -60,7 +60,7 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance): ProcessedAirQlo
 
   // Calculate uptime percentage from freq (max 24) - limit to last 14 days
   const uptimeHistory = timestamps.map((timestamp, index) => ({
-    value: (freq[index] / 24) * 100,
+    value: freq[index] !== undefined ? (freq[index] / 24) * 100 : 0,
     timestamp
   }))
     .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
@@ -300,6 +300,20 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
   }
 
   const handleExportCSV = async () => {
+    // Helper to escape CSV values
+    const escapeCSVValue = (value: string | number): string => {
+      const str = String(value)
+      // Escape values that could be interpreted as formulas
+      if (/^[=+\-@]/.test(str)) {
+        return `"'${str.replace(/"/g, '""')}"`
+      }
+      // Wrap in quotes if contains comma, quote, or newline
+      if (/[",\n\r]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
+
     try {
       setIsExporting(true)
 
@@ -342,11 +356,11 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
 
       const headers = ["Name", "Location", "Uptime (%)", "Devices", "Error Margin (%)"]
       const rows = dataToExport.map(aq => [
-        aq.name,
-        aq.location || "",
-        aq.uptime !== null ? aq.uptime.toFixed(2) : "N/A",
-        aq.numberOfDevices,
-        aq.errorMargin !== null ? aq.errorMargin.toFixed(2) : "N/A",
+        escapeCSVValue(aq.name),
+        escapeCSVValue(aq.location || ""),
+        escapeCSVValue(aq.uptime !== null ? aq.uptime.toFixed(2) : "N/A"),
+        escapeCSVValue(aq.numberOfDevices),
+        escapeCSVValue(aq.errorMargin !== null ? aq.errorMargin.toFixed(2) : "N/A"),
       ])
 
       const csvContent = [
@@ -360,6 +374,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       a.href = url
       a.download = `airqlouds-analytics-${new Date().toISOString().split("T")[0]}.csv`
       a.click()
+      window.URL.revokeObjectURL(url) // Clean up to prevent memory leak
     } catch (err) {
       console.error("Failed to export CSV:", err)
     } finally {

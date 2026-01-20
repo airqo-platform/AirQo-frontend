@@ -131,7 +131,10 @@ export default function MaintenanceMap({
             })
         }
         return () => {
-            // cleanup if needed
+            if (map.current) {
+                map.current.remove();
+                map.current = null;
+            }
         }
     }, [])
 
@@ -145,7 +148,7 @@ export default function MaintenanceMap({
             if (markersRef.current.length > 0 && !isRouteMode && !routePath) {
                 // When in normal mode, fit to all devices
                 const bounds = L.latLngBounds(data
-                    .filter(d => d.latitude && d.longitude)
+                    .filter(d => d.latitude != null && d.longitude != null)
                     .map(d => [d.latitude, d.longitude] as [number, number])
                 );
                 if (bounds.isValid()) {
@@ -179,7 +182,7 @@ export default function MaintenanceMap({
         const bounds = L.latLngBounds([]);
 
         data.forEach(device => {
-            if (!device.latitude || !device.longitude) return;
+            if (device.latitude == null || device.longitude == null) return;
 
             const isSelected = localSelectedIds.includes(device.device_id);
 
@@ -326,7 +329,7 @@ export default function MaintenanceMap({
             if (homeLocation) latlngs.push([homeLocation.latitude, homeLocation.longitude]);
 
             routePath.forEach(d => {
-                if (d.latitude && d.longitude) latlngs.push([d.latitude, d.longitude]);
+                if (d.latitude != null && d.longitude != null) latlngs.push([d.latitude, d.longitude]);
             });
 
             if (homeLocation) latlngs.push([homeLocation.latitude, homeLocation.longitude]);

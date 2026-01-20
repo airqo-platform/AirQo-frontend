@@ -68,7 +68,7 @@ export default function DeviceMaintenanceTable({
         return sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-blue-600" /> : <ChevronDown className="w-4 h-4 text-blue-600" />
     }
 
-    const totalPages = Math.ceil(total / pageSize)
+    const totalPages = pageSize > 0 ? Math.ceil(total / pageSize) : 1
 
     return (
         <div className="flex flex-col">
@@ -189,7 +189,7 @@ export default function DeviceMaintenanceTable({
                 <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                     <div>
                         <p className="text-sm text-gray-700">
-                            Showing <span className="font-medium">{(page - 1) * pageSize + 1}</span> to <span className="font-medium">{Math.min(page * pageSize, total)}</span> of <span className="font-medium">{total}</span> results
+                            Showing <span className="font-medium">{total > 0 ? (page - 1) * pageSize + 1 : 0}</span> to <span className="font-medium">{Math.min(page * pageSize, total)}</span> of <span className="font-medium">{total}</span> results
                         </p>
                     </div>
                     <div>

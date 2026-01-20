@@ -24,23 +24,7 @@ import {
   MaintenanceMapResponse
 } from '@/types/api.types'
 
-const API_BASE_URL = "http://localhost:8000"
 
-export const getMaintenanceAnalytics = async (period_days: number = 14): Promise<MaintenanceAnalyticsResponse> => {
-  const response = await fetch(`${API_BASE_URL}/maintenance/analytics?days=${period_days}`)
-  if (!response.ok) {
-    throw new Error("Failed to fetch maintenance analytics")
-  }
-  return response.json()
-}
-
-export const getMaintenanceMapData = async (period_days: number = 14): Promise<MaintenanceMapResponse> => {
-  const response = await fetch(`${API_BASE_URL}/maintenance/map-view?days=${period_days}`)
-  if (!response.ok) {
-    throw new Error("Failed to fetch maintenance map data")
-  }
-  return response.json()
-}
 
 class ApiService {
   private readonly baseUrl: string
@@ -616,6 +600,24 @@ class ApiService {
       body: JSON.stringify(body),
     })
   }
+
+  async getMaintenanceAnalytics(period_days: number = 14): Promise<MaintenanceAnalyticsResponse> {
+    const endpoint = config.isLocalhost
+      ? `/maintenance/analytics?days=${period_days}`
+      : `${this.apiPrefix}/beacon/maintenance/analytics?days=${period_days}`
+    const url = `${this.baseUrl}${endpoint}`
+
+    return this.fetchWithRetry<MaintenanceAnalyticsResponse>(url)
+  }
+
+  async getMaintenanceMapData(period_days: number = 14): Promise<MaintenanceMapResponse> {
+    const endpoint = config.isLocalhost
+      ? `/maintenance/map-view?days=${period_days}`
+      : `${this.apiPrefix}/beacon/maintenance/map-view?days=${period_days}`
+    const url = `${this.baseUrl}${endpoint}`
+
+    return this.fetchWithRetry<MaintenanceMapResponse>(url)
+  }
 }
 
 // Export singleton instance
@@ -655,3 +657,5 @@ export const updateDeviceConfigs = (data: { device_ids: string[]; config1?: stri
 export const getDevicePerformanceData = (data: { start: string; end: string; ids: string[] }) => deviceApiService.getDevicePerformanceData(data)
 export const getAirQloudStats = (body: MaintenanceStatsBody) => deviceApiService.getAirQloudStats(body)
 export const getDeviceStatsMaintenance = (body: MaintenanceStatsBody) => deviceApiService.getDeviceStatsMaintenance(body)
+export const getMaintenanceAnalytics = (period_days: number = 14) => deviceApiService.getMaintenanceAnalytics(period_days)
+export const getMaintenanceMapData = (period_days: number = 14) => deviceApiService.getMaintenanceMapData(period_days)

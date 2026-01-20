@@ -38,7 +38,7 @@ export default function MaintenanceBarChart({
 }: MaintenanceBarChartProps) {
     if (!data || data.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center p-6 bg-white rounded-lg border border-gray-200 shadow-sm h-full min-h-[300px]">
+            <div className="flex flex-col items-center justify-center p-6 bg-white rounded-lg border border-gray-200 shadow-sm h-full" style={{ minHeight: height }}>
                 <h3 className="text-lg font-medium text-gray-700 mb-4">{title}</h3>
                 <p className="text-gray-500">No data available</p>
             </div>

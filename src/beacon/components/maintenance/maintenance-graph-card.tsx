@@ -70,8 +70,8 @@ export default function MaintenanceGraphCard({
                 response = await getDeviceStatsMaintenance(body)
             }
 
-            setData(response.items)
-            setTotal(response.total)
+            setData(response?.items ?? [])
+            setTotal(response?.total ?? 0)
         } catch (error) {
             console.error(`Failed to fetch ${title} data`, error)
         } finally {
@@ -82,7 +82,7 @@ export default function MaintenanceGraphCard({
     // Effect to trigger fetch on any filter change
     useEffect(() => {
         fetchData()
-    }, [page, period, min, max, sortOrder, globalFilters])
+    }, [page, period, min, max, sortOrder, globalFilters, type, metric])
 
     const handlePrevPage = () => {
         if (page > 1) setPage(page - 1)
@@ -110,7 +110,7 @@ export default function MaintenanceGraphCard({
     // Transform data for display (Uptime: 0-24h -> 0-100%)
     const chartData = data.map(item => ({
         ...item,
-        avg_uptime: metric === 'uptime' ? Number(((item.avg_uptime / 24) * 100).toFixed(1)) : item.avg_uptime
+        avg_uptime: metric === 'uptime' ? Number((((item.avg_uptime ?? 0) / 24) * 100).toFixed(1)) : item.avg_uptime
     }))
 
     // Color logic matching Analytics Table
