@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import React from 'react';
 
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
+import GridAirQualityMonitor from '@/components/sections/solutions/GridAirQualityMonitor';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
@@ -142,6 +143,19 @@ const AfricanCityPage = () => {
       </motion.section>
 
       <AfricanCities />
+
+      <Divider />
+
+      {/* Grid Air Quality Monitor Section */}
+      <motion.section
+        className={`${mainConfig.containerClass} px-4`}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={containerVariants}
+      >
+        <GridAirQualityMonitor />
+      </motion.section>
 
       <Divider />
 

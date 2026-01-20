@@ -75,3 +75,97 @@ export interface GridSummary {
   adminLevel: string;
   network: string;
 }
+
+/**
+ * Types for Grid Representative Readings
+ */
+
+export interface AQIRange {
+  min: number;
+  max: number | null;
+}
+
+export interface AQIRanges {
+  good: AQIRange;
+  moderate: AQIRange;
+  u4sg: AQIRange;
+  unhealthy: AQIRange;
+  very_unhealthy: AQIRange;
+  hazardous: AQIRange;
+}
+
+export interface PollutantValue {
+  value: number | null;
+}
+
+export interface WeeklyAverages {
+  currentWeek: number;
+  previousWeek: number;
+}
+
+export interface Averages {
+  dailyAverage: number;
+  percentageDifference: number;
+  weeklyAverages: WeeklyAverages;
+}
+
+export interface HealthTip {
+  title: string;
+  description: string;
+  image?: string;
+  tag_line: string;
+}
+
+export interface SiteCategory {
+  tags: string[];
+  category: string;
+}
+
+export interface SiteDetails {
+  _id: string;
+  formatted_name: string;
+  location_name: string;
+  search_name: string;
+  street?: string;
+  town?: string;
+  city: string;
+  region: string;
+  country: string;
+  name: string;
+  approximate_latitude: number;
+  approximate_longitude: number;
+  bearing_in_radians?: number;
+  data_provider: string;
+  description: string;
+  site_category: SiteCategory;
+}
+
+export interface RepresentativeReading {
+  _id: string;
+  site_id: string;
+  time: string;
+  __v: number;
+  aqi_category: string;
+  aqi_color: string;
+  aqi_color_name: string;
+  aqi_ranges: AQIRanges;
+  averages: Averages;
+  createdAt: string;
+  device: string;
+  device_id: string;
+  frequency: string;
+  health_tips: HealthTip[];
+  is_reading_primary: boolean;
+  no2: PollutantValue;
+  pm10: PollutantValue;
+  pm2_5: PollutantValue;
+  siteDetails: SiteDetails;
+  timeDifferenceHours: number;
+  updatedAt: string;
+}
+
+export interface GridRepresentativeReadingResponse {
+  message: string;
+  data: RepresentativeReading;
+  errors: any | null;
+}
