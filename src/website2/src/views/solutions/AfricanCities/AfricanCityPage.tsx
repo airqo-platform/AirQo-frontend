@@ -4,11 +4,12 @@ import { motion } from 'framer-motion';
 import React from 'react';
 
 import CardWrapper from '@/components/sections/solutions/CardWrapper';
-import GridAirQualityMonitor from '@/components/sections/solutions/GridAirQualityMonitor';
 import HeroSection from '@/components/sections/solutions/HeroSection';
 import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import AfricanCities from '@/views/solutions/AfricanCities/AfricanCities';
+
+import GridAirQualityMonitor from '../../../components/sections/solutions/GridAirQualityMonitor';
 
 // Define motion variants for different animations
 const containerVariants = {
