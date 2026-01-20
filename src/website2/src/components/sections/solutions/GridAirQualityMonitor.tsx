@@ -28,7 +28,13 @@ import {
   getAirQualityColor,
 } from '@/utils/airQuality';
 
-type AdminLevel = 'city' | 'county' | 'country';
+type AdminLevel =
+  | 'city'
+  | 'county'
+  | 'country'
+  | 'state'
+  | 'district'
+  | 'province';
 
 // Get appropriate icon for air quality level
 const getAirQualityIcon = (category: string) => {
@@ -161,6 +167,9 @@ const GridAirQualityMonitor: React.FC = () => {
               <option value="city">City</option>
               <option value="county">County</option>
               <option value="country">Country</option>
+              <option value="state">State</option>
+              <option value="district">District</option>
+              <option value="province">Province</option>
             </select>
             <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
