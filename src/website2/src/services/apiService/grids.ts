@@ -32,11 +32,21 @@ class GridsService extends BaseApiService {
     } = {},
     options: ServiceOptions = {},
   ): Promise<GridsSummaryResponse> {
+    const {
+      tenant = 'airqo',
+      detailLevel = 'summary',
+      limit = 30,
+      skip,
+      page,
+      admin_level,
+    } = params;
     const defaultParams = {
-      tenant: 'airqo',
-      detailLevel: 'summary',
-      limit: 30,
-      ...params,
+      tenant,
+      detailLevel,
+      limit,
+      skip,
+      page,
+      admin_level,
     };
 
     const response = await this.get<GridsSummaryResponse>(

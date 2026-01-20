@@ -97,12 +97,17 @@ const GridAirQualityMonitor: React.FC = () => {
   const { data: readingData, isLoading: readingLoading } =
     useGridRepresentativeReading(selectedGrid?._id || null);
 
-  // Set first grid as default when data loads
+  // Set first grid as default when data loads or when selected grid is not in current page
   useEffect(() => {
-    if (gridsData?.grids?.length && !selectedGrid) {
-      setSelectedGrid(gridsData.grids[0]);
+    if (gridsData?.grids?.length) {
+      const currentGridExists =
+        selectedGrid &&
+        gridsData.grids.some((grid) => grid._id === selectedGrid._id);
+      if (!selectedGrid || !currentGridExists) {
+        setSelectedGrid(gridsData.grids[0]);
+      }
     }
-  }, [gridsData, selectedGrid]);
+  }, [gridsData, selectedGrid, page]);
 
   const currentValue =
     pollutant === 'pm2_5'
