@@ -194,7 +194,7 @@ const GridAirQualityMonitor: React.FC = () => {
             >
               {gridsData?.grids?.map((grid: Grid) => (
                 <option key={grid._id} value={grid._id}>
-                  {formatName(grid.long_name)} ({grid.numberOfSites} sites)
+                  {formatName(grid.long_name)}
                 </option>
               ))}
             </select>
