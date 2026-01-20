@@ -6,13 +6,13 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
-import { 
-  FirmwareVersion, 
-  FirmwareUploadData, 
+import {
+  FirmwareVersion,
+  FirmwareUploadData,
   FirmwareUpdateData,
   FirmwareListParams,
   FirmwareDownloadParams,
-  FirmwareType 
+  FirmwareType
 } from '@/types/firmware.types';
 
 class FirmwareService {
@@ -39,7 +39,7 @@ class FirmwareService {
     if (config.isLocalhost) {
       return {};
     }
-    
+
     const token = authService.getToken();
     if (token) {
       return { 'Authorization': token };
@@ -144,7 +144,7 @@ class FirmwareService {
       const response = await axios.post(
         `${this.baseUrl}${endpoint}`,
         formData,
-        this.getAxiosConfig({ headers: { 'Content-Type': 'multipart/form-data' } })
+        this.getAxiosConfig()
       );
 
       return response.data;
@@ -178,7 +178,7 @@ class FirmwareService {
   async downloadFirmware(params: FirmwareDownloadParams): Promise<Blob> {
     try {
       let url: string;
-      
+
       if (params.firmware_id) {
         const endpoint = this.getEndpoint(`/firmware/${params.firmware_id}/download/${params.file_type}`);
         url = `${this.baseUrl}${endpoint}`;
@@ -217,7 +217,7 @@ class FirmwareService {
    */
   formatFileSize(bytes?: number): string {
     if (bytes === undefined || bytes === null) return 'N/A';
-    
+
     if (bytes < 1024) return `${bytes} B`;
     else if (bytes < 1048576) return `${(bytes / 1024).toFixed(2)} KB`;
     else return `${(bytes / 1048576).toFixed(2)} MB`;
@@ -228,7 +228,7 @@ class FirmwareService {
    */
   getFirmwareTypeBadgeColor(type?: string | null): string {
     if (!type) return 'bg-gray-500';
-    
+
     switch (type.toLowerCase()) {
       case 'stable':
         return 'bg-green-500';

@@ -12,12 +12,13 @@ import {
 } from "@/components/ui/table"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Pagination } from "@/components/ui/pagination"
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Search, ArrowUpDown, Download, ChevronRight } from "lucide-react"
+import { Search, ArrowUpDown, ChevronRight, Loader2 } from "lucide-react"
 import { airQloudService, type AirQloudWithPerformance } from "@/services/airqloud.service"
 
 interface ProcessedAirQloud {
@@ -56,22 +57,24 @@ const processAirQloudData = (airqloud: AirQloudWithPerformance): ProcessedAirQlo
   const freq = airqloud.freq || []
   const errorMargin = airqloud.error_margin || []
   const timestamps = airqloud.timestamp || []
-  
+
   // Calculate uptime percentage from freq (max 24) - limit to last 14 days
   const uptimeHistory = timestamps.map((timestamp, index) => ({
-    value: (freq[index] / 24) * 100,
+    value: freq[index] !== undefined ? (freq[index] / 24) * 100 : 0,
     timestamp
-  })).slice(-14)
-  
+  }))
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+    .slice(-14)
+
   const averageUptime = uptimeHistory.length > 0
     ? uptimeHistory.reduce((sum, item) => sum + item.value, 0) / uptimeHistory.length
     : null
-  
+
   // Calculate average error margin
   const averageErrorMargin = errorMargin.length > 0
     ? errorMargin.reduce((sum, em) => sum + em, 0) / errorMargin.length
     : null
-  
+
   return {
     id: airqloud.id,
     name: airqloud.name,
@@ -91,59 +94,74 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
   const [sortBy, setSortBy] = useState<keyof ProcessedAirQloud>("name")
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc")
   const [trackingFilter, setTrackingFilter] = useState<"tracked" | "untracked">("tracked")
-  const [rawData, setRawData] = useState<AirQloudWithPerformance[]>([])
+  const [processedData, setProcessedData] = useState<ProcessedAirQloud[]>([])
+
+  // Pagination state
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(1)
+
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Edit dialog state
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingAirQloud, setEditingAirQloud] = useState<ProcessedAirQloud | null>(null)
   const [editIsTracked, setEditIsTracked] = useState(false)
   const [editCountry, setEditCountry] = useState("")
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
 
   // Fetch data from API
-  useEffect(() => {
-    const fetchAirQlouds = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        const data = await airQloudService.getAirQlouds({
-          include_performance: true,
-          performance_days: performanceDays,
-          search: searchTerm || undefined,
-        })
-        setRawData(data)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch AirQlouds (Cohorts)')
-        console.error('Error fetching AirQlouds:', err)
-      } finally {
-        setIsLoading(false)
-      }
-    }
+  const fetchAirQlouds = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      const skip = (page - 1) * pageSize
 
+      const response = await airQloudService.getAirQlouds({
+        include_performance: true,
+        performance_days: performanceDays,
+        search: searchTerm || undefined,
+        limit: pageSize,
+        skip: skip,
+        is_active: trackingFilter === "tracked"
+      })
+
+      const { airqlouds, meta } = response
+
+      setProcessedData(airqlouds.map(processAirQloudData))
+      setTotalItems(meta.total)
+      setTotalPages(meta.pages)
+      setPage(meta.page)
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch AirQlouds (Cohorts)')
+      console.error('Error fetching AirQlouds:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // Reset page to 1 when search or filter changes
+    setPage(1)
+  }, [searchTerm, trackingFilter])
+
+  useEffect(() => {
     // Debounce search
     const timer = setTimeout(() => {
       fetchAirQlouds()
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [searchTerm, performanceDays])
+  }, [searchTerm, performanceDays, trackingFilter, page, pageSize])
 
-  // Process raw data into display format
-  const processedAirQlouds = useMemo(() => {
-    return rawData.map(processAirQloudData)
-  }, [rawData])
-
-  // Filter and sort data
+  // Sort data (client-side sorting for current page)
   const sortedData = useMemo(() => {
-    // Filter by tracking status (active/inactive)
-    const filtered = processedAirQlouds.filter(aq => 
-      trackingFilter === "tracked" ? aq.isActive : !aq.isActive
-    )
-    
-    const sorted = [...filtered]
-    
+    const sorted = [...processedData]
+
     sorted.sort((a, b) => {
       const aValue = a[sortBy]
       const bValue = b[sortBy]
@@ -167,7 +185,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     })
 
     return sorted
-  }, [processedAirQlouds, sortBy, sortOrder, trackingFilter])
+  }, [processedData, sortBy, sortOrder])
 
   const handleSort = (column: keyof ProcessedAirQloud) => {
     if (column === sortBy) {
@@ -192,7 +210,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
 
   const handleUpdateAirQloud = async () => {
     if (!editingAirQloud) return
-    
+
     setIsUpdating(true)
     try {
       await airQloudService.updateAirQloud(editingAirQloud.id, {
@@ -200,12 +218,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
         country: editCountry || null
       })
       // Refresh data after update
-      const data = await airQloudService.getAirQlouds({
-        include_performance: true,
-        performance_days: performanceDays,
-        search: searchTerm || undefined,
-      })
-      setRawData(data)
+      await fetchAirQlouds()
       setEditDialogOpen(false)
     } catch (err) {
       console.error('Error updating AirQloud:', err)
@@ -216,15 +229,15 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
 
   const getStatusBadge = (airqloud: ProcessedAirQloud) => {
     return airqloud.isActive ? (
-      <Badge 
+      <Badge
         className="bg-green-500 cursor-pointer hover:bg-green-600 transition-colors"
         onClick={(e) => openEditDialog(e, airqloud)}
       >
         Tracked
       </Badge>
     ) : (
-      <Badge 
-        variant="secondary" 
+      <Badge
+        variant="secondary"
         className="cursor-pointer hover:bg-gray-300 transition-colors"
         onClick={(e) => openEditDialog(e, airqloud)}
       >
@@ -241,7 +254,7 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
 
     // Take last 14 values max
     const values = uptimeHistory.slice(-14)
-    
+
     const getBarColor = (value: number) => {
       if (value >= 75) return "bg-green-500 hover:bg-green-600"
       if (value >= 50) return "bg-orange-500 hover:bg-orange-600"
@@ -286,27 +299,87 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
     )
   }
 
-  const exportToCSV = () => {
-    const headers = ["Name", "Location", "Uptime (%)", "Devices", "Error Margin (%)"]
-    const rows = sortedData.map(aq => [
-      aq.name,
-      aq.location || "",
-      aq.uptime !== null ? aq.uptime.toFixed(2) : "N/A",
-      aq.numberOfDevices,
-      aq.errorMargin !== null ? aq.errorMargin.toFixed(2) : "N/A",
-    ])
+  const handleExportCSV = async () => {
+    // Helper to escape CSV values
+    const escapeCSVValue = (value: string | number): string => {
+      const str = String(value)
+      // Escape values that could be interpreted as formulas
+      if (/^[=+\-@]/.test(str)) {
+        return `"'${str.replace(/"/g, '""')}"`
+      }
+      // Wrap in quotes if contains comma, quote, or newline
+      if (/[",\n\r]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`
+      }
+      return str
+    }
 
-    const csvContent = [
-      headers.join(","),
-      ...rows.map(row => row.join(",")),
-    ].join("\n")
+    try {
+      setIsExporting(true)
 
-    const blob = new Blob([csvContent], { type: "text/csv" })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    a.download = `airqlouds-analytics-${new Date().toISOString().split("T")[0]}.csv`
-    a.click()
+      // Fetch all data matching current filters
+      const limit = totalItems > 0 ? totalItems : 1000
+
+      const response = await airQloudService.getAirQlouds({
+        include_performance: true,
+        performance_days: performanceDays,
+        search: searchTerm || undefined,
+        limit: limit,
+        skip: 0,
+        is_active: trackingFilter === "tracked"
+      })
+
+      const { airqlouds } = response
+      const dataToExport = airqlouds.map(processAirQloudData)
+
+      // Sort data to match current view
+      dataToExport.sort((a, b) => {
+        const aValue = a[sortBy]
+        const bValue = b[sortBy]
+
+        if (aValue === null && bValue === null) return 0
+        if (aValue === null) return 1
+        if (bValue === null) return -1
+
+        if (typeof aValue === "string" && typeof bValue === "string") {
+          return sortOrder === "asc"
+            ? aValue.localeCompare(bValue)
+            : bValue.localeCompare(aValue)
+        }
+
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return sortOrder === "asc" ? aValue - bValue : bValue - aValue
+        }
+
+        return 0
+      })
+
+      const headers = ["Name", "Location", "Uptime (%)", "Devices", "Error Margin (%)"]
+      const rows = dataToExport.map(aq => [
+        escapeCSVValue(aq.name),
+        escapeCSVValue(aq.location || ""),
+        escapeCSVValue(aq.uptime !== null ? aq.uptime.toFixed(2) : "N/A"),
+        escapeCSVValue(aq.numberOfDevices),
+        escapeCSVValue(aq.errorMargin !== null ? aq.errorMargin.toFixed(2) : "N/A"),
+      ])
+
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => row.join(",")),
+      ].join("\n")
+
+      const blob = new Blob([csvContent], { type: "text/csv" })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = `airqlouds-analytics-${new Date().toISOString().split("T")[0]}.csv`
+      a.click()
+      window.URL.revokeObjectURL(url) // Clean up to prevent memory leak
+    } catch (err) {
+      console.error("Failed to export CSV:", err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   if (error) {
@@ -329,9 +402,9 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>AirQlouds (Cohorts) Performance</CardTitle>
-          <Button onClick={exportToCSV} variant="outline" size="sm">
-            {/* <Download className="mr-2 h-4 w-4" /> */}
-            Last 14 Days
+          <Button onClick={handleExportCSV} variant="outline" size="sm" disabled={isExporting}>
+            {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Export csv
           </Button>
         </div>
         <div className="flex items-center gap-4 mt-4">
@@ -358,121 +431,157 @@ export default function AirQloudsTable({ performanceDays = 14 }: AirQloudsTableP
         ) : sortedData.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">No AirQlouds (Cohorts) found</div>
         ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort("name")}
-                      className="hover:bg-transparent p-0 h-auto font-semibold"
-                    >
-                      Name
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort("uptime")}
-                      className="hover:bg-transparent p-0 h-auto font-semibold"
-                    >
-                      Uptime
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort("numberOfDevices")}
-                      className="hover:bg-transparent p-0 h-auto font-semibold"
-                    >
-                      Devices
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>
-                    <Button
-                      variant="ghost"
-                      onClick={() => handleSort("errorMargin")}
-                      className="hover:bg-transparent p-0 h-auto font-semibold"
-                    >
-                      Error Margin
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </TableHead>
-                  <TableHead>Tracking</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sortedData.map((airqloud) => {
-                  const isInactive = !airqloud.isActive
-                  const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
-                  const showNoDataMessage = isInactive || hasNoData
-                  
-                  return (
-                    <TableRow 
-                      key={airqloud.id}
-                      className={showNoDataMessage 
-                        ? "opacity-60" 
-                        : "cursor-pointer hover:bg-muted/50 transition-colors"
-                      }
-                      onClick={showNoDataMessage ? undefined : () => handleRowClick(airqloud.id)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="font-medium">{airqloud.name}</div>
-                            {airqloud.location && (
-                              <div className="text-sm text-muted-foreground">{airqloud.location}</div>
-                            )}
+          <div className="space-y-4">
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("name")}
+                        className="hover:bg-transparent p-0 h-auto font-semibold"
+                      >
+                        Name
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("uptime")}
+                        className="hover:bg-transparent p-0 h-auto font-semibold"
+                      >
+                        Uptime
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("numberOfDevices")}
+                        className="hover:bg-transparent p-0 h-auto font-semibold"
+                      >
+                        Devices
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>
+                      <Button
+                        variant="ghost"
+                        onClick={() => handleSort("errorMargin")}
+                        className="hover:bg-transparent p-0 h-auto font-semibold"
+                      >
+                        Error Margin
+                        <ArrowUpDown className="ml-2 h-4 w-4" />
+                      </Button>
+                    </TableHead>
+                    <TableHead>Tracking</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {sortedData.map((airqloud) => {
+                    const isInactive = !airqloud.isActive
+                    const hasNoData = airqloud.uptime === null && airqloud.errorMargin === null
+                    const showNoDataMessage = isInactive || hasNoData
+
+                    return (
+                      <TableRow
+                        key={airqloud.id}
+                        className={showNoDataMessage
+                          ? "opacity-60"
+                          : "cursor-pointer hover:bg-muted/50 transition-colors"
+                        }
+                        onClick={showNoDataMessage ? undefined : () => handleRowClick(airqloud.id)}
+                      >
+                        <TableCell>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="font-medium">{airqloud.name}</div>
+                              {airqloud.location && (
+                                <div className="text-sm text-muted-foreground">{airqloud.location}</div>
+                              )}
+                            </div>
+                            {!showNoDataMessage && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                           </div>
-                          {!showNoDataMessage && <ChevronRight className="h-4 w-4 text-muted-foreground" />}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {isInactive ? (
-                          <span className="text-muted-foreground italic">Inactive - Not tracked</span>
-                        ) : hasNoData ? (
-                          <span className="text-muted-foreground italic">Data loading...</span>
-                        ) : (
-                          <UptimeMiniGraph 
-                            uptimeHistory={airqloud.uptimeHistory} 
-                            averageUptime={airqloud.uptime} 
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        {isInactive ? (
-                          <span className="text-muted-foreground italic">Inactive - Not tracked</span>
-                        ) : hasNoData ? (
-                          <span className="text-muted-foreground italic">Data loading...</span>
-                        ) : airqloud.errorMargin !== null ? (
-                          <span
-                            className={`font-medium ${
-                              airqloud.errorMargin <= 3
+                        </TableCell>
+                        <TableCell>
+                          {isInactive ? (
+                            <span className="text-muted-foreground italic">Inactive - Not tracked</span>
+                          ) : hasNoData ? (
+                            <span className="text-muted-foreground italic">Data loading...</span>
+                          ) : (
+                            <UptimeMiniGraph
+                              uptimeHistory={airqloud.uptimeHistory}
+                              averageUptime={airqloud.uptime}
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{airqloud.numberOfDevices}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {isInactive ? (
+                            <span className="text-muted-foreground italic">Inactive - Not tracked</span>
+                          ) : hasNoData ? (
+                            <span className="text-muted-foreground italic">Data loading...</span>
+                          ) : airqloud.errorMargin !== null ? (
+                            <span
+                              className={`font-medium ${airqloud.errorMargin <= 3
                                 ? "text-green-600"
                                 : airqloud.errorMargin <= 5
-                                ? "text-yellow-600"
-                                : "text-red-600"
-                            }`}
-                          >
-                            ±{airqloud.errorMargin.toFixed(1)}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">N/A</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(airqloud)}</TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
+                                  ? "text-yellow-600"
+                                  : "text-red-600"
+                                }`}
+                            >
+                              ±{airqloud.errorMargin.toFixed(1)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell>{getStatusBadge(airqloud)}</TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Items per page:</span>
+                  <Select
+                    value={pageSize.toString()}
+                    onValueChange={(value) => {
+                      setPageSize(Number(value))
+                      setPage(1)
+                    }}
+                  >
+                    <SelectTrigger className="w-[100px]">
+                      <SelectValue placeholder="Per page" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="5">5</SelectItem>
+                      <SelectItem value="10">10</SelectItem>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Pagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={setPage}
+                  showInfo={true}
+                  totalItems={totalItems}
+                  itemsPerPage={pageSize}
+                />
+              </div>
+            </div>
           </div>
         )}
       </CardContent>

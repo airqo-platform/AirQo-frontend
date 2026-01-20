@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, Suspense, useState, useEffect, useMemo } from 'react'
+import React, { useRef, Suspense, useState, useEffect, useMemo, Component, ReactNode } from 'react'
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, useGLTF, Environment, PerspectiveCamera } from '@react-three/drei'
 import * as THREE from 'three'
@@ -11,16 +11,39 @@ interface DeviceModel3DInnerProps {
   onModelFailed?: () => void
 }
 
+class ErrorBoundary extends Component<{ fallback: ReactNode, onError?: (error: Error) => void, children?: ReactNode }, { hasError: boolean }> {
+  constructor(props: any) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error) {
+    this.props.onError?.(error)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback
+    }
+
+    return this.props.children
+  }
+}
+
 /**
  * Inner 3D Device Model Component
  * This component handles the actual Three.js rendering
  */
 function DeviceModel({ onLoad, onError }: Readonly<{ onLoad?: () => void; onError?: () => void }>) {
   const groupRef = useRef<THREE.Group>(null)
-  
+
   // Load the GLB model
   const { scene } = useGLTF('/icons/gen6_assembly.glb')
-  
+
   // Clone the scene to avoid issues with shared materials/textures
   const clonedScene = useMemo(() => {
     if (!scene) {
@@ -28,7 +51,7 @@ function DeviceModel({ onLoad, onError }: Readonly<{ onLoad?: () => void; onErro
       return null
     }
     const clone = scene.clone(true)
-    
+
     // Traverse and handle materials
     clone.traverse((child: any) => {
       if (child instanceof THREE.Mesh) {
@@ -41,10 +64,10 @@ function DeviceModel({ onLoad, onError }: Readonly<{ onLoad?: () => void; onErro
         }
       }
     })
-    
+
     return clone
   }, [scene, onError])
-  
+
   // Notify parent when model is loaded
   useEffect(() => {
     if (clonedScene && onLoad) {
@@ -83,7 +106,6 @@ export default function DeviceModel3DInner({ onModelLoaded, onModelFailed }: Rea
   const handleError = () => {
     setHasError(true)
     onModelFailed?.()
-    onModelLoaded?.()
   }
 
   if (hasError) {
@@ -100,7 +122,7 @@ export default function DeviceModel3DInner({ onModelLoaded, onModelFailed }: Rea
           <div className="text-blue-100 text-sm mt-2">Preparing interactive device model</div>
         </div>
       )}
-      
+
       <Canvas
         shadows
         dpr={[1, 2]}
@@ -113,7 +135,7 @@ export default function DeviceModel3DInner({ onModelLoaded, onModelFailed }: Rea
         }}
       >
         <PerspectiveCamera makeDefault position={[0, 0, 20]} fov={40} />
-        
+
         <ambientLight intensity={0.5} />
         <spotLight
           position={[10, 10, 10]}
@@ -123,12 +145,14 @@ export default function DeviceModel3DInner({ onModelLoaded, onModelFailed }: Rea
           castShadow
         />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        
-        <Suspense fallback={null}>
-          <DeviceModel onLoad={handleLoad} onError={handleError} />
-          <Environment preset="city" />
-        </Suspense>
-        
+
+        <ErrorBoundary fallback={null} onError={handleError}>
+          <Suspense fallback={null}>
+            <DeviceModel onLoad={handleLoad} onError={handleError} />
+            <Environment preset="city" />
+          </Suspense>
+        </ErrorBoundary>
+
         <OrbitControls
           enableZoom={true}
           enablePan={true}

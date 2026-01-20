@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Activity, RefreshCw, CalendarIcon, AlertCircle, TrendingUp, BarChart3, Clock, ChevronDown, ChevronUp } from "lucide-react"
+import { Activity, RefreshCw, CalendarIcon, AlertCircle, TrendingUp, BarChart3, Clock, ChevronDown, ChevronUp, Battery } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -44,6 +44,7 @@ interface PerformanceData {
   name: string
   freq: number[]
   error_margin: (number | null)[]
+  battery_voltage: (number | null)[]
   timestamp: string[]
 }
 
@@ -53,6 +54,7 @@ interface DeviceSummary {
   avgFrequency: number
   avgErrorMargin: number
   avgUptime: number
+  avgBatteryVoltage: number
 }
 
 export default function PerformanceTab({ deviceId, deviceName }: Readonly<PerformanceTabProps>) {
@@ -60,11 +62,11 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Default date range: last 14 days ending yesterday
   const yesterday = subDays(new Date(), 1)
   const fourteenDaysAgo = subDays(yesterday, 13)
-  
+
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
     to: Date | undefined
@@ -97,11 +99,11 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
 
       const startDate = new Date(dateRange.from)
       const endDate = new Date(dateRange.to)
-      
+
       if (includeTime) {
         const [startHours, startMinutes] = timeRange.from.split(':')
         startDate.setHours(Number.parseInt(startHours), Number.parseInt(startMinutes), 0, 0)
-        
+
         const [endHours, endMinutes] = timeRange.to.split(':')
         endDate.setHours(Number.parseInt(endHours), Number.parseInt(endMinutes), 59, 999)
       } else {
@@ -114,7 +116,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         end: endDate.toISOString(),
         ids: [deviceId],
       })
-      
+
       if (response && response.length > 0) {
         setPerformanceData(response)
       } else {
@@ -153,7 +155,10 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
     setIncludeTime(checked)
   }
 
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+
   const handleApplyFilter = () => {
+    setIsCalendarOpen(false)
     fetchPerformanceData()
   }
 
@@ -162,6 +167,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
     setTimeRange({ from: "00:00", to: "23:59" })
     setIncludeTime(false)
     setTimeout(() => fetchPerformanceData(), 100)
+    setIsCalendarOpen(false)
   }
 
   // Process data for each device
@@ -174,6 +180,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         formattedTime: format(new Date(time), "MMM dd HH:mm"),
         freq: device.freq[index] || 0,
         error_margin: device.error_margin[index],
+        battery_voltage: device.battery_voltage?.[index] ?? null,
       })),
     }))
   }, [performanceData])
@@ -186,7 +193,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
       for (let index = 0; index < device.timestamp.length; index++) {
         const time = device.timestamp[index]
         const date = format(new Date(time), "yyyy-MM-dd")
-        
+
         if (!dailyData[date]) {
           dailyData[date] = {
             date: format(new Date(time), "MMM dd, yyyy"),
@@ -217,6 +224,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
     return performanceData.map((device) => {
       const validFreq = device.freq.filter(f => f > 0)
       const validErrorMargin = device.error_margin.filter((e): e is number => e !== null)
+      const validBatteryVoltage = device.battery_voltage?.filter((v): v is number => v !== null) || []
 
       const uptimeData = devicesUptimeData.find(d => d.deviceId === device.id)?.dailyUptimeData || []
       const avgUptime = uptimeData.length > 0
@@ -229,6 +237,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
         avgFrequency: validFreq.length > 0 ? validFreq.reduce((a, b) => a + b, 0) / validFreq.length : 0,
         avgErrorMargin: validErrorMargin.length > 0 ? validErrorMargin.reduce((a, b) => a + b, 0) / validErrorMargin.length : 0,
         avgUptime,
+        avgBatteryVoltage: validBatteryVoltage.length > 0 ? validBatteryVoltage.reduce((a, b) => a + b, 0) / validBatteryVoltage.length : 0,
       }
     })
   }, [performanceData, devicesUptimeData])
@@ -261,7 +270,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
           {/* Date Filters */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-4">
             <div className="flex gap-2">
-              <Popover>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -298,6 +307,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                         })
                       }}
                       numberOfMonths={2}
+                      disabled={(date) => date >= new Date(new Date().setHours(0, 0, 0, 0))}
                     />
                     <div className="mt-4 pt-4 border-t space-y-2">
                       <div className="grid grid-cols-2 gap-2">
@@ -314,7 +324,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                           placeholder="End date"
                         />
                       </div>
-                      
+
                       {includeTime && (
                         <div className="grid grid-cols-2 gap-2">
                           <Input
@@ -329,7 +339,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                           />
                         </div>
                       )}
-                      
+
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="includeTimePerformance"
@@ -431,7 +441,7 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
               <p className="text-gray-500">Loading performance data...</p>
             </div>
           )}
-          
+
           {!loading && performanceData.length === 0 && (
             <div className="text-center py-10 text-gray-500">
               <Activity className="h-10 w-10 mx-auto mb-2 text-gray-400" />
@@ -442,115 +452,155 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
 
           {!loading && performanceData.length > 0 && (
             <div className="space-y-6">
-              {/* Top Row: Summary Stats Card and Uptime Chart */}
-              <div className="grid gap-4 lg:grid-cols-2">
-                {/* Summary Stats Card */}
-                <Card className="bg-white">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center gap-2">
+              {/* Summary Stats - Single Filled Line */}
+              {devicesSummary.map((summary) => (
+                <div key={`summary-${summary.deviceId}`} className="bg-slate-50 border rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-lg border shadow-sm">
                       <Activity className="h-5 w-5 text-purple-600" />
-                      <CardTitle className="text-base">Summary Statistics</CardTitle>
                     </div>
-                  </CardHeader>
-                  <CardContent>
-                    {devicesSummary.map((summary) => (
-                      <div key={summary.deviceId} className="space-y-4">
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Device Name</p>
-                          <p className="font-semibold text-lg">{summary.deviceName}</p>
-                        </div>
-                        <div className="grid grid-cols-1 gap-3">
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-xs text-gray-500 mb-1">Avg Frequency</p>
-                            <p className="text-2xl font-bold text-blue-600">{summary.avgFrequency.toFixed(1)}</p>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-xs text-gray-500 mb-1">Avg Error Margin</p>
-                            <p className="text-2xl font-bold text-orange-600">{summary.avgErrorMargin.toFixed(2)}</p>
-                          </div>
-                          <div className="bg-gray-50 p-4 rounded-lg">
-                            <p className="text-xs text-gray-500 mb-1">Avg Daily Uptime</p>
-                            <p className="text-2xl font-bold text-green-600">{summary.avgUptime.toFixed(1)}%</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Device</p>
+                      <p className="text-sm font-semibold text-gray-900">{summary.deviceName}</p>
+                    </div>
+                  </div>
 
-                {/* Daily Uptime Chart */}
+                  <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-lg border shadow-sm">
+                      <BarChart3 className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Avg Frequency</p>
+                      <p className="text-lg font-bold text-blue-600">{summary.avgFrequency.toFixed(1)}</p>
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-lg border shadow-sm">
+                      <TrendingUp className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Avg Error Margin</p>
+                      <p className="text-lg font-bold text-orange-600">{summary.avgErrorMargin.toFixed(2)}</p>
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-lg border shadow-sm">
+                      <Clock className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Avg Uptime</p>
+                      <p className="text-lg font-bold text-green-600">{summary.avgUptime.toFixed(1)}%</p>
+                    </div>
+                  </div>
+
+                  <div className="h-8 w-px bg-gray-200 hidden sm:block" />
+
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white rounded-lg border shadow-sm">
+                      <Battery className="h-5 w-5 text-teal-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-500">Avg Battery</p>
+                      <p className="text-lg font-bold text-teal-600">{summary.avgBatteryVoltage.toFixed(2)}V</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Charts Grid - 2x2 */}
+              <div className="grid gap-6 md:grid-cols-2">
+                {/* 1. Daily Uptime Chart */}
                 {devicesUptimeData.map((deviceUptime) => (
-                  <Card key={`uptime-${deviceUptime.deviceId}`}>
-                    <CardHeader className="pb-2">
+                  <Card key={`uptime-${deviceUptime.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
+                    <CardHeader className="border-b bg-gray-50/50 py-3">
                       <div className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-green-600" />
-                        <CardTitle className="text-base">Daily Uptime Percentage</CardTitle>
+                        <Clock className="h-4 w-4 text-green-600" />
+                        <CardTitle className="text-sm font-medium text-gray-700">Daily Uptime</CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                    <CardContent className="p-4">
+                      <ResponsiveContainer width="100%" height={250}>
                         <BarChart data={deviceUptime.dailyUptimeData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="date" 
-                            angle={-45}
-                            textAnchor="end"
-                            height={80}
-                            tick={{ fontSize: 9 }}
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                          <XAxis
+                            dataKey="date"
+                            tickFormatter={(value) => format(new Date(value), "MMM dd")}
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                            dy={10}
                           />
-                          <YAxis 
+                          <YAxis
                             domain={[0, 100]}
-                            tick={{ fontSize: 10 }}
-                            label={{ value: 'Uptime %', angle: -90, position: 'insideLeft', style: { fontSize: 10 } }}
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={(value) => `${value}%`}
                           />
-                          <Tooltip 
+                          <Tooltip
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            cursor={{ fill: '#f3f4f6' }}
                             formatter={(value: any) => [`${value}%`, 'Uptime']}
                           />
-                          <Legend wrapperStyle={{ fontSize: '12px' }} />
-                          <Bar 
-                            dataKey="uptimePercentage" 
-                            fill="#22c55e" 
+                          <Bar
+                            dataKey="uptimePercentage"
+                            fill="#22c55e"
                             name="Uptime %"
+                            radius={[4, 4, 0, 0]}
+                            maxBarSize={40}
                           />
                         </BarChart>
                       </ResponsiveContainer>
                     </CardContent>
                   </Card>
                 ))}
-              </div>
 
-              {/* Bottom Row: Data Frequency and Error Margin */}
-              <div className="grid gap-4 lg:grid-cols-2">
-                {/* Data Frequency Chart */}
+                {/* 2. Data Frequency Chart */}
                 {devicesChartData.map((deviceData) => (
-                  <Card key={`freq-${deviceData.deviceId}`}>
-                    <CardHeader className="pb-2">
+                  <Card key={`freq-${deviceData.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
+                    <CardHeader className="border-b bg-gray-50/50 py-3">
                       <div className="flex items-center gap-2">
-                        <BarChart3 className="h-5 w-5 text-blue-600" />
-                        <CardTitle className="text-base">Data Frequency</CardTitle>
+                        <BarChart3 className="h-4 w-4 text-blue-600" />
+                        <CardTitle className="text-sm font-medium text-gray-700">Data Frequency</CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                    <CardContent className="p-4">
+                      <ResponsiveContainer width="100%" height={250}>
                         <LineChart data={deviceData.chartData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="formattedTime" 
-                            angle={-45}
-                            textAnchor="end"
-                            height={80}
-                            tick={{ fontSize: 9 }}
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                          <XAxis
+                            dataKey="formattedTime"
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                            dy={10}
+                            interval="preserveStartEnd"
+                            minTickGap={30}
                           />
-                          <YAxis tick={{ fontSize: 10 }} />
-                          <Tooltip />
-                          <Legend wrapperStyle={{ fontSize: '12px' }} />
-                          <Line 
-                            type="monotone" 
-                            dataKey="freq" 
-                            stroke="#3b82f6" 
+                          <YAxis
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <Tooltip
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="freq"
+                            stroke="#3b82f6"
                             name="Frequency"
                             strokeWidth={2}
                             dot={false}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>
@@ -558,37 +608,94 @@ export default function PerformanceTab({ deviceId, deviceName }: Readonly<Perfor
                   </Card>
                 ))}
 
-                {/* Error Margin Chart */}
+                {/* 3. Error Margin Chart */}
                 {devicesChartData.map((deviceData) => (
-                  <Card key={`error-${deviceData.deviceId}`}>
-                    <CardHeader className="pb-2">
+                  <Card key={`error-${deviceData.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
+                    <CardHeader className="border-b bg-gray-50/50 py-3">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-orange-600" />
-                        <CardTitle className="text-base">Error Margin</CardTitle>
+                        <TrendingUp className="h-4 w-4 text-orange-600" />
+                        <CardTitle className="text-sm font-medium text-gray-700">Error Margin</CardTitle>
                       </div>
                     </CardHeader>
-                    <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                    <CardContent className="p-4">
+                      <ResponsiveContainer width="100%" height={250}>
                         <LineChart data={deviceData.chartData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis 
-                            dataKey="formattedTime" 
-                            angle={-45}
-                            textAnchor="end"
-                            height={80}
-                            tick={{ fontSize: 9 }}
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                          <XAxis
+                            dataKey="formattedTime"
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                            dy={10}
+                            interval="preserveStartEnd"
+                            minTickGap={30}
                           />
-                          <YAxis tick={{ fontSize: 10 }} />
-                          <Tooltip />
-                          <Legend wrapperStyle={{ fontSize: '12px' }} />
-                          <Line 
-                            type="monotone" 
-                            dataKey="error_margin" 
-                            stroke="#ea580c" 
+                          <YAxis
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                          />
+                          <Tooltip
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="error_margin"
+                            stroke="#ea580c"
                             name="Error Margin"
                             strokeWidth={2}
                             connectNulls
                             dot={false}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {/* 4. Battery Voltage Chart (New) */}
+                {devicesChartData.map((deviceData) => (
+                  <Card key={`battery-${deviceData.deviceId}`} className="overflow-hidden border-0 shadow-sm ring-1 ring-gray-200">
+                    <CardHeader className="border-b bg-gray-50/50 py-3">
+                      <div className="flex items-center gap-2">
+                        <Battery className="h-4 w-4 text-teal-600" />
+                        <CardTitle className="text-sm font-medium text-gray-700">Battery Voltage</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <LineChart data={deviceData.chartData}>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                          <XAxis
+                            dataKey="formattedTime"
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                            dy={10}
+                            interval="preserveStartEnd"
+                            minTickGap={30}
+                          />
+                          <YAxis
+                            domain={['auto', 'auto']}
+                            tick={{ fontSize: 10, fill: "#6b7280" }}
+                            axisLine={false}
+                            tickLine={false}
+                            tickFormatter={(value) => `${value}V`}
+                          />
+                          <Tooltip
+                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                            formatter={(value: any) => [`${value}V`, 'Voltage']}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="battery_voltage"
+                            stroke="#0d9488"
+                            name="Voltage"
+                            strokeWidth={2}
+                            connectNulls
+                            dot={false}
+                            activeDot={{ r: 4, strokeWidth: 0 }}
                           />
                         </LineChart>
                       </ResponsiveContainer>

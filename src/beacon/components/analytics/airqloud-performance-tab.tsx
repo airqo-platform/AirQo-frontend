@@ -60,14 +60,14 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  
+
   // Default date range getter: last 14 days ending yesterday
   const getDefaultDateRange = () => {
     const yesterday = subDays(new Date(), 1)
     const fourteenDaysAgo = subDays(yesterday, 13)
     return { from: fourteenDaysAgo, to: yesterday }
   }
-  
+
   const [dateRange, setDateRange] = useState<{
     from: Date | undefined
     to: Date | undefined
@@ -80,7 +80,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
     to: "23:59",
   })
   const [includeTime, setIncludeTime] = useState(false)
-  
+
   // Collapsible sections state
   const [summaryExpanded, setSummaryExpanded] = useState(false)
   const [uptimeExpanded, setUptimeExpanded] = useState(false)
@@ -104,11 +104,11 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
 
       const startDate = new Date(dateRange.from)
       const endDate = new Date(dateRange.to)
-      
+
       if (includeTime) {
         const [startHours, startMinutes] = timeRange.from.split(':')
         startDate.setHours(Number.parseInt(startHours), Number.parseInt(startMinutes), 0, 0)
-        
+
         const [endHours, endMinutes] = timeRange.to.split(':')
         endDate.setHours(Number.parseInt(endHours), Number.parseInt(endMinutes), 59, 999)
       } else {
@@ -121,7 +121,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
 
       // Fetch airqloud details with device performance
       const response = await airQloudService.getAirQloudById(airqloudId, days)
-      
+
       if (Array.isArray(response?.device_performance) && response.device_performance.length > 0) {
         // Transform the data to match PerformanceData interface
         const transformedData: PerformanceData[] = response.device_performance.map((device) => ({
@@ -131,7 +131,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
           error_margin: device.performance.error_margin,
           timestamp: device.performance.timestamp,
         }))
-        
+
         setPerformanceData(transformedData)
       } else {
         setPerformanceData([])
@@ -169,7 +169,17 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
     setIncludeTime(checked)
   }
 
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+
+  // Helper to check if a date is today or in the future
+  const isDateDisabled = (date: Date) => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    return date >= today
+  }
+
   const handleApplyFilter = () => {
+    setIsCalendarOpen(false)
     fetchPerformanceData()
   }
 
@@ -178,6 +188,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
     setTimeRange({ from: "00:00", to: "23:59" })
     setIncludeTime(false)
     setTimeout(() => fetchPerformanceData(), 100)
+    setIsCalendarOpen(false)
   }
 
   // Process data for each device
@@ -190,7 +201,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
         formattedTime: format(new Date(time), "MMM dd HH:mm"),
         freq: device.freq[index] || 0,
         error_margin: device.error_margin[index],
-      })),
+      })).sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()),
     }))
   }, [performanceData])
 
@@ -202,7 +213,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
       for (let index = 0; index < device.timestamp.length; index++) {
         const time = device.timestamp[index]
         const date = format(new Date(time), "yyyy-MM-dd")
-        
+
         if (!dailyData[date]) {
           dailyData[date] = {
             date: format(new Date(time), "MMM dd, yyyy"),
@@ -220,9 +231,9 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
       return {
         deviceId: device.id,
         deviceName: device.name,
-        dailyUptimeData: Object.values(dailyData).map(day => ({
-          date: day.date,
-          uptimePercentage: ((day.hoursWithData / day.totalHours) * 100).toFixed(1),
+        dailyUptimeData: Object.keys(dailyData).sort().map(key => ({
+          date: dailyData[key].date,
+          uptimePercentage: ((dailyData[key].hoursWithData / dailyData[key].totalHours) * 100).toFixed(1),
         })),
       }
     })
@@ -277,7 +288,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
           {/* Date Filters */}
           <div className="mb-6 p-4 bg-gray-50 rounded-lg space-y-4">
             <div className="flex gap-2">
-              <Popover>
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
@@ -314,6 +325,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                         })
                       }}
                       numberOfMonths={2}
+                      disabled={(date) => date >= new Date(new Date().setHours(0, 0, 0, 0))}
                     />
                     <div className="mt-4 pt-4 border-t space-y-2">
                       <div className="grid grid-cols-2 gap-2">
@@ -330,7 +342,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                           placeholder="End date"
                         />
                       </div>
-                      
+
                       {includeTime && (
                         <div className="grid grid-cols-2 gap-2">
                           <Input
@@ -345,7 +357,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                           />
                         </div>
                       )}
-                      
+
                       <div className="flex items-center space-x-2">
                         <Checkbox
                           id="includeTimeAirQloud"
@@ -447,7 +459,7 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
               <p className="text-gray-500">Loading performance data...</p>
             </div>
           )}
-          
+
           {!loading && performanceData.length === 0 && (
             <div className="text-center py-10 text-gray-500">
               <Activity className="h-10 w-10 mx-auto mb-2 text-gray-400" />
@@ -519,43 +531,43 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                   <h3 className="text-lg font-semibold">Daily Uptime Percentage</h3>
                 </button>
                 {uptimeExpanded && (
-                <div className={`grid gap-4 ${isSingleDevice ? 'md:grid-cols-2' : 'lg:grid-cols-2'}`}>
-                  {devicesUptimeData.map((deviceUptime) => (
-                    <Card key={`uptime-${deviceUptime.deviceId}`}>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium">{deviceUptime.deviceName}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <ResponsiveContainer width="100%" height={250}>
-                          <BarChart data={deviceUptime.dailyUptimeData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis 
-                              dataKey="date" 
-                              angle={-45}
-                              textAnchor="end"
-                              height={80}
-                              tick={{ fontSize: 9 }}
-                            />
-                            <YAxis 
-                              domain={[0, 100]}
-                              tick={{ fontSize: 10 }}
-                              label={{ value: 'Uptime %', angle: -90, position: 'insideLeft', style: { fontSize: 10 } }}
-                            />
-                            <Tooltip 
-                              formatter={(value: any) => [`${value}%`, 'Uptime']}
-                            />
-                            <Legend wrapperStyle={{ fontSize: '12px' }} />
-                            <Bar 
-                              dataKey="uptimePercentage" 
-                              fill="#22c55e" 
-                              name="Uptime %"
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                  <div className={`grid gap-4 ${isSingleDevice ? 'md:grid-cols-2' : 'lg:grid-cols-2'}`}>
+                    {devicesUptimeData.map((deviceUptime) => (
+                      <Card key={`uptime-${deviceUptime.deviceId}`}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-sm font-medium">{deviceUptime.deviceName}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={250}>
+                            <BarChart data={deviceUptime.dailyUptimeData}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="date"
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                                tick={{ fontSize: 9 }}
+                              />
+                              <YAxis
+                                domain={[0, 100]}
+                                tick={{ fontSize: 10 }}
+                                label={{ value: 'Uptime %', angle: -90, position: 'insideLeft', style: { fontSize: 10 } }}
+                              />
+                              <Tooltip
+                                formatter={(value: any) => [`${value}%`, 'Uptime']}
+                              />
+                              <Legend wrapperStyle={{ fontSize: '12px' }} />
+                              <Bar
+                                dataKey="uptimePercentage"
+                                fill="#22c55e"
+                                name="Uptime %"
+                              />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
                 )}
               </div>
 
@@ -586,8 +598,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                           <ResponsiveContainer width="100%" height={250}>
                             <LineChart data={deviceData.chartData}>
                               <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis 
-                                dataKey="formattedTime" 
+                              <XAxis
+                                dataKey="formattedTime"
                                 angle={-45}
                                 textAnchor="end"
                                 height={80}
@@ -596,10 +608,10 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                               <YAxis tick={{ fontSize: 10 }} />
                               <Tooltip />
                               <Legend wrapperStyle={{ fontSize: '12px' }} />
-                              <Line 
-                                type="monotone" 
-                                dataKey="freq" 
-                                stroke="#3b82f6" 
+                              <Line
+                                type="monotone"
+                                dataKey="freq"
+                                stroke="#3b82f6"
                                 name="Frequency"
                                 strokeWidth={2}
                                 dot={false}
@@ -640,8 +652,8 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                           <ResponsiveContainer width="100%" height={250}>
                             <LineChart data={deviceData.chartData}>
                               <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis 
-                                dataKey="formattedTime" 
+                              <XAxis
+                                dataKey="formattedTime"
                                 angle={-45}
                                 textAnchor="end"
                                 height={80}
@@ -650,10 +662,10 @@ export default function AirQloudPerformanceTab({ airqloudId, airqloudName }: Rea
                               <YAxis tick={{ fontSize: 10 }} />
                               <Tooltip />
                               <Legend wrapperStyle={{ fontSize: '12px' }} />
-                              <Line 
-                                type="monotone" 
-                                dataKey="error_margin" 
-                                stroke="#ea580c" 
+                              <Line
+                                type="monotone"
+                                dataKey="error_margin"
+                                stroke="#ea580c"
                                 name="Error Margin"
                                 strokeWidth={2}
                                 connectNulls

@@ -48,6 +48,20 @@ export interface AirQloudsQueryParams {
   search?: string
   include_performance?: boolean
   performance_days?: number
+  is_active?: boolean
+}
+
+export interface AirQloudsMeta {
+  total: number
+  page: number
+  pages: number
+  limit: number
+  skip: number
+}
+
+export interface AirQloudsResponse {
+  airqlouds: AirQloudWithPerformance[]
+  meta: AirQloudsMeta
 }
 
 export interface CreateAirQloudPayload {
@@ -134,14 +148,14 @@ class AirQloudService {
     if (config.isLocalhost) {
       return { 'Content-Type': 'application/json' }
     }
-    
+
     // Import authService dynamically to avoid circular dependencies
     const authService = require('./api-service').default
     const token = authService.getToken()
     if (token) {
-      return { 
+      return {
         'Content-Type': 'application/json',
-        'Authorization': token 
+        'Authorization': token
       }
     }
     return { 'Content-Type': 'application/json' }
@@ -150,21 +164,22 @@ class AirQloudService {
   /**
    * Get all AirQlouds with performance data
    */
-  async getAirQlouds(params: AirQloudsQueryParams = {}): Promise<AirQloudWithPerformance[]> {
+  async getAirQlouds(params: AirQloudsQueryParams = {}): Promise<AirQloudsResponse> {
     const queryParams = new URLSearchParams()
-    
+
     // Always include performance data
     queryParams.append('include_performance', 'true')
-    
+
     if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
     if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
     if (params.country) queryParams.append('country', params.country)
     if (params.search) queryParams.append('search', params.search)
     if (params.performance_days) queryParams.append('performance_days', params.performance_days.toString())
+    if (params.is_active !== undefined) queryParams.append('is_active', params.is_active.toString())
 
     const endpoint = this.getEndpoint('/airqlouds')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
-    
+
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -186,20 +201,21 @@ class AirQloudService {
   /**
    * Get all AirQlouds without performance data (for filters/dropdowns)
    */
-  async getAirQloudsBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<AirQloudBasic[]> {
+  async getAirQloudsBasic(params: Omit<AirQloudsQueryParams, 'include_performance' | 'performance_days'> = {}): Promise<AirQloudsResponse> {
     const queryParams = new URLSearchParams()
-    
+
     // Do NOT include performance data
     queryParams.append('include_performance', 'false')
-    
+
     if (params.skip !== undefined) queryParams.append('skip', params.skip.toString())
     if (params.limit !== undefined) queryParams.append('limit', params.limit.toString())
     if (params.country) queryParams.append('country', params.country)
     if (params.search) queryParams.append('search', params.search)
+    if (params.is_active !== undefined) queryParams.append('is_active', params.is_active.toString())
 
     const endpoint = this.getEndpoint('/airqlouds')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
-    
+
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -222,12 +238,12 @@ class AirQloudService {
    * Get a specific AirQloud by ID with performance data
    */
   async getAirQloudById(
-    airqloudId: string, 
+    airqloudId: string,
     performanceDays: number = 14
   ): Promise<AirQloudWithPerformance> {
     const endpoint = this.getEndpoint(`/airqlouds/${airqloudId}`)
     const url = `${this.baseUrl}${endpoint}?include_performance=true&performance_days=${performanceDays}`
-    
+
     try {
       const response = await fetch(url, {
         method: 'GET',
@@ -252,7 +268,7 @@ class AirQloudService {
   async createAirQloud(payload: CreateAirQloudPayload): Promise<CreateAirQloudResponse> {
     const endpoint = this.getEndpoint('/airqlouds/')
     const url = `${this.baseUrl}${endpoint}`
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -285,23 +301,23 @@ class AirQloudService {
   ): Promise<CreateAirQloudWithDevicesResponse> {
     const endpoint = this.getEndpoint('/airqlouds/create-with-devices')
     const url = `${this.baseUrl}${endpoint}`
-    
+
     try {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('name', name)
-      
+
       if (country) {
         formData.append('country', country)
       }
-      
+
       if (visibility !== undefined) {
         formData.append('visibility', visibility.toString())
       }
-      
+
       if (columnMappings) {
         const transformedMappings: Record<string, string> = {}
-        
+
         if (columnMappings.device) {
           transformedMappings[columnMappings.device] = 'device_id'
         }
@@ -311,14 +327,14 @@ class AirQloudService {
         if (columnMappings.channel) {
           transformedMappings[columnMappings.channel] = 'channel_id'
         }
-        
+
         formData.append('column_mappings', JSON.stringify(transformedMappings))
       }
 
       // For FormData, don't set Content-Type header - browser will set it with boundary
       const authHeaders = this.getAuthHeaders()
       delete (authHeaders as any)['Content-Type']
-      
+
       const response = await fetch(url, {
         method: 'POST',
         headers: authHeaders,
@@ -348,7 +364,7 @@ class AirQloudService {
   }): Promise<AirQloudPerformanceData[]> {
     const endpoint = this.getEndpoint('/performance/airqloud')
     const url = `${this.baseUrl}${endpoint}`
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -377,7 +393,7 @@ class AirQloudService {
     run_in_background?: boolean
   } = {}): Promise<{ success: boolean; message: string; force: boolean }> {
     const queryParams = new URLSearchParams()
-    
+
     if (params.force !== undefined) {
       queryParams.append('force', params.force.toString())
     }
@@ -387,7 +403,7 @@ class AirQloudService {
 
     const endpoint = this.getEndpoint('/airqlouds/sync')
     const url = `${this.baseUrl}${endpoint}?${queryParams.toString()}`
-    
+
     try {
       const response = await fetch(url, {
         method: 'POST',
@@ -416,7 +432,7 @@ class AirQloudService {
   ): Promise<AirQloudWithPerformance> {
     const endpoint = this.getEndpoint(`/airqlouds/${airqloudId}`)
     const url = `${this.baseUrl}${endpoint}`
-    
+
     try {
       const response = await fetch(url, {
         method: 'PUT',
