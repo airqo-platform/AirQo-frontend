@@ -1,8 +1,8 @@
 export type PollutantType = 'pm2_5' | 'pm10' | 'no2' | 'o3' | 'co' | 'so2';
 
 export type AirQualityCategory =
-  | 'GoodAir'
-  | 'ModerateAir'
+  | 'Good'
+  | 'Moderate'
   | 'UnhealthyForSensitiveGroups'
   | 'Unhealthy'
   | 'VeryUnhealthy'
@@ -30,8 +30,8 @@ export const POLLUTANT_RANGES: Record<PollutantType, PollutantRange[]> = {
     { limit: 125.5, category: 'VeryUnhealthy' },
     { limit: 55.5, category: 'Unhealthy' },
     { limit: 35.5, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 9.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
+    { limit: 9.1, category: 'Moderate' },
+    { limit: 0.0, category: 'Good' },
   ],
   pm10: [
     { limit: 604.1, category: 'Invalid' },
@@ -39,8 +39,8 @@ export const POLLUTANT_RANGES: Record<PollutantType, PollutantRange[]> = {
     { limit: 354.1, category: 'VeryUnhealthy' },
     { limit: 254.1, category: 'Unhealthy' },
     { limit: 154.1, category: 'UnhealthyForSensitiveGroups' },
-    { limit: 54.1, category: 'ModerateAir' },
-    { limit: 0.0, category: 'GoodAir' },
+    { limit: 54.1, category: 'Moderate' },
+    { limit: 0.0, category: 'Good' },
   ],
   // TODO: Add support for additional pollutants when needed:
   no2: [],
