@@ -9,6 +9,8 @@ import { CustomButton, Divider } from '@/components/ui';
 import mainConfig from '@/configs/mainConfigs';
 import AfricanCities from '@/views/solutions/AfricanCities/AfricanCities';
 
+import GridAirQualityMonitor from '../../../components/sections/solutions/GridAirQualityMonitor';
+
 // Define motion variants for different animations
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -142,6 +144,19 @@ const AfricanCityPage = () => {
       </motion.section>
 
       <AfricanCities />
+
+      <Divider />
+
+      {/* Grid Air Quality Monitor Section */}
+      <motion.section
+        className={`${mainConfig.containerClass} px-4`}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.1 }}
+        variants={containerVariants}
+      >
+        <GridAirQualityMonitor />
+      </motion.section>
 
       <Divider />
 
