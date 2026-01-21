@@ -10,6 +10,7 @@ export { default as eventsService } from './events';
 export { default as externalService } from './external';
 export { default as faqService } from './faqs';
 export { default as forumEventsService } from './forumEvents';
+export { default as gridsService } from './grids';
 export { default as highlightsService } from './highlights';
 export { default as impactNumbersService } from './impactNumbers';
 export { default as partnersService } from './partners';

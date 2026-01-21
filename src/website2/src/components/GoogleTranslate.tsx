@@ -140,7 +140,7 @@ const GoogleTranslate = () => {
                   pageLanguage: 'en',
                   layout: window.google.translate.TranslateElement.InlineLayout.SIMPLE,
                   autoDisplay: false,
-                  includedLanguages: 'en,en-GB,fr,sw,ar,pt,ha,am,zu,yo,ig,so,rw,mg,es,de,it,pl,nl,ru,sv,fi,zh-CN,hi,ja,ko,th,vi,id'
+                includedLanguages: 'en,en-GB,fr,sw,ar,pt,ha,am,zu,yo,ig,so,rw,mg,es,de,it,pl,nl,ru,sv,fi,zh-CN,hi,ja,ko,th,vi,id,af,aa,bm,ny,ee,fon,gaa,kg,ki,kri,ln,lg,luo,nqo,om,pcm,rn,nso,sn,ss,tzm,ti,ts,tw,ve,wo,xh'
                 },
                 'google_translate_element'
               );

@@ -11,6 +11,7 @@ import {
   externalService,
   faqService,
   forumEventsService,
+  gridsService,
   highlightsService,
   impactNumbersService,
   partnersService,
@@ -273,7 +274,8 @@ export const useFAQs = (params?: { page?: number; page_size?: number }) =>
   );
 
 // External Services (for user interactions)
-export const useGridsSummary = (
+// Note: This is the legacy external service version - prefer using the gridsService version below
+export const useGridsSummaryExternal = (
   params?: {
     limit?: number;
     skip?: number;
@@ -287,7 +289,9 @@ export const useGridsSummary = (
 ) =>
   useServiceData(
     () => externalService.getGridsSummary(params || {}),
-    params ? `gridsSummary-${JSON.stringify(params)}` : 'gridsSummary',
+    params
+      ? `gridsSummaryExternal-${JSON.stringify(params)}`
+      : 'gridsSummaryExternal',
     swrOptions,
   );
 
@@ -310,3 +314,41 @@ export const useGridsSummaryV2 = (
 
 export const useCountriesData = () =>
   useServiceData(() => externalService.getCountriesData(), 'countriesData');
+
+// Grids - New endpoints for grid data
+export const useGridsSummary = (
+  params?: {
+    limit?: number;
+    skip?: number;
+    page?: number;
+    tenant?: string;
+    detailLevel?: string;
+    admin_level?: string;
+  },
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    () => gridsService.getGridsSummary(params || {}),
+    params ? `gridsSummary-${JSON.stringify(params)}` : 'gridsSummary',
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      dedupingInterval: 300000, // 5 minutes
+      ...swrOptions,
+    },
+  );
+
+export const useGridRepresentativeReading = (
+  gridId: string | null,
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    gridId ? () => gridsService.getGridRepresentativeReading(gridId) : null,
+    gridId ? `gridRepresentativeReading-${gridId}` : null,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: true,
+      refreshInterval: 300000, // 5 minutes auto-refresh
+      ...swrOptions,
+    },
+  );
