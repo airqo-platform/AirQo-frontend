@@ -1,6 +1,8 @@
 'use client';
 
 import {
+  AqAirQo,
+  AqCopy06,
   AqGood,
   AqHazardous,
   AqModem02,
@@ -64,18 +66,23 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   const [dataType, setDataType] = useState<DataType>(propDataType || 'grid');
   const [selectedItem, setSelectedItem] = useState<Cohort | Grid | null>(null);
   const [currentMeasurement, setCurrentMeasurement] = useState<any>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+  const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Refs for cleanup
   const measurementRotationRef = useRef<NodeJS.Timeout | null>(null);
   const itemRotationRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch data based on type
-  const { data: cohortsData } = useCohortsSummary({
+  const { data: cohortsData, isLoading: cohortsLoading } = useCohortsSummary({
     limit: 100,
   });
 
-  const { data: gridsData } = useGridsSummary({
+  const { data: gridsData, isLoading: gridsLoading } = useGridsSummary({
     limit: 100,
   });
 
@@ -99,14 +106,57 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   const currentItems =
     dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
 
+  // Handle copy URL functionality
+  const handleCopyUrl = async (item: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const itemName = (item.name || item.long_name || '')
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+    const url = `${window.location.origin}/billboard/${dataType}/${encodeURIComponent(itemName)}`;
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedItemId(item._id);
+      setTimeout(() => setCopiedItemId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+    }
+  };
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Set first item as default when data loads or handle prop-based item selection
   useEffect(() => {
     if (!isMountedRef.current) return;
 
     const items =
       dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
+    const isLoading = dataType === 'cohort' ? cohortsLoading : gridsLoading;
 
-    if (!items?.length) return;
+    if (isLoading) {
+      setDataLoaded(false);
+      return;
+    }
+
+    // Data is loaded
+    if (!items?.length) {
+      setDataLoaded(true);
+      setSelectedItem(null);
+      return;
+    }
 
     // If a specific item name is provided via props, find and select it
     if (propItemName && !selectedItem) {
@@ -114,7 +164,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
         .toLowerCase()
         .replace(/[-_\s]/g, '');
       const matchedItem = items.find((item: any) => {
-        const itemName = (item.name || item.long_name || '')
+        const itemName = (item.long_name || item.name || '')
           .toLowerCase()
           .replace(/[-_\s]/g, '');
         return itemName === normalizedPropName;
@@ -122,16 +172,24 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
       if (matchedItem) {
         setSelectedItem(matchedItem);
-        return;
       }
     }
 
     // Otherwise, select the first item if none is selected
     if (!selectedItem) {
       setSelectedItem(items[0]);
-      setCurrentMeasurement(null);
     }
-  }, [cohortsData, gridsData, dataType, selectedItem, propItemName]);
+
+    setDataLoaded(true);
+  }, [
+    cohortsData,
+    gridsData,
+    cohortsLoading,
+    gridsLoading,
+    dataType,
+    selectedItem,
+    propItemName,
+  ]);
 
   // Update current measurement when measurements change
   const updateMeasurement = useCallback(() => {
@@ -327,7 +385,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                   {days[dayIndex]}
                 </span>
                 <span className="text-xs sm:text-sm font-medium mb-2">
-                  {forecast.pm2_5?.toFixed(1) || '--'}
+                  {forecast.pm2_5?.toFixed(2) || '--'}
                 </span>
                 <div className="flex-shrink-0">
                   {forecast.pm2_5 ? (
@@ -357,7 +415,18 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   return (
     <section className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
       <div className="max-w-7xl mx-auto">
-        {!currentMeasurement ? (
+        {!dataLoaded ? (
+          <BillboardSkeleton />
+        ) : !selectedItem ? (
+          <div className="flex items-center justify-center min-h-[400px] text-white">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">
+                {dataType === 'cohort' ? 'Cohort' : 'Grid'} Not Found
+              </h2>
+              <p className="text-lg opacity-90">{`The requested ${dataType} "${propItemName}" could not be found.`}</p>
+            </div>
+          </div>
+        ) : !currentMeasurement ? (
           <BillboardSkeleton />
         ) : (
           <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
@@ -429,34 +498,78 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
             {/* Selection Dropdown */}
             {!hideControls && (
-              <div className="relative z-10 mb-6 sm:mb-8">
+              <div className="relative z-[100] mb-6 sm:mb-8" ref={dropdownRef}>
                 <div className="relative max-w-md">
-                  <select
-                    value={selectedItem?._id || ''}
-                    onChange={(e) => {
-                      const items =
-                        dataType === 'cohort'
-                          ? cohortsData?.cohorts
-                          : gridsData?.grids;
-                      const item = items?.find(
-                        (i: any) => i._id === e.target.value,
-                      );
-                      setSelectedItem(item || null);
-                      setCurrentMeasurement(null); // Reset to load fresh data
-                    }}
-                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 appearance-none backdrop-blur-sm text-sm sm:text-base"
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 backdrop-blur-sm text-sm sm:text-base flex items-center justify-between"
                   >
-                    {currentItems?.map((item: any) => (
-                      <option
-                        key={item._id}
-                        value={item._id}
-                        className="text-black bg-white"
-                      >
-                        {formatDisplayName(item.name || item.long_name)}
-                      </option>
-                    ))}
-                  </select>
-                  <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
+                    <span>
+                      {selectedItem
+                        ? formatDisplayName(
+                            selectedItem.name ||
+                              (selectedItem as any).long_name,
+                          )
+                        : 'Select...'}
+                    </span>
+                    <FiChevronDown
+                      className={cn(
+                        'w-5 h-5 transition-transform',
+                        isDropdownOpen && 'rotate-180',
+                      )}
+                    />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {isDropdownOpen && currentItems && (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl max-h-64 overflow-y-auto z-[9999] border border-gray-200">
+                      {currentItems.map((item: any) => (
+                        <div
+                          key={item._id}
+                          className="relative group"
+                          onMouseEnter={() => setHoveredItemId(item._id)}
+                          onMouseLeave={() => setHoveredItemId(null)}
+                        >
+                          <div className="flex items-center justify-between w-full">
+                            <button
+                              onClick={() => {
+                                setSelectedItem(item);
+                                setCurrentMeasurement(null);
+                                setIsDropdownOpen(false);
+                              }}
+                              className={cn(
+                                'flex-1 px-4 py-3 text-left text-gray-800 hover:bg-blue-50 transition-colors',
+                                selectedItem?._id === item._id &&
+                                  'bg-blue-100 font-semibold',
+                              )}
+                            >
+                              {formatDisplayName(item.name || item.long_name)}
+                            </button>
+
+                            {/* Copy Icon - Shows on hover */}
+                            <button
+                              onClick={(e) => handleCopyUrl(item, e)}
+                              className={cn(
+                                'px-3 py-3 hover:bg-blue-200 transition-all flex items-center justify-center',
+                                hoveredItemId === item._id
+                                  ? 'opacity-100 visible'
+                                  : 'opacity-0 invisible',
+                              )}
+                              title="Copy URL"
+                            >
+                              {copiedItemId === item._id ? (
+                                <span className="text-xs text-green-600 font-semibold whitespace-nowrap">
+                                  Copied!
+                                </span>
+                              ) : (
+                                <AqCopy06 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -500,7 +613,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                           fontFamily: '"Times New Roman", Times, serif',
                         }}
                       >
-                        {pm25Value?.toFixed(1) ?? '--'}
+                        {pm25Value?.toFixed(2) ?? '--'}
                       </span>
                       <span
                         className="text-2xl sm:text-3xl opacity-90 mb-2"
@@ -611,6 +724,13 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                       : 'Unknown'}
                   </div>
                 </div>
+
+                {/* AirQo Watermark Logo - Bottom Right */}
+                {hideControls && (
+                  <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-20 opacity-30 hover:opacity-60 transition-opacity">
+                    <AqAirQo className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
+                  </div>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>
