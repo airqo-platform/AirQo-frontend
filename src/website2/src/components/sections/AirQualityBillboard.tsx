@@ -17,6 +17,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiMapPin } from 'react-icons/fi';
+import { mutate } from 'swr';
 
 import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
 import {
@@ -67,6 +68,12 @@ const AirQualityBillboard = ({
   const [selectedItem, setSelectedItem] = useState<Cohort | Grid | null>(null);
   const [currentMeasurement, setCurrentMeasurement] = useState<any>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  // Refs for cleanup
+  const measurementRotationRef = useRef<NodeJS.Timeout | null>(null);
+  const itemRotationRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
@@ -77,11 +84,11 @@ const AirQualityBillboard = ({
   const [_allGrids, setAllGrids] = useState<any[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // Refs for cleanup
-  const measurementRotationRef = useRef<NodeJS.Timeout | null>(null);
-  const itemRotationRef = useRef<NodeJS.Timeout | null>(null);
-  const isMountedRef = useRef(true);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // Helper function to get display name
+  const getDisplayName = (item: Cohort | Grid | null): string => {
+    if (!item) return '';
+    return item.name || (item as Grid).long_name || '';
+  };
 
   // Fetch data based on type
   const cohortsParams =
@@ -277,6 +284,26 @@ const AirQualityBillboard = ({
 
   // Clear data when dataType changes
   useEffect(() => {
+    // Clear old cache entries when switching data types
+    if (dataType === 'grid') {
+      // Clear cohort-related cache
+      mutate(
+        (key) => typeof key === 'string' && key.startsWith('cohortsSummary'),
+      );
+      mutate(
+        (key) =>
+          typeof key === 'string' && key.startsWith('cohortMeasurements'),
+      );
+    } else {
+      // Clear grid-related cache
+      mutate(
+        (key) => typeof key === 'string' && key.startsWith('gridsSummary'),
+      );
+      mutate(
+        (key) => typeof key === 'string' && key.startsWith('gridMeasurements'),
+      );
+    }
+
     setSelectedItem(null);
     setCurrentMeasurement(null);
     setCurrentSiteIndex(0);
@@ -653,7 +680,7 @@ const AirQualityBillboard = ({
             ? cohortMeasurementsLoading
             : gridMeasurementsLoading)) ? (
           <BillboardSkeleton />
-        ) : !selectedItem ? (
+        ) : propItemName && !selectedItem ? (
           <div className="flex items-center justify-center min-h-[400px] text-white">
             <div className="text-center">
               <h2 className="text-2xl font-bold mb-2">
@@ -662,6 +689,8 @@ const AirQualityBillboard = ({
               <p className="text-lg opacity-90">{`The requested ${dataType} "${propItemName}" could not be found.`}</p>
             </div>
           </div>
+        ) : !selectedItem ? (
+          <BillboardSkeleton />
         ) : !currentMeasurement ? (
           <div className="flex items-center justify-center min-h-[400px] text-white">
             <div className="text-center">
@@ -763,10 +792,7 @@ const AirQualityBillboard = ({
                   >
                     <span>
                       {selectedItem
-                        ? formatDisplayName(
-                            selectedItem.name ||
-                              (selectedItem as any).long_name,
-                          )
+                        ? formatDisplayName(getDisplayName(selectedItem))
                         : 'Select...'}
                     </span>
                     <FiChevronDown

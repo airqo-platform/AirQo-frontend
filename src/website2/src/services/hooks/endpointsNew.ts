@@ -335,6 +335,9 @@ export const useGridsSummary = (
       revalidateOnFocus: false,
       revalidateIfStale: false,
       dedupingInterval: 300000, // 5 minutes
+      focusThrottleInterval: 10000, // 10 seconds
+      errorRetryInterval: 5000, // 5 seconds
+      errorRetryCount: 3,
       ...swrOptions,
     },
   );
@@ -371,6 +374,9 @@ export const useCohortsSummary = (
       revalidateOnFocus: false,
       revalidateIfStale: false,
       dedupingInterval: 300000, // 5 minutes
+      focusThrottleInterval: 10000, // 10 seconds
+      errorRetryInterval: 5000, // 5 seconds
+      errorRetryCount: 3,
       ...swrOptions,
     },
   );
@@ -398,6 +404,9 @@ export const useCohortMeasurements = (
       revalidateOnFocus: false,
       revalidateIfStale: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
+      focusThrottleInterval: 10000, // 10 seconds
+      errorRetryInterval: 5000, // 5 seconds
+      errorRetryCount: 3,
       ...swrOptions,
     },
   );
@@ -426,6 +435,9 @@ export const useGridMeasurements = (
       revalidateOnFocus: false,
       revalidateIfStale: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
+      focusThrottleInterval: 10000, // 10 seconds
+      errorRetryInterval: 5000, // 5 seconds
+      errorRetryCount: 3,
       ...swrOptions,
     },
   );
