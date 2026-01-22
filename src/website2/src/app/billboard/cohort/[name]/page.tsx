@@ -38,6 +38,7 @@ export default function CohortBillboardPage({
           autoRotate={false}
           dataType="cohort"
           itemName={cohortName}
+          centered={true}
         />
       </Suspense>
     </main>

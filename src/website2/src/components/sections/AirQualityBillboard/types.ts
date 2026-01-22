@@ -6,6 +6,7 @@ export interface AirQualityBillboardProps {
   autoRotate?: boolean;
   dataType?: DataType;
   itemName?: string;
+  centered?: boolean;
 }
 
 export interface Cohort {

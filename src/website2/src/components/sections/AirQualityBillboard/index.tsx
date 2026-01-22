@@ -21,6 +21,7 @@ const AirQualityBillboard = ({
   autoRotate = false,
   dataType: propDataType,
   itemName: propItemName,
+  centered = false,
 }: AirQualityBillboardProps) => {
   // Custom hooks for state management
   const controls = useBillboardControls(propDataType, propItemName, autoRotate);
@@ -160,8 +161,15 @@ const AirQualityBillboard = ({
   };
 
   return (
-    <div className={cn('py-4 sm:py-6 lg:py-8 px-4', className)}>
-      <div className="max-w-7xl mx-auto">
+    <div
+      className={cn(
+        centered
+          ? 'min-h-screen flex items-center justify-center p-4'
+          : 'py-4 sm:py-6 lg:py-8 px-4',
+        className,
+      )}
+    >
+      <div className={cn(centered ? 'max-w-7xl w-full' : 'max-w-7xl mx-auto')}>
         {/* Error States */}
         {hasError ? (
           <ErrorDisplay
@@ -179,31 +187,70 @@ const AirQualityBillboard = ({
         ) : !dataLoaded || (selectedItem && measurementsLoading) ? (
           <BillboardSkeleton />
         ) : propItemName && !selectedItem ? (
-          <div className="flex items-center justify-center min-h-[400px] text-white">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">
-                {dataType === 'cohort' ? 'Cohort' : 'Grid'} Not Found
-              </h2>
-              <p className="text-lg opacity-90">{`The requested ${dataType} "${propItemName}" could not be found.`}</p>
+          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
+            </div>
+            <div className="relative z-10 flex items-center justify-center min-h-[400px]">
+              <div className="text-center space-y-6">
+                <div>
+                  <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+                    {dataType === 'cohort' ? 'Cohort' : 'Grid'} Not Found
+                  </h2>
+                  <p className="text-lg sm:text-xl opacity-90 mb-2">
+                    {`The requested ${dataType} "${propItemName}" could not be found.`}
+                  </p>
+                  <p className="text-base opacity-75">
+                    Please check the URL or select a different {dataType} from
+                    the main billboard page.
+                  </p>
+                </div>
+                <div className="flex justify-center">
+                  <a
+                    href="/billboard"
+                    className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg inline-block"
+                  >
+                    Back to Billboard
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         ) : !selectedItem ? (
           <BillboardSkeleton />
         ) : !currentMeasurement ? (
-          <div className="flex items-center justify-center min-h-[400px] text-white">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-2">No Data Available</h2>
-              <p className="text-lg opacity-90 mb-4">
-                {`No air quality data is currently available for this ${dataType}.`}
-              </p>
-              {!propItemName && (
-                <button
-                  onClick={() => window.location.reload()}
-                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Reload Page
-                </button>
-              )}
+          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
+            </div>
+            <div className="relative z-10 flex items-center justify-center min-h-[400px]">
+              <div className="text-center space-y-6">
+                <div>
+                  <h2 className="text-3xl sm:text-4xl font-bold mb-4">
+                    No Data Available
+                  </h2>
+                  <p className="text-lg sm:text-xl opacity-90 mb-2">
+                    {propItemName
+                      ? `We're currently unable to retrieve air quality data for "${selectedItem?.name || selectedItem?.long_name || propItemName}".`
+                      : `No air quality data is currently available for this ${dataType}.`}
+                  </p>
+                  <p className="text-base opacity-75">
+                    {propItemName
+                      ? 'This may be due to temporary connectivity issues or the monitoring station being offline. Please try again later.'
+                      : 'Please check back later or try refreshing the page.'}
+                  </p>
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ) : (

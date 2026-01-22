@@ -36,6 +36,7 @@ export default function GridBillboardPage({ params }: GridBillboardPageProps) {
           autoRotate={false}
           dataType="grid"
           itemName={gridName}
+          centered={true}
         />
       </Suspense>
     </main>
