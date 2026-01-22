@@ -285,7 +285,7 @@ const GridAirQualityMonitor: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-baseline gap-2">
                         <span className="text-5xl font-bold text-gray-900">
-                          {currentValue?.toFixed(1) ?? 'N/A'}
+                          {currentValue?.toFixed(2) ?? 'N/A'}
                         </span>
                         <span className="text-xl text-gray-600">μg/m³</span>
                       </div>
