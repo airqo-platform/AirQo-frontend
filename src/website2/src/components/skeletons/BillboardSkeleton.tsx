@@ -90,9 +90,9 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
   }
 
   return (
-    <section className="py-8 sm:py-12 lg:py-16 px-4">
+    <div className="py-8 sm:py-12 lg:py-16 px-4">
       <div className="max-w-7xl mx-auto">{content}</div>
-    </section>
+    </div>
   );
 };
 

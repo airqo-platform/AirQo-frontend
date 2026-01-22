@@ -15,7 +15,7 @@ import {
 } from '@airqo/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiMapPin } from 'react-icons/fi';
 
 import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
@@ -56,13 +56,13 @@ const formatDisplayName = (name: string): string => {
     .join(' ');
 };
 
-const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
+const AirQualityBillboard = ({
   className,
   hideControls = false,
   autoRotate = false,
   dataType: propDataType,
   itemName: propItemName,
-}) => {
+}: AirQualityBillboardProps) => {
   const [dataType, setDataType] = useState<DataType>(propDataType || 'grid');
   const [selectedItem, setSelectedItem] = useState<Cohort | Grid | null>(null);
   const [currentMeasurement, setCurrentMeasurement] = useState<any>(null);
@@ -70,6 +70,9 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
   const [copiedItemId, setCopiedItemId] = useState<string | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [currentSiteIndex, setCurrentSiteIndex] = useState(0);
+  const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Refs for cleanup
   const measurementRotationRef = useRef<NodeJS.Timeout | null>(null);
@@ -86,7 +89,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     limit: 100,
   });
 
-  // Get measurements for selected item
+  // Get measurements for selected item using the recent endpoints
   const { data: cohortMeasurements } = useCohortMeasurements(
     selectedItem && dataType === 'cohort' ? selectedItem._id : null,
     { limit: 100 },
@@ -97,7 +100,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     { limit: 100 },
   );
 
-  // Get forecast for current site
+  // Get forecast for current site - site_id comes from the measurement
   const { data: forecastData } = useDailyForecast(
     currentMeasurement?.site_id || null,
   );
@@ -105,6 +108,13 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   // Get current items list
   const currentItems =
     dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
+
+  // Filter items based on search query
+  const filteredItems = currentItems?.filter((item: any) => {
+    if (!searchQuery) return true;
+    const itemName = (item.name || item.long_name || '').toLowerCase();
+    return itemName.includes(searchQuery.toLowerCase());
+  });
 
   // Handle copy URL functionality
   const handleCopyUrl = async (item: any, e: React.MouseEvent) => {
@@ -131,6 +141,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
         !dropdownRef.current.contains(event.target as Node)
       ) {
         setIsDropdownOpen(false);
+        setSearchQuery('');
       }
     };
 
@@ -172,12 +183,22 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
       if (matchedItem) {
         setSelectedItem(matchedItem);
+        // Reset indices when selecting a specific item
+        setCurrentSiteIndex(0);
+        setCurrentDeviceIndex(0);
+      } else {
+        // Fallback to first item if requested item not found
+        setSelectedItem(items[0]);
+        setCurrentSiteIndex(0);
+        setCurrentDeviceIndex(0);
       }
     }
 
     // Otherwise, select the first item if none is selected
     if (!selectedItem) {
       setSelectedItem(items[0]);
+      setCurrentSiteIndex(0);
+      setCurrentDeviceIndex(0);
     }
 
     setDataLoaded(true);
@@ -191,7 +212,14 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     propItemName,
   ]);
 
-  // Update current measurement when measurements change
+  // Clear measurement when selected item changes to prevent data leaking
+  useEffect(() => {
+    setCurrentMeasurement(null);
+    setCurrentSiteIndex(0);
+    setCurrentDeviceIndex(0);
+  }, [selectedItem?._id, dataType]);
+
+  // Update current measurement based on current index - does NOT increment index
   const updateMeasurement = useCallback(() => {
     if (!isMountedRef.current) return;
 
@@ -206,24 +234,54 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
       );
 
       if (validMeasurements.length > 0) {
-        const randomIndex = Math.floor(
-          Math.random() * validMeasurements.length,
-        );
-        setCurrentMeasurement(validMeasurements[randomIndex]);
+        if (dataType === 'grid') {
+          // For grids: display measurement at current site index
+          const index = currentSiteIndex % validMeasurements.length;
+          setCurrentMeasurement(validMeasurements[index]);
+        } else {
+          // For cohorts: display measurement at current device index
+          const index = currentDeviceIndex % validMeasurements.length;
+          setCurrentMeasurement(validMeasurements[index]);
+        }
       } else {
-        // If no valid measurements, keep the current one or set to first measurement
+        // If no valid measurements, set to first measurement if available
         if (!currentMeasurement && measurements.length > 0) {
           setCurrentMeasurement(measurements[0]);
         }
       }
     }
-  }, [cohortMeasurements, gridMeasurements, dataType, currentMeasurement]);
+  }, [
+    cohortMeasurements,
+    gridMeasurements,
+    dataType,
+    currentSiteIndex,
+    currentDeviceIndex,
+    currentMeasurement,
+  ]);
 
+  // Set initial measurement when measurements data loads
   useEffect(() => {
-    updateMeasurement();
-  }, [updateMeasurement]);
+    if (!isMountedRef.current || !selectedItem) return;
 
-  // Auto-refresh measurement every 30 seconds
+    const measurements =
+      dataType === 'cohort'
+        ? cohortMeasurements?.measurements
+        : gridMeasurements?.measurements;
+
+    // Only update if we have measurements and no current measurement
+    if (measurements && measurements.length > 0 && !currentMeasurement) {
+      updateMeasurement();
+    }
+  }, [
+    cohortMeasurements?.measurements,
+    gridMeasurements?.measurements,
+    dataType,
+    currentMeasurement,
+    updateMeasurement,
+    selectedItem,
+  ]);
+
+  // Auto-refresh measurement every 30 seconds - increment index and update
   useEffect(() => {
     if (!isMountedRef.current) return;
 
@@ -232,8 +290,27 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     }
 
     measurementRotationRef.current = setInterval(() => {
-      if (isMountedRef.current) {
-        updateMeasurement();
+      if (!isMountedRef.current) return;
+
+      const measurements =
+        dataType === 'cohort'
+          ? cohortMeasurements?.measurements
+          : gridMeasurements?.measurements;
+
+      const validMeasurements = measurements?.filter(
+        (m: any) => m.pm2_5 && typeof m.pm2_5.value === 'number',
+      );
+
+      if (validMeasurements && validMeasurements.length > 0) {
+        if (dataType === 'grid') {
+          // Increment site index
+          setCurrentSiteIndex((prev) => (prev + 1) % validMeasurements.length);
+        } else {
+          // Increment device index
+          setCurrentDeviceIndex(
+            (prev) => (prev + 1) % validMeasurements.length,
+          );
+        }
       }
     }, 30000);
 
@@ -243,9 +320,16 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
         measurementRotationRef.current = null;
       }
     };
-  }, [updateMeasurement]);
+  }, [dataType, cohortMeasurements, gridMeasurements]);
 
-  // Auto-rotate between items every 20 seconds if enabled (only when no specific item is provided)
+  // Update measurement display when index changes
+  useEffect(() => {
+    updateMeasurement();
+  }, [currentSiteIndex, currentDeviceIndex, updateMeasurement]);
+
+  // Auto-rotate between items (only when no specific item is provided)
+  // For grids: cycle through all grids and their sites
+  // For cohorts: cycle through all cohorts and their devices
   useEffect(() => {
     if (
       !autoRotate ||
@@ -267,11 +351,46 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
       if (!items || items.length === 0) return;
 
       setSelectedItem((prevItem) => {
+        const measurements =
+          dataType === 'cohort'
+            ? cohortMeasurements?.measurements
+            : gridMeasurements?.measurements;
+
+        // Check if we've cycled through all sites/devices in the current item
+        const validMeasurements = measurements?.filter(
+          (m: any) => m.pm2_5 && typeof m.pm2_5.value === 'number',
+        );
+
         const currentIndex = items.findIndex(
           (item: any) => item._id === prevItem?._id,
         );
-        const nextIndex = (currentIndex + 1) % items.length;
-        return items[nextIndex] || prevItem;
+
+        if (dataType === 'grid') {
+          // For grids: check if we've shown all sites, then move to next grid
+          if (
+            !validMeasurements?.length ||
+            currentSiteIndex >= validMeasurements.length - 1
+          ) {
+            // Move to next grid and reset site index
+            setCurrentSiteIndex(0);
+            const nextIndex = (currentIndex + 1) % items.length;
+            return items[nextIndex] || prevItem;
+          }
+        } else {
+          // For cohorts: check if we've shown all devices, then move to next cohort
+          if (
+            !validMeasurements?.length ||
+            currentDeviceIndex >= validMeasurements.length - 1
+          ) {
+            // Move to next cohort and reset device index
+            setCurrentDeviceIndex(0);
+            const nextIndex = (currentIndex + 1) % items.length;
+            return items[nextIndex] || prevItem;
+          }
+        }
+
+        // Stay on current item, will cycle to next site/device
+        return prevItem;
       });
     }, 20000);
 
@@ -288,6 +407,10 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     cohortsData,
     gridsData,
     propItemName,
+    currentSiteIndex,
+    currentDeviceIndex,
+    cohortMeasurements,
+    gridMeasurements,
   ]);
 
   // Cleanup on unmount
@@ -347,7 +470,9 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
       return currentMeasurement.deviceDetails.name || 'Unknown Device';
     }
     if (dataType === 'grid' && currentMeasurement?.siteDetails) {
+      // For grid, show site name or search_name
       return (
+        currentMeasurement.siteDetails.name ||
         formatDisplayName(currentMeasurement.siteDetails.search_name) ||
         'Unknown Location'
       );
@@ -357,46 +482,53 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
   // Render forecast
   const renderForecast = () => {
-    if (!forecastData?.forecasts) return null;
+    if (!forecastData?.forecasts || forecastData.forecasts.length === 0) {
+      return null;
+    }
+
+    // Only show forecast if we have valid data
+    const validForecasts = forecastData.forecasts.filter(
+      (f: any) => f.pm2_5 != null && typeof f.pm2_5 === 'number',
+    );
+
+    if (validForecasts.length === 0) return null;
 
     const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const today = new Date().getDay();
 
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        {forecastData.forecasts
-          .slice(0, 7)
-          .map((forecast: any, index: number) => {
-            const dayIndex = (today + index) % 7;
-            const isToday = index === 0;
+        {validForecasts.slice(0, 7).map((forecast: any, index: number) => {
+          const dayIndex = (today + index) % 7;
+          const isToday = index === 0;
 
-            return (
-              <div
-                key={index}
-                className={cn(
-                  'flex flex-col items-center rounded-lg p-3 min-w-[60px] sm:min-w-[70px]',
-                  isToday
-                    ? 'bg-blue-700 text-white'
-                    : 'bg-blue-500/30 text-white backdrop-blur-sm',
+          return (
+            <div
+              key={index}
+              className={cn(
+                'flex flex-col items-center rounded-lg p-3 min-w-[60px] sm:min-w-[70px]',
+                isToday
+                  ? 'bg-blue-700 text-white'
+                  : 'bg-blue-500/30 text-white backdrop-blur-sm',
+              )}
+              style={{ fontFamily: '"Times New Roman", Times, serif' }}
+            >
+              <span className="font-bold text-sm sm:text-base mb-1">
+                {days[dayIndex]}
+              </span>
+              <span className="text-xs sm:text-sm font-medium mb-2">
+                {forecast.pm2_5?.toFixed(2) || '--'}
+              </span>
+              <div className="flex-shrink-0">
+                {forecast.pm2_5 ? (
+                  getAirQualityIcon(forecast.pm2_5, 'w-8 h-8 sm:w-10 sm:h-10')
+                ) : (
+                  <AqNoValue className="w-8 h-8 sm:w-10 sm:h-10" />
                 )}
-                style={{ fontFamily: '"Times New Roman", Times, serif' }}
-              >
-                <span className="font-bold text-sm sm:text-base mb-1">
-                  {days[dayIndex]}
-                </span>
-                <span className="text-xs sm:text-sm font-medium mb-2">
-                  {forecast.pm2_5?.toFixed(2) || '--'}
-                </span>
-                <div className="flex-shrink-0">
-                  {forecast.pm2_5 ? (
-                    getAirQualityIcon(forecast.pm2_5, 'w-8 h-8 sm:w-10 sm:h-10')
-                  ) : (
-                    <AqNoValue className="w-8 h-8 sm:w-10 sm:h-10" />
-                  )}
-                </div>
               </div>
-            );
-          })}
+            </div>
+          );
+        })}
       </div>
     );
   };
@@ -413,9 +545,9 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   }
 
   return (
-    <section className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
+    <div className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
       <div className="max-w-7xl mx-auto">
-        {!dataLoaded ? (
+        {!dataLoaded || !currentMeasurement ? (
           <BillboardSkeleton />
         ) : !selectedItem ? (
           <div className="flex items-center justify-center min-h-[400px] text-white">
@@ -426,8 +558,6 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
               <p className="text-lg opacity-90">{`The requested ${dataType} "${propItemName}" could not be found.`}</p>
             </div>
           </div>
-        ) : !currentMeasurement ? (
-          <BillboardSkeleton />
         ) : (
           <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
             {/* Background pattern */}
@@ -467,6 +597,8 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                       setDataType('cohort');
                       setSelectedItem(null);
                       setCurrentMeasurement(null);
+                      setCurrentDeviceIndex(0);
+                      setCurrentSiteIndex(0);
                     }}
                     className={cn(
                       'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
@@ -482,6 +614,8 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                       setDataType('grid');
                       setSelectedItem(null);
                       setCurrentMeasurement(null);
+                      setCurrentDeviceIndex(0);
+                      setCurrentSiteIndex(0);
                     }}
                     className={cn(
                       'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
@@ -522,52 +656,101 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
                   {/* Dropdown Menu */}
                   {isDropdownOpen && currentItems && (
-                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl max-h-64 overflow-y-auto z-[9999] border border-gray-200">
-                      {currentItems.map((item: any) => (
-                        <div
-                          key={item._id}
-                          className="relative group"
-                          onMouseEnter={() => setHoveredItemId(item._id)}
-                          onMouseLeave={() => setHoveredItemId(null)}
-                        >
-                          <div className="flex items-center justify-between w-full">
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-lg shadow-2xl z-[9999] border border-gray-200">
+                      {/* Search Bar */}
+                      <div className="sticky top-0 bg-white p-3 border-b border-gray-200">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search..."
+                            className="w-full px-3 py-2 pr-8 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 text-sm"
+                            autoFocus
+                          />
+                          {searchQuery && (
                             <button
-                              onClick={() => {
-                                setSelectedItem(item);
-                                setCurrentMeasurement(null);
-                                setIsDropdownOpen(false);
-                              }}
-                              className={cn(
-                                'flex-1 px-4 py-3 text-left text-gray-800 hover:bg-blue-50 transition-colors',
-                                selectedItem?._id === item._id &&
-                                  'bg-blue-100 font-semibold',
-                              )}
+                              onClick={() => setSearchQuery('')}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                              aria-label="Clear search"
                             >
-                              {formatDisplayName(item.name || item.long_name)}
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
                             </button>
-
-                            {/* Copy Icon - Shows on hover */}
-                            <button
-                              onClick={(e) => handleCopyUrl(item, e)}
-                              className={cn(
-                                'px-3 py-3 hover:bg-blue-200 transition-all flex items-center justify-center',
-                                hoveredItemId === item._id
-                                  ? 'opacity-100 visible'
-                                  : 'opacity-0 invisible',
-                              )}
-                              title="Copy URL"
-                            >
-                              {copiedItemId === item._id ? (
-                                <span className="text-xs text-green-600 font-semibold whitespace-nowrap">
-                                  Copied!
-                                </span>
-                              ) : (
-                                <AqCopy06 className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                              )}
-                            </button>
-                          </div>
+                          )}
                         </div>
-                      ))}
+                      </div>
+
+                      {/* Items List */}
+                      <div className="max-h-60 overflow-y-auto">
+                        {filteredItems && filteredItems.length > 0 ? (
+                          filteredItems.map((item: any) => (
+                            <div
+                              key={item._id}
+                              className="relative group"
+                              onMouseEnter={() => setHoveredItemId(item._id)}
+                              onMouseLeave={() => setHoveredItemId(null)}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <button
+                                  onClick={() => {
+                                    setSelectedItem(item);
+                                    setCurrentMeasurement(null);
+                                    setCurrentDeviceIndex(0);
+                                    setCurrentSiteIndex(0);
+                                    setSearchQuery('');
+                                    setIsDropdownOpen(false);
+                                  }}
+                                  className={cn(
+                                    'flex-1 px-4 py-3 text-left text-gray-800 hover:bg-blue-50 transition-colors',
+                                    selectedItem?._id === item._id &&
+                                      'bg-blue-100 font-semibold',
+                                  )}
+                                >
+                                  {formatDisplayName(
+                                    item.name || item.long_name,
+                                  )}
+                                </button>
+
+                                {/* Copy Icon - Shows on hover */}
+                                <button
+                                  onClick={(e) => handleCopyUrl(item, e)}
+                                  className={cn(
+                                    'px-3 py-3 hover:bg-blue-200 transition-all flex items-center justify-center',
+                                    hoveredItemId === item._id
+                                      ? 'opacity-100 visible'
+                                      : 'opacity-0 invisible',
+                                  )}
+                                  title="Copy URL"
+                                >
+                                  {copiedItemId === item._id ? (
+                                    <span className="text-xs text-green-600 font-semibold whitespace-nowrap">
+                                      Copied!
+                                    </span>
+                                  ) : (
+                                    <AqCopy06 className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-8 text-center text-gray-500 text-sm">
+                            No results found for &quot;{searchQuery}&quot;
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -736,7 +919,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 };
 
