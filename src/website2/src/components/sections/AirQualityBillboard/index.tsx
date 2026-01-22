@@ -158,7 +158,7 @@ const AirQualityBillboard = ({
   };
 
   return (
-    <div className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
+    <div className={cn('py-4 sm:py-6 lg:py-8 px-4', className)}>
       <div className="max-w-7xl mx-auto">
         {/* Error States */}
         {hasError ? (
