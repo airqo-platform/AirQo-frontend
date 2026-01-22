@@ -17,6 +17,7 @@ export const useBillboardControls = (
 
   const isMountedRef = useRef(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Handle data type change
   const handleDataTypeChange = useCallback((newDataType: DataType) => {
@@ -45,7 +46,14 @@ export const useBillboardControls = (
       try {
         await navigator.clipboard.writeText(url);
         setCopiedItemId(item._id);
-        setTimeout(() => {
+
+        // Clear any existing timeout
+        if (copiedTimeoutRef.current) {
+          clearTimeout(copiedTimeoutRef.current);
+        }
+
+        // Set new timeout
+        copiedTimeoutRef.current = setTimeout(() => {
           if (isMountedRef.current) {
             setCopiedItemId(null);
           }
@@ -78,6 +86,9 @@ export const useBillboardControls = (
     isMountedRef.current = true;
     return () => {
       isMountedRef.current = false;
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
+      }
     };
   }, []);
 
