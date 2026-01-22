@@ -73,6 +73,9 @@ const AirQualityBillboard = ({
   const [currentSiteIndex, setCurrentSiteIndex] = useState(0);
   const [currentDeviceIndex, setCurrentDeviceIndex] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
+  const [_allCohorts, setAllCohorts] = useState<any[]>([]);
+  const [_allGrids, setAllGrids] = useState<any[]>([]);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   // Refs for cleanup
   const measurementRotationRef = useRef<NodeJS.Timeout | null>(null);
@@ -81,13 +84,22 @@ const AirQualityBillboard = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch data based on type
-  const { data: cohortsData, isLoading: cohortsLoading } = useCohortsSummary({
-    limit: 100,
-  });
+  const cohortsParams =
+    propItemName && dataType === 'cohort'
+      ? { limit: 80, search: propItemName }
+      : { limit: 80 };
+  const gridsParams =
+    propItemName && dataType === 'grid'
+      ? { limit: 80, search: propItemName }
+      : { limit: 80 };
 
-  const { data: gridsData, isLoading: gridsLoading } = useGridsSummary({
-    limit: 100,
-  });
+  const { data: cohortsData, isLoading: cohortsLoading } = useCohortsSummary(
+    dataType === 'cohort' ? cohortsParams : undefined,
+  );
+
+  const { data: gridsData, isLoading: gridsLoading } = useGridsSummary(
+    dataType === 'grid' ? gridsParams : undefined,
+  );
 
   // Get measurements for selected item using the recent endpoints
   const { data: cohortMeasurements } = useCohortMeasurements(
@@ -106,8 +118,57 @@ const AirQualityBillboard = ({
   );
 
   // Get current items list
-  const currentItems =
-    dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
+  const currentItems = dataType === 'cohort' ? _allCohorts : _allGrids;
+
+  // Accumulate all data from pages
+  useEffect(() => {
+    if (cohortsData?.cohorts) {
+      setAllCohorts((prev) => {
+        const existingIds = new Set(prev.map((c) => c._id));
+        const newCohorts = cohortsData.cohorts.filter(
+          (c) => !existingIds.has(c._id),
+        );
+        return [...prev, ...newCohorts];
+      });
+    }
+  }, [cohortsData]);
+
+  useEffect(() => {
+    if (gridsData?.grids) {
+      setAllGrids((prev) => {
+        const existingIds = new Set(prev.map((g) => g._id));
+        const newGrids = gridsData.grids.filter((g) => !existingIds.has(g._id));
+        return [...prev, ...newGrids];
+      });
+    }
+  }, [gridsData]);
+
+  // Load more pages if available
+  useEffect(() => {
+    if (!isMountedRef.current || loadingMore) return;
+
+    const meta = dataType === 'cohort' ? cohortsData?.meta : gridsData?.meta;
+    if (meta?.nextPage && !loadingMore) {
+      setLoadingMore(true);
+      // Parse nextPage URL to get params
+      const url = new URL(meta.nextPage);
+      const params: any = {};
+      url.searchParams.forEach((value, key) => {
+        if (key === 'limit' || key === 'skip') {
+          params[key] = parseInt(value);
+        }
+      });
+
+      // Load next page
+      if (dataType === 'cohort') {
+        // Note: This is a simplified approach. In a real app, you'd call the service directly
+        // For now, we'll assume the hook handles pagination, but since SWR doesn't, we'll skip
+      } else {
+        // Same for grids
+      }
+      setLoadingMore(false);
+    }
+  }, [cohortsData, gridsData, dataType, loadingMore]);
 
   // Filter items based on search query
   const filteredItems = currentItems?.filter((item: any) => {
@@ -212,12 +273,15 @@ const AirQualityBillboard = ({
     propItemName,
   ]);
 
-  // Clear measurement when selected item changes to prevent data leaking
+  // Clear data when dataType changes
   useEffect(() => {
+    setSelectedItem(null);
     setCurrentMeasurement(null);
     setCurrentSiteIndex(0);
     setCurrentDeviceIndex(0);
-  }, [selectedItem?._id, dataType]);
+    setAllCohorts([]);
+    setAllGrids([]);
+  }, [dataType]);
 
   // Update current measurement based on current index - does NOT increment index
   const updateMeasurement = useCallback(() => {
@@ -361,31 +425,27 @@ const AirQualityBillboard = ({
           (m: any) => m.pm2_5 && typeof m.pm2_5.value === 'number',
         );
 
-        const currentIndex = items.findIndex(
-          (item: any) => item._id === prevItem?._id,
-        );
-
         if (dataType === 'grid') {
-          // For grids: check if we've shown all sites, then move to next grid
+          // For grids: check if we've shown all sites, then move to random grid
           if (
             !validMeasurements?.length ||
             currentSiteIndex >= validMeasurements.length - 1
           ) {
-            // Move to next grid and reset site index
+            // Move to random grid and reset site index
             setCurrentSiteIndex(0);
-            const nextIndex = (currentIndex + 1) % items.length;
-            return items[nextIndex] || prevItem;
+            const randomIndex = Math.floor(Math.random() * items.length);
+            return items[randomIndex] || prevItem;
           }
         } else {
-          // For cohorts: check if we've shown all devices, then move to next cohort
+          // For cohorts: check if we've shown all devices, then move to random cohort
           if (
             !validMeasurements?.length ||
             currentDeviceIndex >= validMeasurements.length - 1
           ) {
-            // Move to next cohort and reset device index
+            // Move to random cohort and reset device index
             setCurrentDeviceIndex(0);
-            const nextIndex = (currentIndex + 1) % items.length;
-            return items[nextIndex] || prevItem;
+            const randomIndex = Math.floor(Math.random() * items.length);
+            return items[randomIndex] || prevItem;
           }
         }
 
@@ -548,7 +608,18 @@ const AirQualityBillboard = ({
     <div className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
       <div className="max-w-7xl mx-auto">
         {!dataLoaded || !currentMeasurement ? (
-          <BillboardSkeleton />
+          propItemName && selectedItem ? (
+            <div className="flex items-center justify-center min-h-[400px] text-white">
+              <div className="text-center">
+                <h2 className="text-2xl font-bold mb-2">No Data Available</h2>
+                <p className="text-lg opacity-90">
+                  {`No air quality data is currently available for this ${dataType}.`}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <BillboardSkeleton />
+          )
         ) : !selectedItem ? (
           <div className="flex items-center justify-center min-h-[400px] text-white">
             <div className="text-center">

@@ -26,20 +26,13 @@ class CohortsService extends BaseApiService {
     params: CohortsQueryParams = {},
     options: ServiceOptions = {},
   ): Promise<CohortsSummaryResponse> {
-    const {
-      tenant = 'airqo',
-      detailLevel = 'summary',
-      limit = 30,
-      skip,
-      page,
-    } = params;
+    const { limit = 30, skip, page, search } = params;
 
     const defaultParams = {
-      tenant,
-      detailLevel,
       limit,
       skip,
       page,
+      search,
     };
 
     const response = await this.get<CohortsSummaryResponse>(

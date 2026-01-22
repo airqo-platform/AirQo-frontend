@@ -323,9 +323,8 @@ export const useGridsSummary = (
     limit?: number;
     skip?: number;
     page?: number;
-    tenant?: string;
-    detailLevel?: string;
     admin_level?: string;
+    search?: string;
   },
   swrOptions?: SWRConfiguration,
 ) =>
@@ -361,8 +360,7 @@ export const useCohortsSummary = (
     limit?: number;
     skip?: number;
     page?: number;
-    tenant?: string;
-    detailLevel?: string;
+    search?: string;
   },
   swrOptions?: SWRConfiguration,
 ) =>

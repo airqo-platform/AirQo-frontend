@@ -38,6 +38,8 @@ export interface CohortsSummaryMeta {
   skip: number;
   page: number;
   totalPages: number;
+  nextPage?: string;
+  previousPage?: string;
 }
 
 export interface CohortsSummaryResponse {
@@ -51,8 +53,7 @@ export interface CohortsQueryParams {
   limit?: number;
   skip?: number;
   page?: number;
-  tenant?: string;
-  detailLevel?: string;
+  search?: string;
 }
 
 /**

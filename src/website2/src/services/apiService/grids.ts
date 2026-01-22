@@ -28,29 +28,20 @@ class GridsService extends BaseApiService {
       limit?: number;
       skip?: number;
       page?: number;
-      tenant?: string;
-      detailLevel?: string;
       admin_level?: string;
+      search?: string;
     } = {},
     options: ServiceOptions = {},
   ): Promise<GridsSummaryResponse> {
     // Use destructuring with defaults to prevent undefined values from overriding defaults
     // This ensures that if a caller passes { limit: undefined }, it doesn't wipe out the default limit of 30
-    const {
-      tenant = 'airqo',
-      detailLevel = 'summary',
-      limit = 30,
-      skip,
-      page,
-      admin_level,
-    } = params;
+    const { limit = 30, skip, page, admin_level, search } = params;
     const defaultParams = {
-      tenant,
-      detailLevel,
       limit,
       skip,
       page,
       admin_level,
+      search,
     };
 
     const response = await this.get<GridsSummaryResponse>(

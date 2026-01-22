@@ -43,6 +43,7 @@ export interface GridsSummaryMeta {
   page: number;
   totalPages: number;
   nextPage?: string;
+  previousPage?: string;
 }
 
 export interface GridsSummaryResponse {
@@ -56,8 +57,7 @@ export interface GridsQueryParams {
   limit?: number;
   skip?: number;
   page?: number;
-  tenant?: string;
-  detailLevel?: string;
+  search?: string;
 }
 
 export interface SiteStatistics {
