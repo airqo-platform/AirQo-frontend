@@ -100,26 +100,36 @@ const AirQualityBillboard = ({
       ? { limit: 80, search: propItemName }
       : { limit: 80 };
 
-  const { data: cohortsData, isLoading: cohortsLoading } = useCohortsSummary(
-    dataType === 'cohort' ? cohortsParams : undefined,
-  );
+  const {
+    data: cohortsData,
+    isLoading: cohortsLoading,
+    error: cohortsError,
+  } = useCohortsSummary(dataType === 'cohort' ? cohortsParams : undefined);
 
-  const { data: gridsData, isLoading: gridsLoading } = useGridsSummary(
-    dataType === 'grid' ? gridsParams : undefined,
-  );
+  const {
+    data: gridsData,
+    isLoading: gridsLoading,
+    error: gridsError,
+  } = useGridsSummary(dataType === 'grid' ? gridsParams : undefined);
 
   // Get measurements for selected item using the recent endpoints
-  const { data: cohortMeasurements, isLoading: cohortMeasurementsLoading } =
-    useCohortMeasurements(
-      selectedItem && dataType === 'cohort' ? selectedItem._id : null,
-      { limit: 100 },
-    );
+  const {
+    data: cohortMeasurements,
+    isLoading: cohortMeasurementsLoading,
+    error: cohortMeasurementsError,
+  } = useCohortMeasurements(
+    selectedItem && dataType === 'cohort' ? selectedItem._id : null,
+    { limit: 80 },
+  );
 
-  const { data: gridMeasurements, isLoading: gridMeasurementsLoading } =
-    useGridMeasurements(
-      selectedItem && dataType === 'grid' ? selectedItem._id : null,
-      { limit: 100 },
-    );
+  const {
+    data: gridMeasurements,
+    isLoading: gridMeasurementsLoading,
+    error: gridMeasurementsError,
+  } = useGridMeasurements(
+    selectedItem && dataType === 'grid' ? selectedItem._id : null,
+    { limit: 80 },
+  );
 
   // Get forecast for current site - site_id comes from the measurement
   const { data: forecastData } = useDailyForecast(
@@ -674,11 +684,63 @@ const AirQualityBillboard = ({
   return (
     <div className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
       <div className="max-w-7xl mx-auto">
-        {!dataLoaded ||
-        (selectedItem &&
+        {(dataType === 'cohort' && cohortsError) ||
+        (dataType === 'grid' && gridsError) ? (
+          <div className="flex items-center justify-center min-h-[400px] text-white">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">Connection Error</h2>
+              <p className="text-lg opacity-90 mb-4">
+                Unable to load air quality data. Please check your connection
+                and try again.
+              </p>
+              <button
+                onClick={() => {
+                  if (dataType === 'cohort') {
+                    mutate(`cohortsSummary-${JSON.stringify(cohortsParams)}`);
+                  } else {
+                    mutate(`gridsSummary-${JSON.stringify(gridsParams)}`);
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : selectedItem &&
           (dataType === 'cohort'
-            ? cohortMeasurementsLoading
-            : gridMeasurementsLoading)) ? (
+            ? cohortMeasurementsError
+            : gridMeasurementsError) ? (
+          <div className="flex items-center justify-center min-h-[400px] text-white">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">Data Unavailable</h2>
+              <p className="text-lg opacity-90 mb-4">
+                Unable to load air quality measurements for this {dataType}.
+                Please try again.
+              </p>
+              <button
+                onClick={() => {
+                  if (dataType === 'cohort') {
+                    mutate(
+                      `cohortMeasurements-${selectedItem._id}-${JSON.stringify({ limit: 80 })}`,
+                    );
+                  } else {
+                    mutate(
+                      `gridMeasurements-${selectedItem._id}-${JSON.stringify({ limit: 80 })}`,
+                    );
+                  }
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        ) : !dataLoaded ||
+          (selectedItem &&
+            (dataType === 'cohort'
+              ? cohortMeasurementsLoading
+              : gridMeasurementsLoading)) ? (
           <BillboardSkeleton />
         ) : propItemName && !selectedItem ? (
           <div className="flex items-center justify-center min-h-[400px] text-white">

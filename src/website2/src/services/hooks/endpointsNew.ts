@@ -329,11 +329,12 @@ export const useGridsSummary = (
   swrOptions?: SWRConfiguration,
 ) =>
   useServiceData(
-    () => gridsService.getGridsSummary(params || {}),
-    params ? `gridsSummary-${JSON.stringify(params)}` : 'gridsSummary',
+    params ? () => gridsService.getGridsSummary(params) : null,
+    params ? `gridsSummary-${JSON.stringify(params)}` : null,
     {
       revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateIfStale: true,
+      revalidateOnMount: true,
       dedupingInterval: 300000, // 5 minutes
       focusThrottleInterval: 10000, // 10 seconds
       errorRetryInterval: 5000, // 5 seconds
@@ -368,11 +369,12 @@ export const useCohortsSummary = (
   swrOptions?: SWRConfiguration,
 ) =>
   useServiceData(
-    () => cohortsService.getCohortsSummary(params || {}),
-    params ? `cohortsSummary-${JSON.stringify(params)}` : 'cohortsSummary',
+    params ? () => cohortsService.getCohortsSummary(params) : null,
+    params ? `cohortsSummary-${JSON.stringify(params)}` : null,
     {
       revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateIfStale: true,
+      revalidateOnMount: true,
       dedupingInterval: 300000, // 5 minutes
       focusThrottleInterval: 10000, // 10 seconds
       errorRetryInterval: 5000, // 5 seconds
