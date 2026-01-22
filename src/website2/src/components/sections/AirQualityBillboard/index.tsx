@@ -121,10 +121,8 @@ const AirQualityBillboard = ({
         setDataLoaded(true);
         return;
       } else {
-        // Fallback to first item if requested item not found
-        handleItemSelect(items[0]);
-        resetIndices();
-        forceMeasurementsRefresh();
+        // Leave selection empty when requested item not found
+        // This allows the "Not Found" UI to render
         setDataLoaded(true);
         return;
       }
