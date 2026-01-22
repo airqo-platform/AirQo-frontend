@@ -61,7 +61,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   dataType: propDataType,
   itemName: propItemName,
 }) => {
-  const [dataType, setDataType] = useState<DataType>(propDataType || 'cohort');
+  const [dataType, setDataType] = useState<DataType>(propDataType || 'grid');
   const [selectedItem, setSelectedItem] = useState<Cohort | Grid | null>(null);
   const [currentMeasurement, setCurrentMeasurement] = useState<any>(null);
 
@@ -129,6 +129,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     // Otherwise, select the first item if none is selected
     if (!selectedItem) {
       setSelectedItem(items[0]);
+      setCurrentMeasurement(null);
     }
   }, [cohortsData, gridsData, dataType, selectedItem, propItemName]);
 
@@ -151,9 +152,14 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
           Math.random() * validMeasurements.length,
         );
         setCurrentMeasurement(validMeasurements[randomIndex]);
+      } else {
+        // If no valid measurements, keep the current one or set to first measurement
+        if (!currentMeasurement && measurements.length > 0) {
+          setCurrentMeasurement(measurements[0]);
+        }
       }
     }
-  }, [cohortMeasurements, gridMeasurements, dataType]);
+  }, [cohortMeasurements, gridMeasurements, dataType, currentMeasurement]);
 
   useEffect(() => {
     updateMeasurement();
@@ -270,12 +276,10 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
   // Get text color for better readability on colored backgrounds
   const getTextColor = (pm25: number): string => {
+    const level = categoryToLevel(getAirQualityCategory(pm25, 'pm2_5'));
     // Use black text for light backgrounds (good, moderate)
     // Use white text for dark backgrounds
-    if (pm25 >= 0 && pm25 <= 35.4) {
-      return '#000000';
-    }
-    return '#FFFFFF';
+    return level === 'good' || level === 'moderate' ? '#000000' : '#FFFFFF';
   };
 
   // Get location name
@@ -393,6 +397,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                     onClick={() => {
                       setDataType('cohort');
                       setSelectedItem(null);
+                      setCurrentMeasurement(null);
                     }}
                     className={cn(
                       'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
@@ -407,6 +412,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                     onClick={() => {
                       setDataType('grid');
                       setSelectedItem(null);
+                      setCurrentMeasurement(null);
                     }}
                     className={cn(
                       'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
@@ -436,6 +442,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                         (i: any) => i._id === e.target.value,
                       );
                       setSelectedItem(item || null);
+                      setCurrentMeasurement(null); // Reset to load fresh data
                     }}
                     className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 appearance-none backdrop-blur-sm text-sm sm:text-base"
                   >
