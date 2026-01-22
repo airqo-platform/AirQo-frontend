@@ -61,9 +61,14 @@ export const useMeasurements = (
         setCurrentMeasurement(validMeasurements[index]);
       }
     } else {
-      // If no valid measurements, set to first measurement if available
-      if (measurements.length > 0) {
+      // If no valid measurements, set to first measurement if available and has valid PM2.5
+      if (
+        measurements.length > 0 &&
+        Number.isFinite(measurements[0]?.pm2_5?.value)
+      ) {
         setCurrentMeasurement(measurements[0]);
+      } else {
+        setCurrentMeasurement(null);
       }
     }
   }, [

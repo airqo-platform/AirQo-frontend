@@ -52,17 +52,17 @@ const AirQualityDisplay = ({
       className: size,
     };
 
-    if (pm25 >= 0 && pm25 <= 9.1) {
+    if (pm25 >= 0 && pm25 <= 9) {
       return <AqGood {...iconProps} />;
-    } else if (pm25 > 9.1 && pm25 <= 35.5) {
+    } else if (pm25 > 9 && pm25 <= 35) {
       return <AqModerate {...iconProps} />;
-    } else if (pm25 > 35.5 && pm25 <= 55.5) {
+    } else if (pm25 > 35 && pm25 <= 55) {
       return <AqUnhealthyForSensitiveGroups {...iconProps} />;
-    } else if (pm25 > 55.5 && pm25 <= 125.5) {
+    } else if (pm25 > 55 && pm25 <= 125) {
       return <AqUnhealthy {...iconProps} />;
-    } else if (pm25 > 125.5 && pm25 <= 225.5) {
+    } else if (pm25 > 125 && pm25 <= 225) {
       return <AqVeryUnhealthy {...iconProps} />;
-    } else if (pm25 > 225.5 && pm25 <= 500.5) {
+    } else if (pm25 > 225 && pm25 <= 500.5) {
       return <AqHazardous {...iconProps} />;
     } else {
       return <AqNoValue {...iconProps} />;

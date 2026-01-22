@@ -31,7 +31,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 #### Random Cohort Display (Auto-rotation)
 
-```
+```text
 /billboard/cohort
 ```
 
@@ -41,7 +41,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 #### Specific Cohort Display
 
-```
+```text
 /billboard/cohort/{name}
 ```
 
@@ -52,7 +52,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 **Examples:**
 
-```
+```text
 /billboard/cohort/airqo_g5429
 /billboard/cohort/epic_lagos_unilag
 ```
@@ -61,7 +61,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 #### Random Grid Display (Auto-rotation)
 
-```
+```text
 /billboard/grid
 ```
 
@@ -71,7 +71,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 #### Specific Grid Display
 
-```
+```text
 /billboard/grid/{name}
 ```
 
@@ -82,7 +82,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 **Examples:**
 
-```
+```text
 /billboard/grid/kampala_central
 /billboard/grid/nairobi_cbd
 ```
@@ -93,7 +93,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 1. **Choose Your Route**
 
-   ```
+   ```text
    /billboard/cohort  (for device monitoring)
    /billboard/grid    (for location monitoring)
    ```
@@ -116,7 +116,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 
 2. **Build the URL**
 
-   ```
+   ```text
    /billboard/cohort/airqo_g5429
    /billboard/grid/kampala_central
    ```
@@ -134,7 +134,7 @@ The system intelligently matches URL names with API data:
 
 These all work for the same location:
 
-```
+```text
 epic_lagos_unilag
 Epic_Lagos_UniLag
 epic-lagos-unilag
@@ -245,7 +245,7 @@ The billboard uses the utility functions from `@/utils/airQuality` for consisten
 ```typescript
 {
   good: '#34C759',                        // Green
-  moderate: '#ECAA06',                    // Yellow
+  moderate: '#ffd633',                    // Yellow
   'unhealthy-sensitive-groups': '#FF851F', // Orange
   unhealthy: '#F7453C',                   // Red
   'very-unhealthy': '#AC5CD9',            // Purple

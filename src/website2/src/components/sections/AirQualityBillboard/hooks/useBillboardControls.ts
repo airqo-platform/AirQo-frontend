@@ -28,7 +28,7 @@ export const useBillboardControls = (
   }, []);
 
   // Handle item selection
-  const handleItemSelect = useCallback((item: Item) => {
+  const handleItemSelect = useCallback((item: Item | null) => {
     setSelectedItem(item);
     setSearchQuery('');
     setIsDropdownOpen(false);

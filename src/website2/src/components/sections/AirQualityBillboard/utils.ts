@@ -77,12 +77,17 @@ export const getValidMeasurements = (measurements: any[]): any[] => {
  * Parse next page URL parameters
  */
 export const parseNextPageParams = (nextPageUrl: string): any => {
-  const url = new URL(nextPageUrl);
-  const params: any = {};
-  url.searchParams.forEach((value, key) => {
-    if (key === 'limit' || key === 'skip') {
-      params[key] = parseInt(value);
-    }
-  });
-  return params;
+  try {
+    const url = new URL(nextPageUrl);
+    const params: any = {};
+    url.searchParams.forEach((value, key) => {
+      if (key === 'limit' || key === 'skip') {
+        params[key] = parseInt(value);
+      }
+    });
+    return params;
+  } catch (error) {
+    console.error('Invalid nextPage URL:', nextPageUrl, error);
+    return {};
+  }
 };

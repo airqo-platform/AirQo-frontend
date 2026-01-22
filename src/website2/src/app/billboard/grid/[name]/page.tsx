@@ -13,7 +13,7 @@ interface GridBillboardPageProps {
 export async function generateMetadata({
   params,
 }: GridBillboardPageProps): Promise<Metadata> {
-  const gridName = decodeURIComponent(params.name);
+  const gridName = params.name;
 
   return {
     title: `Air Quality Billboard - ${gridName} | AirQo`,
@@ -26,7 +26,7 @@ export async function generateMetadata({
 }
 
 export default function GridBillboardPage({ params }: GridBillboardPageProps) {
-  const gridName = decodeURIComponent(params.name);
+  const gridName = params.name;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">

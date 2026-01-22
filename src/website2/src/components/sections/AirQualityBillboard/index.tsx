@@ -97,7 +97,7 @@ const AirQualityBillboard = ({
 
     if (!items?.length) {
       setDataLoaded(true);
-      handleItemSelect(null as any); // Reset selection
+      handleItemSelect(null); // Reset selection
       return;
     }
 
@@ -117,11 +117,13 @@ const AirQualityBillboard = ({
         handleItemSelect(matchedItem);
         resetIndices();
         forceMeasurementsRefresh();
+        return;
       } else {
         // Fallback to first item if requested item not found
         handleItemSelect(items[0]);
         resetIndices();
         forceMeasurementsRefresh();
+        return;
       }
     }
 

@@ -13,7 +13,7 @@ interface CohortBillboardPageProps {
 export async function generateMetadata({
   params,
 }: CohortBillboardPageProps): Promise<Metadata> {
-  const cohortName = decodeURIComponent(params.name);
+  const cohortName = params.name;
 
   return {
     title: `Air Quality Billboard - ${cohortName} | AirQo`,
@@ -28,7 +28,7 @@ export async function generateMetadata({
 export default function CohortBillboardPage({
   params,
 }: CohortBillboardPageProps) {
-  const cohortName = decodeURIComponent(params.name);
+  const cohortName = params.name;
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">

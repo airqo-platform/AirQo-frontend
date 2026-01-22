@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { mutate } from 'swr';
 
 import { useCohortsSummary, useGridsSummary } from '@/hooks/useApiHooks';
+import { cohortsService, gridsService } from '@/services/apiService';
 
 import type { DataType } from '../types';
 import { parseNextPageParams } from '../utils';
@@ -68,9 +69,40 @@ export const useAirQualityData = (
     const meta = dataType === 'cohort' ? cohortsData?.meta : gridsData?.meta;
     if (meta?.nextPage && !loadingMore) {
       setLoadingMore(true);
-      const _params = parseNextPageParams(meta.nextPage); // eslint-disable-line @typescript-eslint/no-unused-vars
-      // Note: In a real implementation, you'd call the service directly
-      setLoadingMore(false);
+      const _params = parseNextPageParams(meta.nextPage);
+      // Load more data
+      const loadMore = async () => {
+        try {
+          if (dataType === 'cohort') {
+            const response = await cohortsService.getCohortsSummary(_params);
+            if (response.success && response.cohorts) {
+              setAllCohorts((prev) => {
+                const existingIds = new Set(prev.map((c) => c._id));
+                const newCohorts = response.cohorts.filter(
+                  (c) => !existingIds.has(c._id),
+                );
+                return [...prev, ...newCohorts];
+              });
+            }
+          } else {
+            const response = await gridsService.getGridsSummary(_params);
+            if (response.success && response.grids) {
+              setAllGrids((prev) => {
+                const existingIds = new Set(prev.map((g) => g._id));
+                const newGrids = response.grids.filter(
+                  (g) => !existingIds.has(g._id),
+                );
+                return [...prev, ...newGrids];
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load more data:', error);
+        } finally {
+          setLoadingMore(false);
+        }
+      };
+      loadMore();
     }
   }, [cohortsData, gridsData, dataType, loadingMore]);
 

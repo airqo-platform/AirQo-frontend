@@ -116,7 +116,7 @@ The website includes a specialized billboard display system optimized for large 
 
 **Examples:**
 
-```
+```text
 /billboard/cohort/airqo_g5429
 /billboard/grid/kampala_central
 ```

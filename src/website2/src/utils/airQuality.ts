@@ -51,7 +51,7 @@ export const POLLUTANT_RANGES: Record<PollutantType, PollutantRange[]> = {
 
 export const AIR_QUALITY_COLORS: Record<AirQualityLevel, string> = {
   good: '#34C759',
-  moderate: '#ffd633 ',
+  moderate: '#ffd633',
   'unhealthy-sensitive-groups': '#FF851F',
   unhealthy: '#F7453C',
   'very-unhealthy': '#AC5CD9',
