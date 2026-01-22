@@ -94,7 +94,7 @@ export const useMeasurements = (
     selectedItem,
   ]);
 
-  // Auto-rotate measurement every 30 seconds
+  // Auto-rotate measurement every 20 seconds
   useEffect(() => {
     if (!selectedItem) return;
 
@@ -113,7 +113,7 @@ export const useMeasurements = (
           );
         }
       }
-    }, 30000);
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [dataType, measurementsData, selectedItem]);

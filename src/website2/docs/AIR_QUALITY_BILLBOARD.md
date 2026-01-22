@@ -301,13 +301,13 @@ This ensures optimal readability on all air quality levels.
 
 - Interval: 20 seconds per location
 - Applies to: `/billboard/cohort` and `/billboard/grid`
-- Measurement refresh: Every 30 seconds
+- Measurement refresh: Every 20 seconds
 
 ### When Auto-Rotation is Disabled
 
 - Applies to: Specific location URLs (with `{name}`)
 - Display stays on selected location
-- Measurement still refreshes every 30 seconds
+- Measurement still refreshes every 20 seconds
 
 ## Loading States
 
