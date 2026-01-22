@@ -110,6 +110,7 @@ export interface Averages {
 }
 
 export interface HealthTip {
+  _id: string;
   title: string;
   description: string;
   image?: string;
@@ -168,4 +169,28 @@ export interface GridRepresentativeReadingResponse {
   message: string;
   data: RepresentativeReading;
   errors: any | null;
+}
+
+/**
+ * Types for Grid Measurements
+ */
+
+export interface GridMeasurementsMeta {
+  total: number;
+  skip: number;
+  limit: number;
+  page: number;
+  pages: number;
+  startTime: string;
+  endTime: string;
+  optimized: boolean;
+  countSkipped: boolean;
+}
+
+export interface GridMeasurementsResponse {
+  success: boolean;
+  isCache: boolean;
+  message: string;
+  meta: GridMeasurementsMeta;
+  measurements: RepresentativeReading[];
 }

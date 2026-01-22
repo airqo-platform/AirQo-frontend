@@ -1,4 +1,5 @@
 import {
+  GridMeasurementsResponse,
   GridRepresentativeReadingResponse,
   GridsSummaryResponse,
 } from '@/types/grids';
@@ -11,6 +12,7 @@ import BaseApiService, { ServiceOptions } from '../base';
 const GRIDS_ENDPOINTS = {
   GRIDS_SUMMARY: '/api/v2/devices/grids/summary',
   GRIDS_REPRESENTATIVE: '/api/v2/devices/readings/grids',
+  GRID_MEASUREMENTS: '/api/v2/devices/measurements/grids',
 } as const;
 
 class GridsService extends BaseApiService {
@@ -95,6 +97,49 @@ class GridsService extends BaseApiService {
 
     throw new Error(
       response.data?.message || 'Failed to fetch representative reading',
+    );
+  }
+
+  /**
+   * Get recent measurements for a specific grid
+   */
+  async getGridMeasurements(
+    gridId: string,
+    params: {
+      limit?: number;
+      skip?: number;
+      page?: number;
+      startTime?: string;
+      endTime?: string;
+      frequency?: string;
+    } = {},
+    options: ServiceOptions = {},
+  ): Promise<GridMeasurementsResponse> {
+    const endpoint = `${GRIDS_ENDPOINTS.GRID_MEASUREMENTS}/${gridId}/recent`;
+
+    const { limit = 30, skip, page, startTime, endTime, frequency } = params;
+
+    const queryParams = {
+      limit,
+      skip,
+      page,
+      startTime,
+      endTime,
+      frequency,
+    };
+
+    const response = await this.get<GridMeasurementsResponse>(
+      endpoint,
+      queryParams,
+      { ...options, throwOnError: false },
+    );
+
+    if (response.success && response.data) {
+      return response.data;
+    }
+
+    throw new Error(
+      response.data?.message || 'Failed to fetch grid measurements',
     );
   }
 }

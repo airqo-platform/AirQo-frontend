@@ -6,6 +6,7 @@ import {
   boardMembersService,
   careersService,
   cleanAirResourcesService,
+  cohortsService,
   departmentsService,
   eventsService,
   externalService,
@@ -15,6 +16,7 @@ import {
   highlightsService,
   impactNumbersService,
   partnersService,
+  predictService,
   pressService,
   publicationsService,
   teamService,
@@ -349,6 +351,99 @@ export const useGridRepresentativeReading = (
       revalidateOnFocus: false,
       revalidateIfStale: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
+      ...swrOptions,
+    },
+  );
+
+// Cohorts
+export const useCohortsSummary = (
+  params?: {
+    limit?: number;
+    skip?: number;
+    page?: number;
+    tenant?: string;
+    detailLevel?: string;
+  },
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    () => cohortsService.getCohortsSummary(params || {}),
+    params ? `cohortsSummary-${JSON.stringify(params)}` : 'cohortsSummary',
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      dedupingInterval: 300000, // 5 minutes
+      ...swrOptions,
+    },
+  );
+
+export const useCohortMeasurements = (
+  cohortId: string | null,
+  params?: {
+    limit?: number;
+    skip?: number;
+    page?: number;
+    startTime?: string;
+    endTime?: string;
+    frequency?: string;
+  },
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    cohortId
+      ? () => cohortsService.getCohortMeasurements(cohortId, params || {})
+      : null,
+    cohortId
+      ? `cohortMeasurements-${cohortId}-${JSON.stringify(params || {})}`
+      : null,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: true,
+      refreshInterval: 300000, // 5 minutes auto-refresh
+      ...swrOptions,
+    },
+  );
+
+// Grid Measurements
+export const useGridMeasurements = (
+  gridId: string | null,
+  params?: {
+    limit?: number;
+    skip?: number;
+    page?: number;
+    startTime?: string;
+    endTime?: string;
+    frequency?: string;
+  },
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    gridId
+      ? () => gridsService.getGridMeasurements(gridId, params || {})
+      : null,
+    gridId
+      ? `gridMeasurements-${gridId}-${JSON.stringify(params || {})}`
+      : null,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: true,
+      refreshInterval: 300000, // 5 minutes auto-refresh
+      ...swrOptions,
+    },
+  );
+
+// Predict
+export const useDailyForecast = (
+  siteId: string | null,
+  swrOptions?: SWRConfiguration,
+) =>
+  useServiceData(
+    siteId ? () => predictService.getDailyForecast(siteId) : null,
+    siteId ? `dailyForecast-${siteId}` : null,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: true,
+      refreshInterval: 3600000, // 1 hour auto-refresh for forecasts
       ...swrOptions,
     },
   );
