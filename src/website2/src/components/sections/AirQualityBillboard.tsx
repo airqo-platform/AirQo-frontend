@@ -102,15 +102,17 @@ const AirQualityBillboard = ({
   );
 
   // Get measurements for selected item using the recent endpoints
-  const { data: cohortMeasurements } = useCohortMeasurements(
-    selectedItem && dataType === 'cohort' ? selectedItem._id : null,
-    { limit: 100 },
-  );
+  const { data: cohortMeasurements, isLoading: cohortMeasurementsLoading } =
+    useCohortMeasurements(
+      selectedItem && dataType === 'cohort' ? selectedItem._id : null,
+      { limit: 100 },
+    );
 
-  const { data: gridMeasurements } = useGridMeasurements(
-    selectedItem && dataType === 'grid' ? selectedItem._id : null,
-    { limit: 100 },
-  );
+  const { data: gridMeasurements, isLoading: gridMeasurementsLoading } =
+    useGridMeasurements(
+      selectedItem && dataType === 'grid' ? selectedItem._id : null,
+      { limit: 100 },
+    );
 
   // Get forecast for current site - site_id comes from the measurement
   const { data: forecastData } = useDailyForecast(
@@ -343,6 +345,44 @@ const AirQualityBillboard = ({
     currentMeasurement,
     updateMeasurement,
     selectedItem,
+  ]);
+
+  // For general pages, if selected item has no measurements, try to find another item with measurements
+  useEffect(() => {
+    if (!isMountedRef.current || propItemName || !selectedItem || !dataLoaded)
+      return;
+
+    const measurements =
+      dataType === 'cohort'
+        ? cohortMeasurements?.measurements
+        : gridMeasurements?.measurements;
+
+    // If current item has no measurements, try to find another item
+    if (measurements && measurements.length === 0) {
+      const items = dataType === 'cohort' ? _allCohorts : _allGrids;
+      if (items.length > 1) {
+        // Find items that are not the current selected item
+        const otherItems = items.filter(
+          (item) => item._id !== selectedItem._id,
+        );
+        if (otherItems.length > 0) {
+          // Select a random other item
+          const randomIndex = Math.floor(Math.random() * otherItems.length);
+          setSelectedItem(otherItems[randomIndex]);
+          setCurrentSiteIndex(0);
+          setCurrentDeviceIndex(0);
+        }
+      }
+    }
+  }, [
+    cohortMeasurements?.measurements,
+    gridMeasurements?.measurements,
+    dataType,
+    selectedItem,
+    propItemName,
+    dataLoaded,
+    _allCohorts,
+    _allGrids,
   ]);
 
   // Auto-refresh measurement every 30 seconds - increment index and update
@@ -607,19 +647,12 @@ const AirQualityBillboard = ({
   return (
     <div className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
       <div className="max-w-7xl mx-auto">
-        {!dataLoaded || !currentMeasurement ? (
-          propItemName && selectedItem ? (
-            <div className="flex items-center justify-center min-h-[400px] text-white">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-2">No Data Available</h2>
-                <p className="text-lg opacity-90">
-                  {`No air quality data is currently available for this ${dataType}.`}
-                </p>
-              </div>
-            </div>
-          ) : (
-            <BillboardSkeleton />
-          )
+        {!dataLoaded ||
+        (selectedItem &&
+          (dataType === 'cohort'
+            ? cohortMeasurementsLoading
+            : gridMeasurementsLoading)) ? (
+          <BillboardSkeleton />
         ) : !selectedItem ? (
           <div className="flex items-center justify-center min-h-[400px] text-white">
             <div className="text-center">
@@ -627,6 +660,23 @@ const AirQualityBillboard = ({
                 {dataType === 'cohort' ? 'Cohort' : 'Grid'} Not Found
               </h2>
               <p className="text-lg opacity-90">{`The requested ${dataType} "${propItemName}" could not be found.`}</p>
+            </div>
+          </div>
+        ) : !currentMeasurement ? (
+          <div className="flex items-center justify-center min-h-[400px] text-white">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2">No Data Available</h2>
+              <p className="text-lg opacity-90 mb-4">
+                {`No air quality data is currently available for this ${dataType}.`}
+              </p>
+              {!propItemName && (
+                <button
+                  onClick={() => window.location.reload()}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
+                >
+                  Reload Page
+                </button>
+              )}
             </div>
           </div>
         ) : (
@@ -670,6 +720,7 @@ const AirQualityBillboard = ({
                       setCurrentMeasurement(null);
                       setCurrentDeviceIndex(0);
                       setCurrentSiteIndex(0);
+                      setDataLoaded(false);
                     }}
                     className={cn(
                       'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
@@ -687,6 +738,7 @@ const AirQualityBillboard = ({
                       setCurrentMeasurement(null);
                       setCurrentDeviceIndex(0);
                       setCurrentSiteIndex(0);
+                      setDataLoaded(false);
                     }}
                     className={cn(
                       'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
