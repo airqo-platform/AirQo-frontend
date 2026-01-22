@@ -6,14 +6,14 @@ import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
 import { useDailyForecast } from '@/hooks/useApiHooks';
 import { cn } from '@/lib/utils';
 
-import AirQualityDisplay from './AirQualityBillboard/components/AirQualityDisplay';
-import BillboardHeader from './AirQualityBillboard/components/BillboardHeader';
-import ErrorDisplay from './AirQualityBillboard/components/ErrorDisplay';
-import ItemSelector from './AirQualityBillboard/components/ItemSelector';
-import { useAirQualityData } from './AirQualityBillboard/hooks/useAirQualityData';
-import { useBillboardControls } from './AirQualityBillboard/hooks/useBillboardControls';
-import { useMeasurements } from './AirQualityBillboard/hooks/useMeasurements';
-import type { AirQualityBillboardProps } from './AirQualityBillboard/types';
+import AirQualityDisplay from './components/AirQualityDisplay';
+import BillboardHeader from './components/BillboardHeader';
+import ErrorDisplay from './components/ErrorDisplay';
+import ItemSelector from './components/ItemSelector';
+import { useAirQualityData } from './hooks/useAirQualityData';
+import { useBillboardControls } from './hooks/useBillboardControls';
+import { useMeasurements } from './hooks/useMeasurements';
+import type { AirQualityBillboardProps } from './types';
 
 const AirQualityBillboard = ({
   className,

@@ -405,6 +405,7 @@ export const useCohortMeasurements = (
     {
       revalidateOnFocus: false,
       revalidateIfStale: true,
+      revalidateOnMount: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
       focusThrottleInterval: 10000, // 10 seconds
       errorRetryInterval: 5000, // 5 seconds
@@ -436,6 +437,7 @@ export const useGridMeasurements = (
     {
       revalidateOnFocus: false,
       revalidateIfStale: true,
+      revalidateOnMount: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
       focusThrottleInterval: 10000, // 10 seconds
       errorRetryInterval: 5000, // 5 seconds
