@@ -8,7 +8,7 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
   centered = false,
 }) => {
   const content = (
-    <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+    <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white relative overflow-hidden">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
@@ -17,7 +17,7 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
       {/* Main Content Grid */}
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
         {/* Left Section */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* PM2.5 Header */}
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/20 rounded-full animate-pulse" />

@@ -9,6 +9,7 @@ import {
   AqUnhealthy,
   AqUnhealthyForSensitiveGroups,
   AqVeryUnhealthy,
+  AqWind01,
 } from '@airqo/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import Image from 'next/image';
@@ -26,8 +27,10 @@ import {
 import { cn } from '@/lib/utils';
 import type { Cohort, Grid } from '@/types';
 import {
+  AIR_QUALITY_INFO,
   categoryToLevel,
-  getAirQualityColor as getAirQualityColorUtil,
+  getAirQualityCategory,
+  getAirQualityColor,
 } from '@/utils/airQuality';
 
 type DataType = 'cohort' | 'grid';
@@ -243,40 +246,33 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
       className: size,
     };
 
-    if (pm25 >= 0 && pm25 <= 12) {
+    if (pm25 >= 0 && pm25 <= 9.1) {
       return <AqGood {...iconProps} />;
-    } else if (pm25 > 12 && pm25 <= 35.4) {
+    } else if (pm25 > 9.1 && pm25 <= 35.5) {
       return <AqModerate {...iconProps} />;
-    } else if (pm25 > 35.4 && pm25 <= 55.4) {
+    } else if (pm25 > 35.5 && pm25 <= 55.5) {
       return <AqUnhealthyForSensitiveGroups {...iconProps} />;
-    } else if (pm25 > 55.4 && pm25 <= 150.4) {
+    } else if (pm25 > 55.5 && pm25 <= 125.5) {
       return <AqUnhealthy {...iconProps} />;
-    } else if (pm25 > 150.4 && pm25 <= 250.4) {
+    } else if (pm25 > 125.5 && pm25 <= 225.5) {
       return <AqVeryUnhealthy {...iconProps} />;
-    } else if (pm25 > 250.4) {
+    } else if (pm25 > 225.5 && pm25 <= 500.5) {
       return <AqHazardous {...iconProps} />;
     } else {
       return <AqNoValue {...iconProps} />;
     }
   };
 
-  // Get air quality category
-  const getAirQualityCategory = (pm25: number): string => {
-    if (pm25 >= 0 && pm25 <= 12) return 'Good';
-    if (pm25 > 12 && pm25 <= 35.4) return 'Moderate';
-    if (pm25 > 35.4 && pm25 <= 55.4) return 'Unhealthy for Sensitive Groups';
-    if (pm25 > 55.4 && pm25 <= 150.4) return 'Unhealthy';
-    if (pm25 > 150.4 && pm25 <= 250.4) return 'Very Unhealthy';
-    if (pm25 > 250.4) return 'Hazardous';
-    return 'Unknown';
+  // Get color directly from PM2.5 value
+  const getColorFromPM25 = (pm25: number): string => {
+    return getAirQualityColor(getAirQualityCategory(pm25, 'pm2_5'));
   };
 
   // Get text color for better readability on colored backgrounds
-  const getTextColor = (category: string): string => {
-    const level = categoryToLevel(category);
+  const getTextColor = (pm25: number): string => {
     // Use black text for light backgrounds (good, moderate)
     // Use white text for dark backgrounds
-    if (level === 'good' || level === 'moderate') {
+    if (pm25 >= 0 && pm25 <= 35.4) {
       return '#000000';
     }
     return '#FFFFFF';
@@ -321,6 +317,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                     ? 'bg-blue-700 text-white'
                     : 'bg-blue-500/30 text-white backdrop-blur-sm',
                 )}
+                style={{ fontFamily: '"Times New Roman", Times, serif' }}
               >
                 <span className="font-bold text-sm sm:text-base mb-1">
                   {days[dayIndex]}
@@ -343,113 +340,121 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   };
 
   const pm25Value = currentMeasurement?.pm2_5?.value;
-  const category = pm25Value ? getAirQualityCategory(pm25Value) : 'Unknown';
+  const categoryObj = pm25Value
+    ? getAirQualityCategory(pm25Value, 'pm2_5')
+    : 'Invalid';
+  const level = categoryToLevel(categoryObj);
+  let category = 'Unknown';
+  if (categoryObj !== 'Invalid') {
+    const info = AIR_QUALITY_INFO[level as keyof typeof AIR_QUALITY_INFO];
+    category = info?.label || 'Unknown';
+  }
 
   return (
     <section className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
       <div className="max-w-7xl mx-auto">
-        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
-          {/* Background pattern */}
-          <div className="absolute inset-0 opacity-5">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
-          </div>
-
-          {/* Header */}
-          {!hideControls && (
-            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-                <div className="font-bold text-lg sm:text-xl">
-                  Air Quality Monitor
-                </div>
-                <div className="text-xs sm:text-sm opacity-90 flex items-center gap-2 flex-wrap">
-                  <span>
-                    {new Date().toLocaleDateString([], {
-                      weekday: 'short',
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
-                  </span>
-                  <span>
-                    {new Date().toLocaleTimeString([], {
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </span>
-                </div>
-              </div>
-
-              {/* Data Type Selector */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setDataType('cohort');
-                    setSelectedItem(null);
-                  }}
-                  className={cn(
-                    'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
-                    dataType === 'cohort'
-                      ? 'bg-white text-blue-600 shadow-lg'
-                      : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
-                  )}
-                >
-                  Cohort
-                </button>
-                <button
-                  onClick={() => {
-                    setDataType('grid');
-                    setSelectedItem(null);
-                  }}
-                  className={cn(
-                    'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
-                    dataType === 'grid'
-                      ? 'bg-white text-blue-600 shadow-lg'
-                      : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
-                  )}
-                >
-                  Grid
-                </button>
-              </div>
+        {!currentMeasurement ? (
+          <BillboardSkeleton />
+        ) : (
+          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-5">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
             </div>
-          )}
 
-          {/* Selection Dropdown */}
-          {!hideControls && (
-            <div className="relative z-10 mb-6 sm:mb-8">
-              <div className="relative max-w-md">
-                <select
-                  value={selectedItem?._id || ''}
-                  onChange={(e) => {
-                    const items =
+            {/* Header */}
+            {!hideControls && (
+              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="font-bold text-lg sm:text-xl">
+                    Air Quality Monitor
+                  </div>
+                  <div className="text-xs sm:text-sm opacity-90 flex items-center gap-2 flex-wrap">
+                    <span>
+                      {new Date().toLocaleDateString([], {
+                        weekday: 'short',
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                      })}
+                    </span>
+                    <span>
+                      {new Date().toLocaleTimeString([], {
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Data Type Selector */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setDataType('cohort');
+                      setSelectedItem(null);
+                    }}
+                    className={cn(
+                      'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
                       dataType === 'cohort'
-                        ? cohortsData?.cohorts
-                        : gridsData?.grids;
-                    const item = items?.find(
-                      (i: any) => i._id === e.target.value,
-                    );
-                    setSelectedItem(item || null);
-                  }}
-                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 appearance-none backdrop-blur-sm text-sm sm:text-base"
-                >
-                  {currentItems?.map((item: any) => (
-                    <option
-                      key={item._id}
-                      value={item._id}
-                      className="text-black bg-white"
-                    >
-                      {formatDisplayName(item.name || item.long_name)}
-                    </option>
-                  ))}
-                </select>
-                <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
+                        ? 'bg-white text-blue-600 shadow-lg'
+                        : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
+                    )}
+                  >
+                    Cohort
+                  </button>
+                  <button
+                    onClick={() => {
+                      setDataType('grid');
+                      setSelectedItem(null);
+                    }}
+                    className={cn(
+                      'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
+                      dataType === 'grid'
+                        ? 'bg-white text-blue-600 shadow-lg'
+                        : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
+                    )}
+                  >
+                    Grid
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <AnimatePresence mode="wait">
-            {!currentMeasurement ? (
-              <BillboardSkeleton />
-            ) : (
+            {/* Selection Dropdown */}
+            {!hideControls && (
+              <div className="relative z-10 mb-6 sm:mb-8">
+                <div className="relative max-w-md">
+                  <select
+                    value={selectedItem?._id || ''}
+                    onChange={(e) => {
+                      const items =
+                        dataType === 'cohort'
+                          ? cohortsData?.cohorts
+                          : gridsData?.grids;
+                      const item = items?.find(
+                        (i: any) => i._id === e.target.value,
+                      );
+                      setSelectedItem(item || null);
+                    }}
+                    className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 appearance-none backdrop-blur-sm text-sm sm:text-base"
+                  >
+                    {currentItems?.map((item: any) => (
+                      <option
+                        key={item._id}
+                        value={item._id}
+                        className="text-black bg-white"
+                      >
+                        {formatDisplayName(item.name || item.long_name)}
+                      </option>
+                    ))}
+                  </select>
+                  <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
+                </div>
+              </div>
+            )}
+
+            <AnimatePresence mode="wait">
               <motion.div
                 key={`data-${currentMeasurement?.site_id}-${currentMeasurement?.time}`}
                 initial={{ opacity: 0, y: 20 }}
@@ -463,7 +468,19 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                   {/* Left Section */}
                   <div className="space-y-6">
                     {/* PM2.5 Header */}
-                    <div className="text-2xl sm:text-3xl font-bold">PM2.5</div>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-800/50 rounded-full p-2 sm:p-3">
+                        <AqWind01 className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+                      </div>
+                      <span
+                        className="text-2xl sm:text-3xl font-bold"
+                        style={{
+                          fontFamily: '"Times New Roman", Times, serif',
+                        }}
+                      >
+                        PM2.5
+                      </span>
+                    </div>
 
                     {/* Large PM2.5 Value */}
                     <div className="flex items-baseline gap-3">
@@ -471,13 +488,19 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                         className="text-7xl sm:text-8xl md:text-9xl font-bold leading-none"
                         style={{
                           color: pm25Value
-                            ? getAirQualityColorUtil(category)
+                            ? getColorFromPM25(pm25Value)
                             : '#808080',
+                          fontFamily: '"Times New Roman", Times, serif',
                         }}
                       >
                         {pm25Value?.toFixed(1) ?? '--'}
                       </span>
-                      <span className="text-2xl sm:text-3xl opacity-90 mb-2">
+                      <span
+                        className="text-2xl sm:text-3xl opacity-90 mb-2"
+                        style={{
+                          fontFamily: '"Times New Roman", Times, serif',
+                        }}
+                      >
                         μg/m³
                       </span>
                     </div>
@@ -530,14 +553,18 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                       className="px-5 py-2 rounded-full font-bold text-sm sm:text-base shadow-lg"
                       style={{
                         backgroundColor: pm25Value
-                          ? getAirQualityColorUtil(category)
+                          ? getColorFromPM25(pm25Value)
                           : '#808080',
-                        color: pm25Value ? getTextColor(category) : '#FFFFFF',
+                        color: pm25Value ? getTextColor(pm25Value) : '#FFFFFF',
+                        fontFamily: '"Times New Roman", Times, serif',
                       }}
                     >
                       {category}
                     </div>
-                    <span className="text-lg sm:text-xl font-medium">
+                    <span
+                      className="text-lg sm:text-xl font-medium"
+                      style={{ fontFamily: '"Times New Roman", Times, serif' }}
+                    >
                       Air Quality is {category.toLowerCase()}
                     </span>
                   </div>
@@ -549,13 +576,19 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                     ) : (
                       <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
                     )}
-                    <span className="font-medium text-sm sm:text-base">
+                    <span
+                      className="font-medium text-sm sm:text-base"
+                      style={{ fontFamily: '"Times New Roman", Times, serif' }}
+                    >
                       {getLocationName()}
                     </span>
                   </div>
 
                   {/* Last Updated */}
-                  <div className="text-xs sm:text-sm text-white/70">
+                  <div
+                    className="text-xs sm:text-sm text-white/70"
+                    style={{ fontFamily: '"Times New Roman", Times, serif' }}
+                  >
                     Last updated:{' '}
                     {currentMeasurement?.time
                       ? new Date(currentMeasurement.time).toLocaleString(
@@ -572,9 +605,9 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                   </div>
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </section>
   );
