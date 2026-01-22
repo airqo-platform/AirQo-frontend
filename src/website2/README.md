@@ -117,16 +117,13 @@ The website includes a specialized billboard display system optimized for large 
 **Examples:**
 
 ```
-/billboard/cohort/epic_lagos_unilag
+/billboard/cohort/airqo_g5429
 /billboard/grid/kampala_central
 ```
 
-📖 **Detailed Documentation:**
+📖 **Complete Documentation:**
 
-- [Quick Start Guide](docs/QUICK_START.md) - Billboard setup guide
-- [Dynamic Routes](docs/BILLBOARD_DYNAMIC_ROUTES.md) - Complete route documentation
-- [Implementation Details](docs/IMPLEMENTATION_SUMMARY.md) - Technical overview
-- [Architecture](docs/ROUTE_ARCHITECTURE.md) - System architecture
+- [Air Quality Billboard Guide](docs/AIR_QUALITY_BILLBOARD.md) - Complete setup, usage, and technical documentation
 
 ---
 

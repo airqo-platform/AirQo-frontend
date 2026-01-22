@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 import AirQualityBillboard from '@/components/sections/AirQualityBillboard';
+import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
 
 export const metadata: Metadata = {
   title: 'Air Quality Billboard - Grid | AirQo',
@@ -14,11 +16,13 @@ export const metadata: Metadata = {
 export default function GridBillboardPage() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
-      <AirQualityBillboard
-        hideControls={true}
-        autoRotate={true}
-        dataType="grid"
-      />
+      <Suspense fallback={<BillboardSkeleton centered={true} />}>
+        <AirQualityBillboard
+          hideControls={true}
+          autoRotate={true}
+          dataType="grid"
+        />
+      </Suspense>
     </main>
   );
 }

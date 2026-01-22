@@ -3,6 +3,7 @@
 import {
   AqGood,
   AqHazardous,
+  AqModem02,
   AqModerate,
   AqNoValue,
   AqUnhealthy,
@@ -14,6 +15,7 @@ import Image from 'next/image';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FiChevronDown, FiMapPin } from 'react-icons/fi';
 
+import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
 import {
   useCohortMeasurements,
   useCohortsSummary,
@@ -23,6 +25,10 @@ import {
 } from '@/hooks/useApiHooks';
 import { cn } from '@/lib/utils';
 import type { Cohort, Grid } from '@/types';
+import {
+  categoryToLevel,
+  getAirQualityColor as getAirQualityColorUtil,
+} from '@/utils/airQuality';
 
 type DataType = 'cohort' | 'grid';
 
@@ -254,17 +260,6 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     }
   };
 
-  // Get air quality color
-  const getAirQualityColor = (pm25: number): string => {
-    if (pm25 >= 0 && pm25 <= 12) return '#00E400';
-    if (pm25 > 12 && pm25 <= 35.4) return '#FFFF00';
-    if (pm25 > 35.4 && pm25 <= 55.4) return '#FF7E00';
-    if (pm25 > 55.4 && pm25 <= 150.4) return '#FF0000';
-    if (pm25 > 150.4 && pm25 <= 250.4) return '#8F3F97';
-    if (pm25 > 250.4) return '#7E0023';
-    return '#808080';
-  };
-
   // Get air quality category
   const getAirQualityCategory = (pm25: number): string => {
     if (pm25 >= 0 && pm25 <= 12) return 'Good';
@@ -276,13 +271,22 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     return 'Unknown';
   };
 
+  // Get text color for better readability on colored backgrounds
+  const getTextColor = (category: string): string => {
+    const level = categoryToLevel(category);
+    // Use black text for light backgrounds (good, moderate)
+    // Use white text for dark backgrounds
+    if (level === 'good' || level === 'moderate') {
+      return '#000000';
+    }
+    return '#FFFFFF';
+  };
+
   // Get location name
   const getLocationName = () => {
     if (dataType === 'cohort' && currentMeasurement?.deviceDetails) {
-      return (
-        formatDisplayName(currentMeasurement.deviceDetails.name) ||
-        'Unknown Location'
-      );
+      // For cohort, show device name as-is (no formatting)
+      return currentMeasurement.deviceDetails.name || 'Unknown Device';
     }
     if (dataType === 'grid' && currentMeasurement?.siteDetails) {
       return (
@@ -444,18 +448,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
           <AnimatePresence mode="wait">
             {!currentMeasurement ? (
-              <motion.div
-                key="loading"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="relative z-10 flex flex-col items-center justify-center py-16 sm:py-24"
-              >
-                <div className="animate-spin rounded-full h-16 w-16 border-3 border-white border-t-transparent mb-4"></div>
-                <p className="text-white/80 text-sm sm:text-base">
-                  Loading air quality data...
-                </p>
-              </motion.div>
+              <BillboardSkeleton />
             ) : (
               <motion.div
                 key={`data-${currentMeasurement?.site_id}-${currentMeasurement?.time}`}
@@ -469,16 +462,8 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-8">
                   {/* Left Section */}
                   <div className="space-y-6">
-                    {/* PM2.5 Header with Icon */}
-                    <div className="flex items-center gap-3">
-                      {getAirQualityIcon(
-                        pm25Value || 0,
-                        'w-12 h-12 sm:w-14 sm:h-14',
-                      )}
-                      <span className="text-2xl sm:text-3xl font-bold">
-                        PM2.5
-                      </span>
-                    </div>
+                    {/* PM2.5 Header */}
+                    <div className="text-2xl sm:text-3xl font-bold">PM2.5</div>
 
                     {/* Large PM2.5 Value */}
                     <div className="flex items-baseline gap-3">
@@ -486,7 +471,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                         className="text-7xl sm:text-8xl md:text-9xl font-bold leading-none"
                         style={{
                           color: pm25Value
-                            ? getAirQualityColor(pm25Value)
+                            ? getAirQualityColorUtil(category)
                             : '#808080',
                         }}
                       >
@@ -542,11 +527,12 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
                   {/* Air Quality Status */}
                   <div className="flex flex-wrap items-center gap-3">
                     <div
-                      className="px-5 py-2 rounded-full font-bold text-sm sm:text-base text-white shadow-lg"
+                      className="px-5 py-2 rounded-full font-bold text-sm sm:text-base shadow-lg"
                       style={{
                         backgroundColor: pm25Value
-                          ? getAirQualityColor(pm25Value)
+                          ? getAirQualityColorUtil(category)
                           : '#808080',
+                        color: pm25Value ? getTextColor(category) : '#FFFFFF',
                       }}
                     >
                       {category}
@@ -558,7 +544,11 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
                   {/* Location */}
                   <div className="flex items-center gap-2">
-                    <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
+                    {dataType === 'cohort' ? (
+                      <AqModem02 className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
+                    ) : (
+                      <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
+                    )}
                     <span className="font-medium text-sm sm:text-base">
                       {getLocationName()}
                     </span>

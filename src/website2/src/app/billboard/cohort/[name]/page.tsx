@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 
 import AirQualityBillboard from '@/components/sections/AirQualityBillboard';
+import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
 
 interface CohortBillboardPageProps {
   params: {
@@ -30,12 +32,14 @@ export default function CohortBillboardPage({
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
-      <AirQualityBillboard
-        hideControls={true}
-        autoRotate={false}
-        dataType="cohort"
-        itemName={cohortName}
-      />
+      <Suspense fallback={<BillboardSkeleton centered={true} />}>
+        <AirQualityBillboard
+          hideControls={true}
+          autoRotate={false}
+          dataType="cohort"
+          itemName={cohortName}
+        />
+      </Suspense>
     </main>
   );
 }
