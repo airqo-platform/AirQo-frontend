@@ -107,7 +107,7 @@ const AirQualityDisplay = ({
                 {forecast.pm2_5?.toFixed(2) || '--'}
               </span>
               <div className="flex-shrink-0">
-                {forecast.pm2_5 ? (
+                {Number.isFinite(forecast.pm2_5) ? (
                   getAirQualityIcon(forecast.pm2_5, 'w-8 h-8 sm:w-10 sm:h-10')
                 ) : (
                   <AqNoValue className="w-8 h-8 sm:w-10 sm:h-10" />
@@ -179,9 +179,9 @@ const AirQualityDisplay = ({
             {/* Large Air Quality Icon */}
             <div className="w-full flex justify-center lg:justify-end">
               <div className="transform hover:scale-105 transition-transform duration-300">
-                {pm25Value ? (
+                {Number.isFinite(pm25Value) && pm25Value !== null ? (
                   getAirQualityIcon(
-                    pm25Value,
+                    pm25Value as number,
                     'w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56',
                   )
                 ) : (
@@ -215,10 +215,14 @@ const AirQualityDisplay = ({
             <div
               className={`px-5 py-2 rounded-full font-bold text-sm sm:text-base shadow-lg`}
               style={{
-                backgroundColor: pm25Value
-                  ? getColorFromPM25(pm25Value)
-                  : '#808080',
-                color: pm25Value ? getTextColor(pm25Value) : '#FFFFFF',
+                backgroundColor:
+                  Number.isFinite(pm25Value) && pm25Value !== null
+                    ? getColorFromPM25(pm25Value as number)
+                    : '#808080',
+                color:
+                  Number.isFinite(pm25Value) && pm25Value !== null
+                    ? getTextColor(pm25Value as number)
+                    : '#FFFFFF',
                 fontFamily: '"Times New Roman", Times, serif',
               }}
             >

@@ -45,7 +45,11 @@ export const useBillboardControls = (
       try {
         await navigator.clipboard.writeText(url);
         setCopiedItemId(item._id);
-        setTimeout(() => setCopiedItemId(null), 2000);
+        setTimeout(() => {
+          if (isMountedRef.current) {
+            setCopiedItemId(null);
+          }
+        }, 2000);
       } catch (err) {
         console.error('Failed to copy URL:', err);
       }

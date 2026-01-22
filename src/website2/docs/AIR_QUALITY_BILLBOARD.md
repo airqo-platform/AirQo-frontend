@@ -14,7 +14,7 @@ The Air Quality Billboard is a specialized display system optimized for large sc
 - **QR Code**: For mobile device access
 - **Location Information**: Device names (cohort) or site names (grid)
 - **Auto-rotation**: Cycles through multiple locations (optional)
-- **Real-time Updates**: Measurements refresh every 30 seconds
+- **Real-time Updates**: Measurements refresh every 20 seconds
 
 ### ✅ Technical Features
 

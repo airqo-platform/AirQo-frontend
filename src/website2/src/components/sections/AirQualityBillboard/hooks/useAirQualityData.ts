@@ -14,6 +14,7 @@ export const useAirQualityData = (
   const [allCohorts, setAllCohorts] = useState<any[]>([]);
   const [allGrids, setAllGrids] = useState<any[]>([]);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [loadedPages, setLoadedPages] = useState<Set<string>>(new Set());
   const isMountedRef = useRef(true);
 
   // Fetch parameters
@@ -68,7 +69,15 @@ export const useAirQualityData = (
 
     const meta = dataType === 'cohort' ? cohortsData?.meta : gridsData?.meta;
     if (meta?.nextPage && !loadingMore) {
+      const nextPageKey = `${dataType}-${meta.nextPage}`;
+      if (loadedPages.has(nextPageKey)) return; // Prevent duplicate loads
+
       setLoadingMore(true);
+      setLoadedPages((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(nextPageKey);
+        return newSet;
+      });
       const _params = parseNextPageParams(meta.nextPage);
       // Load more data
       const loadMore = async () => {
@@ -104,7 +113,7 @@ export const useAirQualityData = (
       };
       loadMore();
     }
-  }, [cohortsData, gridsData, dataType, loadingMore]);
+  }, [cohortsData, gridsData, dataType, loadingMore, loadedPages]);
 
   // Clear cache when switching data types
   const clearDataTypeCache = useCallback((newDataType: DataType) => {
@@ -132,6 +141,9 @@ export const useAirQualityData = (
     mutate(
       (key) => typeof key === 'string' && key.startsWith('gridMeasurements'),
     );
+
+    // Reset loaded pages tracking
+    setLoadedPages(new Set());
   }, []);
 
   // Cleanup

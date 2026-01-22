@@ -117,12 +117,14 @@ const AirQualityBillboard = ({
         handleItemSelect(matchedItem);
         resetIndices();
         forceMeasurementsRefresh();
+        setDataLoaded(true);
         return;
       } else {
         // Fallback to first item if requested item not found
         handleItemSelect(items[0]);
         resetIndices();
         forceMeasurementsRefresh();
+        setDataLoaded(true);
         return;
       }
     }
