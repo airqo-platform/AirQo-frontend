@@ -10,8 +10,9 @@ import {
   AqVeryUnhealthy,
 } from '@airqo/icons-react';
 import { AnimatePresence, motion } from 'framer-motion';
-import React, { useEffect, useState } from 'react';
-import { FiChevronDown, FiMapPin, FiWind } from 'react-icons/fi';
+import Image from 'next/image';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { FiChevronDown, FiMapPin } from 'react-icons/fi';
 
 import {
   useCohortMeasurements,
@@ -27,22 +28,46 @@ type DataType = 'cohort' | 'grid';
 
 interface AirQualityBillboardProps {
   className?: string;
+  hideControls?: boolean;
+  autoRotate?: boolean;
+  dataType?: DataType;
+  itemName?: string;
 }
+
+// Utility to format display names
+const formatDisplayName = (name: string): string => {
+  if (!name) return '';
+  return name
+    .replace(/_/g, ' ')
+    .replace(/-/g, ' ')
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
 
 const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   className,
+  hideControls = false,
+  autoRotate = false,
+  dataType: propDataType,
+  itemName: propItemName,
 }) => {
-  const [dataType, setDataType] = useState<DataType>('cohort');
+  const [dataType, setDataType] = useState<DataType>(propDataType || 'cohort');
   const [selectedItem, setSelectedItem] = useState<Cohort | Grid | null>(null);
   const [currentMeasurement, setCurrentMeasurement] = useState<any>(null);
 
+  // Refs for cleanup
+  const measurementRotationRef = useRef<NodeJS.Timeout | null>(null);
+  const itemRotationRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
   // Fetch data based on type
   const { data: cohortsData } = useCohortsSummary({
-    limit: 100, // Get more options
+    limit: 100,
   });
 
   const { data: gridsData } = useGridsSummary({
-    limit: 100, // Get more options
+    limit: 100,
   });
 
   // Get measurements for selected item
@@ -61,38 +86,58 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     currentMeasurement?.site_id || null,
   );
 
-  // Set first item as default when data loads
+  // Get current items list
+  const currentItems =
+    dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
+
+  // Set first item as default when data loads or handle prop-based item selection
   useEffect(() => {
-    if (
-      dataType === 'cohort' &&
-      cohortsData?.cohorts?.length &&
-      !selectedItem
-    ) {
-      setSelectedItem(cohortsData.cohorts[0]);
-    } else if (
-      dataType === 'grid' &&
-      gridsData?.grids?.length &&
-      !selectedItem
-    ) {
-      setSelectedItem(gridsData.grids[0]);
+    if (!isMountedRef.current) return;
+
+    const items =
+      dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
+
+    if (!items?.length) return;
+
+    // If a specific item name is provided via props, find and select it
+    if (propItemName && !selectedItem) {
+      const normalizedPropName = propItemName
+        .toLowerCase()
+        .replace(/[-_\s]/g, '');
+      const matchedItem = items.find((item: any) => {
+        const itemName = (item.name || item.long_name || '')
+          .toLowerCase()
+          .replace(/[-_\s]/g, '');
+        return itemName === normalizedPropName;
+      });
+
+      if (matchedItem) {
+        setSelectedItem(matchedItem);
+        return;
+      }
     }
-  }, [cohortsData, gridsData, dataType, selectedItem]);
+
+    // Otherwise, select the first item if none is selected
+    if (!selectedItem) {
+      setSelectedItem(items[0]);
+    }
+  }, [cohortsData, gridsData, dataType, selectedItem, propItemName]);
 
   // Update current measurement when measurements change
-  useEffect(() => {
+  const updateMeasurement = useCallback(() => {
+    if (!isMountedRef.current) return;
+
     const measurements =
       dataType === 'cohort'
         ? cohortMeasurements?.measurements
         : gridMeasurements?.measurements;
 
     if (measurements && measurements.length > 0) {
-      // Filter for sites with valid PM2.5 readings
       const validMeasurements = measurements.filter(
         (m: any) => m.pm2_5 && typeof m.pm2_5.value === 'number',
       );
 
       if (validMeasurements.length > 0) {
-        // Randomly select a measurement for billboard effect
         const randomIndex = Math.floor(
           Math.random() * validMeasurements.length,
         );
@@ -101,36 +146,95 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     }
   }, [cohortMeasurements, gridMeasurements, dataType]);
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
-    const interval = setInterval(() => {
-      const measurements =
-        dataType === 'cohort'
-          ? cohortMeasurements?.measurements
-          : gridMeasurements?.measurements;
+    updateMeasurement();
+  }, [updateMeasurement]);
 
-      if (measurements && measurements.length > 0) {
-        const validMeasurements = measurements.filter(
-          (m: any) => m.pm2_5 && typeof m.pm2_5.value === 'number',
-        );
+  // Auto-refresh measurement every 30 seconds
+  useEffect(() => {
+    if (!isMountedRef.current) return;
 
-        if (validMeasurements.length > 0) {
-          const randomIndex = Math.floor(
-            Math.random() * validMeasurements.length,
-          );
-          setCurrentMeasurement(validMeasurements[randomIndex]);
-        }
+    if (measurementRotationRef.current) {
+      clearInterval(measurementRotationRef.current);
+    }
+
+    measurementRotationRef.current = setInterval(() => {
+      if (isMountedRef.current) {
+        updateMeasurement();
       }
-    }, 30000); // 30 seconds
+    }, 30000);
 
-    return () => clearInterval(interval);
-  }, [cohortMeasurements, gridMeasurements, dataType]);
+    return () => {
+      if (measurementRotationRef.current) {
+        clearInterval(measurementRotationRef.current);
+        measurementRotationRef.current = null;
+      }
+    };
+  }, [updateMeasurement]);
+
+  // Auto-rotate between items every 20 seconds if enabled (only when no specific item is provided)
+  useEffect(() => {
+    if (
+      !autoRotate ||
+      !currentItems?.length ||
+      !isMountedRef.current ||
+      propItemName
+    )
+      return;
+
+    if (itemRotationRef.current) {
+      clearInterval(itemRotationRef.current);
+    }
+
+    itemRotationRef.current = setInterval(() => {
+      if (!isMountedRef.current) return;
+
+      const items =
+        dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
+      if (!items || items.length === 0) return;
+
+      setSelectedItem((prevItem) => {
+        const currentIndex = items.findIndex(
+          (item: any) => item._id === prevItem?._id,
+        );
+        const nextIndex = (currentIndex + 1) % items.length;
+        return items[nextIndex] || prevItem;
+      });
+    }, 20000);
+
+    return () => {
+      if (itemRotationRef.current) {
+        clearInterval(itemRotationRef.current);
+        itemRotationRef.current = null;
+      }
+    };
+  }, [
+    autoRotate,
+    currentItems,
+    dataType,
+    cohortsData,
+    gridsData,
+    propItemName,
+  ]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (measurementRotationRef.current) {
+        clearInterval(measurementRotationRef.current);
+      }
+      if (itemRotationRef.current) {
+        clearInterval(itemRotationRef.current);
+      }
+    };
+  }, []);
 
   // Get air quality icon based on PM2.5 value
-  const getAirQualityIcon = (pm25: number) => {
+  const getAirQualityIcon = (pm25: number, size: string = 'w-32 h-32') => {
     const iconProps = {
-      className: 'w-16 h-16',
-      style: { color: getAirQualityColor(pm25) },
+      className: size,
     };
 
     if (pm25 >= 0 && pm25 <= 12) {
@@ -152,13 +256,13 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
 
   // Get air quality color
   const getAirQualityColor = (pm25: number): string => {
-    if (pm25 >= 0 && pm25 <= 12) return '#00E400'; // Good - Green
-    if (pm25 > 12 && pm25 <= 35.4) return '#FFFF00'; // Moderate - Yellow
-    if (pm25 > 35.4 && pm25 <= 55.4) return '#FF7E00'; // Unhealthy for Sensitive Groups - Orange
-    if (pm25 > 55.4 && pm25 <= 150.4) return '#FF0000'; // Unhealthy - Red
-    if (pm25 > 150.4 && pm25 <= 250.4) return '#8F3F97'; // Very Unhealthy - Purple
-    if (pm25 > 250.4) return '#7E0023'; // Hazardous - Maroon
-    return '#808080'; // Unknown - Gray
+    if (pm25 >= 0 && pm25 <= 12) return '#00E400';
+    if (pm25 > 12 && pm25 <= 35.4) return '#FFFF00';
+    if (pm25 > 35.4 && pm25 <= 55.4) return '#FF7E00';
+    if (pm25 > 55.4 && pm25 <= 150.4) return '#FF0000';
+    if (pm25 > 150.4 && pm25 <= 250.4) return '#8F3F97';
+    if (pm25 > 250.4) return '#7E0023';
+    return '#808080';
   };
 
   // Get air quality category
@@ -175,10 +279,16 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   // Get location name
   const getLocationName = () => {
     if (dataType === 'cohort' && currentMeasurement?.deviceDetails) {
-      return currentMeasurement.deviceDetails.name || 'Unknown Location';
+      return (
+        formatDisplayName(currentMeasurement.deviceDetails.name) ||
+        'Unknown Location'
+      );
     }
     if (dataType === 'grid' && currentMeasurement?.siteDetails) {
-      return currentMeasurement.siteDetails.search_name || 'Unknown Location';
+      return (
+        formatDisplayName(currentMeasurement.siteDetails.search_name) ||
+        'Unknown Location'
+      );
     }
     return 'Unknown Location';
   };
@@ -191,7 +301,7 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
     const today = new Date().getDay();
 
     return (
-      <div className="flex items-center justify-center gap-2 mt-4">
+      <div className="flex items-center gap-2 flex-wrap">
         {forecastData.forecasts
           .slice(0, 7)
           .map((forecast: any, index: number) => {
@@ -202,21 +312,23 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
               <div
                 key={index}
                 className={cn(
-                  'flex flex-col items-center rounded-lg p-2 min-w-[40px]',
+                  'flex flex-col items-center rounded-lg p-3 min-w-[60px] sm:min-w-[70px]',
                   isToday
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-blue-100 text-blue-800',
+                    ? 'bg-blue-700 text-white'
+                    : 'bg-blue-500/30 text-white backdrop-blur-sm',
                 )}
               >
-                <span className="font-bold text-xs">{days[dayIndex]}</span>
-                <span className="text-xs font-medium">
+                <span className="font-bold text-sm sm:text-base mb-1">
+                  {days[dayIndex]}
+                </span>
+                <span className="text-xs sm:text-sm font-medium mb-2">
                   {forecast.pm2_5?.toFixed(1) || '--'}
                 </span>
-                <div className="mt-1">
+                <div className="flex-shrink-0">
                   {forecast.pm2_5 ? (
-                    getAirQualityIcon(forecast.pm2_5)
+                    getAirQualityIcon(forecast.pm2_5, 'w-8 h-8 sm:w-10 sm:h-10')
                   ) : (
-                    <AqNoValue className="w-4 h-4" />
+                    <AqNoValue className="w-8 h-8 sm:w-10 sm:h-10" />
                   )}
                 </div>
               </div>
@@ -230,186 +342,251 @@ const AirQualityBillboard: React.FC<AirQualityBillboardProps> = ({
   const category = pm25Value ? getAirQualityCategory(pm25Value) : 'Unknown';
 
   return (
-    <div
-      className={cn(
-        'bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl p-8 text-white',
-        className,
-      )}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <div className="font-bold text-lg">Air Quality Monitor</div>
-          <div className="text-sm opacity-90">
-            {new Date().toLocaleDateString([], {
-              weekday: 'short',
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
+    <section className={cn('py-8 sm:py-12 lg:py-16 px-4', className)}>
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+          {/* Background pattern */}
+          <div className="absolute inset-0 opacity-5">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
           </div>
-          <div className="text-sm opacity-90">
-            {new Date().toLocaleTimeString([], {
-              hour: 'numeric',
-              minute: '2-digit',
-            })}
-          </div>
-        </div>
 
-        {/* Data Type Selector */}
-        <div className="flex gap-2">
-          <button
-            onClick={() => {
-              setDataType('cohort');
-              setSelectedItem(null);
-            }}
-            className={cn(
-              'px-4 py-2 rounded-lg font-medium transition-all text-sm',
-              dataType === 'cohort'
-                ? 'bg-white text-blue-600 shadow-md'
-                : 'bg-blue-500 text-white hover:bg-blue-400',
-            )}
-          >
-            Cohort
-          </button>
-          <button
-            onClick={() => {
-              setDataType('grid');
-              setSelectedItem(null);
-            }}
-            className={cn(
-              'px-4 py-2 rounded-lg font-medium transition-all text-sm',
-              dataType === 'grid'
-                ? 'bg-white text-blue-600 shadow-md'
-                : 'bg-blue-500 text-white hover:bg-blue-400',
-            )}
-          >
-            Grid
-          </button>
-        </div>
-      </div>
-
-      {/* Selection Dropdown */}
-      <div className="mb-6">
-        <div className="relative max-w-xs">
-          <select
-            value={selectedItem?._id || ''}
-            onChange={(e) => {
-              const items =
-                dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
-              const item = items?.find((i: any) => i._id === e.target.value);
-              setSelectedItem(item || null);
-            }}
-            className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/40 appearance-none backdrop-blur-sm"
-          >
-            {(dataType === 'cohort'
-              ? cohortsData?.cohorts
-              : gridsData?.grids
-            )?.map((item: any) => (
-              <option key={item._id} value={item._id} className="text-black">
-                {item.name || item.long_name}
-              </option>
-            ))}
-          </select>
-          <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
-        </div>
-      </div>
-
-      <AnimatePresence mode="wait">
-        {!currentMeasurement ? (
-          <motion.div
-            key="loading"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-16"
-          >
-            <div className="animate-spin rounded-full h-12 w-12 border-2 border-white border-t-transparent mb-4"></div>
-            <p className="text-white/80">Loading air quality data...</p>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="data"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="space-y-6"
-          >
-            {/* Main Reading */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-3">
-                  <FiWind className="w-6 h-6 text-white/80" />
-                  <span className="text-lg font-medium">PM2.5</span>
+          {/* Header */}
+          {!hideControls && (
+            <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <div className="font-bold text-lg sm:text-xl">
+                  Air Quality Monitor
                 </div>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-6xl font-bold">
-                    {pm25Value?.toFixed(1) ?? '--'}
+                <div className="text-xs sm:text-sm opacity-90 flex items-center gap-2 flex-wrap">
+                  <span>
+                    {new Date().toLocaleDateString([], {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
                   </span>
-                  <span className="text-xl opacity-80">μg/m³</span>
+                  <span>
+                    {new Date().toLocaleTimeString([], {
+                      hour: 'numeric',
+                      minute: '2-digit',
+                    })}
+                  </span>
                 </div>
               </div>
 
-              {/* Air Quality Icon */}
-              <div className="flex-shrink-0">
-                {pm25Value ? (
-                  getAirQualityIcon(pm25Value)
-                ) : (
-                  <AqNoValue className="w-16 h-16 text-white/60" />
-                )}
+              {/* Data Type Selector */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setDataType('cohort');
+                    setSelectedItem(null);
+                  }}
+                  className={cn(
+                    'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
+                    dataType === 'cohort'
+                      ? 'bg-white text-blue-600 shadow-lg'
+                      : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
+                  )}
+                >
+                  Cohort
+                </button>
+                <button
+                  onClick={() => {
+                    setDataType('grid');
+                    setSelectedItem(null);
+                  }}
+                  className={cn(
+                    'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
+                    dataType === 'grid'
+                      ? 'bg-white text-blue-600 shadow-lg'
+                      : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
+                  )}
+                >
+                  Grid
+                </button>
               </div>
             </div>
+          )}
 
-            {/* Air Quality Category */}
-            <div className="flex items-center gap-4">
-              <div
-                className="px-4 py-2 rounded-full font-semibold text-sm"
-                style={{
-                  backgroundColor: pm25Value
-                    ? getAirQualityColor(pm25Value)
-                    : '#808080',
-                }}
+          {/* Selection Dropdown */}
+          {!hideControls && (
+            <div className="relative z-10 mb-6 sm:mb-8">
+              <div className="relative max-w-md">
+                <select
+                  value={selectedItem?._id || ''}
+                  onChange={(e) => {
+                    const items =
+                      dataType === 'cohort'
+                        ? cohortsData?.cohorts
+                        : gridsData?.grids;
+                    const item = items?.find(
+                      (i: any) => i._id === e.target.value,
+                    );
+                    setSelectedItem(item || null);
+                  }}
+                  className="w-full px-4 py-3 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 appearance-none backdrop-blur-sm text-sm sm:text-base"
+                >
+                  {currentItems?.map((item: any) => (
+                    <option
+                      key={item._id}
+                      value={item._id}
+                      className="text-black bg-white"
+                    >
+                      {formatDisplayName(item.name || item.long_name)}
+                    </option>
+                  ))}
+                </select>
+                <FiChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-white/70 pointer-events-none" />
+              </div>
+            </div>
+          )}
+
+          <AnimatePresence mode="wait">
+            {!currentMeasurement ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="relative z-10 flex flex-col items-center justify-center py-16 sm:py-24"
               >
-                {category}
-              </div>
-              <span className="text-white/80">
-                Air Quality is {category.toLowerCase()}
-              </span>
-            </div>
+                <div className="animate-spin rounded-full h-16 w-16 border-3 border-white border-t-transparent mb-4"></div>
+                <p className="text-white/80 text-sm sm:text-base">
+                  Loading air quality data...
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`data-${currentMeasurement?.site_id}-${currentMeasurement?.time}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5 }}
+                className="relative z-10"
+              >
+                {/* Main Content Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-8">
+                  {/* Left Section */}
+                  <div className="space-y-6">
+                    {/* PM2.5 Header with Icon */}
+                    <div className="flex items-center gap-3">
+                      {getAirQualityIcon(
+                        pm25Value || 0,
+                        'w-12 h-12 sm:w-14 sm:h-14',
+                      )}
+                      <span className="text-2xl sm:text-3xl font-bold">
+                        PM2.5
+                      </span>
+                    </div>
 
-            {/* Location */}
-            <div className="flex items-center gap-3 pt-4 border-t border-white/20">
-              <FiMapPin className="w-5 h-5 text-white/80" />
-              <span className="font-medium">{getLocationName()}</span>
-            </div>
+                    {/* Large PM2.5 Value */}
+                    <div className="flex items-baseline gap-3">
+                      <span
+                        className="text-7xl sm:text-8xl md:text-9xl font-bold leading-none"
+                        style={{
+                          color: pm25Value
+                            ? getAirQualityColor(pm25Value)
+                            : '#808080',
+                        }}
+                      >
+                        {pm25Value?.toFixed(1) ?? '--'}
+                      </span>
+                      <span className="text-2xl sm:text-3xl opacity-90 mb-2">
+                        μg/m³
+                      </span>
+                    </div>
 
-            {/* 7-Day Forecast */}
-            {forecastData && (
-              <div className="pt-4 border-t border-white/20">
-                <h4 className="text-sm font-medium mb-3 text-center">
-                  7-Day Forecast
-                </h4>
-                {renderForecast()}
-              </div>
+                    {/* 7-Day Forecast */}
+                    {forecastData && (
+                      <div className="mt-8">{renderForecast()}</div>
+                    )}
+                  </div>
+
+                  {/* Right Section */}
+                  <div className="flex flex-col items-start lg:items-end justify-between space-y-6 lg:space-y-8">
+                    {/* Large Air Quality Icon */}
+                    <div className="w-full flex justify-center lg:justify-end">
+                      <div className="transform hover:scale-105 transition-transform duration-300">
+                        {pm25Value ? (
+                          getAirQualityIcon(
+                            pm25Value,
+                            'w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56',
+                          )
+                        ) : (
+                          <AqNoValue className="w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56 opacity-50" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* QR Code */}
+                    <div className="w-full flex flex-col items-center lg:items-end gap-2">
+                      <span className="text-sm sm:text-base font-semibold tracking-wider">
+                        SCAN ME
+                      </span>
+                      <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-white rounded-lg p-2">
+                        <Image
+                          src="/QR/analytics_qrcode.png"
+                          alt="QR Code"
+                          fill
+                          className="object-contain"
+                          sizes="160px"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom Section */}
+                <div className="space-y-4 pt-6 border-t border-white/20">
+                  {/* Air Quality Status */}
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div
+                      className="px-5 py-2 rounded-full font-bold text-sm sm:text-base text-white shadow-lg"
+                      style={{
+                        backgroundColor: pm25Value
+                          ? getAirQualityColor(pm25Value)
+                          : '#808080',
+                      }}
+                    >
+                      {category}
+                    </div>
+                    <span className="text-lg sm:text-xl font-medium">
+                      Air Quality is {category.toLowerCase()}
+                    </span>
+                  </div>
+
+                  {/* Location */}
+                  <div className="flex items-center gap-2">
+                    <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
+                    <span className="font-medium text-sm sm:text-base">
+                      {getLocationName()}
+                    </span>
+                  </div>
+
+                  {/* Last Updated */}
+                  <div className="text-xs sm:text-sm text-white/70">
+                    Last updated:{' '}
+                    {currentMeasurement?.time
+                      ? new Date(currentMeasurement.time).toLocaleString(
+                          'en-US',
+                          {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          },
+                        )
+                      : 'Unknown'}
+                  </div>
+                </div>
+              </motion.div>
             )}
-
-            {/* Last Updated */}
-            <div className="text-xs text-white/60 text-center pt-4 border-t border-white/20">
-              Last updated:{' '}
-              {currentMeasurement?.time
-                ? new Date(currentMeasurement.time).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : 'Unknown'}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          </AnimatePresence>
+        </div>
+      </div>
+    </section>
   );
 };
 

@@ -91,6 +91,45 @@ _Alternate Tips for Mac/Linux:_
 
 ---
 
+## Features & Special Routes
+
+### Air Quality Billboard Display
+
+The website includes a specialized billboard display system optimized for large screens and public displays:
+
+#### Dynamic Billboard Routes
+
+- **Cohort Display:**
+  - `/billboard/cohort` - Randomly rotates through all cohorts (auto-refresh every 20s)
+  - `/billboard/cohort/{name}` - Displays a specific cohort location
+- **Grid Display:**
+  - `/billboard/grid` - Randomly rotates through all grids (auto-refresh every 20s)
+  - `/billboard/grid/{name}` - Displays a specific grid location
+
+#### Billboard Features
+
+- ✅ Clean, professional interface (no navigation controls)
+- ✅ Large, readable PM2.5 values with color-coded indicators
+- ✅ Air quality icons and 7-day forecasts
+- ✅ QR codes for mobile access
+- ✅ Optimized for 24/7 public display
+
+**Examples:**
+
+```
+/billboard/cohort/epic_lagos_unilag
+/billboard/grid/kampala_central
+```
+
+📖 **Detailed Documentation:**
+
+- [Quick Start Guide](docs/QUICK_START.md) - Billboard setup guide
+- [Dynamic Routes](docs/BILLBOARD_DYNAMIC_ROUTES.md) - Complete route documentation
+- [Implementation Details](docs/IMPLEMENTATION_SUMMARY.md) - Technical overview
+- [Architecture](docs/ROUTE_ARCHITECTURE.md) - System architecture
+
+---
+
 ## Environment Variables & Workflow Updates
 
 When adding new environment variables to the project, ensure that the CI/CD workflows remain consistent across staging, production, and preview environments.
