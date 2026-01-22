@@ -64,53 +64,53 @@ interface ProcessedDeviceData {
 
 const processDevicePerformance = (device: AirQloudDetailData['device_performance'][0]): ProcessedDeviceData => {
   const { freq, error_margin, timestamp } = device.performance
-  
+
   // Group data by date (since timestamps are hourly)
   const dailyData: { [date: string]: { hours: number; errorMargins: number[] } } = {}
-  
+
   timestamp.forEach((ts, index) => {
     const date = new Date(ts).toDateString() // Group by date only
-    
+
     if (!dailyData[date]) {
       dailyData[date] = { hours: 0, errorMargins: [] }
     }
-    
+
     // Count unique hours per day (freq represents hours with data)
     if (freq[index] && freq[index] > 0) {
       dailyData[date].hours += 1
     }
-    
+
     // Collect error margins for this day
     if (error_margin[index] !== undefined && error_margin[index] !== null) {
       dailyData[date].errorMargins.push(error_margin[index])
     }
   })
-  
+
   // Convert to arrays for history graphs
   const dates = Object.keys(dailyData).sort((a, b) => new Date(a).getTime() - new Date(b).getTime()).slice(-14) // Sort chronologically and take last 14 days
-  
+
   const uptimeHistory = dates.map(date => ({
     value: (dailyData[date].hours / 24) * 100, // Percentage of 24 hours
     timestamp: date
   }))
-  
+
   const errorMarginHistory = dates.map(date => ({
-    value: dailyData[date].errorMargins.length > 0 
-      ? dailyData[date].errorMargins.reduce((sum, em) => sum + em, 0) / dailyData[date].errorMargins.length 
+    value: dailyData[date].errorMargins.length > 0
+      ? dailyData[date].errorMargins.reduce((sum, em) => sum + em, 0) / dailyData[date].errorMargins.length
       : 0,
     timestamp: date
   }))
-  
+
   // Calculate overall averages
   const totalUniqueHours = Object.values(dailyData).reduce((sum, day) => sum + day.hours, 0)
   const totalDays = Object.keys(dailyData).length
   const dailyUptimePercentage = totalDays > 0 ? (totalUniqueHours / (totalDays * 24)) * 100 : 0
-  
+
   const allErrorMargins = Object.values(dailyData).flatMap(day => day.errorMargins)
   const avgErrorMargin = allErrorMargins.length > 0
     ? allErrorMargins.reduce((sum, em) => sum + em, 0) / allErrorMargins.length
     : 0
-  
+
   return {
     device_id: device.device_id,
     device_name: device.device_name,
@@ -128,7 +128,9 @@ const formatChartData = (freq: number[], errorMargin: number[], timestamps: stri
     uptime: ((freq[index] || 0) / 24) * 100,
     errorMargin: errorMargin[index] || 0,
     timestamp
-  })).slice(-14) // Last 14 days
+  }))
+    .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+    .slice(-14) // Last 14 days
 }
 
 // Props interfaces for mini graph components
@@ -178,7 +180,7 @@ const UptimeMiniGraph = memo(function UptimeMiniGraph({ uptimeHistory, averageUp
     return <span className="text-muted-foreground">N/A</span>
   }
 
-  const values = uptimeHistory.slice(-14).reverse() // Reverse to show latest to oldest
+  const values = uptimeHistory.slice(-14) // Earliest to latest
 
   return (
     <TooltipProvider>
@@ -213,7 +215,7 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
     return <span className="text-muted-foreground">N/A</span>
   }
 
-  const values = errorMarginHistory.slice(-14).reverse() // Reverse to show latest to oldest
+  const values = errorMarginHistory.slice(-14) // Earliest to latest
   const maxValue = Math.max(...values.map(v => v.value), 1)
 
   return (
@@ -246,7 +248,7 @@ const ErrorMarginMiniGraph = memo(function ErrorMarginMiniGraph({ errorMarginHis
 export default function AirQloudDetailPage() {
   const params = useParams()
   const airqloudId = params?.id as string
-  
+
   const [data, setData] = useState<AirQloudDetailData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -339,7 +341,7 @@ export default function AirQloudDetailPage() {
   }
 
   // Calculate summary statistics
-  const averageUptime = data.freq.length > 0 
+  const averageUptime = data.freq.length > 0
     ? (data.freq.reduce((sum, f) => sum + f, 0) / (data.freq.length * 24)) * 100
     : 0
 
@@ -398,218 +400,218 @@ export default function AirQloudDetailPage() {
 
         <TabsContent value="overview" className="space-y-6 mt-6">
           {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Devices
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.device_count}</div>
-          </CardContent>
-        </Card>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Devices
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{data.device_count}</div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Average Uptime
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{averageUptime.toFixed(1)}%</div>
-            <Progress value={averageUptime} className="mt-2" />
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Average Uptime
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{averageUptime.toFixed(1)}%</div>
+                <Progress value={averageUptime} className="mt-2" />
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Average Error Margin
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{averageErrorMargin.toFixed(2)}</div>
-            <div className="text-sm text-muted-foreground">± margin</div>
-          </CardContent>
-        </Card>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Average Error Margin
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{averageErrorMargin.toFixed(2)}</div>
+                <div className="text-sm text-muted-foreground">± margin</div>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Days of Analysis
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data.freq.length}</div>
-            {/* <div className="text-sm text-muted-foreground">Last 14 days</div> */}
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Days of Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{data.freq.length}</div>
+                {/* <div className="text-sm text-muted-foreground">Last 14 days</div> */}
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wifi className="h-5 w-5" />
-              Daily Uptime Trend
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    domain={[0, 100]}
-                    tick={{ fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                    formatter={(value: number) => [`${value.toFixed(1)}%`, 'Uptime']}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="uptime"
-                    stroke="var(--color-uptime)"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
+          {/* Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Wifi className="h-5 w-5" />
+                  Daily Uptime Trend
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        domain={[0, 100]}
+                        tick={{ fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        formatter={(value: any) => [typeof value === 'number' ? `${value.toFixed(1)}%` : '0%', 'Uptime']}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="uptime"
+                        stroke="var(--color-uptime)"
+                        strokeWidth={2}
+                        dot={{ r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              Error Margin Trend
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                  <XAxis
-                    dataKey="date"
-                    tick={{ fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 12 }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                    formatter={(value: number) => [value.toFixed(2), 'Error Margin']}
-                  />
-                  <Bar
-                    dataKey="errorMargin"
-                    fill="var(--color-errorMargin)"
-                    radius={[2, 2, 0, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5" />
+                  Error Margin Trend
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ChartContainer config={chartConfig} className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData}>
+                      <XAxis
+                        dataKey="date"
+                        tick={{ fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        tick={{ fontSize: 12 }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <ChartTooltip
+                        content={<ChartTooltipContent />}
+                        formatter={(value: any) => [typeof value === 'number' ? value.toFixed(2) : '0', 'Error Margin']}
+                      />
+                      <Bar
+                        dataKey="errorMargin"
+                        fill="var(--color-errorMargin)"
+                        radius={[2, 2, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Device Performance Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Device Performance Summary</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Individual device performance over the last 14 days
-          </p>
-        </CardHeader>
-        <CardContent>
-          {processedDevices.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No device performance data available
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Device Name</TableHead>
-                    <TableHead>Daily Uptime</TableHead>
-                    <TableHead>Error Margin</TableHead>
-                    <TableHead>Data Points</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {processedDevices.map((device) => (
-                    <TableRow key={device.device_id}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div className="font-medium">{device.device_name}</div>
-                          <div className="text-xs text-muted-foreground font-mono">
-                            {device.device_id.length > 20 
-                              ? `${device.device_id.slice(0, 10)}...${device.device_id.slice(-10)}`
-                              : device.device_id
-                            }
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <UptimeMiniGraph 
-                          uptimeHistory={device.uptime_history} 
-                          averageUptime={device.daily_uptime_percentage} 
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <ErrorMarginMiniGraph 
-                          errorMarginHistory={device.error_margin_history} 
-                          averageErrorMargin={device.average_error_margin} 
-                        />
-                      </TableCell>
-                      <TableCell>{device.data_points}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                            device.daily_uptime_percentage > 80 
-                              ? "default" 
-                              : device.daily_uptime_percentage > 50 
-                              ? "secondary" 
-                              : "destructive"
-                          }
-                        >
-                          {device.daily_uptime_percentage > 80 
-                            ? "Good" 
-                            : device.daily_uptime_percentage > 50 
-                            ? "Fair" 
-                            : "Poor"
-                          }
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          {/* Device Performance Table */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Device Performance Summary</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Individual device performance over the last 14 days
+              </p>
+            </CardHeader>
+            <CardContent>
+              {processedDevices.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No device performance data available
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Device Name</TableHead>
+                        <TableHead>Daily Uptime</TableHead>
+                        <TableHead>Error Margin</TableHead>
+                        <TableHead>Data Points</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {processedDevices.map((device) => (
+                        <TableRow key={device.device_id}>
+                          <TableCell className="font-medium">
+                            <div>
+                              <div className="font-medium">{device.device_name}</div>
+                              <div className="text-xs text-muted-foreground font-mono">
+                                {device.device_id.length > 20
+                                  ? `${device.device_id.slice(0, 10)}...${device.device_id.slice(-10)}`
+                                  : device.device_id
+                                }
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <UptimeMiniGraph
+                              uptimeHistory={device.uptime_history}
+                              averageUptime={device.daily_uptime_percentage}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <ErrorMarginMiniGraph
+                              errorMarginHistory={device.error_margin_history}
+                              averageErrorMargin={device.average_error_margin}
+                            />
+                          </TableCell>
+                          <TableCell>{device.data_points}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                device.daily_uptime_percentage > 80
+                                  ? "default"
+                                  : device.daily_uptime_percentage > 50
+                                    ? "secondary"
+                                    : "destructive"
+                              }
+                            >
+                              {device.daily_uptime_percentage > 80
+                                ? "Good"
+                                : device.daily_uptime_percentage > 50
+                                  ? "Fair"
+                                  : "Poor"
+                              }
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="performance" className="mt-6">
-          <AirQloudPerformanceTab 
-            airqloudId={airqloudId} 
+          <AirQloudPerformanceTab
+            airqloudId={airqloudId}
             airqloudName={data.name}
           />
         </TabsContent>

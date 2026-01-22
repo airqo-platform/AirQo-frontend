@@ -6,7 +6,7 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import { config } from '@/lib/config';
 import authService from './api-service';
-import { 
+import {
   ItemsStock,
   ItemsStockCreate,
   ItemsStockUpdate,
@@ -39,10 +39,10 @@ class StockService {
     if (config.isLocalhost) {
       return {};
     }
-    
+
     const token = authService.getToken();
     if (token) {
-      return { 'Authorization': token };
+      return { 'Authorization': `Bearer ${token}` };
     }
     return {};
   }
@@ -66,7 +66,7 @@ class StockService {
   async getAllItems(params?: ItemsStockListParams): Promise<ItemsStockResponse | ItemsStock[]> {
     try {
       const queryParams = new URLSearchParams();
-      
+
       if (params?.page !== undefined) queryParams.append('page', params.page.toString());
       if (params?.page_size !== undefined) {
         // Ensure page_size doesn't exceed the maximum of 100
@@ -83,7 +83,7 @@ class StockService {
       if (params?.return_list !== undefined) queryParams.append('return_list', params.return_list.toString());
 
       const endpoint = this.getEndpoint('/items-stock');
-      const url = queryParams.toString() 
+      const url = queryParams.toString()
         ? `${this.baseUrl}${endpoint}?${queryParams.toString()}`
         : `${this.baseUrl}${endpoint}`;
 
