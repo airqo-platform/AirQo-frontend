@@ -79,13 +79,6 @@ const AirQualityBillboard = ({
   const isLoading = dataType === 'cohort' ? cohortsLoading : gridsLoading;
   const hasError = dataType === 'cohort' ? cohortsError : gridsError;
 
-  // Handle data type change with cache clearing
-  const onDataTypeChange = (newDataType: 'cohort' | 'grid') => {
-    clearDataTypeCache(newDataType);
-    handleDataTypeChange(newDataType);
-    resetIndices();
-  };
-
   // Set first item as default when data loads
   useEffect(() => {
     if (isLoading) {
@@ -258,11 +251,7 @@ const AirQualityBillboard = ({
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
             </div>
 
-            <BillboardHeader
-              hideControls={hideControls}
-              dataType={dataType}
-              onDataTypeChange={onDataTypeChange}
-            />
+            <BillboardHeader hideControls={hideControls} />
 
             <ItemSelector
               hideControls={hideControls}

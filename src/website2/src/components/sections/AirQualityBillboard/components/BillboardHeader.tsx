@@ -1,18 +1,10 @@
 import { cn } from '@/lib/utils';
 
-import type { DataType } from '../types';
-
 interface BillboardHeaderProps {
   hideControls?: boolean;
-  dataType: DataType;
-  onDataTypeChange: (type: DataType) => void;
 }
 
-const BillboardHeader = ({
-  hideControls,
-  dataType,
-  onDataTypeChange,
-}: BillboardHeaderProps) => {
+const BillboardHeader = ({ hideControls }: BillboardHeaderProps) => {
   if (hideControls) return null;
 
   return (
@@ -35,32 +27,6 @@ const BillboardHeader = ({
             })}
           </span>
         </div>
-      </div>
-
-      {/* Data Type Selector */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => onDataTypeChange('cohort')}
-          className={cn(
-            'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
-            dataType === 'cohort'
-              ? 'bg-white text-blue-600 shadow-lg'
-              : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
-          )}
-        >
-          Cohort
-        </button>
-        <button
-          onClick={() => onDataTypeChange('grid')}
-          className={cn(
-            'px-3 sm:px-4 py-2 rounded-lg font-medium transition-all text-xs sm:text-sm',
-            dataType === 'grid'
-              ? 'bg-white text-blue-600 shadow-lg'
-              : 'bg-blue-500/50 text-white hover:bg-blue-500/70',
-          )}
-        >
-          Grid
-        </button>
       </div>
     </div>
   );
