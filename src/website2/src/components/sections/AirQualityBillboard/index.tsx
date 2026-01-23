@@ -285,7 +285,6 @@ const AirQualityBillboard = ({
               dataType={dataType}
               currentMeasurement={currentMeasurement}
               forecastData={forecastData}
-              hideControls={hideControls}
             />
           </div>
         )}

@@ -1,5 +1,4 @@
 import {
-  AqAirQo,
   AqGood,
   AqHazardous,
   AqModem02,
@@ -27,14 +26,49 @@ interface AirQualityDisplayProps {
   dataType: DataType;
   currentMeasurement: Measurement | null;
   forecastData?: { forecasts?: Forecast[] };
-  hideControls?: boolean;
 }
+
+// Circular Progress Loader Component
+const CircularProgressLoader = () => {
+  return (
+    <div className="relative w-12 h-12">
+      {/* Background circle */}
+      <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="rgba(255, 255, 255, 0.2)"
+          strokeWidth="2"
+        />
+        {/* Progress circle */}
+        <path
+          d="M18 2.0845
+            a 15.9155 15.9155 0 0 1 0 31.831
+            a 15.9155 15.9155 0 0 1 0 -31.831"
+          fill="none"
+          stroke="#00D4FF"
+          strokeWidth="2"
+          strokeDasharray="100, 100"
+          className="animate-circular-progress"
+          style={{
+            strokeDashoffset: '100',
+          }}
+        />
+      </svg>
+      {/* Center dot */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="w-2 h-2 bg-white rounded-full opacity-80"></div>
+      </div>
+    </div>
+  );
+};
 
 const AirQualityDisplay = ({
   dataType,
   currentMeasurement,
   forecastData,
-  hideControls,
 }: AirQualityDisplayProps) => {
   const pm25Value = currentMeasurement?.pm2_5?.value;
   const categoryObj = pm25Value
@@ -269,12 +303,10 @@ const AirQualityDisplay = ({
           </div>
         </div>
 
-        {/* AirQo Watermark Logo - Bottom Right */}
-        {hideControls && (
-          <div className="absolute bottom-2 right-2 sm:bottom-3 sm:right-3 z-20 opacity-30 hover:opacity-60 transition-opacity">
-            <AqAirQo className="w-12 h-12 sm:w-16 sm:h-16 text-white" />
-          </div>
-        )}
+        {/* Circular Progress Loader - Bottom Right */}
+        <div className="absolute bottom-4 right-4 z-20">
+          <CircularProgressLoader />
+        </div>
       </motion.div>
     </AnimatePresence>
   );
