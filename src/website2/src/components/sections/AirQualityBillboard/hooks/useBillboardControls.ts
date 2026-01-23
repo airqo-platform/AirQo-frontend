@@ -7,7 +7,6 @@ export const useBillboardControls = (
   propItemName?: string,
   autoRotate = false,
 ) => {
-  const [dataType, setDataType] = useState<DataType>(propDataType || 'grid');
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,15 +18,6 @@ export const useBillboardControls = (
   const dropdownRef = useRef<HTMLDivElement>(null);
   const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle data type change
-  const handleDataTypeChange = useCallback((newDataType: DataType) => {
-    setDataType(newDataType);
-    setSelectedItem(null);
-    setDataLoaded(false);
-    setSearchQuery('');
-    setIsDropdownOpen(false);
-  }, []);
-
   // Handle item selection
   const handleItemSelect = useCallback((item: Item | null) => {
     setSelectedItem(item);
@@ -36,34 +26,31 @@ export const useBillboardControls = (
   }, []);
 
   // Handle copy URL
-  const handleCopyUrl = useCallback(
-    async (item: Item) => {
-      const itemName = (item.name || item.long_name || '')
-        .toLowerCase()
-        .replace(/\s+/g, '-');
-      const url = `${window.location.origin}/billboard/${dataType}/${encodeURIComponent(itemName)}`;
+  const handleCopyUrl = useCallback(async (item: Item) => {
+    const itemName = (item.name || item.long_name || '')
+      .toLowerCase()
+      .replace(/\s+/g, '-');
+    const url = `${window.location.origin}/billboard/grid/${encodeURIComponent(itemName)}`;
 
-      try {
-        await navigator.clipboard.writeText(url);
-        setCopiedItemId(item._id);
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedItemId(item._id);
 
-        // Clear any existing timeout
-        if (copiedTimeoutRef.current) {
-          clearTimeout(copiedTimeoutRef.current);
-        }
-
-        // Set new timeout
-        copiedTimeoutRef.current = setTimeout(() => {
-          if (isMountedRef.current) {
-            setCopiedItemId(null);
-          }
-        }, 2000);
-      } catch (err) {
-        console.error('Failed to copy URL:', err);
+      // Clear any existing timeout
+      if (copiedTimeoutRef.current) {
+        clearTimeout(copiedTimeoutRef.current);
       }
-    },
-    [dataType],
-  );
+
+      // Set new timeout
+      copiedTimeoutRef.current = setTimeout(() => {
+        if (isMountedRef.current) {
+          setCopiedItemId(null);
+        }
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy URL:', err);
+    }
+  }, []);
 
   // Handle click outside dropdown
   useEffect(() => {
@@ -93,12 +80,11 @@ export const useBillboardControls = (
   }, []);
 
   const state: BillboardState = {
-    dataType,
+    dataType: 'grid',
     selectedItem,
     currentMeasurement: null, // This will be managed by useMeasurements hook
     dataLoaded,
     currentSiteIndex: 0, // This will be managed by useMeasurements hook
-    currentDeviceIndex: 0, // This will be managed by useMeasurements hook
     searchQuery,
     isDropdownOpen,
     hoveredItemId,
@@ -117,7 +103,6 @@ export const useBillboardControls = (
     setHoveredItemId,
     setSearchQuery,
     setIsDropdownOpen,
-    handleDataTypeChange,
     handleItemSelect,
     handleCopyUrl,
 

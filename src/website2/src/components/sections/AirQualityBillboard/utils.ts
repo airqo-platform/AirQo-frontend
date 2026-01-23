@@ -46,14 +46,10 @@ const categoryToLevel = (category: any): string => {
  * Get location name from measurement
  */
 export const getLocationName = (
-  dataType: 'cohort' | 'grid',
+  dataType: 'grid',
   currentMeasurement: any,
 ): string => {
-  if (dataType === 'cohort' && currentMeasurement?.deviceDetails) {
-    // For cohort, show device name as-is (no formatting)
-    return currentMeasurement.deviceDetails.name || 'Unknown Device';
-  }
-  if (dataType === 'grid' && currentMeasurement?.siteDetails) {
+  if (currentMeasurement?.siteDetails) {
     // For grid, show site name or search_name
     return (
       currentMeasurement.siteDetails.name ||

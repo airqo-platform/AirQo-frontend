@@ -34,7 +34,6 @@ export default function GridBillboardPage({ params }: GridBillboardPageProps) {
         <AirQualityBillboard
           hideControls={true}
           autoRotate={false}
-          dataType="grid"
           itemName={gridName}
           centered={true}
         />

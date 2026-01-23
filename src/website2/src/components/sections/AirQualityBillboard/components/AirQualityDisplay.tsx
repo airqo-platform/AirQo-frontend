@@ -1,7 +1,6 @@
 import {
   AqGood,
   AqHazardous,
-  AqModem02,
   AqModerate,
   AqNoValue,
   AqUnhealthy,
@@ -272,11 +271,7 @@ const AirQualityDisplay = ({
 
           {/* Location */}
           <div className="flex items-center gap-2">
-            {dataType === 'cohort' ? (
-              <AqModem02 className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
-            ) : (
-              <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
-            )}
+            <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 text-white/90 flex-shrink-0" />
             <span
               className="font-medium text-sm sm:text-base"
               style={{ fontFamily: '"Times New Roman", Times, serif' }}

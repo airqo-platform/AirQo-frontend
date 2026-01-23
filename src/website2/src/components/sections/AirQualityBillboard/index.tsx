@@ -19,12 +19,11 @@ const AirQualityBillboard = ({
   className,
   hideControls = false,
   autoRotate = false,
-  dataType: propDataType,
   itemName: propItemName,
   centered = false,
 }: AirQualityBillboardProps) => {
   // Custom hooks for state management
-  const controls = useBillboardControls(propDataType, propItemName, autoRotate);
+  const controls = useBillboardControls('grid', propItemName, autoRotate);
   const {
     dataType,
     selectedItem,
@@ -44,18 +43,8 @@ const AirQualityBillboard = ({
 
   // Data fetching hooks
   const airQualityData = useAirQualityData(dataType, propItemName);
-  const {
-    cohortsData,
-    gridsData,
-    allCohorts,
-    allGrids,
-    cohortsLoading,
-    gridsLoading,
-    cohortsError,
-    gridsError,
-    cohortsParams,
-    gridsParams,
-  } = airQualityData;
+  const { gridsData, allGrids, gridsLoading, gridsError, gridsParams } =
+    airQualityData;
 
   // Measurements hook
   const measurements = useMeasurements(dataType, selectedItem);
@@ -73,9 +62,9 @@ const AirQualityBillboard = ({
   );
 
   // Get current items for selector
-  const currentItems = dataType === 'cohort' ? allCohorts : allGrids;
-  const isLoading = dataType === 'cohort' ? cohortsLoading : gridsLoading;
-  const hasError = dataType === 'cohort' ? cohortsError : gridsError;
+  const currentItems = allGrids;
+  const isLoading = gridsLoading;
+  const hasError = gridsError;
 
   // Set first item as default when data loads
   useEffect(() => {
@@ -84,8 +73,7 @@ const AirQualityBillboard = ({
       return;
     }
 
-    const items =
-      dataType === 'cohort' ? cohortsData?.cohorts : gridsData?.grids;
+    const items = gridsData?.grids;
 
     if (!items?.length) {
       setDataLoaded(true);
@@ -137,11 +125,8 @@ const AirQualityBillboard = ({
 
     setDataLoaded(true);
   }, [
-    cohortsData,
     gridsData,
-    cohortsLoading,
     gridsLoading,
-    dataType,
     selectedItem,
     propItemName,
     setDataLoaded,
@@ -173,7 +158,6 @@ const AirQualityBillboard = ({
           <ErrorDisplay
             type="summary"
             dataType={dataType}
-            cohortsParams={cohortsParams}
             gridsParams={gridsParams}
           />
         ) : selectedItem && measurementsError ? (
@@ -194,14 +178,14 @@ const AirQualityBillboard = ({
               <div className="text-center space-y-6">
                 <div>
                   <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                    {dataType === 'cohort' ? 'Cohort' : 'Grid'} Not Found
+                    Grid Not Found
                   </h2>
                   <p className="text-lg sm:text-xl opacity-90 mb-2">
-                    {`The requested ${dataType} "${propItemName}" could not be found.`}
+                    {`The requested grid "${propItemName}" could not be found.`}
                   </p>
                   <p className="text-base opacity-75">
-                    Please check the URL or select a different {dataType} from
-                    the main billboard page.
+                    Please check the URL or select a different grid from the
+                    main billboard page.
                   </p>
                 </div>
               </div>
@@ -224,7 +208,7 @@ const AirQualityBillboard = ({
                   <p className="text-lg sm:text-xl opacity-90 mb-2">
                     {propItemName
                       ? `We're currently unable to retrieve air quality data for "${selectedItem?.name || selectedItem?.long_name || propItemName}".`
-                      : `No air quality data is currently available for this ${dataType}.`}
+                      : `No air quality data is currently available for this grid.`}
                   </p>
                   <p className="text-base opacity-75">
                     {propItemName
@@ -254,7 +238,6 @@ const AirQualityBillboard = ({
 
             <ItemSelector
               hideControls={hideControls}
-              dataType={dataType}
               selectedItem={selectedItem}
               items={currentItems}
               searchQuery={searchQuery}

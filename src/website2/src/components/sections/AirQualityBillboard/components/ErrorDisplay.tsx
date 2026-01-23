@@ -6,7 +6,6 @@ interface ErrorDisplayProps {
   type: 'summary' | 'measurements';
   dataType: DataType;
   selectedItem?: any;
-  cohortsParams?: any;
   gridsParams?: any;
 }
 
@@ -14,27 +13,16 @@ const ErrorDisplay = ({
   type,
   dataType,
   selectedItem,
-  cohortsParams,
   gridsParams,
 }: ErrorDisplayProps) => {
   const handleRetry = () => {
     if (type === 'summary') {
-      if (dataType === 'cohort') {
-        mutate(`cohortsSummary-${JSON.stringify(cohortsParams)}`);
-      } else {
-        mutate(`gridsSummary-${JSON.stringify(gridsParams)}`);
-      }
+      mutate(`gridsSummary-${JSON.stringify(gridsParams)}`);
     } else {
       if (selectedItem) {
-        if (dataType === 'cohort') {
-          mutate(
-            `cohortMeasurements-${selectedItem._id}-${JSON.stringify({ limit: 80 })}`,
-          );
-        } else {
-          mutate(
-            `gridMeasurements-${selectedItem._id}-${JSON.stringify({ limit: 80 })}`,
-          );
-        }
+        mutate(
+          `gridMeasurements-${selectedItem._id}-${JSON.stringify({ limit: 80 })}`,
+        );
       }
     }
   };

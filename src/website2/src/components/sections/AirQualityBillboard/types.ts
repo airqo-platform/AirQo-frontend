@@ -1,18 +1,11 @@
-export type DataType = 'cohort' | 'grid';
+export type DataType = 'grid';
 
 export interface AirQualityBillboardProps {
   className?: string;
   hideControls?: boolean;
   autoRotate?: boolean;
-  dataType?: DataType;
   itemName?: string;
   centered?: boolean;
-}
-
-export interface Cohort {
-  _id: string;
-  name?: string;
-  long_name?: string;
 }
 
 export interface Grid {
@@ -21,7 +14,7 @@ export interface Grid {
   long_name?: string;
 }
 
-export type Item = Cohort | Grid;
+export type Item = Grid;
 
 export interface Measurement {
   _id?: string;
@@ -63,7 +56,6 @@ export interface MeasurementsData {
 }
 
 export interface SummaryData {
-  cohorts?: Cohort[];
   grids?: Grid[];
   meta?: {
     nextPage?: string;
@@ -76,7 +68,6 @@ export interface BillboardState {
   currentMeasurement: Measurement | null;
   dataLoaded: boolean;
   currentSiteIndex: number;
-  currentDeviceIndex: number;
   searchQuery: string;
   isDropdownOpen: boolean;
   hoveredItemId: string | null;

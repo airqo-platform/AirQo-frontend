@@ -3,12 +3,11 @@ import { FiChevronDown } from 'react-icons/fi';
 
 import { cn } from '@/lib/utils';
 
-import type { DataType, Item } from '../types';
+import type { Item } from '../types';
 import { formatDisplayName } from '../utils';
 
 interface ItemSelectorProps {
   hideControls?: boolean;
-  dataType: DataType;
   selectedItem: Item | null;
   items: Item[];
   searchQuery: string;
@@ -25,7 +24,6 @@ interface ItemSelectorProps {
 
 const ItemSelector = ({
   hideControls,
-  dataType: _dataType, // eslint-disable-line @typescript-eslint/no-unused-vars
   selectedItem,
   items,
   searchQuery,
