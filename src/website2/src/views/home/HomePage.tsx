@@ -2,6 +2,7 @@
 import { motion, useInView } from 'framer-motion';
 import React, { useRef } from 'react';
 
+import AirQualityBillboard from '@/components/sections/AirQualityBillboard';
 import ReversibleContentSection from '@/components/sections/ReversibleContentSection';
 
 import AnalyticsContentSection from './AnalyticsContentSection';
@@ -48,6 +49,11 @@ const HomePage = () => {
       {/* Statistics Section */}
       <MotionSection>
         <StatisticsSection />
+      </MotionSection>
+
+      {/* Air Quality Billboard */}
+      <MotionSection>
+        <AirQualityBillboard />
       </MotionSection>
 
       {/* Reversible Content Section 1 */}

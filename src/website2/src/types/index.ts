@@ -49,3 +49,6 @@ export interface FAQ {
 
 // Export grid-related types
 export * from './grids';
+
+// Export cohort-related types
+export * from './cohorts';
