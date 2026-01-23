@@ -84,5 +84,10 @@ ios/Flutter/ApiKeys.xcconfig
 *.env
 
 /android/google-services.json
+/android/app/google-services.json
 /android/play-store-service-account.json
 /android/fastlane/metadata
+
+# Firebase configuration files (contain API keys)
+/lib/firebase_options.dart
+firebase.json

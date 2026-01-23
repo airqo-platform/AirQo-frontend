@@ -68,5 +68,11 @@
     <true/>
     <key>com.posthog.posthog.DEBUG</key>
     <true/>
+
+	<!-- Firebase Cloud Messaging -->
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<true/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 </dict>
 </plist>
