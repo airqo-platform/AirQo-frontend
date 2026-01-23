@@ -43,6 +43,7 @@ export interface GridsSummaryMeta {
   page: number;
   totalPages: number;
   nextPage?: string;
+  previousPage?: string;
 }
 
 export interface GridsSummaryResponse {
@@ -56,8 +57,7 @@ export interface GridsQueryParams {
   limit?: number;
   skip?: number;
   page?: number;
-  tenant?: string;
-  detailLevel?: string;
+  search?: string;
 }
 
 export interface SiteStatistics {
@@ -110,6 +110,7 @@ export interface Averages {
 }
 
 export interface HealthTip {
+  _id: string;
   title: string;
   description: string;
   image?: string;
@@ -168,4 +169,28 @@ export interface GridRepresentativeReadingResponse {
   message: string;
   data: RepresentativeReading;
   errors: any | null;
+}
+
+/**
+ * Types for Grid Measurements
+ */
+
+export interface GridMeasurementsMeta {
+  total: number;
+  skip: number;
+  limit: number;
+  page: number;
+  pages: number;
+  startTime: string;
+  endTime: string;
+  optimized: boolean;
+  countSkipped: boolean;
+}
+
+export interface GridMeasurementsResponse {
+  success: boolean;
+  isCache: boolean;
+  message: string;
+  meta: GridMeasurementsMeta;
+  measurements: RepresentativeReading[];
 }

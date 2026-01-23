@@ -169,7 +169,7 @@ const Navbar: React.FC = () => {
 
   return (
     <div
-      className={`w-full fixed top-0 z-50 shadow-sm transition-transform duration-300 ${
+      className={`w-full fixed top-0 z-[10000] shadow-sm transition-transform duration-300 ${
         isHidden ? '-translate-y-full' : 'translate-y-0'
       }`}
     >
@@ -213,7 +213,7 @@ const Navbar: React.FC = () => {
                 <DropdownMenuContent
                   title={title}
                   items={items}
-                  className="absolute top-full left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-50"
+                  className="absolute top-full left-0 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity z-[9999]"
                 />
               </div>
             ))}
@@ -246,7 +246,7 @@ const Navbar: React.FC = () => {
           </div>
           {/* Mobile Navigation */}
           {menuOpen && (
-            <div className="absolute top-full left-0 w-full bg-white shadow-lg p-4 md:hidden z-40">
+            <div className="absolute top-full left-0 w-full bg-white shadow-lg p-4 md:hidden z-[9998]">
               {Object.entries(menuItems).map(([title, items]) => (
                 <div key={title} className="mb-4">
                   <button

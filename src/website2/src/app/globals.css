@@ -414,3 +414,17 @@ iframe[src*='translate.googleapis'] {
 .animate-fadeOut {
   animation: fadeOut 0.3s ease-in-out;
 }
+
+/* Circular Progress Animation */
+@keyframes circular-progress {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-circular-progress {
+  animation: circular-progress 20s linear infinite;
+}
