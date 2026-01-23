@@ -81,6 +81,9 @@ dependencies:
   share_plus: ^11.0.0
   fl_chart: ^1.0.0
   posthog_flutter: ^5.9.0
+  firebase_core: ^4.4.0
+  firebase_messaging: ^16.1.1
+  flutter_local_notifications: ^19.5.0
 
 
 dev_dependencies:

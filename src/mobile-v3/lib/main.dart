@@ -22,6 +22,7 @@ import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/app/shared/services/auto_update_service.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
@@ -36,13 +37,33 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+// Background message handler must be top-level
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  debugPrint('Background message: ${message.messageId}');
+}
+
 void main() async {
   runZonedGuarded(
     () async {
       try {
         WidgetsFlutterBinding.ensureInitialized();
+
+        // Initialize Firebase
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        Object().logInfo('Firebase initialized successfully');
+
+        // Set background message handler
+        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
         await CacheManager().initialize();
 
@@ -73,6 +94,14 @@ void main() async {
           Object().logInfo('PostHog initialized successfully');
         } catch (e) {
           Object().logError('Failed to initialize PostHog', e, null);
+        }
+
+        // Initialize push notifications
+        try {
+          await PushNotificationService().initialize();
+          Object().logInfo('Push notification service initialized successfully');
+        } catch (e) {
+          Object().logError('Failed to initialize push notifications', e, null);
         }
 
         Bloc.observer = LoggingBlocObserver();
