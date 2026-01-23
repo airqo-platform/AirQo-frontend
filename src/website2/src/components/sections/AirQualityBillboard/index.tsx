@@ -94,28 +94,37 @@ const AirQualityBillboard = ({
     }
 
     // If a specific item name is provided via props, find and select it
-    if (propItemName && !selectedItem) {
+    if (propItemName) {
       const normalizedPropName = propItemName
         .toLowerCase()
         .replace(/[-_\s]/g, '');
-      const matchedItem = items.find((item: any) => {
-        const itemName = (item.long_name || item.name || '')
-          .toLowerCase()
-          .replace(/[-_\s]/g, '');
-        return itemName === normalizedPropName;
-      });
+      const normalizedSelectedName = selectedItem
+        ? (selectedItem.long_name || selectedItem.name || '')
+            .toLowerCase()
+            .replace(/[-_\s]/g, '')
+        : '';
 
-      if (matchedItem) {
-        handleItemSelect(matchedItem);
-        resetIndices();
-        forceMeasurementsRefresh();
-        setDataLoaded(true);
-        return;
-      } else {
-        // Leave selection empty when requested item not found
-        // This allows the "Not Found" UI to render
-        setDataLoaded(true);
-        return;
+      if (!selectedItem || normalizedPropName !== normalizedSelectedName) {
+        const matchedItem = items.find((item: any) => {
+          const itemName = (item.long_name || item.name || '')
+            .toLowerCase()
+            .replace(/[-_\s]/g, '');
+          return itemName === normalizedPropName;
+        });
+
+        if (matchedItem) {
+          handleItemSelect(matchedItem);
+          resetIndices();
+          forceMeasurementsRefresh();
+          setDataLoaded(true);
+          return;
+        } else {
+          // Leave selection empty when requested item not found
+          // This allows the "Not Found" UI to render
+          handleItemSelect(null);
+          setDataLoaded(true);
+          return;
+        }
       }
     }
 
