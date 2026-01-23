@@ -1,5 +1,3 @@
-import { cn } from '@/lib/utils';
-
 interface BillboardHeaderProps {
   hideControls?: boolean;
 }

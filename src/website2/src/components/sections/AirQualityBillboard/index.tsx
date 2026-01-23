@@ -37,7 +37,6 @@ const AirQualityBillboard = ({
     setHoveredItemId,
     setSearchQuery,
     setIsDropdownOpen,
-    handleDataTypeChange,
     handleItemSelect,
     handleCopyUrl,
     dropdownRef,
@@ -56,7 +55,6 @@ const AirQualityBillboard = ({
     gridsError,
     cohortsParams,
     gridsParams,
-    clearDataTypeCache,
   } = airQualityData;
 
   // Measurements hook
@@ -196,14 +194,6 @@ const AirQualityBillboard = ({
                     Please check the URL or select a different {dataType} from
                     the main billboard page.
                   </p>
-                </div>
-                <div className="flex justify-center">
-                  <a
-                    href="/billboard"
-                    className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg inline-block"
-                  >
-                    Back to Billboard
-                  </a>
                 </div>
               </div>
             </div>
