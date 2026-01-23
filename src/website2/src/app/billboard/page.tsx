@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function BillboardPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
+    <main className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 flex items-center justify-center">
       <AirQualityBillboard hideControls={true} autoRotate={true} />
     </main>
   );
