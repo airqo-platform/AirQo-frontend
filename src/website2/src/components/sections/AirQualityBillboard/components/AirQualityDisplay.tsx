@@ -33,9 +33,10 @@ const AirQualityDisplay = ({
   forecastData,
 }: AirQualityDisplayProps) => {
   const pm25Value = currentMeasurement?.pm2_5?.value;
-  const categoryObj = pm25Value
-    ? getAirQualityCategory(pm25Value, 'pm2_5')
-    : 'Invalid';
+  const categoryObj =
+    pm25Value !== null && pm25Value !== undefined
+      ? getAirQualityCategory(pm25Value, 'pm2_5')
+      : 'Invalid';
   const level = categoryToLevel(categoryObj);
   let category = 'Unknown';
   if (categoryObj !== 'Invalid') {

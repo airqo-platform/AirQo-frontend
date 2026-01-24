@@ -179,7 +179,7 @@ const AirQualityBillboard = ({
             selectedItem={selectedItem}
           />
         ) : !dataLoaded || (selectedItem && measurementsLoading) ? (
-          <BillboardSkeleton />
+          <BillboardSkeleton centered={centered} />
         ) : propItemName && !selectedItem ? (
           <BillboardSkeleton centered={centered} />
         ) : !selectedItem ? (
