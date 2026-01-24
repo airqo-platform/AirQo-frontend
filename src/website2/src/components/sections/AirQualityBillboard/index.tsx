@@ -21,6 +21,7 @@ const AirQualityBillboard = ({
   autoRotate = false,
   itemName: propItemName,
   centered = false,
+  hideDropdown = false,
 }: AirQualityBillboardProps) => {
   // Custom hooks for state management
   const controls = useBillboardControls('grid', propItemName, autoRotate);
@@ -147,7 +148,7 @@ const AirQualityBillboard = ({
     <div
       className={cn(
         centered
-          ? 'h-screen w-full flex items-center justify-center overflow-hidden p-3 sm:p-4 lg:p-6'
+          ? 'h-screen w-full flex items-center justify-center overflow-hidden p-1 sm:p-2'
           : 'py-6 sm:py-8 lg:py-12 px-4',
         className,
       )}
@@ -162,7 +163,7 @@ const AirQualityBillboard = ({
       <div
         className={cn(
           'w-full flex items-center justify-center',
-          centered ? 'h-full max-w-[98vw]' : 'max-w-7xl mx-auto',
+          centered ? 'h-full max-w-full' : 'max-w-7xl mx-auto',
         )}
       >
         {/* Error States */}
@@ -196,7 +197,7 @@ const AirQualityBillboard = ({
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
             </div>
 
-            <div className="relative z-10 h-full flex flex-col p-4 sm:p-6 lg:p-10 gap-4 sm:gap-5 lg:gap-6">
+            <div className="relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-3 sm:gap-4 lg:gap-5">
               <BillboardHeader
                 hideControls={hideControls}
                 selectedItem={selectedItem}
@@ -213,6 +214,7 @@ const AirQualityBillboard = ({
                 dropdownRef={dropdownRef}
                 currentMeasurement={currentMeasurement}
                 centered={centered}
+                hideDropdown={hideDropdown}
               />
 
               <AirQualityDisplay

@@ -36,6 +36,7 @@ export default function GridBillboardPage({ params }: GridBillboardPageProps) {
           autoRotate={false}
           itemName={gridName}
           centered={true}
+          hideDropdown={true}
         />
       </Suspense>
     </main>
