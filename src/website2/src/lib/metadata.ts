@@ -725,6 +725,21 @@ export const METADATA_CONFIGS = {
       type: 'image/png',
     },
   },
+  solutionsKampalaStudy: {
+    title: 'Kampala Air Quality Study | Join the Clean Air Research - AirQo',
+    description:
+      'Participate in the Kampala real-time air pollution exposure study. Access real-time air quality data, contribute to clean air research, and help build healthier communities. Join hundreds of Kampala residents making a difference in urban air quality monitoring.',
+    keywords:
+      'Kampala air quality study, air pollution research Kampala, clean air initiative, citizen science air quality, real-time pollution monitoring, health exposure study, urban air quality research, community participation, environmental health Kampala, AirQo study',
+    url: '/solutions/kampala-study',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
+      alt: 'Kampala Air Quality Research Study - Real-time Pollution Monitoring',
+      width: 1200,
+      height: 630,
+      type: 'image/webp',
+    },
+  },
   // Legal pages with proper SEO
   privacyPolicy: {
     title: 'Privacy Policy | AirQo - Data Protection & User Privacy',
