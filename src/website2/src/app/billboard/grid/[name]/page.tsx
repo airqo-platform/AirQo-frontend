@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 
 import AirQualityBillboard from '@/components/sections/AirQualityBillboard';
-import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
+import BillboardSkeleton from '@/components/sections/AirQualityBillboard/skeletons/BillboardSkeleton';
 
 interface GridBillboardPageProps {
   params: {
