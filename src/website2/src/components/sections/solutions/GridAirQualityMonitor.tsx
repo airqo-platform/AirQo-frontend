@@ -272,8 +272,7 @@ const GridAirQualityMonitor: React.FC = () => {
                       {formatName(selectedGrid?.long_name || '')}
                     </h3>
                     <p className="text-sm text-gray-600 mt-1">
-                      {readingData.data.siteDetails?.location_name ||
-                        'Unknown Location'}
+                      {readingData.data.siteDetails?.location_name || '--'}
                     </p>
                   </div>
 
