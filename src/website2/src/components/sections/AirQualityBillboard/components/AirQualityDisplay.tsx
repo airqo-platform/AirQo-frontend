@@ -145,7 +145,7 @@ const AirQualityDisplay = ({
           <div className="flex flex-col justify-center space-y-3 sm:space-y-4 lg:space-y-5 min-h-0">
             {/* Air Quality Title */}
             <div
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight"
+              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight tracking-tight"
               style={{
                 fontFamily: '"Times New Roman", Times, serif',
               }}
@@ -155,11 +155,11 @@ const AirQualityDisplay = ({
 
             {/* PM2.5 Header */}
             <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-blue-800/50 rounded-full p-1.5 sm:p-2">
+              <div className="bg-blue-800/50 rounded-full p-1.5 sm:p-2 backdrop-blur-sm">
                 <AqWind01 className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white" />
               </div>
               <span
-                className="text-lg sm:text-xl lg:text-2xl font-bold"
+                className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wide"
                 style={{
                   fontFamily: '"Times New Roman", Times, serif',
                 }}
@@ -171,7 +171,7 @@ const AirQualityDisplay = ({
             {/* Large PM2.5 Value */}
             <div className="flex items-baseline gap-2 flex-wrap">
               <span
-                className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-none"
+                className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-none drop-shadow-lg"
                 style={{
                   color:
                     pm25Value !== null && pm25Value !== undefined
@@ -185,7 +185,7 @@ const AirQualityDisplay = ({
                   : '--'}
               </span>
               <span
-                className="text-xl sm:text-2xl lg:text-3xl opacity-90 self-end pb-1"
+                className="text-xl sm:text-2xl lg:text-3xl opacity-90 self-end pb-1 font-medium"
                 style={{
                   fontFamily: '"Times New Roman", Times, serif',
                 }}
@@ -261,10 +261,10 @@ const AirQualityDisplay = ({
           </div>
 
           {/* Location - BIGGER AND MORE VISIBLE */}
-          <div className="flex items-center gap-2 sm:gap-3">
-            <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white/90 flex-shrink-0" />
+          <div className="flex items-center gap-2 sm:gap-3 bg-white/5 backdrop-blur-sm rounded-lg px-3 py-2 sm:px-4 sm:py-3">
+            <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white flex-shrink-0" />
             <span
-              className="font-bold text-lg sm:text-xl lg:text-2xl xl:text-3xl"
+              className="font-bold text-lg sm:text-xl lg:text-2xl xl:text-3xl tracking-wide"
               style={{ fontFamily: '"Times New Roman", Times, serif' }}
             >
               {getLocationName(dataType, currentMeasurement) || '--'}

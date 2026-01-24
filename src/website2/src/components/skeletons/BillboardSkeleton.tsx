@@ -21,16 +21,23 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
       </div>
 
-      <div className="relative z-10 h-full flex flex-col p-4 sm:p-6 lg:p-10 gap-4 sm:gap-5 lg:gap-6">
+      <div className="relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-4 sm:gap-5 lg:gap-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-          {/* Last Updated */}
-          <div className="h-3.5 sm:h-4 w-32 sm:w-40 bg-white/20 rounded animate-pulse" />
+          {centered ? (
+            /* Timestamp for centered mode */
+            <div className="h-4 sm:h-5 w-44 sm:w-52 bg-white/20 rounded animate-pulse" />
+          ) : (
+            <>
+              {/* Last Updated */}
+              <div className="h-3.5 sm:h-4 w-32 sm:w-40 bg-white/20 rounded animate-pulse" />
 
-          {/* Dropdown Selector */}
-          <div className="w-full sm:w-auto sm:min-w-[240px] lg:min-w-[280px]">
-            <div className="h-9 sm:h-10 w-full bg-white/10 border border-white/30 rounded-lg animate-pulse" />
-          </div>
+              {/* Dropdown Selector */}
+              <div className="w-full sm:w-auto sm:min-w-[240px] lg:min-w-[280px]">
+                <div className="h-9 sm:h-10 w-full bg-white/10 border border-white/30 rounded-lg animate-pulse" />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Main Content - Using CSS Grid for responsive layout */}

@@ -32,7 +32,7 @@ export default function GridBillboardPage({ params }: GridBillboardPageProps) {
     <main className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
       <Suspense fallback={<BillboardSkeleton centered={true} />}>
         <AirQualityBillboard
-          hideControls={true}
+          hideControls={false}
           autoRotate={false}
           itemName={gridName}
           centered={true}

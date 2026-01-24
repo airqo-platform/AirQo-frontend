@@ -147,7 +147,7 @@ const AirQualityBillboard = ({
     <div
       className={cn(
         centered
-          ? 'h-screen w-full flex items-center justify-center overflow-hidden'
+          ? 'h-screen w-full flex items-center justify-center overflow-hidden p-3 sm:p-4 lg:p-6'
           : 'py-6 sm:py-8 lg:py-12 px-4',
         className,
       )}
@@ -162,7 +162,7 @@ const AirQualityBillboard = ({
       <div
         className={cn(
           'w-full flex items-center justify-center',
-          centered ? 'h-full' : 'max-w-7xl mx-auto',
+          centered ? 'h-full max-w-[98vw]' : 'max-w-7xl mx-auto',
         )}
       >
         {/* Error States */}
@@ -212,6 +212,7 @@ const AirQualityBillboard = ({
                 onHover={setHoveredItemId}
                 dropdownRef={dropdownRef}
                 currentMeasurement={currentMeasurement}
+                centered={centered}
               />
 
               <AirQualityDisplay
