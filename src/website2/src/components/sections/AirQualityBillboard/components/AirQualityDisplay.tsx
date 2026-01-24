@@ -260,7 +260,7 @@ const AirQualityDisplay = ({
           <div className="flex items-center gap-2 sm:gap-3 bg-white/5 backdrop-blur-sm rounded-lg px-3 py-2 sm:px-4 sm:py-3">
             <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white flex-shrink-0" />
             <span
-              className="font-bold text-lg sm:text-xl lg:text-2xl xl:text-3xl tracking-wide"
+              className="font-bold text-2xl sm:text-3xl lg:text-4xl xl:text-5xl tracking-wide"
               style={{ fontFamily: '"Times New Roman", Times, serif' }}
             >
               {getLocationName(dataType, currentMeasurement) || '--'}
