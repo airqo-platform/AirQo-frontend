@@ -345,10 +345,10 @@ const KampalaStudyPage = () => {
             <motion.div variants={animations.item} className="relative">
               <div className="relative rounded-xl overflow-hidden shadow-lg">
                 <Image
-                  src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?w=800&h=600&fit=crop&q=80"
-                  alt="Air quality monitoring station in urban area"
-                  width={800}
-                  height={600}
+                  src="https://images.unsplash.com/photo-1573167243872-43c6433b9d40?w=800&h=600&fit=crop"
+                  alt="Community members discussing and using mobile devices"
+                  width={1200}
+                  height={800}
                   className="w-full h-auto"
                 />
               </div>
