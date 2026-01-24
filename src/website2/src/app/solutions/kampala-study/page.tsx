@@ -10,11 +10,7 @@ export const metadata = createMetadata(METADATA_CONFIGS.solutionsKampalaStudy);
 export const viewport = generateViewport();
 
 const page = () => {
-  return (
-    <div>
-      <KampalaStudyPage />
-    </div>
-  );
+  return <KampalaStudyPage />;
 };
 
 export default page;
