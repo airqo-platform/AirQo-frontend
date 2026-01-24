@@ -44,11 +44,6 @@ const AirQualityDisplay = ({
   }
 
   // Get valid forecasts
-  const validForecasts =
-    forecastData?.forecasts?.filter(
-      (f: any) => f.pm2_5 != null && typeof f.pm2_5 === 'number',
-    ) || [];
-
   const getAirQualityIcon = (
     pm25: number | null,
     size: string = 'w-32 h-32',
