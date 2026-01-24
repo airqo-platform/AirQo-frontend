@@ -1,7 +1,5 @@
 import React from 'react';
 
-import { cn } from '@/lib/utils';
-
 interface BillboardSkeletonProps {
   centered?: boolean;
 }
@@ -9,13 +7,8 @@ interface BillboardSkeletonProps {
 const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
   centered = false,
 }) => {
-  return (
-    <div
-      className={cn(
-        'w-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl text-white shadow-2xl relative overflow-hidden',
-        centered ? 'h-full' : 'min-h-[500px]',
-      )}
-    >
+  const content = (
+    <div className="w-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl text-white shadow-2xl relative overflow-hidden h-full">
       {/* Background pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
@@ -108,6 +101,21 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
       </div>
     </div>
   );
+
+  if (centered) {
+    return (
+      <div
+        className="h-screen w-full flex items-center justify-center overflow-hidden p-1 sm:p-2"
+        style={{
+          height: '100dvh', // Dynamic viewport height for mobile browsers
+        }}
+      >
+        {content}
+      </div>
+    );
+  }
+
+  return content;
 };
 
 export default BillboardSkeleton;
