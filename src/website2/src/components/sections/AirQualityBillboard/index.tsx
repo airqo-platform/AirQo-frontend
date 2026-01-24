@@ -2,17 +2,16 @@
 
 import { useEffect } from 'react';
 
-import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
 import { useDailyForecast } from '@/hooks/useApiHooks';
 import { cn } from '@/lib/utils';
 
 import AirQualityDisplay from './components/AirQualityDisplay';
 import BillboardHeader from './components/BillboardHeader';
 import ErrorDisplay from './components/ErrorDisplay';
-import ItemSelector from './components/ItemSelector';
 import { useAirQualityData } from './hooks/useAirQualityData';
 import { useBillboardControls } from './hooks/useBillboardControls';
 import { useMeasurements } from './hooks/useMeasurements';
+import BillboardSkeleton from './skeletons/BillboardSkeleton';
 import type { AirQualityBillboardProps } from './types';
 
 const AirQualityBillboard = ({
