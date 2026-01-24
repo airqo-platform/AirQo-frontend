@@ -132,7 +132,7 @@ const GridAirQualityMonitor: React.FC = () => {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-6 bg-blue-50 p-6 rounded-xl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -247,12 +247,6 @@ const GridAirQualityMonitor: React.FC = () => {
             className="bg-white rounded-xl border-2 border-dashed border-gray-300 p-12 text-center"
           >
             <AqNoValue className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-            <p className="text-gray-600 text-lg">
-              No data available for selected location
-            </p>
-            <p className="text-gray-500 text-sm mt-2">
-              Please select a different location or try again later
-            </p>
           </motion.div>
         ) : (
           <motion.div
@@ -284,7 +278,7 @@ const GridAirQualityMonitor: React.FC = () => {
                     <div className="flex-1">
                       <div className="flex items-baseline gap-2">
                         <span className="text-5xl font-bold text-gray-900">
-                          {currentValue?.toFixed(2) ?? 'N/A'}
+                          {currentValue?.toFixed(2) ?? '--'}
                         </span>
                         <span className="text-xl text-gray-600">μg/m³</span>
                       </div>
@@ -319,7 +313,7 @@ const GridAirQualityMonitor: React.FC = () => {
                               minute: '2-digit',
                             },
                           )
-                        : 'Unknown'}
+                        : '--'}
                     </p>
                   </div>
                 </div>
