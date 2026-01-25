@@ -61,6 +61,38 @@ export const getLocationName = (
 };
 
 /**
+ * Convert hex color to rgba string
+ */
+export const hexToRgba = (hex: string, alpha: number): string => {
+  if (!hex) return `rgba(0,0,0,${alpha})`;
+  const cleaned = hex.replace('#', '');
+  const bigint = parseInt(cleaned, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+};
+
+/**
+ * Darken a hex color by a given fraction (0-1)
+ */
+export const darkenHex = (hex: string, amount: number): string => {
+  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
+  const cleaned = (hex || '#000000').replace('#', '');
+  const bigint = parseInt(cleaned, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  const factor = 1 - Math.max(0, Math.min(1, amount));
+  return (
+    '#' +
+    [clamp(r * factor), clamp(g * factor), clamp(b * factor)]
+      .map((n) => n.toString(16).padStart(2, '0'))
+      .join('')
+  );
+};
+
+/**
  * Get valid measurements (those with PM2.5 values)
  */
 export const getValidMeasurements = (measurements: any[]): any[] => {

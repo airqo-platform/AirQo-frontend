@@ -19,7 +19,13 @@ import {
 } from '@/utils/airQuality';
 
 import type { DataType, Forecast, Measurement } from '../types';
-import { getColorFromPM25, getLocationName, getTextColor } from '../utils';
+import {
+  getColorFromPM25,
+  getLocationName,
+  getTextColor,
+  hexToRgba,
+  darkenHex,
+} from '../utils';
 
 interface AirQualityDisplayProps {
   dataType: DataType;
@@ -232,22 +238,33 @@ const AirQualityDisplay = ({
         <div className="space-y-2.5 sm:space-y-3 pt-3 sm:pt-4 lg:pt-5 border-t border-white/20 mt-3 sm:mt-4 lg:mt-5">
           {/* Air Quality Status */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <div
-              className="px-3 py-1 sm:px-4 sm:py-1.5 lg:px-5 lg:py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg"
-              style={{
-                backgroundColor:
-                  pm25Value !== null && pm25Value !== undefined
-                    ? getColorFromPM25(pm25Value)
-                    : '#808080',
-                color:
-                  pm25Value !== null && pm25Value !== undefined
-                    ? getTextColor(pm25Value)
-                    : '#FFFFFF',
-                fontFamily: '"Times New Roman", Times, serif',
-              }}
-            >
-              {category}
-            </div>
+            {(() => {
+              const baseColor =
+                pm25Value !== null && pm25Value !== undefined
+                  ? getColorFromPM25(pm25Value)
+                  : '#808080';
+              // Use a very light tint of the base color for background so
+              // the badge appears like the color with reduced opacity.
+              const badgeBg = hexToRgba(baseColor, 0.08);
+              // Subtle border to define the pill on light backgrounds
+              const badgeBorder = hexToRgba(baseColor, 0.16);
+              // Text should use the same hue (base color) so it stands out
+              const badgeText = baseColor;
+
+              return (
+                <div
+                  className="px-6 py-2 sm:px-8 sm:py-2.5 lg:px-10 lg:py-3 rounded-full font-semibold text-base sm:text-lg shadow-lg"
+                  style={{
+                    backgroundColor: badgeBg,
+                    color: badgeText,
+                    border: `1px solid ${badgeBorder}`,
+                    fontFamily: '"Times New Roman", Times, serif',
+                  }}
+                >
+                  {category}
+                </div>
+              );
+            })()}
             <span
               className="text-sm sm:text-base lg:text-lg font-medium"
               style={{ fontFamily: '"Times New Roman", Times, serif' }}
