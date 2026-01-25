@@ -54,10 +54,10 @@ export const getLocationName = (
     return (
       currentMeasurement.siteDetails.name ||
       formatDisplayName(currentMeasurement.siteDetails.search_name) ||
-      'Unknown Location'
+      '--'
     );
   }
-  return 'Unknown Location';
+  return '--';
 };
 
 /**

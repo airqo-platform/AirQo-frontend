@@ -337,22 +337,36 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const handleVerifyCohort = async () => {
-        if (!cohortIdInput.trim()) {
+        const input = cohortIdInput.trim();
+        if (!input) {
             setError('Please enter a valid Cohort ID');
             return;
         }
+
+        // Validate 24-char alphanumeric string
+        if (!/^[a-zA-Z0-9]{24}$/.test(input)) {
+            setError('Cohort ID must be a 24-character alphanumeric code.');
+            return;
+        }
+
         setError(null);
         setIsImportingCohort(true);
 
         try {
-            const result = await verifyCohort(cohortIdInput);
+            const result = await verifyCohort(input);
 
             if (result.success) {
+                if (result.cohort?.name?.toLowerCase() === 'airqo') {
+                    setError('This cohort is not available.');
+                    setIsImportingCohort(false);
+                    return;
+                }
+
                 if (isExternalOrg && activeGroup?._id) {
                     setStep('assigning-cohort');
                     assignCohortsToGroup({
                         groupId: activeGroup._id,
-                        cohortIds: [cohortIdInput]
+                        cohortIds: [input]
                     }, {
                         onSuccess: () => {
                             setTimeout(() => {
@@ -370,7 +384,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 }
 
                 try {
-                    const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
+                    const cohortDetails = await cohortsApi.getCohortDetailsApi(input);
                     const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
 
                     if (cohort && Array.isArray(cohort.devices) && cohort.devices.length > 0) {

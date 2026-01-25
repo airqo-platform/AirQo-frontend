@@ -139,7 +139,7 @@ async function handleRequest(
       method,
       headers,
       body,
-      // Increased timeout to 60 seconds for slow endpoints
+      // Add timeout
       signal: AbortSignal.timeout(60000), // 60 seconds
     });
 

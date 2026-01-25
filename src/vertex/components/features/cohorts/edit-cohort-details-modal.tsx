@@ -5,7 +5,7 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { useUpdateCohortDetails } from "@/core/hooks/useCohorts";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import logger from "@/lib/logger";
@@ -25,30 +25,29 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
     cohortDetails,
     onClose,
 }) => {
-    const [form, setForm] = useState({ name: cohortDetails.name, visibility: cohortDetails.visibility });
+    const [form, setForm] = useState({ name: cohortDetails.name });
     const updateCohort = useUpdateCohortDetails();
 
     useEffect(() => {
-        setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
+        setForm({ name: cohortDetails.name });
     }, [cohortDetails]);
 
     useEffect(() => {
         if (!open) {
-            setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
+            setForm({ name: cohortDetails.name });
         }
     }, [open, cohortDetails]);
 
     const handleCancel = () => {
-        setForm({ name: cohortDetails.name, visibility: cohortDetails.visibility });
+        setForm({ name: cohortDetails.name });
         onClose();
     };
 
     const handleSave = async () => {
-        const updates: Partial<{ name: string; visibility: boolean }> = {};
+        const updates: Partial<{ name: string }> = {};
         const trimmedName = form.name.trim();
         if (trimmedName.length === 0) return;
         if (trimmedName !== cohortDetails.name) updates.name = trimmedName;
-        if (form.visibility !== cohortDetails.visibility) updates.visibility = form.visibility;
 
         if (Object.keys(updates).length === 0) return onClose();
 
@@ -84,23 +83,6 @@ const CohortDetailsModal: React.FC<CohortDetailsModalProps> = ({
                         placeholder="Enter cohort name"
                         disabled={updateCohort.isPending}
                     />
-                </div>
-
-                <div className="space-y-2">
-                    <Label>Visibility *</Label>
-                    <Select
-                        value={String(form.visibility)}
-                        onValueChange={(v) => setForm((s) => ({ ...s, visibility: v === "true" }))}
-                        disabled={updateCohort.isPending}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select visibility" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="true">Public</SelectItem>
-                            <SelectItem value="false">Private</SelectItem>
-                        </SelectContent>
-                    </Select>
                 </div>
             </div>
         </ReusableDialog>
