@@ -163,7 +163,7 @@ const AirQualityBillboard = ({
       <div
         className={cn(
           'w-full flex items-center justify-center',
-          centered ? 'h-full max-w-full' : 'max-w-7xl mx-auto',
+          centered ? 'h-full max-w-full' : 'max-w-7xl mx-auto px-6',
         )}
       >
         {/* Error States */}

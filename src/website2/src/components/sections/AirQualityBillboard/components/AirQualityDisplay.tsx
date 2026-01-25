@@ -93,7 +93,7 @@ const AirQualityDisplay = ({
 
     return (
       <div className="w-full">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(110px,1fr))] gap-2 sm:gap-3 md:gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(90px,1fr))] gap-1 sm:gap-2 md:gap-3">
           {validForecasts.slice(0, 7).map((forecast: any, index: number) => {
             const dayIndex = (today + index) % 7;
             const isToday = index === 0;
@@ -106,7 +106,7 @@ const AirQualityDisplay = ({
                 key={index}
                 role="group"
                 aria-label={`Forecast ${index + 1}`}
-                className={`${cardBg} rounded-lg p-2 sm:p-3 flex flex-col items-center justify-between min-h-[84px] sm:min-h-[92px]`}
+                className={`${cardBg} rounded-lg p-1 sm:p-2 flex flex-col items-center justify-between min-h-[80px] sm:min-h-[88px]`}
                 style={{ fontFamily: '"Times New Roman", Times, serif' }}
               >
                 <div className="w-full flex items-center justify-center">
@@ -148,7 +148,7 @@ const AirQualityDisplay = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5 }}
-        className="flex-1 flex flex-col min-h-0"
+        className="relative flex-1 flex flex-col min-h-0"
       >
         {/* Main Content - Using CSS Grid for responsive layout */}
         <div
@@ -226,54 +226,92 @@ const AirQualityDisplay = ({
           <div
             className={
               homepage
-                ? 'flex flex-col items-center justify-center space-y-2 min-h-auto'
+                ? 'flex flex-col items-end justify-between space-y-2 min-h-auto w-full'
                 : 'flex flex-col items-center lg:items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6 min-h-0'
             }
             aria-hidden={homepage ? 'false' : 'false'}
           >
             {/* Large Air Quality Icon */}
-            <div
-              className={
-                homepage
-                  ? 'w-full flex items-center justify-end pr-2'
-                  : 'flex justify-center lg:justify-end flex-1 items-center'
-              }
-            >
+            <div className="w-full flex flex-col">
+              {/* On md+ screens show AQI icon aligned to the right; QR will be absolutely positioned above the divider */}
               <div
                 className={
                   homepage
-                    ? 'transform transition-transform duration-300'
-                    : 'transform hover:scale-105 transition-transform duration-300'
+                    ? 'w-full hidden md:flex items-center justify-end pr-2'
+                    : 'w-full flex items-center justify-end gap-4 pr-2'
                 }
               >
-                {getAirQualityIcon(
-                  pm25Value !== null && pm25Value !== undefined
-                    ? pm25Value
-                    : null,
-                  homepage
-                    ? 'w-12 h-12 sm:w-28 sm:h-28'
-                    : 'w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52',
+                {/* AQI Icon */}
+                <div
+                  className={
+                    homepage
+                      ? 'transform transition-transform duration-300'
+                      : 'transform hover:scale-105 transition-transform duration-300'
+                  }
+                >
+                  {getAirQualityIcon(
+                    pm25Value !== null && pm25Value !== undefined
+                      ? pm25Value
+                      : null,
+                    homepage
+                      ? 'w-12 h-12 sm:w-28 sm:h-28'
+                      : 'w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52',
+                  )}
+                </div>
+              </div>
+
+              {/* For small screens show icon then QR stacked (or hide QR on small homepage) */}
+              <div className="w-full flex md:hidden flex-col items-end">
+                <div
+                  className={
+                    homepage
+                      ? 'transform transition-transform duration-300'
+                      : 'transform hover:scale-105 transition-transform duration-300'
+                  }
+                >
+                  {getAirQualityIcon(
+                    pm25Value !== null && pm25Value !== undefined
+                      ? pm25Value
+                      : null,
+                    homepage
+                      ? 'w-12 h-12 sm:w-28 sm:h-28'
+                      : 'w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52',
+                  )}
+                </div>
+                {homepage ? null : (
+                  <div className="flex flex-col items-end gap-1 sm:gap-2 mt-3">
+                    <span className="text-xs sm:text-sm font-semibold tracking-wider">
+                      SCAN ME
+                    </span>
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg p-1.5 sm:p-2">
+                      <Image
+                        src="/QR/analytics_qrcode.png"
+                        alt="QR Code"
+                        fill
+                        className="object-contain"
+                        sizes="112px"
+                      />
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* QR Code (hidden on homepage variant) */}
-            {!homepage && (
-              <div className="flex flex-col items-center lg:items-end gap-1.5 sm:gap-2">
-                <span className="text-xs sm:text-sm font-semibold tracking-wider">
-                  SCAN ME
-                </span>
-                <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg p-1.5 sm:p-2">
-                  <Image
-                    src="/QR/analytics_qrcode.png"
-                    alt="QR Code"
-                    fill
-                    className="object-contain"
-                    sizes="112px"
-                  />
-                </div>
-              </div>
-            )}
+        {/* Absolute QR - positioned so it sits just above the bottom divider/separator on the right */}
+        <div className="hidden md:flex absolute right-6 bottom-20 lg:bottom-24 items-center flex-col gap-1 sm:gap-2 pointer-events-auto">
+          <span className="text-xs sm:text-sm font-semibold tracking-wider">
+            SCAN ME
+          </span>
+          <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg p-1.5 sm:p-2">
+            <Image
+              src="/QR/analytics_qrcode.png"
+              alt="QR Code"
+              fill
+              className="object-contain"
+              sizes="112px"
+            />
           </div>
         </div>
 

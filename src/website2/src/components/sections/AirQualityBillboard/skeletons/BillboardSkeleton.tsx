@@ -71,7 +71,7 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
                   {[...Array(7)].map((_, index) => (
                     <div
                       key={index}
-                      className="flex flex-col items-center rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px] bg-blue-500/30 animate-pulse"
+                      className="flex flex-col items-center rounded-lg p-1 sm:p-2 min-w-[48px] sm:min-w-[56px] bg-blue-500/30 animate-pulse"
                     >
                       <div className="h-3 sm:h-3.5 w-4 bg-white/30 rounded mb-1" />
                       <div className="h-2.5 sm:h-3 w-6 bg-white/30 rounded mb-1 sm:mb-2" />
@@ -82,7 +82,7 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
               </div>
             ) : (
               <div className="mt-2 sm:mt-3">
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                   {[...Array(7)].map((_, index) => (
                     <div
                       key={index}
@@ -99,35 +99,56 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
           </div>
 
           {/* Right Section */}
-          <div className="flex flex-col items-center lg:items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6">
-            {/* Large Air Quality Icon - on homepage keep the icon visible but smaller and aligned to right on narrow screens */}
+          <div
+            className={
+              homepage
+                ? 'flex flex-col items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6 w-full'
+                : 'flex flex-col items-center lg:items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6'
+            }
+          >
             <div
               className={
                 homepage
-                  ? 'flex justify-between items-center w-full gap-3'
+                  ? 'w-full flex items-center justify-end pr-2'
                   : 'flex justify-center lg:justify-end flex-1 items-center'
               }
             >
               {homepage ? (
-                <>
-                  <div className="flex-1">
-                    <div className="h-16 sm:h-20 lg:h-24 xl:h-28 w-full bg-white/20 rounded animate-pulse" />
-                  </div>
-                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white/20 rounded-full animate-pulse" />
-                </>
+                <div className="w-full flex items-center justify-end">
+                  <div className="h-16 sm:h-20 lg:h-24 xl:h-28 w-full bg-white/20 rounded animate-pulse" />
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white/20 rounded-full animate-pulse ml-3" />
+                </div>
               ) : (
                 <div className="w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white/20 rounded-full animate-pulse" />
               )}
             </div>
 
-            {/* QR Code (hidden on homepage) */}
-            {!homepage && (
-              <div className="flex flex-col items-center lg:items-end gap-1.5 sm:gap-2">
-                <div className="h-3 sm:h-3.5 w-16 sm:w-20 bg-white/20 rounded animate-pulse" />
-                <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg animate-pulse" />
-              </div>
-            )}
+            <div
+              className={
+                homepage
+                  ? 'w-full hidden md:flex items-center justify-end pr-2'
+                  : 'w-full flex items-center justify-end gap-4 pr-2'
+              }
+            >
+              <div className="w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white/20 rounded-full animate-pulse" />
+            </div>
+
+            <div className="w-full flex md:hidden flex-col items-end">
+              <div className="w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white/20 rounded-full animate-pulse" />
+              {!homepage && (
+                <div className="flex flex-col items-end gap-1 sm:gap-2 mt-3">
+                  <div className="h-3 sm:h-3.5 w-16 sm:w-20 bg-white/20 rounded animate-pulse" />
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg animate-pulse" />
+                </div>
+              )}
+            </div>
           </div>
+        </div>
+
+        {/* Absolute QR skeleton - positioned above divider on the right */}
+        <div className="hidden md:flex absolute right-6 bottom-20 lg:bottom-24 items-center flex-col gap-1 sm:gap-2 pointer-events-none">
+          <div className="h-3 sm:h-3.5 w-16 sm:w-20 bg-white/20 rounded animate-pulse" />
+          <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg animate-pulse" />
         </div>
 
         {/* Bottom Section */}
