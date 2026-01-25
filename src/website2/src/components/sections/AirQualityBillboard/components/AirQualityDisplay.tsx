@@ -280,7 +280,7 @@ const AirQualityDisplay = ({
           <div
             className={
               homepage
-                ? 'flex flex-col items-end justify-between min-h-0 w-full relative'
+                ? 'flex flex-col items-end justify-between min-h-[140px] md:min-h-[180px] w-full relative'
                 : 'flex flex-col items-center xl:items-end justify-between min-h-0 relative'
             }
           >

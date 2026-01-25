@@ -53,7 +53,7 @@ const HomePage = () => {
 
       {/* Air Quality Billboard */}
       <MotionSection>
-        <AirQualityBillboard homepage />
+        <AirQualityBillboard homepage className="md:px-3" />
       </MotionSection>
 
       {/* Reversible Content Section 1 */}
