@@ -158,12 +158,14 @@ const AirQualityBillboard = ({
               height: '100dvh', // Dynamic viewport height for mobile browsers
               padding: 'clamp(0.25rem, 0.5vw, 0.5rem)',
             }
-          : {
-              paddingTop: 'clamp(1.5rem, 3vw, 3rem)',
-              paddingBottom: 'clamp(1.5rem, 3vw, 3rem)',
-              paddingLeft: 'clamp(1rem, 2vw, 1rem)',
-              paddingRight: 'clamp(1rem, 2vw, 1rem)',
-            }),
+          : homepage
+            ? {}
+            : {
+                paddingTop: 'clamp(1.5rem, 3vw, 3rem)',
+                paddingBottom: 'clamp(1.5rem, 3vw, 3rem)',
+                paddingLeft: 'clamp(1rem, 2vw, 1rem)',
+                paddingRight: 'clamp(1rem, 2vw, 1rem)',
+              }),
       }}
     >
       <div
@@ -172,7 +174,7 @@ const AirQualityBillboard = ({
           centered ? 'h-full max-w-full' : 'max-w-7xl mx-auto',
         )}
         style={
-          !centered
+          !centered && !homepage
             ? {
                 paddingLeft: 'clamp(1.5rem, 3vw, 1.5rem)',
                 paddingRight: 'clamp(1.5rem, 3vw, 1.5rem)',
