@@ -16,6 +16,13 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
       </div>
 
+      {/* Top-right circle for homepage - positioned relative to the billboard container */}
+      {homepage && (
+        <div className="hidden md:flex absolute right-4 top-[clamp(3rem,6vw,6.5rem)] z-30">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 rounded-full animate-pulse" />
+        </div>
+      )}
+
       <div
         className={
           'relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-4 sm:gap-5 lg:gap-6'
@@ -107,11 +114,7 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
             }
           >
             {/* Air Quality Icon Skeleton */}
-            {homepage ? (
-              <div className="hidden md:flex items-center justify-end pr-2 w-full">
-                <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 rounded-full animate-pulse" />
-              </div>
-            ) : (
+            {!homepage ? (
               <div className="flex items-center justify-center lg:justify-end w-full">
                 <div
                   className="bg-white/20 rounded-full animate-pulse"
@@ -121,10 +124,10 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
                   }}
                 />
               </div>
-            )}
+            ) : null}
 
             {/* QR Code Skeleton - Positioned at bottom right for both views */}
-            <div className="hidden md:flex absolute bottom-0 right-0 flex-col items-center gap-[clamp(0.125rem,0.3vw,0.375rem)]">
+            <div className="hidden md:flex absolute bottom-4 right-4 z-20 flex-col items-center gap-[clamp(0.125rem,0.3vw,0.375rem)]">
               <div
                 className="h-2 w-12 bg-white/20 rounded animate-pulse"
                 style={{ fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)' }}
