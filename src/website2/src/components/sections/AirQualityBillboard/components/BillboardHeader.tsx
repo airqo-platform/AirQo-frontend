@@ -78,14 +78,16 @@ const BillboardHeader = ({
       {centered ? (
         // Grid page - simple header with just date/time and location name
         <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-white/90">
-            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">
-              {formattedDate}
-            </span>
-            <span className="text-white/50">|</span>
-            <span className="text-xs sm:text-sm font-medium whitespace-nowrap">
-              {formattedTime}
-            </span>
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+            <div className="inline-flex items-center gap-3 bg-black/30 border border-white/10 rounded-full px-3 py-1.5 shadow-sm backdrop-blur-sm">
+              <span className="text-xs sm:text-sm font-semibold whitespace-nowrap text-white/95">
+                {formattedDate}
+              </span>
+              <span className="text-white/40">|</span>
+              <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-white/95">
+                {formattedTime}
+              </span>
+            </div>
           </div>
           {!hideDropdown && (
             <div
@@ -209,17 +211,15 @@ const BillboardHeader = ({
         </div>
       ) : (
         <>
-          {/* Left: Last Updated */}
-          <div className="text-xs sm:text-sm opacity-90 font-medium whitespace-nowrap">
-            {currentMeasurement?.time
-              ? new Date(currentMeasurement.time).toLocaleString('en-US', {
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })
-              : 'Last updated: --'}
+          {/* Left: Last Updated (badge) */}
+          <div className="inline-flex items-center gap-3 bg-black/30 border border-white/10 rounded-full px-3 py-1.5 shadow-sm backdrop-blur-sm">
+            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap text-white/95">
+              {formattedDate}
+            </span>
+            <span className="text-white/40">|</span>
+            <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-white/95">
+              {formattedTime}
+            </span>
           </div>
 
           {/* Right: Dropdown Selector */}
