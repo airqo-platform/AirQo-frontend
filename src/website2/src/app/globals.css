@@ -492,18 +492,3 @@ iframe[src*='translate.googleapis'] {
     contain: layout style;
   }
 }
-
-/* Media queries for extreme zoom levels (accessibility) */
-@media screen and (min-resolution: 150dpi) and (max-resolution: 250dpi) {
-  /* Fine-tune at 150-250% zoom */
-  :root {
-    --billboard-spacing-adjustment: 0.95;
-  }
-}
-
-@media screen and (min-resolution: 251dpi) {
-  /* Extra compression at 250%+ zoom */
-  :root {
-    --billboard-spacing-adjustment: 0.9;
-  }
-}
