@@ -6,6 +6,23 @@
 
 :root {
   --font-inter: 'Inter', sans-serif;
+
+  /* Zoom-responsive spacing variables */
+  --billboard-spacing-xs: clamp(0.25rem, 0.5vw, 0.5rem);
+  --billboard-spacing-sm: clamp(0.5rem, 1vw, 0.75rem);
+  --billboard-spacing-md: clamp(0.75rem, 1.5vw, 1.25rem);
+  --billboard-spacing-lg: clamp(1rem, 2vw, 1.5rem);
+  --billboard-spacing-xl: clamp(1.5rem, 3vw, 2.5rem);
+
+  /* Zoom-responsive font sizes */
+  --billboard-font-xs: clamp(0.75rem, 1.2vw, 0.875rem);
+  --billboard-font-sm: clamp(0.875rem, 1.4vw, 1rem);
+  --billboard-font-base: clamp(1rem, 1.6vw, 1.125rem);
+  --billboard-font-lg: clamp(1.125rem, 1.8vw, 1.25rem);
+  --billboard-font-xl: clamp(1.25rem, 2vw, 1.5rem);
+  --billboard-font-2xl: clamp(1.5rem, 2.5vw, 2rem);
+  --billboard-font-3xl: clamp(2rem, 3.5vw, 3rem);
+  --billboard-font-4xl: clamp(3rem, 5vw, 4.5rem);
 }
 
 body {
@@ -427,4 +444,66 @@ iframe[src*='translate.googleapis'] {
 
 .animate-circular-progress {
   animation: circular-progress 20s linear infinite;
+}
+/* Billboard Component Zoom-Responsive Optimizations */
+@layer components {
+  /* Ensure billboard containers maintain proper spacing at all zoom levels */
+  [class*='billboard'] {
+    box-sizing: border-box;
+  }
+
+  /* Smooth transitions for zoom changes */
+  @media screen {
+    * {
+      transition-property: font-size, padding, margin, gap;
+      transition-duration: 0.1s;
+      transition-timing-function: ease-out;
+    }
+
+    /* Disable transitions for specific cases to avoid performance issues */
+    *:hover,
+    *:focus,
+    *:active {
+      transition-duration: 0s;
+    }
+  }
+
+  /* Improve text rendering at various zoom levels */
+  body {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Prevent layout shift during zoom for fixed/absolute positioned elements */
+  [data-billboard-portal='true'] {
+    will-change: transform;
+    backface-visibility: hidden;
+  }
+
+  /* Ensure images scale properly with zoom */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Prevent overflow issues at high zoom levels */
+  .overflow-hidden {
+    contain: layout style;
+  }
+}
+
+/* Media queries for extreme zoom levels (accessibility) */
+@media screen and (min-resolution: 150dpi) and (max-resolution: 250dpi) {
+  /* Fine-tune at 150-250% zoom */
+  :root {
+    --billboard-spacing-adjustment: 0.95;
+  }
+}
+
+@media screen and (min-resolution: 251dpi) {
+  /* Extra compression at 250%+ zoom */
+  :root {
+    --billboard-spacing-adjustment: 0.9;
+  }
 }

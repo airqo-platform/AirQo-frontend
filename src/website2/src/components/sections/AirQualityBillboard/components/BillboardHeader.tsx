@@ -1,8 +1,8 @@
 'use client';
 
+import { AqCopy06 } from '@airqo/icons-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { AqCopy06 } from '@airqo/icons-react';
 import { FiChevronDown } from 'react-icons/fi';
 
 import { cn } from '@/lib/utils';
@@ -47,34 +47,8 @@ const BillboardHeader = ({
   centered,
   hideDropdown = false,
 }: BillboardHeaderProps) => {
-  if (hideControls) return null;
-
-  const filteredItems = items
-    ? items.filter((item: any) => {
-        if (!searchQuery) return true;
-        const itemName = (item.name || item.long_name || '').toLowerCase();
-        return itemName.includes(searchQuery.toLowerCase());
-      })
-    : [];
-
-  // Format timestamp professionally
-  const formattedDate = currentMeasurement?.time
-    ? new Date(currentMeasurement.time).toLocaleDateString('en-US', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-      })
-    : '--';
-
-  const formattedTime = currentMeasurement?.time
-    ? new Date(currentMeasurement.time).toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '--';
-
   // Refs and portal state for dropdown positioning (prevent clipping by overflow)
+  // Must be called before any conditional returns (React Hooks rules)
   const centeredButtonRef = useRef<HTMLButtonElement | null>(null);
   const normalButtonRef = useRef<HTMLButtonElement | null>(null);
   const [dropdownStyle, setDropdownStyle] = useState<{
@@ -117,34 +91,79 @@ const BillboardHeader = ({
     };
   }, [isDropdownOpen, centered]);
 
+  if (hideControls) return null;
+
+  const filteredItems = items
+    ? items.filter((item: any) => {
+        if (!searchQuery) return true;
+        const itemName = (item.name || item.long_name || '').toLowerCase();
+        return itemName.includes(searchQuery.toLowerCase());
+      })
+    : [];
+
+  // Format timestamp professionally
+  const formattedDate = currentMeasurement?.time
+    ? new Date(currentMeasurement.time).toLocaleDateString('en-US', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      })
+    : '--';
+
+  const formattedTime = currentMeasurement?.time
+    ? new Date(currentMeasurement.time).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '--';
+
   return (
-    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 shrink-0">
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[clamp(0.5rem,1vw,0.75rem)] shrink-0">
       {/* Professional Timestamp Display */}
       {centered ? (
         // Grid page - simple header with just date/time and location name
-        <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <div className="inline-flex items-center gap-3 bg-black/30 border border-white/10 rounded-full px-3 py-1.5 shadow-sm backdrop-blur-sm">
-              <span className="text-xs sm:text-sm font-semibold whitespace-nowrap text-white/95">
+        <div className="w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-[clamp(0.5rem,1vw,0.75rem)]">
+          <div className="flex flex-wrap items-center gap-[clamp(0.5rem,1vw,0.75rem)]">
+            <div
+              className="inline-flex items-center gap-[clamp(0.75rem,1.5vw,1rem)] bg-black/30 border border-white/10 rounded-full shadow-sm backdrop-blur-sm"
+              style={{
+                padding:
+                  'clamp(0.375rem, 0.8vw, 0.5rem) clamp(0.75rem, 1.5vw, 1rem)',
+              }}
+            >
+              <span
+                className="font-semibold whitespace-nowrap text-white/95"
+                style={{ fontSize: 'clamp(0.75rem, 1.4vw, 0.875rem)' }}
+              >
                 {formattedDate}
               </span>
               <span className="text-white/40">|</span>
-              <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-white/95">
+              <span
+                className="font-medium whitespace-nowrap text-white/95"
+                style={{ fontSize: 'clamp(0.75rem, 1.4vw, 0.875rem)' }}
+              >
                 {formattedTime}
               </span>
             </div>
           </div>
           {!hideDropdown && (
             <div
-              className="relative w-full sm:w-auto sm:min-w-[200px] lg:min-w-[240px]"
+              className="relative w-full sm:w-auto"
+              style={{ minWidth: 'clamp(12.5rem, 20vw, 15rem)' }}
               ref={dropdownRef}
             >
               <button
                 ref={centeredButtonRef}
                 onClick={onDropdownToggle}
-                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 backdrop-blur-sm text-xs sm:text-sm flex items-center justify-between hover:bg-white/15 transition-colors"
+                className="w-full bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 backdrop-blur-sm flex items-center justify-between hover:bg-white/15 transition-colors"
+                style={{
+                  padding:
+                    'clamp(0.375rem, 0.8vw, 0.5rem) clamp(0.5rem, 1vw, 0.75rem)',
+                  fontSize: 'clamp(0.75rem, 1.4vw, 0.875rem)',
+                }}
               >
-                <span className="truncate text-xs sm:text-sm">
+                <span className="truncate">
                   {selectedItem
                     ? formatDisplayName(
                         selectedItem.name || selectedItem.long_name || '',
@@ -153,9 +172,14 @@ const BillboardHeader = ({
                 </span>
                 <FiChevronDown
                   className={cn(
-                    'w-4 h-4 transition-transform flex-shrink-0 ml-2',
+                    'transition-transform flex-shrink-0',
                     isDropdownOpen && 'rotate-180',
                   )}
+                  style={{
+                    width: 'clamp(1rem, 1.5vw, 1.25rem)',
+                    height: 'clamp(1rem, 1.5vw, 1.25rem)',
+                    marginLeft: 'clamp(0.5rem, 0.8vw, 0.75rem)',
+                  }}
                 />
               </button>
 
@@ -270,12 +294,24 @@ const BillboardHeader = ({
       ) : (
         <>
           {/* Left: Last Updated (badge) */}
-          <div className="inline-flex items-center gap-3 bg-black/30 border border-white/10 rounded-full px-3 py-1.5 shadow-sm backdrop-blur-sm">
-            <span className="text-xs sm:text-sm font-semibold whitespace-nowrap text-white/95">
+          <div
+            className="inline-flex items-center gap-[clamp(0.75rem,1.5vw,1rem)] bg-black/30 border border-white/10 rounded-full shadow-sm backdrop-blur-sm"
+            style={{
+              padding:
+                'clamp(0.375rem, 0.8vw, 0.5rem) clamp(0.75rem, 1.5vw, 1rem)',
+            }}
+          >
+            <span
+              className="font-semibold whitespace-nowrap text-white/95"
+              style={{ fontSize: 'clamp(0.75rem, 1.4vw, 0.875rem)' }}
+            >
               {formattedDate}
             </span>
             <span className="text-white/40">|</span>
-            <span className="text-xs sm:text-sm font-medium whitespace-nowrap text-white/95">
+            <span
+              className="font-medium whitespace-nowrap text-white/95"
+              style={{ fontSize: 'clamp(0.75rem, 1.4vw, 0.875rem)' }}
+            >
               {formattedTime}
             </span>
           </div>
@@ -283,15 +319,21 @@ const BillboardHeader = ({
           {/* Right: Dropdown Selector */}
           {!hideDropdown && (
             <div
-              className="relative w-full sm:w-auto sm:min-w-[200px] lg:min-w-[240px]"
+              className="relative w-full sm:w-auto"
+              style={{ minWidth: 'clamp(12.5rem, 20vw, 15rem)' }}
               ref={dropdownRef}
             >
               <button
                 ref={normalButtonRef}
                 onClick={onDropdownToggle}
-                className="w-full px-2 sm:px-3 py-1.5 sm:py-2 bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 backdrop-blur-sm text-xs sm:text-sm flex items-center justify-between hover:bg-white/15 transition-colors"
+                className="w-full bg-white/10 border border-white/30 rounded-lg text-white placeholder-white/70 focus:outline-none focus:border-white/50 backdrop-blur-sm flex items-center justify-between hover:bg-white/15 transition-colors"
+                style={{
+                  padding:
+                    'clamp(0.375rem, 0.8vw, 0.5rem) clamp(0.5rem, 1vw, 0.75rem)',
+                  fontSize: 'clamp(0.75rem, 1.4vw, 0.875rem)',
+                }}
               >
-                <span className="truncate text-xs sm:text-sm">
+                <span className="truncate">
                   {selectedItem
                     ? formatDisplayName(
                         selectedItem.name || selectedItem.long_name || '',
@@ -300,9 +342,14 @@ const BillboardHeader = ({
                 </span>
                 <FiChevronDown
                   className={cn(
-                    'w-4 h-4 transition-transform flex-shrink-0 ml-2',
+                    'transition-transform flex-shrink-0',
                     isDropdownOpen && 'rotate-180',
                   )}
+                  style={{
+                    width: 'clamp(1rem, 1.5vw, 1.25rem)',
+                    height: 'clamp(1rem, 1.5vw, 1.25rem)',
+                    marginLeft: 'clamp(0.5rem, 0.8vw, 0.75rem)',
+                  }}
                 />
               </button>
 
