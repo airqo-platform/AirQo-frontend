@@ -195,7 +195,7 @@ const AirQualityDisplay = ({
         <div
           className={
             homepage
-              ? 'flex-1 grid grid-cols-[1fr_110px] sm:grid-cols-[1.3fr_1fr] gap-[clamp(0.75rem,2vw,1.5rem)] min-h-auto'
+              ? 'flex-1 grid grid-cols-[1fr_110px] sm:grid-cols-[1.3fr_1fr] gap-[clamp(0.75rem,2vw,1.5rem)] min-h-0'
               : 'flex-1 grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-[clamp(0.5rem,1.2vw,1.5rem)] min-h-0'
           }
         >
@@ -280,7 +280,7 @@ const AirQualityDisplay = ({
           <div
             className={
               homepage
-                ? 'flex flex-col items-end justify-between min-h-auto w-full relative'
+                ? 'flex flex-col items-end justify-between min-h-0 w-full relative'
                 : 'flex flex-col items-center xl:items-end justify-between min-h-0 relative'
             }
           >
