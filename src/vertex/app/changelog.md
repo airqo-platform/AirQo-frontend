@@ -9,7 +9,7 @@
 
 ### Cohort Import Security & Accessibility Improvements
 
-Restricted restricted cohort imports ('airqo') and improved UI accessibility and validation logic across the platform.
+Restricted cohort imports ('airqo') and improved UI accessibility and validation logic across the platform.
 
 <details>
 <summary><strong>Security & Validation (2)</strong></summary>
