@@ -7,7 +7,7 @@ export type AirQualityCategory =
   | 'Unhealthy'
   | 'VeryUnhealthy'
   | 'Hazardous'
-  | 'Invalid';
+  | 'Unknown';
 
 export type AirQualityLevel =
   | 'good'
@@ -25,7 +25,7 @@ export interface PollutantRange {
 
 export const POLLUTANT_RANGES: Record<PollutantType, PollutantRange[]> = {
   pm2_5: [
-    { limit: 500.5, category: 'Invalid' },
+    { limit: 500.5, category: 'Unknown' },
     { limit: 225.5, category: 'Hazardous' },
     { limit: 125.5, category: 'VeryUnhealthy' },
     { limit: 55.5, category: 'Unhealthy' },
@@ -34,7 +34,7 @@ export const POLLUTANT_RANGES: Record<PollutantType, PollutantRange[]> = {
     { limit: 0.0, category: 'Good' },
   ],
   pm10: [
-    { limit: 604.1, category: 'Invalid' },
+    { limit: 604.1, category: 'Unknown' },
     { limit: 424.1, category: 'Hazardous' },
     { limit: 354.1, category: 'VeryUnhealthy' },
     { limit: 254.1, category: 'Unhealthy' },
@@ -99,7 +99,7 @@ export const getAirQualityCategory = (
   value: number | null | undefined,
   pollutant: PollutantType,
 ): AirQualityCategory => {
-  if (value == null || value < 0) return 'Invalid';
+  if (value == null || value < 0) return 'Unknown';
 
   const ranges = POLLUTANT_RANGES[pollutant];
   for (const range of ranges) {
@@ -108,7 +108,7 @@ export const getAirQualityCategory = (
     }
   }
 
-  return 'Invalid';
+  return 'Unknown';
 };
 
 /**

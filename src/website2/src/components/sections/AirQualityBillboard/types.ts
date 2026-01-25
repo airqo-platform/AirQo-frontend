@@ -6,6 +6,7 @@ export interface AirQualityBillboardProps {
   autoRotate?: boolean;
   itemName?: string;
   centered?: boolean;
+  hideDropdown?: boolean;
 }
 
 export interface Grid {
