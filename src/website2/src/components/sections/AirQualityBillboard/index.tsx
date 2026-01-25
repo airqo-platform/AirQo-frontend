@@ -2,17 +2,16 @@
 
 import { useEffect } from 'react';
 
-import BillboardSkeleton from '@/components/skeletons/BillboardSkeleton';
 import { useDailyForecast } from '@/hooks/useApiHooks';
 import { cn } from '@/lib/utils';
 
 import AirQualityDisplay from './components/AirQualityDisplay';
 import BillboardHeader from './components/BillboardHeader';
 import ErrorDisplay from './components/ErrorDisplay';
-import ItemSelector from './components/ItemSelector';
 import { useAirQualityData } from './hooks/useAirQualityData';
 import { useBillboardControls } from './hooks/useBillboardControls';
 import { useMeasurements } from './hooks/useMeasurements';
+import BillboardSkeleton from './skeletons/BillboardSkeleton';
 import type { AirQualityBillboardProps } from './types';
 
 const AirQualityBillboard = ({
@@ -21,6 +20,7 @@ const AirQualityBillboard = ({
   autoRotate = false,
   itemName: propItemName,
   centered = false,
+  hideDropdown = false,
 }: AirQualityBillboardProps) => {
   // Custom hooks for state management
   const controls = useBillboardControls('grid', propItemName, autoRotate);
@@ -147,12 +147,24 @@ const AirQualityBillboard = ({
     <div
       className={cn(
         centered
-          ? 'min-h-screen flex items-center justify-center p-4'
-          : 'py-4 sm:py-6 lg:py-8 px-4',
+          ? 'h-screen w-full flex items-center justify-center overflow-hidden p-1 sm:p-2'
+          : 'py-6 sm:py-8 lg:py-12 px-4',
         className,
       )}
+      style={
+        centered
+          ? {
+              height: '100dvh', // Dynamic viewport height for mobile browsers
+            }
+          : undefined
+      }
     >
-      <div className={cn(centered ? 'max-w-7xl w-full' : 'max-w-7xl mx-auto')}>
+      <div
+        className={cn(
+          'w-full flex items-center justify-center',
+          centered ? 'h-full max-w-full' : 'max-w-7xl mx-auto',
+        )}
+      >
         {/* Error States */}
         {hasError ? (
           <ErrorDisplay
@@ -167,96 +179,49 @@ const AirQualityBillboard = ({
             selectedItem={selectedItem}
           />
         ) : !dataLoaded || (selectedItem && measurementsLoading) ? (
-          <BillboardSkeleton />
+          <BillboardSkeleton centered={centered} />
         ) : propItemName && !selectedItem ? (
-          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
-            {/* Background pattern */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
-            </div>
-            <div className="relative z-10 flex items-center justify-center min-h-[400px]">
-              <div className="text-center space-y-6">
-                <div>
-                  <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                    Grid Not Found
-                  </h2>
-                  <p className="text-lg sm:text-xl opacity-90 mb-2">
-                    {`The requested grid "${propItemName}" could not be found.`}
-                  </p>
-                  <p className="text-base opacity-75">
-                    Please check the URL or select a different grid from the
-                    main billboard page.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <BillboardSkeleton centered={centered} />
         ) : !selectedItem ? (
-          <BillboardSkeleton />
-        ) : !currentMeasurement ? (
-          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
-            {/* Background pattern */}
-            <div className="absolute inset-0 opacity-5">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
-            </div>
-            <div className="relative z-10 flex items-center justify-center min-h-[400px]">
-              <div className="text-center space-y-6">
-                <div>
-                  <h2 className="text-3xl sm:text-4xl font-bold mb-4">
-                    No Data Available
-                  </h2>
-                  <p className="text-lg sm:text-xl opacity-90 mb-2">
-                    {propItemName
-                      ? `We're currently unable to retrieve air quality data for "${selectedItem?.name || selectedItem?.long_name || propItemName}".`
-                      : `No air quality data is currently available for this grid.`}
-                  </p>
-                  <p className="text-base opacity-75">
-                    {propItemName
-                      ? 'This may be due to temporary connectivity issues or the monitoring station being offline. Please try again later.'
-                      : 'Please check back later or try refreshing the page.'}
-                  </p>
-                </div>
-                <div className="flex justify-center">
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/20 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg"
-                  >
-                    Refresh Page
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <BillboardSkeleton centered={centered} />
         ) : (
-          <div className="bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-white shadow-2xl relative overflow-hidden">
+          <div
+            className={cn(
+              'w-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl text-white shadow-2xl relative overflow-hidden',
+              centered ? 'h-full' : 'min-h-[500px]',
+            )}
+          >
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
             </div>
 
-            <BillboardHeader hideControls={hideControls} />
+            <div className="relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-3 sm:gap-4 lg:gap-5">
+              <BillboardHeader
+                hideControls={hideControls}
+                selectedItem={selectedItem}
+                items={currentItems}
+                searchQuery={searchQuery}
+                isDropdownOpen={isDropdownOpen}
+                hoveredItemId={hoveredItemId}
+                copiedItemId={copiedItemId}
+                onItemSelect={onItemSelect}
+                onCopyUrl={handleCopyUrl}
+                onSearchChange={setSearchQuery}
+                onDropdownToggle={() => setIsDropdownOpen(!isDropdownOpen)}
+                onHover={setHoveredItemId}
+                dropdownRef={dropdownRef}
+                currentMeasurement={currentMeasurement}
+                centered={centered}
+                hideDropdown={hideDropdown}
+              />
 
-            <ItemSelector
-              hideControls={hideControls}
-              selectedItem={selectedItem}
-              items={currentItems}
-              searchQuery={searchQuery}
-              isDropdownOpen={isDropdownOpen}
-              hoveredItemId={hoveredItemId}
-              copiedItemId={copiedItemId}
-              onItemSelect={onItemSelect}
-              onCopyUrl={handleCopyUrl}
-              onSearchChange={setSearchQuery}
-              onDropdownToggle={() => setIsDropdownOpen(!isDropdownOpen)}
-              onHover={setHoveredItemId}
-              dropdownRef={dropdownRef}
-            />
-
-            <AirQualityDisplay
-              dataType={dataType}
-              currentMeasurement={currentMeasurement}
-              forecastData={forecastData}
-            />
+              <AirQualityDisplay
+                dataType={dataType}
+                currentMeasurement={currentMeasurement}
+                forecastData={forecastData}
+              />
+            </div>
           </div>
         )}
       </div>

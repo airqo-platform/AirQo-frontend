@@ -140,7 +140,7 @@ async function handleRequest(
       headers,
       body,
       // Add timeout
-      signal: AbortSignal.timeout(30000), // 30 seconds
+      signal: AbortSignal.timeout(60000), // 60 seconds
     });
 
     // Get response data
