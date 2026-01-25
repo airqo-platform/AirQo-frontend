@@ -31,7 +31,7 @@ interface TopbarProps {
 const AirqoLogoRaw = '/images/airqo_logo.svg';
 
 const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
-  const { setTheme, theme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const currentUser = useAppSelector(state => state.user.userDetails);
   const logout = useLogout();
@@ -45,7 +45,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   }, []);
 
   const toggleDarkMode = () => {
-    setTheme(theme === "dark" ? "light" : "dark");
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   };
 
   const handleLogoClick = useCallback(() => {
@@ -162,12 +162,12 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
                   onClick={toggleDarkMode}
                   className="flex items-center gap-2"
                 >
-                  {mounted && theme === 'dark' ? (
+                  {mounted && resolvedTheme === 'dark' ? (
                     <Sun className="h-4 w-4" />
                   ) : (
                     <Moon className="h-4 w-4" />
                   )}
-                  {mounted && theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  {mounted && resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
