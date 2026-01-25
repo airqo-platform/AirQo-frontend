@@ -4,6 +4,77 @@
 
 ---
 
+## Version 1.23.17
+**Released:** January 25, 2026
+
+### Cohort Import Security & Accessibility Improvements
+
+Restricted cohort imports ('airqo') and improved UI accessibility and validation logic across the platform.
+
+<details>
+<summary><strong>Security & Validation (2)</strong></summary>
+
+- **Restricted Cohort Import**: Implemented validation to prevent users from importing the reserved "airqo" cohort. The system now checks the cohort name and blocks the import with a clear error message if it matches.
+- **Strict ID Validation**: Enhanced the Cohort ID input validation to strictly enforce a 24-character alphanumeric format, preventing invalid inputs (e.g., URLs) and ensuring data integrity.
+
+</details>
+
+<details>
+<summary><strong>UI/UX Enhancements (2)</strong></summary>
+
+- **Static Device Icons**: Fixed an issue where "Static Devices" were incorrectly displaying a car icon. The logic now prioritizes the explicit deployment category ("static") to ensure the correct Map Pin icon is shown.
+- **Accessibility Labels**: Added `aria-label` attributes to icon-only buttons (e.g., Cohort Edit Button) to improve screen reader support and overall accessibility compliance.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (5)</strong></summary>
+
+- `core/apis/cohorts.ts`
+- `components/features/claim/claim-device-modal.tsx`
+- `components/features/devices/device-category-card.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/cohorts/edit-cohort-details-modal.tsx`
+
+</details>
+
+---
+
+## Version 1.23.16
+**Released:** January 06, 2026
+
+### Theme & Cohort UI Improvements
+
+Standardized the application to default to Light Mode upon entry and refined the Cohort management UI for a cleaner editing experience.
+
+<details>
+<summary><strong>Theme Updates (2)</strong></summary>
+
+- **Light Mode Default**: Updated the application configuration to default to **Light Mode** for all users, overriding system preferences to ensure a consistent initial experience.
+- **Smart Theme Toggle**: Fixed the topbar theme toggle logic to correctly identify the active theme. Even when using system defaults, the toggle now intelligently displays the option to switch to the *alternative* mode (e.g., "Switch to Light Mode" if system is Dark).
+
+</details>
+
+<details>
+<summary><strong>Cohort Management (2)</strong></summary>
+
+- **Streamlined Editing**: Removed the redundant "Edit details" button from the Cohort Details card. Users can now edit cohort details by clicking a new **Edit Pen** icon located directly next to the cohort name.
+- **Simplified Modal**: Refined the "Edit Cohort" modal to focus solely on renaming the cohort. Removed the "Visibility" field from this view to simplify the user workflow.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/providers.tsx`
+- `components/layout/topbar.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/cohorts/edit-cohort-details-modal.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.15
 **Released:** January 04, 2026
 

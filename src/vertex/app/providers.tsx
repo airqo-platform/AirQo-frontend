@@ -36,8 +36,8 @@ export default function Providers({ children, session }: { children: React.React
           <AuthProvider session={session}>
             <ThemeProvider
               attribute="class"
-              defaultTheme="system"
-              enableSystem
+              defaultTheme="light"
+              enableSystem={false}
               disableTransitionOnChange
             >
               {children}
