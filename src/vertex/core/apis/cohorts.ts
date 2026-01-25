@@ -201,6 +201,7 @@ export const cohorts = {
         success: boolean;
         message: string;
         errors?: { message: string };
+        cohort?: { name: string };
       };
     } catch (error) {
       throw error;

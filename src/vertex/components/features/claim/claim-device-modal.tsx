@@ -348,6 +348,12 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
             const result = await verifyCohort(cohortIdInput);
 
             if (result.success) {
+                if (result.cohort?.name?.toLowerCase() === 'airqo') {
+                    setError('This cohort is not available.');
+                    setIsImportingCohort(false);
+                    return;
+                }
+
                 if (isExternalOrg && activeGroup?._id) {
                     setStep('assigning-cohort');
                     assignCohortsToGroup({
