@@ -19,7 +19,7 @@ const DeviceCategoryCard: React.FC<DeviceCategoryCardProps> = ({ device }) => {
 
     if (!categories) return null;
 
-    const Icon = categories.is_mobile ? Car : MapPin;
+    const Icon = categories.deployment_category?.toLowerCase().includes('mobile') ? Car : MapPin;
 
     return (
         <Card className="w-full rounded-lg overflow-hidden relative">
