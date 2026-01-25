@@ -286,14 +286,14 @@ const AirQualityDisplay = ({
           >
             {/* Air Quality Icon - Single responsive implementation */}
             {homepage ? (
-              // Homepage: Smaller icon, only visible on md+ screens
-              <div className="hidden md:flex items-center justify-end pr-2 w-full">
+              // Homepage: Responsive icon visible on all screen sizes
+              <div className="flex items-center justify-end pr-2 w-full">
                 <div className="transform transition-transform duration-300">
                   {getAirQualityIcon(
                     pm25Value !== null && pm25Value !== undefined
                       ? pm25Value
                       : null,
-                    'w-20 h-20 sm:w-24 sm:h-24',
+                    'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24',
                   )}
                 </div>
               </div>
