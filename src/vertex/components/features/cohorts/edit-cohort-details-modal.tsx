@@ -5,7 +5,7 @@ import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
 import ReusableButton from "@/components/shared/button/ReusableButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 import { useUpdateCohortDetails } from "@/core/hooks/useCohorts";
 import { PERMISSIONS } from "@/core/permissions/constants";
 import logger from "@/lib/logger";
