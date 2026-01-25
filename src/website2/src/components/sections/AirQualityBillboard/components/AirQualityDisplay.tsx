@@ -371,7 +371,7 @@ const AirQualityDisplay = ({
                     fontFamily: '"Times New Roman", Times, serif',
                     padding:
                       'clamp(0.375rem, 0.8vw, 0.625rem) clamp(1.25rem, 2.5vw, 2rem)',
-                    fontSize: 'clamp(0.875rem, 1.5vw, 1rem)',
+                    fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
                   }}
                 >
                   {category}
