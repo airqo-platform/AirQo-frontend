@@ -56,6 +56,7 @@ const CohortDetailsCard: React.FC<CohortDetailsCardProps> = ({ name, id, visibil
                 onClick={onShowDetailsModal}
                 className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full h-fit w-fit"
                 Icon={AqEdit01}
+                aria-label="Edit cohort"
               />
             </div>
           </div>
