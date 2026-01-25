@@ -281,7 +281,7 @@ const AirQualityDisplay = ({
             className={
               homepage
                 ? 'flex flex-col items-end justify-between min-h-auto w-full relative'
-                : 'flex flex-col items-center lg:items-end justify-between min-h-0'
+                : 'flex flex-col items-center lg:items-end justify-between min-h-0 relative'
             }
           >
             {/* Air Quality Icon - Single responsive implementation */}
@@ -317,32 +317,30 @@ const AirQualityDisplay = ({
               </div>
             )}
 
-            {/* QR Code for Homepage - Absolutely positioned at bottom right */}
-            {homepage && (
-              <div className="hidden md:flex absolute bottom-0 right-0 flex-col items-center gap-[clamp(0.25rem,0.5vw,0.5rem)]">
-                <span
-                  className="font-semibold tracking-wider text-white/90"
-                  style={{ fontSize: 'clamp(0.65rem, 1vw, 0.75rem)' }}
-                >
-                  SCAN ME
-                </span>
-                <div
-                  className="relative bg-white rounded-lg p-[clamp(0.25rem,0.5vw,0.375rem)]"
-                  style={{
-                    width: 'clamp(4rem, 6vw, 5.5rem)',
-                    height: 'clamp(4rem, 6vw, 5.5rem)',
-                  }}
-                >
-                  <Image
-                    src="/QR/analytics_qrcode.png"
-                    alt="QR Code"
-                    fill
-                    className="object-contain"
-                    sizes="88px"
-                  />
-                </div>
+            {/* QR Code - Positioned at bottom right for both views */}
+            <div className="hidden md:flex absolute bottom-0 right-0 flex-col items-center gap-[clamp(0.25rem,0.5vw,0.5rem)]">
+              <span
+                className="font-semibold tracking-wider text-white/90"
+                style={{ fontSize: 'clamp(0.65rem, 1vw, 0.75rem)' }}
+              >
+                SCAN ME
+              </span>
+              <div
+                className="relative bg-white rounded-lg p-[clamp(0.25rem,0.5vw,0.375rem)]"
+                style={{
+                  width: 'clamp(4rem, 6vw, 5.5rem)',
+                  height: 'clamp(4rem, 6vw, 5.5rem)',
+                }}
+              >
+                <Image
+                  src="/QR/analytics_qrcode.png"
+                  alt="QR Code"
+                  fill
+                  className="object-contain"
+                  sizes="88px"
+                />
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -391,62 +389,32 @@ const AirQualityDisplay = ({
             </span>
           </div>
 
-          {/* Location and QR Code Row */}
-          <div className="flex items-center justify-between gap-[clamp(1rem,2vw,1.5rem)] flex-wrap">
-            {/* Location - BIGGER AND MORE VISIBLE */}
+          {/* Location - BIGGER AND MORE VISIBLE */}
+          <div
+            className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)] bg-white/5 backdrop-blur-sm rounded-lg"
+            style={{
+              padding:
+                'clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 1.5vw, 1rem)',
+            }}
+          >
             <div
-              className="flex items-center gap-[clamp(0.5rem,1vw,0.75rem)] bg-white/5 backdrop-blur-sm rounded-lg flex-1 min-w-0"
+              className="flex-shrink-0"
               style={{
-                padding:
-                  'clamp(0.5rem, 1vw, 0.75rem) clamp(0.75rem, 1.5vw, 1rem)',
+                width: 'clamp(1.25rem, 2vw, 1.75rem)',
+                height: 'clamp(1.25rem, 2vw, 1.75rem)',
               }}
             >
-              <div
-                className="flex-shrink-0"
-                style={{
-                  width: 'clamp(1.25rem, 2vw, 1.75rem)',
-                  height: 'clamp(1.25rem, 2vw, 1.75rem)',
-                }}
-              >
-                <FiMapPin className="text-white w-full h-full" />
-              </div>
-              <span
-                className="font-bold tracking-wide truncate"
-                style={{
-                  fontFamily: '"Times New Roman", Times, serif',
-                  fontSize: 'clamp(1.5rem, 3.5vw, 3rem)',
-                }}
-              >
-                {getLocationName(dataType, currentMeasurement) || '--'}
-              </span>
+              <FiMapPin className="text-white w-full h-full" />
             </div>
-
-            {/* QR Code - Only show on non-homepage billboard */}
-            {!homepage && (
-              <div className="flex flex-col items-center gap-[clamp(0.25rem,0.5vw,0.5rem)]">
-                <span
-                  className="font-semibold tracking-wider text-white/90"
-                  style={{ fontSize: 'clamp(0.65rem, 1vw, 0.75rem)' }}
-                >
-                  SCAN ME
-                </span>
-                <div
-                  className="relative bg-white rounded-lg p-[clamp(0.25rem,0.5vw,0.375rem)]"
-                  style={{
-                    width: 'clamp(4rem, 6vw, 5.5rem)',
-                    height: 'clamp(4rem, 6vw, 5.5rem)',
-                  }}
-                >
-                  <Image
-                    src="/QR/analytics_qrcode.png"
-                    alt="QR Code"
-                    fill
-                    className="object-contain"
-                    sizes="88px"
-                  />
-                </div>
-              </div>
-            )}
+            <span
+              className="font-bold tracking-wide truncate"
+              style={{
+                fontFamily: '"Times New Roman", Times, serif',
+                fontSize: 'clamp(1.5rem, 3.5vw, 3rem)',
+              }}
+            >
+              {getLocationName(dataType, currentMeasurement) || '--'}
+            </span>
           </div>
         </div>
       </motion.div>

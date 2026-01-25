@@ -102,8 +102,8 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
           <div
             className={
               homepage
-                ? 'flex flex-col items-end justify-between min-h-auto w-full'
-                : 'flex flex-col items-center lg:items-end justify-between min-h-0'
+                ? 'flex flex-col items-end justify-between min-h-auto w-full relative'
+                : 'flex flex-col items-center lg:items-end justify-between min-h-0 relative'
             }
           >
             {/* Air Quality Icon Skeleton */}
@@ -122,6 +122,21 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
                 />
               </div>
             )}
+
+            {/* QR Code Skeleton - Positioned at bottom right for both views */}
+            <div className="hidden md:flex absolute bottom-0 right-0 flex-col items-center gap-[clamp(0.25rem,0.5vw,0.5rem)]">
+              <div
+                className="h-2.5 w-14 bg-white/20 rounded animate-pulse"
+                style={{ fontSize: 'clamp(0.65rem, 1vw, 0.75rem)' }}
+              />
+              <div
+                className="bg-white rounded-lg animate-pulse"
+                style={{
+                  width: 'clamp(4rem, 6vw, 5.5rem)',
+                  height: 'clamp(4rem, 6vw, 5.5rem)',
+                }}
+              />
+            </div>
           </div>
         </div>
 
@@ -133,24 +148,10 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
             <div className="h-4 sm:h-5 lg:h-6 w-40 sm:w-48 bg-white/20 rounded animate-pulse" />
           </div>
 
-          {/* Location and QR Code Row */}
-          <div className="flex items-center justify-between gap-2 sm:gap-3 flex-wrap">
-            <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
-              <div className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 bg-white/20 rounded-full animate-pulse flex-shrink-0" />
-              <div className="h-5 sm:h-6 lg:h-7 xl:h-8 flex-1 bg-white/20 rounded animate-pulse" />
-            </div>
-            {!homepage && (
-              <div className="flex flex-col items-center gap-1">
-                <div className="h-2.5 w-14 bg-white/20 rounded animate-pulse" />
-                <div
-                  className="bg-white rounded-lg animate-pulse"
-                  style={{
-                    width: 'clamp(4rem, 6vw, 5.5rem)',
-                    height: 'clamp(4rem, 6vw, 5.5rem)',
-                  }}
-                />
-              </div>
-            )}
+          {/* Location */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 bg-white/20 rounded-full animate-pulse flex-shrink-0" />
+            <div className="h-5 sm:h-6 lg:h-7 xl:h-8 flex-1 bg-white/20 rounded animate-pulse" />
           </div>
         </div>
       </div>
