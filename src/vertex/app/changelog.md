@@ -4,6 +4,41 @@
 
 ---
 
+## Version 1.23.16
+**Released:** January 06, 2026
+
+### Theme & Cohort UI Improvements
+
+Standardized the application to default to Light Mode upon entry and refined the Cohort management UI for a cleaner editing experience.
+
+<details>
+<summary><strong>Theme Updates (2)</strong></summary>
+
+- **Light Mode Default**: Updated the application configuration to default to **Light Mode** for all users, overriding system preferences to ensure a consistent initial experience.
+- **Smart Theme Toggle**: Fixed the topbar theme toggle logic to correctly identify the active theme. Even when using system defaults, the toggle now intelligently displays the option to switch to the *alternative* mode (e.g., "Switch to Light Mode" if system is Dark).
+
+</details>
+
+<details>
+<summary><strong>Cohort Management (2)</strong></summary>
+
+- **Streamlined Editing**: Removed the redundant "Edit details" button from the Cohort Details card. Users can now edit cohort details by clicking a new **Edit Pen** icon located directly next to the cohort name.
+- **Simplified Modal**: Refined the "Edit Cohort" modal to focus solely on renaming the cohort. Removed the "Visibility" field from this view to simplify the user workflow.
+
+</details>
+
+<details>
+<summary><strong>Files Modified (4)</strong></summary>
+
+- `app/providers.tsx`
+- `components/layout/topbar.tsx`
+- `components/features/cohorts/cohort-detail-card.tsx`
+- `components/features/cohorts/edit-cohort-details-modal.tsx`
+
+</details>
+
+---
+
 ## Version 1.23.15
 **Released:** January 04, 2026
 
