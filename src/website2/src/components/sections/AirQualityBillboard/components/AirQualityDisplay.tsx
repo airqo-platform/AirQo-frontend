@@ -245,7 +245,7 @@ const AirQualityDisplay = ({
                   : '#808080';
               // Use a very light tint of the base color for background so
               // the badge appears like the color with reduced opacity.
-              const badgeBg = hexToRgba(baseColor, 0.08);
+              const badgeBg = hexToRgba(baseColor, 0.14);
               // Subtle border to define the pill on light backgrounds
               const badgeBorder = hexToRgba(baseColor, 0.16);
               // Text should use the same hue (base color) so it stands out
