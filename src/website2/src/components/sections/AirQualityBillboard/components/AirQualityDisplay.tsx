@@ -19,24 +19,20 @@ import {
 } from '@/utils/airQuality';
 
 import type { DataType, Forecast, Measurement } from '../types';
-import {
-  getColorFromPM25,
-  getLocationName,
-  getTextColor,
-  hexToRgba,
-  darkenHex,
-} from '../utils';
+import { getColorFromPM25, getLocationName, hexToRgba } from '../utils';
 
 interface AirQualityDisplayProps {
   dataType: DataType;
   currentMeasurement: Measurement | null;
   forecastData?: { forecasts?: Forecast[] };
+  homepage?: boolean;
 }
 
 const AirQualityDisplay = ({
   dataType,
   currentMeasurement,
   forecastData,
+  homepage = false,
 }: AirQualityDisplayProps) => {
   const pm25Value = currentMeasurement?.pm2_5?.value;
   const categoryObj =
@@ -96,37 +92,50 @@ const AirQualityDisplay = ({
     const today = new Date().getDay();
 
     return (
-      <div className="flex items-center gap-2 flex-wrap">
-        {validForecasts.slice(0, 7).map((forecast: any, index: number) => {
-          const dayIndex = (today + index) % 7;
-          const isToday = index === 0;
+      <div className="w-full">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(110px,1fr))] gap-2 sm:gap-3 md:gap-4">
+          {validForecasts.slice(0, 7).map((forecast: any, index: number) => {
+            const dayIndex = (today + index) % 7;
+            const isToday = index === 0;
+            const cardBg = isToday
+              ? 'bg-blue-700 text-white'
+              : 'bg-blue-500/30 text-white';
 
-          return (
-            <div
-              key={index}
-              className={`flex flex-col items-center rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px] ${
-                isToday
-                  ? 'bg-blue-700 text-white'
-                  : 'bg-blue-500/30 text-white backdrop-blur-sm'
-              }`}
-              style={{ fontFamily: '"Times New Roman", Times, serif' }}
-            >
-              <span className="font-bold text-xs sm:text-sm mb-1">
-                {days[dayIndex]}
-              </span>
-              <span className="text-xs font-medium mb-1 sm:mb-2">
-                {forecast.pm2_5?.toFixed(1) || '--'}
-              </span>
-              <div className="flex-shrink-0">
-                {Number.isFinite(forecast.pm2_5) ? (
-                  getAirQualityIcon(forecast.pm2_5, 'w-6 h-6 sm:w-8 sm:h-8')
-                ) : (
-                  <AqNoValue className="w-6 h-6 sm:w-8 sm:h-8" />
-                )}
+            return (
+              <div
+                key={index}
+                role="group"
+                aria-label={`Forecast ${index + 1}`}
+                className={`${cardBg} rounded-lg p-2 sm:p-3 flex flex-col items-center justify-between min-h-[84px] sm:min-h-[92px]`}
+                style={{ fontFamily: '"Times New Roman", Times, serif' }}
+              >
+                <div className="w-full flex items-center justify-center">
+                  <span className="font-semibold text-sm sm:text-base tracking-wider">
+                    {days[dayIndex]}
+                  </span>
+                </div>
+
+                <div className="w-full flex flex-col items-center">
+                  <span className="text-sm sm:text-base font-bold mb-1">
+                    {Number.isFinite(forecast.pm2_5)
+                      ? forecast.pm2_5.toFixed(2)
+                      : '--'}
+                  </span>
+                  <div className="flex-shrink-0">
+                    {Number.isFinite(forecast.pm2_5) ? (
+                      getAirQualityIcon(
+                        forecast.pm2_5,
+                        'w-8 h-8 sm:w-10 sm:h-10',
+                      )
+                    ) : (
+                      <AqNoValue className="w-8 h-8 sm:w-10 sm:h-10" />
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -142,7 +151,13 @@ const AirQualityDisplay = ({
         className="flex-1 flex flex-col min-h-0"
       >
         {/* Main Content - Using CSS Grid for responsive layout */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4 sm:gap-6 lg:gap-8 min-h-0">
+        <div
+          className={
+            homepage
+              ? 'flex-1 grid grid-cols-[1fr_110px] sm:grid-cols-[1.3fr_1fr] gap-3 sm:gap-6 min-h-auto'
+              : 'flex-1 grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4 sm:gap-6 lg:gap-8 min-h-0'
+          }
+        >
           {/* Left Section */}
           <div className="flex flex-col justify-center space-y-3 sm:space-y-4 lg:space-y-5 min-h-0">
             {/* Air Quality Title */}
@@ -196,41 +211,69 @@ const AirQualityDisplay = ({
               </span>
             </div>
 
-            {/* 7-Day Forecast */}
-            {forecastData && (
-              <div className="mt-2 sm:mt-3">{renderForecast()}</div>
-            )}
+            {/* 7-Day Forecast - show on non-homepage everywhere, and on homepage only from md+ */}
+            {forecastData &&
+              (homepage ? (
+                <div className="mt-2 sm:mt-3 hidden md:block">
+                  {renderForecast()}
+                </div>
+              ) : (
+                <div className="mt-2 sm:mt-3">{renderForecast()}</div>
+              ))}
           </div>
 
           {/* Right Section */}
-          <div className="flex flex-col items-center lg:items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6 min-h-0">
+          <div
+            className={
+              homepage
+                ? 'flex flex-col items-center justify-center space-y-2 min-h-auto'
+                : 'flex flex-col items-center lg:items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6 min-h-0'
+            }
+            aria-hidden={homepage ? 'false' : 'false'}
+          >
             {/* Large Air Quality Icon */}
-            <div className="flex justify-center lg:justify-end flex-1 items-center">
-              <div className="transform hover:scale-105 transition-transform duration-300">
+            <div
+              className={
+                homepage
+                  ? 'w-full flex items-center justify-end pr-2'
+                  : 'flex justify-center lg:justify-end flex-1 items-center'
+              }
+            >
+              <div
+                className={
+                  homepage
+                    ? 'transform transition-transform duration-300'
+                    : 'transform hover:scale-105 transition-transform duration-300'
+                }
+              >
                 {getAirQualityIcon(
                   pm25Value !== null && pm25Value !== undefined
                     ? pm25Value
                     : null,
-                  'w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52',
+                  homepage
+                    ? 'w-12 h-12 sm:w-28 sm:h-28'
+                    : 'w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52',
                 )}
               </div>
             </div>
 
-            {/* QR Code */}
-            <div className="flex flex-col items-center lg:items-end gap-1.5 sm:gap-2">
-              <span className="text-xs sm:text-sm font-semibold tracking-wider">
-                SCAN ME
-              </span>
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg p-1.5 sm:p-2">
-                <Image
-                  src="/QR/analytics_qrcode.png"
-                  alt="QR Code"
-                  fill
-                  className="object-contain"
-                  sizes="112px"
-                />
+            {/* QR Code (hidden on homepage variant) */}
+            {!homepage && (
+              <div className="flex flex-col items-center lg:items-end gap-1.5 sm:gap-2">
+                <span className="text-xs sm:text-sm font-semibold tracking-wider">
+                  SCAN ME
+                </span>
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg p-1.5 sm:p-2">
+                  <Image
+                    src="/QR/analytics_qrcode.png"
+                    alt="QR Code"
+                    fill
+                    className="object-contain"
+                    sizes="112px"
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 

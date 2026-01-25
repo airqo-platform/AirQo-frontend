@@ -53,7 +53,7 @@ const HomePage = () => {
 
       {/* Air Quality Billboard */}
       <MotionSection>
-        <AirQualityBillboard />
+        <AirQualityBillboard homepage />
       </MotionSection>
 
       {/* Reversible Content Section 1 */}

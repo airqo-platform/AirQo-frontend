@@ -21,6 +21,7 @@ const AirQualityBillboard = ({
   itemName: propItemName,
   centered = false,
   hideDropdown = false,
+  homepage = false,
 }: AirQualityBillboardProps) => {
   // Custom hooks for state management
   const controls = useBillboardControls('grid', propItemName, autoRotate);
@@ -56,7 +57,7 @@ const AirQualityBillboard = ({
     resetIndices,
   } = measurements;
 
-  // Forecast data
+  // Forecast data - always call hook; rendering will hide on small screens for homepage
   const { data: forecastData } = useDailyForecast(
     currentMeasurement?.site_id || null,
   );
@@ -179,16 +180,16 @@ const AirQualityBillboard = ({
             selectedItem={selectedItem}
           />
         ) : !dataLoaded || (selectedItem && measurementsLoading) ? (
-          <BillboardSkeleton centered={centered} />
+          <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : propItemName && !selectedItem ? (
-          <BillboardSkeleton centered={centered} />
+          <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : !selectedItem ? (
-          <BillboardSkeleton centered={centered} />
+          <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : (
           <div
             className={cn(
               'w-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl text-white shadow-2xl relative overflow-hidden',
-              centered ? 'h-full' : 'min-h-[500px]',
+              centered ? 'h-full' : homepage ? '' : 'min-h-[500px]',
             )}
           >
             {/* Background pattern */}
@@ -220,6 +221,7 @@ const AirQualityBillboard = ({
                 dataType={dataType}
                 currentMeasurement={currentMeasurement}
                 forecastData={forecastData}
+                homepage={homepage}
               />
             </div>
           </div>
