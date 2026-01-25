@@ -337,10 +337,18 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
     };
 
     const handleVerifyCohort = async () => {
-        if (!cohortIdInput.trim()) {
+        const input = cohortIdInput.trim();
+        if (!input) {
             setError('Please enter a valid Cohort ID');
             return;
         }
+
+        // Validate 24-char alphanumeric string
+        if (!/^[a-zA-Z0-9]{24}$/.test(input)) {
+            setError('Cohort ID must be a 24-character alphanumeric code.');
+            return;
+        }
+
         setError(null);
         setIsImportingCohort(true);
 
