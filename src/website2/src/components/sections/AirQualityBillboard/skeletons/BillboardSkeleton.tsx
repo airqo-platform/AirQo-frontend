@@ -82,15 +82,15 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
               </div>
             ) : (
               <div className="mt-2 sm:mt-3">
-                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                   {[...Array(7)].map((_, index) => (
                     <div
                       key={index}
-                      className="flex flex-col items-center rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px] bg-blue-500/30 animate-pulse"
+                      className="flex flex-col items-center rounded-lg p-3 sm:p-4 lg:p-5 min-w-[110px] sm:min-w-[120px] bg-blue-600/25 animate-pulse"
                     >
-                      <div className="h-3 sm:h-3.5 w-4 bg-white/30 rounded mb-1" />
-                      <div className="h-2.5 sm:h-3 w-6 bg-white/30 rounded mb-1 sm:mb-2" />
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/30 rounded-full" />
+                      <div className="h-4 sm:h-5 w-6 sm:w-8 bg-white/30 rounded mb-2" />
+                      <div className="h-3 sm:h-4 w-10 sm:w-12 bg-white/30 rounded mb-2" />
+                      <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-20 lg:h-20 bg-white/30 rounded-full" />
                     </div>
                   ))}
                 </div>

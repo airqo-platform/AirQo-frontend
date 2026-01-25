@@ -91,44 +91,71 @@ const AirQualityDisplay = ({
     const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const today = new Date().getDay();
 
+    // Use a larger, more flexible layout for the standalone billboard (non-homepage)
+    const isCompact = homepage === true;
+    const gridTemplate = isCompact
+      ? 'grid grid-cols-[repeat(auto-fit,minmax(90px,1fr))] gap-1 sm:gap-2 md:gap-3'
+      : 'grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2 sm:gap-3 md:gap-4 lg:gap-6';
+
     return (
       <div className="w-full">
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(90px,1fr))] gap-1 sm:gap-2 md:gap-3">
+        <div className={gridTemplate}>
           {validForecasts.slice(0, 7).map((forecast: any, index: number) => {
             const dayIndex = (today + index) % 7;
             const isToday = index === 0;
             const cardBg = isToday
-              ? 'bg-blue-700 text-white'
-              : 'bg-blue-500/30 text-white';
+              ? 'bg-blue-700/80 text-white'
+              : 'bg-blue-600/25 text-white';
+
+            // Larger sizes for standalone billboard
+            const cardPadding = isCompact ? 'p-1 sm:p-2' : 'p-3 sm:p-4 lg:p-5';
+            const minH = isCompact
+              ? 'min-h-[80px] sm:min-h-[88px]'
+              : 'min-h-[110px] sm:min-h-[120px] lg:min-h-[140px]';
+            const dayClass = isCompact
+              ? 'font-semibold text-sm sm:text-base'
+              : 'font-semibold text-base sm:text-lg';
+            const valueClass = isCompact
+              ? 'text-sm sm:text-base font-bold mb-1'
+              : 'text-lg sm:text-2xl font-extrabold mb-2';
+
+            // Icon sizing that scales with viewport (clamp) for very large billboards
+            const iconWrapperStyle = isCompact
+              ? undefined
+              : {
+                  width: 'clamp(48px, 4.5vw, 96px)',
+                  height: 'clamp(48px, 4.5vw, 96px)',
+                };
 
             return (
               <div
                 key={index}
                 role="group"
                 aria-label={`Forecast ${index + 1}`}
-                className={`${cardBg} rounded-lg p-1 sm:p-2 flex flex-col items-center justify-between min-h-[80px] sm:min-h-[88px]`}
+                className={`${cardBg} rounded-lg ${cardPadding} flex flex-col items-center justify-between ${minH}`}
                 style={{ fontFamily: '"Times New Roman", Times, serif' }}
               >
                 <div className="w-full flex items-center justify-center">
-                  <span className="font-semibold text-sm sm:text-base tracking-wider">
+                  <span className={`${dayClass} tracking-wider`}>
                     {days[dayIndex]}
                   </span>
                 </div>
 
                 <div className="w-full flex flex-col items-center">
-                  <span className="text-sm sm:text-base font-bold mb-1">
+                  <span className={valueClass}>
                     {Number.isFinite(forecast.pm2_5)
                       ? forecast.pm2_5.toFixed(2)
                       : '--'}
                   </span>
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0" style={iconWrapperStyle}>
                     {Number.isFinite(forecast.pm2_5) ? (
-                      getAirQualityIcon(
-                        forecast.pm2_5,
-                        'w-8 h-8 sm:w-10 sm:h-10',
-                      )
+                      <div style={{ width: '100%', height: '100%' }}>
+                        {getAirQualityIcon(forecast.pm2_5, 'w-full h-full')}
+                      </div>
                     ) : (
-                      <AqNoValue className="w-8 h-8 sm:w-10 sm:h-10" />
+                      <div style={{ width: '100%', height: '100%' }}>
+                        <AqNoValue className="w-full h-full" />
+                      </div>
                     )}
                   </div>
                 </div>
