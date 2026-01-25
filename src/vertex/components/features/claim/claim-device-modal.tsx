@@ -353,7 +353,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
         setIsImportingCohort(true);
 
         try {
-            const result = await verifyCohort(cohortIdInput);
+            const result = await verifyCohort(input);
 
             if (result.success) {
                 if (result.cohort?.name?.toLowerCase() === 'airqo') {
@@ -366,7 +366,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                     setStep('assigning-cohort');
                     assignCohortsToGroup({
                         groupId: activeGroup._id,
-                        cohortIds: [cohortIdInput]
+                        cohortIds: [input]
                     }, {
                         onSuccess: () => {
                             setTimeout(() => {
@@ -384,7 +384,7 @@ const ClaimDeviceModal: React.FC<ClaimDeviceModalProps> = ({
                 }
 
                 try {
-                    const cohortDetails = await cohortsApi.getCohortDetailsApi(cohortIdInput);
+                    const cohortDetails = await cohortsApi.getCohortDetailsApi(input);
                     const cohort = Array.isArray(cohortDetails?.cohorts) ? cohortDetails.cohorts[0] : null;
 
                     if (cohort && Array.isArray(cohort.devices) && cohort.devices.length > 0) {
