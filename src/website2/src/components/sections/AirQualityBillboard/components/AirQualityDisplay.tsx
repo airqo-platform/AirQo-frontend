@@ -19,18 +19,20 @@ import {
 } from '@/utils/airQuality';
 
 import type { DataType, Forecast, Measurement } from '../types';
-import { getColorFromPM25, getLocationName, getTextColor } from '../utils';
+import { getColorFromPM25, getLocationName, hexToRgba } from '../utils';
 
 interface AirQualityDisplayProps {
   dataType: DataType;
   currentMeasurement: Measurement | null;
   forecastData?: { forecasts?: Forecast[] };
+  homepage?: boolean;
 }
 
 const AirQualityDisplay = ({
   dataType,
   currentMeasurement,
   forecastData,
+  homepage = false,
 }: AirQualityDisplayProps) => {
   const pm25Value = currentMeasurement?.pm2_5?.value;
   const categoryObj =
@@ -89,38 +91,92 @@ const AirQualityDisplay = ({
     const days = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     const today = new Date().getDay();
 
-    return (
-      <div className="flex items-center gap-2 flex-wrap">
-        {validForecasts.slice(0, 7).map((forecast: any, index: number) => {
-          const dayIndex = (today + index) % 7;
-          const isToday = index === 0;
+    // Use a larger, more flexible layout for the standalone billboard (non-homepage)
+    const isCompact = homepage === true;
+    const gridTemplate = isCompact
+      ? 'grid grid-cols-[repeat(auto-fit,minmax(60px,1fr))] gap-1 sm:gap-2'
+      : 'grid grid-cols-[repeat(auto-fit,minmax(70px,1fr))] gap-[clamp(0.375rem,0.8vw,1rem)]';
 
-          return (
-            <div
-              key={index}
-              className={`flex flex-col items-center rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px] ${
-                isToday
-                  ? 'bg-blue-700 text-white'
-                  : 'bg-blue-500/30 text-white backdrop-blur-sm'
-              }`}
-              style={{ fontFamily: '"Times New Roman", Times, serif' }}
-            >
-              <span className="font-bold text-xs sm:text-sm mb-1">
-                {days[dayIndex]}
-              </span>
-              <span className="text-xs font-medium mb-1 sm:mb-2">
-                {forecast.pm2_5?.toFixed(1) || '--'}
-              </span>
-              <div className="flex-shrink-0">
-                {Number.isFinite(forecast.pm2_5) ? (
-                  getAirQualityIcon(forecast.pm2_5, 'w-6 h-6 sm:w-8 sm:h-8')
-                ) : (
-                  <AqNoValue className="w-6 h-6 sm:w-8 sm:h-8" />
-                )}
+    return (
+      <div className="w-full">
+        <div className={gridTemplate}>
+          {validForecasts.slice(0, 7).map((forecast: any, index: number) => {
+            const dayIndex = (today + index) % 7;
+            const isToday = index === 0;
+            const cardBg = isToday
+              ? 'bg-blue-700/80 text-white'
+              : 'bg-blue-600/25 text-white';
+
+            // Zoom-friendly responsive sizing with clamp - more compact for small screens
+            const cardPadding = isCompact
+              ? 'p-1 sm:p-2'
+              : 'p-[clamp(0.375rem,0.8vw,1rem)]';
+            const minH = isCompact
+              ? 'min-h-[60px] sm:min-h-[70px]'
+              : 'min-h-[clamp(70px,7vw,110px)]';
+            const dayClass = isCompact ? 'font-semibold' : 'font-semibold';
+            const valueClass = isCompact
+              ? 'font-bold mb-1'
+              : 'font-extrabold mb-[clamp(0.25rem,0.4vw,0.5rem)]';
+
+            // Icon sizing that scales with viewport (clamp) for very large billboards
+            const iconWrapperStyle = isCompact
+              ? undefined
+              : {
+                  width: 'clamp(32px, 3vw, 64px)',
+                  height: 'clamp(32px, 3vw, 64px)',
+                };
+
+            // Dynamic font sizing with clamp for better zoom handling
+            const dayFontSize = isCompact
+              ? 'clamp(0.625rem, 1.2vw, 0.75rem)'
+              : 'clamp(0.75rem, 1.5vw, 1rem)';
+            const valueFontSize = isCompact
+              ? 'clamp(0.625rem, 1.2vw, 0.875rem)'
+              : 'clamp(0.875rem, 1.8vw, 1.25rem)';
+
+            return (
+              <div
+                key={index}
+                role="group"
+                aria-label={`Forecast ${index + 1}`}
+                className={`${cardBg} rounded-lg ${cardPadding} flex flex-col items-center justify-between ${minH}`}
+                style={{ fontFamily: '"Times New Roman", Times, serif' }}
+              >
+                <div className="w-full flex items-center justify-center mb-[clamp(0.25rem,0.5vw,0.5rem)]">
+                  <span
+                    className={`${dayClass} tracking-wider`}
+                    style={{ fontSize: dayFontSize }}
+                  >
+                    {days[dayIndex]}
+                  </span>
+                </div>
+
+                <div className="w-full flex flex-col items-center gap-[clamp(0.125rem,0.3vw,0.375rem)]">
+                  <span
+                    className={valueClass}
+                    style={{ fontSize: valueFontSize }}
+                  >
+                    {Number.isFinite(forecast.pm2_5)
+                      ? forecast.pm2_5.toFixed(2)
+                      : '--'}
+                  </span>
+                  <div className="flex-shrink-0" style={iconWrapperStyle}>
+                    {Number.isFinite(forecast.pm2_5) ? (
+                      <div style={{ width: '100%', height: '100%' }}>
+                        {getAirQualityIcon(forecast.pm2_5, 'w-full h-full')}
+                      </div>
+                    ) : (
+                      <div style={{ width: '100%', height: '100%' }}>
+                        <AqNoValue className="w-full h-full" />
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     );
   };
@@ -133,31 +189,46 @@ const AirQualityDisplay = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
         transition={{ duration: 0.5 }}
-        className="flex-1 flex flex-col min-h-0"
+        className="relative flex-1 flex flex-col min-h-0"
       >
         {/* Main Content - Using CSS Grid for responsive layout */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4 sm:gap-6 lg:gap-8 min-h-0">
+        <div
+          className={
+            homepage
+              ? 'flex-1 grid grid-cols-[1fr_110px] sm:grid-cols-[1.3fr_1fr] gap-[clamp(0.75rem,2vw,1.5rem)] min-h-0'
+              : 'flex-1 grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-[clamp(0.5rem,1.2vw,1.5rem)] min-h-0'
+          }
+        >
           {/* Left Section */}
-          <div className="flex flex-col justify-center space-y-3 sm:space-y-4 lg:space-y-5 min-h-0">
+          <div className="flex flex-col justify-center space-y-[clamp(0.5rem,1vw,1rem)] min-h-0">
             {/* Air Quality Title */}
             <div
-              className="text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-bold leading-tight tracking-tight"
+              className="font-bold leading-tight tracking-tight"
               style={{
                 fontFamily: '"Times New Roman", Times, serif',
+                fontSize: 'clamp(1.25rem, 2.8vw, 2.5rem)',
               }}
             >
               Air Quality
             </div>
 
             {/* PM2.5 Header */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="bg-blue-800/50 rounded-full p-1.5 sm:p-2 backdrop-blur-sm">
-                <AqWind01 className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white" />
+            <div className="flex items-center gap-[clamp(0.375rem,0.8vw,0.625rem)]">
+              <div className="bg-blue-800/50 rounded-full p-[clamp(0.25rem,0.6vw,0.375rem)] backdrop-blur-sm">
+                <div
+                  style={{
+                    width: 'clamp(1rem, 1.5vw, 1.5rem)',
+                    height: 'clamp(1rem, 1.5vw, 1.5rem)',
+                  }}
+                >
+                  <AqWind01 className="text-white w-full h-full" />
+                </div>
               </div>
               <span
-                className="text-lg sm:text-xl lg:text-2xl font-bold tracking-wide"
+                className="font-bold tracking-wide"
                 style={{
                   fontFamily: '"Times New Roman", Times, serif',
+                  fontSize: 'clamp(0.875rem, 1.8vw, 1.25rem)',
                 }}
               >
                 PM2.5
@@ -165,15 +236,16 @@ const AirQualityDisplay = ({
             </div>
 
             {/* Large PM2.5 Value */}
-            <div className="flex items-baseline gap-2 flex-wrap">
+            <div className="flex items-baseline gap-[clamp(0.375rem,0.8vw,0.625rem)] flex-wrap">
               <span
-                className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold leading-none drop-shadow-lg"
+                className="font-bold leading-none drop-shadow-lg"
                 style={{
                   color:
                     pm25Value !== null && pm25Value !== undefined
                       ? getColorFromPM25(pm25Value)
                       : '#808080',
                   fontFamily: '"Times New Roman", Times, serif',
+                  fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)',
                 }}
               >
                 {pm25Value !== null && pm25Value !== undefined
@@ -181,47 +253,91 @@ const AirQualityDisplay = ({
                   : '--'}
               </span>
               <span
-                className="text-xl sm:text-2xl lg:text-3xl opacity-90 self-end pb-1 font-medium"
+                className="opacity-90 self-end pb-1 font-medium"
                 style={{
                   fontFamily: '"Times New Roman", Times, serif',
+                  fontSize: 'clamp(1rem, 1.8vw, 1.75rem)',
                 }}
               >
                 μg/m³
               </span>
             </div>
 
-            {/* 7-Day Forecast */}
-            {forecastData && (
-              <div className="mt-2 sm:mt-3">{renderForecast()}</div>
-            )}
+            {/* 7-Day Forecast - show on non-homepage everywhere, and on homepage only from md+ */}
+            {forecastData &&
+              (homepage ? (
+                <div className="mt-[clamp(0.375rem,0.8vw,0.625rem)] hidden md:block">
+                  {renderForecast()}
+                </div>
+              ) : (
+                <div className="mt-[clamp(0.375rem,0.8vw,0.625rem)]">
+                  {renderForecast()}
+                </div>
+              ))}
           </div>
 
           {/* Right Section */}
-          <div className="flex flex-col items-center lg:items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6 min-h-0">
-            {/* Large Air Quality Icon */}
-            <div className="flex justify-center lg:justify-end flex-1 items-center">
-              <div className="transform hover:scale-105 transition-transform duration-300">
-                {getAirQualityIcon(
-                  pm25Value !== null && pm25Value !== undefined
-                    ? pm25Value
-                    : null,
-                  'w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52',
-                )}
+          <div
+            className={
+              homepage
+                ? 'flex flex-col items-end justify-between min-h-[140px] md:min-h-[180px] w-full relative'
+                : 'flex flex-col items-center xl:items-end justify-between min-h-0 relative'
+            }
+          >
+            {/* Air Quality Icon - Single responsive implementation */}
+            {homepage ? (
+              // Homepage: Responsive icon visible on all screen sizes
+              <div className="flex items-center justify-end pr-2 w-full">
+                <div className="transform transition-transform duration-300">
+                  {getAirQualityIcon(
+                    pm25Value !== null && pm25Value !== undefined
+                      ? pm25Value
+                      : null,
+                    'w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24',
+                  )}
+                </div>
               </div>
-            </div>
+            ) : (
+              // Non-homepage (Billboard): Larger responsive icon
+              <div className="flex items-center justify-center xl:justify-end w-full">
+                <div
+                  className="transform hover:scale-105 transition-transform duration-300"
+                  style={{
+                    width: 'clamp(5rem, 10vw, 10rem)',
+                    height: 'clamp(5rem, 10vw, 10rem)',
+                  }}
+                >
+                  {getAirQualityIcon(
+                    pm25Value !== null && pm25Value !== undefined
+                      ? pm25Value
+                      : null,
+                    'w-full h-full',
+                  )}
+                </div>
+              </div>
+            )}
 
-            {/* QR Code */}
-            <div className="flex flex-col items-center lg:items-end gap-1.5 sm:gap-2">
-              <span className="text-xs sm:text-sm font-semibold tracking-wider">
+            {/* QR Code - Positioned at bottom right for both views */}
+            <div className="hidden md:flex absolute bottom-0 right-0 flex-col items-center gap-[clamp(0.125rem,0.3vw,0.375rem)]">
+              <span
+                className="font-semibold tracking-wider text-white/90"
+                style={{ fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)' }}
+              >
                 SCAN ME
               </span>
-              <div className="relative w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg p-1.5 sm:p-2">
+              <div
+                className="relative bg-white rounded-lg p-[clamp(0.125rem,0.3vw,0.25rem)]"
+                style={{
+                  width: 'clamp(3rem, 5vw, 4.5rem)',
+                  height: 'clamp(3rem, 5vw, 4.5rem)',
+                }}
+              >
                 <Image
                   src="/QR/analytics_qrcode.png"
                   alt="QR Code"
                   fill
                   className="object-contain"
-                  sizes="112px"
+                  sizes="72px"
                 />
               </div>
             </div>
@@ -229,39 +345,73 @@ const AirQualityDisplay = ({
         </div>
 
         {/* Bottom Section */}
-        <div className="space-y-2.5 sm:space-y-3 pt-3 sm:pt-4 lg:pt-5 border-t border-white/20 mt-3 sm:mt-4 lg:mt-5">
+        <div className="space-y-[clamp(0.5rem,1vw,0.625rem)] pt-[clamp(0.5rem,1vw,1rem)] border-t border-white/20 mt-[clamp(0.5rem,1vw,1rem)]">
           {/* Air Quality Status */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-            <div
-              className="px-3 py-1 sm:px-4 sm:py-1.5 lg:px-5 lg:py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg"
-              style={{
-                backgroundColor:
-                  pm25Value !== null && pm25Value !== undefined
-                    ? getColorFromPM25(pm25Value)
-                    : '#808080',
-                color:
-                  pm25Value !== null && pm25Value !== undefined
-                    ? getTextColor(pm25Value)
-                    : '#FFFFFF',
-                fontFamily: '"Times New Roman", Times, serif',
-              }}
-            >
-              {category}
-            </div>
+          <div className="flex flex-wrap items-center gap-[clamp(0.375rem,0.8vw,0.625rem)]">
+            {(() => {
+              const baseColor =
+                pm25Value !== null && pm25Value !== undefined
+                  ? getColorFromPM25(pm25Value)
+                  : '#808080';
+              // Use a very light tint of the base color for background so
+              // the badge appears like the color with reduced opacity.
+              const badgeBg = hexToRgba(baseColor, 0.14);
+              // Subtle border to define the pill on light backgrounds
+              const badgeBorder = hexToRgba(baseColor, 0.16);
+              // Text should use the same hue (base color) so it stands out
+              const badgeText = baseColor;
+
+              return (
+                <div
+                  className="rounded-full font-semibold shadow-lg"
+                  style={{
+                    backgroundColor: badgeBg,
+                    color: badgeText,
+                    border: `1px solid ${badgeBorder}`,
+                    fontFamily: '"Times New Roman", Times, serif',
+                    padding:
+                      'clamp(0.375rem, 0.8vw, 0.625rem) clamp(1.25rem, 2.5vw, 2rem)',
+                    fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
+                  }}
+                >
+                  {category}
+                </div>
+              );
+            })()}
             <span
-              className="text-sm sm:text-base lg:text-lg font-medium"
-              style={{ fontFamily: '"Times New Roman", Times, serif' }}
+              className="font-medium"
+              style={{
+                fontFamily: '"Times New Roman", Times, serif',
+                fontSize: 'clamp(0.75rem, 1.4vw, 1rem)',
+              }}
             >
               Air Quality is {category.toLowerCase()}
             </span>
           </div>
 
           {/* Location - BIGGER AND MORE VISIBLE */}
-          <div className="flex items-center gap-2 sm:gap-3 bg-white/5 backdrop-blur-sm rounded-lg px-3 py-2 sm:px-4 sm:py-3">
-            <FiMapPin className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 text-white flex-shrink-0" />
+          <div
+            className="flex items-center gap-[clamp(0.375rem,0.8vw,0.625rem)] bg-white/5 backdrop-blur-sm rounded-lg"
+            style={{
+              padding:
+                'clamp(0.375rem, 0.8vw, 0.625rem) clamp(0.625rem, 1.2vw, 0.875rem)',
+            }}
+          >
+            <div
+              className="flex-shrink-0"
+              style={{
+                width: 'clamp(1rem, 1.5vw, 1.5rem)',
+                height: 'clamp(1rem, 1.5vw, 1.5rem)',
+              }}
+            >
+              <FiMapPin className="text-white w-full h-full" />
+            </div>
             <span
-              className="font-bold text-2xl sm:text-3xl lg:text-4xl xl:text-5xl tracking-wide"
-              style={{ fontFamily: '"Times New Roman", Times, serif' }}
+              className="font-bold tracking-wide truncate"
+              style={{
+                fontFamily: '"Times New Roman", Times, serif',
+                fontSize: 'clamp(1.25rem, 2.8vw, 2.5rem)',
+              }}
             >
               {getLocationName(dataType, currentMeasurement) || '--'}
             </span>
