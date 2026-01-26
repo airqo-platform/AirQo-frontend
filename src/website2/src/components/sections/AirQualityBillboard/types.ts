@@ -7,6 +7,7 @@ export interface AirQualityBillboardProps {
   itemName?: string;
   centered?: boolean;
   hideDropdown?: boolean;
+  homepage?: boolean;
 }
 
 export interface Grid {

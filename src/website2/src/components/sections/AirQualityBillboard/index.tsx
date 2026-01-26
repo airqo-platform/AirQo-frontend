@@ -21,6 +21,7 @@ const AirQualityBillboard = ({
   itemName: propItemName,
   centered = false,
   hideDropdown = false,
+  homepage = false,
 }: AirQualityBillboardProps) => {
   // Custom hooks for state management
   const controls = useBillboardControls('grid', propItemName, autoRotate);
@@ -56,7 +57,7 @@ const AirQualityBillboard = ({
     resetIndices,
   } = measurements;
 
-  // Forecast data
+  // Forecast data - always call hook; rendering will hide on small screens for homepage
   const { data: forecastData } = useDailyForecast(
     currentMeasurement?.site_id || null,
   );
@@ -147,23 +148,39 @@ const AirQualityBillboard = ({
     <div
       className={cn(
         centered
-          ? 'h-screen w-full flex items-center justify-center overflow-hidden p-1 sm:p-2'
-          : 'py-6 sm:py-8 lg:py-12 px-4',
+          ? 'h-screen w-full flex items-center justify-center overflow-hidden'
+          : '',
         className,
       )}
-      style={
-        centered
+      style={{
+        ...(centered
           ? {
               height: '100dvh', // Dynamic viewport height for mobile browsers
+              padding: 'clamp(0.25rem, 0.5vw, 0.5rem)',
             }
-          : undefined
-      }
+          : homepage
+            ? {}
+            : {
+                paddingTop: 'clamp(1.5rem, 3vw, 3rem)',
+                paddingBottom: 'clamp(1.5rem, 3vw, 3rem)',
+                paddingLeft: 'clamp(1rem, 2vw, 1rem)',
+                paddingRight: 'clamp(1rem, 2vw, 1rem)',
+              }),
+      }}
     >
       <div
         className={cn(
           'w-full flex items-center justify-center',
           centered ? 'h-full max-w-full' : 'max-w-7xl mx-auto',
         )}
+        style={
+          !centered && !homepage
+            ? {
+                paddingLeft: 'clamp(1.5rem, 3vw, 1.5rem)',
+                paddingRight: 'clamp(1.5rem, 3vw, 1.5rem)',
+              }
+            : undefined
+        }
       >
         {/* Error States */}
         {hasError ? (
@@ -179,24 +196,38 @@ const AirQualityBillboard = ({
             selectedItem={selectedItem}
           />
         ) : !dataLoaded || (selectedItem && measurementsLoading) ? (
-          <BillboardSkeleton centered={centered} />
+          <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : propItemName && !selectedItem ? (
-          <BillboardSkeleton centered={centered} />
+          <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : !selectedItem ? (
-          <BillboardSkeleton centered={centered} />
+          <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : (
           <div
             className={cn(
-              'w-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl text-white shadow-2xl relative overflow-hidden',
-              centered ? 'h-full' : 'min-h-[500px]',
+              'w-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 text-white shadow-2xl relative overflow-hidden',
+              centered ? 'h-full' : homepage ? '' : '',
             )}
+            style={{
+              borderRadius: 'clamp(1rem, 2vw, 1.5rem)',
+              minHeight: centered
+                ? undefined
+                : homepage
+                  ? 'clamp(20rem, 30vw, 25rem)'
+                  : 'clamp(31.25rem, 50vw, 31.25rem)',
+            }}
           >
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-5">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
             </div>
 
-            <div className="relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-3 sm:gap-4 lg:gap-5">
+            <div
+              className="relative z-10 h-full flex flex-col"
+              style={{
+                padding: 'clamp(0.75rem, 1.5vw, 1.5rem)',
+                gap: 'clamp(0.75rem, 1.5vw, 1.25rem)',
+              }}
+            >
               <BillboardHeader
                 hideControls={hideControls}
                 selectedItem={selectedItem}
@@ -220,6 +251,7 @@ const AirQualityBillboard = ({
                 dataType={dataType}
                 currentMeasurement={currentMeasurement}
                 forecastData={forecastData}
+                homepage={homepage}
               />
             </div>
           </div>
