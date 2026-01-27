@@ -39,12 +39,6 @@ const options: EngagementOption[] = [
     category: 'policy',
   },
   {
-    title: "I'm a Community Champion.",
-    description: 'Interested in raising awareness about air pollution.',
-    icon: '🌍',
-    category: 'champions',
-  },
-  {
     title: "I'm a Researcher.",
     description: 'Interested in Air Quality data and analytics',
     icon: '📊',
@@ -407,7 +401,7 @@ const EngagementDialog = () => {
         <DialogTitle className="sr-only">Get Involved</DialogTitle>
         <DialogDescription className="sr-only">
           Choose how you&apos;d like to engage with AirQo - as a partner,
-          policymaker, community champion, researcher, or developer.
+          policymaker, researcher, or developer.
         </DialogDescription>
         <div className="flex flex-col lg:flex-row">
           {/* Left Side - Breadcrumb and Text with Animation */}

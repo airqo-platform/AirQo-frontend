@@ -4,18 +4,15 @@ import { EnhancedApiError, RequestConfig, ServiceResponse } from './base';
 
 interface ApiClientConfig {
   baseURL: string;
-  token?: string; // Not used anymore, token handled server-side
   timeout?: number;
 }
 
 class ApiClient {
   private baseURL: string;
-  private token?: string;
   private defaultTimeout: number;
 
   constructor(config: ApiClientConfig) {
     this.baseURL = removeTrailingSlash(config.baseURL);
-    this.token = config.token;
     this.defaultTimeout = config.timeout || 30000;
   }
 
@@ -40,8 +37,6 @@ class ApiClient {
       Accept: 'application/json',
       ...headers,
     };
-
-    // Note: Token is handled server-side by the internal API route
 
     try {
       const controller = new AbortController();
@@ -138,7 +133,6 @@ const apiUrl = '/api/v2';
 
 const apiClient = new ApiClient({
   baseURL: apiUrl,
-  token: undefined,
   timeout: 30000,
 });
 

@@ -114,6 +114,10 @@ export const metadata: Metadata = {
       },
     ],
   },
+  icons: {
+    icon: '/web-app-manifest-192x192.png',
+    apple: '/web-app-manifest-192x192.png',
+  },
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
   },

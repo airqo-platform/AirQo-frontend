@@ -55,13 +55,23 @@ export const useBillboardControls = (
   // Handle click outside dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // If the click is inside the original dropdown container, ignore
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsDropdownOpen(false);
-        setSearchQuery('');
+        return;
       }
+
+      // Also ignore clicks inside the portal-rendered dropdown (it lives on document.body)
+      const portalEl = document.querySelector('[data-billboard-portal]');
+      if (portalEl && portalEl.contains(event.target as Node)) {
+        return;
+      }
+
+      // Otherwise it's an outside click
+      setIsDropdownOpen(false);
+      setSearchQuery('');
     };
 
     document.addEventListener('mousedown', handleClickOutside);

@@ -2,10 +2,12 @@ import React from 'react';
 
 interface BillboardSkeletonProps {
   centered?: boolean;
+  homepage?: boolean;
 }
 
 const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
   centered = false,
+  homepage = false,
 }) => {
   const content = (
     <div className="w-full bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 rounded-2xl text-white shadow-2xl relative overflow-hidden h-full">
@@ -14,7 +16,18 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]" />
       </div>
 
-      <div className="relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-4 sm:gap-5 lg:gap-6">
+      {/* Top-right circle for homepage - positioned relative to the billboard container */}
+      {homepage && (
+        <div className="hidden md:flex absolute right-4 top-[clamp(3rem,6vw,6.5rem)] z-30">
+          <div className="w-24 h-24 sm:w-28 sm:h-28 bg-white/20 rounded-full animate-pulse" />
+        </div>
+      )}
+
+      <div
+        className={
+          'relative z-10 h-full flex flex-col p-3 sm:p-4 lg:p-6 gap-4 sm:gap-5 lg:gap-6'
+        }
+      >
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
           {centered ? (
@@ -34,7 +47,13 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
         </div>
 
         {/* Main Content - Using CSS Grid for responsive layout */}
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] gap-4 sm:gap-6 lg:gap-8 min-h-0">
+        <div
+          className={
+            homepage
+              ? 'flex-1 grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 min-h-0'
+              : 'flex-1 grid grid-cols-1 xl:grid-cols-[1.3fr_1fr] gap-4 sm:gap-6 lg:gap-8 min-h-0'
+          }
+        >
           {/* Left Section */}
           <div className="flex flex-col justify-center space-y-3 sm:space-y-4 lg:space-y-5">
             {/* Air Quality Title */}
@@ -52,34 +71,74 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
               <div className="h-7 sm:h-9 lg:h-10 w-16 sm:w-20 bg-white/20 rounded animate-pulse" />
             </div>
 
-            {/* 7-Day Forecast */}
-            <div className="mt-2 sm:mt-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                {[...Array(7)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center rounded-lg p-2 sm:p-3 min-w-[50px] sm:min-w-[60px] bg-blue-500/30 animate-pulse"
-                  >
-                    <div className="h-3 sm:h-3.5 w-4 bg-white/30 rounded mb-1" />
-                    <div className="h-2.5 sm:h-3 w-6 bg-white/30 rounded mb-1 sm:mb-2" />
-                    <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/30 rounded-full" />
-                  </div>
-                ))}
+            {/* 7-Day Forecast - show on non-homepage everywhere, and on homepage only from md+ */}
+            {homepage ? (
+              <div className="mt-2 sm:mt-3 hidden md:block">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {[...Array(7)].map((_, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col items-center rounded-lg p-1 sm:p-2 min-w-[48px] sm:min-w-[56px] bg-blue-500/30 animate-pulse"
+                    >
+                      <div className="h-3 sm:h-3.5 w-4 bg-white/30 rounded mb-1" />
+                      <div className="h-2.5 sm:h-3 w-6 bg-white/30 rounded mb-1 sm:mb-2" />
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 bg-white/30 rounded-full" />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="mt-2 sm:mt-3">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  {[...Array(7)].map((_, index) => (
+                    <div
+                      key={index}
+                      className="flex flex-col items-center rounded-lg p-2 sm:p-3 min-w-[70px] sm:min-w-[80px] bg-blue-600/25 animate-pulse"
+                    >
+                      <div className="h-3 sm:h-4 w-4 sm:w-6 bg-white/30 rounded mb-1" />
+                      <div className="h-3 sm:h-3.5 w-8 sm:w-10 bg-white/30 rounded mb-1.5" />
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-white/30 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right Section */}
-          <div className="flex flex-col items-center lg:items-end justify-between space-y-3 sm:space-y-4 lg:space-y-6">
-            {/* Large Air Quality Icon */}
-            <div className="flex justify-center lg:justify-end flex-1 items-center">
-              <div className="w-28 h-28 sm:w-36 sm:h-36 lg:w-44 lg:h-44 xl:w-52 xl:h-52 bg-white/20 rounded-full animate-pulse" />
-            </div>
+          <div
+            className={
+              homepage
+                ? 'flex flex-col items-end justify-between min-h-0 w-full relative'
+                : 'flex flex-col items-center xl:items-end justify-between min-h-0 relative'
+            }
+          >
+            {/* Air Quality Icon Skeleton */}
+            {!homepage ? (
+              <div className="flex items-center justify-center lg:justify-end w-full">
+                <div
+                  className="bg-white/20 rounded-full animate-pulse"
+                  style={{
+                    width: 'clamp(5rem, 10vw, 10rem)',
+                    height: 'clamp(5rem, 10vw, 10rem)',
+                  }}
+                />
+              </div>
+            ) : null}
 
-            {/* QR Code */}
-            <div className="flex flex-col items-center lg:items-end gap-1.5 sm:gap-2">
-              <div className="h-3 sm:h-3.5 w-16 sm:w-20 bg-white/20 rounded animate-pulse" />
-              <div className="w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 bg-white rounded-lg animate-pulse" />
+            {/* QR Code Skeleton - Positioned at bottom right for both views */}
+            <div className="hidden md:flex absolute bottom-4 right-4 z-20 flex-col items-center gap-[clamp(0.125rem,0.3vw,0.375rem)]">
+              <div
+                className="h-2 w-12 bg-white/20 rounded animate-pulse"
+                style={{ fontSize: 'clamp(0.5rem, 0.8vw, 0.65rem)' }}
+              />
+              <div
+                className="bg-white rounded-lg animate-pulse"
+                style={{
+                  width: 'clamp(3rem, 5vw, 4.5rem)',
+                  height: 'clamp(3rem, 5vw, 4.5rem)',
+                }}
+              />
             </div>
           </div>
         </div>
@@ -94,8 +153,8 @@ const BillboardSkeleton: React.FC<BillboardSkeletonProps> = ({
 
           {/* Location */}
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 bg-white/20 rounded-full animate-pulse" />
-            <div className="h-5 sm:h-6 lg:h-7 xl:h-8 w-48 sm:w-56 lg:w-64 bg-white/20 rounded animate-pulse" />
+            <div className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 bg-white/20 rounded-full animate-pulse flex-shrink-0" />
+            <div className="h-5 sm:h-6 lg:h-7 xl:h-8 flex-1 bg-white/20 rounded animate-pulse" />
           </div>
         </div>
       </div>
