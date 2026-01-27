@@ -99,8 +99,8 @@ const OrgInvitePage = () => {
   }, [searchParams]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-xl">
         <CardContent className="pt-6">
           <AnimatePresence mode="wait">
             {/* Processing State */}
@@ -185,7 +185,6 @@ const OrgInvitePage = () => {
                 >
                   <Button
                     onClick={handleGoToLogin}
-                    size="lg"
                     variant="filled"
                     className="w-full"
                     disabled={isNavigating}
@@ -238,7 +237,6 @@ const OrgInvitePage = () => {
                 >
                   <Button
                     onClick={handleGoToLogin}
-                    size="lg"
                     variant="outlined"
                     className="flex-1"
                     disabled={isNavigating}
@@ -247,7 +245,6 @@ const OrgInvitePage = () => {
                   </Button>
                   <Button
                     onClick={handleRetry}
-                    size="lg"
                     variant="filled"
                     className="flex-1"
                     disabled={isNavigating}
