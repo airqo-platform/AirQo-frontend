@@ -49,15 +49,16 @@ const OrgInvitePage = () => {
   const router = useRouter();
   const [status, setStatus] = useState<ApprovalStatus>('processing');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [isNavigating, setIsNavigating] = useState(false);
+  const [isNavigatingToLogin, setIsNavigatingToLogin] = useState(false);
+  const [isRetrying, setIsRetrying] = useState(false);
 
   const handleGoToLogin = useCallback(() => {
-    setIsNavigating(true);
+    setIsNavigatingToLogin(true);
     router.push('/user/login');
   }, [router]);
 
   const handleRetry = useCallback(() => {
-    setIsNavigating(true);
+    setIsRetrying(true);
     window.location.reload();
   }, []);
 
@@ -187,9 +188,11 @@ const OrgInvitePage = () => {
                     onClick={handleGoToLogin}
                     variant="filled"
                     className="w-full"
-                    disabled={isNavigating}
+                    disabled={isNavigatingToLogin}
                   >
-                    {isNavigating ? 'Redirecting...' : 'Continue to Login'}
+                    {isNavigatingToLogin
+                      ? 'Redirecting...'
+                      : 'Continue to Login'}
                   </Button>
                 </motion.div>
               </motion.div>
@@ -239,17 +242,17 @@ const OrgInvitePage = () => {
                     onClick={handleGoToLogin}
                     variant="outlined"
                     className="flex-1"
-                    disabled={isNavigating}
+                    disabled={isNavigatingToLogin}
                   >
-                    {isNavigating ? 'Redirecting...' : 'Go to Login'}
+                    {isNavigatingToLogin ? 'Redirecting...' : 'Go to Login'}
                   </Button>
                   <Button
                     onClick={handleRetry}
                     variant="filled"
                     className="flex-1"
-                    disabled={isNavigating}
+                    disabled={isRetrying}
                   >
-                    {isNavigating ? 'Reloading...' : 'Try Again'}
+                    {isRetrying ? 'Reloading...' : 'Try Again'}
                   </Button>
                 </motion.div>
               </motion.div>
