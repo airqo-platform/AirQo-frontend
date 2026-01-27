@@ -13,6 +13,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import React, { useEffect, useMemo, useState } from 'react';
 import { FiChevronDown } from 'react-icons/fi';
 
+import { hexToRgba } from '@/components/sections/AirQualityBillboard/utils';
 import {
   useGridRepresentativeReading,
   useGridsSummary,
@@ -27,7 +28,6 @@ import {
   getAirQualityCategory,
   getAirQualityColor,
 } from '@/utils/airQuality';
-import { hexToRgba } from '@/components/sections/AirQualityBillboard/utils';
 
 type AdminLevel =
   | 'city'
