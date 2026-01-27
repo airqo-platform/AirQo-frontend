@@ -27,6 +27,7 @@ import {
   getAirQualityCategory,
   getAirQualityColor,
 } from '@/utils/airQuality';
+import { hexToRgba } from '@/components/sections/AirQualityBillboard/utils';
 
 type AdminLevel =
   | 'city'
@@ -288,15 +289,30 @@ const GridAirQualityMonitor: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Air Quality Badge */}
-                  <div
-                    className="inline-flex items-center px-4 py-2 rounded-full font-semibold text-sm text-white"
-                    style={{
-                      backgroundColor: getAirQualityColor(category),
-                    }}
-                  >
-                    {formatName(category)}
-                  </div>
+                  {/* Air Quality Badge (match billboard styling) */}
+                  {(() => {
+                    const baseColor = getAirQualityColor(category) || '#808080';
+                    const badgeBg = hexToRgba(baseColor, 0.14);
+                    const badgeBorder = hexToRgba(baseColor, 0.16);
+                    const badgeText = baseColor;
+
+                    return (
+                      <div
+                        className="inline-flex items-center rounded-full font-semibold shadow-lg"
+                        style={{
+                          backgroundColor: badgeBg,
+                          color: badgeText,
+                          border: `1px solid ${badgeBorder}`,
+                          fontFamily: '"Times New Roman", Times, serif',
+                          padding:
+                            'clamp(0.375rem, 0.8vw, 0.625rem) clamp(1.25rem, 2.5vw, 2rem)',
+                          fontSize: 'clamp(1.25rem, 2.5vw, 1.5rem)',
+                        }}
+                      >
+                        {formatName(category)}
+                      </div>
+                    );
+                  })()}
 
                   {/* Update Time */}
                   <div className="pt-4 border-t border-gray-200">
