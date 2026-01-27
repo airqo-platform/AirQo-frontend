@@ -20,7 +20,8 @@ export default withAuth(
           pathname.match(/^\/user\/forgotPwd\/reset/) ||
           pathname.match(/^\/user\/delete\/confirm\/[^\/]+$/) ||
           pathname.match(/^\/org\/[^\/]+\/login$/) ||
-          pathname.match(/^\/org\/[^\/]+\/register$/)
+          pathname.match(/^\/org\/[^\/]+\/register$/) ||
+          pathname === '/org-invite'
         ) {
           return true;
         }
@@ -35,5 +36,5 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ['/user/:path*', '/org/:path*'],
+  matcher: ['/user/:path*', '/org/:path*', '/org-invite'],
 };
