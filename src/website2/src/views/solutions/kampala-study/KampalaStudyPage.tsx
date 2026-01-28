@@ -334,7 +334,7 @@ const KampalaStudyPage = () => {
             <motion.div variants={animations.item} className="relative">
               <div className="relative rounded-xl overflow-hidden shadow-lg">
                 <Image
-                  src="https://images.unsplash.com/photo-1573167243872-43c6433b9d40?w=800&h=600&fit=crop"
+                  src="https://images.unsplash.com/photo-1629141648533-3e6d4d9ae75d?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   alt="Community members discussing and using mobile devices"
                   width={1200}
                   height={800}
