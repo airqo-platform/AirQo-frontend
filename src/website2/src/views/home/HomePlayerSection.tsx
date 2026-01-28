@@ -32,12 +32,16 @@ ReactPlayer.displayName = 'ReactPlayer';
 const animations = {
   backdrop: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1 },
+    visible: { opacity: 1, transition: { duration: 0.2 } },
   },
   modal: {
-    hidden: { opacity: 0, scale: 0.75 },
-    visible: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.75 },
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.25, ease: 'easeOut' },
+    },
+    exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
   },
 };
 
@@ -89,13 +93,14 @@ const VideoSection: React.FC<{
         loop
         muted
         playsInline
+        preload="metadata"
         className="absolute top-0 left-0 w-full h-full object-cover"
       />
       <motion.button
         onClick={onPlay}
         className="absolute inset-0 flex items-center justify-center hover:scale-110 focus:outline-none transition-transform duration-300"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.98 }}
         aria-label="Play Video"
       >
         <Image

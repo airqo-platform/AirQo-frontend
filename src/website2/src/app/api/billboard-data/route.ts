@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import gridsService from '@/services/apiService/grids';
 import { Grid } from '@/types/grids';
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Revalidate every 5 minutes
 
 interface BillboardData {
@@ -69,12 +68,15 @@ export async function GET() {
       );
     }
 
-    // Return with cache headers
-    return NextResponse.json(validData, {
-      headers: {
-        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+    // Return with cache headers in the expected format
+    return NextResponse.json(
+      { data: validData },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+        },
       },
-    });
+    );
   } catch (error) {
     console.error('Error fetching billboard data:', error);
     return NextResponse.json(

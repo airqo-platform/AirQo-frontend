@@ -4,18 +4,23 @@ import './globals.css';
 import { Metadata } from 'next';
 import localFont from 'next/font/local';
 import Script from 'next/script';
-import { ReactNode, Suspense } from 'react';
+import { ReactNode, Suspense, lazy } from 'react';
 
 import CookieConsent from '@/components/CookieConsent';
-import EngagementDialog from '@/components/dialogs/EngagementDialog';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
-import FloatingMiniBillboardWrapper from '@/components/FloatingMiniBillboardWrapper';
-import GoogleTranslate from '@/components/GoogleTranslate';
-import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
 import { ReduxDataProvider } from '@/context/ReduxDataProvider';
 import { SwrProvider } from '@/services/providers/SwrProvider';
 import { generateViewport } from '@/lib/metadata';
+
+// Lazy load non-critical components
+const EngagementDialog = lazy(
+  () => import('@/components/dialogs/EngagementDialog'),
+);
+const FloatingMiniBillboardWrapper = lazy(
+  () => import('@/components/FloatingMiniBillboardWrapper'),
+);
+const GoogleTranslate = lazy(() => import('@/components/GoogleTranslate'));
 
 const interFont = localFont({
   src: [
@@ -33,6 +38,14 @@ const interFont = localFont({
   variable: '--font-inter',
   display: 'swap',
   preload: true,
+  fallback: [
+    'system-ui',
+    '-apple-system',
+    'BlinkMacSystemFont',
+    'Segoe UI',
+    'sans-serif',
+  ],
+  adjustFontFallback: 'Arial',
 });
 
 // Default metadata - will be overridden by page-specific metadata
@@ -119,6 +132,11 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
       'max-snippet': -1,
     },
+  },
+  alternates: {
+    canonical:
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ||
+      'https://airqo.net',
   },
   openGraph: {
     type: 'website',
@@ -266,36 +284,42 @@ export default async function RootLayout({
   return (
     <html lang="en" className={interFont.variable}>
       <head>
-        {/* Performance optimizations */}
+        {/* Performance optimizations - DNS prefetch and preconnect */}
         <link rel="dns-prefetch" href="//res.cloudinary.com" />
         <link rel="dns-prefetch" href="//www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="//translate.googleapis.com" />
         <link
           rel="preconnect"
           href="//res.cloudinary.com"
           crossOrigin="anonymous"
         />
-
-        {/* Preload critical images */}
         <link
-          rel="preload"
-          as="image"
-          href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp"
+          rel="preconnect"
+          href="//www.googletagmanager.com"
+          crossOrigin="anonymous"
         />
+
+        {/* Preload critical resources */}
         <link
           rel="preload"
           as="image"
           href="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728138368/website/Logos/logo_rus4my.png"
+          type="image/png"
         />
+
+        {/* Prefetch for next page navigation */}
+        <link rel="prefetch" href="/explore-data" />
+        <link rel="prefetch" href="/products/monitor" />
 
         {/* Structured data */}
         <Script
           id="ld-json"
           type="application/ld+json"
           strategy="afterInteractive"
-        >
-          {JSON.stringify(structuredData)}
-        </Script>
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
 
+        {/* Google Analytics */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
           strategy="afterInteractive"
@@ -305,19 +329,24 @@ export default async function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){ dataLayer.push(arguments); }
             gtag('js', new Date());
-            gtag('config', '${GA_ID}');
+            gtag('config', '${GA_ID}', {
+              page_path: window.location.pathname,
+              send_page_view: true
+            });
           `}
         </Script>
       </head>
       <body>
-        <GoogleTranslate />
+        <Suspense fallback={null}>
+          <GoogleTranslate />
+        </Suspense>
         <ExternalLinkDecorator />
         <ErrorBoundary>
           <ReduxDataProvider>
             <SwrProvider>
-              <Suspense fallback={<Loading />}>
+              {children}
+              <Suspense fallback={null}>
                 <EngagementDialog />
-                {children}
               </Suspense>
             </SwrProvider>
           </ReduxDataProvider>

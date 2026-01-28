@@ -1,4 +1,7 @@
-import gridsService from '@/services/apiService/grids';
+'use client';
+
+import { useEffect, useState } from 'react';
+
 import { Grid } from '@/types/grids';
 
 import FloatingMiniBillboard from './FloatingMiniBillboard';
@@ -13,67 +16,56 @@ interface BillboardData {
 }
 
 /**
- * Server Component wrapper that fetches billboard data server-side
- * This prevents API calls from being exposed in the network tab
+ * Client-side wrapper that fetches billboard data from API route
+ * Handles errors gracefully and provides fallback UI
  */
-export default async function FloatingMiniBillboardWrapper() {
-  try {
-    console.log('[FloatingBillboard] Starting server-side data fetch...');
+export default function FloatingMiniBillboardWrapper() {
+  const [data, setData] = useState<BillboardData[] | null>(null);
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-    // Fetch grids summary server-side
-    const gridsData = await gridsService.getGridsSummary({
-      admin_level: 'country',
-      limit: 20,
-      page: 1,
-    });
+  useEffect(() => {
+    let mounted = true;
 
-    if (!gridsData?.grids || gridsData.grids.length === 0) {
-      console.log('[FloatingBillboard] No grids found');
-      return null;
-    }
-
-    // Fetch readings for all grids in parallel
-    const billboardDataPromises = gridsData.grids.map(async (grid) => {
+    const fetchData = async () => {
       try {
-        const reading = await gridsService.getGridRepresentativeReading(
-          grid._id,
-        );
-        return {
-          grid,
-          reading: reading?.data || null,
-        } as BillboardData;
-      } catch {
-        // If reading fails, return grid with null reading
-        return {
-          grid,
-          reading: null,
-        } as BillboardData;
+        const response = await fetch('/api/billboard-data', {
+          signal: AbortSignal.timeout(20000),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (mounted && result?.data) {
+          setData(result.data);
+          setError(false);
+        }
+      } catch (err) {
+        console.error('[FloatingBillboard] Failed to fetch data:', err);
+        if (mounted) {
+          setError(true);
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
       }
-    });
+    };
 
-    const billboardData = await Promise.all(billboardDataPromises);
+    fetchData();
 
-    // Filter to only include grids with valid PM2.5 data
-    const validData = billboardData.filter(
-      (item) =>
-        item.reading?.pm2_5?.value != null && item.reading.pm2_5.value >= 0,
-    );
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
-    if (validData.length === 0) {
-      console.log('[FloatingBillboard] No valid PM2.5 data found');
-      return null;
-    }
-
-    // Pass the server-fetched data to the client component
-    return <FloatingMiniBillboard initialData={validData} />;
-  } catch (error) {
-    // Log error server-side only (won't appear in browser console)
-    console.error('[Server] Error fetching billboard data:', error);
-    if (error instanceof Error) {
-      console.error('[Server] Error message:', error.message);
-      console.error('[Server] Error stack:', error.stack);
-    }
-    // Silently fail - don't show the widget if data fetch fails
+  // Don't render anything while loading or if there's an error
+  if (loading || error || !data || data.length === 0) {
     return null;
   }
+
+  return <FloatingMiniBillboard initialData={data} />;
 }

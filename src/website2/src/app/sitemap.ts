@@ -23,18 +23,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/solutions/network-coverage`,
-      lastModified: currentDate,
-      changeFrequency: 'daily' as const,
-      priority: 0.95,
-    },
-    {
-      url: `${baseUrl}/explore-data`,
-      lastModified: currentDate,
-      changeFrequency: 'hourly' as const,
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/about-us`,
       lastModified: currentDate,
       changeFrequency: 'monthly' as const,
@@ -86,12 +74,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
     {
       url: `${baseUrl}/solutions/research`,
-      lastModified: currentDate,
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/solutions/network-coverage`,
       lastModified: currentDate,
       changeFrequency: 'monthly' as const,
       priority: 0.8,

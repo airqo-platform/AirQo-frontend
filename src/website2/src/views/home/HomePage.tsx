@@ -1,8 +1,8 @@
 'use client';
-import { motion, useInView } from 'framer-motion';
-import React, { useRef } from 'react';
 
-import AirQualityBillboard from '@/components/sections/AirQualityBillboard';
+import { motion, useInView } from 'framer-motion';
+import React, { lazy, Suspense, useRef } from 'react';
+
 import ReversibleContentSection from '@/components/sections/ReversibleContentSection';
 
 import AnalyticsContentSection from './AnalyticsContentSection';
@@ -11,12 +11,18 @@ import FeaturedCarousel from './FeaturedCarousel';
 import HomePlayerSection from './HomePlayerSection';
 import StatisticsSection from './HomeStatsSection';
 
+// Lazy load heavy components
+const AirQualityBillboard = lazy(
+  () => import('@/components/sections/AirQualityBillboard'),
+);
+
+// Optimized animation variants - reduced duration and simpler animations
 const sectionVariants = {
-  hidden: { opacity: 0, y: 50 },
+  hidden: { opacity: 0, y: 20 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.5, ease: 'easeOut' },
+    transition: { duration: 0.3, ease: 'easeOut' },
   },
 };
 
@@ -26,7 +32,8 @@ const HomePage = () => {
     const ref = useRef(null);
     const isInView = useInView(ref, {
       once: true,
-      margin: '0px 0px -150px 0px',
+      margin: '0px 0px -100px 0px',
+      amount: 0.1, // Trigger when only 10% is visible
     });
 
     return (
@@ -53,7 +60,13 @@ const HomePage = () => {
 
       {/* Air Quality Billboard */}
       <MotionSection>
-        <AirQualityBillboard homepage className="md:px-3" />
+        <Suspense
+          fallback={
+            <div className="h-96 animate-pulse bg-gray-100 rounded-lg" />
+          }
+        >
+          <AirQualityBillboard homepage className="md:px-3" />
+        </Suspense>
       </MotionSection>
 
       {/* Reversible Content Section 1 */}
