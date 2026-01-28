@@ -35,8 +35,6 @@ export default function FloatingMiniBillboardWrapper() {
           signal: controller.signal,
         });
 
-        clearTimeout(timeoutId);
-
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -53,6 +51,7 @@ export default function FloatingMiniBillboardWrapper() {
           setError(true);
         }
       } finally {
+        clearTimeout(timeoutId);
         if (mounted) {
           setLoading(false);
         }

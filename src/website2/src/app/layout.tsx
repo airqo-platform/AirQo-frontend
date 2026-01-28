@@ -312,6 +312,7 @@ export default async function RootLayout({
         <link rel="prefetch" href="/products/monitor" />
 
         {/* Structured data */}
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: Static JSON-LD data, not user input */}
         <Script
           id="ld-json"
           type="application/ld+json"
