@@ -352,7 +352,9 @@ export default async function RootLayout({
           </ReduxDataProvider>
         </ErrorBoundary>
         <CookieConsent />
-        <FloatingMiniBillboardWrapper />
+        <Suspense fallback={null}>
+          <FloatingMiniBillboardWrapper />
+        </Suspense>
       </body>
     </html>
   );

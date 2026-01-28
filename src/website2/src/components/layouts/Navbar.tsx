@@ -196,6 +196,7 @@ const Navbar: React.FC = () => {
               width={71}
               height={48}
               className="h-10 w-auto cursor-pointer"
+              priority={true}
             />
           </Link>
 

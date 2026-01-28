@@ -88,7 +88,7 @@ const VideoSection: React.FC<{
     <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
       <video
         ref={videoRef}
-        src="https://res.cloudinary.com/dbibjvyhm/video/upload/v1716038850/website/videos/opening_jtpafn.mov"
+        src="https://res.cloudinary.com/dbibjvyhm/video/upload/f_mp4,q_auto:good/v1716038850/website/videos/opening_jtpafn.mov"
         autoPlay
         loop
         muted
@@ -108,6 +108,7 @@ const VideoSection: React.FC<{
           alt="Play Icon"
           width={65}
           height={65}
+          priority={true}
         />
       </motion.button>
     </div>

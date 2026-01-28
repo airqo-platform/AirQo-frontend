@@ -26,12 +26,16 @@ export default function FloatingMiniBillboardWrapper() {
 
   useEffect(() => {
     let mounted = true;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 20000);
 
     const fetchData = async () => {
       try {
         const response = await fetch('/api/billboard-data', {
-          signal: AbortSignal.timeout(20000),
+          signal: controller.signal,
         });
+
+        clearTimeout(timeoutId);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -59,6 +63,8 @@ export default function FloatingMiniBillboardWrapper() {
 
     return () => {
       mounted = false;
+      controller.abort();
+      clearTimeout(timeoutId);
     };
   }, []);
 
