@@ -12,8 +12,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/`,
       lastModified: currentDate,
-      changeFrequency: 'weekly' as const,
+      changeFrequency: 'daily' as const,
       priority: 1,
+    },
+    // Interactive tools and data visualization (HIGH PRIORITY for engagement)
+    {
+      url: `${baseUrl}/billboard/interactive`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/solutions/network-coverage`,
+      lastModified: currentDate,
+      changeFrequency: 'daily' as const,
+      priority: 0.95,
+    },
+    {
+      url: `${baseUrl}/explore-data`,
+      lastModified: currentDate,
+      changeFrequency: 'hourly' as const,
+      priority: 0.9,
     },
     {
       url: `${baseUrl}/about-us`,
@@ -168,8 +187,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     {
       url: `${baseUrl}/explore-data`,
       lastModified: currentDate,
-      changeFrequency: 'daily' as const,
-      priority: 0.9,
+      changeFrequency: 'hourly' as const,
+      priority: 0.95,
     },
     // Legal
     {

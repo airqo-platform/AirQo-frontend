@@ -16,11 +16,24 @@ export async function generateMetadata({
   const gridName = params.name;
 
   return {
-    title: `Air Quality Billboard - ${gridName} | AirQo`,
-    description: `Real-time air quality monitoring display for ${gridName}`,
+    title: `${gridName} Air Quality Billboard | Live PM2.5 Display - AirQo`,
+    description: `Real-time air quality billboard for ${gridName}. Watch live PM2.5 data, pollution levels, and health recommendations update automatically. Interactive display for African cities air quality monitoring.`,
+    keywords: [
+      `${gridName} air quality`,
+      `${gridName} pollution display`,
+      'air quality billboard',
+      'live air monitor',
+      'real-time PM2.5',
+      'Africa air quality',
+    ],
     robots: {
-      index: false,
-      follow: false,
+      index: true,
+      follow: true,
+    },
+    openGraph: {
+      title: `${gridName} Live Air Quality Billboard`,
+      description: `Watch real-time air quality data for ${gridName}`,
+      type: 'website',
     },
   };
 }

@@ -386,7 +386,12 @@ const KampalaStudyPage = () => {
         <motion.div variants={animations.item} className="text-center mt-8">
           <Button
             size={'lg'}
-            onClick={() => window.open('#', '_blank')}
+            onClick={() =>
+              window.open(
+                'https://drive.google.com/file/d/1gshIrY3gi_8RSfdmhFSHF25xE90fu2h5/view',
+                '_blank',
+              )
+            }
             className="bg-[#0CE87E] text-black hover:bg-[#0BD170]"
           >
             <LuDownload className="w-5 h-5 mr-2" />

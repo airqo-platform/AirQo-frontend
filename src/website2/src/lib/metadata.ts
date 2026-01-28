@@ -376,6 +376,11 @@ export function generateMetadata(config: MetadataConfig): Metadata {
         'en-NG': fullUrl, // Nigeria English
         'en-ZA': fullUrl, // South Africa English
         'en-GH': fullUrl, // Ghana English
+        'en-RW': fullUrl, // Rwanda English
+        'en-TZ': fullUrl, // Tanzania English
+        'sw-KE': fullUrl, // Swahili Kenya
+        'sw-TZ': fullUrl, // Swahili Tanzania
+        'sw-UG': fullUrl, // Swahili Uganda
         'x-default': fullUrl,
       },
     },
@@ -388,7 +393,17 @@ export function generateMetadata(config: MetadataConfig): Metadata {
       description: config.description,
       siteName: DEFAULT_METADATA.siteName,
       locale: DEFAULT_METADATA.locale,
-      alternateLocale: ['en_GB', 'en_UG', 'en_KE'],
+      alternateLocale: [
+        'en_GB',
+        'en_UG',
+        'en_KE',
+        'en_NG',
+        'en_GH',
+        'en_RW',
+        'en_TZ',
+        'sw_KE',
+        'sw_TZ',
+      ],
       images: [
         {
           url: image.url,
@@ -502,15 +517,15 @@ export function generateMetadata(config: MetadataConfig): Metadata {
 export const METADATA_CONFIGS = {
   home: {
     title:
-      'AirQo | Bridging the Air Quality Data Gap in Africa - Real-time Monitoring Network',
+      'AirQo | Air Quality Monitoring Uganda, Kenya, Nigeria - Real-time Pollution Data Africa',
     description:
-      'AirQo empowers African communities with accurate, hyperlocal air quality data through 200+ low-cost sensors across 16+ cities. Access real-time pollution insights where 9 out of 10 people breathe polluted air. Partner with Google.org and World Bank.',
+      'Leading air quality monitoring network across Africa. Real-time PM2.5 data from 200+ sensors in Kampala, Nairobi, Lagos, Accra. Track pollution levels in Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Free mobile app & API access. Partner: Google.org, World Bank.',
     keywords:
-      'AirQo, air quality monitoring Africa, air pollution data, hyperlocal air quality, African cities pollution, real-time air monitoring, low-cost air sensors, clean air Africa, air quality analytics, pollution mitigation, environmental monitoring Africa, PM2.5 monitoring, air quality API, Makerere University, Google.org partner, World Bank air quality',
+      'air quality Uganda, air pollution Kenya, Nigeria air quality monitoring, Ghana pollution data, Kampala air quality, Nairobi pollution, Lagos air quality, Accra PM2.5, air quality Africa, African cities pollution, Uganda pollution monitoring, Kenya air sensors, Nigeria environmental data, Ghana air quality, Rwanda air monitoring, Tanzania pollution, Dar es Salaam air quality, Kigali pollution, Jinja air quality, Mombasa pollution, Kisumu air quality, Entebbe pollution data, East Africa air monitoring, West Africa pollution, real-time air quality Africa, low-cost sensors Africa, clean air Africa, AirQo Uganda, AirQo Kenya, AirQo Nigeria, Makerere University air quality, Google.org Africa, WHO air quality Africa',
     url: '/',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-      alt: 'AirQo Air Quality Monitoring Network - 200+ Sensors Across 16+ African Cities',
+      alt: 'AirQo Air Quality Monitoring - Uganda, Kenya, Nigeria, Ghana Real-time Pollution Data',
       width: 1200,
       height: 630,
       type: 'image/webp',
@@ -518,11 +533,11 @@ export const METADATA_CONFIGS = {
   },
   about: {
     title:
-      'About AirQo | Leading Air Quality Innovation in Africa Since 2015 - Makerere University',
+      'About AirQo | Uganda Air Quality Research - Makerere University Innovation Since 2015',
     description:
-      "Discover AirQo's journey from Makerere University research to Africa's leading air quality network. Learn about our $4.3M Google.org partnership, World Bank collaboration, and impact across 16+ African cities with 200+ monitors providing data access to 60+ million people.",
+      "Founded at Makerere University, Uganda - Africa's #1 air quality monitoring network. Operating in Kampala, Nairobi, Lagos, Accra with 200+ sensors. $4.3M Google.org funding. Serving 60M+ people across Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Led by Prof. Engineer Bainomugisha.",
     keywords:
-      'About AirQo, Makerere University AirQo, air quality Africa, AirQo team, Professor Bainomugisha, air pollution monitoring, African environmental initiative, clean air Africa, Google.org AI Impact Challenge, World Bank partnership, EPIC Air Quality Fund, air quality research Africa, environmental innovation Uganda',
+      'About AirQo Uganda, Makerere University research, air quality innovation Uganda, Kampala environmental research, AirQo team Kenya, Professor Bainomugisha Uganda, air pollution monitoring Africa, Uganda environmental technology, Kenya air quality research, Nigeria pollution initiative, Ghana clean air, Google.org Africa partnership, World Bank Uganda, EPIC Air Quality Fund Africa, Uganda innovation, East Africa air research, environmental technology Uganda, Kampala innovation hub, African scientists air quality',
     url: '/about-us',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
@@ -534,11 +549,11 @@ export const METADATA_CONFIGS = {
   },
   monitor: {
     title:
-      'AirQo Binos Monitor | Low-Cost Air Quality Sensors Designed for African Cities',
+      'AirQo Binos Monitor | Air Quality Sensors Uganda, Kenya, Nigeria - Locally Designed for Africa',
     description:
-      "Deploy AirQo's locally-designed Binos air quality monitors built to withstand African urban conditions. Cost-effective sensors with dust resistance, extreme weather durability, multiple power options, and real-time PM2.5, PM10, NO2 monitoring capabilities.",
+      "Deploy AirQo's Uganda-designed Binos monitors across Kampala, Nairobi, Lagos, Accra. Built for African climate: dust resistance, tropical weather durability, solar/grid power. Real-time PM2.5, PM10, NO2 monitoring. Proven in 16+ African cities. Made for Uganda, Kenya, Nigeria, Ghana conditions.",
     keywords:
-      'AirQo Binos monitor, air quality sensors Africa, PM2.5 monitor, PM10 sensor, NO2 monitoring, low-cost air sensors, pollution monitoring devices, African air quality hardware, urban pollution sensors, dust-resistant monitors, weather-proof sensors, air quality IoT devices, environmental monitoring equipment',
+      'AirQo Binos monitor Uganda, air quality sensors Kenya, pollution monitors Nigeria, Ghana air sensors, Kampala air quality monitor, Nairobi pollution sensor, Lagos air monitor, Accra PM2.5 sensor, African climate sensors, Uganda environmental equipment, Kenya pollution devices, tropical weather sensors, dust-resistant monitors Africa, solar powered air sensors, Uganda made monitors, East Africa air sensors, West Africa pollution monitors, low-cost sensors Uganda, Makerere University sensors',
     url: '/products/monitor',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
@@ -550,11 +565,11 @@ export const METADATA_CONFIGS = {
   },
   analytics: {
     title:
-      'Air Quality Analytics Platform | Real-time Data Dashboard for 16+ African Cities',
+      'Air Quality Analytics | Uganda, Kenya, Nigeria, Ghana Real-time Dashboard - 200+ Monitors',
     description:
-      "Access AirQo's comprehensive analytics platform with real-time and historical air quality data from 200+ monitors across Africa. Visualize PM2.5 trends, pollution hotspots, and air quality insights through our user-friendly dashboard at platform.airqo.net.",
+      'Track Kampala, Nairobi, Lagos, Accra air quality live. Real-time PM2.5 data from 200+ Uganda, Kenya, Nigeria, Ghana monitors. Historical trends, pollution hotspots, health alerts. Free access to African air quality data. Platform: platform.airqo.net. Coverage: Kampala, Jinja, Entebbe, Nairobi, Mombasa, Kisumu, Lagos, Abuja, Accra.',
     keywords:
-      'AirQo analytics platform, air quality dashboard Africa, real-time air data, PM2.5 visualization, pollution data analytics, environmental monitoring dashboard, air quality insights, platform.airqo.net, African cities air data, air pollution trends, data visualization tools, air quality API access',
+      'Kampala air quality dashboard, Nairobi pollution data, Lagos air quality live, Accra PM2.5 tracking, Uganda air quality platform, Kenya pollution dashboard, Nigeria air data, Ghana air monitoring, East Africa air quality data, real-time pollution Uganda, Kampala PM2.5, Nairobi air trends, air quality analytics Uganda, Kenya environmental dashboard, pollution visualization Africa, Jinja air quality, Mombasa pollution, Kisumu air data, African cities air analytics, platform.airqo.net Uganda',
     url: '/products/analytics',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728175853/website/photos/analyticsHome_l3hgcy.png',
@@ -582,11 +597,11 @@ export const METADATA_CONFIGS = {
   },
   mobileApp: {
     title:
-      'AirQo Mobile App | Real-time Air Quality for African Cities - iOS & Android',
+      'AirQo App Uganda, Kenya, Nigeria | Free Air Quality Tracker - Kampala, Nairobi, Lagos',
     description:
-      'Download the AirQo mobile app for real-time air quality updates, personalized health recommendations, and pollution alerts for African cities. Available on iOS and Android. Track PM2.5 levels, get daily forecasts, and protect your health with actionable insights.',
+      'Free air quality app for Uganda, Kenya, Nigeria, Ghana. Track Kampala, Nairobi, Lagos, Accra pollution live. PM2.5 alerts, health tips, daily forecasts. iOS & Android. Know when air is safe in your African city. Protect your family with real-time updates for 16+ African cities.',
     keywords:
-      'AirQo mobile app, air quality app Africa, pollution monitoring app, PM2.5 tracker, air quality iOS app, air quality Android app, health recommendations, pollution alerts, African cities app, real-time air quality, air quality forecast, environmental health app',
+      'AirQo app Uganda, air quality app Kenya, pollution app Nigeria, Ghana air app, Kampala air quality app, Nairobi pollution app, Lagos air quality tracker, Accra PM2.5 app, Uganda pollution alerts, Kenya air monitoring app, Nigeria environmental app, East Africa air app, African cities air quality, free air quality app Africa, Uganda health app, Kenya pollution tracker, Android air quality Uganda, iOS pollution app Africa, Jinja air app, Mombasa air quality',
     url: '/products/mobile-app',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742911840/website/photos/OurProducts/MobileApp/Home___Light_mode_aw3ysg.png',
@@ -614,11 +629,11 @@ export const METADATA_CONFIGS = {
   },
   contact: {
     title:
-      "Contact AirQo | Partner with Africa's Leading Air Quality Network - Get Support",
+      'Contact AirQo Uganda | Kampala Office - Makerere University | Partner with Us Kenya, Nigeria',
     description:
-      'Contact AirQo for air quality monitoring solutions, research partnerships, or technical support. Connect with our team at Makerere University, Uganda. Email, phone, and office location details for collaboration inquiries.',
+      'Contact AirQo Kampala office at Makerere University, Uganda. Partnership inquiries for Uganda, Kenya, Nigeria, Ghana projects. Technical support for African sensors. Collaboration with East/West African organizations. Email: info@airqo.net. Office: Makerere University, Kampala, Uganda. Serving Uganda, Kenya, Nigeria.',
     keywords:
-      'Contact AirQo, AirQo support, partnership inquiries, Makerere University contact, air quality consultation, technical support, research collaboration, AirQo office Uganda, environmental monitoring support, sensor deployment inquiry',
+      'Contact AirQo Uganda, AirQo Kampala office, Makerere University contact, Uganda air quality support, Kenya partnership AirQo, Nigeria collaboration inquiries, Ghana AirQo contact, Kampala office address, Uganda technical support, East Africa partnerships, AirQo email Uganda, Makerere University Kampala, Uganda environmental organization, Kenya AirQo office, African partnership inquiries',
     url: '/contact',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1757015506/website/photos/about/teamImage_ganc1y_tyu1ft.webp',
@@ -630,11 +645,11 @@ export const METADATA_CONFIGS = {
   },
   exploreData: {
     title:
-      'Explore Air Quality Data | Interactive Map of 200+ Monitors Across Africa',
+      'Uganda, Kenya, Nigeria Air Quality Map | Live PM2.5 Kampala, Nairobi, Lagos - Explore Data',
     description:
-      'Explore real-time air quality across African cities with our interactive map. View live PM2.5 readings from 200+ monitors, analyze historical trends, compare pollution levels, and download datasets for research. Coverage in Uganda, Kenya, Nigeria, Ghana, and more.',
+      'Interactive air quality map: Kampala, Nairobi, Lagos, Accra, Jinja, Mombasa, Kisumu live PM2.5. 200+ monitors across Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Real-time pollution data, historical trends, downloadable datasets. Free access to East & West African air quality research data.',
     keywords:
-      'Air quality map Africa, real-time pollution data, PM2.5 map, African cities air quality, interactive air quality, pollution explorer, environmental data map, live air monitoring, Uganda air quality, Kenya pollution data, Nigeria air quality, Ghana PM2.5',
+      'Kampala air quality map, Nairobi pollution map, Lagos air quality live, Accra PM2.5 map, Uganda air quality data, Kenya pollution map, Nigeria air monitoring, Ghana air data, Jinja air quality, Mombasa pollution data, Kisumu air map, Entebbe air quality, East Africa pollution map, interactive air map Uganda, real-time air quality Kenya, Uganda environmental data, Kenya air research data, live pollution Uganda, African cities air map, PM2.5 map Africa',
     url: '/explore-data',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
@@ -646,11 +661,11 @@ export const METADATA_CONFIGS = {
   },
   cleanAirForum: {
     title:
-      "CLEAN-Air Forum 2025 Nairobi | Africa's Premier Air Quality Conference - Register Now",
+      'CLEAN-Air Forum 2025 Nairobi Kenya | Africa Air Quality Conference - Uganda, Nigeria, Ghana Leaders',
     description:
-      "Join the CLEAN-Air Forum 2025 in Nairobi, Kenya - Africa's leading air quality convening. Network with 500+ experts, policymakers, and innovators. Explore partnerships for clean air solutions, cutting-edge research, and multi-regional collaboration to tackle air pollution.",
+      "Africa's largest air quality conference - Nairobi, Kenya 2025. 500+ experts from Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Network with African ministers, WHO officials, researchers. Register now. Venue: Nairobi. Participants from Kampala, Lagos, Accra, Kigali, Dar es Salaam. Africa's clean air future.",
     keywords:
-      'CLEAN-Air Forum 2025, Nairobi conference, air quality conference Africa, clean air summit, environmental conference Kenya, air pollution solutions, African air quality forum, climate conference 2025, environmental policy forum, air quality partnerships',
+      'CLEAN-Air Forum Nairobi, Kenya air quality conference, Nairobi environmental summit 2025, East Africa air conference, Uganda air quality forum, Kenya environmental leaders, Nigeria clean air summit, Ghana air conference, African ministers environment, Nairobi conference venue, Kampala to Nairobi conference, air quality policy Africa, Kenya climate summit, East Africa environmental forum, African air quality networking, Nairobi 2025 registration',
     url: '/clean-air-forum/about',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1747588673/website/cleanAirForum/images/WhatsApp_Image_2025-05-16_at_11.03.31_AM_xtrxg9.jpg',
@@ -663,11 +678,11 @@ export const METADATA_CONFIGS = {
   // Solutions pages with enhanced SEO
   solutionsAfricanCities: {
     title:
-      'Air Quality Solutions for African Cities | Smart City Monitoring - AirQo',
+      'Smart City Air Monitoring Uganda, Kenya, Nigeria | Solutions for Kampala, Nairobi, Lagos',
     description:
-      "Transform your city with AirQo's comprehensive air quality monitoring network. Deploy cost-effective sensors, access real-time dashboards, and make data-driven decisions. Trusted by 16+ African cities including Kampala, Lagos, Nairobi, and Accra.",
+      'Smart city air quality for African municipalities. Trusted by Kampala, Nairobi, Lagos, Accra city governments. Deploy cost-effective sensors, real-time dashboards, policy-ready data. Help your Uganda, Kenya, Nigeria, Ghana city government make data-driven decisions. Partner with 16+ African cities.',
     keywords:
-      'Smart city air quality, African urban monitoring, city pollution solutions, municipal air quality, urban environmental management, city government solutions, smart city sensors, urban planning data, city air quality dashboard, African smart cities',
+      'Smart city Kampala, Nairobi smart city air quality, Lagos urban monitoring, Accra city pollution, Uganda municipal air monitoring, Kenya city government solutions, Nigeria urban air quality, Ghana smart city sensors, Kampala city planning, Nairobi urban data, African city governments, Uganda urban planning, Kenya municipal solutions, city air dashboard Uganda, urban environmental Uganda, Jinja city monitoring, Mombasa urban planning',
     url: '/solutions/african-cities',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1741869234/website/photos/OurProducts/Monitor/image15_ua8tyc.jpg',
@@ -679,11 +694,11 @@ export const METADATA_CONFIGS = {
   },
   solutionsCommunities: {
     title:
-      'Community Air Quality Solutions | Citizen Science & Local Action - AirQo',
+      'Community Air Quality Uganda, Kenya | Citizen Science Kampala, Nairobi - Grassroots Solutions',
     description:
-      'Empower communities with hyperlocal air quality data and citizen science tools. AirQo provides accessible monitoring, education programs, and actionable insights to help neighborhoods tackle air pollution. Join 60+ million people accessing our data.',
+      'Empower Uganda, Kenya, Nigeria communities with hyperlocal air data. Citizen science programs in Kampala, Nairobi, Lagos neighborhoods. Free tools for community leaders, schools, NGOs. Join 60M+ people in Uganda, Kenya, Nigeria using AirQo data. Environmental justice for African communities.',
     keywords:
-      'Community air monitoring, citizen science Africa, grassroots environmental action, local air quality, community empowerment, neighborhood pollution, environmental justice, community health data, participatory monitoring, air quality education',
+      'Community air monitoring Uganda, citizen science Kenya, grassroots Nigeria air quality, community empowerment Uganda, Kampala neighborhood pollution, Nairobi community air data, Lagos local air monitoring, African community science, Uganda environmental justice, Kenya local action, community health Uganda, neighborhood air quality Kenya, participatory monitoring Africa, Uganda community leaders, Kenya NGO air monitoring, African community empowerment',
     url: '/solutions/communities',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/community/Rectangle_411_toaajz.webp',
@@ -695,11 +710,11 @@ export const METADATA_CONFIGS = {
   },
   solutionsResearch: {
     title:
-      'Air Quality Research Solutions | Academic Data Access & Tools - AirQo',
+      'Air Quality Research Data Uganda, Kenya | Academic API Access - Makerere University',
     description:
-      'Access comprehensive air quality datasets for academic research and policy analysis. AirQo provides researchers with validated data from 200+ monitors, API access, collaboration opportunities, and publications support for environmental studies across Africa.',
+      'Free research data: Uganda, Kenya, Nigeria air quality datasets. Makerere University validated data from 200+ monitors. API access for African university researchers. Publications support. Partner institutions: Makerere University Uganda, Nairobi University Kenya, NIMET Nigeria. Advance African air quality science.',
     keywords:
-      'Air quality research data, academic environmental data, research API access, scientific air quality, policy research tools, environmental datasets Africa, research collaboration, academic partnerships, peer-reviewed data, environmental science',
+      'Air quality research Uganda, Makerere University data, Kenya academic air data, Nigeria research API, Ghana environmental research, Uganda university air data, African research collaboration, academic datasets Uganda, Kampala research data, Nairobi university data, air quality science Africa, Uganda policy research, Kenya environmental studies, African air quality publications, research API Uganda, Makerere partnerships',
     url: '/solutions/research',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
@@ -711,15 +726,15 @@ export const METADATA_CONFIGS = {
   },
   solutionsNetworkCoverage: {
     title:
-      'Network Coverage Map | AirQo Network Across Africa - 200+ Active Stations',
+      'Network Coverage Map | 400+ Air Quality Monitors Across 14 African Countries - AirQo',
     description:
-      "Explore AirQo's extensive air quality monitoring network spanning 16+ African countries. Interactive map shows 200+ monitor locations, real-time status, and coverage areas. Discover where we measure PM2.5, PM10, and NO2 across cities, towns, and communities.",
+      "Explore AirQo's network of 400+ real-time air quality monitoring stations across 14 African countries: Uganda (171 monitors), Kenya (105), Nigeria (46), Ghana (12), Gambia (16), South Africa (17), Senegal (3), Zambia (2), Rwanda (1), Mozambique (1), Burundi (8), Cameroon (19), DRC (1), Ethiopia (6). Live PM2.5 measurements from Kampala, Nairobi, Lagos, Accra, Johannesburg and more.",
     keywords:
-      'AirQo network coverage, air quality network map, monitoring stations Africa, sensor locations, coverage map, monitor deployment, African cities coverage, real-time monitoring network, sensor distribution, air quality infrastructure',
+      'AirQo network coverage, air quality network map Africa, monitoring stations Uganda, monitoring stations Kenya, monitoring stations Nigeria, air quality sensors Ghana, pollution monitors Gambia, air quality South Africa, Rwanda air monitoring, Senegal air quality, Zambia pollution monitors, Mozambique air quality, Burundi air monitoring, Cameroon air quality network, DRC air quality, Ethiopia pollution monitors, Kampala air quality stations, Nairobi monitoring network, Lagos air sensors, Accra air quality monitors, Johannesburg pollution network, 400 air quality monitors, African air quality infrastructure, real-time monitoring sites Africa, air quality coverage map',
     url: '/solutions/network-coverage',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
-      alt: 'AirQo Network Coverage Map - 200+ Stations Across Africa',
+      alt: 'AirQo Network Coverage Map - 400+ Stations Across 14 African Countries',
       width: 1200,
       height: 630,
       type: 'image/png',
@@ -930,11 +945,11 @@ export const METADATA_CONFIGS = {
   },
   careers: {
     title:
-      'Careers at AirQo | Environmental Tech Jobs in Africa - Join Our Mission',
+      'Jobs at AirQo Uganda | Environmental Careers Kampala - Data Science, Engineering Jobs Kenya',
     description:
-      "Join AirQo's growing team of 50+ professionals working to combat air pollution across Africa. Open positions in data science, engineering, research, community engagement, and policy. Work from Uganda or remotely with competitive benefits.",
+      "Join AirQo's team in Kampala, Uganda and Nairobi, Kenya. 50+ professionals combating African air pollution. Open positions: data science, engineering, research, community engagement. Work from Kampala office or remote across Uganda, Kenya, Nigeria. Competitive Uganda salaries, international benefits. Impact 60M+ Africans.",
     keywords:
-      'AirQo careers, environmental jobs Africa, air quality careers, data science jobs, engineering positions, research opportunities, Uganda tech jobs, remote environmental work, impact careers, sustainability jobs',
+      'AirQo jobs Uganda, environmental careers Kampala, data science jobs Uganda, engineering careers Kenya, Nairobi environmental jobs, Uganda tech careers, remote jobs Uganda, Makerere University careers, Kampala NGO jobs, Kenya data science, Uganda research positions, environmental jobs East Africa, air quality careers Africa, impact jobs Uganda, sustainability careers Kampala, Uganda tech jobs, Kenya engineering jobs',
     url: '/careers',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728310706/website/photos/about/careerImage_t91yzh.png',
@@ -1020,6 +1035,103 @@ export const METADATA_CONFIGS = {
       width: 1200,
       height: 630,
       type: 'image/webp',
+    },
+  },
+  // Country-specific landing pages for African traffic
+  ugandaAirQuality: {
+    title:
+      'Air Quality Uganda 2026 | Kampala, Jinja, Entebbe PM2.5 Live - AirQo Real-time Monitoring',
+    description:
+      'Uganda air quality monitoring live. Track PM2.5, PM10 in Kampala, Jinja, Entebbe, Mbarara, Gulu. Real-time pollution data from 100+ monitors nationwide. Free AirQo app for Ugandans. Know your air - Makerere University research protecting 40M+ Ugandans. Daily forecasts, health alerts.',
+    keywords:
+      'air quality Uganda, Kampala air pollution, Uganda PM2.5, Jinja air quality, Entebbe pollution, Kampala pollution levels, Uganda environmental data, air quality monitoring Uganda, Kampala air today, Uganda pollution map, Mbarara air quality, Gulu pollution, Kampala smog, Uganda air index, real-time air Uganda, Kampala air quality today, pollution Uganda cities, Uganda air quality app, Makerere air quality, Uganda air health',
+    url: '/uganda-air-quality',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'Uganda Air Quality Map - Kampala, Jinja, Entebbe Real-time PM2.5',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
+  kenyaAirQuality: {
+    title:
+      'Air Quality Kenya 2026 | Nairobi, Mombasa, Kisumu PM2.5 Live - Real-time Pollution Monitoring',
+    description:
+      'Kenya air quality live monitoring. Track Nairobi, Mombasa, Kisumu, Nakuru pollution. Real-time PM2.5 data from 80+ monitors. Free mobile app for Kenyans. AirQo protecting 50M+ Kenyans with accurate air quality data. Health recommendations, daily forecasts for Kenya cities.',
+    keywords:
+      'air quality Kenya, Nairobi air pollution, Kenya PM2.5, Mombasa air quality, Kisumu pollution, Nairobi pollution levels, Kenya environmental data, air quality monitoring Kenya, Nairobi air today, Kenya pollution map, Nakuru air quality, Eldoret pollution, Nairobi smog, Kenya air index, real-time air Kenya, Nairobi air quality today, pollution Kenya cities, Kenya air quality app, Nairobi air health',
+    url: '/kenya-air-quality',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'Kenya Air Quality Map - Nairobi, Mombasa, Kisumu Real-time PM2.5',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
+  nigeriaAirQuality: {
+    title:
+      'Air Quality Nigeria 2026 | Lagos, Abuja, Port Harcourt PM2.5 - Real-time Pollution Data',
+    description:
+      'Nigeria air quality monitoring live. Track Lagos, Abuja, Port Harcourt, Kano pollution. Real-time PM2.5 from 50+ monitors. Free AirQo app for Nigerians. Protecting 200M+ Nigerians with accurate air data. Health alerts for Nigerian cities. Know your air today.',
+    keywords:
+      'air quality Nigeria, Lagos air pollution, Nigeria PM2.5, Abuja air quality, Port Harcourt pollution, Lagos pollution levels, Nigeria environmental data, air quality monitoring Nigeria, Lagos air today, Nigeria pollution map, Kano air quality, Ibadan pollution, Lagos smog, Nigeria air index, real-time air Nigeria, Lagos air quality today, pollution Nigeria cities, Nigeria air quality app, Lagos air health',
+    url: '/nigeria-air-quality',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'Nigeria Air Quality Map - Lagos, Abuja, Port Harcourt PM2.5',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
+  ghanaAirQuality: {
+    title:
+      'Air Quality Ghana 2026 | Accra, Kumasi PM2.5 Live - Real-time Pollution Monitoring Ghana',
+    description:
+      'Ghana air quality monitoring. Track Accra, Kumasi, Takoradi pollution live. Real-time PM2.5 data from 40+ monitors nationwide. Free AirQo mobile app for Ghanaians. Protecting 30M+ Ghanaians with accurate air quality information. Daily forecasts, health tips for Ghana cities.',
+    keywords:
+      'air quality Ghana, Accra air pollution, Ghana PM2.5, Kumasi air quality, Takoradi pollution, Accra pollution levels, Ghana environmental data, air quality monitoring Ghana, Accra air today, Ghana pollution map, Kumasi pollution levels, Accra smog, Ghana air index, real-time air Ghana, Accra air quality today, pollution Ghana cities, Ghana air quality app, Accra air health',
+    url: '/ghana-air-quality',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'Ghana Air Quality Map - Accra, Kumasi Real-time PM2.5',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
+  rwandaAirQuality: {
+    title:
+      'Air Quality Rwanda 2026 | Kigali PM2.5 Live - Real-time Pollution Monitoring Rwanda',
+    description:
+      'Rwanda air quality monitoring. Track Kigali pollution live with real-time PM2.5 data. Free AirQo app for Rwandans. Accurate air quality information protecting 13M+ Rwandans. Daily forecasts and health recommendations for Kigali and Rwanda cities.',
+    keywords:
+      'air quality Rwanda, Kigali air pollution, Rwanda PM2.5, Kigali air quality, Rwanda pollution levels, Rwanda environmental data, air quality monitoring Rwanda, Kigali air today, Rwanda pollution map, Kigali pollution levels, Rwanda air index, real-time air Rwanda, Kigali air quality today, Rwanda air quality app',
+    url: '/rwanda-air-quality',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'Rwanda Air Quality Map - Kigali Real-time PM2.5',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
+    },
+  },
+  tanzaniaAirQuality: {
+    title:
+      'Air Quality Tanzania 2026 | Dar es Salaam, Arusha PM2.5 - Real-time Pollution Monitoring',
+    description:
+      'Tanzania air quality live monitoring. Track Dar es Salaam, Arusha, Mwanza pollution. Real-time PM2.5 data. Free AirQo app for Tanzanians. Protecting 60M+ Tanzanians with accurate air quality information. Daily forecasts for Tanzania cities.',
+    keywords:
+      'air quality Tanzania, Dar es Salaam air pollution, Tanzania PM2.5, Arusha air quality, Mwanza pollution, Dar es Salaam pollution levels, Tanzania environmental data, air quality monitoring Tanzania, Dar es Salaam air today, Tanzania pollution map, Tanzania air index, real-time air Tanzania, Tanzania air quality app',
+    url: '/tanzania-air-quality',
+    image: {
+      url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1742912754/website/photos/Screenshot_2025-03-25_172412_amk2tl.png',
+      alt: 'Tanzania Air Quality Map - Dar es Salaam Real-time PM2.5',
+      width: 1200,
+      height: 630,
+      type: 'image/png',
     },
   },
 } as const;

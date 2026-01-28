@@ -149,6 +149,7 @@ const AfricanCityPage = () => {
 
       {/* Grid Air Quality Monitor Section */}
       <motion.section
+        id="grids-section"
         className={`${mainConfig.containerClass} px-4`}
         initial="hidden"
         whileInView="visible"
