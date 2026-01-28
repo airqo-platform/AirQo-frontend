@@ -163,56 +163,61 @@ export default function FloatingMiniBillboard({
   }
 
   return (
-    <Link
-      href="/solutions/african-cities#grids-section"
-      className="fixed bottom-6 right-6 z-50 block"
-      aria-label={`View air quality for ${gridName}`}
-      scroll={true}
-    >
-      <div
-        className={`bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-2xl p-4 w-64 hover:scale-105 transition-all duration-300 relative ${
-          isTransitioning ? 'opacity-0' : 'opacity-100 animate-fade-in'
-        }`}
+    <div className="fixed bottom-6 right-6 z-50 block">
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setIsMinimized(true);
+        }}
+        className="absolute top-2 right-2 p-1 hover:bg-white/20 rounded-full transition-colors z-10"
+        aria-label="Minimize widget"
       >
-        <button
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            setIsMinimized(true);
-          }}
-          className="absolute top-2 right-2 p-1 hover:bg-white/20 rounded-full transition-colors"
-          aria-label="Minimize widget"
+        <span className="text-white text-xl leading-none">×</span>
+      </button>
+
+      <Link
+        href="/solutions/african-cities#grids-section"
+        className="block"
+        aria-label={`View air quality for ${gridName}`}
+        scroll={true}
+      >
+        <div
+          className={`bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-2xl p-4 w-64 hover:scale-105 transition-all duration-300 relative ${
+            isTransitioning ? 'opacity-0' : 'opacity-100 animate-fade-in'
+          }`}
         >
-          <span className="text-white text-xl leading-none">×</span>
-        </button>
-
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <p className="text-xs opacity-80 uppercase tracking-wide">
-              Air Quality
-            </p>
-            <h3 className="text-lg font-bold truncate pr-6">{gridName}</h3>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="flex-1">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl font-bold">{displayValue}</span>
-              <span className="text-xs opacity-70">PM2.5</span>
+          <div className="flex items-start justify-between mb-2">
+            <div>
+              <p className="text-xs opacity-80 uppercase tracking-wide">
+                Air Quality
+              </p>
+              <h3 className="text-lg font-bold truncate pr-6">{gridName}</h3>
             </div>
-            <p className="text-xs mt-1 opacity-90">{categoryLabel}</p>
           </div>
 
-          <div className="flex items-center justify-center" aria-hidden="true">
-            {getAirQualityIcon(category)}
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold">{displayValue}</span>
+                <span className="text-xs opacity-70">PM2.5</span>
+              </div>
+              <p className="text-xs mt-1 opacity-90">{categoryLabel}</p>
+            </div>
+
+            <div
+              className="flex items-center justify-center"
+              aria-hidden="true"
+            >
+              {getAirQualityIcon(category)}
+            </div>
+          </div>
+
+          <div className="mt-3 pt-3 border-t border-white/20">
+            <p className="text-xs opacity-80">Discover more</p>
           </div>
         </div>
-
-        <div className="mt-3 pt-3 border-t border-white/20">
-          <p className="text-xs opacity-80">Discover more</p>
-        </div>
-      </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
