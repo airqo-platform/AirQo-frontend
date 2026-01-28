@@ -6,7 +6,6 @@ import {
   boardMembersService,
   careersService,
   cleanAirResourcesService,
-  cohortsService,
   departmentsService,
   eventsService,
   externalService,
@@ -354,62 +353,6 @@ export const useGridRepresentativeReading = (
       revalidateOnFocus: false,
       revalidateIfStale: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
-      ...swrOptions,
-    },
-  );
-
-// Cohorts
-export const useCohortsSummary = (
-  params?: {
-    limit?: number;
-    skip?: number;
-    page?: number;
-    search?: string;
-  },
-  swrOptions?: SWRConfiguration,
-) =>
-  useServiceData(
-    params ? () => cohortsService.getCohortsSummary(params) : null,
-    params ? `cohortsSummary-${JSON.stringify(params)}` : null,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: true,
-      revalidateOnMount: true,
-      dedupingInterval: 300000, // 5 minutes
-      focusThrottleInterval: 10000, // 10 seconds
-      errorRetryInterval: 5000, // 5 seconds
-      errorRetryCount: 3,
-      ...swrOptions,
-    },
-  );
-
-export const useCohortMeasurements = (
-  cohortId: string | null,
-  params?: {
-    limit?: number;
-    skip?: number;
-    page?: number;
-    startTime?: string;
-    endTime?: string;
-    frequency?: string;
-  },
-  swrOptions?: SWRConfiguration,
-) =>
-  useServiceData(
-    cohortId
-      ? () => cohortsService.getCohortMeasurements(cohortId, params || {})
-      : null,
-    cohortId
-      ? `cohortMeasurements-${cohortId}-${JSON.stringify(params || {})}`
-      : null,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: true,
-      revalidateOnMount: true,
-      refreshInterval: 300000, // 5 minutes auto-refresh
-      focusThrottleInterval: 10000, // 10 seconds
-      errorRetryInterval: 5000, // 5 seconds
-      errorRetryCount: 3,
       ...swrOptions,
     },
   );
