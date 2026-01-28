@@ -52,14 +52,14 @@ const BENEFITS = [
   {
     title: 'Real-time Air Quality Information',
     description:
-      'Access live air quality data for your neighborhood, empowering you to make informed decisions about outdoor activities.',
+      'Access timely air quality information for your neighborhood, empowering you to make informed decisions about outdoor activities.',
     icon: LuMapPin,
     color: 'bg-blue-50 text-blue-600',
   },
   {
     title: 'Health-Informed Daily Decisions',
     description:
-      'Learn when to exercise outdoors, when to keep windows closed, and how to protect vulnerable family members.',
+      'Plan your day with confidence, choose the best times to walk, jog, or exercise outdoors, and take simple steps to protect vulnerable family members from poor air quality.',
     icon: LuActivity,
     color: 'bg-green-50 text-green-600',
   },
@@ -166,13 +166,12 @@ const KampalaStudyPage = () => {
           <motion.div variants={animations.item} className="space-y-6">
             <div className="inline-block">
               <span className="inline-flex items-center px-4 py-2 rounded-full bg-[#0CE87E]/20 text-sm font-medium text-gray-700">
-                <LuHeart className="w-4 h-4 mr-2 text-[#0CE87E]" />
-                Join the Movement
+                Solutions &gt; Kampala air pollution exposure study
               </span>
             </div>
 
             <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
-              Kampala Air Quality Study
+              Kampala air pollution exposure study
             </h1>
 
             <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto">
@@ -180,16 +179,6 @@ const KampalaStudyPage = () => {
               about air quality and contributing to cleaner, healthier
               neighborhoods for everyone.
             </p>
-
-            <motion.div variants={animations.item} className="pt-4">
-              <Button
-                onClick={() => window.open('#', '_blank')}
-                className="bg-[#0CE87E] text-black hover:bg-[#0BD170]"
-              >
-                <LuDownload className="w-5 h-5 mr-2" />
-                Download App
-              </Button>
-            </motion.div>
           </motion.div>
         </motion.div>
       </section>
@@ -313,9 +302,9 @@ const KampalaStudyPage = () => {
               </h2>
               <div className="space-y-4 text-base text-gray-700">
                 <p className="leading-relaxed">
-                  Every data point you contribute helps us build a comprehensive
-                  understanding of air quality patterns in Kampala. Your
-                  insights will directly inform:
+                  Your contribution helps us build a comprehensive understanding
+                  of air quality patterns in Kampala. Your insights will
+                  directly inform:
                 </p>
                 <ul className="space-y-3">
                   <li className="flex items-start">
@@ -396,11 +385,12 @@ const KampalaStudyPage = () => {
 
         <motion.div variants={animations.item} className="text-center mt-8">
           <Button
+            size={'lg'}
             onClick={() => window.open('#', '_blank')}
             className="bg-[#0CE87E] text-black hover:bg-[#0BD170]"
           >
             <LuDownload className="w-5 h-5 mr-2" />
-            Download App
+            Install the APK
           </Button>
         </motion.div>
       </MotionSection>

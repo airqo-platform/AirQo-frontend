@@ -726,7 +726,8 @@ export const METADATA_CONFIGS = {
     },
   },
   solutionsKampalaStudy: {
-    title: 'Kampala Air Quality Study | Join the Clean Air Research - AirQo',
+    title:
+      'Kampala air pollution exposure study | Join the Clean Air Research - AirQo',
     description:
       'Participate in the Kampala real-time air pollution exposure study. Access real-time air quality data, contribute to clean air research, and help build healthier communities. Join hundreds of Kampala residents making a difference in urban air quality monitoring.',
     keywords:
