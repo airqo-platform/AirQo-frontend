@@ -9,7 +9,7 @@ import { ReactNode, Suspense } from 'react';
 import CookieConsent from '@/components/CookieConsent';
 import EngagementDialog from '@/components/dialogs/EngagementDialog';
 import ExternalLinkDecorator from '@/components/ExternalLinkDecorator';
-import FloatingMiniBillboard from '@/components/FloatingMiniBillboard';
+import FloatingMiniBillboardWrapper from '@/components/FloatingMiniBillboardWrapper';
 import GoogleTranslate from '@/components/GoogleTranslate';
 import Loading from '@/components/loading';
 import { ErrorBoundary } from '@/components/ui';
@@ -323,7 +323,7 @@ export default async function RootLayout({
           </ReduxDataProvider>
         </ErrorBoundary>
         <CookieConsent />
-        <FloatingMiniBillboard />
+        <FloatingMiniBillboardWrapper />
       </body>
     </html>
   );

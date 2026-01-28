@@ -13,10 +13,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
-import {
-  useGridRepresentativeReading,
-  useGridsSummary,
-} from '@/hooks/useApiHooks';
 import type { Grid } from '@/types/grids';
 import {
   categoryToLevel,
@@ -26,6 +22,19 @@ import {
 } from '@/utils/airQuality';
 
 const ROTATION_INTERVAL = 15000; // 15 seconds per grid
+
+interface BillboardData {
+  grid: Grid;
+  reading: {
+    pm2_5?: {
+      value: number;
+    };
+  } | null;
+}
+
+interface FloatingMiniBillboardProps {
+  initialData?: BillboardData[];
+}
 
 // Get appropriate icon for air quality level
 const getAirQualityIcon = (category: string) => {
@@ -54,52 +63,23 @@ const getAirQualityIcon = (category: string) => {
   }
 };
 
-// Loading skeleton for smooth transitions
-const LoadingSkeleton = () => (
-  <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-2xl p-4 w-64 relative animate-pulse">
-    <div className="flex items-start justify-between mb-2">
-      <div className="flex-1">
-        <div className="h-3 bg-white/20 rounded w-16 mb-2"></div>
-        <div className="h-5 bg-white/30 rounded w-32"></div>
-      </div>
-    </div>
-    <div className="flex items-center gap-3 mt-4">
-      <div className="flex-1">
-        <div className="h-8 bg-white/30 rounded w-20 mb-2"></div>
-        <div className="h-3 bg-white/20 rounded w-24"></div>
-      </div>
-      <div className="w-12 h-12 bg-white/20 rounded-full"></div>
-    </div>
-    <div className="mt-3 pt-3 border-t border-white/20">
-      <div className="h-3 bg-white/20 rounded w-24"></div>
-    </div>
-  </div>
-);
-
-export default function FloatingMiniBillboard() {
+export default function FloatingMiniBillboard({
+  initialData,
+}: FloatingMiniBillboardProps) {
   const pathname = usePathname();
   const [currentGridIndex, setCurrentGridIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout>();
 
-  // Fetch grids data with country admin level - cached to avoid repeated calls
-  const { data: gridsData, isLoading } = useGridsSummary({
-    admin_level: 'country',
-    limit: 20, // Fetch more to account for those without data
-    page: 1,
-  });
-
   // Get current grid from rotation
-  const currentGrid: Grid | null = gridsData?.grids?.[currentGridIndex] || null;
+  const currentItem = initialData?.[currentGridIndex];
+  const currentGrid = currentItem?.grid;
+  const readingData = currentItem?.reading;
 
-  // Fetch reading for current grid - also cached
-  const { data: readingData } = useGridRepresentativeReading(
-    currentGrid?._id || null,
-  );
-
-  const pm25Value = readingData?.data?.pm2_5?.value;
+  const pm25Value = readingData?.pm2_5?.value;
   const hasValidData = pm25Value != null && pm25Value >= 0;
   const category = getAirQualityCategory(pm25Value, 'pm2_5');
   const categoryLabel =
@@ -110,7 +90,19 @@ export default function FloatingMiniBillboard() {
   // Check if we should hide on billboard pages
   const shouldHide = pathname?.startsWith('/billboard');
 
+  // Handle component mounting to avoid showing during SSR/initial load
   useEffect(() => {
+    // Delay mounting to ensure page is ready
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 1000); // Wait 1 second after page load
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!isMounted) return;
+
     // Check screen size - only show on medium screens and above, and not on billboard pages
     const checkScreenSize = () => {
       setIsVisible(window.innerWidth >= 768 && !shouldHide);
@@ -120,19 +112,17 @@ export default function FloatingMiniBillboard() {
     window.addEventListener('resize', checkScreenSize);
 
     return () => window.removeEventListener('resize', checkScreenSize);
-  }, [shouldHide]);
+  }, [shouldHide, isMounted]);
 
   useEffect(() => {
-    if (!isVisible || !gridsData?.grids?.length) return;
+    if (!isVisible || !initialData?.length) return;
 
     // Set up rotation interval
     intervalRef.current = setInterval(() => {
       setIsTransitioning(true);
       // Delay index change for fade out effect
       setTimeout(() => {
-        setCurrentGridIndex(
-          (prev) => (prev + 1) % (gridsData?.grids?.length || 1),
-        );
+        setCurrentGridIndex((prev) => (prev + 1) % (initialData?.length || 1));
         // Fade back in
         setTimeout(() => setIsTransitioning(false), 100);
       }, 300);
@@ -144,41 +134,17 @@ export default function FloatingMiniBillboard() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isVisible, gridsData?.grids?.length]);
+  }, [isVisible, initialData?.length]);
 
-  // Skip grids without valid data automatically with smooth transition
-  useEffect(() => {
-    if (!isVisible || !gridsData?.grids?.length || isLoading) return;
-
-    // If current grid has no data, move to next one smoothly
-    if (!hasValidData && readingData !== undefined) {
-      setIsTransitioning(true);
-      setTimeout(() => {
-        const nextIndex =
-          (currentGridIndex + 1) % (gridsData?.grids?.length || 1);
-        setCurrentGridIndex(nextIndex);
-        setTimeout(() => setIsTransitioning(false), 100);
-      }, 300);
-    }
-  }, [
-    hasValidData,
-    readingData,
-    isVisible,
-    gridsData?.grids?.length,
-    currentGridIndex,
-    isLoading,
-  ]);
-
-  // Don't show if hidden or initial loading
-  if (!isVisible || isLoading || !gridsData?.grids?.length) return null;
-
-  // Show loading skeleton during transition
-  if (isTransitioning || !currentGrid || !hasValidData) {
-    return (
-      <div className="fixed bottom-6 right-6 z-50">
-        <LoadingSkeleton />
-      </div>
-    );
+  // Don't show if not mounted, hidden, no data, or during transition without valid data
+  if (
+    !isMounted ||
+    !isVisible ||
+    !initialData?.length ||
+    !currentGrid ||
+    !hasValidData
+  ) {
+    return null;
   }
 
   const displayValue = pm25Value.toFixed(2);
@@ -203,7 +169,11 @@ export default function FloatingMiniBillboard() {
       aria-label={`View air quality for ${gridName}`}
       scroll={true}
     >
-      <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-2xl p-4 w-64 hover:scale-105 transition-all duration-300 relative animate-fade-in">
+      <div
+        className={`bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-2xl p-4 w-64 hover:scale-105 transition-all duration-300 relative ${
+          isTransitioning ? 'opacity-0' : 'opacity-100 animate-fade-in'
+        }`}
+      >
         <button
           onClick={(e) => {
             e.preventDefault();
