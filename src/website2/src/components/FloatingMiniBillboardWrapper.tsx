@@ -27,7 +27,7 @@ export default function FloatingMiniBillboardWrapper() {
   useEffect(() => {
     let mounted = true;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // Reduced from 20000ms to 10000ms
 
     const fetchData = async () => {
       try {

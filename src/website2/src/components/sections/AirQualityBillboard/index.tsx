@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 
 import AirQualityDisplay from './components/AirQualityDisplay';
 import BillboardHeader from './components/BillboardHeader';
-import ErrorDisplay from './components/ErrorDisplay';
 import { useAirQualityData } from './hooks/useAirQualityData';
 import { useBillboardControls } from './hooks/useBillboardControls';
 import { useMeasurements } from './hooks/useMeasurements';
@@ -44,8 +43,7 @@ const AirQualityBillboard = ({
 
   // Data fetching hooks
   const airQualityData = useAirQualityData(dataType, propItemName);
-  const { gridsData, allGrids, gridsLoading, gridsError, gridsParams } =
-    airQualityData;
+  const { gridsData, allGrids, gridsLoading, gridsError } = airQualityData;
 
   // Measurements hook
   const measurements = useMeasurements(dataType, selectedItem);
@@ -182,20 +180,10 @@ const AirQualityBillboard = ({
             : undefined
         }
       >
-        {/* Error States */}
-        {hasError ? (
-          <ErrorDisplay
-            type="summary"
-            dataType={dataType}
-            gridsParams={gridsParams}
-          />
-        ) : selectedItem && measurementsError ? (
-          <ErrorDisplay
-            type="measurements"
-            dataType={dataType}
-            selectedItem={selectedItem}
-          />
-        ) : !dataLoaded || (selectedItem && measurementsLoading) ? (
+        {/* Error States - Hidden as per user request, automatic retry in background */}
+        {hasError ? null : selectedItem &&
+          measurementsError ? null : !dataLoaded ||
+          (selectedItem && measurementsLoading) ? (
           <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : propItemName && !selectedItem ? (
           <BillboardSkeleton centered={centered} homepage={homepage} />

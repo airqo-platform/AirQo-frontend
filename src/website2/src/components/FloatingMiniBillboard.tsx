@@ -95,7 +95,7 @@ export default function FloatingMiniBillboard({
     // Delay mounting to ensure page is ready
     const timer = setTimeout(() => {
       setIsMounted(true);
-    }, 1000); // Wait 1 second after page load
+    }, 100); // Reduced from 1000ms to 100ms
 
     return () => clearTimeout(timer);
   }, []);

@@ -23,7 +23,7 @@ export async function GET() {
     // Fetch grids summary
     const gridsData = await gridsService.getGridsSummary({
       admin_level: 'country',
-      limit: 20,
+      limit: 10, // Reduced from 20 to 10 for faster loading
       page: 1,
     });
 
