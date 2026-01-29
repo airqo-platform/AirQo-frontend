@@ -89,8 +89,12 @@ async function handleRequest(
     // For Django endpoints starting with 'website/', add trailing slash if not present
     // Django REST framework typically expects trailing slashes for list endpoints
     let finalPath = path;
-    if (path.startsWith('website/') && !path.endsWith('/')) {
-      finalPath = `${path}/`;
+    if (path.startsWith('website/')) {
+      if (!path.endsWith('/')) {
+        finalPath = `${path}/`;
+      }
+    } else {
+      finalPath = `api/v2/${path}`;
     }
 
     // The client passes the full API path starting with /website/api/v2/

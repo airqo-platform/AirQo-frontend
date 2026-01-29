@@ -135,12 +135,28 @@ const AirQualityBillboard = ({
     isLoading,
   ]);
 
+  // Timeout to hide component if loading takes too long (API issues)
+  useEffect(() => {
+    if (!dataLoaded && isLoading) {
+      const timer = setTimeout(() => {
+        // If still loading after 20 seconds, assume API issue and hide component
+        setDataLoaded(true);
+        handleItemSelect(null);
+      }, 30000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [dataLoaded, isLoading, setDataLoaded, handleItemSelect]);
+
   // Handle item selection with measurements refresh
   const onItemSelect = (item: any) => {
     handleItemSelect(item);
     resetIndices();
     forceMeasurementsRefresh();
   };
+
+  // Hide the component if no grids are available after loading
+  if (dataLoaded && !allGrids.length) return null;
 
   return (
     <div
