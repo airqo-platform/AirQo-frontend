@@ -40,6 +40,7 @@ export default function FloatingMiniBillboardWrapper() {
   // Fetch readings when grids data is available
   useEffect(() => {
     let mounted = true;
+    let timeoutId: NodeJS.Timeout;
 
     const fetchReadings = async () => {
       if (!gridsData?.grids || gridsData.grids.length === 0) {
@@ -50,17 +51,29 @@ export default function FloatingMiniBillboardWrapper() {
       }
 
       try {
-        // Fetch readings for all grids in parallel
+        // Set a timeout for the entire operation
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Billboard readings fetch timeout'));
+          }, 12000); // 12 second timeout for all readings
+        });
+
+        // Fetch readings for all grids in parallel with individual timeouts
         const readingsPromises = gridsData.grids.map(async (grid) => {
           try {
             const reading = await gridsService.getGridRepresentativeReading(
               grid._id,
+              { timeout: 8000 }, // 8 second timeout per reading
             );
             return {
               grid,
               reading: reading?.data || null,
             } as BillboardData;
-          } catch {
+          } catch (error) {
+            console.warn(
+              `[FloatingBillboard] Failed to fetch reading for grid ${grid._id}:`,
+              error instanceof Error ? error.message : 'Unknown error',
+            );
             // If reading fails, return grid with null reading
             return {
               grid,
@@ -69,7 +82,12 @@ export default function FloatingMiniBillboardWrapper() {
           }
         });
 
-        const results = await Promise.all(readingsPromises);
+        const results = (await Promise.race([
+          Promise.all(readingsPromises),
+          timeoutPromise,
+        ])) as BillboardData[];
+
+        clearTimeout(timeoutId);
 
         // Filter to only include grids with valid PM2.5 data
         const validData = results.filter(
@@ -82,7 +100,10 @@ export default function FloatingMiniBillboardWrapper() {
           setLoading(false);
         }
       } catch (error) {
-        console.error('[FloatingBillboard] Failed to fetch readings:', error);
+        console.error(
+          '[FloatingBillboard] Failed to fetch readings:',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
         if (mounted) {
           setLoading(false);
         }
@@ -95,6 +116,9 @@ export default function FloatingMiniBillboardWrapper() {
 
     return () => {
       mounted = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [gridsData, gridsLoading, gridsError]);
 
