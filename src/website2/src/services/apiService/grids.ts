@@ -10,9 +10,9 @@ import BaseApiService, { ServiceOptions } from '../base';
  * Grids API Endpoints
  */
 const GRIDS_ENDPOINTS = {
-  GRIDS_SUMMARY: '/api/v2/devices/grids/summary',
-  GRIDS_REPRESENTATIVE: '/api/v2/devices/readings/grids',
-  GRID_MEASUREMENTS: '/api/v2/devices/measurements/grids',
+  GRIDS_SUMMARY: 'devices/grids/summary',
+  GRIDS_REPRESENTATIVE: 'devices/readings/grids',
+  GRID_MEASUREMENTS: 'devices/measurements/grids',
 } as const;
 
 class GridsService extends BaseApiService {

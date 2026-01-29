@@ -39,7 +39,7 @@ export interface DailyForecastResponse {
  * Predict API Endpoints
  */
 const PREDICT_ENDPOINTS = {
-  DAILY_FORECAST: '/api/v2/predict/daily-forecast',
+  DAILY_FORECAST: 'predict/daily-forecast',
 } as const;
 
 class PredictService extends BaseApiService {
