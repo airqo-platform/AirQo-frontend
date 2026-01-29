@@ -103,7 +103,7 @@ class ApiClient {
       // We need to construct: /api/v2/devices/grids/summary
 
       if (endpoint.startsWith('/website/') || endpoint.startsWith('website/')) {
-        // Website endpoints: /api/v2/website/api/v2/...
+        // Website endpoints: /api/v2/website/...
         const cleanEndpoint = endpoint.startsWith('/')
           ? endpoint.slice(1)
           : endpoint;

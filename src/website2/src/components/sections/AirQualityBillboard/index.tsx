@@ -139,7 +139,7 @@ const AirQualityBillboard = ({
   useEffect(() => {
     if (!dataLoaded && isLoading) {
       const timer = setTimeout(() => {
-        // If still loading after 20 seconds, assume API issue and hide component
+        // If still loading after 30 seconds, assume API issue and hide component
         setDataLoaded(true);
         handleItemSelect(null);
       }, 30000);
