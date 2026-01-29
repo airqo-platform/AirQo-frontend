@@ -47,14 +47,16 @@ function ActiveGroupGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-// Define auth routes that authenticated users should be redirected away from
-const authRoutes = [
+// Define public routes that don't require authentication
+const publicRoutes = [
   '/user/login',
   '/user/creation/individual/register',
   '/user/creation/individual/verify-email',
   '/user/creation/individual/interest', // covers /user/creation/individual/interest/[id]/[token]
   '/user/forgotPwd',
   '/user/forgotPwd/reset',
+  '/user/delete/confirm', // covers /user/delete/confirm/[token]
+  '/org-invite', // Public invitation acceptance page
 ];
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
@@ -68,7 +70,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     useState(false);
   const [hasHandledUnauthorized, setHasHandledUnauthorized] = useState(false);
 
-  const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
   // Listen for unauthorized events from API client
   const handleUnauthorized = useCallback(
@@ -88,8 +90,8 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Don't handle unauthorized on auth routes (login, register, etc.)
-      if (isAuthRoute) return;
+      // Don't handle unauthorized on public routes (login, register, etc.)
+      if (isPublicRoute) return;
 
       // Prevent multiple unauthorized handling
       if (hasHandledUnauthorized) return;
@@ -206,7 +208,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
         logout();
       }
     },
-    [logout, update, isAuthRoute, hasHandledUnauthorized, isLoggingOut]
+    [logout, update, isPublicRoute, hasHandledUnauthorized, isLoggingOut]
   );
 
   useEffect(() => {
@@ -217,16 +219,20 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [handleUnauthorized]);
 
-  // If authenticated and on an auth page, redirect based on active group
+  // If authenticated and on a public page (except org-invite), redirect based on active group
+  // Note: /org-invite should be accessible to both authenticated and unauthenticated users
   useEffect(() => {
-    if (status === 'authenticated' && isAuthRoute && activeGroup) {
+    if (status === 'authenticated' && isPublicRoute && activeGroup) {
+      // Allow /org-invite to be accessed by authenticated users
+      if (pathname.startsWith('/org-invite')) return;
+
       if (activeGroup.title.toLowerCase() === 'airqo') {
         router.push('/user/home');
       } else {
         router.push(`/org/${activeGroup.organizationSlug}/dashboard`);
       }
     }
-  }, [status, isAuthRoute, activeGroup, router]);
+  }, [status, isPublicRoute, activeGroup, router, pathname]);
 
   useEffect(() => {
     if (status === 'authenticated') {
@@ -247,7 +253,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (
       status === 'unauthenticated' &&
-      !isAuthRoute &&
+      !isPublicRoute &&
       !hasLoggedOutForExpiration &&
       !isLoggingOut &&
       !hasHandledUnauthorized
@@ -258,7 +264,7 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
     }
   }, [
     status,
-    isAuthRoute,
+    isPublicRoute,
     logout,
     hasLoggedOutForExpiration,
     isLoggingOut,
@@ -266,12 +272,13 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   ]);
 
   // While session is being fetched, show a loading overlay
-  if (status === 'loading') {
+  // Exception: For public routes, don't show loading overlay (let them render immediately)
+  if (status === 'loading' && !isPublicRoute) {
     return <LoadingOverlay />;
   }
 
-  // For auth routes, allow rendering even if unauthenticated
-  if (isAuthRoute) {
+  // For public routes, allow rendering even if unauthenticated
+  if (isPublicRoute) {
     return <>{children}</>;
   }
 

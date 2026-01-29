@@ -321,6 +321,22 @@ export class UserService {
     return data as { success: boolean; message: string };
   }
 
+  // Approve group join request - public endpoint (for invitation links)
+  async approveGroupJoinRequestPublic(
+    requestId: string
+  ): Promise<{ success: boolean; message: string }> {
+    const response = await this.openClient.post<
+      { success: boolean; message: string } | ApiErrorResponse
+    >(`/users/requests/${requestId}/approve`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to approve group join request');
+    }
+
+    return data as { success: boolean; message: string };
+  }
+
   // Reject group join request - authenticated endpoint
   async rejectGroupJoinRequest(
     requestId: string
