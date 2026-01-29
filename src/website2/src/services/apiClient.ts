@@ -83,45 +83,64 @@ class ApiClient {
   }
 
   private buildUrl(endpoint: string, params?: Record<string, any>): string {
-    // Build URL for the Next.js API proxy route
-    // The proxy expects: /api/v2/{actual-api-path}
-    // where actual-api-path is like "website/api/v2/publications/"
-
+    const isServerSide = typeof window === 'undefined';
     let url: string;
 
-    // If endpoint starts with /website/ or starts with website/, it's a full API path
-    if (endpoint.startsWith('/website/') || endpoint.startsWith('website/')) {
+    if (isServerSide) {
+      // Server-side: Direct backend API call
+      // baseURL is already the full backend URL (e.g., https://platform.airqo.net)
+      // Endpoint already includes /api/v2/... so just append it
       const cleanEndpoint = endpoint.startsWith('/')
-        ? endpoint.slice(1)
-        : endpoint;
-      url = `${this.baseURL}/${cleanEndpoint}`;
-    }
-    // If endpoint starts with /api/ or api/, it's also a full API path
-    else if (endpoint.startsWith('/api/') || endpoint.startsWith('api/')) {
-      const cleanEndpoint = endpoint.startsWith('/')
-        ? endpoint.slice(1)
-        : endpoint;
-      url = `${this.baseURL}/${cleanEndpoint}`;
-    }
-    // For other endpoints, treat as relative
-    else {
-      const normalizedEndpoint = endpoint.startsWith('/')
         ? endpoint
         : `/${endpoint}`;
-      url = `${this.baseURL}${normalizedEndpoint}`;
+      url = `${this.baseURL}${cleanEndpoint}`;
+    } else {
+      // Client-side: Use Next.js proxy
+      // baseURL is /api/v2, endpoint is like /api/v2/devices/grids/summary
+      // We need to construct: /api/v2/api/v2/devices/grids/summary
+      // OR if endpoint starts with /website/, use: /api/v2/website/...
+
+      if (endpoint.startsWith('/website/') || endpoint.startsWith('website/')) {
+        const cleanEndpoint = endpoint.startsWith('/')
+          ? endpoint.slice(1)
+          : endpoint;
+        url = `${this.baseURL}/${cleanEndpoint}`;
+      } else if (endpoint.startsWith('/api/') || endpoint.startsWith('api/')) {
+        const cleanEndpoint = endpoint.startsWith('/')
+          ? endpoint.slice(1)
+          : endpoint;
+        url = `${this.baseURL}/${cleanEndpoint}`;
+      } else {
+        const normalizedEndpoint = endpoint.startsWith('/')
+          ? endpoint
+          : `/${endpoint}`;
+        url = `${this.baseURL}${normalizedEndpoint}`;
+      }
     }
 
+    // Build query parameters
+    const searchParams = new URLSearchParams();
+
+    // Add token for server-side requests
+    if (isServerSide) {
+      const apiToken = process.env.API_TOKEN;
+      if (apiToken) {
+        searchParams.set('token', apiToken);
+      }
+    }
+
+    // Add other params
     if (params && Object.keys(params).length > 0) {
-      const searchParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
           searchParams.append(key, String(value));
         }
       });
-      const queryString = searchParams.toString();
-      if (queryString) {
-        url += `?${queryString}`;
-      }
+    }
+
+    const queryString = searchParams.toString();
+    if (queryString) {
+      url += `?${queryString}`;
     }
 
     return url;
@@ -129,7 +148,14 @@ class ApiClient {
 }
 
 // Create the API client instance
-const apiUrl = '/api/v2';
+// Use absolute backend URL on server-side (direct API calls with token)
+// Use Next.js proxy on client-side (hides API from network tab)
+const isServerSide = typeof window === 'undefined';
+const apiUrl = isServerSide
+  ? process.env.API_URL ||
+    process.env.NEXT_PUBLIC_API_URL ||
+    'https://platform.airqo.net'
+  : '/api/v2';
 
 const apiClient = new ApiClient({
   baseURL: apiUrl,

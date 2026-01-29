@@ -72,6 +72,11 @@ const menuItems: MenuItems = {
       href: '/solutions/research',
     },
     {
+      title: 'Kampala Air Quality Study',
+      description: 'Join our real-time air pollution research study',
+      href: '/solutions/kampala-study',
+    },
+    {
       title: 'Network Coverage',
       description: 'Explore our air quality monitoring network across Africa',
       href: '/solutions/network-coverage',
@@ -191,6 +196,7 @@ const Navbar: React.FC = () => {
               width={71}
               height={48}
               className="h-10 w-auto cursor-pointer"
+              priority={true}
             />
           </Link>
 
