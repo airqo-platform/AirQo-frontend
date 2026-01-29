@@ -45,6 +45,7 @@ export default function FloatingMiniBillboardWrapper() {
     const fetchReadings = async () => {
       if (!gridsData?.grids || gridsData.grids.length === 0) {
         if (mounted) {
+          setBillboardData([]);
           setLoading(false);
         }
         return;

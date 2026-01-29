@@ -88,12 +88,15 @@ class ApiClient {
 
     if (isServerSide) {
       // Server-side: Direct backend API call
-      // baseURL is already the full backend URL from environment variables
-      // Endpoint already includes /api/v2/... so just append it
+      // Normalize baseURL to ensure it ends with /api/v2
+      let normalizedBaseURL = this.baseURL.replace(/\/$/, ''); // Remove trailing slash
+      if (!normalizedBaseURL.endsWith('/api/v2')) {
+        normalizedBaseURL += '/api/v2';
+      }
       const cleanEndpoint = endpoint.startsWith('/')
         ? endpoint
         : `/${endpoint}`;
-      url = `${this.baseURL}${cleanEndpoint}`;
+      url = `${normalizedBaseURL}${cleanEndpoint}`;
     } else {
       // Client-side: Use Next.js proxy
       // baseURL is /api/v2, endpoint should be relative path like 'devices/grids/summary'
