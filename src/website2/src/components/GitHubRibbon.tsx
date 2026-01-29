@@ -45,6 +45,7 @@ const GitHubRibbon: React.FC<GitHubRibbonProps> = ({
         rel="noopener noreferrer"
         aria-label={`${text} - Opens AirQo's GitHub repository in a new window`}
         title={`${text} - Fork and contribute to AirQo's Open Source Platform`}
+        suppressHydrationWarning
       >
         {text}
       </a>

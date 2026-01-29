@@ -30,6 +30,24 @@ function useServiceData<T>(
   const { data, error, isValidating, mutate } = useSWR<T>(key, serviceCall, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
+    dedupingInterval: 5000, // 5 seconds
+    errorRetryCount: 3,
+    errorRetryInterval: 3000, // 3 seconds
+    shouldRetryOnError: true,
+    onErrorRetry: (error, key, config, revalidate, { retryCount }) => {
+      // Don't retry on 404
+      if (error?.statusCode === 404) return;
+      // Don't retry on timeout after 3 attempts
+      if (retryCount >= 3) return;
+      // Don't retry if aborted
+      if (error?.name === 'AbortError' || error?.message?.includes('aborted'))
+        return;
+      // Retry after delay
+      setTimeout(
+        () => revalidate({ retryCount }),
+        Math.min(1000 * 2 ** retryCount, 10000),
+      );
+    },
     ...swrOptions,
   });
 
@@ -328,7 +346,9 @@ export const useGridsSummary = (
   swrOptions?: SWRConfiguration,
 ) =>
   useServiceData(
-    params ? () => gridsService.getGridsSummary(params) : null,
+    params
+      ? () => gridsService.getGridsSummary(params, { timeout: 15000 })
+      : null,
     params ? `gridsSummary-${JSON.stringify(params)}` : null,
     {
       revalidateOnFocus: false,
@@ -336,8 +356,12 @@ export const useGridsSummary = (
       revalidateOnMount: true,
       dedupingInterval: 300000, // 5 minutes
       focusThrottleInterval: 10000, // 10 seconds
-      errorRetryInterval: 5000, // 5 seconds
+      errorRetryInterval: 3000, // 3 seconds
       errorRetryCount: 3,
+      loadingTimeout: 15000, // 15 second timeout for loading
+      onLoadingSlow: (key) => {
+        console.warn('[GridsSummary] Loading slow for:', key);
+      },
       ...swrOptions,
     },
   );
@@ -347,12 +371,21 @@ export const useGridRepresentativeReading = (
   swrOptions?: SWRConfiguration,
 ) =>
   useServiceData(
-    gridId ? () => gridsService.getGridRepresentativeReading(gridId) : null,
+    gridId
+      ? () =>
+          gridsService.getGridRepresentativeReading(gridId, { timeout: 10000 })
+      : null,
     gridId ? `gridRepresentativeReading-${gridId}` : null,
     {
       revalidateOnFocus: false,
       revalidateIfStale: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
+      errorRetryInterval: 3000, // 3 seconds
+      errorRetryCount: 3,
+      loadingTimeout: 10000, // 10 second timeout for loading
+      onLoadingSlow: (key) => {
+        console.warn('[GridRepresentativeReading] Loading slow for:', key);
+      },
       ...swrOptions,
     },
   );
@@ -372,7 +405,10 @@ export const useGridMeasurements = (
 ) =>
   useServiceData(
     gridId
-      ? () => gridsService.getGridMeasurements(gridId, params || {})
+      ? () =>
+          gridsService.getGridMeasurements(gridId, params || {}, {
+            timeout: 15000,
+          })
       : null,
     gridId
       ? `gridMeasurements-${gridId}-${JSON.stringify(params || {})}`
@@ -383,8 +419,12 @@ export const useGridMeasurements = (
       revalidateOnMount: true,
       refreshInterval: 300000, // 5 minutes auto-refresh
       focusThrottleInterval: 10000, // 10 seconds
-      errorRetryInterval: 5000, // 5 seconds
+      errorRetryInterval: 3000, // 3 seconds
       errorRetryCount: 3,
+      loadingTimeout: 15000, // 15 second timeout for loading
+      onLoadingSlow: (key) => {
+        console.warn('[GridMeasurements] Loading slow for:', key);
+      },
       ...swrOptions,
     },
   );
@@ -395,12 +435,20 @@ export const useDailyForecast = (
   swrOptions?: SWRConfiguration,
 ) =>
   useServiceData(
-    siteId ? () => predictService.getDailyForecast(siteId) : null,
+    siteId
+      ? () => predictService.getDailyForecast(siteId, { timeout: 10000 })
+      : null,
     siteId ? `dailyForecast-${siteId}` : null,
     {
       revalidateOnFocus: false,
       revalidateIfStale: true,
       refreshInterval: 3600000, // 1 hour auto-refresh for forecasts
+      errorRetryInterval: 3000, // 3 seconds
+      errorRetryCount: 3,
+      loadingTimeout: 10000, // 10 second timeout for loading
+      onLoadingSlow: (key) => {
+        console.warn('[DailyForecast] Loading slow for:', key);
+      },
       ...swrOptions,
     },
   );

@@ -88,29 +88,28 @@ class ApiClient {
 
     if (isServerSide) {
       // Server-side: Direct backend API call
-      // baseURL is already the full backend URL (e.g., https://platform.airqo.net)
-      // Endpoint already includes /api/v2/... so just append it
+      // Normalize baseURL to ensure it ends with /api/v2
+      let normalizedBaseURL = this.baseURL.replace(/\/$/, ''); // Remove trailing slash
+      if (!normalizedBaseURL.endsWith('/api/v2')) {
+        normalizedBaseURL += '/api/v2';
+      }
       const cleanEndpoint = endpoint.startsWith('/')
         ? endpoint
         : `/${endpoint}`;
-      url = `${this.baseURL}${cleanEndpoint}`;
+      url = `${normalizedBaseURL}${cleanEndpoint}`;
     } else {
       // Client-side: Use Next.js proxy
-      // baseURL is /api/v2, endpoint is like /api/v2/devices/grids/summary
-      // We need to construct: /api/v2/api/v2/devices/grids/summary
-      // OR if endpoint starts with /website/, use: /api/v2/website/...
+      // baseURL is /api/v2, endpoint should be relative path like 'devices/grids/summary'
+      // We need to construct: /api/v2/devices/grids/summary
 
       if (endpoint.startsWith('/website/') || endpoint.startsWith('website/')) {
-        const cleanEndpoint = endpoint.startsWith('/')
-          ? endpoint.slice(1)
-          : endpoint;
-        url = `${this.baseURL}/${cleanEndpoint}`;
-      } else if (endpoint.startsWith('/api/') || endpoint.startsWith('api/')) {
+        // Website endpoints: /api/v2/website/...
         const cleanEndpoint = endpoint.startsWith('/')
           ? endpoint.slice(1)
           : endpoint;
         url = `${this.baseURL}/${cleanEndpoint}`;
       } else {
+        // Regular API endpoints: /api/v2/devices/grids/summary
         const normalizedEndpoint = endpoint.startsWith('/')
           ? endpoint
           : `/${endpoint}`;
@@ -152,13 +151,17 @@ class ApiClient {
 // Use Next.js proxy on client-side (hides API from network tab)
 const isServerSide = typeof window === 'undefined';
 const apiUrl = isServerSide
-  ? process.env.API_URL ||
-    process.env.NEXT_PUBLIC_API_URL ||
-    'https://platform.airqo.net'
+  ? process.env.API_URL || process.env.NEXT_PUBLIC_API_URL
   : '/api/v2';
 
+if (isServerSide && !apiUrl) {
+  throw new Error(
+    'API_URL or NEXT_PUBLIC_API_URL environment variable is required for server-side API calls',
+  );
+}
+
 const apiClient = new ApiClient({
-  baseURL: apiUrl,
+  baseURL: apiUrl!,
   timeout: 30000,
 });
 
