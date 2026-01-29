@@ -8,7 +8,7 @@ import React from 'react';
 const Loading = () => {
   return (
     <motion.div
-      className="flex items-center justify-center min-h-screen bg-white"
+      className="flex items-center justify-center min-h-screen bg-white z-[9999] fixed inset-0"
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}

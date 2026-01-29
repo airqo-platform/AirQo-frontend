@@ -8,8 +8,6 @@ export {
   useCareers,
   useCleanAirEvents,
   useCleanAirResources,
-  useCohortMeasurements,
-  useCohortsSummary,
   useCountriesData,
   useDailyForecast,
   useDepartments,

@@ -11,7 +11,7 @@ const Loading: React.FC<LoadingProps> = ({
   fullScreen = false,
 }) => {
   const containerClasses = fullScreen
-    ? 'flex items-center justify-center min-h-screen bg-white'
+    ? 'flex items-center justify-center min-h-screen bg-white z-[9999] fixed inset-0'
     : 'flex items-center justify-center';
 
   return (
