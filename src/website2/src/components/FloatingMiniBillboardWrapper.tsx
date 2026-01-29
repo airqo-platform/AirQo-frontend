@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
+import { useGridsSummary } from '@/hooks/useApiHooks';
+import { gridsService } from '@/services/apiService';
 import { Grid } from '@/types/grids';
 
 import FloatingMiniBillboard from './FloatingMiniBillboard';
@@ -16,61 +18,115 @@ interface BillboardData {
 }
 
 /**
- * Client-side wrapper that fetches billboard data from API route
+ * Client-side wrapper that fetches billboard data directly using hooks
  * Handles errors gracefully and provides fallback UI
+ * Note: Uses client-side API calls with token proxying to avoid server costs
  */
 export default function FloatingMiniBillboardWrapper() {
-  const [data, setData] = useState<BillboardData[] | null>(null);
-  const [error, setError] = useState(false);
+  const [billboardData, setBillboardData] = useState<BillboardData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Fetch grids summary with reduced limit for performance
+  const {
+    data: gridsData,
+    isLoading: gridsLoading,
+    error: gridsError,
+  } = useGridsSummary({
+    admin_level: 'country',
+    limit: 10,
+    page: 1,
+  });
+
+  // Fetch readings when grids data is available
   useEffect(() => {
     let mounted = true;
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 20000);
+    let timeoutId: NodeJS.Timeout;
 
-    const fetchData = async () => {
+    const fetchReadings = async () => {
+      if (!gridsData?.grids || gridsData.grids.length === 0) {
+        if (mounted) {
+          setBillboardData([]);
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
-        const response = await fetch('/api/billboard-data', {
-          signal: controller.signal,
+        // Set a timeout for the entire operation
+        const timeoutPromise = new Promise((_, reject) => {
+          timeoutId = setTimeout(() => {
+            reject(new Error('Billboard readings fetch timeout'));
+          }, 12000); // 12 second timeout for all readings
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // Fetch readings for all grids in parallel with individual timeouts
+        const readingsPromises = gridsData.grids.map(async (grid) => {
+          try {
+            const reading = await gridsService.getGridRepresentativeReading(
+              grid._id,
+              { timeout: 8000 }, // 8 second timeout per reading
+            );
+            return {
+              grid,
+              reading: reading?.data || null,
+            } as BillboardData;
+          } catch (error) {
+            console.warn(
+              `[FloatingBillboard] Failed to fetch reading for grid ${grid._id}:`,
+              error instanceof Error ? error.message : 'Unknown error',
+            );
+            // If reading fails, return grid with null reading
+            return {
+              grid,
+              reading: null,
+            } as BillboardData;
+          }
+        });
 
-        const result = await response.json();
+        const results = (await Promise.race([
+          Promise.all(readingsPromises),
+          timeoutPromise,
+        ])) as BillboardData[];
 
-        if (mounted && result?.data) {
-          setData(result.data);
-          setError(false);
-        }
-      } catch (err) {
-        console.error('[FloatingBillboard] Failed to fetch data:', err);
-        if (mounted) {
-          setError(true);
-        }
-      } finally {
         clearTimeout(timeoutId);
+
+        // Filter to only include grids with valid PM2.5 data
+        const validData = results.filter(
+          (item) =>
+            item.reading?.pm2_5?.value != null && item.reading.pm2_5.value >= 0,
+        );
+
+        if (mounted) {
+          setBillboardData(validData);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error(
+          '[FloatingBillboard] Failed to fetch readings:',
+          error instanceof Error ? error.message : 'Unknown error',
+        );
         if (mounted) {
           setLoading(false);
         }
       }
     };
 
-    fetchData();
+    if (!gridsLoading && !gridsError) {
+      fetchReadings();
+    }
 
     return () => {
       mounted = false;
-      controller.abort();
-      clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     };
-  }, []);
+  }, [gridsData, gridsLoading, gridsError]);
 
   // Don't render anything while loading or if there's an error
-  if (loading || error || !data || data.length === 0) {
+  if (loading || gridsLoading || gridsError || billboardData.length === 0) {
     return null;
   }
 
-  return <FloatingMiniBillboard initialData={data} />;
+  return <FloatingMiniBillboard initialData={billboardData} />;
 }

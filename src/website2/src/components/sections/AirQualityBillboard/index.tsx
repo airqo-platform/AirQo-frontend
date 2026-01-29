@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 
 import AirQualityDisplay from './components/AirQualityDisplay';
 import BillboardHeader from './components/BillboardHeader';
-import ErrorDisplay from './components/ErrorDisplay';
 import { useAirQualityData } from './hooks/useAirQualityData';
 import { useBillboardControls } from './hooks/useBillboardControls';
 import { useMeasurements } from './hooks/useMeasurements';
@@ -44,8 +43,7 @@ const AirQualityBillboard = ({
 
   // Data fetching hooks
   const airQualityData = useAirQualityData(dataType, propItemName);
-  const { gridsData, allGrids, gridsLoading, gridsError, gridsParams } =
-    airQualityData;
+  const { gridsData, allGrids, gridsLoading, gridsError } = airQualityData;
 
   // Measurements hook
   const measurements = useMeasurements(dataType, selectedItem);
@@ -137,12 +135,28 @@ const AirQualityBillboard = ({
     isLoading,
   ]);
 
+  // Timeout to hide component if loading takes too long (API issues)
+  useEffect(() => {
+    if (!dataLoaded && isLoading) {
+      const timer = setTimeout(() => {
+        // If still loading after 30 seconds, assume API issue and hide component
+        setDataLoaded(true);
+        handleItemSelect(null);
+      }, 30000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [dataLoaded, isLoading, setDataLoaded, handleItemSelect]);
+
   // Handle item selection with measurements refresh
   const onItemSelect = (item: any) => {
     handleItemSelect(item);
     resetIndices();
     forceMeasurementsRefresh();
   };
+
+  // Hide the component if no grids are available after loading
+  if (dataLoaded && !allGrids.length) return null;
 
   return (
     <div
@@ -182,20 +196,10 @@ const AirQualityBillboard = ({
             : undefined
         }
       >
-        {/* Error States */}
-        {hasError ? (
-          <ErrorDisplay
-            type="summary"
-            dataType={dataType}
-            gridsParams={gridsParams}
-          />
-        ) : selectedItem && measurementsError ? (
-          <ErrorDisplay
-            type="measurements"
-            dataType={dataType}
-            selectedItem={selectedItem}
-          />
-        ) : !dataLoaded || (selectedItem && measurementsLoading) ? (
+        {/* Error States - Hidden as per user request, automatic retry in background */}
+        {hasError ? null : selectedItem &&
+          measurementsError ? null : !dataLoaded ||
+          (selectedItem && measurementsLoading) ? (
           <BillboardSkeleton centered={centered} homepage={homepage} />
         ) : propItemName && !selectedItem ? (
           <BillboardSkeleton centered={centered} homepage={homepage} />
