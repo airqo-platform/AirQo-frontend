@@ -174,6 +174,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       return;
     }
 
+    if (!mounted) return;
+
     setState(() {
       isSaving = true;
       _isUserSelecting = false; // Reset selection flag when saving
