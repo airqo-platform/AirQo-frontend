@@ -225,7 +225,6 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
       return;
     }
 
-    // Validate authentication using reusable helper
     if (!await AuthValidationHelper.validateAuthentication(context)) {
       return;
     }

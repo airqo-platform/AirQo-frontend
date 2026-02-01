@@ -170,7 +170,6 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
     loggy.info(
         'Save button pressed with ${selectedLocations.length} selected locations');
 
-    // Validate authentication using reusable helper
     if (!await AuthValidationHelper.validateAuthentication(context)) {
       return;
     }

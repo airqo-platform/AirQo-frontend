@@ -144,7 +144,6 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       loggy.info('Replacement response status: ${updateResponse.statusCode}');
 
-      // Handle 401 authentication errors
       if (updateResponse.statusCode == 401) {
         loggy.warning('Authentication error (401): Token might be expired or invalid');
         return {

@@ -326,7 +326,6 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
       } else {
         loggy.warning('Failed to update preferences: ${response["message"]}');
 
-        // Check if this is an authentication error
         if (response['auth_error'] == true) {
           loggy.error('Authentication error detected when updating preferences');
           emit(DashboardAuthenticationError(
