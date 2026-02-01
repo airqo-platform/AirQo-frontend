@@ -144,7 +144,17 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       loggy.info('Replacement response status: ${updateResponse.statusCode}');
 
-      if (updateResponse.statusCode >= 200 && 
+      // Handle 401 authentication errors
+      if (updateResponse.statusCode == 401) {
+        loggy.warning('Authentication error (401): Token might be expired or invalid');
+        return {
+          'success': false,
+          'message': 'Your session has expired. Please log in again.',
+          'auth_error': true
+        };
+      }
+
+      if (updateResponse.statusCode >= 200 &&
           updateResponse.statusCode < 300 &&
           !updateResponse.body.trim().startsWith('<')) {
         try {
@@ -162,7 +172,7 @@ class UserPreferencesImpl extends UserPreferencesRepository with NetworkLoggy {
 
       loggy.error('Failed to update preferences');
 
-      if (oldPreferencesData != null && 
+      if (oldPreferencesData != null &&
           oldPreferencesData.containsKey('selected_sites')) {
         return await _attemptRollback(userId, oldPreferencesData, headers, url);
       }

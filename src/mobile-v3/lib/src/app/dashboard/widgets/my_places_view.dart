@@ -11,6 +11,8 @@ import 'package:airqo/src/app/dashboard/pages/location_selection/location_select
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/auth/services/auth_validation_helper.dart';
+import 'package:airqo/src/app/auth/pages/login_page.dart';
 
 class MyPlacesView extends StatefulWidget {
   final UserPreferencesModel? userPreferences;
@@ -178,7 +180,7 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
     });
   }
 
-  void _removeLocation(String id) {
+  Future<void> _removeLocation(String id) async {
     if ((selectedMeasurements.length + unmatchedSites.length) <= 1) {
       showDialog(
         context: context,
@@ -220,6 +222,11 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
             'Cannot remove the last location. Please add another location first.',
         isSuccess: false,
       );
+      return;
+    }
+
+    // Validate authentication using reusable helper
+    if (!await AuthValidationHelper.validateAuthentication(context)) {
       return;
     }
 
@@ -321,6 +328,25 @@ class _MyPlacesViewState extends State<MyPlacesView> with UiLoggy {
         loggy.info('Dashboard state changed to ${state.runtimeType}');
         if (state is DashboardLoaded) {
           _loadSelectedMeasurements();
+        } else if (state is DashboardAuthenticationError) {
+          loggy.error('Authentication error detected: ${state.message}');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              duration: const Duration(seconds: 8),
+              action: SnackBarAction(
+                label: 'Log In',
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (context) => const LoginPage(),
+                    ),
+                    (route) => false,
+                  );
+                },
+              ),
+            ),
+          );
         }
       },
       child: Stack(
