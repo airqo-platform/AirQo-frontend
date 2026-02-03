@@ -90,14 +90,27 @@ class DashboardLoadingError extends DashboardState {
   final String message;
   final bool isOffline;
   final bool hasCache;
-  
+
 
   const DashboardLoadingError(
     this.message, {
     this.isOffline = false,
     this.hasCache = false
   });
-  
+
   @override
   List<Object> get props => [message, isOffline];
+}
+
+class DashboardAuthenticationError extends DashboardState {
+  final String message;
+  final DashboardLoaded previousState;
+
+  const DashboardAuthenticationError({
+    required this.message,
+    required this.previousState,
+  });
+
+  @override
+  List<Object?> get props => [message, previousState];
 }

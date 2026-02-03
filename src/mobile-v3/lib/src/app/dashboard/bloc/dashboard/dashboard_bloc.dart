@@ -325,6 +325,16 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> with UiLoggy {
         add(LoadUserPreferences());
       } else {
         loggy.warning('Failed to update preferences: ${response["message"]}');
+
+        if (response['auth_error'] == true) {
+          loggy.error('Authentication error detected when updating preferences');
+          emit(DashboardAuthenticationError(
+            message: response['message'] ?? 'Your session has expired. Please log in again.',
+            previousState: currentState,
+          ));
+          return;
+        }
+
         // Even on failure, reload to show current state (may include rollback)
         if (response['rolled_back'] == true) {
           loggy.info('Preferences were rolled back, reloading to show current state');
