@@ -41,7 +41,7 @@ export interface AnalyticsCardProps {
   onClick?: (site: SiteData) => void;
 }
 
-// Quick access locations props interface
+// Favorite locations props interface
 export interface QuickAccessLocationsProps {
   sites: SiteData[];
   currentFilters?: {

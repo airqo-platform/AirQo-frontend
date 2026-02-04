@@ -224,7 +224,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
         />
       )}
 
-      {/* Quick Access Locations Card */}
+      {/* Favorite Locations Card */}
       <QuickAccessCard
         sites={siteCards}
         onManageFavorites={handleManageFavorites}
