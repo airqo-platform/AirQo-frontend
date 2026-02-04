@@ -303,7 +303,7 @@ const KampalaStudyPage = () => {
               <div className="space-y-4 text-base text-gray-700">
                 <p className="leading-relaxed">
                   Your contribution helps us build a comprehensive understanding
-                  of air quality patterns in Kampala. Your insights will
+                  of air quality patterns in Kampala. Your participation will
                   directly inform:
                 </p>
                 <ul className="space-y-3">
