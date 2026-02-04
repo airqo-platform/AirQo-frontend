@@ -517,15 +517,15 @@ export function generateMetadata(config: MetadataConfig): Metadata {
 export const METADATA_CONFIGS = {
   home: {
     title:
-      'AirQo | Air Quality Monitoring Uganda, Kenya, Nigeria - Real-time Pollution Data Africa',
+      "AirQo | Africa's Leading Air Quality Monitoring Network - Real-time Pollution Data",
     description:
-      'Leading air quality monitoring network across Africa. Real-time PM2.5 data from 200+ sensors in Kampala, Nairobi, Lagos, Accra. Track pollution levels in Uganda, Kenya, Nigeria, Ghana, Rwanda, Tanzania. Free mobile app & API access. Partner: Google.org, World Bank.',
+      'Leading air quality monitoring network across Africa. Real-time PM2.5 data from 400+ sensors in 14 African countries. Track pollution levels across major African cities. Free mobile app & API access. Trusted by governments, researchers, and communities. Partner: Google.org, World Bank, WHO.',
     keywords:
-      'air quality Uganda, air pollution Kenya, Nigeria air quality monitoring, Ghana pollution data, Kampala air quality, Nairobi pollution, Lagos air quality, Accra PM2.5, air quality Africa, African cities pollution, Uganda pollution monitoring, Kenya air sensors, Nigeria environmental data, Ghana air quality, Rwanda air monitoring, Tanzania pollution, Dar es Salaam air quality, Kigali pollution, Jinja air quality, Mombasa pollution, Kisumu air quality, Entebbe pollution data, East Africa air monitoring, West Africa pollution, real-time air quality Africa, low-cost sensors Africa, clean air Africa, AirQo Uganda, AirQo Kenya, AirQo Nigeria, Makerere University air quality, Google.org Africa, WHO air quality Africa',
+      'air quality Africa, air pollution monitoring, African air quality network, real-time PM2.5 Africa, air quality sensors Africa, pollution data Africa, air monitoring network, African cities air quality, air quality monitoring system, low-cost sensors Africa, clean air Africa, air quality app Africa, air quality API, environmental monitoring Africa, PM2.5 tracking, air pollution data, Makerere University air quality, Google.org Africa, WHO air quality Africa, air quality research Africa, African environmental data',
     url: '/',
     image: {
       url: 'https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132435/website/photos/AirQuality_meyioj.webp',
-      alt: 'AirQo Air Quality Monitoring - Uganda, Kenya, Nigeria, Ghana Real-time Pollution Data',
+      alt: "AirQo - Africa's Leading Air Quality Monitoring Network with Real-time Pollution Data",
       width: 1200,
       height: 630,
       type: 'image/webp',
