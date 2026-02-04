@@ -204,7 +204,7 @@ const KampalaStudyPage = () => {
               people lack access to reliable, real-time information. This study
               is designed to understand how access to air quality information
               can improve everyday decisions and help build better, more
-              responsive clean-air innovations for all urban residents.
+              responsive clean-air interventions for all urban residents.
             </p>
 
             <div className="bg-[#E9F7EF] rounded-xl p-6 md:p-8">
