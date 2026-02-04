@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 
-import { gridsService, externalService } from '@/services/apiService';
-import { Grid, GridsSummaryResponse } from '@/types/grids';
+import { externalService, gridsService } from '@/services/apiService';
+import { Grid } from '@/types/grids';
 
 import FloatingMiniBillboard from './FloatingMiniBillboard';
 
@@ -89,14 +89,7 @@ export default function FloatingMiniBillboardWrapper() {
           return 0; // Keep original order for others
         });
 
-        // Step 3: Fetch readings for all grids with timeout
-        const timeoutPromise = new Promise((_, reject) => {
-          timeoutId = setTimeout(() => {
-            reject(new Error('Billboard readings fetch timeout'));
-          }, 30000); // 30 second timeout for all readings
-        });
-
-        // Fetch readings in batches of 10 to avoid overwhelming the server
+        // Step 3: Fetch readings for all grids in batches
         const batchSize = 10;
         const allReadings: BillboardData[] = [];
 
@@ -133,8 +126,6 @@ export default function FloatingMiniBillboardWrapper() {
             await new Promise((resolve) => setTimeout(resolve, 500));
           }
         }
-
-        clearTimeout(timeoutId);
 
         // Filter to only include grids with valid PM2.5 data
         const validData = allReadings.filter(
