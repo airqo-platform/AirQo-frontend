@@ -28,7 +28,6 @@ export default function FloatingMiniBillboardWrapper() {
 
   useEffect(() => {
     let mounted = true;
-    let timeoutId: NodeJS.Timeout;
 
     const fetchAllCountriesData = async () => {
       try {
@@ -158,9 +157,6 @@ export default function FloatingMiniBillboardWrapper() {
 
     return () => {
       mounted = false;
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
     };
   }, []);
 
