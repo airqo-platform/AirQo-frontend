@@ -40,7 +40,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         'isActive': 'true',
         'limit': '100',
       };
-      
+
       final response = await createAuthenticatedGetRequest(_surveysEndpoint, queryParams);
       final data = json.decode(response.body);
 
@@ -51,7 +51,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
             .toList();
 
         await _cacheSurveys(surveys);
-        
+
         loggy.info('Fetched ${surveys.length} active surveys from API');
         return surveys;
       } else {
@@ -59,21 +59,17 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       }
     } catch (e) {
       loggy.error('Error fetching surveys: $e');
-      
 
       final cachedSurveys = await _getCachedSurveys();
       if (cachedSurveys.isNotEmpty) {
         loggy.info('Returning ${cachedSurveys.length} cached surveys as fallback');
         return cachedSurveys;
       }
-      
 
-      if (e.toString().contains('401')) {
-        throw Exception('Authentication required. Please log in to view surveys.');
-      } else if (e.toString().contains('403')) {
-        throw Exception('Access denied. You may not have permission to view surveys.');
-      } else if (e.toString().contains('404')) {
-        throw Exception('No surveys found.');
+      if (e.toString().contains('session has expired') ||
+          e.toString().contains('Authentication token not found')) {
+        loggy.warning('Survey auth error, returning empty list instead of propagating');
+        return [];
       } else if (e.toString().contains('No internet')) {
         throw Exception('No internet connection. Please check your network.');
       } else {

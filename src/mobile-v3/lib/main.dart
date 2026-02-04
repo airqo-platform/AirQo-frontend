@@ -22,6 +22,7 @@ import 'package:airqo/src/app/shared/bloc/connectivity_bloc.dart';
 import 'package:airqo/src/app/shared/pages/nav_page.dart';
 import 'package:airqo/src/app/shared/services/auto_update_service.dart';
 import 'package:airqo/src/app/shared/services/cache_manager.dart';
+import 'package:airqo/src/app/shared/services/notification_helper.dart';
 import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -260,6 +261,8 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       AutoUpdateService().initialize(navigatorKey);
+      NotificationHelper().initialize(context);
+      NotificationHelper().subscribeToRelevantTopics();
     });
   }
 

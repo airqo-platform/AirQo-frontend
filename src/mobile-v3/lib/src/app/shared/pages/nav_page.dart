@@ -28,20 +28,19 @@ class NavPageState extends State<NavPage> with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
-    _checkAuthenticationStatus();
-    _loadSurveys();
+    _checkAuthenticationAndLoadSurveys();
   }
 
-  Future<void> _checkAuthenticationStatus() async {
+  Future<void> _checkAuthenticationAndLoadSurveys() async {
     final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    if (!mounted) return;
     setState(() {
       isAuthenticated = userId != null;
     });
-  }
 
-  Future<void> _loadSurveys() async {
-    // Load surveys to check for new ones
-    context.read<SurveyBloc>().add(const LoadSurveys());
+    if (isAuthenticated) {
+      context.read<SurveyBloc>().add(const LoadSurveys());
+    }
   }
 
   Future<void> _updateBadgeCount() async {
