@@ -50,28 +50,28 @@ const animations = {
 // Content constants
 const BENEFITS = [
   {
-    title: 'Real-time Air Quality Information',
+    title: 'Real-time air quality information',
     description:
       'Access timely air quality information for your neighborhood, empowering you to make informed decisions about outdoor activities.',
     icon: LuMapPin,
     color: 'bg-blue-50 text-blue-600',
   },
   {
-    title: 'Health-Informed Daily Decisions',
+    title: 'Health-informed daily decisions',
     description:
       'Plan your day with confidence, choose the best times to walk, jog, or exercise outdoors, and take simple steps to protect vulnerable family members from poor air quality.',
     icon: LuActivity,
     color: 'bg-green-50 text-green-600',
   },
   {
-    title: 'Contribute to Scientific Research',
+    title: 'Contribute to scientific research',
     description:
       'Your participation helps us understand air pollution patterns and develop better solutions for urban communities.',
     icon: LuLightbulb,
     color: 'bg-purple-50 text-purple-600',
   },
   {
-    title: 'Shape Future Innovations',
+    title: 'Shape future innovations',
     description:
       'Influence the development of air quality tools, policies, and city-level interventions for Kampala and beyond.',
     icon: LuTrendingUp,
@@ -82,25 +82,25 @@ const BENEFITS = [
 const PARTICIPATION_STEPS = [
   {
     step: '01',
-    title: 'Install the Study App',
+    title: 'Install the study app',
     description:
       'Click the link shared and install the study APK to get started with the research.',
   },
   {
     step: '02',
-    title: 'Log in with Your Account',
+    title: 'Log in with your account',
     description:
       'Sign in using your credentials via the settings tab. Please avoid using Guest Mode.',
   },
   {
     step: '03',
-    title: 'Complete the Survey',
+    title: 'Complete the survey',
     description:
       'Take a moment to fill out the short survey in the Learn tab about how air quality affects your daily routine.',
   },
   {
     step: '04',
-    title: 'Explore the App',
+    title: 'Explore the app',
     description:
       'Discover features and learn about the quality of the air you are breathing in real-time.',
   },
@@ -187,7 +187,7 @@ const KampalaStudyPage = () => {
       <MotionSection>
         <motion.div variants={animations.item} className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Why This Study Matters
+            Why this study matters
           </h2>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto">
             Understanding how air quality information influences daily decisions
@@ -209,7 +209,7 @@ const KampalaStudyPage = () => {
 
             <div className="bg-[#E9F7EF] rounded-xl p-6 md:p-8">
               <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Research Objectives
+                Research objectives
               </h3>
               <ul className="space-y-3">
                 {[
@@ -252,7 +252,7 @@ const KampalaStudyPage = () => {
       <MotionSection>
         <motion.div variants={animations.item} className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            What&apos;s in it for You?
+            What&apos;s in it for you?
           </h2>
           <p className="text-lg text-gray-600">
             Join the study and unlock these benefits for yourself and your
@@ -298,7 +298,7 @@ const KampalaStudyPage = () => {
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <motion.div variants={animations.item} className="space-y-6">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-                Your Participation Makes a Difference
+                Your participation makes a difference
               </h2>
               <div className="space-y-4 text-base text-gray-700">
                 <p className="leading-relaxed">
@@ -350,7 +350,7 @@ const KampalaStudyPage = () => {
       <MotionSection>
         <motion.div variants={animations.item} className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            How to Participate
+            How to participate
           </h2>
           <p className="text-lg text-gray-600">
             Four simple steps to join the study
@@ -411,7 +411,7 @@ const KampalaStudyPage = () => {
         >
           <motion.div variants={animations.item} className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Watch How It Works
+              Watch how it works
             </h2>
             <p className="text-lg text-gray-600">
               See how easy it is to participate in the study
@@ -439,7 +439,7 @@ const KampalaStudyPage = () => {
       <MotionSection className="py-20">
         <motion.div variants={animations.item} className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Frequently Asked Questions
+            Frequently asked questions
           </h2>
           <p className="text-lg text-gray-600">
             Find answers to common questions about the study
