@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 
+import '../../shared/services/notification_helper.dart';
 import '../../auth/bloc/auth_bloc.dart';
 import '../../profile/bloc/user_bloc.dart';
 import '../bloc/dashboard/dashboard_bloc.dart';
@@ -179,10 +180,19 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
     final authState = context.watch<AuthBloc>().state;
     final isGuest = authState is GuestUser;
 
-    return Scaffold(
-      appBar: DashboardAppBar(),
-      body: Stack(
-        children: [
+    return BlocListener<DashboardBloc, DashboardState>(
+      listenWhen: (previous, current) =>
+          current is DashboardLoaded && current is! DashboardRefreshing,
+      listener: (context, state) {
+        if (state is DashboardLoaded) {
+          NotificationHelper()
+              .checkNearbyAirQuality(state.response.measurements);
+        }
+      },
+      child: Scaffold(
+        appBar: DashboardAppBar(),
+        body: Stack(
+          children: [
           RefreshIndicator(
             onRefresh: _refreshDashboard,
             color: AppColors.primaryColor,
@@ -228,7 +238,8 @@ class _DashboardPageState extends State<DashboardPage> with UiLoggy {
                 child: const Icon(Icons.add, color: Colors.white),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }

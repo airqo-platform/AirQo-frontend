@@ -26,6 +26,9 @@ class PushNotificationService with UiLoggy {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
+  /// Public access to local notifications plugin for showing custom notifications
+  FlutterLocalNotificationsPlugin get localNotifications => _localNotifications;
+
   static const String _fcmTokenKey = 'fcm_token';
   static const String _boxName = 'push_notifications';
 

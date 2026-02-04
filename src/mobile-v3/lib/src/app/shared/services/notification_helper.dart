@@ -1,5 +1,10 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
+import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
 import 'package:loggy/loggy.dart';
@@ -318,4 +323,116 @@ class NotificationHelper with UiLoggy {
       loggy.error('Failed to remove FCM token from backend', e, stackTrace);
     }
   }
+
+  static const String _aqAlertCooldownKey = 'aq_alert_cooldown';
+  static const _alertCategories = {'Unhealthy', 'Very Unhealthy', 'Hazardous'};
+
+  /// Check nearby air quality and fire a local notification if unhealthy+.
+  /// Respects a 6-hour cooldown stored in Hive cache.
+  Future<void> checkNearbyAirQuality(List<Measurement>? measurements) async {
+    if (measurements == null || measurements.isEmpty) return;
+
+    try {
+      // 1. Get user position (prefer last-known for speed)
+      Position? position = await Geolocator.getLastKnownPosition();
+      position ??= await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.low,
+          timeLimit: Duration(seconds: 5),
+        ),
+      );
+
+      // 2. Find closest measurement using Haversine distance
+      Measurement? closest;
+      double minDistance = double.infinity;
+
+      for (final m in measurements) {
+        final lat = m.siteDetails?.approximateLatitude;
+        final lon = m.siteDetails?.approximateLongitude;
+        if (lat == null || lon == null) continue;
+
+        final d = _haversineDistance(
+          position.latitude, position.longitude, lat, lon,
+        );
+        if (d < minDistance) {
+          minDistance = d;
+          closest = m;
+        }
+      }
+
+      if (closest == null) {
+        loggy.info('No measurement with coordinates found');
+        return;
+      }
+
+      final category = closest.aqiCategory;
+      if (category == null || !_alertCategories.contains(category)) {
+        loggy.info('Closest station category is "$category" — no alert needed');
+        return;
+      }
+
+      // 3. Check 6-hour cooldown
+      final cooldown = await HiveRepository.getCache(_aqAlertCooldownKey);
+      if (cooldown != null) {
+        loggy.info('Air quality alert cooldown active — skipping');
+        return;
+      }
+
+      // 4. Show local notification
+      final locationName = closest.siteDetails?.name ??
+          closest.siteDetails?.formattedName ??
+          'your area';
+
+      await PushNotificationService().localNotifications.show(
+        _aqAlertCooldownKey.hashCode,
+        'Air Quality Alert',
+        'Air quality near $locationName is $category. '
+            'Consider reducing outdoor activities.',
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'airqo_notifications',
+            'AirQo Notifications',
+            channelDescription: 'Notifications for air quality alerts and surveys',
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+      );
+
+      // 5. Save cooldown (6 hours)
+      await HiveRepository.saveCache(
+        _aqAlertCooldownKey,
+        true,
+        expiry: const Duration(hours: 6),
+      );
+
+      loggy.info('Air quality alert sent for $locationName ($category)');
+    } catch (e, stackTrace) {
+      loggy.error('Failed to check nearby air quality', e, stackTrace);
+    }
+  }
+
+  /// Haversine distance in kilometres between two lat/lng pairs.
+  double _haversineDistance(
+    double lat1, double lon1, double lat2, double lon2,
+  ) {
+    const R = 6371.0; // Earth radius in km
+    final dLat = _degToRad(lat2 - lat1);
+    final dLon = _degToRad(lon2 - lon1);
+    final a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degToRad(lat1)) *
+            cos(_degToRad(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  double _degToRad(double deg) => deg * (pi / 180);
 }
