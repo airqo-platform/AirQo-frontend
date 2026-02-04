@@ -1,12 +1,45 @@
-import { DailyForecastResponse } from '@/types/cohorts';
-
 import BaseApiService, { ServiceOptions } from '../base';
+
+/**
+ * Types for Daily Forecast
+ */
+
+export interface ForecastItem {
+  time: string;
+  pm2_5: number;
+  aqi_category: string;
+  aqi_color: string;
+  aqi_color_name: string;
+}
+
+export interface ForecastAQIRange {
+  min: number;
+  max: number | null;
+  label: string;
+  aqi_category: string;
+  aqi_color: string;
+  aqi_color_name: string;
+}
+
+export interface ForecastAQIRanges {
+  good: ForecastAQIRange;
+  moderate: ForecastAQIRange;
+  u4sg: ForecastAQIRange;
+  unhealthy: ForecastAQIRange;
+  very_unhealthy: ForecastAQIRange;
+  hazardous: ForecastAQIRange;
+}
+
+export interface DailyForecastResponse {
+  forecasts: ForecastItem[];
+  aqi_ranges: ForecastAQIRanges;
+}
 
 /**
  * Predict API Endpoints
  */
 const PREDICT_ENDPOINTS = {
-  DAILY_FORECAST: '/api/v2/predict/daily-forecast',
+  DAILY_FORECAST: 'predict/daily-forecast',
 } as const;
 
 class PredictService extends BaseApiService {

@@ -32,12 +32,16 @@ ReactPlayer.displayName = 'ReactPlayer';
 const animations = {
   backdrop: {
     hidden: { opacity: 0 },
-    visible: { opacity: 1 },
+    visible: { opacity: 1, transition: { duration: 0.2 } },
   },
   modal: {
-    hidden: { opacity: 0, scale: 0.75 },
-    visible: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.75 },
+    hidden: { opacity: 0, scale: 0.9 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.25, ease: 'easeOut' },
+    },
+    exit: { opacity: 0, scale: 0.9, transition: { duration: 0.2 } },
   },
 };
 
@@ -84,18 +88,19 @@ const VideoSection: React.FC<{
     <div className="w-full h-[250px] sm:h-[300px] md:h-[400px] lg:h-[450px] rounded-lg overflow-hidden relative">
       <video
         ref={videoRef}
-        src="https://res.cloudinary.com/dbibjvyhm/video/upload/v1716038850/website/videos/opening_jtpafn.mov"
+        src="https://res.cloudinary.com/dbibjvyhm/video/upload/f_mp4,q_auto:good/v1716038850/website/videos/opening_jtpafn.mov"
         autoPlay
         loop
         muted
         playsInline
+        preload="metadata"
         className="absolute top-0 left-0 w-full h-full object-cover"
       />
       <motion.button
         onClick={onPlay}
         className="absolute inset-0 flex items-center justify-center hover:scale-110 focus:outline-none transition-transform duration-300"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.95 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.98 }}
         aria-label="Play Video"
       >
         <Image
@@ -103,6 +108,7 @@ const VideoSection: React.FC<{
           alt="Play Icon"
           width={65}
           height={65}
+          priority={true}
         />
       </motion.button>
     </div>

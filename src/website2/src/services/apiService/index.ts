@@ -5,7 +5,6 @@ export { default as africanCountriesService } from './africanCountries';
 export { default as boardMembersService } from './boardMembers';
 export { default as careersService } from './careers';
 export { default as cleanAirResourcesService } from './cleanAirResources';
-export { default as cohortsService } from './cohorts';
 export { default as departmentsService } from './departments';
 export { default as eventsService } from './events';
 export { default as externalService } from './external';
