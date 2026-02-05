@@ -38,11 +38,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:airqo/src/app/surveys/bloc/survey_bloc.dart';
 import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
+import 'package:airqo/src/app/shared/services/navigation_service.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 // Background message handler must be top-level
 @pragma('vm:entry-point')
@@ -209,7 +208,7 @@ class AirqoMobile extends StatelessWidget {
               bool isLightTheme = themeState is ThemeLight;
 
               return MaterialApp(
-                navigatorKey: navigatorKey,
+                navigatorKey: NavigationService.navigatorKey,
                 locale: currentLocale,
                 supportedLocales: const [
                   Locale('en', ''),
@@ -260,7 +259,7 @@ class _DeciderState extends State<Decider> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      AutoUpdateService().initialize(navigatorKey);
+      AutoUpdateService().initialize(NavigationService.navigatorKey);
       NotificationHelper().initialize(context);
       NotificationHelper().subscribeToRelevantTopics();
     });

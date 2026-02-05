@@ -1,12 +1,13 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:airqo/src/app/dashboard/models/airquality_response.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:airqo/src/app/shared/services/push_notification_service.dart';
 import 'package:airqo/src/app/shared/services/notification_manager.dart';
+import 'package:airqo/src/app/shared/services/navigation_service.dart';
+import 'package:airqo/src/app/surveys/repository/survey_repository.dart';
 import 'package:loggy/loggy.dart';
 
 /// Helper class to integrate push notifications with in-app notifications
@@ -124,7 +125,7 @@ class NotificationHelper with UiLoggy {
   }
 
   /// Navigate to survey page
-  void _navigateToSurvey(BuildContext context, Map<String, dynamic> data) {
+  Future<void> _navigateToSurvey(BuildContext context, Map<String, dynamic> data) async {
     final surveyId = data['survey_id'] as String?;
 
     if (surveyId == null) {
@@ -134,29 +135,25 @@ class NotificationHelper with UiLoggy {
 
     loggy.info('Navigating to survey: $surveyId');
 
-    // TODO: Implement navigation to survey page
-    // Example:
-    // Navigator.of(context).pushNamed('/survey', arguments: surveyId);
-    // or
-    // Navigator.of(context).push(MaterialPageRoute(
-    //   builder: (context) => SurveyDetailPage(surveyId: surveyId),
-    // ));
+    try {
+      final survey = await SurveyRepository().getSurvey(surveyId);
+      if (survey != null) {
+        await NavigationService().navigateToSurvey(survey);
+      } else {
+        loggy.warning('Survey not found: $surveyId');
+      }
+    } catch (e, stackTrace) {
+      loggy.error('Failed to navigate to survey', e, stackTrace);
+    }
   }
 
-  /// Navigate to air quality page
+  /// Navigate to air quality page (returns to dashboard root)
   void _navigateToAirQuality(BuildContext context, Map<String, dynamic> data) {
     final location = data['location'] as String?;
 
     loggy.info('Navigating to air quality: $location');
 
-    // TODO: Implement navigation to dashboard or map
-    // Example:
-    // Navigator.of(context).pushNamed('/dashboard');
-    // or if coordinates provided:
-    // Navigator.of(context).pushNamed('/map', arguments: {
-    //   'latitude': latitude,
-    //   'longitude': longitude,
-    // });
+    NavigationService().popUntil((route) => route.isFirst);
   }
 
   /// Request notification permission with user-friendly prompt
@@ -279,51 +276,6 @@ class NotificationHelper with UiLoggy {
     }
   }
 
-  /// Send FCM token to backend server
-  Future<bool> syncTokenWithBackend(String userId) async {
-    try {
-      final token = PushNotificationService().currentToken;
-
-      if (token == null) {
-        loggy.warning('No FCM token available to sync');
-        return false;
-      }
-
-      loggy.info('Syncing FCM token with backend for user: $userId');
-
-      // TODO: Implement API call to your backend
-      // Example:
-      // await yourApiService.updateFcmToken(
-      //   userId: userId,
-      //   fcmToken: token,
-      // );
-
-      loggy.info('FCM token synced successfully');
-      return true;
-    } catch (e, stackTrace) {
-      loggy.error('Failed to sync FCM token with backend', e, stackTrace);
-      return false;
-    }
-  }
-
-  /// Remove FCM token from backend when user logs out
-  Future<void> removeTokenFromBackend(String userId) async {
-    try {
-      loggy.info('Removing FCM token from backend for user: $userId');
-
-      // TODO: Implement API call to your backend
-      // Example:
-      // await yourApiService.removeFcmToken(userId: userId);
-
-      // Delete local token
-      await PushNotificationService().deleteToken();
-
-      loggy.info('FCM token removed successfully');
-    } catch (e, stackTrace) {
-      loggy.error('Failed to remove FCM token from backend', e, stackTrace);
-    }
-  }
-
   static const String _aqAlertCooldownKey = 'aq_alert_cooldown';
   static const _alertCategories = {'Unhealthy', 'Very Unhealthy', 'Hazardous'};
 
@@ -383,26 +335,11 @@ class NotificationHelper with UiLoggy {
           closest.siteDetails?.formattedName ??
           'your area';
 
-      await PushNotificationService().localNotifications.show(
-        _aqAlertCooldownKey.hashCode,
-        'Air Quality Alert',
-        'Air quality near $locationName is $category. '
+      await PushNotificationService().showLocalNotification(
+        id: _aqAlertCooldownKey.hashCode,
+        title: 'Air Quality Alert',
+        body: 'Air quality near $locationName is $category. '
             'Consider reducing outdoor activities.',
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'airqo_notifications',
-            'AirQo Notifications',
-            channelDescription: 'Notifications for air quality alerts and surveys',
-            importance: Importance.high,
-            priority: Priority.high,
-            icon: '@mipmap/ic_launcher',
-          ),
-          iOS: DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
-        ),
       );
 
       // 5. Save cooldown (6 hours)

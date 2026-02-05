@@ -1,22 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:loggy/loggy.dart';
 import 'package:airqo/src/app/shared/repository/hive_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
-
-/// Background message handler - must be a top-level function
-@pragma('vm:entry-point')
-Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Initialize Firebase if not already initialized
-  // await Firebase.initializeApp();
-
-  debugPrint('Handling background message: ${message.messageId}');
-  debugPrint('Message data: ${message.data}');
-  debugPrint('Message notification: ${message.notification?.title}');
-}
 
 class PushNotificationService with UiLoggy {
   static final PushNotificationService _instance = PushNotificationService._internal();
@@ -26,8 +15,9 @@ class PushNotificationService with UiLoggy {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
-  /// Public access to local notifications plugin for showing custom notifications
-  FlutterLocalNotificationsPlugin get localNotifications => _localNotifications;
+  static const String channelId = 'airqo_notifications';
+  static const String channelName = 'AirQo Notifications';
+  static const String channelDescription = 'Notifications for air quality alerts and surveys';
 
   static const String _fcmTokenKey = 'fcm_token';
   static const String _boxName = 'push_notifications';
@@ -111,9 +101,9 @@ class PushNotificationService with UiLoggy {
   /// Create Android notification channel
   Future<void> _createNotificationChannel() async {
     const channel = AndroidNotificationChannel(
-      'airqo_notifications', // id
-      'AirQo Notifications', // name
-      description: 'Notifications for air quality alerts and surveys',
+      channelId,
+      channelName,
+      description: channelDescription,
       importance: Importance.high,
       enableVibration: true,
       playSound: true,
@@ -294,7 +284,39 @@ class PushNotificationService with UiLoggy {
     }
   }
 
-  /// Show local notification
+  /// Show a local notification (public API for other services)
+  Future<void> showLocalNotification({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    try {
+      await _localNotifications.show(
+        id,
+        title,
+        body,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            channelId,
+            channelName,
+            channelDescription: channelDescription,
+            importance: Importance.high,
+            priority: Priority.high,
+            icon: '@mipmap/ic_launcher',
+          ),
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        ),
+      );
+    } catch (e, stackTrace) {
+      loggy.error('Failed to show local notification', e, stackTrace);
+    }
+  }
+
+  /// Show local notification from a RemoteMessage
   Future<void> _showLocalNotification(RemoteMessage message) async {
     final notification = message.notification;
     final android = message.notification?.android;
@@ -308,9 +330,9 @@ class PushNotificationService with UiLoggy {
         notification.body,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            'airqo_notifications',
-            'AirQo Notifications',
-            channelDescription: 'Notifications for air quality alerts and surveys',
+            channelId,
+            channelName,
+            channelDescription: channelDescription,
             importance: Importance.high,
             priority: Priority.high,
             icon: android?.smallIcon ?? '@mipmap/ic_launcher',
@@ -337,9 +359,6 @@ class PushNotificationService with UiLoggy {
 
     // Call custom callback if provided
     onNotificationTap?.call(message.data);
-
-    // Handle navigation based on notification type
-    _handleNotificationNavigation(message.data);
   }
 
   /// Handle local notification tap
@@ -349,50 +368,22 @@ class PushNotificationService with UiLoggy {
     if (response.payload != null) {
       final data = _decodePayload(response.payload!);
       onNotificationTap?.call(data);
-      _handleNotificationNavigation(data);
-    }
-  }
-
-  /// Handle navigation based on notification data
-  void _handleNotificationNavigation(Map<String, dynamic> data) {
-    // TODO: Implement navigation logic based on notification type
-    // Examples:
-    // - Navigate to survey page if type is 'survey'
-    // - Navigate to air quality details if type is 'air_quality_alert'
-    // - Navigate to specific location if coordinates provided
-
-    final type = data['type'] as String?;
-    loggy.info('Handling navigation for notification type: $type');
-
-    switch (type) {
-      case 'survey':
-        loggy.info('Navigate to survey: ${data['survey_id']}');
-        // TODO: Navigate to survey page
-        break;
-      case 'air_quality_alert':
-        loggy.info('Navigate to air quality alert: ${data['location']}');
-        // TODO: Navigate to dashboard or map
-        break;
-      default:
-        loggy.info('No specific navigation for type: $type');
     }
   }
 
   /// Encode payload to string
   String _encodePayload(Map<String, dynamic> data) {
-    return data.entries.map((e) => '${e.key}=${e.value}').join('&');
+    return jsonEncode(data);
   }
 
   /// Decode payload from string
   Map<String, dynamic> _decodePayload(String payload) {
-    final map = <String, dynamic>{};
-    for (final pair in payload.split('&')) {
-      final parts = pair.split('=');
-      if (parts.length == 2) {
-        map[parts[0]] = parts[1];
-      }
+    try {
+      return Map<String, dynamic>.from(jsonDecode(payload) as Map);
+    } catch (e) {
+      loggy.error('Failed to decode notification payload', e);
+      return {};
     }
-    return map;
   }
 
   /// Subscribe to a topic

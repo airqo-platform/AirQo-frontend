@@ -8,6 +8,7 @@ import 'package:airqo/src/app/surveys/models/survey_model.dart';
 import 'package:airqo/src/app/surveys/models/survey_trigger_model.dart';
 import 'package:flutter/material.dart';
 import 'package:airqo/src/app/shared/services/navigation_service.dart';
+import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/app/surveys/models/alert_response_model.dart';
 import 'package:airqo/src/app/surveys/repository/alert_response_repository.dart';
 import 'package:airqo/src/app/surveys/widgets/alert_response_dialog.dart';
@@ -434,16 +435,22 @@ class SurveyTriggerService with UiLoggy {
     );
   }
 
-  void _handleBehaviorResponse(String alertId, bool followed, Map<String, dynamic> alertContext) {
+  Future<void> _handleBehaviorResponse(String alertId, bool followed, Map<String, dynamic> alertContext) async {
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    if (userId == null) {
+      loggy.warning('Cannot handle behavior response: no authenticated user');
+      return;
+    }
+
     final context = _navigationService.currentContext;
-    if (context == null) return;
+    if (context == null || !context.mounted) return;
 
     showDialog(
       context: context,
-      builder: (context) => AlertResponseDialog(
+      builder: (dialogContext) => AlertResponseDialog(
         followedAdvice: followed,
         alertId: alertId,
-        userId: 'current_user_id', // TODO: Get from auth service
+        userId: userId,
         alertContext: alertContext,
         onResponseSubmitted: (response) async {
           await _alertResponseRepository.saveAlertResponse(response);
@@ -453,16 +460,22 @@ class SurveyTriggerService with UiLoggy {
     );
   }
 
-  void _handleAlertDismissed(String alertId, Map<String, dynamic> alertContext) async {
+  Future<void> _handleAlertDismissed(String alertId, Map<String, dynamic> alertContext) async {
+    final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+    if (userId == null) {
+      loggy.warning('Cannot save alert dismissal: no authenticated user');
+      return;
+    }
+
     final response = AlertResponse(
       id: '${alertId}_dismissed',
       alertId: alertId,
-      userId: 'current_user_id', // TODO: Get from auth service
+      userId: userId,
       responseType: AlertResponseType.dismissed,
       respondedAt: DateTime.now(),
       alertContext: alertContext,
     );
-    
+
     await _alertResponseRepository.saveAlertResponse(response);
   }
 
