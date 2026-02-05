@@ -110,6 +110,10 @@ export const GlobalSidebar: React.FC = () => {
     return config.flatMap(group =>
       group.items
         .filter(item => {
+          // Only show system-management if user has AIRQO_SUPER_ADMIN or AIRQO_ADMIN role
+          if (item.id === 'system-management') {
+            return isAirQoSuperAdminWithEmail();
+          }
           // Only show admin-panel if user has GROUP_MANAGEMENT permission
           if (item.id === 'admin-panel') {
             return hasPermission('GROUP_MANAGEMENT');
@@ -118,30 +122,18 @@ export const GlobalSidebar: React.FC = () => {
         })
         .map(item => {
           let href = item.href;
-          // Change Administrative Panel href based on permissions
-          if (item.id === 'admin-panel') {
-            href = isAirQoSuperAdminWithEmail()
-              ? '/admin/org-requests'
-              : '/admin/members';
+          // Keep system management href as is
+          if (item.id === 'system-management') {
+            href = item.href;
+          } else if (item.id === 'admin-panel') {
+            // Change Organization Panel href based on permissions
+            href = '/admin/members';
           } else {
             href = href.replace('/data-access', `${basePath}${targetPath}`);
           }
           return {
             ...item,
             href,
-            subroutes: item.subroutes?.filter(subroute => {
-              // Hide statistics, clients, and org-requests subroutes if user doesn't have AIRQO_SUPER_ADMIN role
-              if (
-                [
-                  'admin-statistics',
-                  'admin-clients',
-                  'admin-org-requests',
-                ].includes(subroute.id)
-              ) {
-                return isAirQoSuperAdminWithEmail();
-              }
-              return true;
-            }),
           };
         })
     );
@@ -244,7 +236,10 @@ export const GlobalSidebar: React.FC = () => {
                     key={item.id}
                     item={item}
                     onClick={handleNavItemClick}
-                    enableSubroutes={item.id === 'admin-panel'}
+                    enableSubroutes={
+                      item.id === 'admin-panel' ||
+                      item.id === 'system-management'
+                    }
                   />
                 ))}
               </div>

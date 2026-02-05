@@ -5,17 +5,14 @@ import {
   AqGlobe05,
   AqDownload01,
   AqFolderShield,
-  AqFileQuestion02,
   AqUsers01,
   AqUserPlus01,
   AqShield02,
   AqSettings01,
   AqData,
   AqKey01,
-  AqBarChart01,
-  // AqUsers01,
-  // AqSettings01,
-  // AqShield01,
+  AqServer03,
+  AqFileQuestion02,
 } from '@airqo/icons-react';
 
 export interface NavItem {
@@ -47,6 +44,7 @@ export interface SidebarConfig {
   user: NavGroup[];
   organization: NavGroup[];
   admin: NavGroup[];
+  system: NavGroup[];
   global: NavGroup[];
 }
 
@@ -144,12 +142,6 @@ const adminSidebarConfig: NavGroup[] = [
     label: 'Panel',
     items: [
       {
-        id: 'admin-dashboard',
-        label: 'Organization Requests',
-        href: '/admin/org-requests',
-        icon: AqFileQuestion02,
-      },
-      {
         id: 'admin-clients',
         label: 'API Clients',
         href: '/admin/clients',
@@ -173,12 +165,6 @@ const adminSidebarConfig: NavGroup[] = [
         href: '/admin/roles',
         icon: AqShield02,
       },
-      {
-        id: 'admin-statistics',
-        label: 'User Statistics',
-        href: '/admin/statistics',
-        icon: AqBarChart01,
-      },
     ],
   },
   {
@@ -195,23 +181,58 @@ const adminSidebarConfig: NavGroup[] = [
   },
 ];
 
+const systemSidebarConfig: NavGroup[] = [
+  {
+    id: 'system',
+    label: 'System Management',
+    items: [
+      {
+        id: 'system-org-requests',
+        label: 'Organization Requests',
+        href: '/system/org-requests',
+        icon: AqFileQuestion02,
+      },
+      {
+        id: 'system-user-statistics',
+        label: 'User Statistics',
+        href: '/system/user-statistics',
+        icon: AqServer03,
+      },
+    ],
+  },
+];
+
 const globalSidebarConfig: NavGroup[] = [
   {
     id: 'global',
     label: 'Global',
     items: [
       {
-        id: 'admin-panel',
-        label: 'Administrative Panel',
-        href: '/admin/org-requests',
-        icon: AqFolderShield,
+        id: 'system-management',
+        label: 'System Management',
+        href: '/system/org-requests',
+        icon: AqServer03,
         subroutes: [
           {
-            id: 'admin-org-requests',
+            id: 'system-org-requests',
             label: 'Organization Requests',
-            href: '/admin/org-requests',
-            description: 'Manage organization requests',
+            href: '/system/org-requests',
+            description: 'Manage organization requests across the platform',
           },
+          {
+            id: 'system-user-statistics',
+            label: 'User Statistics',
+            href: '/system/user-statistics',
+            description: 'View user statistics across the platform',
+          },
+        ],
+      },
+      {
+        id: 'admin-panel',
+        label: 'Organization Panel',
+        href: '/admin/members',
+        icon: AqFolderShield,
+        subroutes: [
           {
             id: 'admin-clients',
             label: 'API Clients',
@@ -237,12 +258,6 @@ const globalSidebarConfig: NavGroup[] = [
             description: 'Manage roles and permissions',
           },
           {
-            id: 'admin-statistics',
-            label: 'User Statistics',
-            href: '/admin/statistics',
-            description: 'View user statistics',
-          },
-          {
             id: 'admin-org-settings',
             label: 'Organization Settings',
             href: '/admin/organization-settings',
@@ -264,19 +279,20 @@ export const sidebarConfig: SidebarConfig = {
   user: userSidebarConfig,
   organization: orgSidebarConfig,
   admin: adminSidebarConfig,
+  system: systemSidebarConfig,
   global: globalSidebarConfig,
 };
 
 // Utility functions for sidebar configuration
 export const getSidebarConfig = (
-  type: 'user' | 'organization' | 'admin' | 'global'
+  type: 'user' | 'organization' | 'admin' | 'system' | 'global'
 ): NavGroup[] => {
   return sidebarConfig[type];
 };
 
 // Flatten all nav items for a specific type
 export const getAllNavItems = (
-  type: 'user' | 'organization' | 'admin' | 'global'
+  type: 'user' | 'organization' | 'admin' | 'system' | 'global'
 ): NavItem[] => {
   return sidebarConfig[type].flatMap(group => group.items);
 };
@@ -284,7 +300,7 @@ export const getAllNavItems = (
 // Get nav item by href for a specific type
 export const getNavItemByHref = (
   href: string,
-  type: 'user' | 'organization' | 'admin' | 'global'
+  type: 'user' | 'organization' | 'admin' | 'system' | 'global'
 ): NavItem | undefined => {
   const allNavItems = getAllNavItems(type);
   return allNavItems.find(item => item.href === href);
