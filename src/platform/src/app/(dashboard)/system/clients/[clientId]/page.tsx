@@ -43,7 +43,6 @@ const ClientDetailsPage: React.FC = () => {
   const [isActivating, setIsActivating] = useState(false);
   const [isGeneratingToken, setIsGeneratingToken] = useState(false);
   const [showFullSecret, setShowFullSecret] = useState(false);
-  const [showFullToken, setShowFullToken] = useState(false);
 
   // Fetch client details
   const {
