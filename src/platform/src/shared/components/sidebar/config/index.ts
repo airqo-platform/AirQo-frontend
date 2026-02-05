@@ -11,6 +11,7 @@ import {
   AqSettings01,
   AqData,
   AqKey01,
+  AqPresentationChart02,
   AqServer03,
   AqFileQuestion02,
 } from '@airqo/icons-react';
@@ -142,12 +143,6 @@ const adminSidebarConfig: NavGroup[] = [
     label: 'Panel',
     items: [
       {
-        id: 'admin-clients',
-        label: 'API Clients',
-        href: '/admin/clients',
-        icon: AqKey01,
-      },
-      {
         id: 'admin-members',
         label: 'Members',
         href: '/admin/members',
@@ -187,6 +182,12 @@ const systemSidebarConfig: NavGroup[] = [
     label: 'System Management',
     items: [
       {
+        id: 'system-clients',
+        label: 'API Clients',
+        href: '/system/clients',
+        icon: AqKey01,
+      },
+      {
         id: 'system-org-requests',
         label: 'Organization Requests',
         href: '/system/org-requests',
@@ -196,7 +197,7 @@ const systemSidebarConfig: NavGroup[] = [
         id: 'system-user-statistics',
         label: 'User Statistics',
         href: '/system/user-statistics',
-        icon: AqServer03,
+        icon: AqPresentationChart02,
       },
     ],
   },
@@ -210,9 +211,15 @@ const globalSidebarConfig: NavGroup[] = [
       {
         id: 'system-management',
         label: 'System Management',
-        href: '/system/org-requests',
+        href: '/system/clients',
         icon: AqServer03,
         subroutes: [
+          {
+            id: 'system-clients',
+            label: 'API Clients',
+            href: '/system/clients',
+            description: 'Manage API clients across the platform',
+          },
           {
             id: 'system-org-requests',
             label: 'Organization Requests',
@@ -233,12 +240,6 @@ const globalSidebarConfig: NavGroup[] = [
         href: '/admin/members',
         icon: AqFolderShield,
         subroutes: [
-          {
-            id: 'admin-clients',
-            label: 'API Clients',
-            href: '/admin/clients',
-            description: 'Manage API clients',
-          },
           {
             id: 'admin-members',
             label: 'Members',

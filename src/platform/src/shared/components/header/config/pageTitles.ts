@@ -19,6 +19,7 @@ export const PAGE_TITLES: Record<string, string> = {
   '/request-organization': 'Organization',
 
   // System routes (platform-wide admin features)
+  '/system/clients': 'API Clients',
   '/system/org-requests': 'Organization Requests',
   '/system/user-statistics': 'User Statistics',
 
@@ -27,7 +28,6 @@ export const PAGE_TITLES: Record<string, string> = {
   '/admin/member-requests': 'Member Requests',
   '/admin/roles': 'Roles & Permissions',
   '/admin/organization-settings': 'Organization Settings',
-  '/admin/clients': 'API Clients',
 
   // Default fallback
   '/': 'AirQo',

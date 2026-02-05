@@ -2,12 +2,8 @@
 
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import {
-  Button,
-  Card,
-  PageHeading,
-  LoadingSpinner,
-} from '@/shared/components/ui';
+import { Button, Card, PageHeading } from '@/shared/components/ui';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 import { toast } from '@/shared/components/ui';
 import { formatDate } from '@/shared/utils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
@@ -62,7 +58,7 @@ const ClientDetailsPage: React.FC = () => {
   const client = clientResponse?.clients?.[0];
 
   const handleBack = () => {
-    router.push('/admin/clients');
+    router.push('/system/clients');
   };
 
   const handleDeleteClient = async () => {
@@ -70,7 +66,7 @@ const ClientDetailsPage: React.FC = () => {
     try {
       await clientService.deleteClient(clientId);
       toast.success('Client deleted successfully');
-      router.push('/admin/clients');
+      router.push('/system/clients');
     } catch (error) {
       toast.error(getUserFriendlyErrorMessage(error));
       console.error('Delete client error:', error);
@@ -162,14 +158,10 @@ const ClientDetailsPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <LoadingSpinner className="mx-auto mb-4" />
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
-            Loading client details...
-          </p>
-        </div>
-      </div>
+      <LoadingState
+        className="h-[calc(100vh-200px)]"
+        text="Loading client details..."
+      />
     );
   }
 
@@ -427,70 +419,11 @@ const ClientDetailsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Token Management - Only show if no access token exists */}
-        {!client.access_token && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Token Management</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    Generate a new access token for API access
-                  </p>
-                  {!client.isActive && (
-                    <p className="mt-1 text-xs text-red-500">
-                      Client must be active to generate tokens
-                    </p>
-                  )}
-                </div>
-                <Button
-                  variant="outlined"
-                  onClick={() => setGenerateTokenDialogOpen(true)}
-                  disabled={!client.isActive}
-                  className="ml-4"
-                >
-                  Generate New Token
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Access Token - Only show if access token exists */}
-        {client.access_token && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Access Token</h3>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                  Token
-                </label>
-                <div className="mt-2 flex items-center gap-2">
-                  <code className="flex-1 text-sm bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded font-mono break-all">
-                    {showFullToken || client.access_token.token.length <= 16
-                      ? client.access_token.token
-                      : `${client.access_token.token.slice(0, 8)}...${client.access_token.token.slice(-8)}`}
-                  </code>
-                  <Button
-                    size="sm"
-                    variant="outlined"
-                    onClick={() => setShowFullToken(!showFullToken)}
-                  >
-                    {showFullToken ? 'Hide' : 'Show'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outlined"
-                    onClick={() =>
-                      copyToClipboard(
-                        client.access_token!.token,
-                        'Access token'
-                      )
-                    }
-                    Icon={AqCopy06}
-                  />
-                </div>
-              </div>
+        {/* Token Status Information - For security, actual tokens are not displayed */}
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Token Information</h3>
+          <div className="space-y-4">
+            {client.access_token ? (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -525,9 +458,30 @@ const ClientDetailsPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
-          </Card>
-        )}
+            ) : (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    No active token. Generate a new access token for API access.
+                  </p>
+                  {!client.isActive && (
+                    <p className="mt-1 text-xs text-red-500">
+                      Client must be active to generate tokens
+                    </p>
+                  )}
+                </div>
+                <Button
+                  variant="outlined"
+                  onClick={() => setGenerateTokenDialogOpen(true)}
+                  disabled={!client.isActive}
+                  className="ml-4"
+                >
+                  Generate New Token
+                </Button>
+              </div>
+            )}
+          </div>
+        </Card>
 
         {/* Edit Dialog */}
         <EditClientDialog

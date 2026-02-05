@@ -30,12 +30,26 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           if (item.id === 'admin-dashboard') {
             return isAirQoSuperAdminWithEmail();
           }
-          // Hide statistics, clients, and org-requests if user doesn't have AIRQO_SUPER_ADMIN role
+          // Hide statistics and org-requests if user doesn't have AIRQO_SUPER_ADMIN role
+          if (['admin-statistics', 'admin-org-requests'].includes(item.id)) {
+            return isAirQoSuperAdminWithEmail();
+          }
+          return true;
+        }),
+      }));
+    }
+
+    // Filter system items based on permissions
+    if (flow === 'system') {
+      config = config.map(group => ({
+        ...group,
+        items: group.items.filter(item => {
+          // Hide system-clients, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role
           if (
             [
-              'admin-statistics',
-              'admin-clients',
-              'admin-org-requests',
+              'system-clients',
+              'system-org-requests',
+              'system-user-statistics',
             ].includes(item.id)
           ) {
             return isAirQoSuperAdminWithEmail();
