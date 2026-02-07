@@ -96,9 +96,6 @@ const config: Config = {
         },
       ],
     },
-    footer: {
-      copyright: `Built with <a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer">Docusaurus</a>`,
-    },
     prism: {
       theme: prismThemes.github,
       darkTheme: prismThemes.dracula,

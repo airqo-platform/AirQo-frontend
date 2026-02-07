@@ -96,7 +96,25 @@ h6 {
   font-weight: var(--heading-weight);
   line-height: var(--heading-line-height);
   letter-spacing: var(--heading-letter-spacing);
-  margin: 0;
+  /* margin: 0; */
+}
+
+/* Base paragraph styles */
+p {
+  color: rgb(var(--foreground));
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+/* Base link styles */
+a {
+  color: rgb(var(--primary));
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:focus {
+  outline: none;
 }
 
 /* Individual heading sizes */
