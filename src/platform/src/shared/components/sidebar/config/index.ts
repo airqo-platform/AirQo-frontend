@@ -4,7 +4,6 @@ import {
   AqStar06,
   AqGlobe05,
   AqDownload01,
-  AqFolderShield,
   AqUsers01,
   AqUserPlus01,
   AqShield02,
@@ -124,6 +123,36 @@ const orgSidebarConfig: NavGroup[] = [
     ],
   },
   {
+    id: 'management',
+    label: 'Management',
+    items: [
+      {
+        id: 'org-members',
+        label: 'Members',
+        href: '/org/members',
+        icon: AqUsers01,
+      },
+      {
+        id: 'org-member-requests',
+        label: 'Member Requests',
+        href: '/org/member-requests',
+        icon: AqUserPlus01,
+      },
+      {
+        id: 'org-roles',
+        label: 'Roles & Permissions',
+        href: '/org/roles',
+        icon: AqShield02,
+      },
+      {
+        id: 'org-settings',
+        label: 'Organization Settings',
+        href: '/org/organization-settings',
+        icon: AqSettings01,
+      },
+    ],
+  },
+  {
     id: 'account',
     label: 'Account',
     items: [
@@ -231,38 +260,6 @@ const globalSidebarConfig: NavGroup[] = [
             label: 'User Statistics',
             href: '/system/user-statistics',
             description: 'View user statistics across the platform',
-          },
-        ],
-      },
-      {
-        id: 'admin-panel',
-        label: 'Organization Panel',
-        href: '/admin/members',
-        icon: AqFolderShield,
-        subroutes: [
-          {
-            id: 'admin-members',
-            label: 'Members',
-            href: '/admin/members',
-            description: 'View and manage members',
-          },
-          {
-            id: 'admin-member-requests',
-            label: 'Member Requests',
-            href: '/admin/member-requests',
-            description: 'Review member requests',
-          },
-          {
-            id: 'admin-roles',
-            label: 'Roles & Permissions',
-            href: '/admin/roles',
-            description: 'Manage roles and permissions',
-          },
-          {
-            id: 'admin-org-settings',
-            label: 'Organization Settings',
-            href: '/admin/organization-settings',
-            description: 'Configure organization settings',
           },
         ],
       },

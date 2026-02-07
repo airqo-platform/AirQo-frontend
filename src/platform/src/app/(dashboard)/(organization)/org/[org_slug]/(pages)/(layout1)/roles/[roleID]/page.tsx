@@ -8,7 +8,7 @@ import {
   useUpdateRolePermissions,
   useUpdateRoleData,
 } from '@/shared/hooks/useAdmin';
-import { AdminPageGuard } from '@/shared/components';
+import { PermissionGuard } from '@/shared/components';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { PageHeading } from '@/shared/components/ui';
@@ -17,11 +17,14 @@ import Checkbox from '@/shared/components/ui/checkbox';
 import Select from '@/shared/components/ui/select';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
+import { useRBAC } from '@/shared/hooks';
 
 const RoleDetailPage = () => {
   const params = useParams();
   const router = useRouter();
+  const org_slug = params.org_slug as string;
   const roleId = params.roleID as string;
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
 
   const {
     data: roleData,
@@ -48,6 +51,9 @@ const RoleDetailPage = () => {
     'ACTIVE' | 'INACTIVE'
   >('ACTIVE');
 
+  // Check permissions
+  const canEditRole = hasAnyPermissionInActiveGroup(['ROLE_EDIT']);
+
   // Get the role details from the response
   // Handle both single role and roles array response formats
   const role = roleData?.role || roleData?.roles?.[0];
@@ -68,18 +74,23 @@ const RoleDetailPage = () => {
   // Validate roleId
   if (!roleId || typeof roleId !== 'string' || roleId.trim() === '') {
     return (
-      <AdminPageGuard>
+      <PermissionGuard requiredPermissionsInActiveGroup={['ROLE_VIEW']}>
         <div className="text-center py-12">
           <p className="text-gray-500 mb-4">Invalid role ID provided</p>
-          <Button onClick={() => router.push('/admin/roles')}>
+          <Button onClick={() => router.push(`/org/${org_slug}/roles`)}>
             Back to Roles
           </Button>
         </div>
-      </AdminPageGuard>
+      </PermissionGuard>
     );
   }
 
   const handlePermissionToggle = (permissionId: string) => {
+    if (!canEditRole) {
+      toast.error('You do not have permission to edit roles');
+      return;
+    }
+
     const newPermissions = selectedPermissions.includes(permissionId)
       ? selectedPermissions.filter(id => id !== permissionId)
       : [...selectedPermissions, permissionId];
@@ -95,7 +106,7 @@ const RoleDetailPage = () => {
   };
 
   const handleSaveChanges = async () => {
-    if (!role) return;
+    if (!role || !canEditRole) return;
 
     try {
       await updateRolePermissionsMutation.trigger({
@@ -122,7 +133,7 @@ const RoleDetailPage = () => {
   };
 
   const handleSaveRoleData = async () => {
-    if (!role) return;
+    if (!role || !canEditRole) return;
 
     try {
       await updateRoleDataMutation.trigger({
@@ -151,9 +162,9 @@ const RoleDetailPage = () => {
 
   if (roleLoading || permissionsLoading) {
     return (
-      <AdminPageGuard>
+      <PermissionGuard requiredPermissionsInActiveGroup={['ROLE_VIEW']}>
         <LoadingState text="Loading role details..." />
-      </AdminPageGuard>
+      </PermissionGuard>
     );
   }
 
@@ -169,24 +180,24 @@ const RoleDetailPage = () => {
     }
 
     return (
-      <AdminPageGuard>
+      <PermissionGuard requiredPermissionsInActiveGroup={['ROLE_VIEW']}>
         <div className="text-center py-12">
           <p className="text-gray-500 mb-4">{errorMessage}</p>
-          <Button onClick={() => router.push('/admin/roles')}>
+          <Button onClick={() => router.push(`/org/${org_slug}/roles`)}>
             Back to Roles
           </Button>
         </div>
-      </AdminPageGuard>
+      </PermissionGuard>
     );
   }
 
   return (
-    <AdminPageGuard requiredPermissionsInActiveGroup={['GROUP_MANAGEMENT']}>
+    <PermissionGuard requiredPermissionsInActiveGroup={['ROLE_VIEW']}>
       <Button
         variant="ghost"
         size="sm"
         Icon={AqChevronLeft}
-        onClick={() => router.push('/admin/roles')}
+        onClick={() => router.push(`/org/${org_slug}/roles`)}
         className="mb-6"
       >
         Back
@@ -207,7 +218,7 @@ const RoleDetailPage = () => {
             <h2 className="text-lg font-semibold text-gray-900">
               Role Details
             </h2>
-            {!isEditingRole ? (
+            {!isEditingRole && canEditRole ? (
               <Button
                 variant="outlined"
                 size="sm"
@@ -215,7 +226,7 @@ const RoleDetailPage = () => {
               >
                 Edit
               </Button>
-            ) : (
+            ) : canEditRole ? (
               <div className="flex gap-2">
                 <Button
                   variant="outlined"
@@ -234,7 +245,7 @@ const RoleDetailPage = () => {
                   {updateRoleDataMutation.isMutating ? 'Saving...' : 'Save'}
                 </Button>
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
@@ -255,7 +266,7 @@ const RoleDetailPage = () => {
                 <label className="text-sm font-medium text-gray-700">
                   Role Status
                 </label>
-                {isEditingRole ? (
+                {isEditingRole && canEditRole ? (
                   <div className="mt-1">
                     <Select
                       value={editedRoleStatus}
@@ -329,7 +340,7 @@ const RoleDetailPage = () => {
               </div>
             </div>
 
-            {hasChanges && (
+            {hasChanges && canEditRole && (
               <div className="border-t pt-4 space-y-2">
                 <Button
                   className="w-full"
@@ -395,16 +406,21 @@ const RoleDetailPage = () => {
                     return (
                       <div
                         key={permission._id}
-                        className="relative p-2 bg-slate-50 border border-gray-200 rounded-lg hover:bg-slate-100 hover:border-gray-300 transition-colors min-w-0 cursor-pointer"
-                        onClick={() => handlePermissionToggle(permission._id)}
+                        className={`relative p-2 bg-slate-50 border border-gray-200 rounded-lg hover:bg-slate-100 hover:border-gray-300 transition-colors min-w-0 ${canEditRole ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                        onClick={() =>
+                          canEditRole && handlePermissionToggle(permission._id)
+                        }
                       >
                         <Checkbox
                           checked={isSelected}
                           onCheckedChange={() => {}} // Disable default behavior
                           onClick={e => {
                             e.stopPropagation();
-                            handlePermissionToggle(permission._id);
+                            if (canEditRole) {
+                              handlePermissionToggle(permission._id);
+                            }
                           }}
+                          disabled={!canEditRole}
                           className="absolute top-1.5 right-1.5"
                         />
                         <div className="pr-8">
@@ -442,7 +458,7 @@ const RoleDetailPage = () => {
           </div>
         </div>
       </div>
-    </AdminPageGuard>
+    </PermissionGuard>
   );
 };
 

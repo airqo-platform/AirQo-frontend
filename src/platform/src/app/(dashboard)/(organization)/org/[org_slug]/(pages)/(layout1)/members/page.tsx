@@ -18,7 +18,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/shared/components/ui/dropdown-menu';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { PermissionGuard } from '@/shared/components';
+import { useRBAC } from '@/shared/hooks';
 
 interface GroupMember {
   _id: string;
@@ -44,8 +46,17 @@ interface GroupMember {
 }
 
 const MembersPage: React.FC = () => {
-  const { activeGroup } = useUser();
+  const params = useParams();
   const router = useRouter();
+  const org_slug = params.org_slug as string;
+  const { groups } = useUser();
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
+
+  // Get the current organization from slug
+  const currentOrg = useMemo(() => {
+    return groups?.find(g => g.organizationSlug === org_slug);
+  }, [groups, org_slug]);
+
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmails, setInviteEmails] = useState<string[]>(['']);
   const [emailErrors, setEmailErrors] = useState<string[]>(['']);
@@ -68,12 +79,12 @@ const MembersPage: React.FC = () => {
     isLoading: groupLoading,
     error: groupError,
     mutate,
-  } = useGroupDetails(activeGroup?.id || null);
+  } = useGroupDetails(currentOrg?.id || null);
   const sendInvite = useSendGroupInvite();
 
-  // Get roles for the active group
+  // Get roles for the current group
   const { data: rolesData, isLoading: rolesLoading } = useRolesByGroup(
-    activeGroup?.id || undefined
+    currentOrg?.id || undefined
   );
   const assignUsersToRole = useAssignUsersToRole();
 
@@ -204,7 +215,9 @@ const MembersPage: React.FC = () => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
-                onClick={() => router.push(`/admin/members/${member._id}`)}
+                onClick={() =>
+                  router.push(`/org/${org_slug}/members/${member._id}`)
+                }
               >
                 View Details
               </DropdownMenuItem>
@@ -213,12 +226,12 @@ const MembersPage: React.FC = () => {
         ),
       },
     ],
-    [group?.grp_manager?._id, router]
+    [group?.grp_manager?._id, router, org_slug]
   );
 
   const handleSendInvites = async () => {
-    if (!activeGroup?.id) {
-      toast.error('No active group selected');
+    if (!currentOrg?.id) {
+      toast.error('No organization selected');
       return;
     }
 
@@ -231,7 +244,7 @@ const MembersPage: React.FC = () => {
 
     try {
       await sendInvite.trigger({
-        groupId: activeGroup.id,
+        groupId: currentOrg.id,
         inviteData: { emails },
       });
       toast.success(`Invitations sent to ${emails.length} email(s)`);
@@ -263,8 +276,11 @@ const MembersPage: React.FC = () => {
     }
   };
 
+  // Check for MEMBER_INVITE permission for invite button visibility
+  const canInviteMembers = hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
+
   return (
-    <>
+    <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
       {groupError ? (
         <ErrorBanner
           title="Failed to load group members"
@@ -296,9 +312,11 @@ const MembersPage: React.FC = () => {
                   Assign Role ({selectedMembers.length})
                 </Button>
               )}
-              <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
-                Send Invites
-              </Button>
+              {canInviteMembers && (
+                <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
+                  Send Invites
+                </Button>
+              )}
             </div>
           </div>
 
@@ -325,73 +343,75 @@ const MembersPage: React.FC = () => {
           />
 
           {/* Invite Dialog */}
-          <Dialog
-            isOpen={showInviteDialog}
-            onClose={() => setShowInviteDialog(false)}
-            title="Send Group Invitations"
-            primaryAction={{
-              label: 'Send Invites',
-              onClick: handleSendInvites,
-              disabled: sendInvite.isMutating,
-              loading: sendInvite.isMutating,
-            }}
-            secondaryAction={{
-              label: 'Cancel',
-              onClick: () => setShowInviteDialog(false),
-              disabled: sendInvite.isMutating,
-              variant: 'outlined',
-            }}
-          >
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email Addresses *
-                </label>
-                <div className="space-y-2">
-                  {inviteEmails.map((email, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div className="flex-1">
-                        <Input
-                          value={email}
-                          onChange={e =>
-                            handleEmailChange(index, e.target.value)
-                          }
-                          placeholder="user@example.com"
-                          className="w-full"
-                        />
-                        {emailErrors[index] && (
-                          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {emailErrors[index]}
-                          </p>
+          {canInviteMembers && (
+            <Dialog
+              isOpen={showInviteDialog}
+              onClose={() => setShowInviteDialog(false)}
+              title="Send Group Invitations"
+              primaryAction={{
+                label: 'Send Invites',
+                onClick: handleSendInvites,
+                disabled: sendInvite.isMutating,
+                loading: sendInvite.isMutating,
+              }}
+              secondaryAction={{
+                label: 'Cancel',
+                onClick: () => setShowInviteDialog(false),
+                disabled: sendInvite.isMutating,
+                variant: 'outlined',
+              }}
+            >
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email Addresses *
+                  </label>
+                  <div className="space-y-2">
+                    {inviteEmails.map((email, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="flex-1">
+                          <Input
+                            value={email}
+                            onChange={e =>
+                              handleEmailChange(index, e.target.value)
+                            }
+                            placeholder="user@example.com"
+                            className="w-full"
+                          />
+                          {emailErrors[index] && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                              {emailErrors[index]}
+                            </p>
+                          )}
+                        </div>
+                        {inviteEmails.length > 1 && (
+                          <Button
+                            variant="outlined"
+                            size="sm"
+                            onClick={() => handleRemoveEmail(index)}
+                            className="px-3"
+                          >
+                            Remove
+                          </Button>
                         )}
                       </div>
-                      {inviteEmails.length > 1 && (
-                        <Button
-                          variant="outlined"
-                          size="sm"
-                          onClick={() => handleRemoveEmail(index)}
-                          className="px-3"
-                        >
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleAddEmail}
-                    className="w-full"
-                  >
-                    + Add Email Address
-                  </Button>
+                    ))}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleAddEmail}
+                      className="w-full"
+                    >
+                      + Add Email Address
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter email addresses to send invitations to join the group
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Enter email addresses to send invitations to join the group
-                </p>
               </div>
-            </div>
-          </Dialog>
+            </Dialog>
+          )}
 
           {/* Bulk Role Assignment Dialog */}
           <Dialog
@@ -456,7 +476,7 @@ const MembersPage: React.FC = () => {
           </Dialog>
         </>
       )}
-    </>
+    </PermissionGuard>
   );
 };
 

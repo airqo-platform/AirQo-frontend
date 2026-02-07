@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback } from 'react';
-import { useSelector } from 'react-redux';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import {
   Button,
   Banner,
@@ -12,16 +11,26 @@ import {
 } from '@/shared/components/ui';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import { useRolesByGroup, useCreateRole } from '@/shared/hooks/useAdmin';
-import { selectActiveGroup } from '@/shared/store/selectors';
-import { AdminPageGuard } from '@/shared/components';
+import { PermissionGuard } from '@/shared/components';
 import type { RoleDetails } from '@/shared/types/api';
 import { AqPlus, AqShield02 } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
+import { useUser } from '@/shared/hooks/useUser';
+import { useRBAC } from '@/shared/hooks';
 
 const RolesPage = () => {
   const router = useRouter();
+  const params = useParams();
+  const org_slug = params.org_slug as string;
+  const { groups } = useUser();
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
+
+  // Get the current organization from slug
+  const currentOrg = useMemo(() => {
+    return groups?.find(g => g.organizationSlug === org_slug);
+  }, [groups, org_slug]);
 
   // Pagination and search states for ServerSideTable
   const [currentPage, setCurrentPage] = useState(1);
@@ -33,18 +42,19 @@ const RolesPage = () => {
   const [newRoleName, setNewRoleName] = useState('');
   const [newRoleDescription, setNewRoleDescription] = useState('');
 
-  // Get active group from Redux store
-  const activeGroup = useSelector(selectActiveGroup);
-
-  // Fetch data for active group only
+  // Fetch data for current group only
   const {
     data: rolesData,
     isLoading: rolesLoading,
     error: rolesError,
     mutate: refetchRoles,
-  } = useRolesByGroup(activeGroup?.id || undefined);
+  } = useRolesByGroup(currentOrg?.id || undefined);
 
   const createRoleMutation = useCreateRole();
+
+  // Check permissions
+  const canCreateRole = hasAnyPermissionInActiveGroup(['ROLE_CREATE']);
+  const canViewRoles = hasAnyPermissionInActiveGroup(['ROLE_VIEW']);
 
   // Filter roles based on search term
   const filteredRoles = useMemo(() => {
@@ -70,13 +80,13 @@ const RolesPage = () => {
 
   const handleRoleClick = useCallback(
     (role: RoleDetails) => {
-      router.push(`/admin/roles/${role._id}`);
+      router.push(`/org/${org_slug}/roles/${role._id}`);
     },
-    [router]
+    [router, org_slug]
   );
 
   const handleCreateRole = async () => {
-    if (!activeGroup?.id) {
+    if (!currentOrg?.id) {
       toast.error('No active organization found');
       return;
     }
@@ -89,7 +99,7 @@ const RolesPage = () => {
     try {
       await createRoleMutation.trigger({
         role_name: newRoleName.trim(),
-        group_id: activeGroup.id,
+        group_id: currentOrg.id,
         role_description: newRoleDescription.trim() || undefined,
       });
 
@@ -174,8 +184,12 @@ const RolesPage = () => {
     [handleRoleClick]
   );
 
+  if (!canViewRoles) {
+    return null; // PermissionGuard will handle this, but adding extra safety
+  }
+
   return (
-    <AdminPageGuard requiredPermissionsInActiveGroup={['GROUP_MANAGEMENT']}>
+    <PermissionGuard requiredPermissionsInActiveGroup={['ROLE_VIEW']}>
       <div className="py-6 space-y-6">
         {/* Error Banner */}
         {rolesError && (
@@ -199,17 +213,19 @@ const RolesPage = () => {
         <div className="flex items-center justify-between">
           <PageHeading
             title="Roles & Permissions"
-            subtitle={`Manage user roles and their permissions for ${activeGroup?.title || 'your organization'}`}
+            subtitle={`Manage user roles and their permissions for ${currentOrg?.title || 'your organization'}`}
           />
-          <Button
-            variant="filled"
-            size="md"
-            onClick={() => setShowCreateDialog(true)}
-            Icon={AqPlus}
-            disabled={!activeGroup?.id}
-          >
-            Create New Role
-          </Button>
+          {canCreateRole && (
+            <Button
+              variant="filled"
+              size="md"
+              onClick={() => setShowCreateDialog(true)}
+              Icon={AqPlus}
+              disabled={!currentOrg?.id}
+            >
+              Create New Role
+            </Button>
+          )}
         </div>
 
         {/* Roles Table */}
@@ -235,62 +251,64 @@ const RolesPage = () => {
         />
 
         {/* Create Role Dialog */}
-        <Dialog
-          isOpen={showCreateDialog}
-          onClose={() => setShowCreateDialog(false)}
-          title="Create New Role"
-          subtitle="Add a new role with permissions for the selected organization"
-          primaryAction={{
-            label: 'Create Role',
-            onClick: handleCreateRole,
-            disabled: createRoleMutation.isMutating || !newRoleName.trim(),
-            loading: createRoleMutation.isMutating,
-          }}
-          secondaryAction={{
-            label: 'Cancel',
-            onClick: () => setShowCreateDialog(false),
-            disabled: createRoleMutation.isMutating,
-            variant: 'outlined' as const,
-          }}
-        >
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Role Name *
-              </label>
-              <Input
-                type="text"
-                value={newRoleName}
-                onChange={e => setNewRoleName(e.target.value)}
-                placeholder="Enter role name"
-                className="w-full"
-                disabled={createRoleMutation.isMutating}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Description
-              </label>
-              <Input
-                type="text"
-                value={newRoleDescription}
-                onChange={e => setNewRoleDescription(e.target.value)}
-                placeholder="Enter role description (optional)"
-                className="w-full"
-                disabled={createRoleMutation.isMutating}
-              />
-            </div>
-            {activeGroup && (
-              <div className="p-3 bg-blue-50 rounded-md">
-                <p className="text-sm text-blue-800">
-                  <strong>Organization:</strong> {activeGroup.title}
-                </p>
+        {canCreateRole && (
+          <Dialog
+            isOpen={showCreateDialog}
+            onClose={() => setShowCreateDialog(false)}
+            title="Create New Role"
+            subtitle="Add a new role with permissions for the selected organization"
+            primaryAction={{
+              label: 'Create Role',
+              onClick: handleCreateRole,
+              disabled: createRoleMutation.isMutating || !newRoleName.trim(),
+              loading: createRoleMutation.isMutating,
+            }}
+            secondaryAction={{
+              label: 'Cancel',
+              onClick: () => setShowCreateDialog(false),
+              disabled: createRoleMutation.isMutating,
+              variant: 'outlined' as const,
+            }}
+          >
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Role Name *
+                </label>
+                <Input
+                  type="text"
+                  value={newRoleName}
+                  onChange={e => setNewRoleName(e.target.value)}
+                  placeholder="Enter role name"
+                  className="w-full"
+                  disabled={createRoleMutation.isMutating}
+                />
               </div>
-            )}
-          </div>
-        </Dialog>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Description
+                </label>
+                <Input
+                  type="text"
+                  value={newRoleDescription}
+                  onChange={e => setNewRoleDescription(e.target.value)}
+                  placeholder="Enter role description (optional)"
+                  className="w-full"
+                  disabled={createRoleMutation.isMutating}
+                />
+              </div>
+              {currentOrg && (
+                <div className="p-3 bg-blue-50 rounded-md">
+                  <p className="text-sm text-blue-800">
+                    <strong>Organization:</strong> {currentOrg.title}
+                  </p>
+                </div>
+              )}
+            </div>
+          </Dialog>
+        )}
       </div>
-    </AdminPageGuard>
+    </PermissionGuard>
   );
 };
 

@@ -15,7 +15,8 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
   onItemClick,
   className,
 }) => {
-  const { isAirQoSuperAdminWithEmail } = useRBAC();
+  const { isAirQoSuperAdminWithEmail, hasAnyPermissionInActiveGroup } =
+    useRBAC();
 
   // Get the appropriate sidebar configuration
   const sidebarConfig = React.useMemo(() => {
@@ -37,6 +38,34 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
           return true;
         }),
       }));
+    }
+
+    // Filter organization management items based on permissions
+    if (flow === 'organization') {
+      config = config.map(group => {
+        // Only filter the management group
+        if (group.id === 'management') {
+          return {
+            ...group,
+            items: group.items.filter(item => {
+              // Members and Member Requests require MEMBER_VIEW
+              if (['org-members', 'org-member-requests'].includes(item.id)) {
+                return hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
+              }
+              // Roles & Permissions require ROLE_VIEW
+              if (item.id === 'org-roles') {
+                return hasAnyPermissionInActiveGroup(['ROLE_VIEW']);
+              }
+              // Organization Settings require GROUP_MANAGEMENT
+              if (item.id === 'org-settings') {
+                return hasAnyPermissionInActiveGroup(['GROUP_MANAGEMENT']);
+              }
+              return true;
+            }),
+          };
+        }
+        return group;
+      });
     }
 
     // Filter system items based on permissions
@@ -71,7 +100,12 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
     }
 
     return config;
-  }, [flow, orgSlug, isAirQoSuperAdminWithEmail]);
+  }, [
+    flow,
+    orgSlug,
+    isAirQoSuperAdminWithEmail,
+    hasAnyPermissionInActiveGroup,
+  ]);
 
   return (
     <div className={cn('flex-1 py-6', className)}>

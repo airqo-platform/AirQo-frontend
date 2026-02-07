@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   useUserDetails,
@@ -22,12 +22,19 @@ import {
 import { toast } from '@/shared/components/ui/toast';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { useUser } from '@/shared/hooks/useUser';
+import { PermissionGuard } from '@/shared/components';
 
 const MemberDetailsPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const { activeGroup } = useUser();
+  const org_slug = params.org_slug as string;
   const memberId = params.memberID as string;
+  const { groups } = useUser();
+
+  // Get the current organization from slug
+  const currentOrg = useMemo(() => {
+    return groups?.find(g => g.organizationSlug === org_slug);
+  }, [groups, org_slug]);
 
   const [showAssignRoleDialog, setShowAssignRoleDialog] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
@@ -43,12 +50,12 @@ const MemberDetailsPage: React.FC = () => {
     mutate: mutateUser,
   } = useUserDetails(memberId);
 
-  // Get roles for the active group
+  // Get roles for the current group
   const {
     data: rolesData,
     isLoading: rolesLoading,
     mutate: mutateRoles,
-  } = useRolesByGroup(activeGroup?.id || undefined);
+  } = useRolesByGroup(currentOrg?.id || undefined);
 
   const assignUsersToRole = useAssignUsersToRole();
   const unassignUsersFromRole = useUnassignUsersFromRole();
@@ -56,8 +63,8 @@ const MemberDetailsPage: React.FC = () => {
   const user = userData?.users?.[0];
   const roles = rolesData?.roles || [];
 
-  // Get user's current roles in the active group
-  const userGroup = user?.groups?.find(g => g._id === activeGroup?.id);
+  // Get user's current roles in the current group
+  const userGroup = user?.groups?.find(g => g._id === currentOrg?.id);
   const userRoleIds = userGroup?.role ? [userGroup.role._id] : [];
   const userRoles = roles.filter(role => userRoleIds.includes(role._id));
 
@@ -111,7 +118,7 @@ const MemberDetailsPage: React.FC = () => {
 
   if (userError) {
     return (
-      <>
+      <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
         <ErrorBanner
           title="Failed to load user details"
           message="Unable to load user information. Please try again later."
@@ -121,19 +128,19 @@ const MemberDetailsPage: React.FC = () => {
             </Button>
           }
         />
-      </>
+      </PermissionGuard>
     );
   }
 
   return (
-    <>
+    <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
       <div className="space-y-4">
         {/* Back Button */}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.back()}
+            onClick={() => router.push(`/org/${org_slug}/members`)}
             Icon={AqChevronLeft}
           >
             Back to Members
@@ -465,7 +472,7 @@ const MemberDetailsPage: React.FC = () => {
           </div>
         </Dialog>
       </div>
-    </>
+    </PermissionGuard>
   );
 };
 

@@ -32,6 +32,7 @@ import { Button } from '@/shared/components/ui/button';
 import { PhoneNumberInput } from '@/shared/components/ui/phone-input';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { toast } from '@/shared/components/ui/toast';
+import Dialog from '@/shared/components/ui/dialog';
 import { uploadToCloudinary } from '@/shared/utils/cloudinaryUpload';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import {
@@ -85,6 +86,7 @@ const RequestOrganizationPage = () => {
   const [logoUploading, setLogoUploading] = useState(false);
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -346,10 +348,8 @@ const RequestOrganizationPage = () => {
       // Submit organization request
       await createRequest(submitData);
 
-      toast.success(
-        'Request submitted successfully',
-        'Your organization request has been submitted for review.'
-      );
+      // Show success dialog
+      setShowSuccessDialog(true);
 
       // Reset form
       setFormData({
@@ -760,6 +760,38 @@ const RequestOrganizationPage = () => {
             </Button>
           </div>
         </form>
+
+        {/* Success Dialog */}
+        <Dialog
+          isOpen={showSuccessDialog}
+          onClose={() => setShowSuccessDialog(false)}
+          title="Request Submitted Successfully"
+          subtitle="Check your email for next steps"
+          icon={AqCheckCircle}
+          iconColor="text-green-600"
+          iconBgColor="bg-green-100 dark:bg-green-900/30"
+          size="md"
+          primaryAction={{
+            label: 'Got it',
+            onClick: () => setShowSuccessDialog(false),
+            variant: 'filled',
+          }}
+        >
+          <div className="text-sm text-muted-foreground">
+            <p>
+              Your organization request has been submitted for review. Our team
+              will review your application and send you an email with the next
+              steps.
+            </p>
+            <p className="mt-3">
+              Please check your inbox at{' '}
+              <span className="font-medium text-foreground">
+                {formData.contact_email || 'your email'}
+              </span>{' '}
+              for updates.
+            </p>
+          </div>
+        </Dialog>
       </div>
     </div>
   );

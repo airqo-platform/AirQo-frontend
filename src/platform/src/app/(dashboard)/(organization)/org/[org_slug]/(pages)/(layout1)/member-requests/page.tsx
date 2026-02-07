@@ -15,12 +15,20 @@ import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqCheckCircle } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
-import { AdminPageGuard } from '@/shared/components';
+import { PermissionGuard } from '@/shared/components';
 import type { GroupJoinRequest } from '@/shared/types/api';
 import { ErrorBanner } from '@/shared/components/ui/banner';
+import { useParams } from 'next/navigation';
 
 const MemberRequestsPage: React.FC = () => {
-  const { activeGroup } = useUser();
+  const params = useParams();
+  const org_slug = params.org_slug as string;
+  const { groups } = useUser();
+
+  // Get the current organization from slug
+  const currentOrg = useMemo(() => {
+    return groups?.find(g => g.organizationSlug === org_slug);
+  }, [groups, org_slug]);
 
   // Utility function to format group name
   const formatGroupName = (name: string | undefined): string => {
@@ -51,7 +59,7 @@ const MemberRequestsPage: React.FC = () => {
     isLoading,
     error,
     mutate,
-  } = useGroupJoinRequests(activeGroup?.id || null);
+  } = useGroupJoinRequests(currentOrg?.id || null);
 
   const approveMutation = useApproveGroupJoinRequest();
   const rejectMutation = useRejectGroupJoinRequest();
@@ -94,8 +102,6 @@ const MemberRequestsPage: React.FC = () => {
     () => paginatedRequests.map(req => ({ ...req, id: req._id })),
     [paginatedRequests]
   );
-
-  // Table columns for member requests will be defined after the handlers
 
   const handleApprove = useCallback((requestId: string, userName: string) => {
     setConfirmDialog({ type: 'approve', requestId, userName });
@@ -293,7 +299,7 @@ const MemberRequestsPage: React.FC = () => {
   );
 
   return (
-    <AdminPageGuard requiredPermissionsInActiveGroup={['USER_MANAGEMENT']}>
+    <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
       {error && (!requestsData || requestsData.success !== true) ? (
         <ErrorBanner
           title="Failed to load member requests"
@@ -309,7 +315,7 @@ const MemberRequestsPage: React.FC = () => {
           {/* Page Header */}
           <PageHeading
             title="MEMBER REQUESTS"
-            subtitle={`Manage membership requests for ${formatGroupName(activeGroup?.title)}`}
+            subtitle={`Manage membership requests for ${formatGroupName(currentOrg?.title)}`}
           />
 
           {/* Member Requests Table */}
@@ -368,7 +374,7 @@ const MemberRequestsPage: React.FC = () => {
           </ReusableDialog>
         </>
       )}
-    </AdminPageGuard>
+    </PermissionGuard>
   );
 };
 
