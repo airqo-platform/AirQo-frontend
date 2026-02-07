@@ -6,25 +6,87 @@
 
 /* You can override the default Infima variables here. */
 :root {
-  --ifm-color-primary: #2e8555;
-  --ifm-color-primary-dark: #29784c;
-  --ifm-color-primary-darker: #277148;
-  --ifm-color-primary-darkest: #205d3b;
-  --ifm-color-primary-light: #33925d;
-  --ifm-color-primary-lighter: #359962;
-  --ifm-color-primary-lightest: #3cad6e;
+  /* User Provided Variables */
+  --background: 246 246 247;
+  --foreground: 28 29 32;
+  --primary: 20 95 255;
+  --primary-foreground: 255 255 255;
+  --secondary: 241 245 249;
+  --secondary-foreground: 15 23 42;
+  --muted: 241 245 249;
+  --muted-foreground: 100 116 139;
+  --accent: 241 245 249;
+  --accent-foreground: 15 23 42;
+  --destructive: 239 68 68;
+  --destructive-foreground: 255 255 255;
+  --border: 226 232 240;
+  --input: 226 232 240;
+  --ring: 20 95 255;
+  --card: 255 255 255;
+  --card-foreground: 15 23 42;
+  --popover: 255 255 255;
+  --popover-foreground: 15 23 42;
+  --text: 31 41 55;
+  --heading: 16 24 40;
+
+  /* Primary color variations for highlights */
+  --primary-50: 239 246 255; /* Very light blue */
+  --primary-100: 219 234 254; /* Light blue */
+  --primary-700: 3 105 161; /* Dark blue */
+  --primary-800: 7 89 133; /* Darker blue */
+  --primary-900: 12 74 110; /* Darkest blue */
+
+  /* Map to Infima (Docusaurus) Variables */
+  --ifm-color-primary: rgb(var(--primary));
+  --ifm-color-primary-dark: rgb(var(--primary-700));
+  --ifm-color-primary-darker: rgb(var(--primary-800));
+  --ifm-color-primary-darkest: rgb(var(--primary-900));
+  --ifm-color-primary-light: rgb(var(--primary-100));
+  --ifm-color-primary-lighter: rgb(var(--primary-50));
+  --ifm-color-primary-lightest: rgb(var(--primary-50));
+
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
-  --ifm-color-primary: #25c2a0;
-  --ifm-color-primary-dark: #21af90;
-  --ifm-color-primary-darker: #1fa588;
-  --ifm-color-primary-darkest: #1a8870;
-  --ifm-color-primary-light: #29d5b0;
-  --ifm-color-primary-lighter: #32d8b4;
-  --ifm-color-primary-lightest: #4fddbf;
+  --background: 29 31 32;
+  --foreground: 237 237 237;
+  --primary: 20 95 255;
+  --primary-foreground: 255 255 255;
+  --secondary: 30 41 59;
+  --secondary-foreground: 248 250 252;
+  --muted: 30 41 59;
+  --muted-foreground: 148 163 184;
+  --accent: 30 41 59;
+  --accent-foreground: 248 250 252;
+  --destructive: 220 38 38;
+  --destructive-foreground: 255 255 255;
+  --border: 51 65 85;
+  --input: 51 65 85;
+  --ring: 20 95 255;
+  --card: 29 31 32;
+  --card-foreground: 248 250 252;
+  --popover: 29 31 32;
+  --popover-foreground: 248 250 252;
+  --text: 249 250 251;
+  --heading: 255 255 255;
+  --scrollbar-track: 30 41 59;
+  --scrollbar-thumb: 148 163 184;
+  --scrollbar-hover: 51 65 85;
+
+  /* Using the same primary blue for consistency in dark mode */
+  --ifm-color-primary: rgb(var(--primary));
+  --ifm-color-primary-dark: rgb(var(--primary-700));
+  --ifm-color-primary-darker: rgb(var(--primary-800));
+  --ifm-color-primary-darkest: rgb(var(--primary-900));
+  --ifm-color-primary-light: rgb(var(--primary-100));
+  --ifm-color-primary-lighter: rgb(var(--primary-50));
+  --ifm-color-primary-lightest: rgb(var(--primary-50));
+
+  --ifm-background-color: rgb(var(--background));
+  --ifm-font-color-base: rgb(var(--foreground));
+
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
