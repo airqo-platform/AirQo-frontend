@@ -7,7 +7,7 @@
 /* You can override the default Infima variables here. */
 :root {
   /* User Provided Variables */
-  --background: 255 255 255;
+  --background: 246 246 247;
   --foreground: 28 29 32;
   --primary: 20 95 255;
   --primary-foreground: 255 255 255;
@@ -51,9 +51,13 @@
   /* Ensure consistent background across page, navbar, and footer */
   --ifm-background-color: var(--ifm-navbar-background-color); 
   /* Or actually more robust */
+  /* Floating Layout Colors (Light Mode) */
   --ifm-background-color: rgb(var(--background));
-  --ifm-navbar-background-color: var(--ifm-background-color);
-  --ifm-footer-background-color: var(--ifm-background-color);
+  --ifm-navbar-background-color: #ffffff;
+  --ifm-footer-background-color: #ffffff;
+
+  /* Shadow for floating effect */
+  --floating-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
 
   /* Typography */
   --ifm-font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
@@ -165,13 +169,54 @@ h6 {
   --ifm-color-primary-lighter: rgb(var(--primary-50));
   --ifm-color-primary-lightest: rgb(var(--primary-50));
 
+  /* Floating Layout Colors (Dark Mode) */
   --ifm-background-color: rgb(var(--background));
   --ifm-font-color-base: rgb(var(--foreground));
-  --ifm-navbar-background-color: var(--ifm-background-color);
-  --ifm-footer-background-color: var(--ifm-background-color);
-
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  
+  /* Navbar and Sidebar should match card color in dark mode */
+  --ifm-navbar-background-color: rgb(var(--card));
+  --ifm-footer-background-color: rgb(var(--card));
 }
+
+/* Responsive Floating Layout (Desktop Only) */
+@media (min-width: 997px) {
+  /* Floating Navbar Style */
+  .navbar {
+    margin: 0.5rem;
+    border-radius: 0.35rem;
+    box-shadow: var(--floating-shadow);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    width: calc(100% - 1rem);
+    height: 3rem;
+  }
+
+  /* Push content down to account for fixed navbar */
+  /* Using !important to ensure it overrides defaults */
+  .main-wrapper {
+    margin-top: 5rem !important; 
+  }
+
+  /* Floating Sidebar Style */
+  /* Target the sidebar container */
+  aside[class^='theme-doc-sidebar-container'] {
+    margin: 0.5rem;
+    margin-top: 0; /* Remove top margin if it sits directly under navbar margin */
+    background-color: var(--ifm-navbar-background-color);
+    border-radius: 0.35rem;
+    box-shadow: var(--floating-shadow);
+    border-right: none !important; /* Remove default border */
+    /* Sticky positioning */
+    position: sticky;
+    top: 1rem; /* Navbar height + margin + gap */
+    height: calc(100vh - 4rem) !important; /* Adjust height for margins */
+    overflow-y: auto; /* Allow internal scrolling if content is long */
+  }
+}
+
 
 /* Responsive typography */
 @media (max-width: 640px) {
