@@ -240,11 +240,10 @@ h6 {
 
   /* NEW: Wrapper Styling for Sidebar + Dropdown */
   .theme-doc-sidebar-wrapper {
-    margin: 0.5rem;
+    margin: 0.5rem 0 0 0;
     margin-top: 0;
     background-color: var(--ifm-navbar-background-color);
     border-radius: 0.35rem;
-    box-shadow: var(--floating-shadow);
     /* Sticky positioning */
     position: sticky;
     top: 4rem; /* Navbar height (3rem) + margin (0.5rem) + gap (0.5rem) */
@@ -254,8 +253,10 @@ h6 {
     overflow: hidden;
   }
 
-  /* When inside wrapper, reset aside styles */
-  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'] {
+  /* When inside wrapper, reset aside and any internal sidebar div styles */
+  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'],
+  .theme-doc-sidebar-wrapper > div[class*='sidebar_'], 
+  .theme-doc-sidebar-wrapper > div[class^='sidebar_'] {
     margin: 0 !important;
     background-color: transparent !important;
     border-radius: 0 !important;
@@ -265,7 +266,14 @@ h6 {
     flex: 1;
     overflow-y: auto;
     border: none !important;
-    padding-top: 0.5rem !important; /* Slight padding below dropdown */
+    padding-top: 0 !important; /* Remove inner padding */
+    display: block !important; /* Ensure it doesn't flex awkwardly */
+  }
+
+  /* Target the internal nav/menu within the sidebar to ensure no extra padding there either */
+  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'] > nav,
+  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'] > div {
+    padding-top: 0 !important;
   }
 }
 

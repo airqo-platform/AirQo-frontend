@@ -8,7 +8,7 @@ import {
     AqCpuChip01,
     AqDataflow01,
     AqPhone01,
-    AqChevronDown,
+    AqChevronSelectorVertical,
     AqCheck
 } from '@airqo/icons-react';
 
@@ -82,7 +82,7 @@ export default function ProductDropdown() {
                     <span>{currentProduct.title}</span>
                 </div>
                 <div className={styles.dropdownArrow}>
-                    <AqChevronDown />
+                    <AqChevronSelectorVertical />
                 </div>
             </button>
 
