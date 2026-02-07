@@ -44,7 +44,7 @@ const Products = [
         icon: AqPhone01,
     },
     {
-        title: 'Cross Product',
+        title: 'Cross Product Features',
         path: '/docs/cross-product',
         icon: AqPhone01,
         landingPath: '/docs/cross-product/RBAC/overview',

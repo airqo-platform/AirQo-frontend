@@ -19,19 +19,19 @@ const ProductList: ProductItem[] = [
     },
     {
         title: 'Vertex',
-        description: 'Manage devices, sites, and networks with AirQo\'s device management platform',
+        description: 'Manage your organization\’s device lifecycle, from onboarding to real-time status monitoring.',
         link: '/docs/vertex/intro',
         Icon: AqServer03,
     },
     {
         title: 'Beacon',
-        description: 'Display real-time air quality data with customizable digital screens',
+        description: 'Monitor real-time technical health metrics like battery and signal strength for the sensor network',
         link: '/docs/beacon/intro',
         Icon: AqMonitor,
     },
     {
         title: 'AI Platform',
-        description: 'Leverage machine learning models for air quality predictions and forecasting',
+        description: 'Leverage machine learning for advanced air quality forecasting and spatial analysis',
         link: '/docs/ai-platform/intro',
         Icon: AqCpuChip01,
     },
