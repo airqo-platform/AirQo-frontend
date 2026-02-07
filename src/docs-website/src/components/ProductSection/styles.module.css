@@ -35,7 +35,8 @@
 .card {
   border-radius: 1rem;
   padding: 1.5rem; /* Slightly reduced padding */
-  aspect-ratio: 1 / 1; /* Make card square */
+  /* Removed aspect-ratio: 1 / 1; */
+  height: 180px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end; /* Align text to bottom */
@@ -44,6 +45,7 @@
   color: #1f2937; /* Dark text for contrast on light cards */
   position: relative;
   overflow: hidden;
+  background-color: #99C2FF;
 }
 
 .card:hover {
@@ -73,26 +75,9 @@
 /* Card Title Typography */
 .cardTitle {
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: 400;
   margin: 0;
   line-height: 1.2;
-}
-
-/* Card Colors - Using tailored pastels */
-.analytics {
-  background-color: #fef08a; /* Yellow-200 */
-}
-
-.vertex {
-  background-color: #fbcfe8; /* Pink-200 */
-}
-
-.beacon {
-  background-color: #bfdbfe; /* Blue-200 */
-}
-
-.aiPlatform {
-  background-color: #fed7aa; /* Orange-200 */
 }
 
 /* Optional: Subtle gradient overlay for depth */

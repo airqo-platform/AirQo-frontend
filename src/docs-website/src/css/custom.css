@@ -195,16 +195,15 @@ h6 {
   }
 
   /* Push content down to account for fixed navbar */
-  /* Using !important to ensure it overrides defaults */
   .main-wrapper {
-    margin-top: 5rem !important; 
+    margin-top: 4rem !important; 
   }
 
   /* Floating Sidebar Style */
   /* Target the sidebar container */
   aside[class^='theme-doc-sidebar-container'] {
     margin: 0.5rem;
-    margin-top: 0; /* Remove top margin if it sits directly under navbar margin */
+    margin-top: 0;
     background-color: var(--ifm-navbar-background-color);
     border-radius: 0.35rem;
     box-shadow: var(--floating-shadow);
@@ -214,6 +213,7 @@ h6 {
     top: 1rem; /* Navbar height + margin + gap */
     height: calc(100vh - 4rem) !important; /* Adjust height for margins */
     overflow-y: auto; /* Allow internal scrolling if content is long */
+    overflow-x: hidden;
   }
 }
 

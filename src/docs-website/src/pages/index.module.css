@@ -1,16 +1,12 @@
-/* Main Container with Gradient and Rounded Edges */
+/* Main Container */
 .mainContainer {
-  /* Gradient similar to the image: Purple/Blue to Pink/Orange */
-  background: linear-gradient(135deg, #a78bfa 0%, #f472b6 50%, #fb923c 100%);
-  /* Allow the gradient to change or use a softer one if needed via variable or override */
-  background: linear-gradient(120deg, #c4b5fd 0%, #f9a8d4 100%); 
-  /* Let's try a more specific match to the "ada" image which is purplish */
-  background: linear-gradient(109.6deg, rgb(157, 168, 240) 11.2%, rgb(209, 169, 237) 91.1%);
+  background: var(--ifm-background-color);
 
-  border-radius: 2rem;
+  border-radius: 0.35rem;
+  box-shadow: var(--floating-shadow);
   padding: 2rem;
-  margin: 1rem;
-  min-height: 80vh; /* Takes up most of the view */
+  margin: 0 0.5rem 0.5rem 0.5rem;
+  min-height: 80vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -24,15 +20,14 @@
 
 /* Header Styles */
 .header {
-  margin-bottom: 1rem; /* Significantly reduced from 3rem */
-  padding-left: 1rem; /* Align with grid */
+  margin-bottom: 1rem;
+  padding-left: 1rem;
 }
 
 .title {
-  font-size: 3.5rem;
-  font-weight: 500; /* Clean, not too bold */
+  font-size: 4rem;
+  font-weight: 400;
   margin-bottom: 0.5rem;
-  color: #1f2937; /* Dark gray */
   line-height: 1.1;
   font-family: system-ui, -apple-system, sans-serif;
   letter-spacing: -0.02em;
@@ -41,7 +36,6 @@
 .subtitle {
   font-size: 1.5rem;
   font-weight: 400;
-  color: #374151;
   margin: 0;
   max-width: 800px;
   line-height: 1.4;
