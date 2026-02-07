@@ -22,8 +22,8 @@ const config: Config = {
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
-  organizationName: 'facebook', // Usually your GitHub org/user name.
-  projectName: 'docusaurus', // Usually your repo name.
+  organizationName: 'AirQo-frontend', // Usually your GitHub org/user name.
+  projectName: 'docs-website', // Usually your repo name.
 
   onBrokenLinks: 'throw',
 
@@ -89,7 +89,7 @@ const config: Config = {
         },
         {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/docs-website',
           label: 'GitHub',
           position: 'right',
         },
@@ -133,12 +133,12 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/facebook/docusaurus',
+              href: 'https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/docs-website',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Built with <a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer">Docusaurus</a>.`,
     },
     prism: {
       theme: prismThemes.github,
