@@ -227,9 +227,45 @@ h6 {
     /* Sticky positioning */
     position: sticky;
     top: 4rem; /* Navbar height (3rem) + margin (0.5rem) + gap (0.5rem) */
-    height: calc(100vh - 5rem) !important; /* Adjust height for margins */
+    height: calc(100vh - 4.5rem) !important; /* Adjust height for margins */
     overflow-y: auto; /* Allow internal scrolling if content is long */
     overflow-x: hidden;
+    padding: 0 !important; /* Remove inner padding */
+    
+    /* Ensure content aligns to top */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start !important;
+  }
+
+  /* NEW: Wrapper Styling for Sidebar + Dropdown */
+  .theme-doc-sidebar-wrapper {
+    margin: 0.5rem;
+    margin-top: 0;
+    background-color: var(--ifm-navbar-background-color);
+    border-radius: 0.35rem;
+    box-shadow: var(--floating-shadow);
+    /* Sticky positioning */
+    position: sticky;
+    top: 4rem; /* Navbar height (3rem) + margin (0.5rem) + gap (0.5rem) */
+    height: calc(100vh - 4.5rem) !important; /* Adjust height for margins */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* When inside wrapper, reset aside styles */
+  .theme-doc-sidebar-wrapper aside[class^='theme-doc-sidebar-container'] {
+    margin: 0 !important;
+    background-color: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    position: static !important;
+    height: auto !important;
+    flex: 1;
+    overflow-y: auto;
+    border: none !important;
+    padding-top: 0.5rem !important; /* Slight padding below dropdown */
   }
 }
 
@@ -240,10 +276,8 @@ h6 {
   position: relative;
   border-radius: 0.5rem;
   margin-bottom: 0.2rem;
-  /* Balanced margins for equal spacing */
   margin-right: 0.5rem;
-  margin-left: 0.5rem; 
-  /* Internal padding - Remove padding-left to restore Docusaurus indentation */
+  margin-left: 0.5rem;
   padding-right: 1rem;
   
   /* Match p element typography */
@@ -292,7 +326,7 @@ h6 {
 
 /* Remove excess top spacing in sidebar */
 .menu {
-  padding-top: 0 !important;
+  padding-top: 1rem !important; /* Add slight top padding for breathing room, but ensure it starts from top */
   padding-left: 0 !important; /* Ensure no container padding throws off balance */
   padding-right: 0 !important;
 }
@@ -302,6 +336,7 @@ h6 {
   font-size: 1.25rem !important; /* H4 font size */
   line-height: 1.3 !important;
   font-weight: 500 !important;
+  margin-left: 0.5rem; /* Add space between logo and title */
 }
 
 /* Responsive typography */

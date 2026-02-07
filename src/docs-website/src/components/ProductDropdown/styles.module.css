@@ -1,0 +1,93 @@
+.dropdownContainer {
+  position: relative;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+
+.dropdownButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background-color: transparent;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--ifm-font-color-base);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.dropdownButton:hover {
+  background-color: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-primary);
+}
+
+.productInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.productIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ifm-color-primary);
+}
+
+.productIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.dropdownArrow {
+  color: var(--ifm-color-emphasis-600);
+  display: flex;
+  align-items: center;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0.5rem;
+  right: 0.5rem;
+  z-index: 100;
+  background-color: var(--ifm-background-surface-color);
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: 0.5rem;
+  overflow: hidden;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  color: var(--ifm-font-color-base);
+  text-decoration: none !important;
+}
+
+.dropdownItem:hover {
+  background-color: var(--ifm-color-emphasis-100);
+  color: var(--ifm-color-primary);
+}
+
+.activeItem {
+  background-color: var(--ifm-color-primary-lightest);
+  color: var(--ifm-color-primary);
+  font-weight: 500;
+}
+
+.checkIcon {
+  margin-left: auto;
+  color: var(--ifm-color-primary);
+}
