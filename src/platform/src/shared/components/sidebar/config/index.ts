@@ -238,6 +238,12 @@ const globalSidebarConfig: NavGroup[] = [
     label: 'Global',
     items: [
       {
+        id: 'home',
+        label: 'Home',
+        href: '/home',
+        icon: AqHomeSmile,
+      },
+      {
         id: 'system-management',
         label: 'System Management',
         href: '/system/clients',

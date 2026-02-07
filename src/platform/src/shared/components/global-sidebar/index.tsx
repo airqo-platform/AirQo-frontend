@@ -128,6 +128,13 @@ export const GlobalSidebar: React.FC = () => {
           } else if (item.id === 'admin-panel') {
             // Change Organization Panel href based on permissions
             href = '/admin/members';
+          } else if (item.id === 'home') {
+            // Home redirects to appropriate dashboard/home based on flow
+            if (flow === 'organization' && orgSlug) {
+              href = `${basePath}/dashboard`;
+            } else {
+              href = `${basePath}/home`;
+            }
           } else {
             href = href.replace('/data-access', `${basePath}${targetPath}`);
           }
