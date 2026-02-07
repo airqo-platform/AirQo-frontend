@@ -322,18 +322,21 @@ const RequestOrganizationPage = () => {
       return;
     }
 
-    setLogoUploading(true);
-
     try {
       let logoUrl = '';
 
       // Upload logo if selected
       if (selectedLogoFile) {
-        const result = await uploadToCloudinary(selectedLogoFile, {
-          folder: 'organization_profiles',
-          tags: ['organization', 'logo'],
-        });
-        logoUrl = result.secure_url;
+        setLogoUploading(true);
+        try {
+          const result = await uploadToCloudinary(selectedLogoFile, {
+            folder: 'organization_profiles',
+            tags: ['organization', 'logo'],
+          });
+          logoUrl = result.secure_url;
+        } finally {
+          setLogoUploading(false);
+        }
       }
 
       // Prepare form data with uploaded logo URL
@@ -373,8 +376,6 @@ const RequestOrganizationPage = () => {
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
       toast.error('Submission failed', errorMessage);
-    } finally {
-      setLogoUploading(false);
     }
   };
 
@@ -779,12 +780,8 @@ const RequestOrganizationPage = () => {
         >
           <div className="text-sm text-muted-foreground">
             <p>
-              Your request has been submitted. We&apos;ll review your
-              application and send confirmation to{' '}
-              <span className="font-medium text-foreground">
-                {formData.contact_email}
-              </span>
-              .
+              Request submitted. Our team will review it and respond to the
+              email you used to submit this request.
             </p>
           </div>
         </Dialog>
