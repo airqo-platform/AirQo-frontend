@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import { AqCpuChip01, AqServer03, AqBarChartSquarePlus, AqMonitor, AqPhone01 } from '@airqo/icons-react';
+import { AqCpuChip01, AqServer03, AqBarChartSquarePlus, AqMonitor, AqPhone01, AqDataflow01 } from '@airqo/icons-react';
 import styles from './styles.module.css';
 
 type ProductItem = {
@@ -29,6 +29,11 @@ const ProductList: ProductItem[] = [
         title: 'AI Platform',
         link: '/docs/ai-platform/intro',
         Icon: AqCpuChip01,
+    },
+    {
+        title: 'API',
+        link: '/docs/api/intro',
+        Icon: AqDataflow01,
     },
     {
         title: 'AirQo Mobile App',

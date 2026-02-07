@@ -48,13 +48,12 @@
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
 
-  /* Ensure consistent background across page, navbar, and footer */
+  /* Ensure consistent background across page, navbar */
   --ifm-background-color: var(--ifm-navbar-background-color); 
   /* Or actually more robust */
   /* Floating Layout Colors (Light Mode) */
   --ifm-background-color: rgb(var(--background));
   --ifm-navbar-background-color: #ffffff;
-  --ifm-footer-background-color: #ffffff;
 
   /* Shadow for floating effect */
   --floating-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -193,7 +192,15 @@ h6 {
   
   /* Navbar and Sidebar should match card color in dark mode */
   --ifm-navbar-background-color: rgb(var(--card));
-  --ifm-footer-background-color: rgb(var(--card));
+}
+
+/* Auto-hide Navbar Animation */
+.navbar {
+  transition: transform 0.3s ease-in-out;
+}
+
+.navbar--hidden {
+  transform: translateY(-100%);
 }
 
 /* Responsive Floating Layout (Desktop Only) */
@@ -228,13 +235,76 @@ h6 {
     border-right: none !important; /* Remove default border */
     /* Sticky positioning */
     position: sticky;
-    top: 1rem; /* Navbar height + margin + gap */
-    height: calc(100vh - 4rem) !important; /* Adjust height for margins */
+    top: 4rem; /* Navbar height (3rem) + margin (0.5rem) + gap (0.5rem) */
+    height: calc(100vh - 5rem) !important; /* Adjust height for margins */
     overflow-y: auto; /* Allow internal scrolling if content is long */
     overflow-x: hidden;
   }
 }
 
+/* Sidebar Navigation Styling */
+.menu__link {
+  color: var(--ifm-font-color-base);
+  transition: all 0.2s ease;
+  position: relative;
+  border-radius: 0.5rem;
+  margin-bottom: 0.2rem;
+  /* Balanced margins for equal spacing */
+  margin-right: 0.5rem;
+  margin-left: 0.5rem; 
+  /* Internal padding - Remove padding-left to restore Docusaurus indentation */
+  padding-right: 1rem;
+  
+  /* Match p element typography */
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: calc(1.25 / 0.875);
+}
+
+.menu__link:hover {
+  color: var(--ifm-font-color-base);
+  background-color: var(--ifm-color-emphasis-100);
+  text-decoration: none;
+}
+
+/* Active Item Styling */
+.menu__link--active {
+  color: var(--ifm-color-primary) !important;
+  background-color: var(--ifm-color-primary-lightest);
+  font-weight: 600;
+}
+
+/* Dark mode specific overrides for active item */
+[data-theme='dark'] .menu__link--active {
+  background-color: rgba(20, 95, 255, 0.15);
+  color: var(--ifm-color-primary) !important; 
+}
+
+/* Parent categories should NOT have the active background if they are just expanded but not "active" in the sense of being the current page.
+   However, Docusaurus adds --active to parents of the active page. 
+   If user wants NO background on parents, we can exclude them.
+   For now, user only asked to remove the vertical bar from parents. */
+
+/* Active Indicator Line - ONLY for leaf links (not sublists) */
+.menu__link--active:not(.menu__link--sublist)::before {
+  content: '';
+  position: absolute;
+  /* Positioned relative to the item, slightly to the left */
+  left: -0.625rem; 
+  top: 50%;
+  transform: translateY(-50%);
+  height: 0.75rem;
+  width: 4px;
+  background-color: var(--ifm-color-primary);
+  border-radius: 4px;
+}
+
+/* Remove excess top spacing in sidebar */
+.menu {
+  padding-top: 0 !important;
+  padding-left: 0 !important; /* Ensure no container padding throws off balance */
+  padding-right: 0 !important;
+}
 
 /* Navbar Title Styling (H4) */
 .navbar__title {
@@ -256,4 +326,65 @@ h6 {
   h3 {
     font-size: 1.25rem;
   }
+}
+
+/* Custom Scrollbar for Sidebar */
+/* Target multiple potential scrollable containers */
+
+/* 1. Target the main aside container */
+aside[class^='theme-doc-sidebar-container'],
+aside[class*='theme-doc-sidebar-container'],
+/* 2. Target any nav.menu inside */
+nav.menu,
+/* 3. Target the theme-specific scrollable wrapper if it exists */
+div[class*='sidebar'],
+div[class*='Sidebar'] {
+  /* Firefox Scrollbar Support */
+  scrollbar-width: thin !important;
+  scrollbar-color: transparent transparent !important;
+}
+
+/* Show scrollbar on hover for all targets */
+aside[class^='theme-doc-sidebar-container']:hover,
+aside[class*='theme-doc-sidebar-container']:hover,
+aside[class^='theme-doc-sidebar-container']:hover *,
+nav.menu:hover {
+  scrollbar-color: var(--ifm-color-primary) transparent !important;
+}
+
+/* Webkit Scrollbar for all potential containers */
+aside[class^='theme-doc-sidebar-container']::-webkit-scrollbar,
+aside[class*='theme-doc-sidebar-container']::-webkit-scrollbar,
+nav.menu::-webkit-scrollbar,
+div[class*='sidebar']::-webkit-scrollbar,
+div[class*='Sidebar']::-webkit-scrollbar {
+  width: 6px !important;
+  background-color: transparent !important;
+}
+
+aside[class^='theme-doc-sidebar-container']::-webkit-scrollbar-track,
+aside[class*='theme-doc-sidebar-container']::-webkit-scrollbar-track,
+nav.menu::-webkit-scrollbar-track,
+div[class*='sidebar']::-webkit-scrollbar-track,
+div[class*='Sidebar']::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+aside[class^='theme-doc-sidebar-container']::-webkit-scrollbar-thumb,
+aside[class*='theme-doc-sidebar-container']::-webkit-scrollbar-thumb,
+nav.menu::-webkit-scrollbar-thumb,
+div[class*='sidebar']::-webkit-scrollbar-thumb,
+div[class*='Sidebar']::-webkit-scrollbar-thumb {
+  background-color: transparent !important;
+  border-radius: 6px !important;
+}
+
+/* Show scrollbar thumb on hover */
+aside[class^='theme-doc-sidebar-container']:hover::-webkit-scrollbar-thumb,
+aside[class*='theme-doc-sidebar-container']:hover::-webkit-scrollbar-thumb,
+aside[class^='theme-doc-sidebar-container']:hover *::-webkit-scrollbar-thumb,
+nav.menu:hover::-webkit-scrollbar-thumb,
+div[class*='sidebar']:hover::-webkit-scrollbar-thumb,
+div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
+  background-color: var(--ifm-color-primary) !important;
 }

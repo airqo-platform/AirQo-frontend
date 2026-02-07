@@ -84,7 +84,7 @@ const config: Config = {
         alt: 'AirQo Logo',
         src: 'img/airqo_logo.svg',
         style: {
-          height: '26px',
+          height: '24px',
           width: 'auto',
         },
       },

@@ -1,7 +1,6 @@
 /* Main Container */
 .mainContainer {
-  background: var(--ifm-background-color);
-
+  background: var(--ifm-navbar-background-color);
   border-radius: 0.35rem;
   box-shadow: var(--floating-shadow);
   padding: 2rem;
