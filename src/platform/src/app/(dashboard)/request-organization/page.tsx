@@ -766,7 +766,7 @@ const RequestOrganizationPage = () => {
           isOpen={showSuccessDialog}
           onClose={() => setShowSuccessDialog(false)}
           title="Request Submitted Successfully"
-          subtitle="Check your email for next steps"
+          subtitle="We'll review your application shortly"
           icon={AqCheckCircle}
           iconColor="text-green-600"
           iconBgColor="bg-green-100 dark:bg-green-900/30"
@@ -779,16 +779,12 @@ const RequestOrganizationPage = () => {
         >
           <div className="text-sm text-muted-foreground">
             <p>
-              Your organization request has been submitted for review. Our team
-              will review your application and send you an email with the next
-              steps.
-            </p>
-            <p className="mt-3">
-              Please check your inbox at{' '}
+              Your request has been submitted. We&apos;ll review your
+              application and send confirmation to{' '}
               <span className="font-medium text-foreground">
-                {formData.contact_email || 'your email'}
-              </span>{' '}
-              for updates.
+                {formData.contact_email}
+              </span>
+              .
             </p>
           </div>
         </Dialog>
