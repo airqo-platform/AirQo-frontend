@@ -307,7 +307,7 @@ POST /admin/rbac-initialize
 Get all roles or filter by organization.
 
 ```http
-GET /roles&group_id=64a7b8c9d1e2f3a4b5c6d7ea
+GET /roles?group_id=64a7b8c9d1e2f3a4b5c6d7ea
 ```
 
 **Response:**
