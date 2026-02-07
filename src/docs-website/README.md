@@ -44,53 +44,11 @@ If you are using GitHub pages for hosting, this command is a convenient way to b
 
 The documentation is organized by product. Each product should follow this structure:
 
-### Analytics (`/docs/analytics/`)
+### Product (`/docs/<product-name>/`)
 - `intro.md`
-- `/user-guides/`
-- `/technical/`
+- `/how-tos/`
 - `/resources/`
   - `release-notes.md`
   - `deprecations.md`
   - `known-issues.md`
 - `faq.md`
-
-### Vertex (`/docs/vertex/`)
-- `intro.md`
-- `/user-guides/`
-- `/technical/`
-- `/resources/`
-  - `release-notes.md`
-  - `deprecations.md`
-  - `migrations.md`
-- `faq.md`
-
-### Beacon (`/docs/beacon/`)
-- `intro.md`
-- `/user-guides/`
-- `/technical/`
-- `/resources/`
-  - `release-notes.md`
-  - `incidents.md`
-- `faq.md`
-
-### AI Platform (`/docs/ai-platform/`)
-- `intro.md`
-- `/user-guides/`
-- `/technical/`
-- `/resources/`
-  - `release-notes.md`
-  - `model-updates.md`
-  - `deprecations.md`
-- `faq.md`
-
-### API (`/docs/api/`)
-- `intro.md`
-- `/guides/`
-- `/reference/`
-- `/technical/`
-- `/resources/`
-  - `release-notes.md`
-  - `deprecations.md`
-  - `versioning-policy.md`
-- `faq.md`
-
