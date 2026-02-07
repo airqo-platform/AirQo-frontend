@@ -63,7 +63,7 @@ Choose the device category (e.g. Low Cost)
 * **Serial Number** (serial_number)
 Enter the device’s serial number or unique ID
 * **Device Connection URL** (api_code)
-Add the API or data endpoint if available. *Example: [https://api.example.com/v1/device/12345*](https://www.google.com/search?q=https://api.example.com/v1/device/12345)
+Add the API or data endpoint if available. Example: [https://api.example.com/v1/device/12345](https://www.google.com/search?q=https://api.example.com/v1/device/12345)
 * **Description** (description)
 Add extra details such as location, installation notes, or device purpose.
 

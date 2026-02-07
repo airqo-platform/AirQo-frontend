@@ -806,7 +806,7 @@ class RBACApiClient {
     this.baseURL = baseURL;
     this.token = token;
     this.headers = {
-      Authorization: `Bearer ${token}`,
+      Authorization: `JWT ${token}`,
       "Content-Type": "application/json",
     };
   }
@@ -957,7 +957,7 @@ const createRole = async (roleData) => {
     const response = await fetch("/api/v2/users/roles", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `JWT ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(roleData),
