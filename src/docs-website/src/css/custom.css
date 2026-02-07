@@ -218,6 +218,13 @@ h6 {
 }
 
 
+/* Navbar Title Styling (H4) */
+.navbar__title {
+  font-size: 1.25rem !important; /* H4 font size */
+  line-height: 1.3 !important;
+  font-weight: 500 !important;
+}
+
 /* Responsive typography */
 @media (max-width: 640px) {
   h1 {

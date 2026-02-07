@@ -79,10 +79,14 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Product Docs',
+      title: 'Digital Product Docs',
       logo: {
         alt: 'AirQo Logo',
         src: 'img/airqo_logo.svg',
+        style: {
+          height: '26px',
+          width: 'auto',
+        },
       },
       items: [
         {
