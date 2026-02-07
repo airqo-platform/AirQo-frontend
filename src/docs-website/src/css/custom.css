@@ -77,6 +77,8 @@
   --ifm-heading-font-weight: var(--heading-weight);
   --ifm-heading-line-height: var(--heading-line-height);
   --ifm-heading-color: rgb(var(--heading));
+
+  --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;
 }
 
 body {
@@ -148,6 +150,43 @@ h5 {
 h6 {
   font-size: 1rem;
   line-height: 1.5;
+}
+
+/* Blockquotes */
+blockquote {
+  border-left: 4px solid rgb(var(--border));
+  padding-left: 1rem;
+  margin: 1.5rem 0;
+  color: rgb(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Code blocks */
+code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: rgb(var(--muted));
+  color: rgb(var(--foreground));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  border: 1px solid rgb(var(--border));
+}
+
+pre {
+  font-family: var(--font-mono);
+  background: rgb(var(--muted));
+  color: rgb(var(--foreground));
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(var(--border));
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
