@@ -9,7 +9,8 @@ import {
     AqDataflow01,
     AqPhone01,
     AqChevronSelectorVertical,
-    AqCheck
+    AqCheck,
+    AqCube02
 } from '@airqo/icons-react';
 
 const Products = [
@@ -46,7 +47,7 @@ const Products = [
     {
         title: 'Cross Product Features',
         path: '/docs/cross-product',
-        icon: AqPhone01,
+        icon: AqCube02,
         landingPath: '/docs/cross-product/RBAC/overview',
     }
 ];
