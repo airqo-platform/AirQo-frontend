@@ -194,15 +194,6 @@ h6 {
   --ifm-navbar-background-color: rgb(var(--card));
 }
 
-/* Auto-hide Navbar Animation */
-.navbar {
-  transition: transform 0.3s ease-in-out;
-}
-
-.navbar--hidden {
-  transform: translateY(-100%);
-}
-
 /* Responsive Floating Layout (Desktop Only) */
 @media (min-width: 997px) {
   /* Floating Navbar Style */
