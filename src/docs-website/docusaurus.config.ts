@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'AirQo Digital Product Documentation',
+  tagline: 'Documentation for AirQo\'s Open Air Quality Data Digital Products',
   favicon: 'img/favicon.ico',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -75,19 +75,12 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'My Site',
+      title: 'Product Docs',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'AirQo Logo',
         src: 'img/airqo_logo.svg',
       },
       items: [
-        {
-          type: 'docSidebar',
-          sidebarId: 'tutorialSidebar',
-          position: 'left',
-          label: 'Tutorial',
-        },
-        {to: '/blog', label: 'Blog', position: 'left'},
         {
           href: 'https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/docs-website',
           label: 'GitHub',
@@ -96,49 +89,7 @@ const config: Config = {
       ],
     },
     footer: {
-      style: 'dark',
-      links: [
-        {
-          title: 'Docs',
-          items: [
-            {
-              label: 'Tutorial',
-              to: '/docs/intro',
-            },
-          ],
-        },
-        {
-          title: 'Community',
-          items: [
-            {
-              label: 'Stack Overflow',
-              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-            },
-            {
-              label: 'Discord',
-              href: 'https://discordapp.com/invite/docusaurus',
-            },
-            {
-              label: 'X',
-              href: 'https://x.com/docusaurus',
-            },
-          ],
-        },
-        {
-          title: 'More',
-          items: [
-            {
-              label: 'Blog',
-              to: '/blog',
-            },
-            {
-              label: 'GitHub',
-              href: 'https://github.com/airqo-platform/AirQo-frontend/tree/staging/src/docs-website',
-            },
-          ],
-        },
-      ],
-      copyright: `Built with <a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer">Docusaurus</a>.`,
+      copyright: `Built with <a href="https://docusaurus.io/" target="_blank" rel="noopener noreferrer">Docusaurus</a>`,
     },
     prism: {
       theme: prismThemes.github,

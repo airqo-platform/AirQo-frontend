@@ -1,0 +1,108 @@
+/* Main Section Wrapper */
+.section {
+  padding: 0 0 4rem; /* Removed top padding to reduce gap with header */
+  display: flex;
+  justify-content: center;
+}
+
+/* Container to center content */
+.container {
+  max-width: 1200px;
+  width: 100%;
+  padding: 0 1rem;
+}
+
+/* Grid Layout for Cards */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem; /* Reduced gap slightly to fit 4 columns comfortably */
+}
+
+@media (max-width: 996px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Individual Card Styling */
+.card {
+  border-radius: 1rem;
+  padding: 1.5rem; /* Slightly reduced padding */
+  aspect-ratio: 1 / 1; /* Make card square */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* Align text to bottom */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  text-decoration: none !important; /* Remove underline from links */
+  color: #1f2937; /* Dark text for contrast on light cards */
+  position: relative;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Icon Styling */
+.cardIcon {
+  position: absolute;
+  top: 2rem;
+  right: 2rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cardIcon svg {
+  width: 100%;
+  height: 100%;
+  stroke-width: 1.5; /* Slightly lighter stroke for elegance */
+  stroke: #1f2937; /* Match text color */
+}
+
+/* Card Title Typography */
+.cardTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Card Colors - Using tailored pastels */
+.analytics {
+  background-color: #fef08a; /* Yellow-200 */
+}
+
+.vertex {
+  background-color: #fbcfe8; /* Pink-200 */
+}
+
+.beacon {
+  background-color: #bfdbfe; /* Blue-200 */
+}
+
+.aiPlatform {
+  background-color: #fed7aa; /* Orange-200 */
+}
+
+/* Optional: Subtle gradient overlay for depth */
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom right, rgba(255,255,255,0.4), rgba(255,255,255,0));
+  pointer-events: none;
+}

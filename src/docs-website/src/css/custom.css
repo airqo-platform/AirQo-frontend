@@ -7,7 +7,7 @@
 /* You can override the default Infima variables here. */
 :root {
   /* User Provided Variables */
-  --background: 246 246 247;
+  --background: 255 255 255;
   --foreground: 28 29 32;
   --primary: 20 95 255;
   --primary-foreground: 255 255 255;
@@ -47,6 +47,13 @@
 
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+
+  /* Ensure consistent background across page, navbar, and footer */
+  --ifm-background-color: var(--ifm-navbar-background-color); 
+  /* Or actually more robust */
+  --ifm-background-color: rgb(var(--background));
+  --ifm-navbar-background-color: var(--ifm-background-color);
+  --ifm-footer-background-color: var(--ifm-background-color);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -87,6 +94,8 @@
 
   --ifm-background-color: rgb(var(--background));
   --ifm-font-color-base: rgb(var(--foreground));
+  --ifm-navbar-background-color: var(--ifm-background-color);
+  --ifm-footer-background-color: var(--ifm-background-color);
 
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 }
