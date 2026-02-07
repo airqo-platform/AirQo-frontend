@@ -2,9 +2,7 @@
 sidebar_position: 1
 ---
 
-# Introduction
-
-## Welcome to AirQo Analytics!
+# About AirQo Analytics
 
 Here you’ll find comprehensive information for navigating the AirQo Analytics platform, accessing high-resolution air quality data, and integrating our tools into your workflow. We’ve designed this documentation to be user-friendly, catering to everyone from policy makers and researchers to developers and data scientists.
 

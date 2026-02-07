@@ -42,6 +42,12 @@ const Products = [
         title: 'Mobile App',
         path: '/docs/mobile-app',
         icon: AqPhone01,
+    },
+    {
+        title: 'Cross Product',
+        path: '/docs/cross-product',
+        icon: AqPhone01,
+        landingPath: '/docs/cross-product/RBAC/overview',
     }
 ];
 
@@ -63,8 +69,11 @@ export default function ProductDropdown() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const handleProductSelect = (path: string) => {
-        history.push(path + '/intro');
+    const handleProductSelect = (product: typeof Products[0]) => {
+        const targetPath = 'landingPath' in product && product.landingPath
+            ? product.landingPath
+            : product.path + '/intro';
+        history.push(targetPath);
         setIsOpen(false);
     };
 
@@ -92,7 +101,7 @@ export default function ProductDropdown() {
                         <div
                             key={product.title}
                             className={`${styles.dropdownItem} ${currentProduct.title === product.title ? styles.activeItem : ''}`}
-                            onClick={() => handleProductSelect(product.path)}
+                            onClick={() => handleProductSelect(product)}
                         >
                             <div className={styles.productIcon}>
                                 <product.icon />

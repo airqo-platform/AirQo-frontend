@@ -46,6 +46,12 @@ const ProductList: ProductItem[] = [
         description: 'Monitor air quality on the go with personalized recommendations and alerts',
         link: '/docs/mobile-app/intro',
         Icon: AqPhone01,
+    },
+    {
+        title: 'Cross-Product Features',
+        description: 'Features that span across multiple products',
+        link: '/docs/cross-product/rbac/overview',
+        Icon: AqCpuChip01,
     }
 ];
 
