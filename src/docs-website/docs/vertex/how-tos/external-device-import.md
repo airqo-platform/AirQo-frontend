@@ -86,9 +86,9 @@ Depending on the manufacturer and integration status:
 * The device may appear as **Not Transmitting** initially.
 * Data integration may require **review or follow-up** by the AirQo team.
 * The device can now be:
-* Tracked
-* Assigned deployment details
-* Managed alongside other devices in your organization
+  * Tracked
+  * Assigned deployment details
+  * Managed alongside other devices in your organization
 
 
 
