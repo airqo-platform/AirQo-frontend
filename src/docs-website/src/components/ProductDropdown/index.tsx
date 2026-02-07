@@ -99,10 +99,13 @@ export default function ProductDropdown() {
             {isOpen && (
                 <div className={styles.dropdownMenu}>
                     {Products.map((product) => (
-                        <div
+                        <button
                             key={product.title}
                             className={`${styles.dropdownItem} ${currentProduct.title === product.title ? styles.activeItem : ''}`}
                             onClick={() => handleProductSelect(product)}
+                            type="button"
+                            role="option"
+                            aria-selected={currentProduct.title === product.title}
                         >
                             <div className={styles.productIcon}>
                                 <product.icon />
@@ -113,7 +116,7 @@ export default function ProductDropdown() {
                                     <AqCheck />
                                 </div>
                             )}
-                        </div>
+                        </button>
                     ))}
                 </div>
             )}

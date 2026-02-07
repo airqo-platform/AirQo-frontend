@@ -75,6 +75,11 @@
   color: var(--ifm-font-color-base);
   text-decoration: none !important;
   font-size: 0.9rem;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font-family: inherit;
 }
 
 .dropdownItem:hover {
