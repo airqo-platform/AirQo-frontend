@@ -7,11 +7,15 @@ import ProductDropdown from '@site/src/components/ProductDropdown';
 type Props = WrapperProps<typeof DocSidebarType>;
 
 export default function DocSidebarWrapper(props: Props): ReactNode {
+    const { isHidden } = props as any;
+
     return (
         <div className="theme-doc-sidebar-wrapper" style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ padding: '0.5rem 0.5rem 0 0.5rem', zIndex: 1 }}>
-                <ProductDropdown />
-            </div>
+            {!isHidden && (
+                <div style={{ padding: '0.5rem 0.5rem 0 0.5rem', zIndex: 1 }}>
+                    <ProductDropdown />
+                </div>
+            )}
             <DocSidebar {...props} />
         </div>
     );
