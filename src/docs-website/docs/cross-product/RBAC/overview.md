@@ -18,7 +18,7 @@ The AirQo RBAC (Role-Based Access Control) system provides comprehensive access 
 
 ### Base URL
 
-```
+```text
 https://api.airqo.net/api/v2/users
 ```
 
