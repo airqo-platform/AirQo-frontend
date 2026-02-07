@@ -14,7 +14,7 @@ function HomepageHeader() {
         AirQo Digital Product Docs
       </Heading>
       <p className={styles.subtitle}>
-        Documentation for AirQo&apos;s open air quality data digital products
+        Documentation for AirQo&apos;s open air quality data digital products. Choose a product to get started
       </p>
     </div>
   );
@@ -27,7 +27,7 @@ export default function Home(): ReactNode {
       title={`Product Docs`}
       description="Documentation for AirQo's open air quality data digital products">
       <main className={styles.mainContainer}>
-        <div className={styles.contentWrapper}>
+        <div>
           <HomepageHeader />
           <ProductSection />
         </div>

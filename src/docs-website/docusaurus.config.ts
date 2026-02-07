@@ -79,7 +79,7 @@ const config: Config = {
       respectPrefersColorScheme: true,
     },
     navbar: {
-      title: 'Digital Product Docs',
+      title: 'Docs',
       logo: {
         alt: 'AirQo Logo',
         src: 'img/airqo_logo.svg',

@@ -1,8 +1,5 @@
 /* Main Container */
 .mainContainer {
-  background: var(--ifm-navbar-background-color);
-  border-radius: 0.35rem;
-  box-shadow: var(--floating-shadow);
   padding: 2rem;
   margin: 0 0.5rem 0.5rem 0.5rem;
   min-height: 80vh;
@@ -24,8 +21,8 @@
 }
 
 .title {
-  font-size: 4rem;
-  font-weight: 400;
+  font-size: 2.1rem;
+  font-weight: 500;
   margin-bottom: 0.5rem;
   line-height: 1.1;
   font-family: system-ui, -apple-system, sans-serif;
@@ -33,10 +30,10 @@
 }
 
 .subtitle {
-  font-size: 1.5rem;
+  font-size: 1.2rem;
   font-weight: 400;
   margin: 0;
-  max-width: 800px;
+  max-width: 600px;
   line-height: 1.4;
 }
 

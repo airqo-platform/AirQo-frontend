@@ -1,10 +1,11 @@
 import React from 'react';
 import Link from '@docusaurus/Link';
-import { AqCpuChip01, AqServer03, AqBarChartSquarePlus, AqMonitor, AqPhone01, AqDataflow01 } from '@airqo/icons-react';
+import { AqCpuChip01, AqServer03, AqBarChartSquarePlus, AqMonitor, AqPhone01, AqDataflow01, AqArrowRight } from '@airqo/icons-react';
 import styles from './styles.module.css';
 
 type ProductItem = {
     title: string;
+    description: string;
     link: string;
     Icon: React.ElementType;
 };
@@ -12,43 +13,57 @@ type ProductItem = {
 const ProductList: ProductItem[] = [
     {
         title: 'Analytics',
+        description: 'Visualize and analyze air quality data with interactive dashboards and insights',
         link: '/docs/analytics/intro',
         Icon: AqBarChartSquarePlus,
     },
     {
         title: 'Vertex',
+        description: 'Manage devices, sites, and networks with AirQo\'s device management platform',
         link: '/docs/vertex/intro',
-        Icon: AqServer03, 
+        Icon: AqServer03,
     },
     {
         title: 'Beacon',
+        description: 'Display real-time air quality data with customizable digital screens',
         link: '/docs/beacon/intro',
         Icon: AqMonitor,
     },
     {
         title: 'AI Platform',
+        description: 'Leverage machine learning models for air quality predictions and forecasting',
         link: '/docs/ai-platform/intro',
         Icon: AqCpuChip01,
     },
     {
         title: 'API',
+        description: 'Access AirQo\'s air quality data programmatically via our REST API',
         link: '/docs/api/intro',
         Icon: AqDataflow01,
     },
     {
         title: 'AirQo Mobile App',
+        description: 'Monitor air quality on the go with personalized recommendations and alerts',
         link: '/docs/mobile-app/intro',
         Icon: AqPhone01,
     }
 ];
 
-function ProductCard({ title, link, Icon }: ProductItem) {
+function ProductCard({ title, description, link, Icon }: ProductItem) {
     return (
         <Link to={link} className={styles.card}>
-            <div className={styles.cardIcon}>
-                <Icon />
+            <div className={styles.cardContent}>
+                <div className={styles.cardIcon}>
+                    <Icon />
+                </div>
+                <div className={styles.cardText}>
+                    <h3 className={styles.cardTitle}>{title}</h3>
+                    <p className={styles.cardDescription}>{description}</p>
+                </div>
             </div>
-            <h3 className={styles.cardTitle}>{title}</h3>
+            <div className={styles.cardArrow}>
+                <AqArrowRight />
+            </div>
         </Link>
     );
 }
