@@ -54,6 +54,79 @@
   --ifm-background-color: rgb(var(--background));
   --ifm-navbar-background-color: var(--ifm-background-color);
   --ifm-footer-background-color: var(--ifm-background-color);
+
+  /* Typography */
+  --ifm-font-family-base: 'Inter', system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-family: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Heading Typography Variables */
+  --heading-weight: 500;
+  --heading-line-height: 1.25;
+  --heading-letter-spacing: -0.025em;
+
+  /* Map to Infima Heading Variables */
+  --ifm-h1-font-size: 2.25rem;
+  --ifm-h2-font-size: 1.875rem;
+  --ifm-h3-font-size: 1.5rem;
+  --ifm-h4-font-size: 1.25rem;
+  --ifm-h5-font-size: 1.125rem;
+  --ifm-h6-font-size: 1rem;
+  --ifm-heading-font-weight: var(--heading-weight);
+  --ifm-heading-line-height: var(--heading-line-height);
+  --ifm-heading-color: rgb(var(--heading));
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base heading styles */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: rgb(var(--heading));
+  font-weight: var(--heading-weight);
+  line-height: var(--heading-line-height);
+  letter-spacing: var(--heading-letter-spacing);
+  margin: 0;
+}
+
+/* Individual heading sizes */
+h1 {
+  font-size: 2.25rem;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  letter-spacing: -0.03em;
+}
+
+h3 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+h4 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+h5 {
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+h6 {
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -98,4 +171,19 @@
   --ifm-footer-background-color: var(--ifm-background-color);
 
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive typography */
+@media (max-width: 640px) {
+  h1 {
+    font-size: 1.875rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+  }
 }
