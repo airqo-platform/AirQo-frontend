@@ -13,8 +13,7 @@ import 'package:airqo/src/app/dashboard/models/user_preferences_model.dart';
 import 'package:airqo/src/app/auth/services/auth_helper.dart';
 import 'package:airqo/src/meta/utils/colors.dart';
 import 'package:airqo/src/app/auth/bloc/auth_bloc.dart';
-import 'package:airqo/src/app/auth/pages/login_page.dart';
-import 'package:airqo/src/app/auth/services/token_debugger.dart';
+
 import 'package:airqo/src/app/shared/pages/error_page.dart';
 
 class LocationSelectionScreen extends StatefulWidget with UiLoggy {
@@ -108,35 +107,11 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       loggy.info('Is user logged in according to AuthBloc? $isLoggedIn');
 
       if (isLoggedIn) {
-        final isExpired = await TokenDebugger.checkTokenExpiration();
+        // Token expiration is now handled at the HTTP layer
+        // No need for proactive UI-level checks
 
-        if (isExpired) {
-          loggy.warning('Token is expired, user needs to login again');
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text(
-                    'Your session has expired. Please log in again.'),
-                duration: const Duration(seconds: 8),
-                action: SnackBarAction(
-                  label: 'Log In',
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginPage(),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                ),
-              ),
-            );
-          }
-          return;
-        }
-
-        final userId = await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
+        final userId =
+            await AuthHelper.getCurrentUserId(suppressGuestWarning: true);
 
         if (userId != null) {
           setState(() {
@@ -185,30 +160,8 @@ class _LocationSelectionScreenState extends State<LocationSelectionScreen>
       return;
     }
 
-    final isExpired = await TokenDebugger.checkTokenExpiration();
-
-    if (isExpired) {
-      loggy.warning('❌ Token is expired, cannot save');
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Your session has expired. Please log in again.'),
-          duration: const Duration(seconds: 8),
-          action: SnackBarAction(
-            label: 'Log In',
-            onPressed: () {
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(
-                  builder: (context) => const LoginPage(),
-                ),
-                (route) => false,
-              );
-            },
-          ),
-        ),
-      );
-      return;
-    }
+    // Token expiration is now handled at the HTTP layer
+    // No need for proactive UI-level checks
 
     setState(() {
       isSaving = true;

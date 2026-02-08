@@ -8,14 +8,16 @@ import 'package:loggy/loggy.dart';
 
 class BaseRepository with UiLoggy {
   Future<String?> _getToken() async {
-    return await SecureStorageRepository.instance.getSecureData(SecureStorageKeys.authToken);
+    return await SecureStorageRepository.instance
+        .getSecureData(SecureStorageKeys.authToken);
   }
 
   Future<void> _handleTokenRefresh(Response response) async {
     final newToken = response.headers['x-access-token'];
     if (newToken != null && newToken.isNotEmpty) {
       try {
-        await SecureStorageRepository.instance.saveSecureData(SecureStorageKeys.authToken, newToken);
+        await SecureStorageRepository.instance
+            .saveSecureData(SecureStorageKeys.authToken, newToken);
         loggy.info("Successfully refreshed and stored new auth token.");
       } catch (e) {
         loggy.error("Failed to save refreshed token: $e");
@@ -25,81 +27,131 @@ class BaseRepository with UiLoggy {
 
   Future<void> _handleSessionExpiry() async {
     try {
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.authToken);
-      await SecureStorageRepository.instance.deleteSecureData(SecureStorageKeys.userId);
+      await SecureStorageRepository.instance
+          .deleteSecureData(SecureStorageKeys.authToken);
+      await SecureStorageRepository.instance
+          .deleteSecureData(SecureStorageKeys.userId);
       loggy.warning("Session expired. All auth data cleared.");
-      
+
       GlobalAuthManager.instance.notifySessionExpired();
     } catch (e) {
       loggy.error("Failed to clear auth data on session expiry: $e");
     }
   }
 
+  Future<Response> _handleRequestWithRetry(
+    Future<Response> Function() requestFunction,
+    String url,
+  ) async {
+    try {
+      final response = await requestFunction();
+
+      if (response.statusCode == 401) {
+        loggy.info("Received 401, attempting token refresh and retry...");
+
+        // Try to get a new token by making a simple request
+        // This will trigger the server's token refresh mechanism
+        final refreshUrl = ApiUtils.baseUrl + '/users/profile';
+        final token = await _getToken();
+
+        if (token != null) {
+          final refreshResponse = await http.get(
+            Uri.parse(refreshUrl),
+            headers: {
+              "Authorization": "JWT $token",
+              "Accept": "application/json",
+            },
+          );
+
+          // Check if the refresh gave us a new token
+          final newToken = refreshResponse.headers['x-access-token'];
+          if (newToken != null && newToken.isNotEmpty) {
+            loggy.info(
+                "Token refreshed successfully, retrying original request...");
+            await _handleTokenRefresh(refreshResponse);
+
+            // Retry the original request with the new token
+            return await requestFunction();
+          }
+        }
+
+        // If refresh didn't work, proceed with session expiry
+        await _handleSessionExpiry();
+        throw Exception('Your session has expired. Please log in again.');
+      }
+
+      return response;
+    } catch (e) {
+      if (e.toString().contains('session has expired')) {
+        rethrow; // Already handled session expiry
+      }
+
+      // For other errors, just log and rethrow
+      loggy.error("Request failed: $e");
+      rethrow;
+    }
+  }
+
   Exception _httpError(Response response, String url) {
     String errorMessage = 'An error occurred';
-    
+
     try {
       // Check if response has JSON content type
       final contentType = response.headers['content-type'] ?? '';
-      if (contentType.toLowerCase().contains('application/json') && response.body.isNotEmpty) {
+      if (contentType.toLowerCase().contains('application/json') &&
+          response.body.isNotEmpty) {
         final responseBody = json.decode(response.body);
         if (responseBody is Map && responseBody.containsKey('message')) {
           errorMessage = responseBody['message'];
         }
       } else if (response.body.isNotEmpty) {
         // Use raw body for non-JSON responses, but limit length to avoid huge error messages
-        final rawBody = response.body.length > 200 
-            ? '${response.body.substring(0, 200)}...' 
+        final rawBody = response.body.length > 200
+            ? '${response.body.substring(0, 200)}...'
             : response.body;
         errorMessage = rawBody;
       }
     } catch (e) {
       // JSON parsing failed, use raw body if available
       if (response.body.isNotEmpty) {
-        final rawBody = response.body.length > 200 
-            ? '${response.body.substring(0, 200)}...' 
+        final rawBody = response.body.length > 200
+            ? '${response.body.substring(0, 200)}...'
             : response.body;
         errorMessage = rawBody;
       }
     }
-    
+
     return Exception('$errorMessage (status=${response.statusCode}, url=$url)');
   }
 
-  Future<Response> createAuthenticatedPutRequest({
-  required String path, 
-  required dynamic data
-}) async {
-  String? token = await _getToken();
-  if (token == null) {
-    throw Exception('Authentication token not found');
-  }
-  
-  String url = ApiUtils.baseUrl + path;
-  loggy.info("Making PUT request to: $url");
-  
-  Response response = await http.put(
-    Uri.parse(url),
-    body: json.encode(data),
-    headers: {
-      "Authorization": "JWT $token",
-      "Accept": "*/*",
-      "Content-Type": "application/json"
+  Future<Response> createAuthenticatedPutRequest(
+      {required String path, required dynamic data}) async {
+    String? token = await _getToken();
+    if (token == null) {
+      throw Exception('Authentication token not found');
     }
-  );
-  
-  loggy.info("PUT response status: ${response.statusCode}");
-  
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    await _handleTokenRefresh(response);
-    return response;
-  } else if (response.statusCode == 401) {
-    await _handleSessionExpiry();
-    throw Exception('Your session has expired. Please log in again.');
-  } else {
-    throw _httpError(response, url);
+
+    String url = ApiUtils.baseUrl + path;
+    loggy.info("Making PUT request to: $url");
+
+    return await _handleRequestWithRetry(() async {
+      final response =
+          await http.put(Uri.parse(url), body: json.encode(data), headers: {
+        "Authorization": "JWT $token",
+        "Accept": "*/*",
+        "Content-Type": "application/json"
+      });
+
+      loggy.info("PUT response status: ${response.statusCode}");
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        await _handleTokenRefresh(response);
+        return response;
+      } else {
+        throw _httpError(response, url);
+      }
+    }, url);
   }
-}
 
   Future<Response> createPostRequest(
       {required String path, dynamic data}) async {
@@ -112,25 +164,23 @@ class BaseRepository with UiLoggy {
 
     loggy.info("Making POST request to: $url");
 
-    Response response = await http.post(Uri.parse(url),
-        body: json.encode(data),
-        headers: {
-          "Authorization": "JWT $token",
-          "Accept": "*/*",
-          "Content-Type": "application/json"
-        });
+    return await _handleRequestWithRetry(() async {
+      final response =
+          await http.post(Uri.parse(url), body: json.encode(data), headers: {
+        "Authorization": "JWT $token",
+        "Accept": "*/*",
+        "Content-Type": "application/json"
+      });
 
-    loggy.info("POST response status: ${response.statusCode}");
+      loggy.info("POST response status: ${response.statusCode}");
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      await _handleTokenRefresh(response);
-      return response;
-    } else if (response.statusCode == 401) {
-      await _handleSessionExpiry();
-      throw Exception('Your session has expired. Please log in again.');
-    } else {
-      throw _httpError(response, url);
-    }
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        await _handleTokenRefresh(response);
+        return response;
+      } else {
+        throw _httpError(response, url);
+      }
+    }, url);
   }
 
   Future<Response> createGetRequest(
@@ -182,24 +232,23 @@ class BaseRepository with UiLoggy {
 
     loggy.info("Making authenticated GET request to: $url");
 
-    Response response = await http
-        .get(Uri.parse(url).replace(queryParameters: queryParams), headers: {
-      "Accept": "*/*",
-      "Authorization": "JWT $token",
-      "Content-Type": "application/json",
-    });
+    return await _handleRequestWithRetry(() async {
+      final response = await http
+          .get(Uri.parse(url).replace(queryParameters: queryParams), headers: {
+        "Accept": "*/*",
+        "Authorization": "JWT $token",
+        "Content-Type": "application/json",
+      });
 
-    loggy.info("Authenticated GET response status: ${response.statusCode}");
+      loggy.info("Authenticated GET response status: ${response.statusCode}");
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      await _handleTokenRefresh(response);
-      return response;
-    } else if (response.statusCode == 401) {
-      await _handleSessionExpiry();
-      throw Exception('Your session has expired. Please log in again.');
-    } else {
-      throw _httpError(response, url);
-    }
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        await _handleTokenRefresh(response);
+        return response;
+      } else {
+        throw _httpError(response, url);
+      }
+    }, url);
   }
 
   Future<Response> createDeleteRequest({
@@ -221,30 +270,29 @@ class BaseRepository with UiLoggy {
       "Content-Type": "application/json"
     };
 
-    Response response;
-    if (data != null) {
-      response = await http.delete(
-        Uri.parse(url),
-        body: json.encode(data),
-        headers: headers,
-      );
-    } else {
-      response = await http.delete(
-        Uri.parse(url),
-        headers: headers,
-      );
-    }
+    return await _handleRequestWithRetry(() async {
+      Response response;
+      if (data != null) {
+        response = await http.delete(
+          Uri.parse(url),
+          body: json.encode(data),
+          headers: headers,
+        );
+      } else {
+        response = await http.delete(
+          Uri.parse(url),
+          headers: headers,
+        );
+      }
 
-    loggy.info("DELETE response status: ${response.statusCode}");
+      loggy.info("DELETE response status: ${response.statusCode}");
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      await _handleTokenRefresh(response);
-      return response;
-    } else if (response.statusCode == 401) {
-      await _handleSessionExpiry();
-      throw Exception('Your session has expired. Please log in again.');
-    } else {
-      throw _httpError(response, url);
-    }
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        await _handleTokenRefresh(response);
+        return response;
+      } else {
+        throw _httpError(response, url);
+      }
+    }, url);
   }
 }
