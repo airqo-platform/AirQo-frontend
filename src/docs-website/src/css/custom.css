@@ -461,3 +461,21 @@ div[class*='sidebar']:hover::-webkit-scrollbar-thumb,
 div[class*='Sidebar']:hover::-webkit-scrollbar-thumb {
   background-color: var(--ifm-color-primary) !important;
 }
+
+/* ==========================================================================
+   Table of Contents Links
+   ========================================================================== */
+.table-of-contents__link:not(.table-of-contents__link--active) {
+  color: rgb(var(--muted-foreground)) !important;
+  font-weight: 400;
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--ifm-color-primary) !important;
+  text-decoration: none;
+}
+
+.table-of-contents__link--active {
+  font-weight: 600;
+}
