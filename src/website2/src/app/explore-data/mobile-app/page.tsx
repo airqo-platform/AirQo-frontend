@@ -66,8 +66,13 @@ const AppPromo = () => {
           transition={{ delay: 0.5, duration: 0.5 }}
         >
           {/* QR Code - Larger size for better visibility */}
-          <div className="border border-gray-300 rounded-lg p-4">
-            <Image src="/QR/AQR.jpeg" alt="QR Code" width={220} height={220} />
+          <div className="border border-gray-300 rounded-lg p-4 hidden lg:block">
+            <Image
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1770647202/website/photos/explore/frame_k2ncpc.png"
+              alt="QR Code"
+              width={220}
+              height={220}
+            />
           </div>
 
           {/* Download buttons */}
