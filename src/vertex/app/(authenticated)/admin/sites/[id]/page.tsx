@@ -64,23 +64,23 @@ export default function SiteDetailsPage() {
         </div>
       ) : (
         <>
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 mt-6">
-            <div className="break-inside-avoid mb-4 inline-block w-full order-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+            <div className="flex flex-col gap-6">
               <SiteInformationCard
                 site={site}
                 onEdit={() => setEditSection("general")}
               />
             </div>
-            <div className="break-inside-avoid mb-4 inline-block w-full order-3">
+
+            <div className="flex flex-col gap-6">
               <SiteMobileAppCard
                 site={site}
                 onEdit={() => setEditSection("mobile")}
               />
-            </div>
-            <div className="break-inside-avoid mb-4 inline-block w-full order-2">
               <SiteMeasurementsApiCard siteId={siteId} />
             </div>
-            <div className="break-inside-avoid mb-4 inline-block w-full order-4">
+
+            <div className="flex flex-col gap-6">
               <SiteActivityCard siteId={siteId} />
             </div>
           </div>
