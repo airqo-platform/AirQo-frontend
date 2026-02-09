@@ -169,7 +169,7 @@ const MyDevicesPage = () => {
               disabled={isLoading}
               Icon={Upload}
             >
-              Import Existing Device
+              Import External Device
             </ReusableButton>
             {/* <DropdownMenu>
               <DropdownMenuTrigger asChild>
