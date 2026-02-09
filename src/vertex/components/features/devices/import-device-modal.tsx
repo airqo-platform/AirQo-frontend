@@ -156,10 +156,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     <ReusableDialog
       isOpen={open}
       onClose={handleClose}
-      title="Import Device"
+      title="Import External Device"
       size="md"
       primaryAction={{
-        label: importDevice.isPending ? "Importing..." : "Import Device",
+        label: importDevice.isPending ? "Importing..." : "Import External Device",
         onClick: handleSubmit,
         disabled: importDevice.isPending,
         className: "min-w-[100px]",

@@ -107,7 +107,7 @@ const MyDevicesPage = () => {
                 onClick={() => setImportDeviceOpen(true)}
                 Icon={Upload}
               >
-                Import Device
+                Import External Device
               </ReusableButton>
             </div>
           </div>

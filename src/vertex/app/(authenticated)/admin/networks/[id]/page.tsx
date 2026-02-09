@@ -65,7 +65,7 @@ export default function NetworkDetailsPage() {
                                 Icon={Upload}
                                 permission={PERMISSIONS.DEVICE.UPDATE}
                             >
-                                Import Device
+                                Import External Device
                             </ReusableButton>
                         )}
                     </div>
