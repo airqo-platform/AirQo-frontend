@@ -15,7 +15,7 @@ import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 
 export const networkFormSchema = z.object({
-    net_name: z.string().min(2, "Network name must be at least 2 characters."),
+    net_name: z.string().min(2, "Sensor Manufacturer name must be at least 2 characters."),
     net_acronym: z.string().min(2, "Acronym must be at least 2 characters."),
     net_username: z.string().min(2, "Username must be at least 2 characters."),
     net_email: z.string().email("Invalid email address."),
@@ -64,7 +64,7 @@ export function CreateNetworkForm() {
                     headers: { 'Content-Type': 'application/json' },
                 });
 
-                ReusableToast({ message: 'Network created successfully!', type: 'SUCCESS' });
+                ReusableToast({ message: 'Sensor Manufacturer created successfully!', type: 'SUCCESS' });
                 handleClose();
             } catch (error: unknown) {
                 const errorMessage = getApiErrorMessage(error);
@@ -83,15 +83,15 @@ export function CreateNetworkForm() {
                 onClick={() => setOpen(true)}
                 Icon={AqPlus}
             >
-                Create Network
+                Create Sensor Manufacturer
             </ReusableButton>
             <ReusableDialog
                 isOpen={open}
                 onClose={handleClose}
-                title="Create a new Network"
+                title="Create a new Sensor Manufacturer"
                 size="2xl"
                 primaryAction={{
-                    label: isPending ? "Creating..." : "Create Network",
+                    label: isPending ? "Creating..." : "Create Sensor Manufacturer",
                     onClick: form.handleSubmit(onSubmit),
                     disabled: isPending,
                 }}

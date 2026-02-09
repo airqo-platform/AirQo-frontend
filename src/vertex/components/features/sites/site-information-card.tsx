@@ -52,7 +52,7 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           <DetailItem label="Name" value={site.name} />
           <DetailItem label="Description" value={site.description} />
-          <DetailItem label="Network" value={site.network} />
+          <DetailItem label="Sensor Manufacturer" value={site.network} />
           <DetailItem label="Latitude" value={<span className="font-mono">{site.latitude}</span>} />
           <DetailItem label="Longitude" value={<span className="font-mono">{site.longitude}</span>} />
           <DetailItem label="Parish" value={site.parish} />

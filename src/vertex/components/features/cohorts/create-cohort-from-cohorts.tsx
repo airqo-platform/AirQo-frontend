@@ -50,7 +50,7 @@ export function CreateCohortFromSelectionDialog({
       return;
     }
     if (!network) {
-      setError("Please select a network.");
+      setError("Please select a Sensor Manufacturer.");
       return;
     }
     setError("");
@@ -97,12 +97,12 @@ export function CreateCohortFromSelectionDialog({
       <div className="space-y-4">
         <ReusableInputField label="New Cohort Name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter a name for the new cohort" required error={error} />
         <ReusableSelectInput
-          label="Network"
+          label="Sensor Manufacturer"
           id="network"
           value={network}
           onChange={(e) => setNetwork(e.target.value)}
           required
-          placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+          placeholder={isLoadingNetworks ? "Loading sensor manufacturer..." : "Select a sensor manufacturer"}
           disabled={isLoadingNetworks}
         >
           {networks.map((network) => (

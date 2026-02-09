@@ -95,7 +95,7 @@ export default function NetworkDevicesTable({
     return (
         <div className={`space-y-4 ${className}`}>
             <ReusableTable
-                title="Network Devices"
+                title="Sensor Manufacturer Devices"
                 data={devicesWithId}
                 columns={columns}
                 loading={isFetching || isLoading}

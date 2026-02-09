@@ -41,7 +41,7 @@ const formSchema = z.object({
     message: "Cohort name must be at least 2 characters.",
   }),
   network: z.string().min(1, {
-    message: "Please select a network.",
+    message: "Please select a Sensor Manufacturer.",
   }),
   devices: z.array(z.string()).min(1, {
     message: "Please select at least one device.",
@@ -272,7 +272,7 @@ export function CreateCohortDialog({
               name="network"
               render={({ field }) => (
                 <ReusableSelectInput
-                  label="Network"
+                  label="Sensor Manufacturer"
                   id="network"
                   value={field.value}
                   onChange={(e) => {
@@ -319,8 +319,8 @@ export function CreateCohortDialog({
                       searchValue={deviceSearch}
                       emptyMessage={
                         selectedNetwork
-                          ? "No devices found for this network."
-                          : "Please select a network first."
+                          ? "No devices found for this Sensor Manufacturer."
+                          : "Please select a Sensor Manufacturer first."
                       }
                     />
                   </FormControl>

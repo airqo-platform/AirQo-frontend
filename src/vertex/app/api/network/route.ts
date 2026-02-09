@@ -29,7 +29,7 @@ async function getAuthToken(): Promise<string | null> {
 
 export async function POST(req: NextRequest) {
   try {
-    logger.info("Network creation request received");
+    logger.info("Sensor Manufacturer creation request received");
     
     const body = await req.json();
     const validationResult = networkFormSchema.safeParse(body);
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
     }
 
     const networkData = validationResult.data;
-    logger.debug(`Network data parsed - fields: ${Object.keys(networkData).join(', ')}, net_name: ${networkData.net_name}`);
+    logger.debug(`Sensor Manufacturer data parsed - fields: ${Object.keys(networkData).join(', ')}, net_name: ${networkData.net_name}`);
 
     const token = await getAuthToken();
     if (!token) {
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    logger.info(`Network created successfully - ID: ${apiResponse.data.created_network?._id}`);
+    logger.info(`Sensor Manufacturer created successfully - ID: ${apiResponse.data.created_network?._id}`);
 
     return NextResponse.json(apiResponse.data, { status: 200 });
   } catch (error: unknown) {

@@ -52,7 +52,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     const effectiveNetworkName = networkName || activeNetwork?.net_name;
 
     if (!effectiveNetworkName) {
-      setErrors({ general: "No active network found" });
+      setErrors({ general: "No active Sensor Manufacturer found" });
       return;
     }
 
@@ -113,7 +113,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       isOpen={open}
       onClose={handleClose}
       title="Add AirQo Device"
-      subtitle={`Network: ${networkName || activeNetwork?.net_name}`}
+      subtitle={`Sensor Manufacturer: ${networkName || activeNetwork?.net_name}`}
       size="md"
       primaryAction={{
         label: createDevice.isPending ? "Adding..." : "Add Device",
