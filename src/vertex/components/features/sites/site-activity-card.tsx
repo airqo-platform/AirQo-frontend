@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import { useSiteActivitiesInfinite } from "@/core/hooks/useSites";
 import DeviceActivityItem from "@/components/features/devices/device-activity-item";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,16 +33,17 @@ const SiteActivityCard: React.FC<SiteActivityCardProps> = ({
             { threshold: 1.0 }
         );
 
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
+        const currentTarget = observerTarget.current;
+        if (currentTarget) {
+            observer.observe(currentTarget);
         }
 
         return () => {
-            if (observerTarget.current) {
-                observer.unobserve(observerTarget.current);
+            if (currentTarget) {
+                observer.unobserve(currentTarget);
             }
         };
-    }, [observerTarget, hasNextPage, fetchNextPage]);
+    }, [hasNextPage, fetchNextPage]);
 
     const activities = data?.pages.flatMap((page) => page.site_activities) || [];
 

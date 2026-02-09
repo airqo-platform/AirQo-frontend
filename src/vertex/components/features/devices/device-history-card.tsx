@@ -33,16 +33,17 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
             { threshold: 1.0 }
         );
 
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
+        const currentTarget = observerTarget.current;
+        if (currentTarget) {
+            observer.observe(currentTarget);
         }
 
         return () => {
-            if (observerTarget.current) {
-                observer.unobserve(observerTarget.current);
+            if (currentTarget) {
+                observer.unobserve(currentTarget);
             }
         };
-    }, [observerTarget, hasNextPage, fetchNextPage]);
+    }, [hasNextPage, fetchNextPage]);
 
     const activities = data?.pages.flatMap((page) => page.site_activities) || [];
 
