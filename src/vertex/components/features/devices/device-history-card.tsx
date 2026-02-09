@@ -3,6 +3,7 @@ import React from "react";
 import { format, parseISO } from 'date-fns';
 import { useDeviceActivities } from "@/core/hooks/useDevices";
 import ReusableButton from "@/components/shared/button/ReusableButton";
+import DeviceActivityItem from "@/components/features/devices/device-activity-item";
 
 interface DeviceHistoryCardProps {
     deviceName: string;
@@ -33,29 +34,15 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
                 ) : (activitiesResponse?.site_activities?.length || 0) === 0 ? (
                     <div className="text-sm text-muted-foreground">No recent activity.</div>
                 ) : (
-                    <ul className="space-y-4">
-                        {activitiesResponse!.site_activities.slice(0, 3).map((activity) => (
-                            <li key={activity._id} className="flex gap-3">
-                                <div className="flex flex-col items-center mt-1">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                    <div className="w-0.5 h-full bg-gray-100 mt-1 min-h-[20px]" />
-                                </div>
-                                <div className="flex-1 min-w-0 pb-1">
-                                    <div className="text-sm font-medium break-words">
-                                        {activity.description}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground mt-0.5">
-                                        {format(parseISO(activity.date), "MMM d, yyyy h:mm a")}
-                                    </div>
-                                    {activity.activity_by && (
-                                        <div className="text-xs text-muted-foreground mt-0.5">
-                                            By {activity.activity_by.name || activity.activity_by.email}
-                                        </div>
-                                    )}
-                                </div>
-                            </li>
+                    <div className="space-y-0">
+                        {activitiesResponse!.site_activities.slice(0, 3).map((activity, index) => (
+                            <DeviceActivityItem
+                                key={activity._id}
+                                activity={activity}
+                                isLast={index === 2 || index === activitiesResponse!.site_activities.length - 1}
+                            />
                         ))}
-                    </ul>
+                    </div>
                 )}
             </div>
 
