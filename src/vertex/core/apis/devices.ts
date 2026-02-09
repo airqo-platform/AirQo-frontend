@@ -66,27 +66,6 @@ export interface DeviceDetailsResponse {
   data: Device;
 }
 
-// Response for device maintenance activities
-export interface MaintenanceActivity {
-  _id: string;
-  activity_codes?: string[];
-  tags: string[];
-  device: string;
-  date: string;
-  description?: string;
-  activityType: "maintenance";
-  nextMaintenance?: string;
-  createdAt: string;
-  updatedAt: string;
-  network?: string;
-}
-
-export interface MaintenanceActivitiesResponse {
-  success: boolean;
-  message: string;
-  site_activities: MaintenanceActivity[];
-}
-
 export interface DeviceActivity {
   _id: string;
   device: string;
@@ -503,24 +482,6 @@ export const devices = {
       const response = await jwtApiClient.post(
         `/devices/activities/maintain?deviceName=${deviceName}`,
         logData,
-        { headers: { 'X-Auth-Type': 'JWT' } }
-      );
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  getDeviceMaintenanceLogs: async (
-    deviceName: string
-  ): Promise<MaintenanceActivitiesResponse> => {
-    try {
-      const params = new URLSearchParams({
-        device: deviceName,
-        activity_type: "maintenance",
-      });
-      const response = await jwtApiClient.get<MaintenanceActivitiesResponse>(
-        `/devices/activities?${params.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

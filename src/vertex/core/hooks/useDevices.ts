@@ -8,7 +8,6 @@ import { usePathname } from 'next/navigation';
 import {
   DeviceDetailsResponse,
   devices,
-  type MaintenanceActivitiesResponse,
   GetDevicesSummaryParams,
   DeviceCountResponse,
   type DeviceActivitiesResponse,
@@ -703,15 +702,6 @@ export const useAddMaintenanceLog = () => {
         type: 'ERROR',
       });
     },
-  });
-};
-
-export const useDeviceMaintenanceLogs = (deviceName: string) => {
-  return useQuery<MaintenanceActivitiesResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['deviceMaintenanceLogs', deviceName],
-    queryFn: () => devices.getDeviceMaintenanceLogs(deviceName),
-    enabled: !!deviceName,
-    staleTime: 60_000,
   });
 };
 

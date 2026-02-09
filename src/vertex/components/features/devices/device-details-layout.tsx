@@ -148,7 +148,7 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                         <DeviceMeasurementsApiCard deviceId={deviceId} />
                     </div>
                     <div className="break-inside-avoid mb-4 inline-block w-full order-4">
-                        <MaintenanceStatusCard deviceId={deviceId} />
+                        <MaintenanceStatusCard nextMaintenance={device.nextMaintenance} />
                     </div>
                     <div className="break-inside-avoid mb-4 inline-block w-full order-4">
                         <DeviceHistoryCard
