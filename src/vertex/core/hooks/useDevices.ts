@@ -544,6 +544,7 @@ export const useCreateDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -593,9 +594,11 @@ export const useImportDevice = () => {
         if (userContext === 'external-org') {
           queryClient.invalidateQueries({ queryKey: ['devices'] });
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         } else {
           queryClient.invalidateQueries({ queryKey: ['myDevices'] });
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
       }
     },
@@ -633,6 +636,7 @@ export const useDeployDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['claimedDevices'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -666,6 +670,7 @@ export const useRecallDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -695,6 +700,7 @@ export const useAddMaintenanceLog = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['deviceStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
