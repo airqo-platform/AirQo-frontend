@@ -1364,3 +1364,82 @@ export interface GetUserStatisticsResponse {
   message: string;
   users_stats: UserStatistics;
 }
+
+// Accept Email Invitation Types
+export interface AcceptEmailInvitationRequest {
+  token: string;
+  target_id: string;
+}
+
+export interface AcceptEmailInvitationResponse {
+  success: boolean;
+  message: string;
+}
+
+// Pending Invitations Types
+export interface PendingInvitationEntity {
+  name: string;
+  description: string;
+  slug: string;
+  type: string;
+}
+
+export interface PendingInvitationInviter {
+  name: string;
+  email: string;
+}
+
+export interface PendingInvitation {
+  invitation_id: string;
+  entity: PendingInvitationEntity;
+  inviter: PendingInvitationInviter;
+  invited_at: string;
+  expires_at: string;
+  request_type: string;
+  target_id: string;
+}
+
+export interface GetPendingInvitationsResponse {
+  success: boolean;
+  message: string;
+  invitations: PendingInvitation[];
+}
+
+// Accept Invitation Types
+export interface AcceptInvitationUser {
+  _id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+}
+
+export interface AcceptInvitationOrganization {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface AcceptInvitationData {
+  user: AcceptInvitationUser;
+  organization: AcceptInvitationOrganization;
+  login_url: string;
+  isNewUser: boolean;
+}
+
+export interface AcceptInvitationResponse {
+  success: boolean;
+  message: string;
+  data: AcceptInvitationData;
+}
+
+// Reject Invitation Types
+export interface RejectInvitationData {
+  invitation_id: string;
+  status: string;
+}
+
+export interface RejectInvitationResponse {
+  success: boolean;
+  message: string;
+  data: RejectInvitationData;
+}

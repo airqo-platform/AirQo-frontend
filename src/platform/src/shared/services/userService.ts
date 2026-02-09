@@ -29,6 +29,11 @@ import type {
   UpdateGroupDetailsRequest,
   UpdateGroupDetailsResponse,
   GetUserStatisticsResponse,
+  AcceptEmailInvitationRequest,
+  AcceptEmailInvitationResponse,
+  GetPendingInvitationsResponse,
+  AcceptInvitationResponse,
+  RejectInvitationResponse,
 } from '../types/api';
 
 export class UserService {
@@ -337,6 +342,22 @@ export class UserService {
     return data as { success: boolean; message: string };
   }
 
+  // Accept email invitation - public endpoint
+  async acceptEmailInvitation(
+    request: AcceptEmailInvitationRequest
+  ): Promise<AcceptEmailInvitationResponse> {
+    const response = await this.openClient.post<
+      AcceptEmailInvitationResponse | ApiErrorResponse
+    >('/users/requests/emails/accept', request);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to accept email invitation');
+    }
+
+    return data as AcceptEmailInvitationResponse;
+  }
+
   // Reject group join request - authenticated endpoint
   async rejectGroupJoinRequest(
     requestId: string
@@ -385,6 +406,78 @@ export class UserService {
     }
 
     return data as GetUserStatisticsResponse;
+  }
+
+  // Get pending invitations - authenticated endpoint
+  async getPendingInvitations(): Promise<GetPendingInvitationsResponse> {
+    try {
+      await this.ensureAuthenticated();
+      const response = await this.authenticatedClient.get<
+        GetPendingInvitationsResponse | ApiErrorResponse
+      >('/users/requests/pending/user');
+      const data = response.data;
+
+      if ('success' in data && !data.success) {
+        throw new Error(data.message || 'Failed to get pending invitations');
+      }
+
+      return data as GetPendingInvitationsResponse;
+    } catch (error: any) {
+      // Handle 404 gracefully - the endpoint might not exist yet
+      if (error.response?.status === 404) {
+        console.warn('Pending invitations endpoint not found (404)');
+        return {
+          success: true,
+          message: 'No invitations available',
+          invitations: [],
+        };
+      }
+      // Handle 401 gracefully - user not authenticated, return empty
+      if (error.response?.status === 401) {
+        console.warn('User not authenticated for pending invitations (401)');
+        return {
+          success: true,
+          message: 'No invitations available',
+          invitations: [],
+        };
+      }
+      // For other errors, throw to be caught by the hook
+      throw error;
+    }
+  }
+
+  // Accept invitation - authenticated endpoint
+  async acceptInvitation(
+    invitationId: string
+  ): Promise<AcceptInvitationResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      AcceptInvitationResponse | ApiErrorResponse
+    >(`/users/requests/pending/${invitationId}/accept`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to accept invitation');
+    }
+
+    return data as AcceptInvitationResponse;
+  }
+
+  // Reject invitation - authenticated endpoint
+  async rejectInvitation(
+    invitationId: string
+  ): Promise<RejectInvitationResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.post<
+      RejectInvitationResponse | ApiErrorResponse
+    >(`/users/requests/pending/${invitationId}/reject`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to reject invitation');
+    }
+
+    return data as RejectInvitationResponse;
   }
 }
 

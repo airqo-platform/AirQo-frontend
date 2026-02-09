@@ -65,18 +65,24 @@ const OrgInvitePage = () => {
   useEffect(() => {
     let isMounted = true;
     const approveInvitation = async () => {
+      const token = searchParams.get('token');
       const targetId = searchParams.get('target_id');
 
-      if (!targetId) {
+      if (!token || !targetId) {
         if (isMounted) {
           setStatus('error');
-          setErrorMessage('Invalid invitation link. No request ID found.');
+          setErrorMessage(
+            'Invalid invitation link. Missing token or request ID.'
+          );
         }
         return;
       }
 
       try {
-        await userService.approveGroupJoinRequestPublic(targetId);
+        await userService.acceptEmailInvitation({
+          token,
+          target_id: targetId,
+        });
         if (isMounted) {
           setStatus('success');
         }

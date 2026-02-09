@@ -23,6 +23,9 @@ export {
   useInitiateAccountDeletion,
   useConfirmAccountDeletion,
   useUser,
+  usePendingInvitations,
+  useAcceptInvitation,
+  useRejectInvitation,
 } from './useUser';
 export { useUserActions } from './useUserActions';
 
