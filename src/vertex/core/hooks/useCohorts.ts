@@ -178,11 +178,13 @@ export const useCreateCohort = () => {
         mutationFn: async ({
             name,
             network,
+            cohort_tags,
         }: {
             name: string;
             network: string;
+            cohort_tags?: string[];
         }) => {
-            const createResp = await cohortsApi.createCohort({ name, network });
+            const createResp = await cohortsApi.createCohort({ name, network, cohort_tags });
             const cohortId = createResp?.cohort?._id;
             if (!cohortId) throw new Error('Cohort created but missing id');
             return createResp;
@@ -212,12 +214,14 @@ export const useCreateCohortWithDevices = () => {
       name,
       network,
       deviceIds,
+      cohort_tags,
     }: {
       name: string;
       network: string;
       deviceIds: string[];
+      cohort_tags?: string[];
     }) => {
-      const createResp = await cohortsApi.createCohort({ name, network });
+      const createResp = await cohortsApi.createCohort({ name, network, cohort_tags });
       const cohortId = createResp?.cohort?._id;
       if (!cohortId) throw new Error('Cohort created but missing id');
       if (Array.isArray(deviceIds) && deviceIds.length > 0) {
@@ -252,17 +256,20 @@ export const useCreateCohortFromCohorts = () => {
       description,
       cohort_ids,
       network,
+      cohort_tags,
     }: {
       name: string;
       description?: string;
       cohort_ids: string[];
       network?: string;
+      cohort_tags?: string[];
     }) =>
       cohortsApi.createCohortFromCohorts({
         name,
         description,
         cohort_ids,
         network,
+        cohort_tags,
       }),
     onSuccess: (data, variables) => {
       ReusableToast({

@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,6 +20,8 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+import { DEFAULT_COHORT_TAGS } from "@/core/constants/devices";
 
 export type PreselectedDevice = { value: string; label: string };
 
@@ -46,6 +46,9 @@ const formSchema = z.object({
   devices: z.array(z.string()).min(1, {
     message: "Please select at least one device.",
   }),
+  cohort_tags: z.array(z.string()).min(1, {
+    message: "Please select at least one tag.",
+  }),
 });
 
 export function CreateCohortDialog({
@@ -61,6 +64,7 @@ export function CreateCohortDialog({
       name: "",
       network: "",
       devices: preselectedDevices.map((d) => d.value),
+      cohort_tags: [],
     },
   });
 
@@ -93,6 +97,7 @@ export function CreateCohortDialog({
         name: "",
         network: "",
         devices: preselectedDevices.map((d) => d.value),
+        cohort_tags: [],
       });
       setDeviceSearch("");
       setStep("form");
@@ -171,7 +176,7 @@ export function CreateCohortDialog({
   const handleConfirmCreate = () => {
     const values = form.getValues();
     createCohort(
-      { name: values.name, network: values.network, deviceIds: values.devices },
+      { name: values.name, network: values.network, deviceIds: values.devices, cohort_tags: values.cohort_tags },
       {
         onSuccess: (response) => {
           if (response?.cohort) {
@@ -265,6 +270,22 @@ export function CreateCohortDialog({
                   {...field}
                   error={form.formState.errors.name?.message}
                 />
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cohort_tags"
+              render={({ field }) => (
+                <FormItem>
+                  <Label>Tags</Label>
+                  <MultiSelectCombobox
+                    options={DEFAULT_COHORT_TAGS}
+                    placeholder="Select or create tags..."
+                    onValueChange={field.onChange}
+                    value={field.value || []}
+                  />
+                  <FormMessage />
+                </FormItem>
               )}
             />
             <FormField
