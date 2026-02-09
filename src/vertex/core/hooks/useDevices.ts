@@ -3,6 +3,7 @@ import {
   UseQueryOptions,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
 } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import {
@@ -834,10 +835,22 @@ export const useShippingBatchDetails = (batchId: string) => {
 };
 
 export const useDeviceActivities = (deviceName: string) => {
-  return useQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
+  return useInfiniteQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
     queryKey: ['deviceActivities', deviceName],
-    queryFn: () => devices.getDeviceActivities(deviceName),
+    queryFn: ({ pageParam = 1 }) =>
+      devices.getDeviceActivities(deviceName, { page: pageParam as number, limit: 10 }),
+    getNextPageParam: (lastPage: DeviceActivitiesResponse, allPages: DeviceActivitiesResponse[]) => {
+        if (!lastPage.meta) {
+            if (!lastPage.site_activities || lastPage.site_activities.length < 10) return undefined;
+            return allPages.length + 1;
+        }
+        if (lastPage.meta.page < lastPage.meta.totalPages) {
+            return lastPage.meta.page + 1;
+        }
+        return undefined;
+    },
     enabled: !!deviceName,
     staleTime: 60_000,
+    initialPageParam: 1,
   });
 };
