@@ -34,6 +34,24 @@ const config: Config = {
         docs: {
           breadcrumbs: false,
           sidebarPath: './sidebars.ts',
+          async sidebarItemsGenerator({defaultSidebarItemsGenerator, ...args}) {
+            const sidebarItems = await defaultSidebarItemsGenerator(args);
+            
+            const capitalize = (str: string) => str.charAt(0).toUpperCase() + str.slice(1);
+
+            const capitalizeItems = (items: any[]): any[] => {
+              return items.map((item) => {
+                if (item.label) {
+                  item.label = capitalize(item.label);
+                }
+                if (item.items) {
+                  item.items = capitalizeItems(item.items);
+                }
+                return item;
+              });
+            };
+            return capitalizeItems(sidebarItems);
+          },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
