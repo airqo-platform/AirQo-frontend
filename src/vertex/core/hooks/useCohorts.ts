@@ -150,7 +150,7 @@ export const useUpdateCohortDetails = () => {
       data,
     }: {
       cohortId: string;
-      data: Partial<{ name: string; visibility: boolean }>;
+      data: Partial<{ name: string; visibility: boolean; cohort_tags: string[] }>;
     }) => cohortsApi.updateCohortDetailsApi(cohortId, data),
     onSuccess: (data, variables) => {
       ReusableToast({
