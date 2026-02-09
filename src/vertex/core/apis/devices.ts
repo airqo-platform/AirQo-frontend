@@ -90,7 +90,7 @@ export interface DeviceActivitiesResponse {
   success: boolean;
   message: string;
   site_activities: DeviceActivity[];
-  meta?: {
+  meta: {
     total: number;
     limit: number;
     skip: number;
@@ -653,13 +653,16 @@ export const devices = {
   },
 
 
-  getDeviceActivities: async (deviceName: string): Promise<DeviceActivitiesResponse> => {
+  getDeviceActivities: async (deviceName: string, params: { page?: number; limit?: number } = {}): Promise<DeviceActivitiesResponse> => {
     try {
-      const params = new URLSearchParams({
+      const { page = 1, limit = 10 } = params;
+      const queryParams = new URLSearchParams({
         device: deviceName,
+        page: String(page),
+        limit: String(limit)
       });
       const response = await jwtApiClient.get<DeviceActivitiesResponse>(
-        `/devices/activities?${params.toString()}`,
+        `/devices/activities?${queryParams.toString()}`,
         { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;

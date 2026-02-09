@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useDeviceActivities } from "@/core/hooks/useDevices";
 import DeviceActivityItem from "@/components/features/devices/device-activity-item";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2 } from "lucide-react";
 
 interface DeviceHistoryCardProps {
     deviceName: string;
@@ -12,10 +13,38 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
     deviceName,
 }) => {
     const {
-        data: activitiesResponse,
+        data,
         isLoading,
         error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
     } = useDeviceActivities(deviceName);
+
+    const observerTarget = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasNextPage) {
+                    fetchNextPage();
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => {
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current);
+            }
+        };
+    }, [observerTarget, hasNextPage, fetchNextPage]);
+
+    const activities = data?.pages.flatMap((page) => page.site_activities) || [];
 
     return (
         <Card className="w-full rounded-lg">
@@ -28,18 +57,24 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
                     <div className="text-sm text-muted-foreground p-3">Loading history...</div>
                 ) : error ? (
                     <div className="text-sm text-red-500 p-3">Failed to load history.</div>
-                ) : (activitiesResponse?.site_activities?.length || 0) === 0 ? (
+                ) : activities.length === 0 ? (
                     <div className="text-sm text-muted-foreground p-3">No recent activity.</div>
                 ) : (
                     <ScrollArea className="h-[300px] pr-4">
                         <div className="space-y-0 pt-3">
-                            {activitiesResponse!.site_activities.map((activity, index) => (
+                            {activities.map((activity, index) => (
                                 <DeviceActivityItem
-                                    key={activity._id}
+                                    key={`${activity._id}-${index}`}
                                     activity={activity}
-                                    isLast={index === activitiesResponse!.site_activities.length - 1}
+                                    isLast={index === activities.length - 1 && !hasNextPage}
                                 />
                             ))}
+                            {/* Loading spinner for infinite scroll */}
+                            <div ref={observerTarget} className="py-2 flex justify-center h-4">
+                                {isFetchingNextPage && (
+                                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                )}
+                            </div>
                         </div>
                     </ScrollArea>
                 )}
