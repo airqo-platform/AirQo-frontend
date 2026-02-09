@@ -50,9 +50,6 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                     )}
                     {/* If we had file attachments in the activity object, we would render them here */}
                 </div>
-
-                {/* Status Indicator (Green Dot) */}
-                <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
             </div>
         </div>
     );

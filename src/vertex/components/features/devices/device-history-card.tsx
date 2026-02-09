@@ -1,18 +1,15 @@
 import { Card } from "@/components/ui/card";
 import React from "react";
-import { format, parseISO } from 'date-fns';
 import { useDeviceActivities } from "@/core/hooks/useDevices";
-import ReusableButton from "@/components/shared/button/ReusableButton";
 import DeviceActivityItem from "@/components/features/devices/device-activity-item";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface DeviceHistoryCardProps {
     deviceName: string;
-    onViewAllLogs?: () => void;
 }
 
 const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
     deviceName,
-    onViewAllLogs,
 }) => {
     const {
         data: activitiesResponse,
@@ -22,39 +19,30 @@ const DeviceHistoryCard: React.FC<DeviceHistoryCardProps> = ({
 
     return (
         <Card className="w-full rounded-lg">
-            <div className="flex items-center justify-between px-3 py-2">
+            <div className="flex items-center justify-between px-3 py-2 border-b">
                 <h2 className="text-lg font-semibold">Device Activity</h2>
             </div>
 
-            <div className="px-3 pb-3">
+            <div className="px-3 py-0">
                 {isLoading ? (
-                    <div className="text-sm text-muted-foreground">Loading history...</div>
+                    <div className="text-sm text-muted-foreground p-3">Loading history...</div>
                 ) : error ? (
-                    <div className="text-sm text-red-500">Failed to load history.</div>
+                    <div className="text-sm text-red-500 p-3">Failed to load history.</div>
                 ) : (activitiesResponse?.site_activities?.length || 0) === 0 ? (
-                    <div className="text-sm text-muted-foreground">No recent activity.</div>
+                    <div className="text-sm text-muted-foreground p-3">No recent activity.</div>
                 ) : (
-                    <div className="space-y-0">
-                        {activitiesResponse!.site_activities.slice(0, 3).map((activity, index) => (
-                            <DeviceActivityItem
-                                key={activity._id}
-                                activity={activity}
-                                isLast={index === 2 || index === activitiesResponse!.site_activities.length - 1}
-                            />
-                        ))}
-                    </div>
+                    <ScrollArea className="h-[300px] pr-4">
+                        <div className="space-y-0 pt-3">
+                            {activitiesResponse!.site_activities.map((activity, index) => (
+                                <DeviceActivityItem
+                                    key={activity._id}
+                                    activity={activity}
+                                    isLast={index === activitiesResponse!.site_activities.length - 1}
+                                />
+                            ))}
+                        </div>
+                    </ScrollArea>
                 )}
-            </div>
-
-            <div className="border-t px-2 flex justify-end">
-                <ReusableButton
-                    variant="text"
-                    onClick={onViewAllLogs}
-                    disabled={!onViewAllLogs}
-                    className="p-1 text-xs m-1"
-                >
-                    View all logs
-                </ReusableButton>
             </div>
         </Card>
     );
