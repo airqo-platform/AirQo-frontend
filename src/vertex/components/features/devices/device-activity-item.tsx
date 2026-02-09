@@ -6,11 +6,13 @@ import { DeviceActivity } from "@/core/apis/devices";
 interface DeviceActivityItemProps {
     activity: DeviceActivity;
     isLast: boolean;
+    showDeviceName?: boolean;
 }
 
 const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
     activity,
     isLast,
+    showDeviceName = false,
 }) => {
     return (
         <div className="relative pl-14 pb-2">
@@ -31,7 +33,7 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
             <div className="flex justify-between items-start gap-4 pt-1">
                 <div className="flex-1 space-y-1">
                     <div className="text-xs text-gray-500">
-                        {format(parseISO(activity.date), "MMM d, yyyy h:mm a")}
+                        <span>{format(parseISO(activity.date), "MMM d, yyyy h:mm a")}</span>
                     </div>
                     <h4 className="text-base font-medium text-gray-900 leading-none">
                         {activity.description.charAt(0).toUpperCase() + activity.description.slice(1)}
@@ -43,9 +45,14 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
                     )}
 
                     {/* Extra details (Placeholders for now, based on image "Added a file" etc) */}
-                    {activity.deployment_type && (
+                    {activity.deployment_type && activity.activityType === "deployment" && (
                         <div className="text-sm text-blue-600 mt-1">
                             Deployment Type: {activity.deployment_type}
+                        </div>
+                    )}
+                    {showDeviceName && activity.device && (
+                        <div className="text-sm text-blue-600 mt-1">
+                            Device: {activity.device}
                         </div>
                     )}
                     {/* If we had file attachments in the activity object, we would render them here */}

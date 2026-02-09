@@ -1,6 +1,7 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
 import { Site } from "@/app/types/sites";
 import { PaginationMeta } from "@/app/types/devices";
+import { DeviceActivity } from "./devices";
 
 interface ApproximateCoordinatesResponse {
   success: boolean;
@@ -12,6 +13,19 @@ interface ApproximateCoordinatesResponse {
     bearing_in_radians?: number;
     provided_latitude?: number;
     provided_longitude?: number;
+  };
+}
+
+export interface DeviceActivitiesResponse {
+  success: boolean;
+  message: string;
+  site_activities: DeviceActivity[];
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
   };
 }
 
@@ -238,6 +252,25 @@ export const sites = {
       throw error;
     }
   },
+
+  getSiteActivities: async (siteId: string, params: { page?: number; limit?: number } = {}): Promise<DeviceActivitiesResponse> => {
+    try {
+        const { page = 1, limit = 10 } = params;
+        const queryParams = new URLSearchParams({
+            site_id: siteId,
+            page: String(page),
+            limit: String(limit)
+        });
+
+        const response = await createSecureApiClient().get<DeviceActivitiesResponse>(
+            `/devices/activities?${queryParams.toString()}`,
+            { headers: { "X-Auth-Type": "JWT" } }
+        );
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+  }
 };
 
 export type { ApproximateCoordinatesResponse };

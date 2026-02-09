@@ -13,6 +13,7 @@ import { SiteMobileAppCard } from "@/components/features/sites/site-mobile-app-c
 import { EditSiteDetailsDialog } from "@/components/features/sites/edit-site-details-dialog";
 import ClientPaginatedDevicesTable from "@/components/features/devices/client-paginated-devices-table";
 import SiteMeasurementsApiCard from "@/components/features/sites/site-measurements-api-card";
+import SiteActivityCard from "@/components/features/sites/site-activity-card";
 
 const ContentGridSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 items-start">
@@ -63,21 +64,24 @@ export default function SiteDetailsPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-            <div className="lg:col-span-1">
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 mt-6">
+            <div className="break-inside-avoid mb-4 inline-block w-full order-1">
               <SiteInformationCard
                 site={site}
                 onEdit={() => setEditSection("general")}
               />
             </div>
-            <div className="lg:col-span-1 space-y-6">
+            <div className="break-inside-avoid mb-4 inline-block w-full order-3">
               <SiteMobileAppCard
                 site={site}
                 onEdit={() => setEditSection("mobile")}
               />
             </div>
-            <div className="lg:col-span-1">
+            <div className="break-inside-avoid mb-4 inline-block w-full order-2">
               <SiteMeasurementsApiCard siteId={siteId} />
+            </div>
+            <div className="break-inside-avoid mb-4 inline-block w-full order-4">
+              <SiteActivityCard siteId={siteId} />
             </div>
           </div>
           <div className="mt-6">
