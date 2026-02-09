@@ -87,6 +87,39 @@ export interface MaintenanceActivitiesResponse {
   site_activities: MaintenanceActivity[];
 }
 
+export interface DeviceActivity {
+  _id: string;
+  device: string;
+  date: string;
+  description: string;
+  activityType: string;
+  activity_by?: {
+    user_id: string;
+    name: string;
+    email: string;
+  };
+  site_id?: string;
+  network?: string;
+  nextMaintenance?: string;
+  deployment_type?: string;
+  tags?: string[];
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface DeviceActivitiesResponse {
+  success: boolean;
+  message: string;
+  site_activities: DeviceActivity[];
+  meta?: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
+}
+
 export type GetDevicesSummaryParams = Partial<Device> & {
   limit?: number;
   skip?: number;
@@ -651,6 +684,22 @@ export const devices = {
       const response = await jwtApiClient.get<ShippingBatchDetailsResponse>(
         `/devices/shipping-batches/${batchId}`,
         { headers: { "X-Auth-Type": "JWT" } }
+      );
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+
+  getDeviceActivities: async (deviceName: string): Promise<DeviceActivitiesResponse> => {
+    try {
+      const params = new URLSearchParams({
+        device: deviceName,
+      });
+      const response = await jwtApiClient.get<DeviceActivitiesResponse>(
+        `/devices/activities?${params.toString()}`,
+        { headers: { 'X-Auth-Type': 'JWT' } }
       );
       return response.data;
     } catch (error) {

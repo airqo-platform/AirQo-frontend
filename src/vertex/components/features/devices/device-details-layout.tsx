@@ -19,6 +19,8 @@ import { Device } from "@/app/types/devices";
 import { DeviceLocationCard } from "@/components/features/devices/device-location-card";
 import MaintenanceStatusCard from "@/components/features/devices/maintenance-status-card";
 import DeviceCategoryCard from "@/components/features/devices/device-category-card";
+import DeviceHistoryCard from "@/components/features/devices/device-history-card";
+import DeviceHistoryDrawer from "@/components/features/devices/device-history-drawer";
 import { AqArrowLeft, AqSignal02, AqTool01 } from "@airqo/icons-react";
 
 const ActionButtonsSkeleton = () => (
@@ -50,8 +52,10 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
 
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showRecallDialog, setShowRecallDialog] = useState(false);
+
     const [showDeployModal, setShowDeployModal] = useState(false);
     const [showMaintenanceLogModal, setShowMaintenanceLogModal] = useState(false);
+    const [showHistoryDrawer, setShowHistoryDrawer] = useState(false);
 
     const deviceNum = Number(device?.device_number);
 
@@ -148,6 +152,12 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                     <div className="break-inside-avoid mb-4 inline-block w-full order-4">
                         <MaintenanceStatusCard deviceId={deviceId} />
                     </div>
+                    <div className="break-inside-avoid mb-4 inline-block w-full order-4">
+                        <DeviceHistoryCard
+                            deviceName={device.name}
+                            onViewAllLogs={() => setShowHistoryDrawer(true)}
+                        />
+                    </div>
                     <div className="break-inside-avoid mb-4 inline-block w-full order-3">
                         <DeviceCategoryCard device={device} />
                     </div>
@@ -175,6 +185,11 @@ export default function DeviceDetailsLayout({ deviceId }: DeviceDetailsLayoutPro
                     <AddMaintenanceLogModal
                         open={showMaintenanceLogModal}
                         onOpenChange={setShowMaintenanceLogModal}
+                        deviceName={device.name}
+                    />
+                    <DeviceHistoryDrawer
+                        isOpen={showHistoryDrawer}
+                        onClose={() => setShowHistoryDrawer(false)}
                         deviceName={device.name}
                     />
                 </>

@@ -11,6 +11,7 @@ import {
   type MaintenanceActivitiesResponse,
   GetDevicesSummaryParams,
   DeviceCountResponse,
+  type DeviceActivitiesResponse,
 } from '../apis/devices';
 import { useGroupCohorts } from './useCohorts';
 import { setError } from '@/core/redux/slices/devicesSlice';
@@ -832,6 +833,15 @@ export const useShippingBatchDetails = (batchId: string) => {
     queryKey: ['shippingBatchDetails', batchId],
     queryFn: () => devices.getShippingBatchDetails(batchId),
     enabled: !!batchId,
+    staleTime: 60_000,
+  });
+};
+
+export const useDeviceActivities = (deviceName: string) => {
+  return useQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
+    queryKey: ['deviceActivities', deviceName],
+    queryFn: () => devices.getDeviceActivities(deviceName),
+    enabled: !!deviceName,
     staleTime: 60_000,
   });
 };
