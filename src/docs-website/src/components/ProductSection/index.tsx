@@ -50,7 +50,7 @@ const ProductList: ProductItem[] = [
     {
         title: 'Cross-Product Features',
         description: 'Features that span across multiple products',
-        link: '/docs/cross-product/concepts/rbac/overview',
+        link: '/docs/cross-product/concepts/access-control',
         Icon: AqCube02,
     }
 ];
