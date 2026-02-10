@@ -223,7 +223,7 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = props => {
   const handleDismiss = useCallback(() => {
     setIsDismissed(true);
     onDismiss?.();
-  }, [onDismiss]);
+  }, [onDismiss, props]);
 
   // Handle pending invites type
   if (props.type === 'pending-invites') {
