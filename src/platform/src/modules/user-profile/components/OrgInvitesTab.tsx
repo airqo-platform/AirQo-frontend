@@ -6,7 +6,12 @@ import {
   useAcceptInvitation,
   useRejectInvitation,
 } from '@/shared/hooks';
-import { Button, LoadingState, Dialog } from '@/shared/components/ui';
+import {
+  Button,
+  LoadingState,
+  Dialog,
+  EmptyState,
+} from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import { AqMail04, AqCheck, AqX, AqCalendar, AqBank } from '@airqo/icons-react';
@@ -219,11 +224,12 @@ const OrgInvitesTab: React.FC = () => {
           )}
 
           {!isLoading && !error && invitations.length === 0 && (
-            <div className="text-center py-8">
-              <p className="text-gray-600 dark:text-gray-400">
-                No pending invitations at this time.
-              </p>
-            </div>
+            <EmptyState
+              title="No Pending Invitations"
+              description="You don't have any pending organization invitations at the moment. When organizations invite you to join, they'll appear here."
+              icon={<AqMail04 size={48} />}
+              className="min-h-[300px]"
+            />
           )}
 
           {!isLoading && !error && invitations.length > 0 && (
