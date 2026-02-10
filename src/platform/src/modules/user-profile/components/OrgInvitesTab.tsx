@@ -91,6 +91,11 @@ const OrgInvitesTab: React.FC = () => {
             `Invitation ${confirmation.action === 'accept' ? 'accepted' : 'rejected'} successfully`
         );
         mutate();
+
+        // Reload the page after accepting an invitation to update the notification banner
+        if (confirmation.action === 'accept') {
+          window.location.reload();
+        }
       }
     } catch (err: unknown) {
       const error = err as Error;
