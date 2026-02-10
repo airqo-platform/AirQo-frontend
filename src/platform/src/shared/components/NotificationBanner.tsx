@@ -253,8 +253,6 @@ const CustomNotificationContent: React.FC<{
 // Main component
 export const NotificationBanner: React.FC<NotificationBannerProps> = props => {
   const [isDismissed, setIsDismissed] = useState(false);
-  const { isLoading, invitations, handleViewInvites, hasInvites } =
-    usePendingInvitesBanner();
 
   const { onDismiss } = props;
 
@@ -265,6 +263,8 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = props => {
 
   // Handle pending invites type
   if (props.type === 'pending-invites') {
+    const { isLoading, invitations, handleViewInvites, hasInvites } =
+      usePendingInvitesBanner();
     const { layout = 'github-style', dismissible = true, className } = props;
 
     if (isLoading || !hasInvites || isDismissed) {

@@ -117,7 +117,9 @@ export const Banner: React.FC<BannerProps> = ({
           <div className={cn('mt-1 text-sm', config.textColor)}>{message}</div>
         )}
         {actions && (
-          <div className={cn('mt-0 flex items-center gap-2 flex-nowrap')}>
+          <div
+            className={cn(dense ? 'mt-0' : 'mt-3', 'flex items-center gap-2')}
+          >
             {actions}
           </div>
         )}

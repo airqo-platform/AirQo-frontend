@@ -57,7 +57,7 @@ export function OrganizationSelector() {
     try {
       await leaveGroup.trigger({ groupId: groupToLeave.id });
       toast.success(`You have successfully left ${groupToLeave.title}`);
-      
+
       // Close the confirmation dialog
       setShowLeaveConfirmDialog(false);
       setGroupToLeave(null);
@@ -221,9 +221,15 @@ export function OrganizationSelector() {
                     {!isAirQoGroup && (
                       <Tooltip content="Leave organization" placement="left">
                         <button
-                          onClick={(e) => handleLeaveGroup(e, group.id, group.title)}
+                          onClick={e =>
+                            handleLeaveGroup(
+                              e,
+                              group.id,
+                              group.title ?? 'this organization'
+                            )
+                          }
                           className="ml-2 p-1.5 rounded-md text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
-                          aria-label={`Leave ${group.title}`}
+                          aria-label={`Leave ${group.title ?? 'this organization'}`}
                         >
                           <AqLogOut02 size={16} />
                         </button>
