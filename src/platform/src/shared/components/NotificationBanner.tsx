@@ -2,7 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from './ui/button';
 import { Banner } from './ui/banner';
 import { usePendingInvitations } from '../hooks/useUser';
@@ -53,17 +53,55 @@ const bannerAnimation = {
 // Separate component for pending invites logic
 const usePendingInvitesBanner = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const { data, isLoading } = usePendingInvitations();
 
+  // Determine flow type and org slug
+  const { flow, orgSlug } = React.useMemo(() => {
+    // Check if on org pages
+    const orgMatch = pathname.match(/^\/org\/([^\/]+)/);
+    if (orgMatch) {
+      return { flow: 'organization' as const, orgSlug: orgMatch[1] };
+    }
+
+    // Default to user flow
+    return { flow: 'user' as const, orgSlug: undefined };
+  }, [pathname]);
+
   const handleViewInvites = useCallback(() => {
-    router.push('/user/profile?tab=org-invites');
-  }, [router]);
+    if (flow === 'organization' && orgSlug) {
+      // In org flow, go to org profile page with org-invites tab
+      router.push(`/org/${orgSlug}/profile?tab=org-invites`);
+    } else {
+      // In user flow or other flows, go to user profile with org-invites tab
+      router.push('/user/profile?tab=org-invites');
+    }
+  }, [router, flow, orgSlug]);
+
+  const isOnInvitesPage = React.useMemo(() => {
+    if (flow === 'organization' && orgSlug) {
+      // In org flow, check if on org profile page with org-invites tab
+      return (
+        pathname === `/org/${orgSlug}/profile` &&
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('tab') === 'org-invites'
+      );
+    } else {
+      // In user flow, check if on user profile with org-invites tab
+      return (
+        pathname === '/user/profile' &&
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('tab') === 'org-invites'
+      );
+    }
+  }, [pathname, flow, orgSlug]);
 
   return {
     isLoading,
     invitations: data?.invitations ?? [],
     handleViewInvites,
     hasInvites: (data?.invitations?.length ?? 0) > 0,
+    isOnInvitesPage,
   };
 };
 
@@ -223,7 +261,7 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = props => {
   const handleDismiss = useCallback(() => {
     setIsDismissed(true);
     onDismiss?.();
-  }, [onDismiss, props]);
+  }, [onDismiss]);
 
   // Handle pending invites type
   if (props.type === 'pending-invites') {

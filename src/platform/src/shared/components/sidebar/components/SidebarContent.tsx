@@ -24,68 +24,74 @@ export const SidebarContent: React.FC<SidebarContentProps> = ({
 
     // Filter admin items based on permissions
     if (flow === 'admin') {
-      config = config.map(group => ({
-        ...group,
-        items: group.items.filter(item => {
-          // Hide admin dashboard if user doesn't have AIRQO_SUPER_ADMIN role
-          if (item.id === 'admin-dashboard') {
-            return isAirQoSuperAdminWithEmail();
-          }
-          // Hide statistics and org-requests if user doesn't have AIRQO_SUPER_ADMIN role
-          if (['admin-statistics', 'admin-org-requests'].includes(item.id)) {
-            return isAirQoSuperAdminWithEmail();
-          }
-          return true;
-        }),
-      }));
+      config = config
+        .map(group => ({
+          ...group,
+          items: group.items.filter(item => {
+            // Hide admin dashboard if user doesn't have AIRQO_SUPER_ADMIN role
+            if (item.id === 'admin-dashboard') {
+              return isAirQoSuperAdminWithEmail();
+            }
+            // Hide statistics and org-requests if user doesn't have AIRQO_SUPER_ADMIN role
+            if (['admin-statistics', 'admin-org-requests'].includes(item.id)) {
+              return isAirQoSuperAdminWithEmail();
+            }
+            return true;
+          }),
+        }))
+        .filter(group => group.items.length > 0); // Filter out empty groups
     }
 
     // Filter organization management items based on permissions
     if (flow === 'organization') {
-      config = config.map(group => {
-        // Only filter the management group
-        if (group.id === 'management') {
-          return {
-            ...group,
-            items: group.items.filter(item => {
-              // Members and Member Requests require MEMBER_VIEW
-              if (['org-members', 'org-member-requests'].includes(item.id)) {
-                return hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
-              }
-              // Roles & Permissions require ROLE_VIEW
-              if (item.id === 'org-roles') {
-                return hasAnyPermissionInActiveGroup(['ROLE_VIEW']);
-              }
-              // Organization Settings require GROUP_MANAGEMENT
-              if (item.id === 'org-settings') {
-                return hasAnyPermissionInActiveGroup(['GROUP_MANAGEMENT']);
-              }
-              return true;
-            }),
-          };
-        }
-        return group;
-      });
+      config = config
+        .map(group => {
+          // Only filter the management group
+          if (group.id === 'management') {
+            return {
+              ...group,
+              items: group.items.filter(item => {
+                // Members and Member Requests require MEMBER_VIEW
+                if (['org-members', 'org-member-requests'].includes(item.id)) {
+                  return hasAnyPermissionInActiveGroup(['MEMBER_VIEW']);
+                }
+                // Roles & Permissions require ROLE_VIEW
+                if (item.id === 'org-roles') {
+                  return hasAnyPermissionInActiveGroup(['ROLE_VIEW']);
+                }
+                // Organization Settings require GROUP_MANAGEMENT
+                if (item.id === 'org-settings') {
+                  return hasAnyPermissionInActiveGroup(['GROUP_MANAGEMENT']);
+                }
+                return true;
+              }),
+            };
+          }
+          return group;
+        })
+        .filter(group => group.items.length > 0); // Filter out empty groups
     }
 
     // Filter system items based on permissions
     if (flow === 'system') {
-      config = config.map(group => ({
-        ...group,
-        items: group.items.filter(item => {
-          // Hide system-clients, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role
-          if (
-            [
-              'system-clients',
-              'system-org-requests',
-              'system-user-statistics',
-            ].includes(item.id)
-          ) {
-            return isAirQoSuperAdminWithEmail();
-          }
-          return true;
-        }),
-      }));
+      config = config
+        .map(group => ({
+          ...group,
+          items: group.items.filter(item => {
+            // Hide system-clients, system-org-requests, and system-user-statistics if user doesn't have AIRQO_SUPER_ADMIN role
+            if (
+              [
+                'system-clients',
+                'system-org-requests',
+                'system-user-statistics',
+              ].includes(item.id)
+            ) {
+              return isAirQoSuperAdminWithEmail();
+            }
+            return true;
+          }),
+        }))
+        .filter(group => group.items.length > 0); // Filter out empty groups
     }
 
     // If org flow and orgSlug provided, replace placeholders with actual slug
