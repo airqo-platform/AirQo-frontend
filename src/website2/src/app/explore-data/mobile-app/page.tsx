@@ -7,7 +7,7 @@ const AppPromo = () => {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       {/* Left Side: Image with responsiveness */}
-      <div className="w-full lg:w-1/2 relative h-64 lg:h-auto">
+      <div className="hidden md:block w-full lg:w-1/2 relative h-64 lg:h-auto">
         <Image
           src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/explore/man-download-app_qg1pt2.png"
           alt="User using AirQo app"
