@@ -274,7 +274,7 @@ const MembersPage: React.FC = () => {
                 >
                   View Details
                 </DropdownMenuItem>
-                {hasAnyPermissionInActiveGroup(['MEMBER_VIEW']) &&
+                {hasAnyPermissionInActiveGroup(['MEMBER_REMOVE']) &&
                   !isManager && (
                     <DropdownMenuItem
                       onClick={() =>

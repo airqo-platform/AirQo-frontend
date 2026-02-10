@@ -63,7 +63,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
     if (!preferences?.preferences || preferences.preferences.length === 0) {
       return null;
     }
-    return preferences.preferences.sort(
+    return [...preferences.preferences].sort(
       (a, b) =>
         new Date(b.lastAccessed || b.updatedAt).getTime() -
         new Date(a.lastAccessed || a.updatedAt).getTime()
@@ -144,10 +144,19 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
             search_name: site.location || '',
             city: site.city,
             country: site.country,
-            latitude: 0,
-            longitude: 0,
-            approximate_latitude: 0,
-            approximate_longitude: 0,
+            latitude:
+              site._raw?.latitude ||
+              site._raw?.lat ||
+              site._raw?.approximate_latitude ||
+              undefined,
+            longitude:
+              site._raw?.longitude ||
+              site._raw?.lng ||
+              site._raw?.approximate_longitude ||
+              undefined,
+            approximate_latitude: site._raw?.approximate_latitude || undefined,
+            approximate_longitude:
+              site._raw?.approximate_longitude || undefined,
             generated_name: site.location || '',
             createdAt: new Date().toISOString(),
           };

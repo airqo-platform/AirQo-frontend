@@ -197,7 +197,7 @@ const MemberDetailsPage: React.FC = () => {
           title={user ? `${user.firstName} ${user.lastName}` : 'User Details'}
           subtitle={user?.email}
           action={
-            hasAnyPermissionInActiveGroup(['MEMBER_VIEW']) &&
+            hasAnyPermissionInActiveGroup(['MEMBER_REMOVE']) &&
             user &&
             group?.grp_manager?._id !== memberId ? (
               <Button

@@ -1419,7 +1419,7 @@ export interface AcceptEmailInvitationResponse {
 // Pending Invitations Types
 export interface PendingInvitationEntity {
   name: string;
-  description: string;
+  description?: string;
   slug: string;
   type: string;
 }
