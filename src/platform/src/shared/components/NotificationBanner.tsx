@@ -250,6 +250,47 @@ const CustomNotificationContent: React.FC<{
   );
 };
 
+// Separate component for pending invites banner
+const PendingInvitesBanner: React.FC<PendingInvitesNotificationBannerProps> = ({
+  layout = 'github-style',
+  dismissible = true,
+  onDismiss,
+  className,
+}) => {
+  const [isDismissed, setIsDismissed] = useState(false);
+  const { isLoading, invitations, handleViewInvites, hasInvites } =
+    usePendingInvitesBanner();
+
+  const handleDismiss = useCallback(() => {
+    setIsDismissed(true);
+    onDismiss?.();
+  }, [onDismiss]);
+
+  if (isLoading || !hasInvites || isDismissed) {
+    return null;
+  }
+
+  return (
+    <AnimatePresence mode="wait">
+      {!isDismissed && (
+        <motion.div
+          key="pending-invites"
+          {...bannerAnimation}
+          className={className}
+        >
+          <PendingInvitesContent
+            count={invitations.length}
+            onView={handleViewInvites}
+            layout={layout}
+            dismissible={dismissible}
+            onDismiss={handleDismiss}
+          />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 // Main component
 export const NotificationBanner: React.FC<NotificationBannerProps> = props => {
   const [isDismissed, setIsDismissed] = useState(false);
@@ -263,33 +304,7 @@ export const NotificationBanner: React.FC<NotificationBannerProps> = props => {
 
   // Handle pending invites type
   if (props.type === 'pending-invites') {
-    const { isLoading, invitations, handleViewInvites, hasInvites } =
-      usePendingInvitesBanner();
-    const { layout = 'github-style', dismissible = true, className } = props;
-
-    if (isLoading || !hasInvites || isDismissed) {
-      return null;
-    }
-
-    return (
-      <AnimatePresence mode="wait">
-        {!isDismissed && (
-          <motion.div
-            key="pending-invites"
-            {...bannerAnimation}
-            className={className}
-          >
-            <PendingInvitesContent
-              count={invitations.length}
-              onView={handleViewInvites}
-              layout={layout}
-              dismissible={dismissible}
-              onDismiss={handleDismiss}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
-    );
+    return <PendingInvitesBanner {...props} />;
   }
 
   // Handle custom type
