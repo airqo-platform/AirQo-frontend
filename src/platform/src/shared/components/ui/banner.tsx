@@ -23,6 +23,7 @@ export interface BannerProps {
   dismissible?: boolean;
   onDismiss?: () => void;
   className?: string;
+  dense?: boolean;
   showIcon?: boolean;
 }
 
@@ -83,15 +84,19 @@ export const Banner: React.FC<BannerProps> = ({
   dismissible = false,
   onDismiss,
   className,
+  dense = false,
   showIcon = true,
 }) => {
   const config = SEVERITY_CONFIG[severity];
   const displayIcon = icon || (showIcon ? config.icon : null);
 
+  const paddingClass = dense ? 'py-2 px-3' : 'p-4';
+
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-md border p-4 shadow-sm',
+        'flex items-start gap-3 rounded-md border shadow-sm',
+        paddingClass,
         config.bgColor,
         config.borderColor,
         className
@@ -111,7 +116,11 @@ export const Banner: React.FC<BannerProps> = ({
         {message && (
           <div className={cn('mt-1 text-sm', config.textColor)}>{message}</div>
         )}
-        {actions && <div className="mt-3 flex gap-2">{actions}</div>}
+        {actions && (
+          <div className={cn('mt-0 flex items-center gap-2 flex-nowrap')}>
+            {actions}
+          </div>
+        )}
       </div>
 
       {/* Dismiss Button */}

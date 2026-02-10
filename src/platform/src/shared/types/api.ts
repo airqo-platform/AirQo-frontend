@@ -1392,7 +1392,7 @@ export interface PendingInvitationInviter {
 export interface PendingInvitation {
   invitation_id: string;
   entity: PendingInvitationEntity;
-  inviter: PendingInvitationInviter;
+  inviter: PendingInvitationInviter | null;
   invited_at: string;
   expires_at: string;
   request_type: string;

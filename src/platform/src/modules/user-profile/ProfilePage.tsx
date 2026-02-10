@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { ProfileForm, SecurityTab, OrgInvitesTab } from './components';
 import { ApiClientPage } from '../api-client';
 import ThemeManager from '../themes/components/ThemeManager';
@@ -26,9 +27,17 @@ interface ExtendedSessionUser {
 
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(0);
 
   const userId = (session?.user as ExtendedSessionUser)?._id;
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'org-invites') {
+      setActiveTab(2); // Org Invites tab
+    }
+  }, [searchParams]);
 
   if (status === 'loading') {
     return (

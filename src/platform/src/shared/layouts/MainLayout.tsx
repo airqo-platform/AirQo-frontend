@@ -12,6 +12,7 @@ import { MobileSidebar } from '@/shared/components/ui/mobile-sidebar';
 import { BottomNavigation } from '@/shared/components/ui/bottom-navigation';
 import { SecondaryNavigation } from '@/shared/components/ui/secondary-navigation';
 import { Footer } from '@/shared/components/ui/footer';
+import { NotificationBanner } from '@/shared/components/NotificationBanner';
 import { useAppSelector } from '@/shared/hooks/redux';
 import { LoadingOverlay } from '@/shared/components/ui/loading-overlay';
 import { LoadingState } from '@/shared/components/ui/loading-state';
@@ -86,7 +87,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     {userLoading ? (
                       <LoadingState text="Loading..." />
                     ) : (
-                      children
+                      <>
+                        <NotificationBanner
+                          type="pending-invites"
+                          className="mb-6"
+                        />
+                        {children}
+                      </>
                     )}
                   </div>
                 </div>

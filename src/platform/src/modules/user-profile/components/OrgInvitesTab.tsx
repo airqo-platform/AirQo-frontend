@@ -6,16 +6,10 @@ import {
   useAcceptInvitation,
   useRejectInvitation,
 } from '@/shared/hooks';
-import { Button, LoadingSpinner, Dialog } from '@/shared/components/ui';
+import { Button, LoadingState, Dialog } from '@/shared/components/ui';
 import { toast } from '@/shared/components/ui/toast';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
-import {
-  AqMail04,
-  AqCheck,
-  AqX,
-  AqCalendar,
-  AqBuilding02,
-} from '@airqo/icons-react';
+import { AqMail04, AqCheck, AqX, AqCalendar, AqBank } from '@airqo/icons-react';
 import { formatDate } from '@/shared/utils';
 import SettingsLayout from './SettingsLayout';
 
@@ -30,7 +24,7 @@ interface Invitation {
   inviter: {
     name: string;
     email: string;
-  };
+  } | null;
   invited_at: string;
   expires_at: string;
 }
@@ -115,10 +109,10 @@ const OrgInvitesTab: React.FC = () => {
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1">
           <div className="p-2 bg-primary/10 rounded-lg flex-shrink-0">
-            <AqBuilding02 size={24} className="text-primary" />
+            <AqBank size={24} className="text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate uppercase">
               {invitation.entity.name}
             </h3>
             {invitation.entity.description && (
@@ -138,7 +132,9 @@ const OrgInvitesTab: React.FC = () => {
               <div className="flex items-center gap-1">
                 <AqMail04 size={14} />
                 <span className="truncate">
-                  {invitation.inviter.name} ({invitation.inviter.email})
+                  {invitation.inviter
+                    ? `${invitation.inviter.name} (${invitation.inviter.email})`
+                    : 'Unknown Inviter'}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -176,25 +172,25 @@ const OrgInvitesTab: React.FC = () => {
               isAccepting ||
               isRejecting
             }
+            Icon={AqCheck}
             variant="filled"
             size="sm"
-            className="bg-green-600 hover:bg-green-700 disabled:bg-green-300 dark:disabled:bg-green-900"
+            className="flex items-center justify-center whitespace-nowrap min-w-[88px] bg-green-600 hover:bg-green-700 disabled:bg-green-300 dark:disabled:bg-green-900"
           >
-            <AqCheck size={16} className="mr-1" />
             Accept
           </Button>
           <Button
+            Icon={AqX}
             onClick={() => handleRejectClick(invitation)}
             disabled={
               processingId === invitation.invitation_id ||
               isAccepting ||
               isRejecting
             }
-            variant="outlined"
+            variant="filled"
             size="sm"
-            className="border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+            className="flex items-center justify-center whitespace-nowrap min-w-[88px] bg-red-600 text-white hover:bg-red-700 disabled:bg-red-300"
           >
-            <AqX size={16} className="mr-1" />
             Reject
           </Button>
         </div>
@@ -209,11 +205,7 @@ const OrgInvitesTab: React.FC = () => {
         description="View and manage all your pending organization invitations. Accept invitations to join organizations and collaborate with other members."
       >
         <div className="space-y-4">
-          {isLoading && (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner />
-            </div>
-          )}
+          {isLoading && <LoadingState text="Loading invitations..." />}
 
           {error && !isLoading && (
             <div className="text-center py-8">
@@ -274,14 +266,19 @@ const OrgInvitesTab: React.FC = () => {
         {confirmation.invitation && (
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm">
-              <AqBuilding02 size={16} className="text-primary" />
-              <span className="font-medium">
+              <AqBank size={16} className="text-primary" />
+              <span className="font-medium uppercase">
                 {confirmation.invitation.entity.name}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <AqMail04 size={16} />
-              <span>Invited by: {confirmation.invitation.inviter.name}</span>
+              <span>
+                Invited by:{' '}
+                {confirmation.invitation.inviter
+                  ? confirmation.invitation.inviter.name
+                  : 'Unknown'}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <AqCalendar size={16} />
