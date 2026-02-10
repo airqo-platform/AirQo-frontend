@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/shared/components/ui/card';
@@ -51,6 +51,7 @@ const OrgInvitePage = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [isNavigatingToLogin, setIsNavigatingToLogin] = useState(false);
   const [isRetrying, setIsRetrying] = useState(false);
+  const hasStartedRef = useRef(false);
 
   const handleGoToLogin = useCallback(() => {
     setIsNavigatingToLogin(true);
@@ -65,6 +66,12 @@ const OrgInvitePage = () => {
   useEffect(() => {
     let isMounted = true;
     const approveInvitation = async () => {
+      // Prevent duplicate API calls in React 18 Strict Mode
+      if (hasStartedRef.current) {
+        return;
+      }
+      hasStartedRef.current = true;
+
       const token = searchParams.get('token');
       const targetId = searchParams.get('target_id');
 
