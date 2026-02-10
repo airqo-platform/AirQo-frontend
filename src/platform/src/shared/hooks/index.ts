@@ -99,6 +99,9 @@ export {
   useGroupJoinRequests,
   useGroupDetails,
   useSendGroupInvite,
+  useUnassignUserFromGroup,
+  useLeaveGroup,
+  useSetGroupManager,
 } from './useGroups';
 
 // Utility hooks

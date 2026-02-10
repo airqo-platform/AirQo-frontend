@@ -34,6 +34,9 @@ import type {
   GetPendingInvitationsResponse,
   AcceptInvitationResponse,
   RejectInvitationResponse,
+  UnassignUserFromGroupResponse,
+  LeaveGroupResponse,
+  SetGroupManagerResponse,
 } from '../types/api';
 
 export class UserService {
@@ -478,6 +481,57 @@ export class UserService {
     }
 
     return data as RejectInvitationResponse;
+  }
+
+  // Unassign user from group - authenticated endpoint
+  async unassignUserFromGroup(
+    groupId: string,
+    userId: string
+  ): Promise<UnassignUserFromGroupResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      UnassignUserFromGroupResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/unassign-user/${userId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to unassign user from group');
+    }
+
+    return data as UnassignUserFromGroupResponse;
+  }
+
+  // Leave group - authenticated endpoint
+  async leaveGroup(groupId: string): Promise<LeaveGroupResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.delete<
+      LeaveGroupResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/leave`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to leave group');
+    }
+
+    return data as LeaveGroupResponse;
+  }
+
+  // Set group manager - authenticated endpoint
+  async setGroupManager(
+    groupId: string,
+    userId: string
+  ): Promise<SetGroupManagerResponse> {
+    await this.ensureAuthenticated();
+    const response = await this.authenticatedClient.put<
+      SetGroupManagerResponse | ApiErrorResponse
+    >(`/users/groups/${groupId}/set-manager/${userId}`);
+    const data = response.data;
+
+    if ('success' in data && !data.success) {
+      throw new Error(data.message || 'Failed to set group manager');
+    }
+
+    return data as SetGroupManagerResponse;
   }
 }
 

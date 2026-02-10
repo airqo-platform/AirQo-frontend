@@ -1339,6 +1339,46 @@ export interface UpdateGroupDetailsResponse {
   group: GroupDetails;
 }
 
+// Unassign User from Group Types
+export interface UnassignUserFromGroupResponse {
+  success: boolean;
+  message: string;
+  data: {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+  };
+}
+
+// Leave Group Types
+export interface LeaveGroupResponse {
+  success: boolean;
+  message: string;
+  left_group: {
+    _id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    userName: string;
+  };
+}
+
+// Set Group Manager Types
+export interface SetGroupManagerResponse {
+  success: boolean;
+  message: string;
+  data: {
+    updated_group: {
+      _id: string;
+      grp_manager: string;
+      grp_title?: string;
+      grp_description?: string;
+    };
+  };
+}
+
 // User Statistics Types
 export interface UserStatisticsUser {
   userName: string;

@@ -6,10 +6,14 @@ import Dialog from '@/shared/components/ui/dialog';
 import { Button, Input, Select } from '@/shared/components/ui';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { useUser } from '@/shared/hooks/useUser';
-import { useGroupDetails, useSendGroupInvite } from '@/shared/hooks/useGroups';
+import {
+  useGroupDetails,
+  useSendGroupInvite,
+  useUnassignUserFromGroup,
+} from '@/shared/hooks/useGroups';
 import { useRolesByGroup, useAssignUsersToRole } from '@/shared/hooks/useAdmin';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
-import { AqPlus, AqShield02 } from '@airqo/icons-react';
+import { AqPlus, AqShield02, AqTrash03 } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import {
@@ -61,6 +65,13 @@ const MembersPage: React.FC = () => {
   const [inviteEmails, setInviteEmails] = useState<string[]>(['']);
   const [emailErrors, setEmailErrors] = useState<string[]>(['']);
 
+  // Remove user states
+  const [showRemoveUserDialog, setShowRemoveUserDialog] = useState(false);
+  const [userToRemove, setUserToRemove] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+
   // Multi-select states
   const [selectedMembers, setSelectedMembers] = useState<(string | number)[]>(
     []
@@ -81,6 +92,7 @@ const MembersPage: React.FC = () => {
     mutate,
   } = useGroupDetails(currentOrg?.id || null);
   const sendInvite = useSendGroupInvite();
+  const unassignUser = useUnassignUserFromGroup();
 
   // Get roles for the current group
   const { data: rolesData, isLoading: rolesLoading } = useRolesByGroup(
@@ -206,24 +218,42 @@ const MembersPage: React.FC = () => {
       {
         key: 'actions',
         label: 'Actions',
-        render: (value: unknown, member: GroupMember) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>⋮
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() =>
-                  router.push(`/org/${org_slug}/members/${member._id}`)
-                }
-              >
-                View Details
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
+        render: (value: unknown, member: GroupMember) => {
+          const isManager = group?.grp_manager?._id === member._id;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>⋮
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.push(`/org/${org_slug}/members/${member._id}`)
+                  }
+                >
+                  View Details
+                </DropdownMenuItem>
+                {hasAnyPermissionInActiveGroup(['MEMBER_DELETE']) &&
+                  !isManager && (
+                    <DropdownMenuItem
+                      onClick={() =>
+                        handleRemoveUser(
+                          member._id,
+                          `${member.firstName} ${member.lastName}`
+                        )
+                      }
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    >
+                      <AqTrash03 size={16} className="mr-2" />
+                      Remove from Group
+                    </DropdownMenuItem>
+                  )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
       },
     ],
     [group?.grp_manager?._id, router, org_slug]
@@ -273,6 +303,45 @@ const MembersPage: React.FC = () => {
       setShowBulkRoleDialog(false);
     } catch {
       toast.error('Failed to assign role');
+    }
+  };
+
+  const handleRemoveUser = (memberId: string, memberName: string) => {
+    // Check if trying to remove the group manager
+    if (group?.grp_manager?._id === memberId) {
+      toast.error(
+        'Cannot remove the group manager. Please transfer ownership first.'
+      );
+      return;
+    }
+
+    setUserToRemove({ id: memberId, name: memberName });
+    setShowRemoveUserDialog(true);
+  };
+
+  const confirmRemoveUser = async () => {
+    if (!userToRemove || !currentOrg?.id) return;
+
+    try {
+      await unassignUser.trigger({
+        groupId: currentOrg.id,
+        userId: userToRemove.id,
+      });
+      toast.success(`${userToRemove.name} has been removed from the group`);
+      setShowRemoveUserDialog(false);
+      setUserToRemove(null);
+
+      // Refresh the page to ensure all data is up to date
+      setTimeout(() => {
+        mutate(); // Refresh the group details
+        window.location.reload();
+      }, 500); // Small delay to show the success toast
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to remove user';
+      toast.error(errorMessage);
+      setShowRemoveUserDialog(false);
+      setUserToRemove(null);
     }
   };
 
@@ -471,6 +540,51 @@ const MembersPage: React.FC = () => {
                     Loading roles...
                   </p>
                 )}
+              </div>
+            </div>
+          </Dialog>
+
+          {/* Remove User Confirmation Dialog */}
+          <Dialog
+            isOpen={showRemoveUserDialog}
+            onClose={() => {
+              if (!unassignUser.isMutating) {
+                setShowRemoveUserDialog(false);
+                setUserToRemove(null);
+              }
+            }}
+            title="Remove Member from Group"
+            primaryAction={{
+              label: 'Remove Member',
+              onClick: confirmRemoveUser,
+              disabled: unassignUser.isMutating,
+              loading: unassignUser.isMutating,
+              className: 'bg-red-600 hover:bg-red-700',
+            }}
+            secondaryAction={{
+              label: 'Cancel',
+              onClick: () => {
+                setShowRemoveUserDialog(false);
+                setUserToRemove(null);
+              },
+              disabled: unassignUser.isMutating,
+              variant: 'outlined',
+            }}
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to remove{' '}
+                <span className="font-semibold text-foreground">
+                  {userToRemove?.name}
+                </span>{' '}
+                from this group?
+              </p>
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>Warning:</strong> This user will lose access to all
+                  group resources and their assigned roles will be removed. This
+                  action cannot be undone.
+                </p>
               </div>
             </div>
           </Dialog>
