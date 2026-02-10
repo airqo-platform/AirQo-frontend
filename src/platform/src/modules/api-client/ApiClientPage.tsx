@@ -13,6 +13,7 @@ import CreateClientDialog from './components/CreateClientDialog';
 import EditClientDialog from './components/EditClientDialog';
 import TokenDisplay from './components/TokenDisplay';
 import type { Client } from '@/shared/types/api';
+import UsageStats from '../billing/components/UsageStats';
 
 type TableClient = Client & { id: string };
 
@@ -225,7 +226,9 @@ const ApiClientPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Table */}
+      <UsageStats />
+
+      {/* API Clients Table */}
       <MultiSelectTable
         title="API Clients"
         data={tableData}
