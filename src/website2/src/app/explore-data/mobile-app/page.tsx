@@ -7,7 +7,7 @@ const AppPromo = () => {
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
       {/* Left Side: Image with responsiveness */}
-      <div className="w-full lg:w-1/2 relative h-64 lg:h-auto">
+      <div className="hidden md:block w-full lg:w-1/2 relative h-64 lg:h-auto">
         <Image
           src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1728132440/website/photos/explore/man-download-app_qg1pt2.png"
           alt="User using AirQo app"
@@ -66,8 +66,13 @@ const AppPromo = () => {
           transition={{ delay: 0.5, duration: 0.5 }}
         >
           {/* QR Code - Larger size for better visibility */}
-          <div className="border border-gray-300 rounded-lg p-4">
-            <Image src="/QR/AQR.jpeg" alt="QR Code" width={220} height={220} />
+          <div className="border border-gray-300 rounded-lg p-4 hidden lg:block">
+            <Image
+              src="https://res.cloudinary.com/dbibjvyhm/image/upload/v1770647202/website/photos/explore/frame_k2ncpc.png"
+              alt="QR Code"
+              width={220}
+              height={220}
+            />
           </div>
 
           {/* Download buttons */}

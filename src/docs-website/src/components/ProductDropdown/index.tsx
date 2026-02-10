@@ -48,7 +48,7 @@ const Products = [
         title: 'Cross Product Features',
         path: '/docs/cross-product',
         icon: AqCube02,
-        landingPath: '/docs/cross-product/RBAC/overview',
+        landingPath: '/docs/cross-product/concepts/access-control',
     }
 ];
 
