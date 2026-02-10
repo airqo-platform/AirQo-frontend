@@ -406,23 +406,30 @@ const RoleDetailPage = () => {
                     return (
                       <div
                         key={permission._id}
-                        className={`relative p-2 bg-slate-50 border border-gray-200 rounded-lg hover:bg-slate-100 hover:border-gray-300 transition-colors min-w-0 ${canEditRole ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                        className={`relative p-2 border rounded-lg transition-all min-w-0 ${
+                          isSelected
+                            ? 'border-primary bg-primary/5 shadow-sm'
+                            : 'bg-slate-50 border-gray-200 hover:bg-slate-100 hover:border-gray-300'
+                        } ${canEditRole ? 'cursor-pointer' : 'cursor-not-allowed'}`}
                         onClick={() =>
                           canEditRole && handlePermissionToggle(permission._id)
                         }
                       >
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={() => {}} // Disable default behavior
+                        <div className="absolute top-1.5 right-1.5 pointer-events-none z-10">
+                          <Checkbox
+                            checked={isSelected}
+                            disabled={!canEditRole}
+                          />
+                        </div>
+                        <div
+                          className="absolute top-1.5 right-1.5 w-4 h-4 z-20 cursor-pointer"
                           onClick={e => {
                             e.stopPropagation();
                             if (canEditRole) {
                               handlePermissionToggle(permission._id);
                             }
                           }}
-                          disabled={!canEditRole}
-                          className="absolute top-1.5 right-1.5"
-                        />
+                        ></div>
                         <div className="pr-8">
                           <p className="font-medium text-sm text-gray-900 truncate">
                             {permission.permission}
