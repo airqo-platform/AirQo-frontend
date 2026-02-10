@@ -176,11 +176,8 @@ const MembersPage: React.FC = () => {
       setShowRemoveUserDialog(false);
       setUserToRemove(null);
 
-      // Refresh the page to ensure all data is up to date
-      setTimeout(() => {
-        mutate(); // Refresh the group details
-        window.location.reload();
-      }, 500); // Small delay to show the success toast
+      // Refresh the group details to update the UI
+      mutate();
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to remove user';
