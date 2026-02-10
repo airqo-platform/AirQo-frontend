@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import Dialog from '@/shared/components/ui/dialog';
 import { Button, Input, Select } from '@/shared/components/ui';
@@ -148,6 +148,48 @@ const MembersPage: React.FC = () => {
 
   const membersTotalPages = Math.ceil(filteredMembers.length / membersPageSize);
 
+  const handleRemoveUser = useCallback(
+    (memberId: string, memberName: string) => {
+      // Check if trying to remove the group manager
+      if (group?.grp_manager?._id === memberId) {
+        toast.error(
+          'Cannot remove the group manager. Please transfer ownership first.'
+        );
+        return;
+      }
+
+      setUserToRemove({ id: memberId, name: memberName });
+      setShowRemoveUserDialog(true);
+    },
+    [group?.grp_manager?._id]
+  );
+
+  const confirmRemoveUser = async () => {
+    if (!userToRemove || !currentOrg?.id) return;
+
+    try {
+      await unassignUser.trigger({
+        groupId: currentOrg.id,
+        userId: userToRemove.id,
+      });
+      toast.success(`${userToRemove.name} has been removed from the group`);
+      setShowRemoveUserDialog(false);
+      setUserToRemove(null);
+
+      // Refresh the page to ensure all data is up to date
+      setTimeout(() => {
+        mutate(); // Refresh the group details
+        window.location.reload();
+      }, 500); // Small delay to show the success toast
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to remove user';
+      toast.error(errorMessage);
+      setShowRemoveUserDialog(false);
+      setUserToRemove(null);
+    }
+  };
+
   // Table columns for members
   const membersColumns = useMemo(
     () => [
@@ -235,7 +277,7 @@ const MembersPage: React.FC = () => {
                 >
                   View Details
                 </DropdownMenuItem>
-                {hasAnyPermissionInActiveGroup(['MEMBER_DELETE']) &&
+                {hasAnyPermissionInActiveGroup(['MEMBER_VIEW']) &&
                   !isManager && (
                     <DropdownMenuItem
                       onClick={() =>
@@ -256,7 +298,13 @@ const MembersPage: React.FC = () => {
         },
       },
     ],
-    [group?.grp_manager?._id, router, org_slug]
+    [
+      group?.grp_manager?._id,
+      router,
+      org_slug,
+      hasAnyPermissionInActiveGroup,
+      handleRemoveUser,
+    ]
   );
 
   const handleSendInvites = async () => {
@@ -303,45 +351,6 @@ const MembersPage: React.FC = () => {
       setShowBulkRoleDialog(false);
     } catch {
       toast.error('Failed to assign role');
-    }
-  };
-
-  const handleRemoveUser = (memberId: string, memberName: string) => {
-    // Check if trying to remove the group manager
-    if (group?.grp_manager?._id === memberId) {
-      toast.error(
-        'Cannot remove the group manager. Please transfer ownership first.'
-      );
-      return;
-    }
-
-    setUserToRemove({ id: memberId, name: memberName });
-    setShowRemoveUserDialog(true);
-  };
-
-  const confirmRemoveUser = async () => {
-    if (!userToRemove || !currentOrg?.id) return;
-
-    try {
-      await unassignUser.trigger({
-        groupId: currentOrg.id,
-        userId: userToRemove.id,
-      });
-      toast.success(`${userToRemove.name} has been removed from the group`);
-      setShowRemoveUserDialog(false);
-      setUserToRemove(null);
-
-      // Refresh the page to ensure all data is up to date
-      setTimeout(() => {
-        mutate(); // Refresh the group details
-        window.location.reload();
-      }, 500); // Small delay to show the success toast
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Failed to remove user';
-      toast.error(errorMessage);
-      setShowRemoveUserDialog(false);
-      setUserToRemove(null);
     }
   };
 

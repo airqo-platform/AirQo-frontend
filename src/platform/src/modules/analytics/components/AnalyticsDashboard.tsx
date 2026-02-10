@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { usePostHog } from 'posthog-js/react';
-import { QuickAccessCard, EmptyAnalyticsState } from './';
+import { QuickAccessCard, EmptyAnalyticsState, SuggestedLocations } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
 import { InfoBanner } from '@/shared/components/ui/banner';
@@ -23,6 +23,7 @@ import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
+import { useSitesData } from '@/shared/hooks/useSitesData';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -169,14 +170,31 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     dispatch(openMoreInsights({ sites: [selectedSite] }));
   };
 
+  // Fetch sites data to check if suggestions are available
+  const { totalSites: availableSitesCount, isLoading: sitesLoading } =
+    useSitesData({
+      enabled: true,
+      initialPageSize: 1, // Just need to check if sites exist
+      maxLimit: 1,
+    });
+
   // Combined loading state for initial data
   const isInitialLoading = preferencesLoading || siteCardsLoading;
 
-  // Show empty state only if not loading and no sites are selected
+  // Show suggested locations if no favorites are selected but sites are available
   if (!isInitialLoading && selectedSiteIds.length === 0) {
+    // Check if there are sites available for suggestions
+    const hasSitesAvailable = !sitesLoading && availableSitesCount > 0;
+
     return (
       <div className={`space-y-8 ${className}`}>
-        <EmptyAnalyticsState onAddFavorites={handleManageFavorites} />
+        {hasSitesAvailable ? (
+          // Show suggested locations when sites are available
+          <SuggestedLocations />
+        ) : (
+          // Show empty state when no sites are available
+          <EmptyAnalyticsState onAddFavorites={handleManageFavorites} />
+        )}
 
         {/* Add Favorites Dialog */}
         <AddFavorites

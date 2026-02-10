@@ -8,6 +8,7 @@ import {
   useAssignUsersToRole,
   useUnassignUsersFromRole,
   useUnassignUserFromGroup,
+  useGroupDetails,
 } from '@/shared/hooks';
 import { Button, Select } from '@/shared/components/ui';
 import Dialog from '@/shared/components/ui/dialog';
@@ -55,6 +56,9 @@ const MemberDetailsPage: React.FC = () => {
     mutate: mutateUser,
   } = useUserDetails(memberId);
 
+  // Get group details
+  const { data: groupData } = useGroupDetails(currentOrg?.id || null);
+
   // Get roles for the current group
   const {
     data: rolesData,
@@ -68,6 +72,7 @@ const MemberDetailsPage: React.FC = () => {
 
   const user = userData?.users?.[0];
   const roles = rolesData?.roles || [];
+  const group = groupData?.group;
 
   // Get user's current roles in the current group
   const userGroup = user?.groups?.find(g => g._id === currentOrg?.id);
@@ -124,8 +129,7 @@ const MemberDetailsPage: React.FC = () => {
 
   const handleRemoveUser = () => {
     // Check if this is the group manager
-    const userGroup = user?.groups?.find(g => g._id === currentOrg?.id);
-    if (userGroup?.role?.role_name?.toLowerCase().includes('manager')) {
+    if (group?.grp_manager?._id === memberId) {
       toast.error(
         'Cannot remove the group manager. Please transfer ownership first.'
       );
@@ -193,12 +197,9 @@ const MemberDetailsPage: React.FC = () => {
           title={user ? `${user.firstName} ${user.lastName}` : 'User Details'}
           subtitle={user?.email}
           action={
-            hasAnyPermissionInActiveGroup(['MEMBER_DELETE']) &&
+            hasAnyPermissionInActiveGroup(['MEMBER_VIEW']) &&
             user &&
-            !user?.groups
-              ?.find(g => g._id === currentOrg?.id)
-              ?.role?.role_name?.toLowerCase()
-              .includes('manager') ? (
+            group?.grp_manager?._id !== memberId ? (
               <Button
                 variant="outlined"
                 size="sm"
