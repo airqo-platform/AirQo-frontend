@@ -628,6 +628,10 @@ export const useDeployDevice = () => {
       network: string;
       user_id: string;
       deployment_date: string | undefined;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      userName?: string;
     }) => devices.deployDevice(deviceData),
     onSuccess: (data, variables) => {
       ReusableToast({
@@ -661,6 +665,10 @@ export const useRecallDevice = () => {
         recallType: string;
         user_id: string;
         date: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        userName?: string;
       };
     }) => devices.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {

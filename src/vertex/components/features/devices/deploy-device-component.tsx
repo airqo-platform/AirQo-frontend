@@ -524,6 +524,10 @@ const DeployDeviceComponent = ({
         site_name: deviceData.siteName || `${deviceData.deviceName} Site`,
         network: deviceData.network || "airqo",
         user_id: userDetails._id,
+        firstName: userDetails.firstName,
+        lastName: userDetails.lastName,
+        email: userDetails.email,
+        userName: userDetails.userName,
       },
       {
         onSuccess: () => {

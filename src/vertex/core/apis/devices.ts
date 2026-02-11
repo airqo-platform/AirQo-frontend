@@ -354,6 +354,10 @@ export const devices = {
     network: string;
     user_id: string;
     deployment_date: string | undefined;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
   }) => {
     try {
       const toIso = (d?: string) =>
@@ -375,7 +379,11 @@ export const devices = {
         network: deviceData.network,
         deviceName: deviceData.deviceName,
         height,
-        user_id: deviceData.user_id
+        user_id: deviceData.user_id,
+        firstName: deviceData.firstName,
+        lastName: deviceData.lastName,
+        email: deviceData.email,
+        userName: deviceData.userName
       }];
 
       const response = await jwtApiClient.post(
@@ -393,6 +401,10 @@ export const devices = {
     recallType: string;
     user_id: string;
     date: string;
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    userName?: string;
   }) => {
     try {
       const response = await jwtApiClient.post(
