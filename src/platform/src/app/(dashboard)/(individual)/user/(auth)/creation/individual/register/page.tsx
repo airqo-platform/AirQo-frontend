@@ -71,7 +71,8 @@ export default function RegisterPage() {
     <AuthLayout
       pageTitle="Register"
       heading={'Create your individual account'}
-      subtitle={'Get access to air quality analytics across Africa'}
+      subtitle={'Access open air quality data and insights across Africa'}
+      microLine="AirQo provides openly available air quality data to support research, policy, and public awareness."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
         <div className="flex gap-4 mb-4">

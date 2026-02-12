@@ -127,7 +127,8 @@ export default function LoginPage() {
     <AuthLayout
       pageTitle="Login"
       heading={"Let's get started"}
-      subtitle={'Get access to air quality analytics across Africa'}
+      subtitle={'Access open air quality data and insights across Africa'}
+      microLine="AirQo provides openly available air quality data to support research, policy, and public awareness."
       rightText="What you've built here is so much better for air pollution monitoring than anything else on the market!"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="w-full">
