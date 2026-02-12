@@ -16,6 +16,10 @@ import { normalizeMapReadings } from './utils/dataNormalization';
 import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 // import citiesData from './data/cities.json';
 import { hashId, trackEvent } from '@/shared/utils/analytics';
+import {
+  trackMapInteraction,
+  trackFeatureUsage,
+} from '@/shared/utils/enhancedAnalytics';
 import { InfoBanner } from '@/shared/components/ui/banner';
 
 interface MapPageProps {
@@ -82,10 +86,16 @@ const MapPage: React.FC<MapPageProps> = ({
   React.useEffect(() => {
     posthog?.capture('map_viewed');
     trackEvent('map_viewed');
+    trackFeatureUsage(posthog, 'map', 'view');
   }, [posthog]);
 
   const handlePollutantChange = (pollutant: 'pm2_5' | 'pm10') => {
     setSelectedPollutant(pollutant);
+    trackMapInteraction(posthog, {
+      action: 'filter_apply',
+      filterType: 'pollutant',
+      filterValue: pollutant,
+    });
   };
 
   const { setCountry } = useSitesByCountry({

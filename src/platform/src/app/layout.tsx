@@ -12,8 +12,8 @@ import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 
-// Hardcoded Google Analytics Measurement ID
-const GA_MEASUREMENT_ID = 'G-L77J66DCL2';
+// Google Analytics Measurement ID
+const GA_MEASUREMENT_ID = 'G-CGRVG9F59K';
 
 const inter = Inter({
   subsets: ['latin'],

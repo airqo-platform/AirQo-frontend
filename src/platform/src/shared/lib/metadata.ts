@@ -35,10 +35,10 @@ const baseMetadata: Metadata = {
     description: 'Advanced air quality monitoring and analytics for Africa.',
     images: [
       {
-        url: '/images/og-image.jpg',
+        url: '/images/illustration.jpg',
         width: 1200,
         height: 630,
-        alt: 'AirQo Analytics',
+        alt: 'AirQo Analytics - Air Quality Monitoring',
       },
     ],
   },
@@ -46,8 +46,9 @@ const baseMetadata: Metadata = {
     card: 'summary_large_image',
     title: 'AirQo Analytics',
     description: 'Advanced air quality monitoring and analytics for Africa.',
-    images: ['/images/twitter-image.jpg'],
+    images: ['/images/illustration.jpg'],
     creator: '@AirQoProject',
+    site: '@AirQoProject',
   },
   robots: {
     index: true,

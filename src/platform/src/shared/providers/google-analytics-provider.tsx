@@ -4,7 +4,7 @@ import { useEffect, Suspense } from 'react';
 import { usePathname } from 'next/navigation';
 import ReactGA from 'react-ga4';
 
-const GA_MEASUREMENT_ID = 'G-L77J66DCL2';
+const GA_MEASUREMENT_ID = 'G-CGRVG9F59K';
 
 export function GoogleAnalyticsProvider({
   children,
