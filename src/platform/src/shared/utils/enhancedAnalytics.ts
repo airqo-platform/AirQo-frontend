@@ -36,9 +36,35 @@ const sanitizeErrorMessage = (message: string): string => {
     )
     // Redact file paths
     .replace(/[A-Za-z]:\\[\\\w\s.-]+/g, '[PATH]')
-    .replace(/\/[\w\s./-]+/g, '[PATH]')
+    .replace(/\/[\w./-]+/g, '[PATH]')
     // Redact potential IDs (long numeric strings)
     .replace(/\b\d{10,}\b/g, '[ID]');
+
+  return sanitized;
+};
+
+const sanitizeErrorContext = (
+  context: Record<string, unknown>
+): Record<string, unknown> => {
+  if (!context) return {};
+
+  const sanitized: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries(context)) {
+    if (typeof value === 'string') {
+      // Sanitize string values to prevent PII exposure
+      sanitized[key] = sanitizeErrorMessage(value);
+    } else if (typeof value === 'number' || typeof value === 'boolean') {
+      // Keep primitive values as-is
+      sanitized[key] = value;
+    } else if (value === null || value === undefined) {
+      // Keep null/undefined as-is
+      sanitized[key] = value;
+    } else {
+      // For complex objects, convert to string and sanitize
+      sanitized[key] = sanitizeErrorMessage(String(value));
+    }
+  }
 
   return sanitized;
 };
@@ -339,11 +365,12 @@ export const trackError = (
   if (!posthog) return;
 
   const sanitizedMessage = sanitizeErrorMessage(errorMessage);
+  const sanitizedContext = sanitizeErrorContext(errorContext || {});
 
   posthog.capture('error_occurred', {
     error_type: errorType,
     error_message: sanitizedMessage,
-    error_context: errorContext || {},
+    error_context: sanitizedContext,
     timestamp: new Date().toISOString(),
   });
 };
