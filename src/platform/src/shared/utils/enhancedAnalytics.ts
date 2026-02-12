@@ -47,7 +47,7 @@ const sanitizeEndpoint = (endpoint: string): string => {
   if (!endpoint) return 'unknown';
 
   // Replace path parameters that look like IDs, UUIDs, or emails with placeholders
-  let sanitized = endpoint
+  const sanitized = endpoint
     // Replace UUIDs
     .replace(
       /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
