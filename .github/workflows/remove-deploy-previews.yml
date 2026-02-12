@@ -24,7 +24,6 @@ jobs:
     outputs:
       remove_calibrate_app_preview: ${{ steps.check_files.outputs.remove_calibrate_app_preview }} # remove calibrate app preview
       remove_analytics_platform: ${{ steps.check_files.outputs.remove_analytics_platform }} # analytics platform
-      remove_reports: ${{ steps.check_files.outputs.remove_reports }} # reports
       remove_vertex: ${{ steps.check_files.outputs.remove_vertex }} # vertex
       remove_beacon: ${{ steps.check_files.outputs.remove_beacon }} # remove beacon
       remove_docs: ${{ steps.check_files.outputs.remove_docs }} # remove docs
@@ -48,7 +47,6 @@ jobs:
 
           echo "remove_calibrate_app_preview=false" >>$GITHUB_OUTPUT
           echo "remove_analytics_platform=false" >>$GITHUB_OUTPUT
-          echo "remove_reports=false" >>$GITHUB_OUTPUT
           echo "remove_vertex=false" >>$GITHUB_OUTPUT
           echo "remove_beacon=false" >>$GITHUB_OUTPUT
           echo "remove_docs=false" >>$GITHUB_OUTPUT
@@ -65,10 +63,6 @@ jobs:
               echo "remove_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
             
-            if [[ $file == src/reports/* ]]; then
-              echo "remove_reports=true" >>$GITHUB_OUTPUT
-            fi
-
             if [[ $file == src/vertex/* ]]; then
               echo "remove_vertex=true" >>$GITHUB_OUTPUT
             fi 
@@ -125,27 +119,7 @@ jobs:
             --region=${{ secrets.REGION }} \
             --quiet
           
-
-  ### remove reports deploy preview ###
-  remove-reports-preview:
-    name: remove-reports-preview
-    needs: [check, branch-name]
-    if: needs.check.outputs.remove_reports == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: "${{ secrets.GCP_SA_CREDENTIALS }}"
-
-      - name: Setup Cloud SDK
-        uses: "google-github-actions/setup-gcloud@v1"
-
-      - name: Delete PR deploy preview
-        run: |-
-          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-reports-preview \
-            --region=${{ secrets.REGION }} \
-            --quiet          
+         
 
   ### remove vertex deploy preview ###
   remove-vertex-preview:

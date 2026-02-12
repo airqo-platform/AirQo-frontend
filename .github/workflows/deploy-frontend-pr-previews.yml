@@ -68,7 +68,7 @@ jobs:
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/website2/* ]]; then
+            if [[ $file == src/website/* ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
             fi            
 
@@ -398,11 +398,11 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "src/website2/"
+          dir: "src/website/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
-          cd src/website2/
+          cd src/website/
           echo "========== Creating app.yaml file =========="          
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
@@ -429,7 +429,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd src/website2/
+          cd src/website/
           docker build . \
           --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
           --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
@@ -439,7 +439,7 @@ jobs:
 
       - name: Deploy to App Engine
         run: |-
-          cd src/website2/
+          cd src/website/
           gcloud app deploy  \
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }} \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
