@@ -32,7 +32,6 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { cn } from '@/shared/lib/utils';
-import { Tooltip } from 'flowbite-react';
 import { toast } from '@/shared/components/ui/toast';
 import { STANDARDS_ORGANIZATIONS } from '@/shared/utils/airQuality';
 import { usePostHog } from 'posthog-js/react';

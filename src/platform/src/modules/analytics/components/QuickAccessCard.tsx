@@ -36,7 +36,10 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
         <PageHeading
           title={title}
           subtitle={subtitle}
-          infoLine="All air quality data shown here is open, public, and free to download."
+          infoLine={
+            infoLine ??
+            'All air quality data shown here is open, public, and free to download.'
+          }
         />
 
         {/* External filter bar - matches the design in the image (pill style) */}

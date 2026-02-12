@@ -18,7 +18,7 @@ const PageHeading: React.FC<PageHeadingProps> = ({
   action,
 }) => {
   return (
-    <div className={`mb-4 ${className}`}>
+    <div className={`${infoLine ? 'mb-4' : 'mb-6'} ${className}`}>
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <h1 className="text-2xl">{title}</h1>

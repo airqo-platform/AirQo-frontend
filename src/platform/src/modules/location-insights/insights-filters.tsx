@@ -271,8 +271,8 @@ export const InsightsFilters: React.FC<InsightsFiltersProps> = ({
       {/* Right side - Download dropdown */}
       <div>
         <div className="relative">
-          <Tooltip content="Download openly available air quality data for your own use">
-            <DropdownMenu open={dataTypeOpen} onOpenChange={setDataTypeOpen}>
+          <DropdownMenu open={dataTypeOpen} onOpenChange={setDataTypeOpen}>
+            <Tooltip content="Download openly available air quality data for your own use">
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="filled"
@@ -285,28 +285,26 @@ export const InsightsFilters: React.FC<InsightsFiltersProps> = ({
                   {isDownloading ? 'Downloading...' : 'Download Data'}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-[180px] z-[10010]">
-                {DATA_TYPE_OPTIONS.map(option => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => {
-                      setDataType(option.value);
-                      onDownload(option.value);
-                    }}
-                    className="cursor-pointer flex items-center justify-between"
-                    disabled={isDownloading}
-                  >
-                    <span className="flex items-center gap-2">
-                      {option.label}
-                    </span>
-                    {dataType === option.value && (
-                      <HiCheck className="h-4 w-4" />
-                    )}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </Tooltip>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="w-[180px] z-[10010]">
+              {DATA_TYPE_OPTIONS.map(option => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => {
+                    setDataType(option.value);
+                    onDownload(option.value);
+                  }}
+                  className="cursor-pointer flex items-center justify-between"
+                  disabled={isDownloading}
+                >
+                  <span className="flex items-center gap-2">
+                    {option.label}
+                  </span>
+                  {dataType === option.value && <HiCheck className="h-4 w-4" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>
