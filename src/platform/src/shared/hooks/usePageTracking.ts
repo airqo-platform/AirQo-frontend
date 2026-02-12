@@ -23,6 +23,7 @@ export const usePageTracking = () => {
   const pathname = usePathname();
   const posthog = usePostHog();
   const pageStartTime = useRef<number>(Date.now());
+  const sessionStartTime = useRef<number>(Date.now()); // Track full session, not just current page
   const sessionMetrics = useRef<SessionMetrics>({
     pagesViewed: 0,
     actionsPerformed: 0,
@@ -34,7 +35,7 @@ export const usePageTracking = () => {
   useEffect(() => {
     if (!pathname) return;
 
-    // Reset page start time
+    // Reset page start time for dwell tracking
     pageStartTime.current = Date.now();
     sessionMetrics.current.pagesViewed += 1;
 
@@ -45,18 +46,32 @@ export const usePageTracking = () => {
     };
   }, [pathname, posthog]);
 
-  // Track session quality on unmount
+  // Track session quality on unmount using pagehide for reliability
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      sessionMetrics.current.sessionDuration =
-        Date.now() - pageStartTime.current;
+    const handlePageHide = () => {
+      // Calculate full session duration in seconds
+      sessionMetrics.current.sessionDuration = Math.floor(
+        (Date.now() - sessionStartTime.current) / 1000
+      );
+
+      // Use sendBeacon transport for reliable transmission
       trackSessionQuality(posthog, sessionMetrics.current);
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // Use pagehide for better reliability than beforeunload
+    window.addEventListener('pagehide', handlePageHide);
+
+    // Fallback to visibilitychange for browsers without pagehide
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handlePageHide();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('pagehide', handlePageHide);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, [posthog]);
 

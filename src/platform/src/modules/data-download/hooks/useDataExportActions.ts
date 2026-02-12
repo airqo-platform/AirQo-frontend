@@ -147,21 +147,32 @@ export const useDataExportActions = (
             (1000 * 60 * 60 * 24)
         );
 
+        // Use the same deviceCategory logic as the API request
+        const effectiveDeviceCategory =
+          activeTab === 'countries' || activeTab === 'cities'
+            ? 'lowcost'
+            : deviceCategory;
+
+        // Calculate locationCount based on tab
+        const effectiveLocationCount =
+          activeTab === 'sites'
+            ? selectedSites.length
+            : activeTab === 'devices'
+              ? undefined
+              : sitesForDownload.length;
+
         trackDataDownload(posthog, {
           dataType: dataType as 'calibrated' | 'raw',
           fileType: fileType as 'csv' | 'json',
           frequency: frequency as 'hourly' | 'daily' | 'monthly',
           pollutants: selectedPollutants,
-          locationCount:
-            activeTab === 'sites'
-              ? selectedSites.length
-              : sitesForDownload.length,
+          locationCount: effectiveLocationCount,
           deviceCount:
             activeTab === 'devices' ? selectedDevices.length : undefined,
           startDate: dateRange.from.toISOString(),
           endDate: dateRange.to.toISOString(),
           durationDays,
-          deviceCategory: deviceCategory as 'lowcost' | 'reference',
+          deviceCategory: effectiveDeviceCategory as 'lowcost' | 'reference',
           source: activeTab,
         });
 

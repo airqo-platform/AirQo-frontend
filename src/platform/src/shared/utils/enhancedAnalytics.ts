@@ -13,6 +13,36 @@ import { hashId } from './analytics';
 // Type Definitions
 // ============================================================================
 
+// Helper functions for PII protection
+const sanitizeSearchTerm = (term: string): string => {
+  // Hash the search term to prevent PII exposure
+  return hashId(term);
+};
+
+const sanitizeErrorMessage = (message: string): string => {
+  if (!message) return 'Unknown error';
+
+  // Truncate to 200 characters
+  let sanitized = message.substring(0, 200);
+
+  // Redact common PII patterns
+  sanitized = sanitized
+    // Redact email addresses
+    .replace(/[\w.-]+@[\w.-]+\.\w+/g, '[EMAIL]')
+    // Redact UUIDs
+    .replace(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+      '[UUID]'
+    )
+    // Redact file paths
+    .replace(/[A-Za-z]:\\[\\\w\s.-]+/g, '[PATH]')
+    .replace(/\/[\w\s./-]+/g, '[PATH]')
+    // Redact potential IDs (long numeric strings)
+    .replace(/\b\d{10,}\b/g, '[ID]');
+
+  return sanitized;
+};
+
 export interface LocationSelection {
   locationId: string;
   locationName: string;
@@ -26,7 +56,7 @@ export interface DataDownloadEvent {
   fileType: 'csv' | 'json';
   frequency: 'hourly' | 'daily' | 'monthly';
   pollutants: string[];
-  locationCount: number;
+  locationCount?: number;
   deviceCount?: number;
   startDate: string;
   endDate: string;
@@ -204,25 +234,29 @@ export const trackPreferenceChange = (
 
 /**
  * Track search events
+ * Note: Search terms are hashed to prevent PII exposure
  */
 export const trackSearch = (posthog: PostHog | null, search: SearchEvent) => {
   if (!posthog) return;
 
+  const hashedSearchTerm = sanitizeSearchTerm(search.searchTerm);
+
   const eventData = {
-    search_term: search.searchTerm,
+    search_term_hashed: hashedSearchTerm,
     search_type: search.searchType,
     results_count: search.resultsCount,
     selected_result: search.selectedResult,
+    has_results: search.resultsCount > 0,
     timestamp: new Date().toISOString(),
   };
 
   posthog.capture('search_performed', eventData);
 
-  // Track to Google Analytics
+  // Track to Google Analytics - only send metadata, not the actual term
   ReactGA.event({
     category: 'Search',
     action: search.searchType,
-    label: search.searchTerm,
+    label: search.resultsCount > 0 ? 'results_found' : 'no_results',
     value: search.resultsCount,
   });
 };
@@ -259,7 +293,7 @@ export const trackFeatureUsage = (
   posthog.capture('feature_used', {
     feature_name: featureName,
     action,
-    ...metadata,
+    metadata: metadata || {},
     timestamp: new Date().toISOString(),
   });
 
@@ -273,6 +307,8 @@ export const trackFeatureUsage = (
 
 /**
  * Track error events
+ * Note: Error messages are sanitized to prevent PII exposure.
+ * Callers should not pass raw user data in error messages or context.
  */
 export const trackError = (
   posthog: PostHog | null,
@@ -282,10 +318,12 @@ export const trackError = (
 ) => {
   if (!posthog) return;
 
+  const sanitizedMessage = sanitizeErrorMessage(errorMessage);
+
   posthog.capture('error_occurred', {
     error_type: errorType,
-    error_message: errorMessage,
-    ...errorContext,
+    error_message: sanitizedMessage,
+    error_context: errorContext || {},
     timestamp: new Date().toISOString(),
   });
 };
@@ -364,6 +402,16 @@ export const trackSessionQuality = (
 
 /**
  * Calculate engagement score based on session metrics
+ *
+ * @param metrics Session metrics
+ * @param metrics.sessionDuration Expected in seconds (not milliseconds)
+ * @returns Engagement score from 0-90
+ *
+ * Score breakdown:
+ * - Pages: 0-30 points (10 per page, max 3)
+ * - Actions: 0-40 points (5 per action, max 8)
+ * - Time: 0-20 points (2 per minute, max 10 minutes)
+ * - Error penalty: -5 per error
  */
 function calculateEngagementScore(metrics: {
   pagesViewed: number;

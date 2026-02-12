@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the comprehensive analytics implementation for the AirQo Platform. The enhanced analytics system tracks user interactions at a granular level to facilitate data-driven decision making and support research findings.
+This document describes the comprehensive analytics implementation for the AirQo Platform. The enhanced analytics system tracks user interactions at a granular level to facilitate data-driven decision-making and support research findings.
 
 ## Analytics Tools
 
@@ -17,7 +17,7 @@ This document describes the comprehensive analytics implementation for the AirQo
 ### 2. Google Analytics 4 (GA4)
 
 - **Purpose**: Secondary analytics for broader analytics ecosystem integration
-- **Tracking ID**: `G-CGRVG9F59K`
+- **Tracking ID**: See `NEXT_PUBLIC_GA_MEASUREMENT_ID` in `src/shared/providers/google-analytics-provider.tsx` (canonical source)
 - **Configuration**: See `src/app/layout.tsx` and `src/shared/providers/google-analytics-provider.tsx`
 
 ## Tracked Events
@@ -57,7 +57,7 @@ Tracks comprehensive details about data export operations:
   - `start_date`: Data range start (ISO format)
   - `end_date`: Data range end (ISO format)
   - `duration_days`: Length of data range in days
-  - `device_category`: lowcost or reference
+  - `device_category`: low-cost or reference
   - `source`: sites, devices, countries, or cities
   - `timestamp`: ISO timestamp
 
@@ -393,7 +393,7 @@ Access GA4 to:
 
 ### Google Analytics Not Working
 
-1. Verify GA4 tracking ID: `G-CGRVG9F59K`
+1. Verify GA4 tracking ID: Check `NEXT_PUBLIC_GA_MEASUREMENT_ID` in environment variables and `google-analytics-provider.tsx`
 2. Check GA4 property settings
 3. Allow 24-48 hours for data to appear
 4. Test in private browsing mode
