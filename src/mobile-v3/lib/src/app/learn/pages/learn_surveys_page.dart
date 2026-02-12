@@ -61,6 +61,7 @@ class _LearnSurveysPageState extends State<LearnSurveysPage> {
         context.read<SurveyBloc>().add(const LoadSurveys(forceRefresh: true));
       },
       child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.only(bottom: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
