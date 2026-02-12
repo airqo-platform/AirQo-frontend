@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import { ErrorBanner } from '@/shared/components/ui/banner';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import ReusableDialog from '@/shared/components/ui/dialog';
 import PageHeading from '@/shared/components/ui/page-heading';
@@ -306,7 +307,12 @@ const OrganizationRequestsPage = () => {
 
   return (
     <AdminPageGuard requireAirQoAdmin={true}>
-      {errorMessage ? (
+      {isLoading ? (
+        <LoadingState
+          className="h-[calc(100vh-200px)]"
+          text="Loading organization requests..."
+        />
+      ) : errorMessage ? (
         <ErrorBanner
           title="Failed to load organization requests"
           message={errorMessage}
@@ -320,7 +326,7 @@ const OrganizationRequestsPage = () => {
         <div>
           <PageHeading
             title="Organization Requests"
-            subtitle="Manage organization registration requests"
+            subtitle="Manage organization registration requests across the entire platform"
           />
 
           <div className="space-y-6">
@@ -353,7 +359,6 @@ const OrganizationRequestsPage = () => {
               title="Requests"
               data={tableData}
               columns={columns}
-              loading={isLoading}
               currentPage={currentPage}
               totalPages={totalPages}
               pageSize={pageSize}

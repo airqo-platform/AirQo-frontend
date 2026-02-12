@@ -23,6 +23,9 @@ export {
   useInitiateAccountDeletion,
   useConfirmAccountDeletion,
   useUser,
+  usePendingInvitations,
+  useAcceptInvitation,
+  useRejectInvitation,
 } from './useUser';
 export { useUserActions } from './useUserActions';
 
@@ -96,6 +99,9 @@ export {
   useGroupJoinRequests,
   useGroupDetails,
   useSendGroupInvite,
+  useUnassignUserFromGroup,
+  useLeaveGroup,
+  useSetGroupManager,
 } from './useGroups';
 
 // Utility hooks

@@ -315,8 +315,8 @@ export class ApiClient {
 
   // Method to add JWT token for authenticated requests
   setAuthToken(token: string) {
-    // Handle edge case where token might already have "JWT " prefix
-    const cleanToken = token.startsWith('JWT ') ? token : `JWT ${token}`;
+    // Handle edge case where token might already have "Bearer " prefix
+    const cleanToken = token.startsWith('Bearer ') ? token : `Bearer ${token}`;
     this.client.defaults.headers.common['Authorization'] = cleanToken;
   }
 

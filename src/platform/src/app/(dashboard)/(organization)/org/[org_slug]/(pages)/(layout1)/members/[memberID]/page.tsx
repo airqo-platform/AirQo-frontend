@@ -1,12 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   useUserDetails,
   useRolesByGroup,
   useAssignUsersToRole,
   useUnassignUsersFromRole,
+  useUnassignUserFromGroup,
+  useGroupDetails,
 } from '@/shared/hooks';
 import { Button, Select } from '@/shared/components/ui';
 import Dialog from '@/shared/components/ui/dialog';
@@ -18,22 +20,33 @@ import {
   AqShield02,
   AqPlus,
   AqXClose,
+  AqTrash03,
 } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
 import { useUser } from '@/shared/hooks/useUser';
+import { PermissionGuard } from '@/shared/components';
+import { useRBAC } from '@/shared/hooks';
 
 const MemberDetailsPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const { activeGroup } = useUser();
+  const org_slug = params.org_slug as string;
   const memberId = params.memberID as string;
+  const { groups } = useUser();
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
+
+  // Get the current organization from slug
+  const currentOrg = useMemo(() => {
+    return groups?.find(g => g.organizationSlug === org_slug);
+  }, [groups, org_slug]);
 
   const [showAssignRoleDialog, setShowAssignRoleDialog] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
   const [showUnassignConfirmDialog, setShowUnassignConfirmDialog] =
     useState(false);
   const [roleToUnassign, setRoleToUnassign] = useState<string>('');
+  const [showRemoveUserDialog, setShowRemoveUserDialog] = useState(false);
 
   // Get user details
   const {
@@ -43,21 +56,26 @@ const MemberDetailsPage: React.FC = () => {
     mutate: mutateUser,
   } = useUserDetails(memberId);
 
-  // Get roles for the active group
+  // Get group details
+  const { data: groupData } = useGroupDetails(currentOrg?.id || null);
+
+  // Get roles for the current group
   const {
     data: rolesData,
     isLoading: rolesLoading,
     mutate: mutateRoles,
-  } = useRolesByGroup(activeGroup?.id || undefined);
+  } = useRolesByGroup(currentOrg?.id || undefined);
 
   const assignUsersToRole = useAssignUsersToRole();
   const unassignUsersFromRole = useUnassignUsersFromRole();
+  const unassignUserFromGroup = useUnassignUserFromGroup();
 
   const user = userData?.users?.[0];
   const roles = rolesData?.roles || [];
+  const group = groupData?.group;
 
-  // Get user's current roles in the active group
-  const userGroup = user?.groups?.find(g => g._id === activeGroup?.id);
+  // Get user's current roles in the current group
+  const userGroup = user?.groups?.find(g => g._id === currentOrg?.id);
   const userRoleIds = userGroup?.role ? [userGroup.role._id] : [];
   const userRoles = roles.filter(role => userRoleIds.includes(role._id));
 
@@ -109,9 +127,43 @@ const MemberDetailsPage: React.FC = () => {
     }
   };
 
+  const handleRemoveUser = () => {
+    // Check if this is the group manager
+    if (group?.grp_manager?._id === memberId) {
+      toast.error(
+        'Cannot remove the group manager. Please transfer ownership first.'
+      );
+      return;
+    }
+
+    setShowRemoveUserDialog(true);
+  };
+
+  const confirmRemoveUser = async () => {
+    if (!currentOrg?.id) return;
+
+    try {
+      await unassignUserFromGroup.trigger({
+        groupId: currentOrg.id,
+        userId: memberId,
+      });
+      toast.success('User has been removed from the group');
+
+      // Redirect back to members list after a brief delay to show toast
+      setTimeout(() => {
+        router.push(`/org/${org_slug}/members`);
+      }, 500);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to remove user';
+      toast.error(errorMessage);
+      setShowRemoveUserDialog(false);
+    }
+  };
+
   if (userError) {
     return (
-      <>
+      <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
         <ErrorBanner
           title="Failed to load user details"
           message="Unable to load user information. Please try again later."
@@ -121,19 +173,19 @@ const MemberDetailsPage: React.FC = () => {
             </Button>
           }
         />
-      </>
+      </PermissionGuard>
     );
   }
 
   return (
-    <>
+    <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
       <div className="space-y-4">
         {/* Back Button */}
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.back()}
+            onClick={() => router.push(`/org/${org_slug}/members`)}
             Icon={AqChevronLeft}
           >
             Back to Members
@@ -144,6 +196,21 @@ const MemberDetailsPage: React.FC = () => {
         <PageHeading
           title={user ? `${user.firstName} ${user.lastName}` : 'User Details'}
           subtitle={user?.email}
+          action={
+            hasAnyPermissionInActiveGroup(['MEMBER_REMOVE']) &&
+            user &&
+            group?.grp_manager?._id !== memberId ? (
+              <Button
+                variant="outlined"
+                size="sm"
+                onClick={handleRemoveUser}
+                Icon={AqTrash03}
+                className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-600"
+              >
+                Remove from Group
+              </Button>
+            ) : undefined
+          }
         />
 
         {userLoading ? (
@@ -464,8 +531,49 @@ const MemberDetailsPage: React.FC = () => {
             )}
           </div>
         </Dialog>
+
+        {/* Remove User Confirmation Dialog */}
+        <Dialog
+          isOpen={showRemoveUserDialog}
+          onClose={() => {
+            if (!unassignUserFromGroup.isMutating) {
+              setShowRemoveUserDialog(false);
+            }
+          }}
+          title="Remove Member from Group"
+          primaryAction={{
+            label: 'Remove Member',
+            onClick: confirmRemoveUser,
+            disabled: unassignUserFromGroup.isMutating,
+            loading: unassignUserFromGroup.isMutating,
+            className: 'bg-red-600 hover:bg-red-700',
+          }}
+          secondaryAction={{
+            label: 'Cancel',
+            onClick: () => setShowRemoveUserDialog(false),
+            disabled: unassignUserFromGroup.isMutating,
+            variant: 'outlined',
+          }}
+        >
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to remove{' '}
+              <span className="font-semibold text-foreground">
+                {user?.firstName} {user?.lastName}
+              </span>{' '}
+              from this group?
+            </p>
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-200">
+                <strong>Warning:</strong> This user will lose access to all
+                group resources and their assigned roles will be removed. This
+                action cannot be undone.
+              </p>
+            </div>
+          </div>
+        </Dialog>
       </div>
-    </>
+    </PermissionGuard>
   );
 };
 

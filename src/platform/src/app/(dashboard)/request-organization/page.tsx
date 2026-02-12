@@ -32,6 +32,7 @@ import { Button } from '@/shared/components/ui/button';
 import { PhoneNumberInput } from '@/shared/components/ui/phone-input';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
 import { toast } from '@/shared/components/ui/toast';
+import Dialog from '@/shared/components/ui/dialog';
 import { uploadToCloudinary } from '@/shared/utils/cloudinaryUpload';
 import { getUserFriendlyErrorMessage } from '@/shared/utils/errorMessages';
 import {
@@ -85,6 +86,7 @@ const RequestOrganizationPage = () => {
   const [logoUploading, setLogoUploading] = useState(false);
   const [selectedLogoFile, setSelectedLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>('');
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -320,18 +322,21 @@ const RequestOrganizationPage = () => {
       return;
     }
 
-    setLogoUploading(true);
-
     try {
       let logoUrl = '';
 
       // Upload logo if selected
       if (selectedLogoFile) {
-        const result = await uploadToCloudinary(selectedLogoFile, {
-          folder: 'organization_profiles',
-          tags: ['organization', 'logo'],
-        });
-        logoUrl = result.secure_url;
+        setLogoUploading(true);
+        try {
+          const result = await uploadToCloudinary(selectedLogoFile, {
+            folder: 'organization_profiles',
+            tags: ['organization', 'logo'],
+          });
+          logoUrl = result.secure_url;
+        } finally {
+          setLogoUploading(false);
+        }
       }
 
       // Prepare form data with uploaded logo URL
@@ -346,10 +351,8 @@ const RequestOrganizationPage = () => {
       // Submit organization request
       await createRequest(submitData);
 
-      toast.success(
-        'Request submitted successfully',
-        'Your organization request has been submitted for review.'
-      );
+      // Show success dialog
+      setShowSuccessDialog(true);
 
       // Reset form
       setFormData({
@@ -373,8 +376,6 @@ const RequestOrganizationPage = () => {
     } catch (error) {
       const errorMessage = getUserFriendlyErrorMessage(error);
       toast.error('Submission failed', errorMessage);
-    } finally {
-      setLogoUploading(false);
     }
   };
 
@@ -760,6 +761,30 @@ const RequestOrganizationPage = () => {
             </Button>
           </div>
         </form>
+
+        {/* Success Dialog */}
+        <Dialog
+          isOpen={showSuccessDialog}
+          onClose={() => setShowSuccessDialog(false)}
+          title="Request Submitted Successfully"
+          subtitle="We'll review your application shortly"
+          icon={AqCheckCircle}
+          iconColor="text-green-600"
+          iconBgColor="bg-green-100 dark:bg-green-900/30"
+          size="md"
+          primaryAction={{
+            label: 'Got it',
+            onClick: () => setShowSuccessDialog(false),
+            variant: 'filled',
+          }}
+        >
+          <div className="text-sm text-muted-foreground">
+            <p>
+              Request submitted. Our team will review it and respond to the
+              email you used to submit this request.
+            </p>
+          </div>
+        </Dialog>
       </div>
     </div>
   );

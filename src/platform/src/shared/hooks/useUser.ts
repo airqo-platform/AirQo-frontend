@@ -1,10 +1,12 @@
 import useSWRMutation from 'swr/mutation';
 import { useSWRConfig } from 'swr';
+import useSWR from 'swr';
 import { userService } from '../services/userService';
 import type {
   UpdateUserDetailsRequest,
   UpdatePasswordRequest,
   CreateOrganizationRequest,
+  GetPendingInvitationsResponse,
 } from '../types/api';
 import { useSelector } from 'react-redux';
 import {
@@ -106,4 +108,55 @@ export const useUser = () => {
     isLoggingOut,
     error,
   };
+};
+
+// Get pending invitations
+export const usePendingInvitations = () => {
+  return useSWR<GetPendingInvitationsResponse>(
+    'user/pending-invitations',
+    async () => {
+      return await userService.getPendingInvitations();
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 5000,
+      shouldRetryOnError: false,
+      revalidateOnMount: true,
+      errorRetryCount: 0,
+    }
+  );
+};
+
+// Accept invitation
+export const useAcceptInvitation = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'user/accept-invitation',
+    async (key, { arg }: { arg: { invitationId: string } }) => {
+      return await userService.acceptInvitation(arg.invitationId);
+    },
+    {
+      onSuccess: () => {
+        mutate('user/pending-invitations');
+      },
+    }
+  );
+};
+
+// Reject invitation
+export const useRejectInvitation = () => {
+  const { mutate } = useSWRConfig();
+
+  return useSWRMutation(
+    'user/reject-invitation',
+    async (key, { arg }: { arg: { invitationId: string } }) => {
+      return await userService.rejectInvitation(arg.invitationId);
+    },
+    {
+      onSuccess: () => {
+        mutate('user/pending-invitations');
+      },
+    }
+  );
 };

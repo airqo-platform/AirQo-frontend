@@ -22,7 +22,6 @@ import useSWR from 'swr';
 import Dialog from '@/shared/components/ui/dialog';
 import CreateClientDialog from '@/modules/api-client/components/CreateClientDialog';
 import EditClientDialog from '@/modules/api-client/components/EditClientDialog';
-import TokenDisplay from '@/modules/api-client/components/TokenDisplay';
 import { PermissionGuard } from '@/shared/components/PermissionGuard';
 import { useRBAC, useUser } from '@/shared/hooks';
 import type { Client } from '@/shared/types/api';
@@ -126,7 +125,7 @@ const ClientsAdminPage: React.FC = () => {
 
   const handleViewClient = useCallback(
     (client: TableClient) => {
-      router.push(`/admin/clients/${client._id}`);
+      router.push(`/system/clients/${client._id}`);
     },
     [router]
   );
@@ -250,18 +249,6 @@ const ClientsAdminPage: React.FC = () => {
     );
   }, []);
 
-  const renderTokenStatus = useCallback((value: unknown, item: TableClient) => {
-    if (item.access_token) {
-      return (
-        <TokenDisplay
-          token={item.access_token.token}
-          expiresAt={item.access_token.expires}
-        />
-      );
-    }
-    return <span className="text-sm text-gray-500">No token</span>;
-  }, []);
-
   const renderCreatedDate = useCallback((value: unknown, item: TableClient) => {
     if (item.access_token?.createdAt) {
       return formatDate(item.access_token.createdAt, {
@@ -301,12 +288,6 @@ const ClientsAdminPage: React.FC = () => {
         render: renderStatus,
       },
       {
-        key: 'access_token',
-        label: 'Access Token',
-        sortable: false,
-        render: renderTokenStatus,
-      },
-      {
         key: 'createdAt',
         label: 'Created',
         sortable: true,
@@ -322,7 +303,7 @@ const ClientsAdminPage: React.FC = () => {
               <Button
                 size="sm"
                 variant="ghost"
-                onClick={() => router.push(`/admin/clients/${item.id}`)}
+                onClick={() => router.push(`/system/clients/${item.id}`)}
                 className="p-1 h-8 w-8"
               >
                 <AqEye className="w-4 h-4" />
@@ -384,7 +365,6 @@ const ClientsAdminPage: React.FC = () => {
     [
       renderStatus,
       renderUser,
-      renderTokenStatus,
       renderCreatedDate,
       handleEditClient,
       handleViewClient,

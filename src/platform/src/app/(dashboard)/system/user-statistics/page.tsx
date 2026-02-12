@@ -220,7 +220,7 @@ const UserStatisticsPage: React.FC = () => {
     <div className="space-y-6">
       <PageHeading
         title="User Statistics"
-        subtitle="View and analyze user statistics across the platform"
+        subtitle="View and analyze user statistics across the entire platform"
       />
 
       {/* Statistics Cards */}
@@ -306,10 +306,9 @@ const UserStatisticsPage: React.FC = () => {
 const ProtectedUserStatisticsPage: React.FC = () => {
   return (
     <PermissionGuard
-      requiredAllPermissions={['ANALYTICS_VIEW', 'ANALYTICS_EXPORT']}
-      requiredRoles={['AIRQO_SUPER_ADMIN']}
+      requireAirQoSuperAdmin={true}
       accessDeniedTitle="Access Denied"
-      accessDeniedMessage="You need both ANALYTICS_VIEW and ANALYTICS_EXPORT permissions, and the AIRQO_SUPER_ADMIN role, to view user statistics."
+      accessDeniedMessage="You need the AIRQO_SUPER_ADMIN role with an @airqo.net email to view user statistics."
     >
       <UserStatisticsPage />
     </PermissionGuard>

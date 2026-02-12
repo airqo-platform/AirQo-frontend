@@ -1,6 +1,6 @@
 import { MainLayout } from '@/shared/layouts/MainLayout';
 
-export default function AdminLayout({
+export default function SystemLayout({
   children,
 }: {
   children: React.ReactNode;

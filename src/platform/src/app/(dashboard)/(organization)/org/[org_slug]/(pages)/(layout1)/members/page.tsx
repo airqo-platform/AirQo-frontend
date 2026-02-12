@@ -1,15 +1,19 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ServerSideTable } from '@/shared/components/ui/server-side-table';
 import Dialog from '@/shared/components/ui/dialog';
 import { Button, Input, Select } from '@/shared/components/ui';
 import PageHeading from '@/shared/components/ui/page-heading';
 import { useUser } from '@/shared/hooks/useUser';
-import { useGroupDetails, useSendGroupInvite } from '@/shared/hooks/useGroups';
+import {
+  useGroupDetails,
+  useSendGroupInvite,
+  useUnassignUserFromGroup,
+} from '@/shared/hooks/useGroups';
 import { useRolesByGroup, useAssignUsersToRole } from '@/shared/hooks/useAdmin';
 import { formatWithPattern } from '@/shared/utils/dateUtils';
-import { AqPlus, AqShield02 } from '@airqo/icons-react';
+import { AqPlus, AqShield02, AqTrash03 } from '@airqo/icons-react';
 import { toast } from '@/shared/components/ui/toast';
 import { ErrorBanner } from '@/shared/components/ui/banner';
 import {
@@ -18,7 +22,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from '@/shared/components/ui/dropdown-menu';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
+import { PermissionGuard } from '@/shared/components';
+import { useRBAC } from '@/shared/hooks';
 
 interface GroupMember {
   _id: string;
@@ -44,11 +50,27 @@ interface GroupMember {
 }
 
 const MembersPage: React.FC = () => {
-  const { activeGroup } = useUser();
+  const params = useParams();
   const router = useRouter();
+  const org_slug = params.org_slug as string;
+  const { groups } = useUser();
+  const { hasAnyPermissionInActiveGroup } = useRBAC();
+
+  // Get the current organization from slug
+  const currentOrg = useMemo(() => {
+    return groups?.find(g => g.organizationSlug === org_slug);
+  }, [groups, org_slug]);
+
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmails, setInviteEmails] = useState<string[]>(['']);
   const [emailErrors, setEmailErrors] = useState<string[]>(['']);
+
+  // Remove user states
+  const [showRemoveUserDialog, setShowRemoveUserDialog] = useState(false);
+  const [userToRemove, setUserToRemove] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   // Multi-select states
   const [selectedMembers, setSelectedMembers] = useState<(string | number)[]>(
@@ -68,12 +90,13 @@ const MembersPage: React.FC = () => {
     isLoading: groupLoading,
     error: groupError,
     mutate,
-  } = useGroupDetails(activeGroup?.id || null);
+  } = useGroupDetails(currentOrg?.id || null);
   const sendInvite = useSendGroupInvite();
+  const unassignUser = useUnassignUserFromGroup();
 
-  // Get roles for the active group
+  // Get roles for the current group
   const { data: rolesData, isLoading: rolesLoading } = useRolesByGroup(
-    activeGroup?.id || undefined
+    currentOrg?.id || undefined
   );
   const assignUsersToRole = useAssignUsersToRole();
 
@@ -124,6 +147,45 @@ const MembersPage: React.FC = () => {
   }, [filteredMembers, membersPage, membersPageSize]);
 
   const membersTotalPages = Math.ceil(filteredMembers.length / membersPageSize);
+
+  const handleRemoveUser = useCallback(
+    (memberId: string, memberName: string) => {
+      // Check if trying to remove the group manager
+      if (group?.grp_manager?._id === memberId) {
+        toast.error(
+          'Cannot remove the group manager. Please transfer ownership first.'
+        );
+        return;
+      }
+
+      setUserToRemove({ id: memberId, name: memberName });
+      setShowRemoveUserDialog(true);
+    },
+    [group?.grp_manager?._id]
+  );
+
+  const confirmRemoveUser = async () => {
+    if (!userToRemove || !currentOrg?.id) return;
+
+    try {
+      await unassignUser.trigger({
+        groupId: currentOrg.id,
+        userId: userToRemove.id,
+      });
+      toast.success(`${userToRemove.name} has been removed from the group`);
+      setShowRemoveUserDialog(false);
+      setUserToRemove(null);
+
+      // Refresh the group details to update the UI
+      mutate();
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to remove user';
+      toast.error(errorMessage);
+      setShowRemoveUserDialog(false);
+      setUserToRemove(null);
+    }
+  };
 
   // Table columns for members
   const membersColumns = useMemo(
@@ -195,30 +257,56 @@ const MembersPage: React.FC = () => {
       {
         key: 'actions',
         label: 'Actions',
-        render: (value: unknown, member: GroupMember) => (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>⋮
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => router.push(`/admin/members/${member._id}`)}
-              >
-                View Details
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ),
+        render: (value: unknown, member: GroupMember) => {
+          const isManager = group?.grp_manager?._id === member._id;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>⋮
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.push(`/org/${org_slug}/members/${member._id}`)
+                  }
+                >
+                  View Details
+                </DropdownMenuItem>
+                {hasAnyPermissionInActiveGroup(['MEMBER_REMOVE']) &&
+                  !isManager && (
+                    <DropdownMenuItem
+                      onClick={() =>
+                        handleRemoveUser(
+                          member._id,
+                          `${member.firstName} ${member.lastName}`
+                        )
+                      }
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                    >
+                      <AqTrash03 size={16} className="mr-2" />
+                      Remove from Group
+                    </DropdownMenuItem>
+                  )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
       },
     ],
-    [group?.grp_manager?._id, router]
+    [
+      group?.grp_manager?._id,
+      router,
+      org_slug,
+      hasAnyPermissionInActiveGroup,
+      handleRemoveUser,
+    ]
   );
 
   const handleSendInvites = async () => {
-    if (!activeGroup?.id) {
-      toast.error('No active group selected');
+    if (!currentOrg?.id) {
+      toast.error('No organization selected');
       return;
     }
 
@@ -231,7 +319,7 @@ const MembersPage: React.FC = () => {
 
     try {
       await sendInvite.trigger({
-        groupId: activeGroup.id,
+        groupId: currentOrg.id,
         inviteData: { emails },
       });
       toast.success(`Invitations sent to ${emails.length} email(s)`);
@@ -263,8 +351,11 @@ const MembersPage: React.FC = () => {
     }
   };
 
+  // Check for MEMBER_INVITE permission for invite button visibility
+  const canInviteMembers = hasAnyPermissionInActiveGroup(['MEMBER_INVITE']);
+
   return (
-    <>
+    <PermissionGuard requiredPermissionsInActiveGroup={['MEMBER_VIEW']}>
       {groupError ? (
         <ErrorBanner
           title="Failed to load group members"
@@ -296,9 +387,11 @@ const MembersPage: React.FC = () => {
                   Assign Role ({selectedMembers.length})
                 </Button>
               )}
-              <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
-                Send Invites
-              </Button>
+              {canInviteMembers && (
+                <Button onClick={() => setShowInviteDialog(true)} Icon={AqPlus}>
+                  Send Invites
+                </Button>
+              )}
             </div>
           </div>
 
@@ -325,73 +418,75 @@ const MembersPage: React.FC = () => {
           />
 
           {/* Invite Dialog */}
-          <Dialog
-            isOpen={showInviteDialog}
-            onClose={() => setShowInviteDialog(false)}
-            title="Send Group Invitations"
-            primaryAction={{
-              label: 'Send Invites',
-              onClick: handleSendInvites,
-              disabled: sendInvite.isMutating,
-              loading: sendInvite.isMutating,
-            }}
-            secondaryAction={{
-              label: 'Cancel',
-              onClick: () => setShowInviteDialog(false),
-              disabled: sendInvite.isMutating,
-              variant: 'outlined',
-            }}
-          >
-            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Email Addresses *
-                </label>
-                <div className="space-y-2">
-                  {inviteEmails.map((email, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <div className="flex-1">
-                        <Input
-                          value={email}
-                          onChange={e =>
-                            handleEmailChange(index, e.target.value)
-                          }
-                          placeholder="user@example.com"
-                          className="w-full"
-                        />
-                        {emailErrors[index] && (
-                          <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                            {emailErrors[index]}
-                          </p>
+          {canInviteMembers && (
+            <Dialog
+              isOpen={showInviteDialog}
+              onClose={() => setShowInviteDialog(false)}
+              title="Send Group Invitations"
+              primaryAction={{
+                label: 'Send Invites',
+                onClick: handleSendInvites,
+                disabled: sendInvite.isMutating,
+                loading: sendInvite.isMutating,
+              }}
+              secondaryAction={{
+                label: 'Cancel',
+                onClick: () => setShowInviteDialog(false),
+                disabled: sendInvite.isMutating,
+                variant: 'outlined',
+              }}
+            >
+              <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Email Addresses *
+                  </label>
+                  <div className="space-y-2">
+                    {inviteEmails.map((email, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <div className="flex-1">
+                          <Input
+                            value={email}
+                            onChange={e =>
+                              handleEmailChange(index, e.target.value)
+                            }
+                            placeholder="user@example.com"
+                            className="w-full"
+                          />
+                          {emailErrors[index] && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                              {emailErrors[index]}
+                            </p>
+                          )}
+                        </div>
+                        {inviteEmails.length > 1 && (
+                          <Button
+                            variant="outlined"
+                            size="sm"
+                            onClick={() => handleRemoveEmail(index)}
+                            className="px-3"
+                          >
+                            Remove
+                          </Button>
                         )}
                       </div>
-                      {inviteEmails.length > 1 && (
-                        <Button
-                          variant="outlined"
-                          size="sm"
-                          onClick={() => handleRemoveEmail(index)}
-                          className="px-3"
-                        >
-                          Remove
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleAddEmail}
-                    className="w-full"
-                  >
-                    + Add Email Address
-                  </Button>
+                    ))}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleAddEmail}
+                      className="w-full"
+                    >
+                      + Add Email Address
+                    </Button>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    Enter email addresses to send invitations to join the group
+                  </p>
                 </div>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                  Enter email addresses to send invitations to join the group
-                </p>
               </div>
-            </div>
-          </Dialog>
+            </Dialog>
+          )}
 
           {/* Bulk Role Assignment Dialog */}
           <Dialog
@@ -454,9 +549,54 @@ const MembersPage: React.FC = () => {
               </div>
             </div>
           </Dialog>
+
+          {/* Remove User Confirmation Dialog */}
+          <Dialog
+            isOpen={showRemoveUserDialog}
+            onClose={() => {
+              if (!unassignUser.isMutating) {
+                setShowRemoveUserDialog(false);
+                setUserToRemove(null);
+              }
+            }}
+            title="Remove Member from Group"
+            primaryAction={{
+              label: 'Remove Member',
+              onClick: confirmRemoveUser,
+              disabled: unassignUser.isMutating,
+              loading: unassignUser.isMutating,
+              className: 'bg-red-600 hover:bg-red-700',
+            }}
+            secondaryAction={{
+              label: 'Cancel',
+              onClick: () => {
+                setShowRemoveUserDialog(false);
+                setUserToRemove(null);
+              },
+              disabled: unassignUser.isMutating,
+              variant: 'outlined',
+            }}
+          >
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to remove{' '}
+                <span className="font-semibold text-foreground">
+                  {userToRemove?.name}
+                </span>{' '}
+                from this group?
+              </p>
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  <strong>Warning:</strong> This user will lose access to all
+                  group resources and their assigned roles will be removed. This
+                  action cannot be undone.
+                </p>
+              </div>
+            </div>
+          </Dialog>
         </>
       )}
-    </>
+    </PermissionGuard>
   );
 };
 
