@@ -13,7 +13,7 @@ export const QuickAccessCard: React.FC<QuickAccessLocationsProps> = memo(
     sites,
     onManageFavorites,
     className,
-    title = 'Quick Access Locations',
+    title = 'Favorite Locations',
     subtitle = 'Add up to 4 frequently monitored cities for instant access to air quality trends, visualizations, and quick data downloads.',
     showIcon = true,
     onShowIconsChange,

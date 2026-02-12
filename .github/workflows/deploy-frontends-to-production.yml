@@ -27,8 +27,8 @@ on:
         description: "Deploy Beacon"
         required: false
         type: boolean
-      packages:
-        description: "Deploy packages"
+      docs:
+        description: "Deploy docs"
         required: false
         type: boolean
 
@@ -193,11 +193,11 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "src/website2/"
+          dir: "src/website/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
-          cd src/website2/
+          cd src/website/
           echo "========== Creating app.yaml file =========="            
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
@@ -237,7 +237,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd src/website2/
+          cd src/website/
           docker build . \
           --build-arg API_URL=${{ secrets.WEBSITE_PROD_API_URL }} \
           --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_PROD_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
@@ -249,7 +249,7 @@ jobs:
 
       - name: Deploy to App Engine
         run: |-
-          cd src/website2/
+          cd src/website/
           gcloud app deploy  \
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/airqo-website2:latest \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
@@ -416,64 +416,6 @@ jobs:
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/platform/.env env-next-platform-production | kubectl replace -f - -n production
 
-  ### build and push reports image ###
-  reports:
-    name: build-push-reports-image
-    needs: [image-tag]
-    if: inputs.reports == true
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Setup Cloud SDK
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Create .env file
-        run: gcloud secrets versions access latest --secret="prod-env-reports" > src/reports/.env
-
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCR_CONFIG }}
-
-      - name: Build and Push Docker Image
-        run: |
-          cd src/reports/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-reports:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-reports:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-reports:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-reports:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-reports:latest
-
-      - name: Update corresponding helm values file(with retry)
-        uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
-        with:
-          action: fjogeleit/yaml-update-action@main # Action to retry
-          with: |
-            valueFile: "k8s/reports/values-prod.yaml"
-            propertyPath: "image.tag"
-            value: ${{ needs.image-tag.outputs.build_id }}
-            branch: ${{ env.DEPLOY_BRANCH }}
-            token: ${{ secrets.YAML_UPDATER_TOKEN }}
-            message: "Update reports production image tag to ${{ needs.image-tag.outputs.build_id }}"
-
-      - name: Login to K8S
-        uses: azure/k8s-set-context@v3
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.K8S_CONFIG_PROD }}
-
-      - name: Update the corresponding configmap
-        run: |
-          kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/reports/.env env-reports-production | kubectl replace -f - -n production
 
   ### build and push vertex image ###
   vertex:
@@ -593,11 +535,11 @@ jobs:
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/beacon/.env env-beacon-production | kubectl replace -f - -n production
 
-  ### build and push packages image ###
-  packages:
-    name: build-push-packages-image
+  ### build and push docs image ###
+  docs:
+    name: build-push-docs-image
     needs: [image-tag]
-    if: inputs.packages == true
+    if: inputs.docs == true
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -612,7 +554,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
         
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="prod-env-packages" > src/packages/.env
+        run: gcloud secrets versions access latest --secret="prod-env-docs" > src/docs-website/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -623,23 +565,23 @@ jobs:
       
       - name: Build and Push Docker Image
         run: |
-          cd src/packages/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-packages:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-packages:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-packages:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-packages:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-packages:latest
+          cd src/docs-website/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-docs:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-docs:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-docs:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-docs:latest
           
       - name: Update corresponding helm values file(with retry)
         uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
-            valueFile: "k8s/packages/values-prod.yaml"
+            valueFile: "k8s/docs-website/values-prod.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }}
-            message: "Update packages production image tag to ${{ needs.image-tag.outputs.build_id }}" 
+            message: "Update docs production image tag to ${{ needs.image-tag.outputs.build_id }}" 
             
       - name: Login to K8S
         uses: azure/k8s-set-context@v3
@@ -650,5 +592,5 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/packages/.env env-packages-production | kubectl replace -f - -n production    
+          --from-env-file=src/docs-website/.env env-docs-production | kubectl replace -f - -n production    
         

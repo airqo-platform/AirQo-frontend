@@ -39,6 +39,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Determine flow type and org slug - memoized to prevent unnecessary re-renders
   const { flow, orgSlug } = React.useMemo(() => {
+    // Check if on system pages
+    if (pathname.startsWith('/system')) {
+      return { flow: 'system' as const, orgSlug: undefined };
+    }
+
     // Check if on admin pages
     if (pathname.startsWith('/admin')) {
       return { flow: 'admin' as const, orgSlug: undefined };

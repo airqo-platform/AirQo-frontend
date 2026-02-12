@@ -143,8 +143,10 @@ export const useGroupTheme = (groupId: string) => {
     groupId ? `preferences/theme/group/${groupId}` : null,
     () => preferencesService.getGroupTheme(groupId),
     {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      // Keep theme data fresh when switching organizations
+      dedupingInterval: 2000,
     }
   );
 };
@@ -157,12 +159,12 @@ export const useUserTheme = (userId: string, groupId: string) => {
       : null,
     () => preferencesService.getUserTheme(userId, groupId),
     {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-      // Ensure fresh data when group changes
-      dedupingInterval: 0,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+      // Ensure fresh data when group changes by minimal deduping
+      dedupingInterval: 1000,
       // Keep error retry to minimum to avoid infinite loops on group switch
-      errorRetryCount: 1,
+      errorRetryCount: 2,
       errorRetryInterval: 1000,
     }
   );
@@ -187,11 +189,13 @@ export const useUpdateOrganizationGroupTheme = () => {
     },
     {
       onSuccess: () => {
-        // Invalidate related caches
+        // Invalidate ALL theme caches when organization theme is updated
+        // This ensures all users get the fresh theme on next fetch
         mutate(
           key =>
             typeof key === 'string' &&
-            key.startsWith('preferences/theme/group/')
+            (key.startsWith('preferences/theme/group/') ||
+              key.startsWith('preferences/theme/user/'))
         );
       },
     }

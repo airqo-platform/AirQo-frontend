@@ -1,11 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { ProfileForm, SecurityTab } from './components';
+import { useSearchParams } from 'next/navigation';
+import { ProfileForm, SecurityTab, OrgInvitesTab } from './components';
 import { ApiClientPage } from '../api-client';
 import ThemeManager from '../themes/components/ThemeManager';
-import { AqUserCircle, AqLock02, AqKey01, AqPalette } from '@airqo/icons-react';
+import {
+  AqUserCircle,
+  AqLock02,
+  AqKey01,
+  AqPalette,
+  AqMail04,
+} from '@airqo/icons-react';
 import { Card, LoadingSpinner } from '@/shared/components/ui';
 
 interface ExtendedSessionUser {
@@ -20,9 +27,17 @@ interface ExtendedSessionUser {
 
 const ProfilePage: React.FC = () => {
   const { data: session, status } = useSession();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState(0);
 
   const userId = (session?.user as ExtendedSessionUser)?._id;
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam === 'org-invites') {
+      setActiveTab(2); // Org Invites tab
+    }
+  }, [searchParams]);
 
   if (status === 'loading') {
     return (
@@ -44,8 +59,9 @@ const ProfilePage: React.FC = () => {
       component: userId ? () => <ProfileForm userId={userId} /> : null,
     },
     { id: 1, title: 'Security', component: () => <SecurityTab /> },
-    { id: 2, title: 'API', component: () => <ApiClientPage /> },
-    { id: 3, title: 'Theme', component: () => <ThemeManager /> },
+    { id: 2, title: 'Org Invites', component: () => <OrgInvitesTab /> },
+    { id: 3, title: 'API', component: () => <ApiClientPage /> },
+    { id: 4, title: 'Theme', component: () => <ThemeManager /> },
   ];
 
   return (
@@ -67,8 +83,9 @@ const ProfilePage: React.FC = () => {
               <span className="flex gap-2 items-center">
                 {tab.id === 0 && <AqUserCircle size={16} />}
                 {tab.id === 1 && <AqLock02 size={16} />}
-                {tab.id === 2 && <AqKey01 size={16} />}
-                {tab.id === 3 && <AqPalette size={16} />}
+                {tab.id === 2 && <AqMail04 size={16} />}
+                {tab.id === 3 && <AqKey01 size={16} />}
+                {tab.id === 4 && <AqPalette size={16} />}
                 {tab.title}
               </span>
             </button>

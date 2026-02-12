@@ -27,10 +27,9 @@ jobs:
       run_calibrate_app: ${{ steps.check_files.outputs.run_calibrate_app }} # calibrate
       run_analytics_platform: ${{ steps.check_files.outputs.run_analytics_platform }} # analytics platform
       run_website2: ${{ steps.check_files.outputs.run_website2 }} # website2
-      run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
       run_vertex: ${{ steps.check_files.outputs.run_vertex }} # vertex
       run_beacon: ${{ steps.check_files.outputs.run_beacon }} # beacon
-      run_packages: ${{ steps.check_files.outputs.run_packages }} # packages
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
 
     runs-on: ubuntu-latest
@@ -52,10 +51,9 @@ jobs:
           echo "run_calibrate_app=false" >>$GITHUB_OUTPUT
           echo "run_analytics_platform=false" >>$GITHUB_OUTPUT   
           echo "run_website2=false" >>$GITHUB_OUTPUT
-          echo "run_reports=false" >>$GITHUB_OUTPUT
           echo "run_vertex=false" >>$GITHUB_OUTPUT    
           echo "run_beacon=false" >>$GITHUB_OUTPUT
-          echo "run_packages=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
@@ -68,13 +66,9 @@ jobs:
               echo "run_analytics_platform=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/website2/* ]]; then
+            if [[ $file == src/website/* ]]; then
               echo "run_website2=true" >>$GITHUB_OUTPUT
             fi            
-
-            if [[ $file == src/reports/* ]]; then
-              echo "run_reports=true" >>$GITHUB_OUTPUT
-            fi
 
             if [[ $file == src/vertex/* ]]; then
               echo "run_vertex=true" >>$GITHUB_OUTPUT
@@ -84,8 +78,8 @@ jobs:
               echo "run_beacon=true" >>$GITHUB_OUTPUT
             fi 
 
-            if [[ $file == src/packages/* ]]; then
-              echo "run_packages=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/docs-website/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -398,11 +392,11 @@ jobs:
         with:
           name: "google_application_credentials.json"
           json: ${{ secrets.GCP_FRONTEND_PROJECT_SA_CREDENTIALS }}
-          dir: "src/website2/"
+          dir: "src/website/"
 
       - name: Create app.yaml and .env.yaml files
         run: |
-          cd src/website2/
+          cd src/website/
           echo "========== Creating app.yaml file =========="          
           echo "runtime: python" > app.yaml
           echo "env: flex" >> app.yaml
@@ -429,7 +423,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd src/website2/
+          cd src/website/
           docker build . \
           --build-arg API_URL=${{ secrets.WEBSITE_STAGE_API_URL }} \
           --build-arg NEXT_PUBLIC_GA_MEASUREMENT_ID=${{ secrets.WEBSITE_STAGE_NEXT_PUBLIC_GA_MEASUREMENT_ID }} \
@@ -439,7 +433,7 @@ jobs:
 
       - name: Deploy to App Engine
         run: |-
-          cd src/website2/
+          cd src/website/
           gcloud app deploy  \
             --image-url=${{ env.REGISTRY_URL }}/${{ secrets.FRONTEND_PROJECT_ID }}/website2-pr-previews:${{ github.sha }} \
             --project=${{ secrets.FRONTEND_PROJECT_ID }} \
@@ -492,85 +486,7 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New Website2 changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
-            })
-
-  ### deploy reports preview ###
-  reports:
-    name: build-push-deploy-reports-preview
-    needs: [check, branch-name]
-    if: needs.check.outputs.run_reports == 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      url: ${{ steps.preview-url.outputs.url }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Google login
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Setup Cloud SDK(gcloud)
-        uses: google-github-actions/setup-gcloud@v1
-
-      - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-reports" > src/reports/.env
-
-      - name: Login to GCR
-        uses: docker/login-action@v2
-        with:
-          registry: ${{ env.REGISTRY_URL }}
-          username: _json_key
-          password: ${{ secrets.GCP_SA_CREDENTIALS }}
-
-      - name: Build and Push Image
-        run: |
-          cd src/reports/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:latest
-
-      - name: Deploy to Cloud Run
-        run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-reports-preview \
-            --region=${{ secrets.REGION }} \
-            --max-instances=10 \
-            --timeout=60 \
-            --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/reports-pr-previews:${{ github.sha }} \
-            --port=3000 \
-            --cpu=1000m \
-            --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-reports:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; npx next start" \
-            --allow-unauthenticated
-
-      - name: Get preview service url
-        id: preview-url
-        run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-reports-preview \
-            --format='value(status.url)' \
-            --platform managed \
-            --region ${{ secrets.REGION }})
-          echo "url=${service_url}" >>$GITHUB_OUTPUT
-
-  reports-pr-comment:
-    name: reports-preview-link-comment
-    if: needs.check.outputs.run_reports == 'true'
-    needs: [reports]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v6
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: 'New reports changes available for preview [here](${{ needs.reports.outputs.url }})'
+              body: 'New Website changes available for preview [here](https://website-pr-previews-dot-airqo-frontend.appspot.com)'
             })
 
   ### deploy vertex preview ###
@@ -729,11 +645,11 @@ jobs:
               body: 'New beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
             })
 
-  ### deploy packages preview ###
-  packages:
-    name: build-push-deploy-packages-preview
+  ### deploy docs preview ###
+  docs:
+    name: build-push-deploy-docs-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_packages == 'true'
+    if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -750,7 +666,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-packages" > src/packages/.env
+        run: gcloud secrets versions access latest --secret="sta-env-docs" > src/docs-website/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -761,39 +677,40 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd src/packages/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:latest
+          cd src/docs-website/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
+
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-packages-preview \
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
             --region=${{ secrets.REGION }} \
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-packages:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; node server.js" \
+            --update-secrets=/etc/env/.env=sta-env-docs:latest \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; npm run serve -- --host 0.0.0.0 --no-open" \
             --allow-unauthenticated
 
       - name: Get preview service url
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-packages-preview \
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
           echo "url=${service_url}" >>$GITHUB_OUTPUT
 
-  packages-pr-comment:
-    name: packages-preview-link-comment
-    if: needs.check.outputs.run_packages == 'true'
-    needs: [packages]
+  docs-pr-comment:
+    name: docs-preview-link-comment
+    if: needs.check.outputs.run_docs == 'true'
+    needs: [docs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
@@ -803,5 +720,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New packages changes available for preview [here](${{ needs.packages.outputs.url }})'
+              body: 'New docs changes available for preview [here](${{ needs.docs.outputs.url }})'
             })            
