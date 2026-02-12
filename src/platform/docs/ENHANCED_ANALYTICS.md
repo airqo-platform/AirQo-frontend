@@ -113,10 +113,11 @@ Tracks search behavior across the platform:
 
 - **Event**: `search_performed`
 - **Properties**:
-  - `search_term`: User's search query
+  - `search_term_hashed`: Hashed version of user's search query (for privacy)
   - `search_type`: location, site, device, general
   - `results_count`: Number of results returned
   - `selected_result`: Whether user selected a result
+  - `has_results`: Boolean indicating if results were found
   - `timestamp`: ISO timestamp
 
 **Use Cases**:
@@ -300,7 +301,9 @@ const MyPage = () => {
 ### Data Anonymization
 
 - Location IDs are hashed using FNV-1a algorithm before sending to analytics
-- Personal identifiable information is never tracked
+- Search terms are hashed to prevent PII exposure
+- Error messages are sanitized to redact emails, UUIDs, file paths, and IDs
+- Personal identifiable information is never tracked in raw form
 - IP addresses are anonymized at collection
 
 ### Configuration
