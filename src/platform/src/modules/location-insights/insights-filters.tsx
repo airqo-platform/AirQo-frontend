@@ -12,6 +12,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { HiChevronDown, HiCheck } from 'react-icons/hi';
 import { AqDownload01 } from '@airqo/icons-react';
+import { Tooltip } from 'flowbite-react';
 
 import { cn } from '@/shared/lib/utils';
 import type {
@@ -271,18 +272,20 @@ export const InsightsFilters: React.FC<InsightsFiltersProps> = ({
       <div>
         <div className="relative">
           <DropdownMenu open={dataTypeOpen} onOpenChange={setDataTypeOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="filled"
-                size="sm"
-                Icon={AqDownload01}
-                className="px-4 py-2"
-                showTextOnMobile
-                loading={isDownloading}
-              >
-                {isDownloading ? 'Downloading...' : 'Download Data'}
-              </Button>
-            </DropdownMenuTrigger>
+            <Tooltip content="Download openly available air quality data for your own use">
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="filled"
+                  size="sm"
+                  Icon={AqDownload01}
+                  className="px-4 py-2"
+                  showTextOnMobile
+                  loading={isDownloading}
+                >
+                  {isDownloading ? 'Downloading...' : 'Download Data'}
+                </Button>
+              </DropdownMenuTrigger>
+            </Tooltip>
             <DropdownMenuContent align="end" className="w-[180px] z-[10010]">
               {DATA_TYPE_OPTIONS.map(option => (
                 <DropdownMenuItem

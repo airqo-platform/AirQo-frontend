@@ -58,6 +58,7 @@ export interface QuickAccessLocationsProps {
   className?: string;
   title?: string;
   subtitle?: string;
+  infoLine?: string;
   showIcon?: boolean;
   onShowIconsChange?: (showIcons: boolean) => void;
   selectedPollutant?: PollutantType;
