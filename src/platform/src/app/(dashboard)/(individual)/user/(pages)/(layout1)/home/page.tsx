@@ -27,6 +27,13 @@ export default function HomePage() {
           Quick Access
         </p>
 
+        {/* Data Availability Note */}
+        <blockquote className="mt-3 text-sm text-gray-600 dark:text-gray-400 italic border-l-2 border-gray-300 dark:border-gray-600 pl-4 leading-relaxed">
+          All data on this platform is open and publicly available. View,
+          explore, and download air quality data for your own analysis,
+          reporting, or advocacy.
+        </blockquote>
+
         {/* Quick Access Buttons (left-aligned) */}
         <div className="mt-4 flex flex-wrap gap-3 items-center">
           <Button
