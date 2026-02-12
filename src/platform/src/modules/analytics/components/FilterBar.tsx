@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu';
 import { cn } from '@/shared/lib/utils';
+import { Tooltip } from 'flowbite-react';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { useAnalyticsPreferences } from '../hooks';
 import type { QuickAccessLocationsProps } from '../types';
@@ -219,14 +220,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           <span className="sm:hidden">Favorites</span>
         </button>
 
-        <Button
-          variant="filled"
-          size="sm"
-          className="px-4 py-2 shadow-sm"
-          onClick={handleDownloadClick}
-        >
-          Download Data ({selectedSiteIds.length})
-        </Button>
+        <Tooltip content="Download openly available air quality data for your own use">
+          <div>
+            <Button
+              variant="filled"
+              size="sm"
+              className="px-4 py-2 shadow-sm"
+              onClick={handleDownloadClick}
+            >
+              Download Data ({selectedSiteIds.length})
+            </Button>
+          </div>
+        </Tooltip>
       </div>
 
       {/* Download Confirmation Dialog */}

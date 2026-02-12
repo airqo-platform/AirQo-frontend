@@ -205,6 +205,9 @@ export const DownloadDialog: React.FC<DownloadDialogProps> = ({
         onClick: handleConfirmDownload,
         disabled: isDownloading || selectedSiteIds.length === 0,
       }}
+      primaryTooltip={
+        'Download openly available air quality data for your own use'
+      }
       secondaryAction={{
         label: 'Cancel',
         onClick: onClose,

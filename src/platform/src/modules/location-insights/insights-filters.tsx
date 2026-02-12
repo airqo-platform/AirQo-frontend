@@ -12,6 +12,7 @@ import {
 } from '@/shared/components/ui/dropdown-menu';
 import { HiChevronDown, HiCheck } from 'react-icons/hi';
 import { AqDownload01 } from '@airqo/icons-react';
+import { Tooltip } from 'flowbite-react';
 
 import { cn } from '@/shared/lib/utils';
 import type {
@@ -270,38 +271,42 @@ export const InsightsFilters: React.FC<InsightsFiltersProps> = ({
       {/* Right side - Download dropdown */}
       <div>
         <div className="relative">
-          <DropdownMenu open={dataTypeOpen} onOpenChange={setDataTypeOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="filled"
-                size="sm"
-                Icon={AqDownload01}
-                className="px-4 py-2"
-                showTextOnMobile
-                loading={isDownloading}
-              >
-                {isDownloading ? 'Downloading...' : 'Download Data'}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[180px] z-[10010]">
-              {DATA_TYPE_OPTIONS.map(option => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => {
-                    setDataType(option.value);
-                    onDownload(option.value);
-                  }}
-                  className="cursor-pointer flex items-center justify-between"
-                  disabled={isDownloading}
+          <Tooltip content="Download openly available air quality data for your own use">
+            <DropdownMenu open={dataTypeOpen} onOpenChange={setDataTypeOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="filled"
+                  size="sm"
+                  Icon={AqDownload01}
+                  className="px-4 py-2"
+                  showTextOnMobile
+                  loading={isDownloading}
                 >
-                  <span className="flex items-center gap-2">
-                    {option.label}
-                  </span>
-                  {dataType === option.value && <HiCheck className="h-4 w-4" />}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  {isDownloading ? 'Downloading...' : 'Download Data'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[180px] z-[10010]">
+                {DATA_TYPE_OPTIONS.map(option => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => {
+                      setDataType(option.value);
+                      onDownload(option.value);
+                    }}
+                    className="cursor-pointer flex items-center justify-between"
+                    disabled={isDownloading}
+                  >
+                    <span className="flex items-center gap-2">
+                      {option.label}
+                    </span>
+                    {dataType === option.value && (
+                      <HiCheck className="h-4 w-4" />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </Tooltip>
         </div>
       </div>
     </div>
