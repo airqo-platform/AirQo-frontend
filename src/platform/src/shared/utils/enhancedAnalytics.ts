@@ -43,6 +43,26 @@ const sanitizeErrorMessage = (message: string): string => {
   return sanitized;
 };
 
+const sanitizeEndpoint = (endpoint: string): string => {
+  if (!endpoint) return 'unknown';
+
+  // Replace path parameters that look like IDs, UUIDs, or emails with placeholders
+  let sanitized = endpoint
+    // Replace UUIDs
+    .replace(
+      /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi,
+      ':uuid'
+    )
+    // Replace long numeric IDs
+    .replace(/\/(\d{5,})/g, '/:id')
+    // Replace email-like patterns in paths
+    .replace(/\/([\w.-]+@[\w.-]+\.\w+)/g, '/:email')
+    // Replace short alphanumeric IDs (but not common route segments)
+    .replace(/\/([a-zA-Z0-9_-]{20,})/g, '/:param');
+
+  return sanitized;
+};
+
 export interface LocationSelection {
   locationId: string;
   locationName: string;
@@ -330,6 +350,7 @@ export const trackError = (
 
 /**
  * Track API performance
+ * Note: Endpoints are sanitized to prevent PII exposure from path parameters
  */
 export const trackApiPerformance = (
   posthog: PostHog | null,
@@ -340,8 +361,10 @@ export const trackApiPerformance = (
 ) => {
   if (!posthog) return;
 
+  const sanitizedEndpoint = sanitizeEndpoint(endpoint);
+
   posthog.capture('api_call', {
-    endpoint,
+    endpoint: sanitizedEndpoint,
     method,
     duration_ms: duration,
     status_code: status,
@@ -386,18 +409,23 @@ export const trackSessionQuality = (
     actionsPerformed: number;
     sessionDuration: number;
     errorsEncountered: number;
-  }
+  },
+  options?: { transport?: 'sendBeacon' | 'fetch' }
 ) => {
   if (!posthog) return;
 
-  posthog.capture('session_quality', {
-    pages_viewed: metrics.pagesViewed,
-    actions_performed: metrics.actionsPerformed,
-    session_duration_minutes: Math.round(metrics.sessionDuration / 60),
-    errors_encountered: metrics.errorsEncountered,
-    engagement_score: calculateEngagementScore(metrics),
-    timestamp: new Date().toISOString(),
-  });
+  posthog.capture(
+    'session_quality',
+    {
+      pages_viewed: metrics.pagesViewed,
+      actions_performed: metrics.actionsPerformed,
+      session_duration_minutes: Math.round(metrics.sessionDuration / 60),
+      errors_encountered: metrics.errorsEncountered,
+      engagement_score: calculateEngagementScore(metrics),
+      timestamp: new Date().toISOString(),
+    },
+    options
+  );
 };
 
 /**

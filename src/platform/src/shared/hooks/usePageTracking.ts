@@ -24,6 +24,7 @@ export const usePageTracking = () => {
   const posthog = usePostHog();
   const pageStartTime = useRef<number>(Date.now());
   const sessionStartTime = useRef<number>(Date.now()); // Track full session, not just current page
+  const sessionQualitySent = useRef<boolean>(false); // Prevent duplicate session quality events
   const sessionMetrics = useRef<SessionMetrics>({
     pagesViewed: 0,
     actionsPerformed: 0,
@@ -49,29 +50,46 @@ export const usePageTracking = () => {
   // Track session quality on unmount using pagehide for reliability
   useEffect(() => {
     const handlePageHide = () => {
+      // Prevent duplicate session quality events
+      if (sessionQualitySent.current) return;
+      sessionQualitySent.current = true;
+
       // Calculate full session duration in seconds
       sessionMetrics.current.sessionDuration = Math.floor(
         (Date.now() - sessionStartTime.current) / 1000
       );
 
-      // Use sendBeacon transport for reliable transmission
-      trackSessionQuality(posthog, sessionMetrics.current);
+      // Use sendBeacon transport for reliable transmission during page unload
+      trackSessionQuality(posthog, sessionMetrics.current, {
+        transport: 'sendBeacon',
+      });
     };
+
+    // Check if pagehide is supported
+    const supportsPageHide = 'onpagehide' in window;
 
     // Use pagehide for better reliability than beforeunload
     window.addEventListener('pagehide', handlePageHide);
 
-    // Fallback to visibilitychange for browsers without pagehide
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        handlePageHide();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    // Fallback to visibilitychange only for browsers without pagehide
+    let visibilityChangeHandler: (() => void) | null = null;
+    if (!supportsPageHide) {
+      visibilityChangeHandler = () => {
+        if (document.visibilityState === 'hidden') {
+          handlePageHide();
+        }
+      };
+      document.addEventListener('visibilitychange', visibilityChangeHandler);
+    }
 
     return () => {
       window.removeEventListener('pagehide', handlePageHide);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (visibilityChangeHandler) {
+        document.removeEventListener(
+          'visibilitychange',
+          visibilityChangeHandler
+        );
+      }
     };
   }, [posthog]);
 
