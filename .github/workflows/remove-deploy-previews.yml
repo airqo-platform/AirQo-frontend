@@ -27,7 +27,7 @@ jobs:
       remove_reports: ${{ steps.check_files.outputs.remove_reports }} # reports
       remove_vertex: ${{ steps.check_files.outputs.remove_vertex }} # vertex
       remove_beacon: ${{ steps.check_files.outputs.remove_beacon }} # remove beacon
-      remove_packages: ${{ steps.check_files.outputs.remove_packages }} # remove packages
+      remove_docs: ${{ steps.check_files.outputs.remove_docs }} # remove docs
 
 
     runs-on: ubuntu-latest
@@ -51,7 +51,7 @@ jobs:
           echo "remove_reports=false" >>$GITHUB_OUTPUT
           echo "remove_vertex=false" >>$GITHUB_OUTPUT
           echo "remove_beacon=false" >>$GITHUB_OUTPUT
-          echo "remove_packages=false" >>$GITHUB_OUTPUT
+          echo "remove_docs=false" >>$GITHUB_OUTPUT
 
 
           while IFS= read -r file
@@ -77,8 +77,8 @@ jobs:
               echo "remove_beacon=true" >>$GITHUB_OUTPUT
             fi           
 
-            if [[ $file == src/packages/* ]]; then
-              echo "remove_packages=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/docs-website/* ]]; then
+              echo "remove_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -190,11 +190,11 @@ jobs:
             --region=${{ secrets.REGION }} \
             --quiet
 
-  ### remove packages deploy preview ###
-  remove-packages-preview:
-    name: remove-packages-preview
+  ### remove docs deploy preview ###
+  remove-docs-preview:
+    name: remove-docs-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.remove_packages == 'true'
+    if: needs.check.outputs.remove_docs == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Google login
@@ -207,6 +207,6 @@ jobs:
 
       - name: Delete PR deploy preview
         run: |-
-          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-packages-preview \
+          gcloud run services delete ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
             --region=${{ secrets.REGION }} \
             --quiet            

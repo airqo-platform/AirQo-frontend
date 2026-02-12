@@ -1,4 +1,4 @@
-# AirQo Digital Products Documentation
+# AirQo Digital Products Documentation .
 
 This repository hosts the centralized documentation hub for all AirQo digital products, including Analytics, Vertex, Beacon, AI Platform, and the API. It is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 

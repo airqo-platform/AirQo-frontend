@@ -41,7 +41,7 @@ jobs:
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
       run_vertex: ${{ steps.check_files.outputs.run_vertex }} # vertex
       run_beacon: ${{ steps.check_files.outputs.run_beacon }} # beacon
-      run_packages: ${{ steps.check_files.outputs.run_packages }} # packages
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
     runs-on: ubuntu-latest
     steps:
@@ -65,7 +65,7 @@ jobs:
           echo "run_reports=false" >>$GITHUB_OUTPUT
           echo "run_vertex=false" >>$GITHUB_OUTPUT
           echo "run_beacon=false" >>$GITHUB_OUTPUT
-          echo "run_packages=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
@@ -94,8 +94,8 @@ jobs:
               echo "run_beacon=true" >>$GITHUB_OUTPUT
             fi
 
-            if [[ $file == src/packages/* ]]; then
-              echo "run_packages=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/docs-website/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
             if [[ $file == workflow-trigger ]]; then
@@ -105,7 +105,7 @@ jobs:
               echo "run_reports=true" >>$GITHUB_OUTPUT
               echo "run_vertex=true" >>$GITHUB_OUTPUT
               echo "run_beacon=true" >>$GITHUB_OUTPUT
-              echo "run_packages=true" >>$GITHUB_OUTPUT
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -637,11 +637,11 @@ jobs:
           kubectl create configmap --dry-run=client -o yaml \
           --from-env-file=src/beacon/.env env-beacon-staging | kubectl replace -f - -n staging
 
-  ### build and push packages image ###
-  packages:
-    name: build-push-packages-image
+  ### build and push docs image ###
+  docs:
+    name: build-push-docs-image
     needs: [check, image-tag]
-    if: needs.check.outputs.run_packages == 'true'
+    if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -656,7 +656,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-packages" > src/packages/.env
+        run: gcloud secrets versions access latest --secret="sta-env-docs" > src/docs-website/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -667,23 +667,23 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          cd src/packages/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-packages:${{ needs.image-tag.outputs.build_id }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-packages:${{ needs.image-tag.outputs.build_id }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-packages:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-packages:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-packages:latest
+          cd src/docs-website/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:${{ needs.image-tag.outputs.build_id }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/airqo-stage-docs:latest
       
       - name: Update corresponding helm values file(with retry)
         uses: Wandalen/wretry.action@v1.2.0 # Retries action on fail
         with:
           action: fjogeleit/yaml-update-action@main # Action to retry
           with: |
-            valueFile: "k8s/packages/values-stage.yaml"
+            valueFile: "k8s/docs-website/values-stage.yaml"
             propertyPath: "image.tag"
             value: ${{ needs.image-tag.outputs.build_id }}
             branch: ${{ env.DEPLOY_BRANCH }}
             token: ${{ secrets.YAML_UPDATER_TOKEN }} 
-            message: "Update packages staging image tag to ${{ needs.image-tag.outputs.build_id }}"
+            message: "Update docs staging image tag to ${{ needs.image-tag.outputs.build_id }}"
             
       - name: Login to K8S
         uses: azure/k8s-set-context@v3
@@ -694,4 +694,4 @@ jobs:
       - name: Update the corresponding configmap
         run: |
           kubectl create configmap --dry-run=client -o yaml \
-          --from-env-file=src/packages/.env env-packages-staging | kubectl replace -f - -n staging 
+          --from-env-file=src/docs-website/.env env-docs-staging | kubectl replace -f - -n staging 

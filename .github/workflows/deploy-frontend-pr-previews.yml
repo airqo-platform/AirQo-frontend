@@ -30,7 +30,7 @@ jobs:
       run_reports: ${{ steps.check_files.outputs.run_reports }} # reports
       run_vertex: ${{ steps.check_files.outputs.run_vertex }} # vertex
       run_beacon: ${{ steps.check_files.outputs.run_beacon }} # beacon
-      run_packages: ${{ steps.check_files.outputs.run_packages }} # packages
+      run_docs: ${{ steps.check_files.outputs.run_docs }} # docs
 
 
     runs-on: ubuntu-latest
@@ -55,7 +55,7 @@ jobs:
           echo "run_reports=false" >>$GITHUB_OUTPUT
           echo "run_vertex=false" >>$GITHUB_OUTPUT    
           echo "run_beacon=false" >>$GITHUB_OUTPUT
-          echo "run_packages=false" >>$GITHUB_OUTPUT
+          echo "run_docs=false" >>$GITHUB_OUTPUT
 
           while IFS= read -r file
           do
@@ -84,8 +84,8 @@ jobs:
               echo "run_beacon=true" >>$GITHUB_OUTPUT
             fi 
 
-            if [[ $file == src/packages/* ]]; then
-              echo "run_packages=true" >>$GITHUB_OUTPUT
+            if [[ $file == src/docs-website/* ]]; then
+              echo "run_docs=true" >>$GITHUB_OUTPUT
             fi
 
           done < files.txt
@@ -729,11 +729,11 @@ jobs:
               body: 'New beacon changes available for preview [here](${{ needs.beacon.outputs.url }})'
             })
 
-  ### deploy packages preview ###
-  packages:
-    name: build-push-deploy-packages-preview
+  ### deploy docs preview ###
+  docs:
+    name: build-push-deploy-docs-preview
     needs: [check, branch-name]
-    if: needs.check.outputs.run_packages == 'true'
+    if: needs.check.outputs.run_docs == 'true'
     runs-on: ubuntu-latest
     outputs:
       url: ${{ steps.preview-url.outputs.url }}
@@ -750,7 +750,7 @@ jobs:
         uses: google-github-actions/setup-gcloud@v1
 
       - name: Create .env file
-        run: gcloud secrets versions access latest --secret="sta-env-packages" > src/packages/.env
+        run: gcloud secrets versions access latest --secret="sta-env-docs" > src/docs-website/.env
 
       - name: Login to GCR
         uses: docker/login-action@v2
@@ -761,39 +761,40 @@ jobs:
 
       - name: Build and Push Image
         run: |
-          cd src/packages/
-          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }} .
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }}
-          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:latest
-          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:latest
+          cd src/docs-website/
+          docker build --tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} .
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }}
+          docker tag ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
+          docker push ${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:latest
+
       - name: Deploy to Cloud Run
         run: |-
-          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-packages-preview \
+          gcloud run deploy ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
             --region=${{ secrets.REGION }} \
             --max-instances=10 \
             --timeout=60 \
             --concurrency=10 \
-            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/packages-pr-previews:${{ github.sha }} \
+            --image=${{ env.REGISTRY_URL }}/${{ env.PROJECT_ID }}/pr-previews/docs-pr-previews:${{ github.sha }} \
             --port=3000 \
             --cpu=1000m \
             --memory=256Mi \
-            --update-secrets=/etc/env/.env=sta-env-packages:latest \
-            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; node server.js" \
+            --update-secrets=/etc/env/.env=sta-env-docs:latest \
+            --command="/bin/sh","-c","cat /etc/env/.env >> /app/.env; npm run serve -- --host 0.0.0.0 --no-open" \
             --allow-unauthenticated
 
       - name: Get preview service url
         id: preview-url
         run: |
-          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-packages-preview \
+          read service_url < <(gcloud run services describe ${{ needs.branch-name.outputs.lowercase }}-docs-preview \
             --format='value(status.url)' \
             --platform managed \
             --region ${{ secrets.REGION }})
           echo "url=${service_url}" >>$GITHUB_OUTPUT
 
-  packages-pr-comment:
-    name: packages-preview-link-comment
-    if: needs.check.outputs.run_packages == 'true'
-    needs: [packages]
+  docs-pr-comment:
+    name: docs-preview-link-comment
+    if: needs.check.outputs.run_docs == 'true'
+    needs: [docs]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/github-script@v6
@@ -803,5 +804,5 @@ jobs:
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: 'New packages changes available for preview [here](${{ needs.packages.outputs.url }})'
+              body: 'New docs changes available for preview [here](${{ needs.docs.outputs.url }})'
             })            
