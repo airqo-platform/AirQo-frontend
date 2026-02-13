@@ -224,6 +224,7 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
             final isSelected = rating <= currentRating;
             
             return GestureDetector(
+              behavior: HitTestBehavior.opaque,
               onTap: () => widget.onAnswerChanged(rating),
               child: Container(
                 width: 40,
@@ -318,7 +319,12 @@ class _SurveyQuestionWidgetState extends State<SurveyQuestionWidget> {
 
   Widget _buildYesNo(BuildContext context) {
     final theme = Theme.of(context);
-    final currentBool = widget.currentAnswer as bool?;
+    bool? currentBool;
+    if (widget.currentAnswer is bool) {
+      currentBool = widget.currentAnswer as bool;
+    } else if (widget.currentAnswer is String) {
+      currentBool = widget.currentAnswer.toString().toLowerCase() == 'true';
+    }
 
     return Row(
       children: [

@@ -28,25 +28,20 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         return _getMockSurveys(forceRefresh: forceRefresh);
       }
 
-      if (!forceRefresh) {
-        final cachedSurveys = await _getCachedSurveys();
-        if (cachedSurveys.isNotEmpty) {
-          loggy.info('Returning ${cachedSurveys.length} cached surveys');
-          return cachedSurveys;
-        }
-      }
-
+      // Always try API first to ensure users get the latest surveys
       final queryParams = {
         'isActive': 'true',
         'limit': '100',
       };
       
       final response = await createAuthenticatedGetRequest(_surveysEndpoint, queryParams);
-      final data = json.decode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
 
       if (data['success'] == true && data['surveys'] != null) {
-        final surveys = (data['surveys'] as List)
+        final allSurveys = (data['surveys'] as List)
             .map((surveyJson) => Survey.fromJson(surveyJson))
+            .toList();
+        final surveys = allSurveys
             .where((survey) => survey.isActive && !survey.isExpired)
             .toList();
 
@@ -59,7 +54,6 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       }
     } catch (e) {
       loggy.error('Error fetching surveys: $e');
-      
 
       final cachedSurveys = await _getCachedSurveys();
       if (cachedSurveys.isNotEmpty) {
@@ -93,7 +87,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       }
 
       final response = await createAuthenticatedGetRequest('$_surveysEndpoint/$surveyId', {});
-      final data = json.decode(response.body);
+      final data = json.decode(utf8.decode(response.bodyBytes));
 
       if (data['success'] == true && data['surveys'] != null && data['surveys'].isNotEmpty) {
         return Survey.fromJson(data['surveys'][0]);
@@ -117,7 +111,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         data: responseData,
       );
 
-      final data = json.decode(apiResponse.body);
+      final data = json.decode(utf8.decode(apiResponse.bodyBytes));
       
       if (data['success'] == true) {
         loggy.info('Successfully submitted survey response: ${response.id}');
@@ -136,7 +130,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
       loggy.error('Error submitting survey response: $e');
       
       final failedResponse = response.copyWith(
-        status: SurveyResponseStatus.inProgress, 
+        status: SurveyResponseStatus.completed, // Keep completed, retry sync later
       );
       await _cacheSurveyResponse(failedResponse);
       
@@ -175,7 +169,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         }
         
         final apiResponse = await createAuthenticatedGetRequest(_surveyResponsesEndpoint, queryParams);
-        final data = json.decode(apiResponse.body);
+        final data = json.decode(utf8.decode(apiResponse.bodyBytes));
 
         if (data['success'] == true && data['responses'] != null) {
           final apiResponses = (data['responses'] as List)
@@ -209,7 +203,7 @@ class SurveyRepository extends BaseRepository with UiLoggy {
         final response = await createAuthenticatedGetRequest(
           '$_surveyStatsEndpoint/$surveyId', {}
         );
-        final data = json.decode(response.body);
+        final data = json.decode(utf8.decode(response.bodyBytes));
 
         if (data['success'] == true && data['stats'] != null) {
           final stats = SurveyStats.fromJson(data['stats']);
