@@ -4,7 +4,6 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 
-import BackButton from '@/components/common/BackButton';
 import { CustomButton } from '@/components/ui';
 
 import ApiReferenceSection from './sections/ApiReferenceSection';
@@ -62,11 +61,25 @@ export default function IconsDocsPage() {
         <div className="bg-gradient-to-r from-[#1651C6] to-[#0D388E] text-white py-16">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-6">
-              <BackButton
-                fallbackUrl="/packages/icons"
-                label="Back to Library"
-                className="text-white hover:text-white"
-              />
+              <Link
+                href="/packages/icons"
+                className="inline-flex items-center text-white hover:text-blue-100 font-medium transition-colors"
+              >
+                <svg
+                  className="w-5 h-5 mr-1"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                  />
+                </svg>
+                Back to Icons Library
+              </Link>
             </div>
             <div className="flex justify-between items-end">
               <div>

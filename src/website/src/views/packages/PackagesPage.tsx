@@ -11,7 +11,6 @@ import { getAllPackages } from '@/configs/packagesConfig';
 
 export default function PackagesPage() {
   const packages = getAllPackages();
-  const iconsPackage = packages[0];
   const [activeFramework, setActiveFramework] = useState('React');
 
   // Guard against empty packages array
@@ -23,6 +22,18 @@ export default function PackagesPage() {
     );
   }
 
+  // For now, use first package (icons). When more packages are added,
+  // this can be made dynamic with a selector/tabs
+  const activePackage = packages[0];
+
+  // Calculate dynamic stats across all packages
+  const totalPackages = packages.length;
+
+  // Get unique frameworks across all packages
+  const allFrameworks = new Set(
+    packages.flatMap((pkg) => pkg.frameworks.map((f) => f.name)),
+  );
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
@@ -31,18 +42,11 @@ export default function PackagesPage() {
   };
 
   const getInstallCommand = () => {
-    const framework = iconsPackage.frameworks.find(
+    const framework = activePackage.frameworks.find(
       (f) => f.name === activeFramework,
     );
-    if (!framework) return iconsPackage.installation.npm;
-
-    // Use framework-specific install command if available (e.g., Flutter uses flutter pub add)
-    if (framework.installCommand) {
-      return framework.installCommand;
-    }
-
-    // Default to npm install for React/Vue
-    return `npm install ${framework.package}`;
+    if (!framework) return 'npm install @airqo/icons-react'; // Fallback
+    return framework.installCommand;
   };
 
   return (
@@ -59,18 +63,16 @@ export default function PackagesPage() {
               </div>
               <h1 className="text-5xl md:text-6xl font-bold">AirQo Packages</h1>
               <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-                Production-ready libraries and tools for building modern air
-                quality applications. Multi-framework support with TypeScript,
-                tree-shaking, and SSR compatibility.
+                Open-source packages for building modern applications.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Link href="/packages/icons">
+                <Link href={`/packages/${activePackage.id}`}>
                   <CustomButton className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 px-6 sm:px-8 py-3">
-                    Explore Icons
+                    Explore {activePackage.displayName}
                   </CustomButton>
                 </Link>
                 <a
-                  href="https://github.com/airqo-platform/AirQo-api/tree/staging/packages/airqo-icons"
+                  href={activePackage.repository}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -88,23 +90,26 @@ export default function PackagesPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
             <StatCard
               icon={<AqBox className="w-6 h-6" />}
-              label="Total Packages"
-              value="1"
-              description="More coming soon"
+              label="Total Libraries"
+              value={totalPackages}
+              description={
+                totalPackages === 1
+                  ? 'More coming soon'
+                  : 'Production-ready packages'
+              }
             />
             <StatCard
               icon={<AqDownload01 className="w-6 h-6" />}
-              label="Weekly Downloads"
-              value="100+"
+              label="Total Downloads"
+              value="400+"
               description="Across all packages"
             />
             <StatCard
               icon={<AqCheckCircle className="w-6 h-6" />}
               label="Framework Support"
-              value="3+"
-              description="React, Vue, Flutter"
+              value={`${allFrameworks.size}+`}
+              description={Array.from(allFrameworks).join(', ')}
             />
-            {/* Open Source stat card removed per design request */}
           </div>
         </div>
 
@@ -118,15 +123,15 @@ export default function PackagesPage() {
                   Featured Package
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  {iconsPackage.displayName}
+                  {activePackage.displayName}
                 </h2>
                 <p className="text-lg text-gray-600 mb-6">
-                  {iconsPackage.description}
+                  {activePackage.description}
                 </p>
 
                 {/* Features */}
                 <div className="space-y-3 mb-8">
-                  {iconsPackage.features.slice(0, 4).map((feature, index) => (
+                  {activePackage.features.slice(0, 4).map((feature, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <AqCheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                       <span className="text-gray-700">{feature}</span>
@@ -134,9 +139,9 @@ export default function PackagesPage() {
                   ))}
                 </div>
 
-                <Link href="/packages/icons">
+                <Link href={`/packages/${activePackage.id}`}>
                   <CustomButton className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
-                    Explore Icons →
+                    Learn More →
                   </CustomButton>
                 </Link>
               </div>
@@ -148,7 +153,7 @@ export default function PackagesPage() {
                 {/* Framework Tabs */}
                 <div className="mb-6">
                   <FrameworkTabs
-                    frameworks={iconsPackage.frameworks}
+                    frameworks={activePackage.frameworks}
                     activeFramework={activeFramework}
                     onSelectFramework={setActiveFramework}
                   />
@@ -218,7 +223,7 @@ export default function PackagesPage() {
                     Docs
                   </Link>
                   <a
-                    href={iconsPackage.npmPackage}
+                    href={activePackage.npmPackage}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium"
@@ -226,7 +231,7 @@ export default function PackagesPage() {
                     npm
                   </a>
                   <a
-                    href={iconsPackage.repository}
+                    href={activePackage.repository}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg transition-colors text-sm font-medium"

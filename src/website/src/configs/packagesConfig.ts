@@ -15,14 +15,9 @@ export interface Package {
     package: string;
     displayName: string;
     icon: string;
-    installCommand?: string;
+    installCommand: string;
   }>;
   features: string[];
-  installation: {
-    npm: string;
-    yarn: string;
-    pnpm: string;
-  };
   repository: string;
   homepage: string;
   npmPackage: string;
@@ -55,12 +50,14 @@ export const packagesData: Package[] = [
         package: '@airqo/icons-react',
         displayName: 'React',
         icon: 'react',
+        installCommand: 'npm install @airqo/icons-react',
       },
       {
         name: 'Vue',
         package: '@airqo/icons-vue',
         displayName: 'Vue 3',
         icon: 'vue',
+        installCommand: 'npm install @airqo/icons-vue',
       },
       {
         name: 'Flutter',
@@ -80,11 +77,6 @@ export const packagesData: Package[] = [
       '22 icon categories',
       'Zero dependencies (optional fuse.js)',
     ],
-    installation: {
-      npm: 'npm install @airqo/icons-react',
-      yarn: 'yarn add @airqo/icons-react',
-      pnpm: 'pnpm add @airqo/icons-react',
-    },
     repository:
       'https://github.com/airqo-platform/AirQo-api/tree/staging/packages/airqo-icons',
     homepage: 'https://aero-glyphs.vercel.app',
@@ -99,7 +91,6 @@ export const packagesData: Package[] = [
   },
 ];
 
-export const getFeaturedPackages = (): Package[] => packagesData;
 export const getPackageById = (id: string): Package | undefined =>
   packagesData.find((pkg) => pkg.id === id);
 export const getAllPackages = (): Package[] => packagesData;

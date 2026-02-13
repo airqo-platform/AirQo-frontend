@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import type { ComponentType, SVGProps } from 'react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface IconMetadata {
@@ -27,7 +27,10 @@ export default function IconPreviewDialog({
     'react',
   );
 
-  // Handle Escape key to close dialog
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Handle Escape key to close dialog and focus trapping
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -35,15 +38,61 @@ export default function IconPreviewDialog({
       }
     };
 
+    const handleTab = (e: KeyboardEvent) => {
+      if (e.key === 'Tab' && modalRef.current) {
+        const focusableElements = modalRef.current.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        );
+        const firstElement = focusableElements[0] as HTMLElement;
+        const lastElement = focusableElements[
+          focusableElements.length - 1
+        ] as HTMLElement;
+
+        if (e.shiftKey) {
+          if (document.activeElement === firstElement) {
+            lastElement.focus();
+            e.preventDefault();
+          }
+        } else {
+          if (document.activeElement === lastElement) {
+            firstElement.focus();
+            e.preventDefault();
+          }
+        }
+      }
+    };
+
     if (isOpen) {
+      // Store the currently focused element
+      previousFocusRef.current = document.activeElement as HTMLElement;
+
       document.addEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleTab);
       // Prevent body scroll when dialog is open
       document.body.style.overflow = 'hidden';
+
+      // Focus the first focusable element in the modal
+      setTimeout(() => {
+        if (modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+          );
+          if (focusableElements.length > 0) {
+            (focusableElements[0] as HTMLElement).focus();
+          }
+        }
+      }, 100);
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('keydown', handleTab);
       document.body.style.overflow = 'unset';
+
+      // Restore focus when modal closes
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
     };
   }, [isOpen, onClose]);
 
@@ -109,7 +158,10 @@ AqIcon.${icon.name.toLowerCase()}(
   return (
     <>
       <div className="fixed inset-0 bg-black/50 z-[20000]" onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[20000] w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div
+        className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl z-[20000] w-[90vw] max-w-4xl max-h-[90vh] overflow-y-auto"
+        ref={modalRef}
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
           <div>
