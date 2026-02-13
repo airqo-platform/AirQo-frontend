@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
@@ -18,6 +19,7 @@ import { networkFormSchema, NetworkFormValues } from "./schema";
 export function CreateNetworkForm() {
     const [open, setOpen] = useState(false);
     const [isPending, setIsPending] = useState(false);
+    const queryClient = useQueryClient();
 
     const form = useForm<NetworkFormValues>({
         resolver: zodResolver(networkFormSchema),
@@ -49,6 +51,7 @@ export function CreateNetworkForm() {
                 });
 
                 ReusableToast({ message: 'Sensor Manufacturer created successfully!', type: 'SUCCESS' });
+                queryClient.invalidateQueries({ queryKey: ["networks"] });
                 handleClose();
             } catch (error: unknown) {
                 const errorMessage = getApiErrorMessage(error);
