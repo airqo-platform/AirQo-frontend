@@ -148,7 +148,7 @@ export function CreateGridForm() {
                     onChange={(e) => field.onChange(e.target.value)}
                     error={form.formState.errors.network?.message}
                     required
-                    placeholder={isLoadingNetworks ? "Loading Sensor Manufacturer..." : "Select a Sensor Manufacturer"}
+                    placeholder={isLoadingNetworks ? "Loading Sensor Manufacturers..." : "Select a Sensor Manufacturer"}
                     disabled={isLoadingNetworks}
                   >
                     {networks.map((network) => (
