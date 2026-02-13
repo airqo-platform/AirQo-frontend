@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import React from "react";
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isValid } from 'date-fns';
 
 
 interface MaintenanceStatusCardProps {
@@ -17,7 +17,7 @@ const MaintenanceStatusCard: React.FC<MaintenanceStatusCardProps> = ({
       </div>
 
       <div className="px-3 py-0 space-y-3">
-        {nextMaintenance ? (
+        {nextMaintenance && isValid(parseISO(nextMaintenance)) ? (
           <div className="pt-3 pb-3">
             <div className="text-base font-normal">
               {format(parseISO(nextMaintenance), "MMM d yyyy, h:mm a")}
