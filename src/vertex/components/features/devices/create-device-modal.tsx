@@ -113,7 +113,7 @@ const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       isOpen={open}
       onClose={handleClose}
       title="Add AirQo Device"
-      subtitle={`Sensor Manufacturer: ${networkName || activeNetwork?.net_name}`}
+      subtitle={`Sensor Manufacturer: ${networkName || activeNetwork?.net_name || "N/A"}`}
       size="md"
       primaryAction={{
         label: createDevice.isPending ? "Adding..." : "Add Device",
