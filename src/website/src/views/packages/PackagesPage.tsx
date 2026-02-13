@@ -11,7 +11,9 @@ import { getAllPackages } from '@/configs/packagesConfig';
 
 export default function PackagesPage() {
   const packages = getAllPackages();
-  const [activeFramework, setActiveFramework] = useState('React');
+  const [activeFramework, setActiveFramework] = useState<string>(
+    packages[0]?.frameworks[0]?.name || 'React',
+  );
 
   // Guard against empty packages array
   if (!packages || packages.length === 0) {
@@ -101,7 +103,7 @@ export default function PackagesPage() {
             <StatCard
               icon={<AqDownload01 className="w-6 h-6" />}
               label="Total Downloads"
-              value="400+"
+              value={activePackage.totalDownloads}
               description="Across all packages"
             />
             <StatCard

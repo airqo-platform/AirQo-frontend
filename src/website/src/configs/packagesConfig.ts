@@ -6,7 +6,7 @@ export interface Package {
   description: string;
   tagline?: string;
   version: string;
-  weeklyDownloads: number;
+  weeklyDownloads: string;
   totalDownloads: string;
   iconCount: number;
   categories: number;
@@ -40,7 +40,7 @@ export const packagesData: Package[] = [
     tagline: 'Beautiful icons for your AirQo projects',
     // TODO: These metrics should be fetched from npm registry API at build time to stay current
     version: '0.2.7',
-    weeklyDownloads: 36,
+    weeklyDownloads: '36',
     totalDownloads: '2.5K+',
     iconCount: 1383,
     categories: 22,
@@ -61,7 +61,7 @@ export const packagesData: Package[] = [
       },
       {
         name: 'Flutter',
-        package: '@airqo/icons-flutter',
+        package: 'airqo_icons_flutter',
         displayName: 'Flutter',
         icon: 'flutter',
         installCommand: 'flutter pub add airqo_icons_flutter',

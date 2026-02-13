@@ -235,6 +235,8 @@ AqIcon.${icon.name.toLowerCase()}(
                     }`}
                     style={{ backgroundColor: c }}
                     title={c}
+                    aria-label={`Color ${c}`}
+                    aria-pressed={color === c}
                   />
                 ))}
               </div>
