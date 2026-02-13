@@ -41,7 +41,7 @@ export const packagesData: Package[] = [
     // TODO: These metrics should be fetched from npm registry API at build time to stay current
     version: '0.2.7',
     weeklyDownloads: '36',
-    totalDownloads: '2.5K+',
+    totalDownloads: '500+',
     iconCount: 1383,
     categories: 22,
     frameworks: [
