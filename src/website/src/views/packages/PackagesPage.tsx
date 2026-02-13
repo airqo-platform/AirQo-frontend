@@ -104,7 +104,7 @@ export default function PackagesPage() {
               icon={<AqDownload01 className="w-6 h-6" />}
               label="Total Downloads"
               value={activePackage.totalDownloads}
-              description="Across all packages"
+              description="For this package"
             />
             <StatCard
               icon={<AqCheckCircle className="w-6 h-6" />}

@@ -164,7 +164,7 @@ export default function FloatingMiniBillboard({
       >
         <span className="flex items-center gap-1">
           <span className="inline-block w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white/80 animate-pulse"></span>
-          <span className="hidden xs:inline">{gridName}: </span>
+          <span className="hidden sm:inline">{gridName}: </span>
           <span>{displayValue} PM2.5</span>
         </span>
       </button>
@@ -265,7 +265,7 @@ export default function FloatingMiniBillboard({
 
             {/* Icon */}
             <div
-              className="flex items-center justify-center shrink-0"
+              className="flex items-center justify-center shrink-0 w-8 h-8"
               aria-hidden="true"
             >
               {getAirQualityIcon(category)}
