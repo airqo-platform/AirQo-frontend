@@ -1,5 +1,6 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { externalService, gridsService } from '@/services/apiService';
@@ -23,6 +24,7 @@ interface BillboardData {
  * Note: Uses client-side API calls with token proxying to avoid server costs
  */
 export default function FloatingMiniBillboardWrapper() {
+  const pathname = usePathname();
   const [billboardData, setBillboardData] = useState<BillboardData[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -160,8 +162,12 @@ export default function FloatingMiniBillboardWrapper() {
     };
   }, []);
 
-  // Don't render anything while loading or if there's no data
-  if (loading || billboardData.length === 0) {
+  // Don't render anything while loading or if there's no data or if on packages page
+  if (
+    loading ||
+    billboardData.length === 0 ||
+    pathname?.startsWith('/packages')
+  ) {
     return null;
   }
 

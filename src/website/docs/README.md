@@ -1,10 +1,15 @@
 # AirQo Documentation
 
-**Last Updated**: January 28, 2026
+**Last Updated**: February 13, 2026
 
 ---
 
 ## 📚 Documentation Index
+
+### Architecture & Structure
+
+**[APP_STRUCTURE.md](./APP_STRUCTURE.md)** ⭐ **NEW**  
+Comprehensive guide to the website's application structure, route organization, and multi-section architecture. Essential reading for understanding the codebase.
 
 ### SEO & Interactive Components
 
@@ -36,6 +41,11 @@ SEO metadata enhancements and structured data.
 **Network**: 400+ monitors across 14 countries  
 **Key Pages**: `/billboard/interactive`, `/solutions/network-coverage`
 
+**New Sections**:
+- `/packages` - Open source packages and developer tools
+- `/blog` - News, insights, and stories (coming soon)
+
 ---
 
-**For SEO work**: See [AIRQO_SEO_GUIDE.md](./AIRQO_SEO_GUIDE.md)
+**For SEO work**: See [AIRQO_SEO_GUIDE.md](./AIRQO_SEO_GUIDE.md)  
+**For app structure**: See [APP_STRUCTURE.md](./APP_STRUCTURE.md)

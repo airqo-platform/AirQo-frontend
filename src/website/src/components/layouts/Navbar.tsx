@@ -92,6 +92,23 @@ const menuItems: MenuItems = {
     { title: 'FAQs', href: '/faqs' },
     { title: 'CLEAN-Air Forum', href: '/clean-air-forum' },
   ],
+  Developers: [
+    {
+      title: 'Packages',
+      description: 'Open source libraries and developer tools',
+      href: '/packages',
+    },
+    {
+      title: 'Documentation',
+      description: 'API guides and technical resources',
+      href: 'https://docs.airqo.net',
+    },
+    {
+      title: 'GitHub',
+      description: 'Explore our open source projects',
+      href: 'https://github.com/airqo-platform',
+    },
+  ],
 };
 
 // Helper component for rendering dropdown items with translation support

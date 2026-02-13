@@ -59,6 +59,19 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly' as const,
       priority: 0.8,
     },
+    // Packages (Developer Resources)
+    {
+      url: `${baseUrl}/packages`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/packages/icons`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    },
     // Solutions
     {
       url: `${baseUrl}/solutions/african-cities`,

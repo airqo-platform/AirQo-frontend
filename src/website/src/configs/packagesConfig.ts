@@ -1,0 +1,102 @@
+// Package configuration with real npm statistics
+export interface Package {
+  id: string;
+  name: string;
+  displayName: string;
+  description: string;
+  tagline?: string;
+  version: string;
+  weeklyDownloads: number;
+  totalDownloads: string;
+  iconCount: number;
+  categories: number;
+  frameworks: Array<{
+    name: 'React' | 'Vue' | 'Flutter';
+    package: string;
+    displayName: string;
+    icon: string;
+  }>;
+  features: string[];
+  installation: {
+    npm: string;
+    yarn: string;
+    pnpm: string;
+  };
+  repository: string;
+  homepage: string;
+  npmPackage: string;
+  docsUrl: string;
+  bundleSize: string;
+  license: string;
+  lastPublished: string;
+  treeshakeable: boolean;
+  typescript: boolean;
+  ssr: boolean;
+}
+
+export const packagesData: Package[] = [
+  {
+    id: 'icons',
+    name: 'icons',
+    displayName: 'AirQo Icons',
+    description:
+      'Production-ready icon library with 1,383+ optimized SVG icons across 22 categories. Available for React, Vue, and Flutter with full TypeScript support.',
+    tagline: 'Beautiful icons for your AirQo projects',
+    version: '0.2.7',
+    weeklyDownloads: 36,
+    totalDownloads: '2.5K+',
+    iconCount: 1383,
+    categories: 22,
+    frameworks: [
+      {
+        name: 'React',
+        package: '@airqo/icons-react',
+        displayName: 'React',
+        icon: 'react',
+      },
+      {
+        name: 'Vue',
+        package: '@airqo/icons-vue',
+        displayName: 'Vue 3',
+        icon: 'vue',
+      },
+      {
+        name: 'Flutter',
+        package: '@airqo/icons-flutter',
+        displayName: 'Flutter',
+        icon: 'flutter',
+      },
+    ],
+    features: [
+      '1,383 carefully crafted icons',
+      'Tree-shakable (2-4KB per icon)',
+      'Smart search with fuzzy matching',
+      'Full TypeScript support',
+      'SSR compatible',
+      '196+ country flags',
+      '22 icon categories',
+      'Zero dependencies (optional fuse.js)',
+    ],
+    installation: {
+      npm: 'npm install @airqo/icons-react',
+      yarn: 'yarn add @airqo/icons-react',
+      pnpm: 'pnpm add @airqo/icons-react',
+    },
+    repository:
+      'https://github.com/airqo-platform/AirQo-api/tree/staging/packages/airqo-icons',
+    homepage: 'https://aero-glyphs.vercel.app',
+    npmPackage: 'https://www.npmjs.com/package/@airqo/icons-react',
+    docsUrl: 'https://aero-glyphs.vercel.app/docs',
+    bundleSize: '~15 MB unpacked, tree-shakeable',
+    license: 'MIT',
+    lastPublished: '6 months ago',
+    treeshakeable: true,
+    typescript: true,
+    ssr: true,
+  },
+];
+
+export const getFeaturedPackages = (): Package[] => packagesData;
+export const getPackageById = (id: string): Package | undefined =>
+  packagesData.find((pkg) => pkg.id === id);
+export const getAllPackages = (): Package[] => packagesData;
