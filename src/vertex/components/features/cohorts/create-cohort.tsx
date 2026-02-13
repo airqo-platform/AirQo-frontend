@@ -277,7 +277,7 @@ export function CreateCohortDialog({
               name="cohort_tags"
               render={({ field }) => (
                 <FormItem>
-                  <Label>Tags</Label>
+                  <Label>Tags *</Label>
                   <MultiSelectCombobox
                     options={DEFAULT_COHORT_TAGS}
                     placeholder="Select or create tags..."
