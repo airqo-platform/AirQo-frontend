@@ -1,7 +1,7 @@
 import createSecureApiClient from "../utils/secureApiProxyClient";
 import { Site } from "@/app/types/sites";
 import { PaginationMeta } from "@/app/types/devices";
-import { DeviceActivity, DeviceActivitiesResponse } from "./devices";
+import { DeviceActivitiesResponse } from "./devices";
 
 interface ApproximateCoordinatesResponse {
   success: boolean;
