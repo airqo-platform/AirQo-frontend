@@ -143,7 +143,7 @@ export default function PackagesPage() {
 
                 <Link href={`/packages/${activePackage.id}`}>
                   <CustomButton className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
-                    Learn More →
+                    Explore More →
                   </CustomButton>
                 </Link>
               </div>
