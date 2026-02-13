@@ -65,7 +65,7 @@ const HomePage = () => {
             <div className="h-96 animate-pulse bg-gray-100 rounded-lg" />
           }
         >
-          <AirQualityBillboard homepage className="md:px-3" />
+          <AirQualityBillboard homepage className="px-2 md:px-3" />
         </Suspense>
       </MotionSection>
 
