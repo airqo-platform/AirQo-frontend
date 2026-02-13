@@ -399,22 +399,6 @@ iframe[src*='translate.googleapis'] {
       -0.775em -0.297em 0 -0.46em,
       -0.82em -0.09em 0 -0.477em;
   }
-
-/* react-hot-toast z-index fix: ensure toasts appear above dialogs and headers */
-.react-hot-toast,
-.react-hot-toast-container,
-.react-hot-toast__container,
-.react-hot-toast-wrapper,
-.react-hot-toast__toast,
-.toast,
-.rh-toast {
-  z-index: 40000 !important;
-}
-
-/* If Toaster renders container with data attributes, target common selectors too */
-[data-hot-toast-root] {
-  z-index: 40000 !important;
-}
   100% {
     box-shadow:
       0 -0.83em 0 -0.4em,
@@ -432,6 +416,22 @@ iframe[src*='translate.googleapis'] {
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* react-hot-toast z-index fix: ensure toasts appear above dialogs and headers */
+.react-hot-toast,
+.react-hot-toast-container,
+.react-hot-toast__container,
+.react-hot-toast-wrapper,
+.react-hot-toast__toast,
+.toast,
+.rh-toast {
+  z-index: 40000 !important;
+}
+
+/* If Toaster renders container with data attributes, target common selectors too */
+[data-hot-toast-root] {
+  z-index: 40000 !important;
 }
 
 /* Fade animations for translation loading */

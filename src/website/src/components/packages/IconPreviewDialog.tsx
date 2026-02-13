@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import type { ComponentType, SVGProps } from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface IconMetadata {
@@ -26,6 +26,26 @@ export default function IconPreviewDialog({
   const [activeTab, setActiveTab] = useState<'react' | 'vue' | 'flutter'>(
     'react',
   );
+
+  // Handle Escape key to close dialog
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      // Prevent body scroll when dialog is open
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
 
   if (!isOpen || !icon) return null;
 

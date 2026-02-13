@@ -11,9 +11,14 @@ export default function InstallationSection() {
     pnpm: 'pnpm add @airqo/icons-react',
   };
 
-  const copyCommand = () => {
-    navigator.clipboard.writeText(commands[activeTab]);
-    toast.success('Command copied!');
+  const copyCommand = async () => {
+    try {
+      await navigator.clipboard.writeText(commands[activeTab]);
+      toast.success('Command copied!');
+    } catch (error) {
+      console.error('Failed to copy:', error);
+      toast.error('Failed to copy command');
+    }
   };
 
   return (

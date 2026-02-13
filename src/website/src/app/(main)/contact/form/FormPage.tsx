@@ -249,14 +249,14 @@ const FormPage: React.FC = () => {
               <label htmlFor="terms" className="text-gray-600">
                 I agree to the{' '}
                 <a
-                  href="/terms"
+                  href="/legal/terms-of-service"
                   className="text-blue-600 underline hover:text-blue-800 transition-colors"
                 >
                   Terms of Service
                 </a>{' '}
                 and{' '}
                 <a
-                  href="/privacy"
+                  href="/legal/privacy-policy"
                   className="text-blue-600 underline hover:text-blue-800 transition-colors"
                 >
                   Privacy Policy

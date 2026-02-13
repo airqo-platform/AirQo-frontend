@@ -21,14 +21,7 @@ export const metadata: Metadata = {
     title: 'AirQo Icons - Multi-Framework Icon Library',
     description:
       '1,383+ beautiful icons for React, Vue, and Flutter. Fully customizable with TypeScript support and tree-shakable imports.',
-    images: [
-      {
-        url: '/assets/images/icons-package-og.png',
-        width: 1200,
-        height: 630,
-        alt: 'AirQo Icons Package',
-      },
-    ],
+    // TODO: Add OG image at /assets/images/icons-package-og.png (1200x630)
   },
   twitter: {
     card: 'summary_large_image',

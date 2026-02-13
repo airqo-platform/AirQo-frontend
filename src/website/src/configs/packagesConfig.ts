@@ -15,6 +15,7 @@ export interface Package {
     package: string;
     displayName: string;
     icon: string;
+    installCommand?: string;
   }>;
   features: string[];
   installation: {
@@ -42,6 +43,7 @@ export const packagesData: Package[] = [
     description:
       'Production-ready icon library with 1,383+ optimized SVG icons across 22 categories. Available for React, Vue, and Flutter with full TypeScript support.',
     tagline: 'Beautiful icons for your AirQo projects',
+    // TODO: These metrics should be fetched from npm registry API at build time to stay current
     version: '0.2.7',
     weeklyDownloads: 36,
     totalDownloads: '2.5K+',
@@ -65,6 +67,7 @@ export const packagesData: Package[] = [
         package: '@airqo/icons-flutter',
         displayName: 'Flutter',
         icon: 'flutter',
+        installCommand: 'flutter pub add airqo_icons_flutter',
       },
     ],
     features: [

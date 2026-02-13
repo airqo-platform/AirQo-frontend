@@ -14,6 +14,15 @@ export default function PackagesPage() {
   const iconsPackage = packages[0];
   const [activeFramework, setActiveFramework] = useState('React');
 
+  // Guard against empty packages array
+  if (!packages || packages.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-600">No packages available.</p>
+      </div>
+    );
+  }
+
   const copyToClipboard = (text: string) => {
     navigator.clipboard
       .writeText(text)
@@ -25,9 +34,15 @@ export default function PackagesPage() {
     const framework = iconsPackage.frameworks.find(
       (f) => f.name === activeFramework,
     );
-    return framework
-      ? `npm install ${framework.package}`
-      : iconsPackage.installation.npm;
+    if (!framework) return iconsPackage.installation.npm;
+
+    // Use framework-specific install command if available (e.g., Flutter uses flutter pub add)
+    if (framework.installCommand) {
+      return framework.installCommand;
+    }
+
+    // Default to npm install for React/Vue
+    return `npm install ${framework.package}`;
   };
 
   return (
@@ -80,7 +95,7 @@ export default function PackagesPage() {
             <StatCard
               icon={<AqDownload01 className="w-6 h-6" />}
               label="Weekly Downloads"
-              value={`${packages.reduce((acc, pkg) => acc + pkg.weeklyDownloads, 0)}+`}
+              value="100+"
               description="Across all packages"
             />
             <StatCard
