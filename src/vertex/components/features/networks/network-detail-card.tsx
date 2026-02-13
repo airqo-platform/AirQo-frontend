@@ -24,7 +24,7 @@ export default function NetworkDetailsCard({
         <div className="flex justify-between items-start">
             <div>
                 <h2 className="text-2xl font-bold tracking-tight uppercase">
-                    {name} Network
+                    {name} Sensor Manufacturer
                 </h2>
                 <div className="flex flex-col gap-1">
                     <span className="text-sm text-muted-foreground flex items-center gap-2">

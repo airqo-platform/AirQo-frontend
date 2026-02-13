@@ -46,7 +46,7 @@ export const badgeColorClasses: Record<StatusColor, string> = {
   yellow: "bg-yellow-100 text-yellow-800",
   gray: "bg-gray-100 text-gray-800",
   red: "bg-red-100 text-red-800",
-  purple: "bg-purple-100 text-purple-800",
+  purple: "bg-purple-600 text-white",
 };
 
 /*

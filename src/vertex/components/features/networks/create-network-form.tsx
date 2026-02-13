@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import * as z from "zod";
+import { useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Form, FormField } from "@/components/ui/form";
 import ReusableDialog from "@/components/shared/dialog/ReusableDialog";
@@ -14,26 +14,12 @@ import { AqPlus } from "@airqo/icons-react";
 import { getApiErrorMessage } from "@/core/utils/getApiErrorMessage";
 import ReusableSelectInput from "@/components/shared/select/ReusableSelectInput";
 
-export const networkFormSchema = z.object({
-    net_name: z.string().min(2, "Network name must be at least 2 characters."),
-    net_acronym: z.string().min(2, "Acronym must be at least 2 characters."),
-    net_username: z.string().min(2, "Username must be at least 2 characters."),
-    net_email: z.string().email("Invalid email address."),
-    net_website: z.string().url("Invalid URL."),
-    net_phoneNumber: z.string().min(10, "Phone number seems too short."),
-    net_category: z.enum(["business", "research", "policy", "awareness", "school", "others"], {
-        errorMap: () => ({ message: "Please select a valid category" }),
-    }),
-    net_description: z.string().min(10, "Description is too short."),
-    net_connection_endpoint: z.string().url("Invalid URL."),
-    net_connection_string: z.string().url("Invalid URL."),
-});
-
-type NetworkFormValues = z.infer<typeof networkFormSchema>;
+import { networkFormSchema, NetworkFormValues } from "./schema";
 
 export function CreateNetworkForm() {
     const [open, setOpen] = useState(false);
     const [isPending, setIsPending] = useState(false);
+    const queryClient = useQueryClient();
 
     const form = useForm<NetworkFormValues>({
         resolver: zodResolver(networkFormSchema),
@@ -64,7 +50,8 @@ export function CreateNetworkForm() {
                     headers: { 'Content-Type': 'application/json' },
                 });
 
-                ReusableToast({ message: 'Network created successfully!', type: 'SUCCESS' });
+                ReusableToast({ message: 'Sensor Manufacturer created successfully!', type: 'SUCCESS' });
+                queryClient.invalidateQueries({ queryKey: ["networks"] });
                 handleClose();
             } catch (error: unknown) {
                 const errorMessage = getApiErrorMessage(error);
@@ -83,15 +70,15 @@ export function CreateNetworkForm() {
                 onClick={() => setOpen(true)}
                 Icon={AqPlus}
             >
-                Create Network
+                Create Sensor Manufacturer
             </ReusableButton>
             <ReusableDialog
                 isOpen={open}
                 onClose={handleClose}
-                title="Create a new Network"
+                title="Create a new Sensor Manufacturer"
                 size="2xl"
                 primaryAction={{
-                    label: isPending ? "Creating..." : "Create Network",
+                    label: isPending ? "Creating..." : "Create Sensor Manufacturer",
                     onClick: form.handleSubmit(onSubmit),
                     disabled: isPending,
                 }}

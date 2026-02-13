@@ -61,7 +61,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
       newErrors.long_name = "Device name is required";
     }
     if (!formData.network) {
-      newErrors.network = "Network is required";
+      newErrors.network = "Sensor Manufacturer is required";
     }
 
     if (!formData.serial_number.trim()) {
@@ -156,10 +156,10 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
     <ReusableDialog
       isOpen={open}
       onClose={handleClose}
-      title="Import Device"
+      title="Import External Device"
       size="md"
       primaryAction={{
-        label: importDevice.isPending ? "Importing..." : "Import Device",
+        label: importDevice.isPending ? "Importing..." : "Import External Device",
         onClick: handleSubmit,
         disabled: importDevice.isPending,
         className: "min-w-[100px]",
@@ -190,13 +190,13 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
 
         <div>
           <ReusableSelectInput
-            label="Network"
+            label="Sensor Manufacturer"
             id="network"
             value={formData.network}
             onChange={(e) => handleInputChange("network", e.target.value)}
             error={errors.network}
             required
-            placeholder={isLoadingNetworks ? "Loading networks..." : "Select a network"}
+            placeholder={isLoadingNetworks ? "Loading Sensor Manufacturer..." : "Select a Sensor Manufacturer"}
             disabled={isLoadingNetworks}
           >
             {networks
@@ -217,7 +217,7 @@ const ImportDeviceModal: React.FC<ImportDeviceModalProps> = ({
                 variant="text"
                 className="text-xs p-0 px-1 mt-1 h-auto"
               >
-                Can&apos;t find your network?
+                Can&apos;t find your Sensor Manufacturer?
               </ReusableButton>
             </div>
           )}

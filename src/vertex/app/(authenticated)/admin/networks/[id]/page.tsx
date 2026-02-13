@@ -65,7 +65,7 @@ export default function NetworkDetailsPage() {
                                 Icon={Upload}
                                 permission={PERMISSIONS.DEVICE.UPDATE}
                             >
-                                Import Device
+                                Import External Device
                             </ReusableButton>
                         )}
                     </div>
@@ -86,12 +86,12 @@ export default function NetworkDetailsPage() {
                     <ContentGridSkeleton />
                 ) : error ? (
                     <div className="mt-6 text-sm text-muted-foreground">
-                        Unable to load network details:{" "}
+                        Unable to load Sensor Manufacturer details:{" "}
                         {String((error as Error)?.message || "Unknown error")}
                     </div>
                 ) : !network ? (
                     <div className="mt-6 text-sm text-muted-foreground">
-                        Network not found
+                        Sensor Manufacturer not found
                     </div>
                 ) : (
                     <div className="flex flex-col gap-6">

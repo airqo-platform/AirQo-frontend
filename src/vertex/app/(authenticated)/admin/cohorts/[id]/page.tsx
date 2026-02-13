@@ -107,6 +107,7 @@ export default function CohortDetailsPage() {
                 visibility={Boolean(cohort?.visibility)}
                 onShowDetailsModal={handleOpenDetails}
                 loading={isLoading}
+                cohort_tags={cohort?.cohort_tags}
               />
               <CohortMeasurementsApiCard cohortId={cohortId} />
             </div>

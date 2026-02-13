@@ -3,14 +3,15 @@ import {
   UseQueryOptions,
   useMutation,
   useQueryClient,
+  useInfiniteQuery,
 } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import {
   DeviceDetailsResponse,
   devices,
-  type MaintenanceActivitiesResponse,
   GetDevicesSummaryParams,
   DeviceCountResponse,
+  type DeviceActivitiesResponse,
 } from '../apis/devices';
 import { useGroupCohorts } from './useCohorts';
 import { setError } from '@/core/redux/slices/devicesSlice';
@@ -544,6 +545,7 @@ export const useCreateDevice = () => {
       }
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -593,9 +595,11 @@ export const useImportDevice = () => {
         if (userContext === 'external-org') {
           queryClient.invalidateQueries({ queryKey: ['devices'] });
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         } else {
           queryClient.invalidateQueries({ queryKey: ['myDevices'] });
           queryClient.invalidateQueries({ queryKey: ['deviceCount'] });
+          queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
         }
       }
     },
@@ -624,6 +628,10 @@ export const useDeployDevice = () => {
       network: string;
       user_id: string;
       deployment_date: string | undefined;
+      firstName?: string;
+      lastName?: string;
+      email?: string;
+      userName?: string;
     }) => devices.deployDevice(deviceData),
     onSuccess: (data, variables) => {
       ReusableToast({
@@ -633,6 +641,7 @@ export const useDeployDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['claimedDevices'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -656,6 +665,10 @@ export const useRecallDevice = () => {
         recallType: string;
         user_id: string;
         date: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        userName?: string;
       };
     }) => devices.recallDevice(deviceName, recallData),
     onSuccess: (data, variables) => {
@@ -666,6 +679,7 @@ export const useRecallDevice = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['myDevices'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -695,6 +709,7 @@ export const useAddMaintenanceLog = () => {
       queryClient.invalidateQueries({ queryKey: ['devices'] });
       queryClient.invalidateQueries({ queryKey: ['device-details'] });
       queryClient.invalidateQueries({ queryKey: ['deviceStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['deviceActivities'] });
     },
     onError: error => {
       ReusableToast({
@@ -702,15 +717,6 @@ export const useAddMaintenanceLog = () => {
         type: 'ERROR',
       });
     },
-  });
-};
-
-export const useDeviceMaintenanceLogs = (deviceName: string) => {
-  return useQuery<MaintenanceActivitiesResponse, AxiosError<ErrorResponse>>({
-    queryKey: ['deviceMaintenanceLogs', deviceName],
-    queryFn: () => devices.getDeviceMaintenanceLogs(deviceName),
-    enabled: !!deviceName,
-    staleTime: 60_000,
   });
 };
 
@@ -833,5 +839,26 @@ export const useShippingBatchDetails = (batchId: string) => {
     queryFn: () => devices.getShippingBatchDetails(batchId),
     enabled: !!batchId,
     staleTime: 60_000,
+  });
+};
+
+export const useDeviceActivities = (deviceName: string) => {
+  return useInfiniteQuery<DeviceActivitiesResponse, AxiosError<ErrorResponse>>({
+    queryKey: ['deviceActivities', deviceName],
+    queryFn: ({ pageParam = 1 }) =>
+      devices.getDeviceActivities(deviceName, { page: pageParam as number, limit: 10 }),
+    getNextPageParam: (lastPage: DeviceActivitiesResponse, allPages: DeviceActivitiesResponse[]) => {
+        if (!lastPage.meta) {
+            if (!lastPage.site_activities || lastPage.site_activities.length < 10) return undefined;
+            return allPages.length + 1;
+        }
+        if (lastPage.meta.page < lastPage.meta.totalPages) {
+            return lastPage.meta.page + 1;
+        }
+        return undefined;
+    },
+    enabled: !!deviceName,
+    staleTime: 60_000,
+    initialPageParam: 1,
   });
 };
