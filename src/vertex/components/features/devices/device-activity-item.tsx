@@ -1,5 +1,5 @@
 import React from "react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { AqMonitor } from "@airqo/icons-react";
 import { DeviceActivity } from "@/core/apis/devices";
 
@@ -33,7 +33,11 @@ const DeviceActivityItem: React.FC<DeviceActivityItemProps> = ({
             <div className="flex justify-between items-start gap-4 pt-1">
                 <div className="flex-1 space-y-1">
                     <div className="text-xs text-gray-500">
-                        <span>{format(parseISO(activity.date), "MMM d, yyyy h:mm a")}</span>
+                        <span>
+                            {isValid(parseISO(activity.date))
+                                ? format(parseISO(activity.date), "MMM d, yyyy h:mm a")
+                                : (activity.date || "Unknown date")}
+                        </span>
                     </div>
                     <h4 className="text-base font-medium text-gray-900 leading-none">
                         {activity.description.charAt(0).toUpperCase() + activity.description.slice(1)}
