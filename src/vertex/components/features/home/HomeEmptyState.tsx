@@ -31,8 +31,7 @@ const HomeEmptyState = () => {
             </h2>
 
             <p className="text-gray-600 dark:text-gray-400 max-w-md mb-8">
-                Add your AirQo devices or import external devices from an external device
-                network to begin tracking your device fleet.
+                Add your AirQo devices or import external devices from any Sensor Manufacturer to begin tracking your device fleet.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
