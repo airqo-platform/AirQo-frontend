@@ -101,7 +101,7 @@ const menuItems: MenuItems = {
     {
       title: 'Documentation',
       description: 'API guides and technical resources',
-      href: 'https://docs.airqo.net',
+      href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
     },
     {
       title: 'GitHub',

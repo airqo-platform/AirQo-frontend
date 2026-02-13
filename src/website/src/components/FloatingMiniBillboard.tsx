@@ -41,7 +41,7 @@ const getAirQualityIcon = (category: string) => {
   const level = categoryToLevel(category);
   const color = getAirQualityColor(category);
   const iconProps = {
-    className: `w-12 h-12`,
+    className: `w-10 h-10 md:w-12 md:h-12`,
     style: { color },
   };
 
@@ -103,9 +103,9 @@ export default function FloatingMiniBillboard({
   useEffect(() => {
     if (!isMounted) return;
 
-    // Check screen size - only show on medium screens and above, and not on billboard pages
+    // Show on all screen sizes, but not on billboard pages
     const checkScreenSize = () => {
-      setIsVisible(window.innerWidth >= 768 && !shouldHide);
+      setIsVisible(!shouldHide);
     };
 
     checkScreenSize();
@@ -154,26 +154,26 @@ export default function FloatingMiniBillboard({
     return (
       <button
         onClick={() => setIsMinimized(false)}
-        className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg transition-all duration-300 text-sm font-medium"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white px-3 py-1.5 md:px-4 md:py-2 rounded-full shadow-lg transition-all duration-300 text-xs md:text-sm font-medium max-w-[90vw] md:max-w-none truncate"
         aria-label="Show air quality widget"
       >
-        {gridName}: {displayValue} PM2.5
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block w-2 h-2 rounded-full bg-white/80 animate-pulse"></span>
+          {gridName}: {displayValue} PM2.5
+        </span>
       </button>
     );
-  }
-
-  return (
-    <div className="fixed bottom-6 right-6 z-50 block">
+  }4 left-1/2 -translate-x-1/2 md:left-auto md:right-6 md:translate-x-0 z-50 block max-w-[calc(100vw-2rem)] md:max-w-none">
       <button
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsMinimized(true);
         }}
-        className="absolute top-2 right-2 p-1 hover:bg-white/20 rounded-full transition-colors z-10"
+        className="absolute top-1.5 right-1.5 md:top-2 md:right-2 p-0.5 md:p-1 hover:bg-white/20 active:bg-white/30 rounded-full transition-colors z-10"
         aria-label="Minimize widget"
       >
-        <span className="text-white text-xl leading-none">×</span>
+        <span className="text-white text-lg md:text-xl leading-none">×</span>
       </button>
 
       <Link
@@ -183,35 +183,48 @@ export default function FloatingMiniBillboard({
         scroll={true}
       >
         <div
-          className={`bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-2xl p-4 w-64 hover:scale-105 transition-all duration-300 relative ${
+          className={`bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-2xl p-3 md:p-4 w-[280px] sm:w-[300px] md:w-64 hover:scale-105 active:scale-[1.02] md:active:scale-105 transition-all duration-300 relative ${
             isTransitioning ? 'opacity-0' : 'opacity-100 animate-fade-in'
           }`}
         >
+          {/* Header Section */}
           <div className="flex items-start justify-between mb-2">
-            <div>
-              <p className="text-xs opacity-80 uppercase tracking-wide">
+            <div className="flex-1 pr-6">
+              <p className="text-[10px] md:text-xs opacity-80 uppercase tracking-wide">
                 Air Quality
               </p>
-              <h3 className="text-lg font-bold truncate pr-6">{gridName}</h3>
+              <h3 className="text-base md:text-lg font-bold truncate">
+                {gridName}
+              </h3>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Main Content - Air Quality Data */}
+          <div className="flex items-center gap-2 md:gap-3">
             <div className="flex-1">
               <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold">{displayValue}</span>
-                <span className="text-xs opacity-70">PM2.5</span>
+                <span className="text-2xl md:text-3xl font-bold">
+                  {displayValue}
+                </span>
+                <span className="text-[10px] md:text-xs opacity-70">PM2.5</span>
               </div>
-              <p className="text-xs mt-1 opacity-90">{categoryLabel}</p>
+              <p className="text-xs md:text-sm mt-0.5 md:mt-1 opacity-90 font-medium">
+                {categoryLabel}
+              </p>
             </div>
 
+            {/* Icon */}
             <div
-              className="flex items-center justify-center"
+              className="flex items-center justify-center shrink-0"
               aria-hidden="true"
             >
               {getAirQualityIcon(category)}
             </div>
           </div>
+
+          {/* Footer */}
+          <div className="mt-2 md:mt-3 pt-2 md:pt-3 border-t border-white/20">
+            <p className="text-[10px] md:text-xs opacity-80">Discover more →
 
           <div className="mt-3 pt-3 border-t border-white/20">
             <p className="text-xs opacity-80">Discover more</p>
