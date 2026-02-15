@@ -40,12 +40,20 @@ export const EmptyAnalyticsState: React.FC<EmptyAnalyticsStateProps> = ({
                 Set Up Coverage via AirQo Vertex
               </Button>
             </div>
-            <p className="text-sm">
-              Browse open air quality data across the AirQo network, or set up
-              monitoring coverage for your specific locations through AirQo
-              Vertex. Once configured, add locations as favorites to track
-              trends and generate insights.
-            </p>
+            <div className="text-sm">
+              <strong>Next Steps:</strong>
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Browse open air quality data across the AirQo network</li>
+                <li>
+                  Set up monitoring coverage for your specific locations through
+                  AirQo Vertex
+                </li>
+                <li>
+                  Once configured, add locations as favorites to track trends
+                  and generate insights
+                </li>
+              </ul>
+            </div>
           </div>
         }
       />
