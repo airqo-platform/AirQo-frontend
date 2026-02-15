@@ -4,7 +4,7 @@ import {
   METADATA_CONFIGS,
 } from '@/lib/metadata';
 
-import HomePage from './home/page';
+import HomePage from './(main)/home/page';
 
 // Generate metadata using the centralized utility
 export const metadata = createMetadata(METADATA_CONFIGS.home);

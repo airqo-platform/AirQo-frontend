@@ -31,7 +31,7 @@ const MainLayout = ({ children, topFullWidth }: MainLayoutProps) => {
           {/* Optional full-width area inserted before the centered container */}
           {topFullWidth}
 
-          <div className="text-gray-700 w-full px-4 lg:px-0">{children}</div>
+          <div className="text-gray-700 w-full">{children}</div>
 
           {/* Highlight Section */}
           <section className="mt-32 mb-8">
