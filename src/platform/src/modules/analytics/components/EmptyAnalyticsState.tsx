@@ -1,22 +1,16 @@
 'use client';
 
 import React from 'react';
-import { useSelector } from 'react-redux';
 import { InfoBanner } from '@/shared/components/ui/banner';
 import { Button } from '@/shared/components/ui/button';
-import { selectActiveGroup } from '@/shared/store/selectors';
 
 interface EmptyAnalyticsStateProps {
-  onAddFavorites: () => void;
   className?: string;
 }
 
 export const EmptyAnalyticsState: React.FC<EmptyAnalyticsStateProps> = ({
-  onAddFavorites,
   className = '',
 }) => {
-  const activeGroup = useSelector(selectActiveGroup);
-
   // Determine the correct Vertex URL based on environment
   const vertexUrl =
     process.env.NEXT_PUBLIC_ALLOW_DEV_TOOLS === 'staging'
@@ -27,55 +21,31 @@ export const EmptyAnalyticsState: React.FC<EmptyAnalyticsStateProps> = ({
     window.open(vertexUrl, '_blank', 'noopener,noreferrer');
   };
 
-  // Check if we should show deploy devices section
-  const shouldShowDeployDevices = activeGroup?.title?.toLowerCase() !== 'airqo';
-
   return (
     <div className={className}>
       <InfoBanner
-        title="No Monitoring Data Available"
+        title="Set Up Your Organization's Monitoring Coverage"
         message={
           <div className="space-y-3">
             <p>
-              To access air quality data and insights, you need to have
-              monitoring devices deployed and configured. Currently, no devices
-              or monitoring sites are available for your organization.
+              Access open air quality data and set up monitoring coverage for
+              locations relevant to your organization.
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <Button
-                onClick={onAddFavorites}
+                onClick={handleOpenVertex}
                 size="sm"
                 className="flex-1 sm:flex-none"
               >
-                Add Favorite Locations
+                Set Up Coverage via AirQo Vertex
               </Button>
-              {shouldShowDeployDevices && (
-                <Button
-                  onClick={handleOpenVertex}
-                  variant="outlined"
-                  size="sm"
-                  className="flex-1 sm:flex-none"
-                >
-                  Deploy Devices
-                </Button>
-              )}
             </div>
-            {shouldShowDeployDevices && (
-              <p className="text-sm">
-                <strong>Next Steps:</strong> Visit{' '}
-                <a
-                  href={vertexUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:text-primary/80 underline font-medium"
-                >
-                  AirQo Vertex
-                </a>{' '}
-                to deploy monitoring devices and configure your air quality
-                monitoring network. Once devices are deployed and collecting
-                data, you can add favorite locations here for analysis.
-              </p>
-            )}
+            <p className="text-sm">
+              Browse open air quality data across the AirQo network, or set up
+              monitoring coverage for your specific locations through AirQo
+              Vertex. Once configured, add locations as favorites to track
+              trends and generate insights.
+            </p>
           </div>
         }
       />
