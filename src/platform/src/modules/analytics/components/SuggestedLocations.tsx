@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+  useEffect,
+} from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePostHog } from 'posthog-js/react';
 import { Button } from '@/shared/components/ui/button';
@@ -26,6 +32,13 @@ interface SuggestedLocationsProps {
  * SuggestedLocations Component
  * Displays suggested monitoring locations for users to add to their favorites
  * Clean and simple UI to get users started
+ *
+ * Flow:
+ * 1. Fetches organization-specific sites (via active group)
+ * 2. Filters out already favorited sites
+ * 3. Shows up to 12 suggestions in a grid
+ * 4. Allows users to select up to 4 locations at once
+ * 5. Updates preferences and reloads to show dashboard
  */
 export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   className = '',
@@ -33,6 +46,16 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   const posthog = usePostHog();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Ref to track if component is mounted (prevent memory leaks)
+  const isMountedRef = useRef(true);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Get current user and group information
   const { user, activeGroup } = useUser();
@@ -48,6 +71,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   const { markLocationStepCompleted } = useChecklistIntegration();
 
   // Fetch sites data - limit to 12 for quick suggestions
+  // This uses the active group context automatically (organization-specific)
   const {
     sites,
     isLoading: sitesLoading,
@@ -134,14 +158,15 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
         []) as Site[];
 
       // Convert selected site IDs to Site objects
-      const sitesToConvert = Array.from(selectedIds)
+      const newSitesToAdd: Site[] = Array.from(selectedIds)
         .map(id => {
           const site = suggestedSites.find(s => s.id === id);
           if (!site) return null;
+
           return {
             _id: site.id,
-            name: site.location || '',
-            search_name: site.location || '',
+            name: site.location || site.name || '',
+            search_name: site.location || site.name || '',
             city: site.city,
             country: site.country,
             latitude:
@@ -157,16 +182,24 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
             approximate_latitude: site._raw?.approximate_latitude || undefined,
             approximate_longitude:
               site._raw?.approximate_longitude || undefined,
-            generated_name: site.location || '',
+            generated_name: site.location || site.name || '',
             createdAt: new Date().toISOString(),
-          };
+          } as Site;
         })
-        .filter(site => site !== null) as Site[];
+        .filter((site): site is Site => site !== null);
 
-      const newSites: Site[] = sitesToConvert;
+      if (newSitesToAdd.length === 0) {
+        toast.error('No valid locations found to add');
+        setIsSubmitting(false);
+        return;
+      }
 
-      // Combine with existing favorites
-      const allSites = [...existingFavorites, ...newSites];
+      // Combine with existing favorites (avoid duplicates)
+      const existingIds = new Set(existingFavorites.map(s => s._id));
+      const uniqueNewSites = newSitesToAdd.filter(
+        site => !existingIds.has(site._id)
+      );
+      const allSites: Site[] = [...existingFavorites, ...uniqueNewSites];
 
       // Update user preferences
       await updatePreferences({
@@ -175,14 +208,15 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
         selected_sites: allSites,
       });
 
+      // Track analytics
       posthog?.capture('suggested_locations_added', {
-        count: newSites.length,
-        site_ids: newSites.map(s => s._id),
+        count: uniqueNewSites.length,
+        site_ids: uniqueNewSites.map(s => s._id),
       });
 
       trackEvent('suggested_locations_added', {
-        count: newSites.length,
-        site_ids: newSites.map(s => s._id),
+        count: uniqueNewSites.length,
+        site_ids: uniqueNewSites.map(s => s._id),
       });
 
       // Update checklist - mark location selection step as completed
@@ -193,24 +227,29 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
           'Failed to update checklist for location selection:',
           checklistError
         );
+        // Don't block the flow if checklist update fails
       }
 
       toast.success(
-        `Successfully added ${newSites.length} location${newSites.length > 1 ? 's' : ''} to favorites`
+        `Successfully added ${uniqueNewSites.length} location${uniqueNewSites.length > 1 ? 's' : ''} to favorites`
       );
 
       // Clear selections
       setSelectedIds(new Set());
 
-      // Reload the page to show updated dashboard
+      // Reload the page to show updated dashboard (with cleanup check to prevent memory leaks)
       setTimeout(() => {
-        window.location.reload();
+        if (isMountedRef.current) {
+          window.location.reload();
+        }
       }, 1000);
     } catch (error) {
       console.error('Failed to add locations to favorites:', error);
       toast.error('Failed to add locations to favorites. Please try again.');
     } finally {
-      setIsSubmitting(false);
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   }, [
     user?.id,
@@ -227,7 +266,9 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   // Loading state
   if (sitesLoading || preferencesLoading) {
     return (
-      <div className={className}>
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className}`}
+      >
         <LoadingState text="Loading suggested locations..." />
       </div>
     );
@@ -236,7 +277,9 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
   // Error state
   if (sitesError) {
     return (
-      <div className={className}>
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className}`}
+      >
         <EmptyState
           title="Unable to load suggestions"
           description="We're having trouble loading location suggestions. Please try again later."
@@ -245,13 +288,19 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
     );
   }
 
-  // No suggestions available state
+  // No suggestions available state (all sites are already favorited or no sites exist)
   if (suggestedSites.length === 0) {
     return (
-      <div className={className}>
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className}`}
+      >
         <EmptyState
-          title="No locations available"
-          description="There are currently no monitoring locations available to add to your favorites."
+          title="No new locations available"
+          description={
+            favoritedSiteIds.size > 0
+              ? "You've already added all available monitoring locations to your favorites."
+              : 'There are currently no monitoring locations available to add to your favorites.'
+          }
         />
       </div>
     );
@@ -263,7 +312,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="flex-1">
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-            Suggested Monitoring Locations
+            Add Favorite Locations
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Select up to 4 monitoring locations to add to your favorites and
@@ -353,7 +402,8 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
                     )}
                     {site.owner && (
                       <p className="line-clamp-1 text-xs mt-1">
-                        <span className="font-medium">Owner:</span> {site.owner}
+                        <span className="font-medium">Owner:</span>{' '}
+                        {String(site.owner).toUpperCase()}
                       </p>
                     )}
                   </div>
