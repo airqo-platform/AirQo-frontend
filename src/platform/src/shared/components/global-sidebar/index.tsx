@@ -102,11 +102,15 @@ export const GlobalSidebar: React.FC = () => {
   const globalNavItems = React.useMemo(() => {
     const config = getSidebarConfig('global');
     let basePath = '/user';
-    let targetPath = '/favorites';
+    let homePath = '/home';
+    let dataAccessPath = '/favorites';
+
     if (flow === 'organization' && orgSlug) {
       basePath = `/org/${orgSlug}`;
-      targetPath = '/dashboard';
+      homePath = '/dashboard';
+      dataAccessPath = '/data-export';
     }
+
     return config.flatMap(group =>
       group.items
         .filter(item => {
@@ -130,13 +134,13 @@ export const GlobalSidebar: React.FC = () => {
             href = '/admin/members';
           } else if (item.id === 'home') {
             // Home redirects to appropriate dashboard/home based on flow
-            if (flow === 'organization' && orgSlug) {
-              href = `${basePath}/dashboard`;
-            } else {
-              href = `${basePath}/home`;
-            }
+            href = `${basePath}${homePath}`;
+          } else if (item.id === 'data-access') {
+            // Data Access redirects to appropriate data access page based on flow
+            href = `${basePath}${dataAccessPath}`;
           } else {
-            href = href.replace('/data-access', `${basePath}${targetPath}`);
+            // For other items, replace base path if needed
+            href = href.replace('/data-access', `${basePath}${dataAccessPath}`);
           }
           return {
             ...item,

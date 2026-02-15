@@ -112,6 +112,21 @@ export const getColumns = (
           : "-";
       },
     },
+    {
+      key: "deployment_date",
+      label: "Deployment Date",
+      render: (value) => {
+        if (typeof value !== "string" || !value) {
+          return "-";
+        }
+
+        const date = parseISO(value);
+
+        return isValid(date)
+          ? format(date, "MMM d yyyy, h:mm a").toUpperCase()
+          : "-";
+      },
+    },
   ];
 
   if (isInternalView) {

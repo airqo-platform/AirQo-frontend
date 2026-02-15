@@ -206,8 +206,8 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
                     router.push(ROUTE_LINKS.ADMIN_NETWORKS);
                     setIsDropdownOpen(false);
                   }}
-                  label="Networks"
-                  subLabel="Manage and configure networks"
+                  label="Sensor Manufacturers"
+                  subLabel="Manage and configure external devices"
                   isActive={pathname.startsWith(ROUTE_LINKS.ADMIN_NETWORKS)}
                 />
 

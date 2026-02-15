@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import logger from '@/shared/lib/logger';
 
-const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
-const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
-
 export async function POST(request: NextRequest) {
   try {
     // Enhanced validation with detailed logging for production debugging
+    const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+    const CLOUDINARY_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_PRESET;
+
     if (!CLOUDINARY_NAME) {
       logger.error(
         'Cloudinary name not configured',
-        new Error('Missing CLOUDINARY_NAME')
+        new Error('Missing CLOUDINARY_NAME'),
+        {
+          hasPreset: !!CLOUDINARY_PRESET,
+        }
       );
       return NextResponse.json(
-        { error: 'Cloudinary API credentials not configured' },
+        { error: 'Cloudinary service not configured. Please contact support.' },
         { status: 500 }
       );
     }
@@ -21,10 +24,16 @@ export async function POST(request: NextRequest) {
     if (!CLOUDINARY_PRESET) {
       logger.error(
         'Cloudinary preset not configured',
-        new Error('Missing CLOUDINARY_PRESET')
+        new Error('Missing CLOUDINARY_PRESET'),
+        {
+          hasCloudName: !!CLOUDINARY_NAME,
+        }
       );
       return NextResponse.json(
-        { error: 'Cloudinary API credentials not configured' },
+        {
+          error:
+            'Cloudinary upload preset not configured. Please contact support.',
+        },
         { status: 500 }
       );
     }
@@ -60,15 +69,44 @@ export async function POST(request: NextRequest) {
       body: formData,
     });
 
-    const result = await response.json();
-
     if (!response.ok) {
+      // Get response text first for better error handling
+      const responseText = await response.text();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      let result;
+
+      try {
+        result = JSON.parse(responseText);
+      } catch (parseError) {
+        logger.error(
+          'Failed to parse Cloudinary response',
+          parseError instanceof Error ? parseError : new Error('Parse error'),
+          {
+            responseStatus: response.status,
+            responsePreview: responseText.substring(0, 200),
+          }
+        );
+        return NextResponse.json(
+          { error: 'Invalid response from upload service' },
+          { status: 500 }
+        );
+      }
+
+      logger.error(
+        'Cloudinary upload failed',
+        new Error(`Upload failed: ${result.error?.message || 'Unknown error'}`),
+        {
+          status: response.status,
+          cloudinaryError: result.error,
+        }
+      );
       return NextResponse.json(
-        { error: result.error?.message || 'Upload failed' },
+        { error: 'Upload failed' },
         { status: response.status }
       );
     }
 
+    const result = await response.json();
     return NextResponse.json(result);
   } catch (error: unknown) {
     const uploadError =

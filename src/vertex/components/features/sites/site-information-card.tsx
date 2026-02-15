@@ -49,10 +49,10 @@ export const SiteInformationCard: React.FC<SiteInformationCardProps> = ({ site, 
     <Card className="w-full rounded-lg flex flex-col">
       <div className="px-3 py-2 flex flex-col gap-3">
         <h2 className="text-lg font-semibold">Site Details</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <DetailItem label="Name" value={site.name} />
           <DetailItem label="Description" value={site.description} />
-          <DetailItem label="Network" value={site.network} />
+          <DetailItem label="Sensor Manufacturer" value={site.network} />
           <DetailItem label="Latitude" value={<span className="font-mono">{site.latitude}</span>} />
           <DetailItem label="Longitude" value={<span className="font-mono">{site.longitude}</span>} />
           <DetailItem label="Parish" value={site.parish} />

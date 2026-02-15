@@ -183,7 +183,7 @@ const SecondarySidebar: React.FC<SecondarySidebarProps> = ({
                 item={{
                   href: ROUTE_LINKS.ADMIN_NETWORKS,
                   icon: AqHomeSmile,
-                  label: 'Networks',
+                  label: 'Sensor Manufacturers',
                   disabled: !contextPermissions.canViewNetworks,
                 }}
                 isCollapsed={isCollapsed}

@@ -92,6 +92,23 @@ const menuItems: MenuItems = {
     { title: 'FAQs', href: '/faqs' },
     { title: 'CLEAN-Air Forum', href: '/clean-air-forum' },
   ],
+  Developers: [
+    {
+      title: 'Packages',
+      description: 'Open source libraries and developer tools',
+      href: '/packages',
+    },
+    {
+      title: 'Documentation',
+      description: 'API guides and technical resources',
+      href: 'https://docs.airqo.net/airqo-rest-api-documentation/',
+    },
+    {
+      title: 'GitHub',
+      description: 'Explore our open source projects',
+      href: 'https://github.com/airqo-platform',
+    },
+  ],
 };
 
 // Helper component for rendering dropdown items with translation support
@@ -114,23 +131,44 @@ const DropdownMenuContent: React.FC<{
         }, [])
         .map((colItems, index) => (
           <ul key={index} className="flex-1 space-y-3">
-            {colItems.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition translate-element"
-                >
-                  <div className="font-medium translate-element">
-                    {item.title}
-                  </div>
-                  {item.description && (
-                    <div className="text-gray-500 translate-element">
-                      {item.description}
-                    </div>
+            {colItems.map((item) => {
+              const isExternal = item.href.startsWith('http');
+              return (
+                <li key={item.href}>
+                  {isExternal ? (
+                    <a
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition translate-element"
+                    >
+                      <div className="font-medium translate-element">
+                        {item.title}
+                      </div>
+                      {item.description && (
+                        <div className="text-gray-500 translate-element">
+                          {item.description}
+                        </div>
+                      )}
+                    </a>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      className="block p-2 rounded-xl hover:bg-blue-50 hover:text-blue-500 transition translate-element"
+                    >
+                      <div className="font-medium translate-element">
+                        {item.title}
+                      </div>
+                      {item.description && (
+                        <div className="text-gray-500 translate-element">
+                          {item.description}
+                        </div>
+                      )}
+                    </Link>
                   )}
-                </Link>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         ))}
     </div>

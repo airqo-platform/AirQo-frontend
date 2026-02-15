@@ -12,9 +12,6 @@ import { getThemeScript } from '@/modules/themes/utils/themeUtils';
 import baseMetadata from '@/shared/lib/metadata';
 import ErrorBoundary from '@/shared/components/ErrorBoundary';
 
-// Hardcoded Google Analytics Measurement ID
-const GA_MEASUREMENT_ID = 'G-L77J66DCL2';
-
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
@@ -35,18 +32,6 @@ export default function RootLayout({
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{ __html: getThemeScript() }}
         />
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_MEASUREMENT_ID}');
-          `}
-        </Script>
       </head>
       <body className={`antialiased ${inter.className}`}>
         <ReduxProvider>

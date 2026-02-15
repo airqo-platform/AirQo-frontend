@@ -7,6 +7,7 @@ import { useGroupCohorts, useCreateCohort, useAssignCohortsToGroup } from '@/cor
 import ReusableButton from '@/components/shared/button/ReusableButton';
 import { OrganizationSetupDialog } from '@/components/features/cohorts/organization-setup-dialog';
 import { useQueryClient } from '@tanstack/react-query';
+import { DEFAULT_COHORT_TAGS } from '@/core/constants/devices';
 
 const BANNER_DISMISS_KEY = 'org-setup-banner-dismissed';
 
@@ -48,6 +49,10 @@ export const OrganizationSetupBanner: React.FC = () => {
             {
                 name: cohortName,
                 network: 'airqo',
+                cohort_tags: [
+                    DEFAULT_COHORT_TAGS.find((tag) => tag.value === 'organizational')
+                        ?.value || 'organizational',
+                ],
             },
             {
                 onSuccess: (data) => {

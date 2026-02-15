@@ -16,7 +16,7 @@ const STORAGE_KEY = 'vertex_recently_visited';
 const getCanonicalRoute = (pathname: string): { label: string; href: string } | null => {
   // Admin modules
   if (pathname.includes('/admin/networks')) {
-    return { label: 'Networks', href: '/admin/networks' };
+    return { label: 'Sensor Manufacturers', href: '/admin/networks' };
   }
   if (pathname.includes('/admin/cohorts')) {
     return { label: 'Cohorts', href: '/admin/cohorts' };

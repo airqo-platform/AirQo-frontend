@@ -13,3 +13,10 @@ export const DEVICE_POWER_TYPES = [
 ] as const;
 
 export type DevicePowerType = typeof DEVICE_POWER_TYPES[number]["value"];
+
+export const DEFAULT_COHORT_TAGS = [
+  { value: "organizational", label: "organizational" },
+  { value: "individual", label: "individual" },
+  { value: "hardware", label: "hardware" },
+  { value: "external device", label: "external device" },
+]

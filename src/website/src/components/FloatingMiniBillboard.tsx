@@ -41,7 +41,7 @@ const getAirQualityIcon = (category: string) => {
   const level = categoryToLevel(category);
   const color = getAirQualityColor(category);
   const iconProps = {
-    className: `w-12 h-12`,
+    className: `w-full h-full`,
     style: { color },
   };
 
@@ -72,6 +72,7 @@ export default function FloatingMiniBillboard({
   const [isMinimized, setIsMinimized] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isCompact, setIsCompact] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout>();
 
   // Get current grid from rotation
@@ -103,9 +104,12 @@ export default function FloatingMiniBillboard({
   useEffect(() => {
     if (!isMounted) return;
 
-    // Check screen size - only show on medium screens and above, and not on billboard pages
+    // Show on all screen sizes, but not on billboard pages
+    // On mobile/tablet, start compact
     const checkScreenSize = () => {
-      setIsVisible(window.innerWidth >= 768 && !shouldHide);
+      const isMobile = window.innerWidth < 768;
+      setIsVisible(!shouldHide);
+      setIsCompact(isMobile);
     };
 
     checkScreenSize();
@@ -150,27 +154,79 @@ export default function FloatingMiniBillboard({
   const displayValue = pm25Value.toFixed(2);
   const gridName = formatName(currentGrid.name);
 
+  // Minimized compact state (hidden completely)
   if (isMinimized) {
     return (
       <button
         onClick={() => setIsMinimized(false)}
-        className="fixed bottom-6 right-6 z-50 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-full shadow-lg transition-all duration-300 text-sm font-medium"
+        className="fixed bottom-3 left-1/2 -translate-x-1/2 md:bottom-6 md:left-auto md:right-6 md:translate-x-0 z-[9999] bg-blue-600/95 backdrop-blur-sm hover:bg-blue-700 active:bg-blue-800 text-white px-2.5 py-1 md:px-4 md:py-2 rounded-full shadow-lg transition-all duration-300 text-[10px] md:text-sm font-medium max-w-[85vw] md:max-w-none truncate touch-manipulation"
         aria-label="Show air quality widget"
       >
-        {gridName}: {displayValue} PM2.5
+        <span className="flex items-center gap-1">
+          <span className="inline-block w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-white/80 animate-pulse"></span>
+          <span className="hidden sm:inline">{gridName}: </span>
+          <span>{displayValue} PM2.5</span>
+        </span>
       </button>
     );
   }
 
+  // Super compact mobile badge (shows by default on mobile)
+  if (isCompact) {
+    return (
+      <div className="fixed bottom-3 left-1/2 -translate-x-1/2 z-[9999] block">
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsMinimized(true);
+          }}
+          className="absolute -top-1 -right-1 w-5 h-5 flex items-center justify-center bg-blue-800/90 backdrop-blur-sm rounded-full shadow-md z-10 touch-manipulation"
+          aria-label="Minimize widget"
+        >
+          <span className="text-white text-sm leading-none">×</span>
+        </button>
+
+        <Link
+          href="/solutions/african-cities#grids-section"
+          className="block touch-manipulation"
+          aria-label={`View air quality for ${gridName}`}
+          scroll={true}
+        >
+          <div className="bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg shadow-xl p-2 w-[200px] active:scale-95 transition-all duration-200">
+            <div className="flex items-center gap-2">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8">{getAirQualityIcon(category)}</div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[9px] opacity-70 uppercase tracking-wide truncate">
+                  {gridName}
+                </p>
+                <div className="flex items-baseline gap-0.5">
+                  <span className="text-lg font-bold">{displayValue}</span>
+                  <span className="text-[8px] opacity-60">PM2.5</span>
+                </div>
+                <p className="text-[9px] opacity-80 font-medium truncate">
+                  {categoryLabel}
+                </p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
+    );
+  }
+
+  // Desktop/tablet view
   return (
-    <div className="fixed bottom-6 right-6 z-50 block">
+    <div className="fixed bottom-6 right-6 z-[9999] block max-w-[calc(100vw-2rem)]">
       <button
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           setIsMinimized(true);
         }}
-        className="absolute top-2 right-2 p-1 hover:bg-white/20 rounded-full transition-colors z-10"
+        className="absolute top-2 right-2 p-1 hover:bg-white/20 active:bg-white/30 rounded-full transition-colors z-10 touch-manipulation"
         aria-label="Minimize widget"
       >
         <span className="text-white text-xl leading-none">×</span>
@@ -178,7 +234,7 @@ export default function FloatingMiniBillboard({
 
       <Link
         href="/solutions/african-cities#grids-section"
-        className="block"
+        className="block touch-manipulation"
         aria-label={`View air quality for ${gridName}`}
         scroll={true}
       >
@@ -187,15 +243,17 @@ export default function FloatingMiniBillboard({
             isTransitioning ? 'opacity-0' : 'opacity-100 animate-fade-in'
           }`}
         >
+          {/* Header Section */}
           <div className="flex items-start justify-between mb-2">
-            <div>
+            <div className="flex-1 pr-6">
               <p className="text-xs opacity-80 uppercase tracking-wide">
                 Air Quality
               </p>
-              <h3 className="text-lg font-bold truncate pr-6">{gridName}</h3>
+              <h3 className="text-lg font-bold truncate">{gridName}</h3>
             </div>
           </div>
 
+          {/* Main Content - Air Quality Data */}
           <div className="flex items-center gap-3">
             <div className="flex-1">
               <div className="flex items-baseline gap-1">
@@ -205,16 +263,18 @@ export default function FloatingMiniBillboard({
               <p className="text-xs mt-1 opacity-90">{categoryLabel}</p>
             </div>
 
+            {/* Icon */}
             <div
-              className="flex items-center justify-center"
+              className="flex items-center justify-center shrink-0 w-8 h-8"
               aria-hidden="true"
             >
               {getAirQualityIcon(category)}
             </div>
           </div>
 
+          {/* Footer */}
           <div className="mt-3 pt-3 border-t border-white/20">
-            <p className="text-xs opacity-80">Discover more</p>
+            <p className="text-xs opacity-80">Discover more →</p>
           </div>
         </div>
       </Link>

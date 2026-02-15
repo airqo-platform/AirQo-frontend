@@ -5,6 +5,8 @@ import { MapPage } from '@/modules/airqo-map';
 import { useUser } from '@/shared/hooks/useUser';
 import { useActiveGroupCohorts } from '@/shared/hooks';
 import { LoadingSpinner } from '@/shared/components/ui/loading-spinner';
+import { EmptyState } from '@/shared/components/ui/empty-state';
+import { AqSearchRefraction } from '@airqo/icons-react';
 
 interface PageProps {
   params: {
@@ -65,13 +67,13 @@ const Page: React.FC<PageProps> = ({ params }) => {
   // If organization has no cohorts, show message
   if (cohortIdString === '') {
     return (
-      <div className="flex items-center justify-center h-full w-full">
-        <div className="text-center">
-          <p className="text-lg font-medium mb-2">No Data Available</p>
-          <p className="text-sm text-gray-600">
-            This organization does not have any devices deployed yet.
-          </p>
-        </div>
+      <div className="h-full w-full p-6">
+        <EmptyState
+          title="No Data Available"
+          description="This organization does not have any devices deployed yet."
+          icon={<AqSearchRefraction size={48} />}
+          className="min-h-[400px]"
+        />
       </div>
     );
   }

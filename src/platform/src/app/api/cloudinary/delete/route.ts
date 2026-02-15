@@ -4,16 +4,6 @@ import { authOptions } from '@/shared/lib/auth';
 import type { Session } from 'next-auth';
 import logger from '@/shared/lib/logger';
 
-const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
-
-if (!CLOUDINARY_NAME) {
-  throw new Error(
-    'NEXT_PUBLIC_CLOUDINARY_NAME environment variable is not set'
-  );
-}
-
-const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/destroy`;
-
 // Validate publicId format
 // Cloudinary Public IDs can include any character except: ? & # \ % < >
 // We also allow + as it is common in URLs (spaces)
@@ -36,6 +26,44 @@ export async function DELETE(request: NextRequest) {
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
+
+    // Validate environment variables
+    const CLOUDINARY_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_NAME;
+    const apiKey = process.env.CLOUDINARY_API_KEY;
+    const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+    if (!CLOUDINARY_NAME) {
+      logger.error(
+        'Cloudinary configuration missing',
+        new Error('Missing CLOUDINARY_NAME'),
+        {
+          hasApiKey: !!apiKey,
+          hasApiSecret: !!apiSecret,
+        }
+      );
+      return NextResponse.json(
+        { error: 'Cloudinary service not configured. Please contact support.' },
+        { status: 500 }
+      );
+    }
+
+    if (!apiKey || !apiSecret) {
+      logger.error(
+        'Cloudinary API credentials missing',
+        new Error('Missing credentials'),
+        {
+          hasCloudName: !!CLOUDINARY_NAME,
+          hasApiKey: !!apiKey,
+          hasApiSecret: !!apiSecret,
+        }
+      );
+      return NextResponse.json(
+        { error: 'Cloudinary API credentials not configured' },
+        { status: 500 }
+      );
+    }
+
+    const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${CLOUDINARY_NAME}/image/destroy`;
 
     // Parse and validate JSON
     try {
@@ -67,23 +95,6 @@ export async function DELETE(request: NextRequest) {
     // For now, allowing authenticated users to delete any image
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const apiSecret = process.env.CLOUDINARY_API_SECRET;
-    const apiKey = process.env.CLOUDINARY_API_KEY;
-
-    if (!apiKey || !apiSecret) {
-      logger.error(
-        'Cloudinary API credentials missing',
-        new Error('Missing credentials'),
-        {
-          hasApiKey: !!apiKey,
-          hasApiSecret: !!apiSecret,
-        }
-      );
-      return NextResponse.json(
-        { error: 'Cloudinary API credentials not configured' },
-        { status: 500 }
-      );
-    }
 
     logger.debug('Cloudinary delete request', {
       publicId,

@@ -182,7 +182,7 @@ const WelcomePage = () => {
               onClick={() => setIsImportModalOpen(true)}
               Icon={Upload}
             >
-              Import Existing Device
+              Import External Device
             </ReusableButton>
           </div>
         </div>
