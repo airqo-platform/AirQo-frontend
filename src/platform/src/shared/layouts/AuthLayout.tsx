@@ -109,8 +109,8 @@ const AuthLayout = ({
   heading,
   subtitle,
   microLine,
-  headingClassName = 'text-base lg:text-lg xl:text-2xl font-semibold text-gray-900 dark:text-white',
-  subtitleClassName = 'text-sm text-gray-600 dark:text-gray-400',
+  headingClassName = 'text-lg lg:text-xl xl:text-3xl font-bold text-gray-900 dark:text-white',
+  subtitleClassName = 'text-base lg:text-lg text-gray-700 dark:text-gray-300 font-medium leading-relaxed',
 }: AuthLayoutProps) => {
   const testimonialText = rightText || DEFAULT_TESTIMONIAL.text;
 
@@ -136,7 +136,7 @@ const AuthLayout = ({
                 <div className="space-y-4 lg:space-y-6">
                   {/* Centralized Heading & Subtitle */}
                   {(heading || subtitle) && (
-                    <div className="space-y-2">
+                    <div className="space-y-3 lg:space-y-4">
                       {heading && (
                         <h1 className={headingClassName}>{heading}</h1>
                       )}
@@ -144,9 +144,9 @@ const AuthLayout = ({
                         <p className={subtitleClassName}>{subtitle}</p>
                       )}
                       {microLine && (
-                        <blockquote className="mt-4 text-xs text-gray-500 dark:text-gray-400 italic border-l-2 border-gray-300 dark:border-gray-600 pl-3 leading-relaxed">
+                        <div className="mt-4 text-xs text-gray-500 dark:text-gray-400 italic border-l-2 border-gray-300 dark:border-gray-600 pl-3 leading-relaxed">
                           {microLine}
-                        </blockquote>
+                        </div>
                       )}
                     </div>
                   )}
