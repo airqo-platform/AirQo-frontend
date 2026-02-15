@@ -208,7 +208,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
           <SuggestedLocations />
         ) : (
           // Show empty state banner ONLY when organization has no sites at all
-          <EmptyAnalyticsState onAddFavorites={handleManageFavorites} />
+          <EmptyAnalyticsState />
         )}
 
         {/* Add Favorites Dialog */}

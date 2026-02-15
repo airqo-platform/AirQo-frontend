@@ -269,7 +269,7 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
       <div
         className={`flex items-center justify-center min-h-[400px] ${className}`}
       >
-        <LoadingState text="Loading suggested locations..." />
+        <LoadingState text="Loading locations..." />
       </div>
     );
   }
@@ -281,8 +281,8 @@ export const SuggestedLocations: React.FC<SuggestedLocationsProps> = ({
         className={`flex items-center justify-center min-h-[400px] ${className}`}
       >
         <EmptyState
-          title="Unable to load suggestions"
-          description="We're having trouble loading location suggestions. Please try again later."
+          title="Unable to load locations"
+          description="We're having trouble loading locations. Please try again later."
         />
       </div>
     );
