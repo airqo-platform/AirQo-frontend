@@ -6,8 +6,7 @@ import { usePostHog } from 'posthog-js/react';
 import { QuickAccessCard, EmptyAnalyticsState, SuggestedLocations } from './';
 import { ChartContainer } from '@/shared/components/charts';
 import { DynamicChart } from '@/shared/components/charts';
-import { InfoBanner } from '@/shared/components/ui/banner';
-import Link from 'next/link';
+import { LoadingState } from '@/shared/components/ui/loading-state';
 import {
   useAnalyticsSiteCards,
   useAnalyticsPreferences,
@@ -22,7 +21,6 @@ import type { SiteData } from '../types';
 import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
-import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 
 interface AnalyticsDashboardProps {
@@ -40,25 +38,41 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Local state for UI preferences (doesn't trigger data reloads)
   const [showIcons, setShowIcons] = useState(true);
+  const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
 
-  // Get user preferences and selected sites
+  // Get user preferences and selected sites (primary data - always fetch first)
   const {
     selectedSiteIds,
     selectedSites,
     isLoading: preferencesLoading,
   } = useAnalyticsPreferences();
 
-  // Get site cards data
+  // Determine if we need to check for available sites (only when user has no selected sites)
+  // This conditional loading prevents double loading and ensures proper sequencing
+  const hasSelectedSites = selectedSiteIds.length > 0;
+  const shouldCheckAvailableSites = !preferencesLoading && !hasSelectedSites;
+
+  // Check if there are sites available in the organization (only when needed)
+  // This is organization-specific via useActiveGroupCohortSites
+  // Only enabled after preferences load and when user has no selected sites
+  const { totalSites: availableSitesCount, isLoading: sitesCountLoading } =
+    useSitesData({
+      enabled: shouldCheckAvailableSites,
+      initialPageSize: 1,
+      maxLimit: 1,
+    });
+
+  // Get site cards data - only when user has selected sites
   const { siteCards, isLoading: siteCardsLoading } = useAnalyticsSiteCards();
 
-  // Get chart data for line chart
+  // Get chart data for line chart - only when user has selected sites
   const {
     chartData: lineChartData,
     refresh: refreshLineChart,
     isLoading: lineChartLoading,
   } = useAnalyticsChartData(filters, 'line');
 
-  // Get chart data for bar chart
+  // Get chart data for bar chart - only when user has selected sites
   const {
     chartData: barChartData,
     refresh: refreshBarChart,
@@ -96,9 +110,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       .filter(site => site._id); // Remove any invalid entries
   };
 
-  // State for manage favorites dialog
-  const [isFavoritesDialogOpen, setIsFavoritesDialogOpen] = useState(false);
-
   // Handle manage favorites
   const handleManageFavorites = () => {
     posthog?.capture('manage_favorites_clicked');
@@ -111,12 +122,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     setIsFavoritesDialogOpen(false);
   };
 
-  // Handle refresh data for line chart
+  // Handle refresh data for charts
   const handleRefreshLineChart = async () => {
     return refreshLineChart?.();
   };
 
-  // Handle refresh data for bar chart
   const handleRefreshBarChart = async () => {
     return refreshBarChart?.();
   };
@@ -159,7 +169,6 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
   // Handle individual card click - open more insights for specific site
   const handleCardClick = (siteData: SiteData) => {
-    // Prepare data for the specific site
     const selectedSite = {
       _id: siteData._id,
       name: siteData.name,
@@ -170,29 +179,35 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     dispatch(openMoreInsights({ sites: [selectedSite] }));
   };
 
-  // Fetch sites data to check if suggestions are available
-  const { totalSites: availableSitesCount, isLoading: sitesLoading } =
-    useSitesData({
-      enabled: true,
-      initialPageSize: 1, // Just need to check if sites exist
-      maxLimit: 1,
-    });
+  // Combined loading state - coordinated to show loading only once
+  // When preferences are loading, we don't know if user has sites yet
+  // Only check for available sites count after preferences are loaded
+  const isInitialLoading =
+    preferencesLoading || (shouldCheckAvailableSites && sitesCountLoading);
 
-  // Combined loading state for initial data
-  const isInitialLoading = preferencesLoading || siteCardsLoading;
+  // Show single, coordinated loading state
+  if (isInitialLoading) {
+    return (
+      <div
+        className={`flex items-center justify-center min-h-[400px] ${className}`}
+      >
+        <LoadingState text="Loading dashboard..." />
+      </div>
+    );
+  }
 
-  // Show suggested locations if no favorites are selected but sites are available
-  if (!isInitialLoading && selectedSiteIds.length === 0) {
-    // Check if there are sites available for suggestions
-    const hasSitesAvailable = !sitesLoading && availableSitesCount > 0;
+  // Determine what to show based on user's selected sites and available sites
+  const hasSitesAvailable = availableSitesCount > 0;
 
+  // Case 1: User has NO selected sites - check if sites are available for their organization
+  if (!hasSelectedSites) {
     return (
       <div className={`space-y-8 ${className}`}>
         {hasSitesAvailable ? (
-          // Show suggested locations when sites are available
+          // Show suggested locations when sites are available in the organization
           <SuggestedLocations />
         ) : (
-          // Show empty state when no sites are available
+          // Show empty state banner ONLY when organization has no sites at all
           <EmptyAnalyticsState onAddFavorites={handleManageFavorites} />
         )}
 
@@ -211,37 +226,9 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     );
   }
 
-  // Check if all site cards have no data (organization info is private)
-  const hasNoDataForAllSites =
-    !isInitialLoading &&
-    siteCards.length > 0 &&
-    siteCards.every(card => card.status === 'no-value');
-
+  // Case 2: User HAS selected sites - show analytics dashboard with cards and charts
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Info Banner for Private Organization Data */}
-      {hasNoDataForAllSites && (
-        <InfoBanner
-          title="Location card data unavailable"
-          message={
-            <>
-              Your organization&apos;s data is private. Update visibility
-              settings in{' '}
-              <Link
-                href={getEnvironmentAwareUrl('https://vertex.airqo.net')}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline"
-              >
-                Vertex
-              </Link>{' '}
-              to view measurements.
-            </>
-          }
-          className="mb-4"
-        />
-      )}
-
       {/* Favorite Locations Card */}
       <QuickAccessCard
         sites={siteCards}
