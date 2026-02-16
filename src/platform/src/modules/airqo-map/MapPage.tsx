@@ -21,6 +21,7 @@ import {
   trackFeatureUsage,
 } from '@/shared/utils/enhancedAnalytics';
 import { InfoBanner } from '@/shared/components/ui/banner';
+import { useCohort } from '@/shared/hooks';
 
 interface MapPageProps {
   cohortId?: string;
@@ -108,9 +109,16 @@ const MapPage: React.FC<MapPageProps> = ({
     refetch,
   } = useMapReadings(cohortId);
 
-  // Check if map data is completely empty (organization info is private)
+  // Get cohort details for visibility check
+  const firstCohortId = cohortId ? cohortId.split(',')[0] : '';
+  const { data: cohortData } = useCohort(
+    firstCohortId,
+    isOrganizationFlow && !!firstCohortId
+  );
+
+  // Check if map data is unavailable due to private organization data
   const hasNoMapData =
-    !mapDataLoading && readings.length === 0 && isOrganizationFlow;
+    isOrganizationFlow && cohortData?.cohorts[0]?.visibility === false;
 
   // Disable WAQI data loading - keep logic for future enablement
   const allCities = React.useMemo(() => {
@@ -314,7 +322,7 @@ const MapPage: React.FC<MapPageProps> = ({
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:text-blue-800 underline"
                     >
-                      Vertex
+                      AirQo Vertex
                     </a>{' '}
                     to manage data visibility and make it public to view air
                     quality measurements.
