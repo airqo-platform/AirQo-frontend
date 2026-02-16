@@ -24,6 +24,7 @@ import { trackEvent } from '@/shared/utils/analytics';
 import { useSitesData } from '@/shared/hooks/useSitesData';
 import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
 import { InfoBanner } from '@/shared/components/ui/banner';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -249,7 +250,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
             <>
               Your organization&apos;s information is set to private. Use{' '}
               <a
-                href="https://vertex.airqo.net/"
+                href={getEnvironmentAwareUrl('https://vertex.airqo.net/')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 underline"
