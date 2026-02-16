@@ -53,6 +53,7 @@ export {
   useCohortSites,
   useCohortDevices,
   useGroupCohorts,
+  useCohort,
   useActiveGroupCohorts,
   useActiveGroupCohortSites,
   useActiveGroupCohortDevices,
