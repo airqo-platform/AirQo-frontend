@@ -25,6 +25,7 @@ import type {
   GroupCohortsResponse,
   GridsSummaryResponse,
   GridsSummaryParams,
+  CohortResponse,
 } from '../types/api';
 
 // Authenticated sites summary hook
@@ -213,6 +214,16 @@ export const useGroupCohorts = (groupId: string, enabled = true) => {
       dedupingInterval: 5000,
     }
   );
+};
+
+// Cohort details hook
+export const useCohort = (cohortId: string, enabled = true) => {
+  const key = enabled && cohortId ? ['cohort/details', cohortId] : null;
+
+  return useSWR<CohortResponse>(key, () => deviceService.getCohort(cohortId), {
+    revalidateOnFocus: false,
+    dedupingInterval: 5000,
+  });
 };
 
 // Enhanced hook for managing active group cohorts with Redux store
