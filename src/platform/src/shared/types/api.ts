@@ -500,6 +500,48 @@ export interface GroupCohortsResponse {
   data: string[];
 }
 
+export interface CohortDevice {
+  _id: string;
+  name: string;
+  long_name: string;
+  description: string;
+  device_number: number;
+  isActive: boolean;
+  isOnline: boolean;
+  rawOnlineStatus: boolean;
+  lastRawData: string;
+  lastActive: string;
+  status: string;
+  network: string;
+  createdAt: string;
+}
+
+export interface Cohort {
+  _id: string;
+  groups: string[];
+  visibility: boolean;
+  cohort_tags: string[];
+  cohort_codes: string[];
+  name: string;
+  network: string;
+  createdAt: string;
+  devices: CohortDevice[];
+  numberOfDevices: number;
+}
+
+export interface CohortResponse {
+  success: boolean;
+  message: string;
+  meta: {
+    total: number;
+    limit: number;
+    skip: number;
+    page: number;
+    totalPages: number;
+  };
+  cohorts: Cohort[];
+}
+
 // Grids summary types
 export interface GridSite {
   _id: string;

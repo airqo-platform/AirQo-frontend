@@ -22,6 +22,9 @@ import { openMoreInsights } from '@/shared/store/insightsSlice';
 import type { NormalizedChartData } from '@/shared/components/charts/types';
 import { trackEvent } from '@/shared/utils/analytics';
 import { useSitesData } from '@/shared/hooks/useSitesData';
+import { useActiveGroupCohorts, useCohort } from '@/shared/hooks';
+import { InfoBanner } from '@/shared/components/ui/banner';
+import { getEnvironmentAwareUrl } from '@/shared/utils/url';
 
 interface AnalyticsDashboardProps {
   className?: string;
@@ -78,6 +81,15 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     refresh: refreshBarChart,
     isLoading: barChartLoading,
   } = useAnalyticsChartData(filters, 'bar');
+
+  // Get active group cohorts to check visibility
+  const { cohortIds } = useActiveGroupCohorts();
+
+  // Get cohort details for the first cohort to check visibility
+  const { data: cohortData } = useCohort(
+    cohortIds.length > 0 ? cohortIds[0] : '',
+    cohortIds.length > 0
+  );
 
   // Helper function to extract unique sites from chart data
   const extractSitesFromChartData = (chartData: NormalizedChartData[]) => {
@@ -178,7 +190,8 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
 
     dispatch(openMoreInsights({ sites: [selectedSite] }));
   };
-
+  // Determine if cohort data is private (not visible)
+  const isCohortPrivate = cohortData?.cohorts[0]?.visibility === false;
   // Combined loading state - coordinated to show loading only once
   // When preferences are loading, we don't know if user has sites yet
   // Only check for available sites count after preferences are loaded
@@ -229,6 +242,29 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   // Case 2: User HAS selected sites - show analytics dashboard with cards and charts
   return (
     <div className={`space-y-4 ${className}`}>
+      {/* Show banner if cohort data is private */}
+      {isCohortPrivate && (
+        <InfoBanner
+          title="Location card data unavailable"
+          message={
+            <>
+              Your organization&apos;s information is set to private. Use{' '}
+              <a
+                href={getEnvironmentAwareUrl('https://vertex.airqo.net/')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                AirQo Vertex
+              </a>{' '}
+              to manage data visibility and make it public to view air quality
+              measurements.
+            </>
+          }
+          className="shadow-lg bg-white/95 backdrop-blur-sm border-blue-200"
+        />
+      )}
+
       {/* Favorite Locations Card */}
       <QuickAccessCard
         sites={siteCards}
