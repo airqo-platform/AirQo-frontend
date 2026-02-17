@@ -35,6 +35,16 @@ This runs:
 
 ## Build installer (Windows)
 
+### Windows prerequisites
+
+Before building on Windows, make sure:
+
+1. Windows Developer Mode is enabled:
+   - Settings -> Privacy & security -> For developers -> Developer Mode = On
+2. Your terminal is opened as Administrator.
+
+These are required so electron-builder can complete Windows packaging steps (including executable/icon resource updates) without symlink permission errors.
+
 ```bash
 npm run dist:win
 ```
