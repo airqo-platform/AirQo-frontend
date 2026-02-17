@@ -3,6 +3,12 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import { isTokenExpired } from './utils';
 import { authService } from '../services/authService';
 
+const isProduction = process.env.NODE_ENV === 'production';
+const sharedCookieDomain = process.env.NEXTAUTH_COOKIE_DOMAIN;
+const sessionCookieName = isProduction
+  ? '__Secure-next-auth.session-token'
+  : 'next-auth.session-token';
+
 // Helper function to check token expiration and log
 const isTokenInvalid = (accessToken: string | undefined): boolean => {
   if (!accessToken || isTokenExpired(accessToken)) {
@@ -12,6 +18,8 @@ const isTokenInvalid = (accessToken: string | undefined): boolean => {
 };
 
 export const authOptions: any = {
+  secret: process.env.NEXTAUTH_SECRET,
+  useSecureCookies: isProduction,
   providers: [
     CredentialsProvider({
       name: 'credentials',
@@ -59,6 +67,22 @@ export const authOptions: any = {
       },
     }),
   ],
+  ...(sharedCookieDomain
+    ? {
+        cookies: {
+          sessionToken: {
+            name: sessionCookieName,
+            options: {
+              httpOnly: true,
+              sameSite: 'lax' as const,
+              path: '/',
+              secure: isProduction,
+              domain: sharedCookieDomain,
+            },
+          },
+        },
+      }
+    : {}),
   pages: {
     signIn: '/user/login',
     signOut: '/user/login',
