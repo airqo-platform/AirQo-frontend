@@ -118,7 +118,7 @@ const PrimarySidebar: React.FC<PrimarySidebarProps> = ({
         initial={{ x: '-100%' }}
         animate={{ x: isOpen ? '0%' : '-100%' }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="fixed top-0 left-0 w-72 h-full bg-card shadow-lg z-[1000] flex flex-col p-4"
+        className="fixed top-[var(--vertex-ui-top-offset)] left-0 w-72 h-[calc(100vh-var(--vertex-ui-top-offset))] bg-card shadow-lg z-[1000] flex flex-col p-4"
       >
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">

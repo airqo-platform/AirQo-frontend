@@ -93,7 +93,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-0 left-0 right-0 z-[999]">
+    <header className="fixed flex flex-col gap-2 px-1 md:px-2 py-1 top-[var(--vertex-ui-top-offset)] left-0 right-0 z-[999]">
       <Card className={`w-full bg-white`} padding="py-1 px-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2">

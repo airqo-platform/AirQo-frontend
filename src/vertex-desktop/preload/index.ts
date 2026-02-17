@@ -36,15 +36,6 @@ const injectDesktopTopbar = (): void => {
       html.vertex-desktop-topbar-enabled body {
         margin-top: var(--vertex-titlebar-height) !important;
       }
-      html.vertex-desktop-topbar-enabled .fixed.top-0 {
-        top: var(--vertex-titlebar-height) !important;
-      }
-      html.vertex-desktop-topbar-enabled .sticky.top-0 {
-        top: var(--vertex-titlebar-height) !important;
-      }
-      html.vertex-desktop-topbar-enabled .fixed.top-0.h-full {
-        height: calc(100% - var(--vertex-titlebar-height)) !important;
-      }
       #${TOPBAR_ID} {
         position: fixed;
         top: env(titlebar-area-y, 0px);
@@ -117,6 +108,7 @@ const injectDesktopTopbar = (): void => {
   }
 
   document.documentElement.classList.add("vertex-desktop-topbar-enabled");
+  document.documentElement.style.setProperty("--vertex-ui-top-offset", "var(--vertex-titlebar-height)");
 
   const topbar = document.createElement("div");
   topbar.id = TOPBAR_ID;
