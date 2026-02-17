@@ -21,7 +21,7 @@ interface CustomTooltipProps {
 }
 
 const formatValue = (value: number): string => {
-  return formatTruncatedNumber(value, 2);
+  return formatTruncatedNumber(value, 1);
 };
 
 const formatDate = (date: Date | string): string => {

@@ -216,7 +216,7 @@ const MapNodesComponent: React.FC<MapNodesProps> = ({
                 level === 'hazardous' && 'bg-red-900'
               )}
             >
-              {truncateDecimals(reading.pm25Value, 2)}
+              {truncateDecimals(reading.pm25Value, 1)}
             </div>
           </div>
         </CustomTooltip>
